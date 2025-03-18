@@ -159,6 +159,12 @@ protected:
   /// Relative tolerance for checking flux/heat source normalizations
   const Real & _rel_tol;
 
+  /// Initial value to use for the total boundary power for ensuring power conservation
+  const Real & _initial_flux_integral;
+
+  /// Initial value to use for the total volumetric power for ensuring power conservation
+  const Real & _initial_source_integral;
+
   /**
    * \brief Total surface-integrated flux coming from the coupled MOOSE app.
    *

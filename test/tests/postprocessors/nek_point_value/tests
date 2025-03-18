@@ -1,0 +1,58 @@
+[Tests]
+  design = 'NekPointValue.md'
+  issues = '#1015 #1016 #1079'
+
+  [pp]
+    requirement = 'The system shall interpolate the NekRS solution onto a given point. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
+    [points]
+      type = CSVDiff
+      input = points.i
+      csvdiff = points_out.csv
+      detail = 'dimensional form'
+      required_objects = 'NekRSProblem'
+    []
+    [nondimensional]
+      type = CSVDiff
+      input = points_nondimensional.i
+      csvdiff = points_nondimensional_out.csv
+      detail = 'non-dimensional form'
+      required_objects = 'NekRSProblem'
+    []
+    [usrwrk_units]
+      type = CSVDiff
+      input = usrwrk_units.i
+      csvdiff = usrwrk_units_out.csv
+      detail = 'non-dimensional scaling of usrwrk slots for which the units are known'
+      required_objects = 'NekRSProblem'
+    []
+  []
+
+
+  [warn]
+    requirement = 'The system shall warn the user if dimensionalization is requested and cannot be performed, for'
+    [u00]
+      type = RunException
+      input = unknown.i
+      cli_args = 'Postprocessors/usrwrk/field=usrwrk00 --error'
+      expect_err = "The units of 'usrwrk00' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'."
+      detail = 'usrwrk slot 0'
+      required_objects = 'NekRSProblem'
+    []
+    [u01]
+      type = RunException
+      input = unknown.i
+      cli_args = 'Postprocessors/usrwrk/field=usrwrk01 --error'
+      expect_err = "The units of 'usrwrk01' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk01'."
+      detail = 'usrwrk slot 1'
+      required_objects = 'NekRSProblem'
+    []
+    [u02]
+      type = RunException
+      input = unknown.i
+      cli_args = '--error'
+      expect_err = "The units of 'usrwrk02' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk02'."
+      detail = 'usrwrk slot 2'
+      required_objects = 'NekRSProblem'
+    []
+  []
+[]

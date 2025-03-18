@@ -33,8 +33,10 @@ MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
+MooseEnum getSingleTallyScoreEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
+MooseEnum getFilterTypeEnum();
 
 namespace nek_mesh
 {
@@ -88,17 +90,23 @@ namespace field
 /// Enumeration of possible fields to read from nekRS
 enum NekFieldEnum
 {
-  velocity_component,
   velocity_x,
   velocity_y,
   velocity_z,
   velocity,
+  velocity_component,
+  velocity_x_squared,
+  velocity_y_squared,
+  velocity_z_squared,
   temperature,
   pressure,
   scalar01,
   scalar02,
   scalar03,
-  unity
+  unity,
+  usrwrk00,
+  usrwrk01,
+  usrwrk02
 };
 
 /// Enumeration of possible fields to write in nekRS
@@ -240,3 +248,12 @@ enum RelaxationEnum
   none
 };
 } // namespace relaxation
+
+enum OpenMCFilterType
+{
+  cell,
+  material,
+  universe,
+  mesh,
+  none
+};

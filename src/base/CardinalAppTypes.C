@@ -20,6 +20,7 @@
 #include "ExecFlagRegistry.h"
 
 #ifdef ENABLE_OPENMC_COUPLING
+const ExecFlagType EXEC_FILTER_EDITORS = registerExecFlag("EXEC_FILTER_EDITORS");
+const ExecFlagType EXEC_TALLY_EDITORS = registerExecFlag("EXEC_TALLY_EDITORS");
 const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
 #endif

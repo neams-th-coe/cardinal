@@ -21,5 +21,3 @@ into two hemispheres.
 !syntax parameters /Problem/Filters/AzimuthalAngleFilter
 
 !syntax inputs /Problem/Filters/AzimuthalAngleFilter
-
-!syntax children /Problem/Filters/AzimuthalAngleFilter

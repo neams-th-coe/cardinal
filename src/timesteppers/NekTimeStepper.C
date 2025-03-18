@@ -86,14 +86,14 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters)
 Real
 NekTimeStepper::computeInitialDT()
 {
-  return _nek_dt * _t_ref;
+  return _nek_dt * nekrs::referenceTime();
 }
 
 Real
 NekTimeStepper::computeDT()
 {
   Real dt = nekrs::hasVariableDt() ? nekrs::dt(_t_step) : _nek_dt;
-  return dt * _t_ref;
+  return dt * nekrs::referenceTime();
 }
 
 Real
@@ -102,16 +102,10 @@ NekTimeStepper::minDT() const
   return _min_dt;
 }
 
-void
-NekTimeStepper::setReferenceTime(const Real & L, const Real & U)
-{
-  _t_ref = L / U;
-}
-
 Real
 NekTimeStepper::nondimensionalDT(const Real & dimensional_dt) const
 {
-  return dimensional_dt / _t_ref;
+  return dimensional_dt / nekrs::referenceTime();
 }
 
 #endif

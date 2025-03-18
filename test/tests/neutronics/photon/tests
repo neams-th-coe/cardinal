@@ -6,4 +6,15 @@
     requirement = "The system shall error if using incompatible tally estimator with a photon transport heating score."
     required_objects = 'OpenMCCellAverageProblem'
   []
+
+  [photon_nu_scatter_heating]
+    type = RunException
+    input = openmc.i
+    expect_err = "A single tally cannot score both nu_scatter and heating when photon transport is enabled"
+    requirement = "The system shall error if using a single tally with a photon transport heating score and nu-scatter score."
+    cli_args = 'Problem/Tallies/Cell/score="nu_scatter heating" Problem/Tallies/Cell/estimator=""'
+    required_objects = 'OpenMCCellAverageProblem'
+    issues = '#1089'
+    design = 'AddTallyAction.md'
+  []
 []

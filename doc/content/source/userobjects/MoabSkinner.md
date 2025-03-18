@@ -22,6 +22,10 @@ which to track particles.
   caption=Mesh skinning operation
   style=width:90%;margin-left:auto;margin-right:auto
 
+!alert tip
+You can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that skins a mesh, generating the bin distributions
@@ -31,10 +35,8 @@ shown in [moab_skinner].
   block=UserObjects
 
 The binning, colored on a per-element basis as shown in [moab_skinner] can be visualized
-with the [SkinnedBins](/auxkernels/SkinnedBins.md) auxiliary kernel.
+with the [SkinnedBins](SkinnedBins.md) auxiliary kernel.
 
 !syntax parameters /UserObjects/MoabSkinner
 
 !syntax inputs /UserObjects/MoabSkinner
-
-!syntax children /UserObjects/MoabSkinner

@@ -127,6 +127,10 @@ A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 
 # Lead Fast Reactors
 
+Y. Yu, H. Park, A. Novak, and E. Shemon,
+["High Fidelity Multiphysics Tightly Coupled Model for a Lead Cooled Fast Reactor Concept and Application to Statistical Calculation of Hot Channel Factors"](https://linkinghub.elsevier.com/retrieve/pii/S0029549325000925)
+435 (113915) *Nuclear Engineering and Design* (2025)
+
 H. Park, Y. Yu, E. Shemon, and A. Novak,
 ["Development of a Coupled Code System with Griffin, MOOSE and NekRS for Hot Channel Factor Evaluation in Fast Reactor"](https://www.researchgate.net/publication/373330910_Development_of_Coupled_Code_System_with_Griffin_MOOSE_and_NekRS_for_Hot_Channel_Factor_Evaluation_in_Fast_Reactors)
 *Proceedings of M&C* (2023)
@@ -230,3 +234,7 @@ B. Feng, J. Fang, T. Hua, N. Stauff, A. Novak, L. Zou, R. Hu, P. Balestra, D. Re
 B. Feng, J. Fang, N. Stauff, T. Hua, L. Zou, R. Hu, D. Shaver, and A. Novak,
 ["Development of Advanced Reactor Models for Virtual Test Bed Using NEAMS Tools"](https://www.osti.gov/biblio/1832109)
 *Argonne National Laboratory*, ANL-21/28 (2021)
+
+Mohamed Elkamash, Lise Charlot, Mustafa K. Jaradat, Shikhar Kumar, Joffrey Dorville, Emily Shemon, Paul Romano, and April J. Novak
+["Development of The DOME Shield Model for The NRIC Virtual Test Bed"](https://www.ans.org/pubs/transactions/article-57160/)
+*Proceedings of ANS Winter Conference and Expo* (2024)

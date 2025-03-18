@@ -41,8 +41,7 @@ Re=\frac{\rho VD}{\mu}
 We will apply a uniform heat flux on the pebble surface. The pebble surface heat flux is selected to
 give a pebble power of approximately 893 W (giving a bulk fluid temperature rise
 of 50 K).
-In the
-[conjugate heat transfer tutorials](tutorials/cht.md), this heat flux will later be
+In the [conjugate heat transfer tutorials](cht.md), this heat flux will later be
 replaced by coupling to MOOSE.
 
 !table id=table1 caption=Geometric and operating conditions for the single-pebble flow. Fluid properties correspond to water at standard atmosphere and temperature.

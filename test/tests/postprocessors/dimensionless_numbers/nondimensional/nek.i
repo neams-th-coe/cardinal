@@ -2,13 +2,14 @@
   type = NekRSStandaloneProblem
   casename = 'brick'
 
-  nondimensional = true
-  L_ref = 0.25
-  U_ref = 0.001
-  rho_0 = 834.5
-  Cp_0 = 1228.0
-  T_ref = 573.0
-  dT_ref = 10.0
+  [Dimensionalize]
+    L = 0.25
+    U = 0.001
+    rho = 834.5
+    Cp = 1228.0
+    T = 573.0
+    dT = 10.0
+  []
 []
 
 [Mesh]

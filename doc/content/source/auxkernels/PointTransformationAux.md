@@ -7,7 +7,7 @@
 Displays the $x$, $y$, or $z$ coordinates that get mapped to OpenMC. This
 auxiliary kernel can be used to ensure that the
 `normal`, `rotation_axis`, and `rotation_angle` parameters on
-[SymmetryPointGenerator](/userobjects/SymmetryPointGenerator.md)
+[SymmetryPointGenerator](SymmetryPointGenerator.md)
 apply the desired transformations. In other words, this class displays the
 *transformed* spatial coordinates.
 
@@ -41,5 +41,3 @@ and `rotation_angle` to properly map to the OpenMC domain.
 !syntax parameters /AuxKernels/PointTransformationAux
 
 !syntax inputs /AuxKernels/PointTransformationAux
-
-!syntax children /AuxKernels/PointTransformationAux

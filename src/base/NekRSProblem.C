@@ -31,6 +31,28 @@ InputParameters
 NekRSProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
+  params.addParam<Real>(
+      "initial_flux_integral",
+      0,
+      "Initial value to use for the 'flux_integral' postprocessor, to ensure power conservation; "
+      "this initial value will be overridden once the coupled app executes its transfer of the "
+      "boundary power into the 'flux_integral' postprocessor. You may want to use this parameter "
+      "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
+      "heat flux boundary condition via Cardinal. Remember that this parameter is only used to "
+      "normalize the 'avg_flux' variable, so you will need to populate an initial shape (magnitude "
+      "is unimportant because it will be normalized by this parameter).");
+  params.addParam<Real>(
+      "initial_source_integral",
+      0,
+      "Initial value to use for the 'source_integral' postprocessor, to ensure power conservation; "
+      "this initial value will be overridden once the coupled app executes its transfer of the "
+      "volumetric power into the 'source_integral' postprocessor. You may want to use this "
+      "parameter "
+      "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
+      "power density via Cardinal. Remember that this parameter is only used to "
+      "normalize the 'heat_source' variable, so you will need to populate an initial shape "
+      "(magnitude "
+      "is unimportant because it will be normalized by this parameter).");
 
   params.addParam<bool>("has_heat_source",
                         true,
@@ -57,6 +79,8 @@ NekRSProblem::validParams()
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
+  params.addClassDescription("Couple NekRS to MOOSE through 3-D boundary or volume data transfers "
+                             "for temperature, heat flux, and geometry");
   return params;
 }
 
@@ -65,13 +89,21 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _has_heat_source(getParam<bool>("has_heat_source")),
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
-    _rel_tol(getParam<Real>("normalization_rel_tol"))
+    _rel_tol(getParam<Real>("normalization_rel_tol")),
+    _initial_flux_integral(getParam<Real>("initial_flux_integral")),
+    _initial_source_integral(getParam<Real>("initial_source_integral"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
 
   if (!_boundary)
-    checkUnusedParam(params, "conserve_flux_by_sideset", "coupling NekRS solely through a volume mesh mirror");
+  {
+    checkUnusedParam(params, "conserve_flux_by_sideset", "'boundary' is empty");
+    checkUnusedParam(params, "initial_flux_integral", "'boundary' is empty");
+  }
+
+  if (!_volume && !_has_heat_source)
+    checkUnusedParam(params, "initial_source_integral", "'volume' is false");
 
   // Determine the usrwrk indexing; the ordering will always be as
   // follows (except that unused terms will be deleted if not needed for coupling)
@@ -83,24 +115,24 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   int start = _usrwrk_indices.size();
   if (_boundary)
   {
-    indices.flux = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("flux");
+    indices.flux = start++ * nekrs::fieldOffset();
+    _usrwrk_indices.push_back("heat flux");
   }
 
   if (_volume && _has_heat_source)
   {
-    indices.heat_source = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("heat_source");
+    indices.heat_source = start++ * nekrs::fieldOffset();
+    _usrwrk_indices.push_back("heat source");
   }
 
   if (nekrs::hasBlendingSolver())
   {
-    indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
-    indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
-    indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("mesh_velocity_x");
-    _usrwrk_indices.push_back("mesh_velocity_y");
-    _usrwrk_indices.push_back("mesh_velocity_z");
+    indices.mesh_velocity_x = start++ * nekrs::fieldOffset();
+    indices.mesh_velocity_y = start++ * nekrs::fieldOffset();
+    indices.mesh_velocity_z = start++ * nekrs::fieldOffset();
+    _usrwrk_indices.push_back("mesh velocity x");
+    _usrwrk_indices.push_back("mesh velocity y");
+    _usrwrk_indices.push_back("mesh velocity z");
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
@@ -183,12 +215,10 @@ NekRSProblem::initialSetup()
   // the solve is turned off because this is really only a testing feature.
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
   if (!has_temperature_solve)
-    mooseWarning(
-        "By setting 'solver = none' for temperature in '" + _casename +
-        ".par', nekRS "
-        "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
-        "fixed at its initial condition, and the heat flux\nand power transferred to nekRS will be "
-        "unused.");
+    mooseWarning("By setting 'solver = none' for temperature in '" + _casename +
+                 ".par', nekRS will not solve for temperature.\n\nThe fluid wall temperature "
+                 "transferred to MOOSE will remain fixed at its initial condition, and the heat "
+                 "flux and power transferred to nekRS will be unused.");
 
   // For boundary-based coupling, we should check that the correct flux boundary
   // condition is set on all of nekRS's boundaries. To avoid throwing this
@@ -497,13 +527,13 @@ NekRSProblem::sendVolumeDeformationToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    mapVolumeDataToNekVolume(e, _disp_x_var, 1.0 / _L_ref, &_displacement_x);
+    mapVolumeDataToNekVolume(e, _disp_x_var, 1.0 / nekrs::referenceLength(), &_displacement_x);
     writeVolumeSolution(e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
 
-    mapVolumeDataToNekVolume(e, _disp_y_var, 1.0 / _L_ref, &_displacement_y);
+    mapVolumeDataToNekVolume(e, _disp_y_var, 1.0 / nekrs::referenceLength(), &_displacement_y);
     writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
 
-    mapVolumeDataToNekVolume(e, _disp_z_var, 1.0 / _L_ref, &_displacement_z);
+    mapVolumeDataToNekVolume(e, _disp_z_var, 1.0 / nekrs::referenceLength(), &_displacement_z);
     writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
 
@@ -537,7 +567,7 @@ NekRSProblem::normalizeHeatSource(const double moose, double nek, double & norma
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
-  _console << "Sending volumetric heat source to NekRS" << std::endl;
+  _console << "Sending volumetric heat source to NekRS..." << std::endl;
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
@@ -562,7 +592,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   double normalized_nek_source = 0.0;
   bool successful_normalization;
 
-  _console << "Normalizing total NekRS heat source of "
+  _console << "[volume]: Normalizing total NekRS heat source of "
            << Moose::stringify(nek_source * nek_source_print_mult)
            << " to the conserved MOOSE value of " + Moose::stringify(moose_source) << std::endl;
 
@@ -742,6 +772,11 @@ NekRSProblem::addExternalVariables()
     // add the postprocessor that receives the flux integral for normalization
     if (_conserve_flux_by_sideset)
     {
+      if (isParamSetByUser("initial_flux_integral"))
+        mooseWarning("The 'initial_flux_integral' capability is not yet supported when "
+                     "'conserve_flux_by_sideset' is enabled. Please contact a Cardinal developer "
+                     "if this is hindering your use case.");
+
       auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
 
       // create zero initial values
@@ -752,6 +787,7 @@ NekRSProblem::addExternalVariables()
     else
     {
       auto pp_params = _factory.getValidParams("Receiver");
+      pp_params.set<Real>("default") = _initial_flux_integral;
       addPostprocessor("Receiver", "flux_integral", pp_params);
     }
   }
@@ -764,6 +800,7 @@ NekRSProblem::addExternalVariables()
 
     // add the postprocessor that receives the source integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
+    pp_params.set<Real>("default") = _initial_source_integral;
     addPostprocessor("Receiver", "source_integral", pp_params);
   }
 
@@ -816,7 +853,8 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
   }
 
   for (int i=0; i <len; i++)
-    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e*len) + i])/dt/_U_ref;
+    _mesh_velocity_elem[i] =
+        (displacement[i] - prev_disp[(e * len) + i]) / dt / nekrs::referenceVelocity();
 
   _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }

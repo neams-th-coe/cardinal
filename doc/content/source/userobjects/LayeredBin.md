@@ -8,6 +8,10 @@ This user object bins the spatial domain according to uniform-size
 layers in a specified direction according to the bounding box of the mesh.
 Layers are numbered increasing in the positive direction.
 
+!alert tip
+To help with debugging, you can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that constructs layered bins in each
@@ -26,5 +30,3 @@ The bins in the $x$ direction are shown below, colored by bin ID.
 !syntax parameters /UserObjects/LayeredBin
 
 !syntax inputs /UserObjects/LayeredBin
-
-!syntax children /UserObjects/LayeredBin

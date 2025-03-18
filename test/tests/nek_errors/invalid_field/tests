@@ -1,29 +1,64 @@
 [Tests]
-  [invalid_field]
+  [temperature]
     type = RunException
     input = nek.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to use temperature postprocessors for inputs "
-                  "that don't have a temperature variable."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable!"
+    requirement = "The system shall throw an error if trying to use temperature as a field for cases that do not have a temperature variable"
     required_objects = 'NekRSProblem'
   []
-  [invalid_output]
+  [scalar01]
     type = RunException
-    input = nek_no_temp.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to output temperature for inputs "
-                  "that don't have a temperature variable."
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar01'
+    expect_err = "Cannot find 'scalar01' because your Nek case files do not have a scalar01 variable!"
+    requirement = "The system shall throw an error if trying to use scalar01 as a field for problems that don't have a scalar01 variable."
     required_objects = 'NekRSProblem'
   []
-  [invalid_field_uo]
+  [scalar02]
     type = RunException
-    input = nek_uo.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to use temperature userobjects for inputs "
-                  "that don't have a temperature variable."
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar02'
+    expect_err = "Cannot find 'scalar02' because your Nek case files do not have a scalar02 variable!"
+    requirement = "The system shall throw an error if trying to use scalar02 as a field for problems that don't have a scalar02 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [scalar03]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar03'
+    expect_err = "Cannot find 'scalar03' because your Nek case files do not have a scalar03 variable!"
+    requirement = "The system shall throw an error if trying to use scalar03 as a field for problems that don't have a scalar03 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [usrwrk00]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=usrwrk00 Problem/n_usrwrk_slots=0'
+    expect_err = "Cannot find 'usrwrk00' because you have only allocated 'n_usrwrk_slots = 0'"
+    requirement = "The system shall throw an error if trying to use usrwrk00 as a field for problems that don't have sufficient usrwrk slots."
+    required_objects = 'NekRSProblem'
+  []
+  [usrwrk01]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=usrwrk01 Problem/n_usrwrk_slots=1'
+    expect_err = "Cannot find 'usrwrk01' because you have only allocated 'n_usrwrk_slots = 1'"
+    requirement = "The system shall throw an error if trying to use usrwrk01 as a field for problems that don't have sufficient usrwrk slots."
+    required_objects = 'NekRSProblem'
+  []
+  [usrwrk02]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=usrwrk02 Problem/n_usrwrk_slots=2'
+    expect_err = "Cannot find 'usrwrk02' because you have only allocated 'n_usrwrk_slots = 2'"
+    requirement = "The system shall throw an error if trying to use usrwrk02 as a field for problems that don't have sufficient usrwrk slots."
+    required_objects = 'NekRSProblem'
+  []
+  [allocate_scratch_no_T]
+    type = RunApp
+    input = nek.i
+    cli_args = "Postprocessors/active='' Problem/n_usrwrk_slots=2"
+    requirement = "The system shall correctly allocate scratch by accessing only quantities on the flow mesh if there is no temperature variable"
     required_objects = 'NekRSProblem'
   []
   [duplicate_auxvar]

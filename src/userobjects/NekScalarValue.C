@@ -58,8 +58,7 @@ NekScalarValue::NekScalarValue(const InputParameters & parameters)
   }
 
   // pick a reasonable default if not specified
-  auto first_available_slot =
-      nek_problem->minimumScratchSizeForCoupling() + nek_problem->firstReservedUsrwrkSlot();
+  auto first_available_slot = nek_problem->scratchSpaceReservedForCoupling().second;
   if (isParamValid("usrwrk_slot"))
     _usrwrk_slot = getParam<unsigned int>("usrwrk_slot");
   else
@@ -82,14 +81,14 @@ void
 NekScalarValue::setValue()
 {
   nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
-  nrs->usrwrk[_usrwrk_slot * nekrs::scalarFieldOffset() + _counter] = _value * _scaling;
+  nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _counter] = _value * _scaling;
 }
 
 Real
 NekScalarValue::getValue() const
 {
   nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
-  return nrs->usrwrk[_usrwrk_slot * nekrs::scalarFieldOffset() + _counter];
+  return nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _counter];
 }
 
 #endif

@@ -19,34 +19,18 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekSideFieldPostprocessor.h"
-#include "UserErrorChecking.h"
 
 InputParameters
 NekSideFieldPostprocessor::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addRequiredParam<MooseEnum>("field",
-                                     getNekFieldEnum(),
-                                     "Field to integrate");
-  params.addParam<Point>(
-      "velocity_direction",
-      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
+  params += NekFieldInterface::validParams();
   return params;
 }
 
 NekSideFieldPostprocessor::NekSideFieldPostprocessor(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters),
-    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
+  : NekSidePostprocessor(parameters), NekFieldInterface(this, parameters)
 {
-  if (_field == field::velocity_component)
-  {
-    checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
-    _velocity_direction =
-        geom_utils::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
-  }
-  else
-    checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
 }
 
 #endif

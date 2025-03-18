@@ -22,9 +22,33 @@ void UDF_Setup(nrs_t *nrs)
     nrs->P[n] = exp(x) + exp(y) + exp(z); // pressure
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
+    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 1; // scalar 01
+    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 2; // scalar 02
+    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 3; // scalar 03
   }
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
+  if (tstep == 0)
+  {
+    auto mesh = nrs->cds->mesh[0];
+
+    // have to fill usrwrk from this function because in UDF_Setup it has not yet been allocated
+    int n_gll_points = mesh->Np * mesh->Nelements;
+    for (int n = 0; n < n_gll_points; ++n)
+    {
+      dfloat x = mesh->x[n];
+      dfloat y = mesh->y[n];
+      dfloat z = mesh->z[n];
+
+      nrs->usrwrk[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + 1;
+      nrs->usrwrk[n + 1 * nrs->cds->fieldOffset[0]] = exp(y) + 1;
+      nrs->usrwrk[n + 2 * nrs->cds->fieldOffset[0]] = exp(z) + 1;
+
+      // we only access the first three slices, but can define extra ones beyond that should
+      // be unused for postprocessing
+      nrs->usrwrk[n + 3 * nrs->cds->fieldOffset[0]] = sin(x) + exp(z);
+    }
+  }
 }

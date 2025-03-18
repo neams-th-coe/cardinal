@@ -27,7 +27,7 @@ InputParameters
 CellMaterialIDAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("Display the OpenMC fluid material ID mapped to each MOOSE element");
+  params.addClassDescription("OpenMC fluid material ID, mapped to each MOOSE element");
   return params;
 }
 

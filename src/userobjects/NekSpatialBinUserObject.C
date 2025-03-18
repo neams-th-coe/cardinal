@@ -24,12 +24,17 @@
 InputParameters
 NekSpatialBinUserObject::validParams()
 {
-  InputParameters params = NekUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  params += NekBase::validParams();
+  params += NekFieldInterface::validParams();
   params.addRequiredParam<std::vector<UserObjectName>>(
       "bins", "Userobjects providing a spatial bin given a point");
-  params.addRequiredParam<MooseEnum>("field",
-                                     getNekFieldEnum(),
-                                     "Field to postprocess");
+  params.addParam<unsigned int>(
+      "interval",
+      1,
+      "Frequency (in number of time steps) with which to execute this user object; user objects "
+      "can be expensive and not necessary to evaluate on every single time step. NOTE: you "
+      "probably want to match with 'time_step_interval' in the Output");
   params.addParam<bool>(
       "map_space_by_qp",
       false,
@@ -42,23 +47,15 @@ NekSpatialBinUserObject::validParams()
       "spatial bin; this "
       "can be used to ensure that the bins are sufficiently big to get at least one contributing "
       "point from the NekRS mesh.");
-  params.addParam<MooseEnum>(
-      "velocity_component",
-      getBinnedVelocityComponentEnum(),
-      "Direction with which to evaluate velocity when 'field = velocity_component.' "
-      "Options: user (specify a direction with 'velocity_direction'), normal (normal to side "
-      "bins)");
-  params.addParam<Point>(
-      "velocity_direction",
-      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
   return params;
 }
 
 NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & parameters)
-  : NekUserObject(parameters),
+  : GeneralUserObject(parameters),
+    NekBase(this, parameters),
+    NekFieldInterface(this, parameters, true /* allow normal */),
+    _interval(getParam<unsigned int>("interval")),
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
-    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp")),
     _check_zero_contributions(getParam<bool>("check_zero_contributions")),
     _bin_values(nullptr),
@@ -70,6 +67,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_partial_values(nullptr),
     _bin_partial_counts(nullptr)
 {
+  _fixed_mesh = !(_nek_problem->hasMovingNekMesh());
+
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
 
@@ -145,35 +144,10 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   else
     computePoints3D();
 
-  if (_field == field::velocity_component)
-  {
-    if (!isParamValid("velocity_component"))
-      mooseError("The 'velocity_component' parameter must be provided when using 'field = "
-                 "velocity_component'!");
-
-    _velocity_component =
-        getParam<MooseEnum>("velocity_component").getEnum<component::BinnedVelocityComponentEnum>();
-  }
-  else if (isParamValid("velocity_component"))
-    mooseWarning(
-        "The 'velocity_component' parameter is unused unless 'field = velocity_component'!");
-
+  // with a user-specified direction, the direction for each bin is the same
   if (_field == field::velocity_component && _velocity_component == component::user)
-  {
-    if (!isParamValid("velocity_direction"))
-      mooseError("The 'velocity_direction' parameter must be provided when using "
-                 "'velocity_component = user'!");
-
-    Point direction =
-        geom_utils::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
-
-    // with a user-specified direction, the direction for each bin is the same
     for (unsigned int i = 0; i < _n_bins; ++i)
-      _velocity_bin_directions.push_back(direction);
-  }
-  else if (isParamValid("velocity_direction"))
-    mooseWarning(
-        "The 'velocity_direction' parameter is unused unless 'velocity_component = user'!");
+      _velocity_bin_directions.push_back(_velocity_direction);
 }
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
@@ -187,6 +161,13 @@ NekSpatialBinUserObject::~NekSpatialBinUserObject()
   freePointer(_bin_values_x);
   freePointer(_bin_values_y);
   freePointer(_bin_values_z);
+}
+
+void
+NekSpatialBinUserObject::execute()
+{
+  if (_fe_problem.timeStep() % _interval == 0)
+    executeUserObject();
 }
 
 Point
@@ -220,13 +201,12 @@ NekSpatialBinUserObject::computeBinVolumes()
       if (_bin_counts[i] == 0)
       {
         std::string map = _map_space_by_qp ? "GLL points" : "element centroids";
-        mooseError("Failed to map any " + map + " to bin " + Moose::stringify(i) +
-                   "!\n\n"
-                   "This can happen if the bins are much finer than the NekRS mesh or if the bins "
-                   "are defined\n"
-                   "in a way that results in bins entirely outside the NekRS domain. You can turn "
-                   "this error\n"
-                   "off by setting 'check_zero_contributions = false'.");
+        mooseError(
+            "Failed to map any " + map + " to bin " + Moose::stringify(i) +
+            "!\n\n"
+            "This can happen if the bins are much finer than the NekRS mesh or if the bins are "
+            "defined in a way that results in bins entirely outside the NekRS domain. You can turn "
+            "this error off by setting 'check_zero_contributions = false' (at your own risk!).");
       }
     }
   }

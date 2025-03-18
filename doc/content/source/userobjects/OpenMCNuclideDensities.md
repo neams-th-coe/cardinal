@@ -30,5 +30,3 @@ material with ID 1, by adding U-238 (the original material in the
 !syntax parameters /UserObjects/OpenMCNuclideDensities
 
 !syntax inputs /UserObjects/OpenMCNuclideDensities
-
-!syntax children /UserObjects/OpenMCNuclideDensities

@@ -1,8 +1,6 @@
 ABTR: Advanced Burner Test Reactor
 ABR: Advanced Burner Reactor
 ANL: Argonne National Laboratory
-API: Application Programming Interface
-BC: Boundary Condition
 CAD: Computer Aided Design
 CFD: Computational Fluid Dynamics
 CFL: Courant-Friedrichs-Lewy
@@ -17,11 +15,9 @@ GCE: General Computing Environment
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
-HPC: High-Performance Computing
 LES: Large Eddy Simulation
 LWR: Light Water Reactor
 MSFR: Molten Salt Fast Reactor
-NEAMS: Nuclear Energy Advanced Modeling and Simulation
 NRIC: National Reactor Innovation Center
 OCCA: Open Concurrent Compute Abstraction
 ORNL: Oak Ridge National Laboratory
@@ -39,3 +35,4 @@ THTR: Thorium High Temperature Reactor
 TRISO: Tri-Structural Isotropic
 UQ: Uncertainty Quantification
 VTB: Virtual Test Bed
+AMR: Adaptive Mesh Refinement

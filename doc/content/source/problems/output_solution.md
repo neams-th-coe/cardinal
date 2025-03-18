@@ -1,5 +1,5 @@
 This class enables extracting a number of fields from the NekRS solution
-onto the [NekRSMesh](/mesh/NekRSMesh.md) mesh mirror *in addition* to any
+onto the [NekRSMesh](NekRSMesh.md) mesh mirror *in addition* to any
 fields that are already interpolated onto the mesh mirror for purposes of
 multiphysics coupling to another MOOSE application.
 This feature can be used for:
@@ -26,18 +26,17 @@ be output because it is used as part of the physics transfers.
 
 When outputting
 data, the NekRS solution fields are interpolated from the [!ac](GLL) points
-onto the [NekRSMesh](/mesh/NekRSMesh.md), which will be either a first or
+onto the [NekRSMesh](NekRSMesh.md), which will be either a first or
 second order representation of the NekRS mesh. This interpolation is performed
 using [Vandermonde matrices](vandermonde.md).
 Therefore, the output solution
 is generally not an exact representation of NekRS's solution, for which the
 NekRS field files are still required to visualize fully. Because the MOOSE
-framework supports many different
-[output formats](https://mooseframework.inl.gov/syntax/Outputs/index.html),
+framework supports many different [output formats](Outputs/index.md),
 this is a convenient manner by which to obtain a representation of the NekRS
 solution in Exodus, VTK, CSV, and other formats.
 
-If `volume = true` is specified on the [NekRSMesh](/mesh/NekRSMesh.md),
+If `volume = true` is specified on the [NekRSMesh](NekRSMesh.md),
 the output solutions are represented over a volume mesh mirror. Otherwise,
 if `volume = false`, the solution is shown only on the boundaries specified
 with the `boundary` parameter.

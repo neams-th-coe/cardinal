@@ -1,0 +1,31 @@
+[Tests]
+  issues = '#1025'
+  design = 'BooleanComboMarker.md'
+  [prioritize_refine_and]
+    type = CSVDiff
+    input = 'prioritize_refine_and.i'
+    csvdiff = 'prioritize_refine_and_out.csv'
+    requirement = 'The system shall be able to prioritize refinement while ANDing markers together.'
+  []
+  [prioritize_coarsen_and]
+    type = CSVDiff
+    input = 'prioritize_refine_and.i'
+    csvdiff = 'prioritize_refine_and_out.csv'
+    cli_args = 'Adaptivity/Markers/combo/priority=coarsening'
+    requirement = 'The system shall be able to prioritize coarsening while ANDing markers together.'
+  []
+  [prioritize_refine_or]
+    type = CSVDiff
+    input = 'prioritize_refine_and.i'
+    csvdiff = 'prioritize_refine_or_out.csv'
+    cli_args = 'Adaptivity/Markers/combo/boolean_operator=or Outputs/file_base=prioritize_refine_or_out'
+    requirement = 'The system shall be able to prioritize refinement while ORing markers together.'
+  []
+  [prioritize_coarsen_or]
+    type = CSVDiff
+    input = 'prioritize_refine_and.i'
+    csvdiff = 'prioritize_coarsen_or_out.csv'
+    cli_args = 'Adaptivity/Markers/combo/boolean_operator=or Adaptivity/Markers/combo/priority=coarsening Outputs/file_base=prioritize_coarsen_or_out'
+    requirement = 'The system shall be able to prioritize coarsening while ORing markers together.'
+  []
+[]

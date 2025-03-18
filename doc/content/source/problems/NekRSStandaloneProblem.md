@@ -1,7 +1,7 @@
 # NekRSStandaloneProblem
 
 This class performs all activities related to solving NekRS as a MOOSE application.
-This class differs from the [NekRSProblem](/problems/NekRSProblem.md) class because this class
+This class differs from the [NekRSProblem](NekRSProblem.md) class because this class
 does not *couple* NekRS to another MOOSE application. Instead, this class
 simply allows standalone NekRS simulations to be run using the Cardinal executable,
 which allows uncoupled NekRS simulations to take advantage of a number of features
@@ -101,28 +101,28 @@ in Cardinal that directly queries the underlying data structures in NekRS.
 However, when specifying fields to output from the NekRS solution with
 the `output` parameter (described in more detail in [#output]), any of the
 much wider set of [MOOSE postprocessors](https://mooseframework.inl.gov/source/index.html)
-can also be used. For instance, a [PointValue](https://mooseframework.inl.gov/source/postprocessors/PointValue.html) postprocessor
+can also be used. For instance, a [PointValue](PointValue.md) postprocessor
 is used to extract the value of temperature at a specific point in space,
-and a [PercentChangePostprocessor](https://mooseframework.inl.gov/source/postprocessors/PercentChangePostprocessor.html)
+and a [PercentChangePostprocessor](PercentChangePostprocessor.md)
 is used to evaluate the percent change in the maximum temperature
 between two successive time steps such as for assessing convergence.
 A few examples of other postprocessors that may be of use to NekRS
 simulations include:
 
-- [ElementL2Error](https://mooseframework.inl.gov/source/postprocessors/ElementL2Error.html),
+- [ElementL2Error](ElementL2Error.md),
   which computes the L$^2$ norm of a variable relative to a provided
   function, useful for solution verification
-- [FindValueOnLine](https://mooseframework.inl.gov/source/postprocessors/FindValueOnLine.html),
+- [FindValueOnLine](FindValueOnLine.md),
   which finds the point at which a specified value of a variable occurs,
   which might be used for evaluating a boundary layer thickness
-- [LinearCombinationPostprocessor](https://mooseframework.inl.gov/source/postprocessors/LinearCombinationPostprocessor.html),
+- [LinearCombinationPostprocessor](LinearCombinationPostprocessor.md),
   which can be used to combine postprocessors together in a
   general expression $a_0p_0+a_1p_1+\cdots+b$, where $a_i$ are coefficients,
   $p_i$ are postprocessors, and $b$ is a constant additive factor. This can be used
   to compute the temperature *rise* in a domain by subtracting a postprocessor
   that computes the inlet temperature from a postprocessor that computes the
   outlet temperature.
-- [TimeExtremeValue](https://mooseframework.inl.gov/source/postprocessors/TimeExtremeValue.html),
+- [TimeExtremeValue](TimeExtremeValue.md),
   which provides the maximum/minimum value of a variable over the course of
   an entire simulation, such as for evaluating peak stress in an
   oscillating system
@@ -133,12 +133,12 @@ for a full list of available postprocessors.
 In addition to the postprocessor system, a wide set of userobjects
 and auxiliary kernels may be applied to the NekRS solution
 once it is output to the MOOSE mesh. For instance,
-a [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
+a [LayeredAverage](LayeredAverage.md)
 userobject can be used to compute an average of a MOOSE variable in a number
 of layers. Here, this userobject is applied to average the pressure in four
 layers in the $x$ direction (the direction parallel to the wall). The results
 of this userobject are then visualized with a
-[SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html)
+[SpatialUserObjectAux](SpatialUserObjectAux.md)
 to place the results in the `layered_p` auxiliary variable.
 
 !listing test/tests/nek_standalone/ktauChannel/nek.i
@@ -155,5 +155,3 @@ the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html) to l
 !syntax parameters /Problem/NekRSStandaloneProblem
 
 !syntax inputs /Problem/NekRSStandaloneProblem
-
-!syntax children /Problem/NekRSStandaloneProblem

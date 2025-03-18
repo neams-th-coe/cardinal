@@ -20,7 +20,6 @@
 
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
-#include "OpenMCVolumeCalculation.h"
 
 /// Tally/filter includes.
 #include "TallyBase.h"
@@ -30,6 +29,9 @@
 #include "MoabSkinner.h"
 #include "DagMC.hpp"
 #endif
+
+/// Forward declarations to avoid cyclic dependencies.
+class OpenMCVolumeCalculation;
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature and/or
@@ -147,6 +149,48 @@ public:
   virtual const std::vector<std::string> & getTallyScores() const { return _all_tally_scores; }
 
   /**
+   * Check to see if this problem contains a specific tally score.
+   * @param[in] score the tally score
+   * @return whether this problem contains the tally score in a tally object
+   */
+  bool hasScore(const std::string & score)
+  {
+    return std::find(_all_tally_scores.begin(), _all_tally_scores.end(), score) !=
+           _all_tally_scores.end();
+  }
+
+  /**
+   * Fetch the tally that contains the requested score.
+   * @param[in] score the tally score
+   * @return a vector of Cardinal tally objects containing the scores
+   */
+  std::vector<const TallyBase *> getTalliesByScore(const std::string & score);
+
+  /**
+   * Get the variable(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
+                                                                    THREAD_ID tid);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
+                                                                 THREAD_ID tid);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score,
+                                                                         THREAD_ID tid);
+
+  /**
    * Apply transformations to point
    * @param[in] pt point
    * @return transformed point
@@ -227,7 +271,10 @@ public:
    * @param[in] cell_info cell index, instance pair
    * @return material index
    */
-  int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
+  int32_t cellToMaterialIndex(const cellInfo & cell_info) const
+  {
+    return _cell_to_material.at(cell_info);
+  }
 
   /**
    * Get the fields coupled for each cell; because we require that each cell maps to a consistent
@@ -716,6 +763,12 @@ protected:
   NumericVector<Number> & _serialized_solution;
 
   /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const override;
+
+  /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
    * instances to the [Mesh].
    */
@@ -774,10 +827,8 @@ protected:
    */
   const bool _normalize_by_global;
 
-  /**
-   * Whether or not the problem contains mesh adaptivity.
-   */
-  bool _has_adaptivity;
+  /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
+  const bool _using_skinner;
 
   /**
    * When the mesh changes during the simulation (either from adaptive mesh refinement
@@ -1098,8 +1149,6 @@ protected:
   /// The number of OpenMC surfaces before skinning occurs. This is required to properly reinitialize
   /// the CSG geometry contained in the OpenMC model.
   const int32_t _initial_num_openmc_surfaces;
-
-  const bool _using_skinner;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;

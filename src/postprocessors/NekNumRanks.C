@@ -25,14 +25,14 @@ registerMooseObject("CardinalApp", NekNumRanks);
 InputParameters
 NekNumRanks::validParams()
 {
-  InputParameters params = NekPostprocessor::validParams();
-  params.suppressParameter<MooseEnum>("mesh");
-  params.addClassDescription("Display number of MPI ranks used to run NekRS");
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += NekBase::validParams();
+  params.addClassDescription("Number of MPI ranks used to run NekRS");
   return params;
 }
 
 NekNumRanks::NekNumRanks(const InputParameters & parameters)
-  : NekPostprocessor(parameters)
+  : GeneralPostprocessor(parameters), NekBase(this, parameters)
 {
 }
 

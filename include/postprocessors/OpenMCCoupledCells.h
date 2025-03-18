@@ -18,18 +18,23 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Get the number of cells for which OpenMC is receiving temperature and/or
  * density feedback from MOOSE, or which are sending a cell tally to MOOSE.
  */
-class OpenMCCoupledCells : public OpenMCPostprocessor
+class OpenMCCoupledCells : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   OpenMCCoupledCells(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 };

@@ -17,5 +17,3 @@ Shown below is an example for depicting the instantaneous and total number of pa
 !syntax parameters /Postprocessors/OpenMCParticles
 
 !syntax inputs /Postprocessors/OpenMCParticles
-
-!syntax children /Postprocessors/OpenMCParticles

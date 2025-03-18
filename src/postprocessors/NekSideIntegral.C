@@ -26,7 +26,7 @@ InputParameters
 NekSideIntegral::validParams()
 {
   InputParameters params = NekSideFieldPostprocessor::validParams();
-  params.addClassDescription("Compute the integral of a field over a boundary of the NekRS mesh");
+  params.addClassDescription("Integral of a field over a boundary of the NekRS mesh");
   return params;
 }
 

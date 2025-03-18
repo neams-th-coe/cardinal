@@ -193,6 +193,13 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   addTaskDependency("add_external_aux_variables", "add_tallies");
 #endif
 
+#ifdef ENABLE_NEK_COUPLING
+  // Add the [Problem/Dimensionalize] block
+  registerSyntax("DimensionalizeAction", "Problem/Dimensionalize");
+  registerTask("add_dimensionalization", false /* is required */);
+  addTaskDependency("add_dimensionalization", "init_mesh");
+#endif
+
   registerTask("add_heat_source_ic", false /* is required */);
   addTaskDependency("add_heat_source_ic", "add_ic");
 

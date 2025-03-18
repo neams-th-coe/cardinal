@@ -32,7 +32,7 @@ NekPressureSurfaceForce::validParams()
       comp,
       "Component of pressure force to compute. 'total' takes the magnitude of the pressure force, "
       "while 'x', 'y', or 'z' return individual components.");
-  params.addClassDescription("Compute pressure force that the fluid exerts on a surface");
+  params.addClassDescription("Pressure force that the fluid exerts on a surface");
   return params;
 }
 

@@ -54,6 +54,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _instance(getParam<unsigned int>("instance")),
     _use_dof_map(_is_adaptive || isParamValid("blocks"))
 {
+  bool nu_scatter =
+      std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
+
   // Error check the estimators.
   if (isParamValid("estimator"))
   {
@@ -62,7 +65,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "Tracklength estimators are currently incompatible with mesh tallies!");
   }
   else
-    _estimator = openmc::TallyEstimator::COLLISION;
+    _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
 
   // Error check the mesh template.
   if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
@@ -146,7 +149,7 @@ MeshTally::spatialFilter()
     // tally on to the full mesh.
     if (_use_dof_map)
     {
-      _active_to_total_mapping.clear();
+      _bin_to_element_mapping.clear();
 
       auto begin = _tally_blocks.size() > 0
                        ? msh->active_subdomain_set_elements_begin(_tally_blocks)
@@ -154,9 +157,9 @@ MeshTally::spatialFilter()
       auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
                                           : msh->active_elements_end();
       for (const auto & old_elem : libMesh::as_range(begin, end))
-        _active_to_total_mapping.push_back(old_elem->id());
+        _bin_to_element_mapping.push_back(old_elem->id());
 
-      _active_to_total_mapping.shrink_to_fit();
+      _bin_to_element_mapping.shrink_to_fit();
     }
 
     // When block restriction is active we need to create a copy of the mesh which only contains
@@ -224,23 +227,23 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
   {
     for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
     {
-      Real power_fraction = tally_vals[local_score](ext_bin * _mesh_filter->n_bins() + e);
+      Real unnormalized_tally = tally_vals[local_score](ext_bin * _mesh_filter->n_bins() + e);
 
       // divide each tally by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally (per unit volume).
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power = power_fraction;
-      volumetric_power *= norm_by_src_rate
+      Real volumetric_tally = unnormalized_tally;
+      volumetric_tally *= norm_by_src_rate
                               ? _openmc_problem.tallyMultiplier(global_score) /
                                     _mesh_template->volume(e) * _openmc_problem.scaling() *
                                     _openmc_problem.scaling() * _openmc_problem.scaling()
                               : 1.0;
-      total += power_fraction;
+      total += unnormalized_tally;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-      auto elem_id = _use_dof_map ? _active_to_total_mapping[e] : mesh_offset + e;
-      fillElementalAuxVariable(var, {elem_id}, volumetric_power);
+      auto elem_id = _use_dof_map ? _bin_to_element_mapping[e] : mesh_offset + e;
+      fillElementalAuxVariable(var, {elem_id}, volumetric_tally);
     }
   }
 
@@ -258,7 +261,7 @@ MeshTally::checkMeshTemplateAndTranslations() const
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_id = _use_dof_map ? _active_to_total_mapping[e] : mesh_offset + e;
+    auto elem_id = _use_dof_map ? _bin_to_element_mapping[e] : mesh_offset + e;
     auto elem_ptr = _mesh.queryElemPtr(elem_id);
 
     // if element is not on this part of the distributed mesh, skip it

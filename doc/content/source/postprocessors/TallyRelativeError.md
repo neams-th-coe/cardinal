@@ -5,7 +5,7 @@
 ## Description
 
 This postprocessor evaluates the maximum, minimum, or average relative error in the
-tally created by [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md).
+tally created by [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md).
 This postprocessor can be used to monitor statistical convergence of the tally.
 
 ## Example Input Syntax
@@ -19,5 +19,3 @@ evaluate the maximum, minimum and average tally relative error, respectively.
 !syntax parameters /Postprocessors/TallyRelativeError
 
 !syntax inputs /Postprocessors/TallyRelativeError
-
-!syntax children /Postprocessors/TallyRelativeError

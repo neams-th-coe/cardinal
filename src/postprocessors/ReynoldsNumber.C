@@ -29,7 +29,7 @@ ReynoldsNumber::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
   params.addRangeCheckedParam<Real>("L_ref", "L_ref > 0.0", "Reference length scale");
-  params.addClassDescription("Compute the Reynolds number characteristic of the NekRS solution");
+  params.addClassDescription("Reynolds number characteristic of the NekRS solution");
   return params;
 }
 
@@ -53,7 +53,7 @@ ReynoldsNumber::getValue() const
   Real area = nekrs::area(_boundary, _pp_mesh);
   Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity, _pp_mesh));
   Real mu = nekrs::viscosity();
-  Real L = _nek_problem->nondimensional() ? _nek_problem->L_ref() : *_L_ref;
+  Real L = _nek_problem->nondimensional() ? nekrs::referenceLength() : *_L_ref;
 
   return mdot * L / (area * mu);
 }

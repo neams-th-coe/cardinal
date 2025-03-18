@@ -39,6 +39,8 @@ NekRSSeparateDomainProblem::validParams()
 
   params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
   params.addRequiredParam<std::vector<int>>("inlet_boundary", "NekRS inlet boundary ID");
+  params.addClassDescription(
+      "Couple NekRS to MOOSE for integration of 3-D CFD with 1-D systems-level codes");
 
   return params;
 }
@@ -144,30 +146,30 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   int start = _usrwrk_indices.size();
   if (_inlet_coupling)
   {
-    indices.boundary_velocity = start++ * nekrs::scalarFieldOffset();
+    indices.boundary_velocity = start++ * nekrs::fieldOffset();
     _usrwrk_indices.push_back("velocity");
 
     if (nekrs::hasTemperatureSolve())
     {
-      indices.boundary_temperature = start++ * nekrs::scalarFieldOffset();
+      indices.boundary_temperature = start++ * nekrs::fieldOffset();
       _usrwrk_indices.push_back("temperature");
     }
 
     if (_scalar01_coupling)
     {
-      indices.boundary_scalar01 = start++ * nekrs::scalarFieldOffset();
+      indices.boundary_scalar01 = start++ * nekrs::fieldOffset();
       _usrwrk_indices.push_back("scalar01");
     }
 
     if (_scalar02_coupling)
     {
-      indices.boundary_scalar02 = start++ * nekrs::scalarFieldOffset();
+      indices.boundary_scalar02 = start++ * nekrs::fieldOffset();
       _usrwrk_indices.push_back("scalar02");
     }
 
     if (_scalar03_coupling)
     {
-      indices.boundary_scalar03 = start++ * nekrs::scalarFieldOffset();
+      indices.boundary_scalar03 = start++ * nekrs::fieldOffset();
       _usrwrk_indices.push_back("scalar03");
     }
   }

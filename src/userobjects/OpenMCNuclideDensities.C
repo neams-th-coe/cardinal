@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCNuclideDensities.h"
-#include "OpenMCProblemBase.h"
 #include "openmc/material.h"
 
 registerMooseObject("CardinalApp", OpenMCNuclideDensities);
@@ -28,6 +27,7 @@ InputParameters
 OpenMCNuclideDensities::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
+  params += OpenMCBase::validParams();
   params.addRequiredParam<int32_t>("material_id", "ID of material to change nuclide densities");
   params.addRequiredParam<std::vector<std::string>>("names",
                                                     "Names of the nuclides to modify densities");
@@ -40,22 +40,14 @@ OpenMCNuclideDensities::validParams()
 
 OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameters)
   : GeneralUserObject(parameters),
+    OpenMCBase(this, parameters),
     _material_id(getParam<int32_t>("material_id")),
     _names(getParam<std::vector<std::string>>("names")),
     _densities(getParam<std::vector<double>>("densities"))
 {
-  const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
-  if (!openmc_problem)
-  {
-    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This user object can only be used with wrapped OpenMC cases! "
-               "You need to change the\nproblem type from '" +
-               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
-  }
-
-  openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
-                                   "get the material index for material with ID " +
-                                       std::to_string(_material_id));
+  _openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
+                                    "get the material index for material with ID " +
+                                        std::to_string(_material_id));
 }
 
 void

@@ -1,4 +1,6 @@
 [Tests]
+  design = 'NekRSProblem.md'
+
   [sfr_pincell]
     type = Exodiff
     input = nek_master.i
@@ -25,5 +27,14 @@
                   "for this test is identical to that for the sfr_pincell case."
     required_objects = 'NekRSProblem'
     max_time = 500
+  []
+  [impose_heat_flux]
+    type = CSVDiff
+    input = nek_isolated.i
+    csvdiff = nek_isolated_out.csv
+    min_parallel = 6
+    requirement = "The system shall allow imposing heat flux through a dummy main application, instead of coupling NekRS via conjugate heat transfer. This is verified by computing the heat flux on the NekRS mesh, which adequately matches an initial value set in a postprocessor. This gold file is also identical to that obtained by running a dummy main app (solid_dummy) that passes in the desired flux_integral initial condition."
+    required_objects = 'NekRSProblem'
+    issues = '#797'
   []
 []

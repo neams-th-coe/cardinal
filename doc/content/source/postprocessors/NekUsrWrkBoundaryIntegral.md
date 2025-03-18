@@ -35,5 +35,3 @@ this particular slot represents the heat flux boundary condition sent to NekRS.
 !syntax parameters /Postprocessors/NekUsrWrkBoundaryIntegral
 
 !syntax inputs /Postprocessors/NekUsrWrkBoundaryIntegral
-
-!syntax children /Postprocessors/NekUsrWrkBoundaryIntegral

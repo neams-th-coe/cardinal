@@ -44,13 +44,6 @@ public:
   virtual Real minDT() const;
 
   /**
-   * Set the reference time scale that nekRS's nondimensional form is based on
-   * @param[in] L characteristic length
-   * @param[in] U characteristic velocity
-   */
-  virtual void setReferenceTime(const Real & L, const Real & U);
-
-  /**
    * Compute the nondimensional version of a dt
    * @param[in] dimensional_dt time step in dimensional form
    * @return non-dimensional version of time step
@@ -70,7 +63,4 @@ protected:
    * does not reflect the time step as it changes adaptively.
    */
   Real _nek_dt;
-
-  /// Reference time scale
-  Real _t_ref;
 };

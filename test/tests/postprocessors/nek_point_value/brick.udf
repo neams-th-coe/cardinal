@@ -1,0 +1,53 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
+
+    nrs->U[n + 0 * nrs->fieldOffset] = sin(x) + y;
+    nrs->U[n + 1 * nrs->fieldOffset] = sin(z) + 8*x;
+    nrs->U[n + 2 * nrs->fieldOffset] = y*y*y + x + y;
+
+    nrs->P[n] = sin(x*y) + exp(z);
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z;
+    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 2;
+    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 3;
+    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 4;
+  }
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+{
+  if (tstep == 0)
+  {
+    auto mesh = nrs->cds->mesh[0];
+
+    int n_gll_points = mesh->Np * mesh->Nelements;
+    for (int n = 0; n < n_gll_points; ++n)
+    {
+      dfloat x = mesh->x[n];
+      dfloat y = mesh->y[n];
+      dfloat z = mesh->z[n];
+
+      nrs->usrwrk[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + 1;
+      nrs->usrwrk[n + 1 * nrs->cds->fieldOffset[0]] = exp(y) + 1;
+      nrs->usrwrk[n + 2 * nrs->cds->fieldOffset[0]] = exp(z) + 1;
+
+      // we only access the first three slices, but can define extra ones beyond that should
+      // be unused for postprocessing
+      nrs->usrwrk[n + 3 * nrs->cds->fieldOffset[0]] = sin(x) + exp(z);
+    }
+  }
+}

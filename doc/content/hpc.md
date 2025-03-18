@@ -6,7 +6,8 @@ Because default modules and
 settings change on [!ac](HPC) systems with time, the instructions below may become deprecated, but
 we try to keep this information up-to-date.
 Note that the absence of a particular [!ac](HPC) system from this list does not imply that Cardinal will not
-build/run on that system - only that documentation has not yet been created.
+build/run on that system - only that documentation has not yet been created. If you can't find your system here,
+we provide some [resources and tips for building / running Cardinal on HPC systems](hpc_build_run_tips.md).
 
 In addition to these provided module and environment settings,
 you must follow the build instructions on the
@@ -18,10 +19,39 @@ systems. We recommend precompiling NekRS (with the `nrspre` script) if you run i
 issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
 for more information.
 
+## Improv
+
+[Improv](https://docs.lcrc.anl.gov/improv/getting-started-improv/)
+is an [!ac](HPC) system at [!ac](ANL) with 825 AMD EPYC dual-socket
+nodes (128 cores per node).
+
+!listing! language=bash caption=Sample `~/.bashrc` for Improv id=im1
+module purge
+module load gcc/11.4.0
+module load openmpi/5.0.0-gcc-11.4.0
+module load cmake/3.27.4
+module load anaconda3/2024.10
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Improv is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+!listing-end!
+
+!listing scripts/job_improv language=bash caption=Sample job script for Improv with the `startup` project code id=im2
 
 ## Bebop
 
-[Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
+[Bebop](https://docs.lcrc.anl.gov/bebop/getting-started-bebop/)
 is an [!ac](HPC) system at [!ac](ANL) with an Intel Broadwell
 partition (36 cores/node) and an Intel Knights Landing partition
 (64 cores/node).
@@ -54,6 +84,73 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 !listing-end!
 
 !listing scripts/job_bebop language=bash caption=Sample job script for Bebop with the `startup` project code id=bb2
+
+## Polaris
+
+[Polaris](https://docs.alcf.anl.gov/polaris/getting-started/)
+is an [!ac](HPC) system at [!ac](ANL) with 560 AMD EPYC single-socket
+nodes (32 cores per node). Each node also contains four NVIDIA A100
+GPU accelerators. In order to build Cardinal with GPU support, set
+the appropriate variable in the `Makefile` to true (`1`):
+
+```
+OCCA_CUDA_ENABLED=1
+OCCA_HIP_ENABLED=0
+OCCA_OPENCL_ENABLED=0
+```
+
+Additionally, Polaris does not provide an MPI-wrapped F77 compiler and
+so the MOOSE solid mechanics module must be disabled in the `Makefile`:
+
+```
+SOLID_MECHANICS     := no
+```
+
+When building the PETSc, libMesh, and Wasp dependencies from the scripts, you'll also
+need to pass some additional settings to libMesh to disable XDR output.
+
+```
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh --disable-xdr-required --disable-xdr
+./contrib/moose/scripts/update_and_rebuild_wasp.sh
+```
+
+!listing! language=bash caption=Sample `~/.bashrc` for Polaris id=po1
+module restore
+module use /soft/modulefiles
+module load PrgEnv-gnu
+module load nvhpc-mixed/23.9
+module load craype-accel-nvidia80
+module load cudatoolkit-standalone/12.5.0
+module load craype-x86-milan
+module load spack-pe-base cmake
+module load cray-python/3.11.5
+
+export CC=cc
+export CXX=CC
+export FC=ftn
+
+export F77=ftn
+export F90=ftn
+
+export ENABLE_NEK=yes
+export ENABLE_OPENMC=yes
+export ENABLE_DAGMC=yes
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Polaris is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+!listing-end!
+
+!listing scripts/job_polaris language=bash caption=Sample job script for Polaris id=po2
 
 ## Frontier
 
@@ -190,6 +287,12 @@ export MOOSE_DIR=$CARDINAL_DIR/contrib/moose
 export PYTHONPATH=$MOOSE_DIR/python:${PYTHONPATH}
 !listing-end!
 
+When building the PETSc dependency using the script, you'll also need to pass an additional flag to ensure that GNU BISON is downloaded during the build process.
+
+```
+./contrib/moose/scripts/update_and_rebuild_petsc.sh --download-bison
+```
+
 ## Sawtooth
 
 [Sawtooth](https://nsuf.inl.gov/Page/computing_resources)
@@ -212,9 +315,7 @@ fi
 
 module purge
 module load use.moose
-module load moose-tools
-module load openmpi/4.1.6-gcc-12.3.0-panw
-module load cmake/3.27.7-gcc-12.3.0-5cfk
+module load moose-dev
 
 # Revise for your repository location
 export NEKRS_HOME=$HOME/cardinal/install
@@ -222,6 +323,33 @@ export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_section
 !listing-end!
 
 !listing scripts/job_sawtooth language=bash caption=Sample job script with the `moose` project code id=st2
+
+## Bitterroot
+
+[Bitterroot](https://inl.gov/hpc/about/)
+ is an [!ac](HPC) system at [!ac](INL). It has over 2 Petaflops of performance and has over 43,000 cores. It is a 43008-core Dell Commodity Technology Systems-2 (CTS-2) with 384 total nodes. Bitterroot has 90 TB of total memory.
+
+!listing! language=bash caption=Sample `~/.bashrc` for Bitterroot id=bt1
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+if [ -f  ~/.bashrc_local ]; then
+       . ~/.bashrc_local
+fi
+
+module purge
+module load use.moose
+module load moose-tools
+module load openmpi/4.1.7-gcc-13.3.0-xpfl
+module load cmake/3.30.1-gcc-13.3.0-6mtw
+# Revise for your repository location
+export NEKRS_HOME=$HOME/cardinal/install
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+!listing-end!
+
+!listing scripts/job_bitterroot language=bash caption=Sample job script with the `moose` project code id=bt2
 
 ## Summit
 
@@ -296,4 +424,3 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 !listing-end!
 
 !listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
-

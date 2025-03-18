@@ -6,7 +6,7 @@ In this tutorial, you will learn how to:
 - Couple NekRS to MOOSE for [!ac](CHT) for turbulent flow in a [!ac](TRISO) fuel unit cell
 - Couple NekRS to MOOSE for solving NekRS in non-dimensional form
 - Extract an initial condition from a NekRS restart file
-- Swap out NekRS for a different thermal-fluid MOOSE application, the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+- Swap out NekRS for a different thermal-fluid MOOSE application, the [Thermal Hydraulics Module (THM)](thermal_hydraulics/index.html)
 - Compute heat transfer coefficients with NekRS
 
 To access this tutorial,
@@ -272,12 +272,12 @@ boundary conditions we will apply.
   end=Functions
 
 The MOOSE heat transfer module will receive a wall temperature from NekRS in
-the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
+the form of an [AuxVariable](AuxVariables/index.md),
 so we define a receiver variable for the temperature, as `fluid_temp`. The MOOSE
 heat transfer module will also send heat flux to NekRS, which we compute as
-another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
+another [AuxVariable](AuxVariables/index.md)
 named `flux`, which we compute with a
-[DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
+[DiffusionFluxAux](DiffusionFluxAux.md)
 auxiliary kernel. Finally, we define another auxiliary variable for the imposed power,
 which we will not receive from a coupled application, but instead set within the solid
 input file.
@@ -302,32 +302,32 @@ normalizing the heat flux.
 !listing /tutorials/gas_compact_cht/solid_nek.i
   block=Postprocessors
 
-For visualization purposes only, we add [LayeredAverages](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
+For visualization purposes only, we add [LayeredAverages](LayeredAverage.md)
 to average the fuel and block temperatures in layers in the $z$ direction. We
-also add a [LayeredSideAverage](https://mooseframework.inl.gov/source/userobject/LayeredSideAverage.html)
+also add a [LayeredSideAverage](LayeredSideAverage.md)
 to average the heat flux along a boundary, again in layers in the $z$ direction.
 We then output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md)
 and by setting `csv = true` in the output.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=UserObjects
 
-Finally, we add a [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html)
+Finally, we add a [TransientMultiApp](TransientMultiApp.md)
 that will run a MOOSE-wrapped NekRS simulation. Then, we add four different
 transfers to/from NekRS:
 
-- [MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+- [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
   to send the heat flux from MOOSE to NekRS
-- [MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+- [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
   to send temperature from NekRS to MOOSE
-- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+- [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
   to normalize the heat flux sent to NekRS
-- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+- [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
   to send a dummy postprocessor named `synchronization_to_nek` that
   simply allows the NekRS sub-application to know when "new" coupling data is
   available from MOOSE, and to only do transfers to/from GPU when new data is
-  available; please consult the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
+  available; please consult the [NekRSProblem](NekRSProblem.md)
   documentation for further information.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
@@ -340,7 +340,7 @@ as a transient. In order to control the interval on which NekRS couples to MOOSE
 use a MOOSE time step that is `N` times bigger than the NekRS time step, taking care
 to account for the fact that the time step in the `ranstube.par` file is actually
 a *nondimensional* time step. By setting `subcycling = true` for the
-[TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+[TransientMultiApp](TransientMultiApp.md),
 MOOSE is only run every `N` time steps (the subcycling setting), *and* that the NekRS
 solution is only copied to/from GPU every `N` time steps (the minimize transfers setting).
 
@@ -359,7 +359,7 @@ only on the order of the fourth or fifth decimal place in temperatures.
 The Nek wrapping is described in the `nek.i` input file.
 We first define
 a few file-local variables, and then build a mesh mirror with a
-[NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). By setting
+[NekRSMesh](NekRSMesh.md). By setting
 `boundary = '3'`, we indicate that boundary 3 will be coupled via [!ac](CHT).
 In this example, we don't have any volume-based coupling, but we set
 `volume = true` to visualize the NekRS solution in Exodus format
@@ -381,7 +381,7 @@ between NekRS and MOOSE.
   end=Problem
 
 Next, we define additional parameters to describe how NekRS interacts with MOOSE
-with the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+with the [NekRSProblem](NekRSProblem.md).
 
 To allow conversion between a non-dimensional NekRS solve and a dimensional MOOSE coupled
 heat conduction application, the characteristic scales used to establish the non-dimensional
@@ -400,7 +400,7 @@ GPU to only occur on the time steps that NekRS is coupled to MOOSE.
   block=Problem
 
 For time stepping, we will allow NekRS to control its own time stepping
-by using the [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html).
+by using the [NekTimeStepper](NekTimeStepper.md).
 We will output both Exodus and CSV format data as well.
 
 !listing /tutorials/gas_compact_cht/nek.i
@@ -424,10 +424,10 @@ q_i^{''}=h_i\left(T_{\text{wall},i}-T_{\text{bulk},i}\right)
 where $i$ is the layer index, $q_i^{''}$ is the average wall heat flux in layer $i$, $h$ is the heat transfer coefficient in layer $i$, $T_{\text{wall},i}$ is the average wall temperature in layer $i$, and $T_{\text{bulk},i}$ is the volume-averaged temperature in layer $i$.
 All terms in [eq:htc2] can be computed using objects in the MOOSE and NekRS-wrapped input files.
 In the NekRS input file, we add userobjects to compute average wall temperatures
-and bulk fluid temperatures in axial layers with [NekBinnedSideAverage](https://cardinal.cels.anl.gov/source/userobjects/NekBinnedSideAverage.html#)
-and [NekBinnedVolumeAverage](https://cardinal.cels.anl.gov/source/userobjects/NekBinnedVolumeAverage.html) objects.
+and bulk fluid temperatures in axial layers with [NekBinnedSideAverage](NekBinnedSideAverage.md)
+and [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) objects.
 We then output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html). For the time being, we turn off the calculation of these objects
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md). For the time being, we turn off the calculation of these objects
 until we are ready to describe the generation of heat transfer
 coefficients in [#htc].
 
@@ -455,9 +455,9 @@ Because THM is a 1-D code, we must perform an averaging operation on the surface
 heat flux computed by MOOSE before it is sent to THM. This requires us to use
 slightly different MOOSE transfers to couple THM and MOOSE. Instead of sending
 a 2-D surface flux distribution, we now compute the wall average heat flux in layers
-and send to THM with a [MultiAppGeneralFieldUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldUserObjectTransfer.html).
+and send to THM with a [MultiAppGeneralFieldUserObjectTransfer](MultiAppGeneralFieldUserObjectTransfer.md).
 To receive temperature from THM, we use the same
-[MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+[MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
 that we used when coupling to NekRS - but now, we are coupling a 1-D model to a 3-D model
 instead of a 3-D model to a 3-D model. MOOSE's transfers are generally dimension agnostic.
 
@@ -466,7 +466,7 @@ instead of a 3-D model to a 3-D model. MOOSE's transfers are generally dimension
 
 Other postprocessing features in this MOOSE model are largely the same as in
 the NekRS-MOOSE case; except to compute the wall heat flux to send to THM, we use
-a [LayeredSideDiffusiveFluxAverage](https://mooseframework.inl.gov/source/userobject/LayeredSideDiffusiveFluxAverage.html),
+a [LayeredSideDiffusiveFluxAverage](LayeredSideDiffusiveFluxAverage.md),
 which computes heat flux on a boundary given the temperature computed by MOOSE.
 
 !listing /tutorials/gas_compact_cht/solid_thm.i
@@ -476,11 +476,11 @@ which computes heat flux on a boundary given the temperature computed by MOOSE.
 
 The fluid phase will be solved with THM, and is described in the `thm.i` file.
 The THM input file is built using syntax specific to THM - we will only briefly
-cover the syntax, and instead refer users to the [THM manuals](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html) for more information.
+cover the syntax, and instead refer users to the [THM manuals](thermal_hydraulics/index.md) for more information.
 First, we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity, and
 temperature and indicate the fluid [!ac](EOS) object using
-[IdealGasFluidProperties](https://mooseframework.inl.gov/source/userobjects/IdealGasFluidProperties.html).
+[IdealGasFluidProperties](IdealGasFluidProperties.md).
 
 !listing /tutorials/gas_compact_cht/thm.i
   end=AuxVariables
@@ -498,7 +498,7 @@ Associated with these components are a number of closures, defined as materials.
 We set up the Churchill correlation for the friction factor and the Dittus-Boelter
 correlation for the convective heat transfer coefficient. Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
-wall temperature. As can be seen here, the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html)
+wall temperature. As can be seen here, the [Material](Materials/index.md).
 system is not always used to represent quantities traditionally thought of
 as "material properties."
 
@@ -507,13 +507,13 @@ as "material properties."
 
 THM computes the wall temperature to apply a boundary condition in the MOOSE
 heat transfer module. To convert the `T_wall` material into an
-auxiliary variable, we use the [ADMaterialRealAux](https://mooseframework.inl.gov/source/auxkernels/MaterialRealAux.html).
+auxiliary variable, we use the [ADMaterialRealAux](MaterialRealAux.md).
 
 !listing /tutorials/gas_compact_cht/thm.i
   start=AuxVariables
   end=Materials
 
-Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we set the preconditioner, a [Transient](Transient.md)
 executioner, and set an Exodus output. We will run THM to convergence based on a tight
 steady state relative tolerance of $10^{-8}$.
 
@@ -526,14 +526,14 @@ steady state relative tolerance of $10^{-8}$.
 To run the coupled NekRS-MOOSE calculation,
 
 ```
-mpiexec -np 500 cardinal-opt -i common_input.i solid_nek.i
+mpiexec -np 500 cardinal-opt -i solid_nek.i
 ```
 
 This will run with 500 [!ac](MPI) processes.
 To run the coupled THM-MOOSE calculation,
 
 ```
-mpiexec -np 2 cardinal-opt -i common_input.i solid_thm.i --n-threads=2
+mpiexec -np 2 cardinal-opt -i solid_thm.i --n-threads=2
 ```
 
 which will run with 2 MPI ranks and 2 OpenMP threads per rank.

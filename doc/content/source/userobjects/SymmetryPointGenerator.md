@@ -15,7 +15,7 @@ one of the symmetry planes can occasionally not map correctly due
 to roundoff errors. It is recommended to use meshes that avoid this possibility.
 It can be helpful when setting up symmetric models to visualize the transformed
 $x_1$, $y_1$, and $z_1$ coordinates - the
-[PointTransformationAux](/auxkernels/PointTransformationAux.md) can be used for
+[PointTransformationAux](PointTransformationAux.md) can be used for
 this purpose.
 
 ### Mirror Symmetry
@@ -61,5 +61,3 @@ shown in [symmetry_b].
 !syntax parameters /UserObjects/SymmetryPointGenerator
 
 !syntax inputs /UserObjects/SymmetryPointGenerator
-
-!syntax children /UserObjects/SymmetryPointGenerator

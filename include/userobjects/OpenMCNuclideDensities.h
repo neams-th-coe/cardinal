@@ -20,21 +20,21 @@
 
 #include "GeneralUserObject.h"
 
+#include "OpenMCBase.h"
+
 /**
  * User object to modify the nuclide densities in an OpenMC material.
  */
-class OpenMCNuclideDensities : public GeneralUserObject
+class OpenMCNuclideDensities : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   OpenMCNuclideDensities(const InputParameters & parameters);
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
-
-  virtual void initialize() override {}
-  virtual void finalize() override {}
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() {}
 
   /// Instead, we want to have a separate method that we can call from the OpenMC problem
   virtual void setValue();

@@ -32,63 +32,54 @@ registerMooseObjectRenamed("CardinalApp",
 InputParameters
 TallyRelativeError::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<MooseEnum>("value_type",
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
 
-  params.addParam<MultiMooseEnum>(
-      "tally_score",
-      getTallyScoreEnum(),
-      "Score to report the relative error. If there is just a single score, "
-      "this defaults to that value");
-  params.addClassDescription("Extract the maximum/minimum tally relative error");
+  params.addParam<MooseEnum>("tally_score",
+                             getSingleTallyScoreEnum(),
+                             "Score to report the relative error. If there is just a single score, "
+                             "this defaults to that value");
+  params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
-  auto added_scores = _openmc_problem->getTallyScores();
   if (isParamValid("tally_score"))
   {
-    const auto & tally_score = getParam<MultiMooseEnum>("tally_score");
-    if (tally_score.size() != 1)
+    const auto & tally_score = getParam<MooseEnum>("tally_score");
+    _score = _openmc_problem->enumToTallyScore(tally_score);
+
+    if (!_openmc_problem->hasScore(_score))
       paramError(
           "tally_score",
-          "Can only specify a single tally score per postprocessor, but you have specified " +
-              std::to_string(tally_score.size()));
-
-    std::string score = _openmc_problem->enumToTallyScore(tally_score[0]);
-
-    auto it = std::find(added_scores.begin(), added_scores.end(), score);
-    if (it != added_scores.end())
-      _tally_index = it - added_scores.begin();
-    else
-      paramError(
-          "tally_score",
-          "To extract the relative error of the '" + std::string(tally_score[0]) +
+          "To extract the relative error of the '" + std::string(tally_score) +
               "' score, it must be included in one of the [Tallies] added in your input file!");
   }
   else
   {
-    if (added_scores.size() > 1 && !isParamValid("tally_score"))
+    if (_openmc_problem->getTallyScores().size() != 1 && !isParamValid("tally_score"))
       paramError("tally_score",
                  "When multiple scores have been added by tally objects, you must specify a score "
                  "from which the relative error will be extracted.");
 
-    _tally_index = 0;
+    for (const auto & s : _openmc_problem->getTallyScores())
+      _console << s << std::endl;
+
+    _score = _openmc_problem->getTallyScores()[0];
   }
 }
 
 Real
 TallyRelativeError::getValue() const
 {
-  const auto & tallies = _openmc_problem->getLocalTally();
-
   Real post_processor_value;
-
   switch (_type)
   {
     case operation::max:
@@ -105,12 +96,17 @@ TallyRelativeError::getValue() const
   }
 
   unsigned int num_values = 0;
-  for (const auto & tally : tallies)
+  for (const auto tally : _openmc_problem->getTalliesByScore(_score))
   {
     const auto t = tally->getWrappedTally();
-    auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
-    auto sum_sq =
-        xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM_SQ));
+    auto sum = xt::view(t->results_,
+                        xt::all(),
+                        tally->scoreIndex(_score),
+                        static_cast<int>(openmc::TallyResult::SUM));
+    auto sum_sq = xt::view(t->results_,
+                           xt::all(),
+                           tally->scoreIndex(_score),
+                           static_cast<int>(openmc::TallyResult::SUM_SQ));
 
     auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)

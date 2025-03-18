@@ -24,13 +24,14 @@ unit_cell_height = 1.6                   # unit cell height - arbitrarily select
   has_heat_source = false
   n_usrwrk_slots = 2
 
-  nondimensional = true
-  U_ref = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}
-  T_ref = ${inlet_T}
-  dT_ref = ${fparse power / mdot / fluid_Cp * unit_cell_height / height}
-  L_ref = ${channel_diameter}
-  rho_0 = ${fluid_density}
-  Cp_0 = ${fluid_Cp}
+  [Dimensionalize]
+    U = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}
+    T = ${inlet_T}
+    dT = ${fparse power / mdot / fluid_Cp * unit_cell_height / height}
+    L = ${channel_diameter}
+    rho = ${fluid_density}
+    Cp = ${fluid_Cp}
+  []
 
   synchronization_interval = parent_app
 []

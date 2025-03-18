@@ -8,7 +8,7 @@
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
                   "in the sub-app equivalently at each time-step. This shall be verified by"
                   "comparing the areas of each sideset in both the main and the sub-app."
-                  "The domain is a cube over [-1,1]^3, with the initial area of each of the"
+                  "The domain is a cube, with the initial area of each of the"
                   "sidesets being 4.0. The areas across the main and sub-app should match"
                   "exactly, provided we are using Gauss Lobatto quadrature for MOOSE's area"
                   "post-processors, in order to match NekRS's GLL quadrature."

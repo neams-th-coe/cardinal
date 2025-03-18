@@ -18,7 +18,7 @@ $f$ is the specified field. In other words, this object integrates
 on a sideset in the NekRS domain, by splitting up the integral according
 to a specified volume binning strategy.
 To be clear, this user object is *not* evaluated on the
-[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
+[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
 
 !include /postprocessors/field_specs.md
@@ -31,6 +31,10 @@ Setting `field = unity` is equivalent to computing the area.
 
 !include spatial_bins.md
 
+!alert tip
+You can visualize this user object (i.e., the bin
+integrals) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 As an example, the input below defines three individual bin distributions
@@ -42,10 +46,8 @@ over sideset 2 in $2*2*3$ equal-size spatial bins.
   block=UserObjects
 
 The result of the user object can then be visualized with a
-[SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
+[SpatialUserObjectAux](SpatialUserObjectAux.md).
 
 !syntax parameters /UserObjects/NekBinnedSideIntegral
 
 !syntax inputs /UserObjects/NekBinnedSideIntegral
-
-!syntax children /UserObjects/NekBinnedSideIntegral

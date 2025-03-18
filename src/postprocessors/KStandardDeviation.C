@@ -28,16 +28,18 @@ registerMooseObject("CardinalApp", KStandardDeviation);
 InputParameters
 KStandardDeviation::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<MooseEnum>("value_type",
                              getEigenvalueEnum(),
                              "Type of eigenvalue global tally to report");
-  params.addClassDescription("Extract the k standard deviation computed by OpenMC");
+  params.addClassDescription("k standard deviation computed by OpenMC");
   return params;
 }
 
 KStandardDeviation::KStandardDeviation(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
 {
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)

@@ -41,7 +41,7 @@ public:
 
 private:
   /// The OpenMC id of the filter this class should provide to tallies added by [Problem/Tallies].
-  const int _filter_id;
+  const unsigned int _filter_id;
 
   /// The label applied to each filter bin.
   const std::string & _bin_label;

@@ -4,7 +4,7 @@
 
 ## Description
 
-This user object can be combined with [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+This user object can be combined with [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 to compute the volumes of all OpenMC cells which map to the `[Mesh]` using a
 [stochastic volume calculation](https://docs.openmc.org/en/stable/usersguide/volume.html).
 
@@ -29,5 +29,3 @@ MOOSE.
 !syntax parameters /UserObjects/OpenMCVolumeCalculation
 
 !syntax inputs /UserObjects/OpenMCVolumeCalculation
-
-!syntax children /UserObjects/OpenMCVolumeCalculation

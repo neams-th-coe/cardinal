@@ -3,13 +3,14 @@
   casename = 'brick'
   output = 'pressure'
 
-  nondimensional = true
-  L_ref = 2.0
-  U_ref = 1.0
-  rho_0 = 834.5
-  Cp_0 = 1228.0
-  T_ref = 573.0
-  dT_ref = 10.0
+  [Dimensionalize]
+    L = 2.0
+    U = 1.0
+    rho = 834.5
+    Cp = 1228.0
+    T = 573.0
+    dT = 10.0
+  []
 []
 
 [Mesh]

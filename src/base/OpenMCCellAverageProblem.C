@@ -23,6 +23,7 @@
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 
 #include "openmc/constants.h"
@@ -35,6 +36,7 @@
 #include "openmc/message_passing.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
+#include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
@@ -172,6 +174,8 @@ OpenMCCellAverageProblem::validParams()
       "of approximately the same volume as the true cells.");
   params.addParam<UserObjectName>("skinner", "When using DAGMC geometries, an optional skinner that will "
     "regenerate the OpenMC geometry on-the-fly according to iso-contours of temperature and density");
+  params.addClassDescription(
+      "Couple OpenMC to MOOSE through cell-averaged temperature, density, and tallies.");
 
   return params;
 }
@@ -188,8 +192,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
-    _need_to_reinit_coupling(_has_adaptivity),
+    _using_skinner(isParamValid("skinner")),
+    _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _check_tally_sum(
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
@@ -205,8 +209,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr),
-    _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
-    _using_skinner(isParamValid("skinner"))
+    _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
   // Check to see if a displaced problem is being initialized.
   // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
@@ -556,7 +559,7 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<int32_t> mapped_dag_cells;
     for (const auto & c : openmc::model::cells)
       for (const auto & [c_info, elem] : _cell_to_elem)
-        if (c->geom_type_ == openmc::GeometryType::DAG &&
+        if (c->geom_type() == openmc::GeometryType::DAG &&
             c_info.first == openmc::model::cell_map.at(c->id_))
           mapped_dag_cells.insert(c->id_);
 
@@ -566,10 +569,10 @@ OpenMCCellAverageProblem::initialSetup()
     {
       auto no_void =
           std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
-      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG &&
+      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type() == openmc::GeometryType::DAG &&
           no_void)
         num_unmapped++;
-      if (c->geom_type_ == openmc::GeometryType::DAG)
+      if (c->geom_type() == openmc::GeometryType::DAG)
         num_dag_cells++;
     }
 
@@ -724,6 +727,84 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     if (_skip_statepoint)
       openmc::settings::statepoint_batch.clear();
   }
+}
+
+std::vector<const TallyBase *>
+OpenMCCellAverageProblem::getTalliesByScore(const std::string & score)
+{
+  // Loop over all of the tallies and check to see if they contain the requested score.
+  std::vector<const TallyBase *> tallies;
+  for (const auto & t : _local_tallies)
+    if (t->hasScore(score))
+      tallies.push_back(t.get());
+
+  return tallies;
+}
+
+std::vector<const MooseVariableFE<Real> *>
+OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score, THREAD_ID tid)
+{
+  std::vector<const MooseVariableFE<Real> *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(dynamic_cast<const MooseVariableFE<Real> *>(&getVariable(tid, v)));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+std::vector<const VariableValue *>
+OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score, THREAD_ID tid)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, v))->sln()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+std::vector<const VariableValue *>
+OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string & score,
+                                                              THREAD_ID tid)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, v))->slnNeighbor()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
 }
 
 void
@@ -1404,7 +1485,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     for (const auto & item : _elem_to_cell)
       mapped_cells.push_back(item.first);
 
-    std::unique(mapped_cells.begin(), mapped_cells.end());
+    std::sort(mapped_cells.begin(), mapped_cells.end());
+    auto new_end = std::unique(mapped_cells.begin(), mapped_cells.end());
+    mapped_cells.erase(new_end, mapped_cells.end());
     openmc::prepare_distribcell(&mapped_cells);
 
     // perform element to cell mapping again to get correct instances
@@ -1705,6 +1788,23 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
   }
 }
 
+std::vector<int32_t>
+OpenMCCellAverageProblem::getMappedTallyIDs() const
+{
+  std::vector<int32_t> tally_ids;
+
+  // local mapped tallies
+  for (const auto & t : _local_tallies)
+    tally_ids.push_back(t->getTallyID());
+  // global normalization tallies
+  for (const auto & t : _global_tallies)
+    tally_ids.push_back(t->id());
+  // ensure the first global tally is added as well
+  openmc::model::tallies[_global_tally_index]->id();
+
+  return tally_ids;
+}
+
 unsigned int
 OpenMCCellAverageProblem::getCellLevel(const Point & c) const
 {
@@ -1824,7 +1924,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
     // map to cells and will generate DAGMC geometry that overlaps with pre-existing CSG cells.
     // TODO: This would be nice to fix, but would require a rework of the skinner.
-    if (openmc::model::cells[cell_index]->geom_type_ == openmc::GeometryType::CSG && _using_skinner)
+    if (openmc::model::cells[cell_index]->geom_type() == openmc::GeometryType::CSG &&
+        _using_skinner)
       mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
                  "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
                  "cells which map to the MOOSE mesh.");
@@ -1970,6 +2071,9 @@ OpenMCCellAverageProblem::initializeTallies()
   // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
+
+  // Ensure that any tally editors don't apply to mapped tallies
+  checkTallyEditorIDs();
 }
 
 void
@@ -2335,7 +2439,8 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
       source *= *_source_strength;
 
     // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
-    if (isReactionRateScore(_all_tally_scores[global_score]))
+    if (isReactionRateScore(_all_tally_scores[global_score]) ||
+        _all_tally_scores[global_score] == "inverse-velocity")
       return source;
 
     if (_all_tally_scores[global_score] == "flux")
@@ -2417,14 +2522,46 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int glob
 void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  OpenMCProblemBase::syncSolutions(direction);
+
+  // We can skip syncronizing the solution when running with adaptivity
+  // and the mesh hasn't changed. This only applies to steady-state calculations
+  // as the mesh is adapted once per timestep in a transient calculation.
+  if (_has_adaptivity && !_run_on_adaptivity_cycle)
+    return;
+
   _aux->serializeSolution();
 
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
-      if (!_first_transfer && _need_to_reinit_coupling)
+#ifdef ENABLE_DAGMC
+      if (_skinner)
+      {
+        // Update the OpenMC geometry to take into account skinning. This also calls
+        // _skinner->update().
+        updateOpenMCGeometry();
+
+        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
+        updateMaterials();
+
+        // regenerate the DAGMC geometry
+        reloadDAGMC();
+      }
+#endif
+      /*
+       * We run the skinner on the first transfer as OpenMC may be a sub-application
+       * of a solid or fluids multiapp. If this is the case, then those other applications
+       * may execute ahead of OpenMC and provide updated temperatures/densities on the first
+       * transfer which the skinner can use to update the OpenMC geometry. This also holds for
+       * initial conditions provided by the user.
+       *
+       * If the problem doesn't use a skinner, then we can avoid reinitializing it on the first
+       * timestep as nothing will have changed from when the problem was initialized in
+       * initialSetup().
+       */
+      if ((!_first_transfer || _using_skinner) && _need_to_reinit_coupling)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
@@ -2437,8 +2574,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // the _overall_ density (like due to thermal expansion, which does not change the relative
       // amounts of the different nuclides)
       sendNuclideDensitiesToOpenMC();
-
-      sendTallyNuclidesToOpenMC();
 
       if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
       {
@@ -2473,26 +2608,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             mooseError("Unhandled OpenMCInitialConditionEnum!");
         }
       }
-
-#ifdef ENABLE_DAGMC
-      if (_skinner)
-      {
-        // Update the OpenMC geometry to take into account skinning. This also calls
-        // _skinner->update().
-        updateOpenMCGeometry();
-
-        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
-        updateMaterials();
-
-        // regenerate the DAGMC geometry
-        reloadDAGMC();
-
-        // we need to then re-establish the data structures that map from OpenMC cells to the [Mesh]
-        // (because the cells changed)
-        resetTallies();
-        setupProblem();
-      }
-#endif
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
       // to be setting the temperature of all of the cells in cell_to_elem - only for the density
@@ -2957,7 +3072,7 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   // Afterwards, the cells contained in the list can be deleted.
   std::vector<int32_t> cells_to_delete;
   for (auto [id, index] : openmc::model::cell_map)
-    if (openmc::model::cells[index]->geom_type_ == openmc::GeometryType::DAG)
+    if (openmc::model::cells[index]->geom_type() == openmc::GeometryType::DAG)
       cells_to_delete.push_back(openmc::model::cells[index]->id_);
 
   for (auto cell : cells_to_delete)
@@ -2977,7 +3092,7 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   // deferred.
   std::vector<int> surfaces_to_delete;
   for (auto [id, index] : openmc::model::surface_map)
-    if (openmc::model::surfaces[index]->geom_type_ == openmc::GeometryType::DAG)
+    if (openmc::model::surfaces[index]->geom_type() == openmc::GeometryType::DAG)
       surfaces_to_delete.push_back(openmc::model::surfaces[index]->id_);
 
   for (auto surface : surfaces_to_delete)

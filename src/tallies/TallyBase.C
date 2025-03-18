@@ -103,6 +103,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
+  bool nu_scatter =
+      std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
   if (isParamValid("estimator"))
   {
@@ -114,15 +116,30 @@ TallyBase::TallyBase(const InputParameters & parameters)
                  "Tracklength estimators are currently incompatible with photon transport and "
                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
 
+    if (estimator != tally::analog && nu_scatter)
+      paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
+
     _estimator = _openmc_problem.tallyEstimator(estimator);
   }
   else
   {
     /**
-     * Set a default of tracklength for all tallies other then heating tallies in photon transport.
-     * This behavior must be overridden in derived tallies that implement mesh filters.
+     * Set a default of tracklength for all tallies other then heating tallies in photon transport
+     * and nu_scatter tallies. This behavior must be overridden in derived tallies that implement
+     * mesh filters.
      */
     _estimator = openmc::TallyEstimator::TRACKLENGTH;
+
+    if (nu_scatter && !(heating && openmc::settings::photon_transport))
+      _estimator = openmc::TallyEstimator::ANALOG;
+    else if (nu_scatter && heating && openmc::settings::photon_transport)
+      paramError(
+          "estimator",
+          "A single tally cannot score both nu_scatter and heating when photon transport is "
+          "enabled, as both scores require different estimators. Consider adding one tally "
+          "which scores nu_scatter (with an analog estimator), and a second tally that scores "
+          "heating (with a collision estimator).");
+
     if (heating && openmc::settings::photon_transport)
       _estimator = openmc::TallyEstimator::COLLISION;
   }
@@ -399,6 +416,37 @@ TallyBase::getWrappedTally() const
     mooseError("This tally has not been initialized!");
 
   return _local_tally;
+}
+
+int32_t
+TallyBase::getTallyID() const
+{
+  return getWrappedTally()->id();
+}
+
+int
+TallyBase::scoreIndex(const std::string & score) const
+{
+  if (!hasScore(score))
+    mooseError("Internal error: tally " + name() + " does not contain the score " + score);
+
+  return std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+}
+
+std::vector<std::string>
+TallyBase::getScoreVars(const std::string & score) const
+{
+  std::vector<std::string> score_vars;
+  if (!hasScore(score))
+    return score_vars;
+
+  unsigned int idx =
+      std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+  std::copy(_tally_name.begin() + idx * _num_ext_filter_bins,
+            _tally_name.begin() + (idx + 1) * _num_ext_filter_bins,
+            std::back_inserter(score_vars));
+
+  return score_vars;
 }
 
 void

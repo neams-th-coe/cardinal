@@ -12,7 +12,7 @@ p=\frac{\int_{\Omega}f\ d\Omega}{\int_{\Omega}d\Omega}
 
 where $\Omega$ is the volume of the NekRS mesh.
 To be clear, this postprocessor is *not* evaluated on the
-[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
+[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
 
 !include /field_specs.md
@@ -34,5 +34,3 @@ temperature, pressure, velocity magnitude, and velocity components over NekRS's 
 !syntax parameters /Postprocessors/NekVolumeAverage
 
 !syntax inputs /Postprocessors/NekVolumeAverage
-
-!syntax children /Postprocessors/NekVolumeAverage

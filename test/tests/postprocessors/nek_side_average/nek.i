@@ -313,4 +313,124 @@
     velocity_direction = '0.1 -0.2 0.3'
     boundary = '8'
   []
+  [x_velocity2_avg1]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '1'
+  []
+  [x_velocity2_avg2]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '2'
+  []
+  [x_velocity2_avg3]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '3'
+  []
+  [x_velocity2_avg4]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '4'
+  []
+  [x_velocity2_avg5]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '5'
+  []
+  [x_velocity2_avg6]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '6'
+  []
+  [x_velocity2_avg7]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '7'
+  []
+  [x_velocity2_avg8]
+    type = NekSideAverage
+    field = velocity_x_squared
+    boundary = '8'
+  []
+  [y_velocity2_avg1]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '1'
+  []
+  [y_velocity2_avg2]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '2'
+  []
+  [y_velocity2_avg3]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '3'
+  []
+  [y_velocity2_avg4]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '4'
+  []
+  [y_velocity2_avg5]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '5'
+  []
+  [y_velocity2_avg6]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '6'
+  []
+  [y_velocity2_avg7]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '7'
+  []
+  [y_velocity2_avg8]
+    type = NekSideAverage
+    field = velocity_y_squared
+    boundary = '8'
+  []
+  [z_velocity2_avg1]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '1'
+  []
+  [z_velocity2_avg2]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '2'
+  []
+  [z_velocity2_avg3]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '3'
+  []
+  [z_velocity2_avg4]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '4'
+  []
+  [z_velocity2_avg5]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '5'
+  []
+  [z_velocity2_avg6]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '6'
+  []
+  [z_velocity2_avg7]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '7'
+  []
+  [z_velocity2_avg8]
+    type = NekSideAverage
+    field = velocity_z_squared
+    boundary = '8'
+  []
 []

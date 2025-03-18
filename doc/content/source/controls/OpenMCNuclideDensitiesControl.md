@@ -4,7 +4,7 @@
 
 ## Description
 
-Changes the nuclide compositions of an [OpenMCNuclideDensities](https://cardinal.cels.anl.gov/source/userobjects/OpenMCNuclideDensities.html) user object
+Changes the nuclide compositions of an [OpenMCNuclideDensities](OpenMCNuclideDensities.md) user object
 via a controls. This can be used to change OpenMC material compositions
 as a function of time, such as for control rod movement or tritium migration.
 
@@ -19,5 +19,3 @@ As an example, the `c` Controls object will modify the
 !syntax parameters /Controls/OpenMCNuclideDensitiesControl
 
 !syntax inputs /Controls/OpenMCNuclideDensitiesControl
-
-!syntax children /Controls/OpenMCNuclideDensitiesControl

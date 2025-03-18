@@ -19,13 +19,15 @@
 #pragma once
 
 #include "GeneralUserObject.h"
+
+#include "OpenMCBase.h"
 #include "openmc/volume_calc.h"
 
 /**
  * Class that computes a volume calculation over the OpenMC model
  * based on information from the OpenMC wrapping (OpenMCCellAverageProblem).
  */
-class OpenMCVolumeCalculation : public GeneralUserObject
+class OpenMCVolumeCalculation : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();

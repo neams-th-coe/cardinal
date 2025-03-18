@@ -1,3 +1,5 @@
+interval = 100
+
 [Mesh]
   type = NekRSMesh
   boundary = '1 2'
@@ -19,7 +21,10 @@
 
 [Outputs]
   exodus = true
-  execute_on = 'final'
+
+  # this will only display the NekRS output every N time steps; postprocessors
+  # are still computed on every step, just not output to the console
+  time_step_interval = ${interval}
 []
 
 [Postprocessors]

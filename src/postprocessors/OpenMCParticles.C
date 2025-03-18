@@ -25,7 +25,8 @@ registerMooseObject("CardinalApp", OpenMCParticles);
 InputParameters
 OpenMCParticles::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   MooseEnum type("instantaneous total", "total");
   params.addParam<MooseEnum>("value_type", type,
       "How to report the number of particles; either instantaneous (the value used "
@@ -37,7 +38,8 @@ OpenMCParticles::validParams()
 }
 
 OpenMCParticles::OpenMCParticles(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type"))
 {
 }

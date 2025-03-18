@@ -23,7 +23,9 @@ p=\min_\Omega{f}
 
 To be clear, this postprocessor is *not* evaluated on the
 [NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
-used for computation in NekRS.
+used for computation in NekRS. For those familiar with the
+[legacy Nek5000 fortran functions](https://www.mcs.anl.gov/~oanam/old_page/index.php/Math_subroutines_and_functions#Functions), this postprocessor is equivalent to `glamax`
+and `glamin`.
 
 !include /field_specs.md
 
@@ -44,5 +46,3 @@ over the volume of the NekRS mesh.
 !syntax parameters /Postprocessors/NekVolumeExtremeValue
 
 !syntax inputs /Postprocessors/NekVolumeExtremeValue
-
-!syntax children /Postprocessors/NekVolumeExtremeValue

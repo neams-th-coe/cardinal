@@ -24,5 +24,3 @@ Shown below is an example for each of the four available estimators.
 !syntax parameters /Postprocessors/KEigenvalue
 
 !syntax inputs /Postprocessors/KEigenvalue
-
-!syntax children /Postprocessors/KEigenvalue

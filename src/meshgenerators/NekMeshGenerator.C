@@ -32,7 +32,6 @@
 #include "libmesh/face_quad9.h"
 
 registerMooseObject("CardinalApp", NekMeshGenerator);
-registerMooseObjectRenamed("CardinalApp", Hex20Generator, "03/01/2023 24:00", NekMeshGenerator);
 
 InputParameters
 NekMeshGenerator::validParams()

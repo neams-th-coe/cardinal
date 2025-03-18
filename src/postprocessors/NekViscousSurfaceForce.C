@@ -32,7 +32,7 @@ NekViscousSurfaceForce::validParams()
       comp,
       "Component of viscous force to compute. 'total' takes the magnitude of the viscous force, "
       "while 'x', 'y', or 'z' return individual components.");
-  params.addClassDescription("Compute viscous force that the fluid exerts on a surface");
+  params.addClassDescription("Viscous force that the fluid exerts on a surface");
   return params;
 }
 

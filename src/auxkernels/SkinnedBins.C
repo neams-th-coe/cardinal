@@ -30,7 +30,7 @@ SkinnedBins::validParams()
 
   MooseEnum skin_type("temperature subdomain density all", "all");
   params.addParam<MooseEnum>("skin_by", skin_type, "Which skin distribution to display");
-  params.addClassDescription("Display the mapping of mesh elements to the skinned bins created by a skinner");
+  params.addClassDescription("Bins created by a skinner");
   return params;
 }
 

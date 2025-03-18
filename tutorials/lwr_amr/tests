@@ -1,0 +1,35 @@
+[Tests]
+  issues = '#1052'
+  design = 'openmc_amr.md'
+  [gen_assembly_amr]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall be able to create a mesh for the LWR assembly to use with AMR."
+  []
+  [assembly_amr]
+    type = RunApp
+    input = openmc_amr.i
+    cli_args = 'Problem/particles=100 Problem/batches=30 Problem/inactive_batches=5'
+    requirement = "The system shall be able to run AMR calculations on an LWR assembly."
+    prereq = 'gen_assembly_amr'
+    min_parallel = 2
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [gen_pin_amr]
+    type = RunApp
+    input = mesh_pin.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall be able to create a mesh for the LWR pincell to use with AMR."
+  []
+  [pincell_amr]
+    type = RunApp
+    input = openmc_amr_single.i
+    cli_args = 'Problem/particles=100 Problem/batches=50 Problem/inactive_batches=10'
+    requirement = "The system shall be able to run AMR calculations on an LWR pincell."
+    prereq = 'gen_pin_amr'
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

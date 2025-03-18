@@ -26,7 +26,7 @@ InputParameters
 CellInstanceAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("Display the OpenMC cell Instance mapped to each MOOSE element");
+  params.addClassDescription("OpenMC cell instance, mapped to each MOOSE element");
   return params;
 }
 

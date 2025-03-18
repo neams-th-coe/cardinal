@@ -28,14 +28,14 @@ dT = ${fparse power / mdot / Cp}
   type = NekRSProblem
   casename = 'fluid'
 
-  nondimensional = true
-  L_ref = ${hydraulic_diameter}
-  T_ref = ${inlet_T}
-  U_ref = ${U_ref}
-  dT_ref = ${dT}
-
-  rho_0 = ${rho}
-  Cp_0 = ${Cp}
+  [Dimensionalize]
+    L = ${hydraulic_diameter}
+    T = ${inlet_T}
+    U = ${U_ref}
+    dT = ${dT}
+    rho = ${rho}
+    Cp = ${Cp}
+  []
 
   has_heat_source = false
   synchronization_interval = parent_app

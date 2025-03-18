@@ -4,7 +4,7 @@
 
 ## Description
 
-This class allows the wrapping of NekRS in [NekRSProblem](/problems/NekRSProblem.md)
+This class allows the wrapping of NekRS in [NekRSProblem](NekRSProblem.md)
 to control its own time stepping within a coupled solution. In other words, whatever time
 stepping is specified in the `.par` file
 (and any adaptive time stepping schemes in NekRS) is used to control the time stepping
@@ -34,11 +34,9 @@ ignored. Instead, the simulation termination critera of the master application
 dictate the overall solve.
 
 If running NekRS in non-dimensional form (and you have indicated the
-appropriate nondimensional scales by setting `nondimensional = true`
-for [NekRSProblem](/problems/NekRSProblem.md)), then the time is converted to dimensional
-units when used in the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) system,
-under the assumption that all other coupled MOOSE applications use a dimensional
-time unit. Finally, the minimum time step size that can be taken in NekRS is controlled via
+appropriate nondimensional scales with the [Dimensionalize](DimensionalizeAction.md) sub-block
+for the `[Problem]`) then this timestepper reports dimensional time.
+Finally, the minimum time step size that can be taken in NekRS is controlled via
 the `min_dt` parameter.
 
 ## Example Input Syntax
@@ -49,5 +47,3 @@ the `min_dt` parameter.
 !syntax parameters /Executioner/TimeStepper/NekTimeStepper
 
 !syntax inputs /Executioner/TimeStepper/NekTimeStepper
-
-!syntax children /Executioner/TimeStepper/NekTimeStepper

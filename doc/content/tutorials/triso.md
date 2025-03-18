@@ -39,8 +39,8 @@ which is convenient
 for heat transfer applications because
 material properties for thermal-fluids physics are almost always given in SI units. Further,
 many MOOSE physics modules inherently assume SI units, such as the
-[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html)
-and [solid property module](https://mooseframework.inl.gov/modules/solid_properties/index.html).
+[fluid property module](fluid_properties/index.md)
+and [solid property module](solid_properties/index.md).
 
 !media pebble_mesh.png
   id=solid_mesh
@@ -122,7 +122,8 @@ The following sub-sections describe these files.
 ### Solid Input Files
 
 The solid phase is solved with the MOOSE heat transfer module, and is described in the
-`solid.i` input. We set up the mesh using the [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html) to translate a single sphere mesh to multiple locations.
+`solid.i` input. We set up the mesh using the [CombinerGenerator](CombinerGenerator.md)
+to translate a single sphere mesh to multiple locations.
 
 !listing /tutorials/pebbles/solid.i
   block=Mesh
@@ -168,10 +169,9 @@ $(0, 0, 0.02)$ cm in `openmc.i` (when we actually want the point to map to
 $(0, 0, 2)$ cm).
 
 Cardinal will also automatically output a variable named `cell_id`
-([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
-and a variable named `cell_instance` (
-[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
-We also define a [CellTemperatureAux](/auxkernels/CellTemperatureAux.md)
+([CellIDAux](CellIDAux.md)) and a variable named `cell_instance` (
+[CellInstanceAux](CellInstanceAux.md)) to show the spatial mapping.
+We also define a [CellTemperatureAux](CellTemperatureAux.md)
 to show the OpenMC volume-averaged temperatures
 as they map to the `[Mesh]`.
 
@@ -181,7 +181,7 @@ as they map to the `[Mesh]`.
 
 The `[Problem]` and `[Tallies]`
 blocks are then used to specify the OpenMC wrapping. We define a total power of
-1500 W, and indicate that we'd like to add a [CellTally](/tallies/CellTally.md) on block 0, which corresponds to the pebbles.
+1500 W, and indicate that we'd like to add a [CellTally](CellTally.md) on block 0, which corresponds to the pebbles.
 The cell tally setup in Cardinal will then automatically add a tally for each unique
 cell ID+instance combination.
 Because the repeated pebble cells we'd like to tally
@@ -255,7 +255,7 @@ each pebble is an average over the pebble.
 
 You can confirm that the `scaling` factor was applied correctly by comparing the
 `heat_source` postprocessor, of the volume integral of the heat source, with the total power
-specified in [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) - both
+specified in [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) - both
 are equal to 1500 W. If the
 integral is off by a factor of $100^3$ from the `power`, then you know right away that the
 `scaling` was not applied correctly.
@@ -287,7 +287,7 @@ application. To do this, we increase `nr` to add more radial discretization.
   block=Mesh
 
 For the OpenMC wrapping, the only changes required are
-that we change the added tally to a [MeshTally](/tallies/MeshTally.md), provide a mesh template with the mesh, and specify the
+that we change the added tally to a [MeshTally](MeshTally.md), provide a mesh template with the mesh, and specify the
 translations to apply to replicate the mesh at the desired end positions in OpenMC's domain.
 For the mesh tally, let's create a mesh for a single pebble using MOOSE's mesh generators. We simply
 need to run the `mesh.i` file in `--mesh-only` mode:
@@ -325,7 +325,7 @@ Note that the heat sources on the OpenMC `[Mesh]` and on the MOOSE heat conducti
 are shown on a different color scale - the volumetric power density on the MOOSE mesh is
 lower than that on the OpenMC mesh because the MOOSE mesh has a greater volume
 (since there is a better approximation of the sphere volume). The conservative
-[MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+[MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
 conserves total integrated power.
 
 !media pebble_hs_mesh3.png

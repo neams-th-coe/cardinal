@@ -54,17 +54,23 @@ public:
   bool isDataTransferHappening(ExternalProblem::Direction direction);
 
   /**
-   * Get the minimum scratch space required for coupling; this space is guaranteed to be filled
-   * with data incoming from MOOSE, like heat flux boundary conditions or mesh displacements
-   * @return minimum scratch space reserved for coupling
+   * Get the usrwrk slot indices that Cardinal plans to use for coupling
+   * @return [start, stop) of usrwrk slots used for coupling
    */
-  unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
+  std::pair<unsigned int, unsigned int> scratchSpaceReservedForCoupling() const;
 
   /**
-   * Get the index of the first slot in the usrwrk that Cardinal is managing
-   * @return index of first slot
+   * Whether a given slot space is reserved for coupling
+   * @param[in] slot slot in usrwrk array
+   * @return whether a usrwrk slot space is reserved by Cardinal
    */
-  unsigned int firstReservedUsrwrkSlot() const { return _first_reserved_usrwrk_slot; }
+  bool isUsrWrkSlotReservedForCoupling(const unsigned int & slot) const;
+
+  /**
+   * Copy an individual slice in the usrwrk array from host to device
+   * @param[in] slot slot in usrwrk array
+   */
+  void copyIndividualScratchSlot(const unsigned int & slot) const;
 
   /// Send values from NekScalarValue userobjects to NekRS
   void sendScalarValuesToNek();
@@ -168,12 +174,6 @@ public:
    * \return whether outward data synchronization should occur
    */
   virtual bool synchronizeOut();
-
-  /**
-   * Get the characteristic length
-   * @return characteristic length
-   */
-  double L_ref() const { return _L_ref; }
 
   /**
    * Get the number of usrwrk slots allocated
@@ -283,56 +283,6 @@ protected:
   const std::string & _casename;
 
   /**
-   * \brief Whether the nekRS solution is performed in nondimensional scales
-   *
-   * If nekRS is solving in non-dimensional form, this means that the nekRS solution
-   * is performed for:
-   *
-   * - nondimensional temperature \f$T^\dagger\f$, defined as
-   *   \f$T^\dagger=\frac{T-T_{ref}}{\Delta T_{ref}}\f$.
-   *   The 'T_ref' and 'dT_ref' variables here represent these scales.
-   *
-   * - nondimensional velocity \f$U^\dagger=\frac{u}{U_{ref}}\f$. The 'U_ref' variable here
-   *   represents this velocity scale.
-   *
-   * - nondimensional pressure \f$P^dagger=\frac{P}{\rho_{0}U_{ref}^2}\f$. The 'rho_0'
-   *   variable here represents this density parameter.
-   *
-   * In terms of heat flux boundary conditions, the entire energy conservation equation
-   * in nekRS is multiplied by \f$\frac{L_{ref}}{\rho_{0}C_{p,0}U_{ref}\Delta T_{ref}}\f$
-   * in order to clear the coefficient on the convective. Therefore, the heat source in
-   * nekRS is expressed in nondimensional form as \f$q^\dagger=\frac{q}{\rho_{0}C_{p,0}U_{ref}\Delta
-   * T_{ref}}\f$. Here, 'Cp_0' is the specific heat capacity scale.
-   *
-   * Unfortunately, there is no systematic way to get these reference
-   * scales from nekRS, so we need to inform MOOSE of any possible scaling so that we
-   * can appropriately scale the nekRS temperature to the dimensional form that is usually
-   * expected in MOOSE. Therefore, these scales just need to match what is used in the nekRS
-   * input files used to specify boundary conditions. Conversion between dimensional MOOSE
-   * heat flux to dimensionless nekRS heat flux is performed automatically, and does not require
-   * any special treatment in the nekRS scalarNeumannBC kernel.
-   */
-  const bool & _nondimensional;
-
-  /// Reference characteristic velocity
-  const Real & _U_ref;
-
-  /// Reference characteristic temperature
-  const Real & _T_ref;
-
-  /// Reference characteristic temperature delta
-  const Real & _dT_ref;
-
-  /// Reference characteristic length
-  const Real & _L_ref;
-
-  /// Reference density
-  const Real & _rho_0;
-
-  /// Reference isobaric specific heat capacity
-  const Real & _Cp_0;
-
-  /**
    * Whether to disable output file writing by NekRS and replace it by output
    * file writing in Cardinal. Suppose the case name is 'channel'. If this parameter
    * is false, then NekRS will write output files as usual, with names like
@@ -350,6 +300,9 @@ protected:
 
   /// Whether to turn off all field file writing
   const bool & _disable_fld_file_output;
+
+  /// Whether a dimensionalization action has been added
+  bool _nondimensional;
 
   /**
    * Number of slices/slots to allocate in nrs->usrwrk to hold fields

@@ -18,18 +18,24 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 #include "CardinalEnums.h"
+#include "TallyBase.h"
 
 /**
  * Compute the max/min relative error of the tally coupling OpenMC to MOOSE.
  */
-class TallyRelativeError : public OpenMCPostprocessor
+class TallyRelativeError : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   TallyRelativeError(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 
@@ -37,6 +43,6 @@ protected:
   /// type of extrema operation
   const operation::OperationEnum _type;
 
-  /// index of score in _tally_score of the problem
-  int _tally_index;
+  /// The tally score we want to fetch the relative error of.
+  std::string _score;
 };

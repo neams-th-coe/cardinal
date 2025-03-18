@@ -18,19 +18,24 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "NekBase.h"
 #include "NekScalarValue.h"
 
 /**
  * Displays the value held by a NekScalarValue userobject, for diagnosis
  * purposes.
  */
-class NekScalarValuePostprocessor : public NekPostprocessor
+class NekScalarValuePostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();
 
   NekScalarValuePostprocessor(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 

@@ -28,7 +28,7 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in a [previous tutorial](tutorials/nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$. If you have not
+specifications are given in a [previous tutorial](nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$. If you have not
 reviewed this prior tutorial, we highly recommend doing so before proceeding.
 
 The MOOSE heat transfer module shall be used to solve for the solid temperature.
@@ -53,7 +53,7 @@ The above sequence is repeated until convergence.
 
 NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md).
 We already created the
-input files for NekRS in the [NekRS introduction tutorial](tutorials/nek_intro.md).
+input files for NekRS in the [NekRS introduction tutorial](nek_intro.md).
 If you have not reviewed this tutorial, please be sure to do so before proceeding.
 We will only describe the aspects of our NekRS setup which *differ* from this
 previous tutorial. The `.par`, `.udf`, and `.usr` files are identical from
@@ -78,7 +78,7 @@ application is specified in a "thin" MOOSE-type input file (which we named `nek.
 for this example).
 
 A mirror of the NekRS mesh
-is constructed using the [NekRSMesh](/mesh/NekRSMesh.md). The
+is constructed using the [NekRSMesh](NekRSMesh.md). The
 `boundary` parameter indicates the boundaries through which NekRS is coupled
 via conjugate heat transfer to MOOSE.
 
@@ -87,13 +87,13 @@ via conjugate heat transfer to MOOSE.
 
 !alert note
 Note that `pebble.re2` does not appear anywhere in `nek.i` - the `pebble.re2` file is
-a mesh used directly by NekRS, while [NekRSMesh](/mesh/NekRSMesh.md) is a mirror of the boundaries in `pebble.re2`
+a mesh used directly by NekRS, while [NekRSMesh](NekRSMesh.md) is a mirror of the boundaries in `pebble.re2`
 through which boundary coupling with MOOSE will be performed.
 
-Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
+Next, the [Problem](Problem/index.md)
  block describes all objects necessary for the actual physics solve.
 To replace MOOSE finite element calculations with NekRS
-spectral element calculations, the [NekRSProblem](problems/NekRSProblem.md) class is used.
+spectral element calculations, the [NekRSProblem](NekRSProblem.md) class is used.
 The `casename` is used to supply the file name prefix for
 the NekRS input files.
 
@@ -101,9 +101,9 @@ the NekRS input files.
   start=Problem
   end=Executioner
 
-Next, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html) executioner
+Next, a [Transient](Transient.md) executioner
 is specified. This is the same executioner used for most transient MOOSE simulations, except now a
-different time stepper is used - [NekTimeStepper](/timesteppers/NekTimeStepper.md).
+different time stepper is used - [NekTimeStepper](NekTimeStepper.md).
 This time stepper simply
 reads the time step specified in NekRS's `.par` file.
 Except for synchronziation points
@@ -128,7 +128,7 @@ with the usual field file format used by standalone NekRS calculations.
 You will likely notice that many of the almost-always-included MOOSE blocks are absent
 from the `nek.i` input file - for instance, there are no nonlinear or auxiliary variables
 in the input file.
-The [NekRSProblem](/problems/NekRSProblem.md) class assists in input file setup by declaring many of these coupling fields
+The [NekRSProblem](NekRSProblem.md) class assists in input file setup by declaring many of these coupling fields
 automatically. For this example, two auxiliary variables named `temp` and `avg_flux` are
 added automatically, as if the following were included in the input file:
 
@@ -141,7 +141,7 @@ added automatically, as if the following were included in the input file:
 []
 
 These variables receive incoming and outgoing transfers to/from NekRS; the order is set
-to match the order of the [NekRSMesh](/mesh/NekRSMesh.md).
+to match the order of the [NekRSMesh](NekRSMesh.md).
 A postprocessor named `flux_integral`
 is also added automatically to receive the value of the heat flux
 integral from MOOSE for internal normalization in NekRS. It is as if the following is added
@@ -172,7 +172,7 @@ You can use similar syntax to do math inside a MOOSE input file. For example, to
 a location in the input file with half the value held by the file-local variable
 `pebble_diameter`, you would write `${fparse 0.5 * pebble_diameter}`.
 
-The mesh is generated using MOOSE's [SphereMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/SphereMeshGenerator.html).
+The mesh is generated using MOOSE's [SphereMeshGenerator](SphereMeshGenerator.md).
 You can either generate this mesh "online" as part of the simulation setup, or
 we can create it as a separate activity and then load it (just as you can load any Exodus
 mesh into a MOOSE simulation). We will do the former here, but still show you
@@ -207,25 +207,25 @@ variable.
   block=Variables
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
-[HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+[HeatConduction](HeatConduction.md)
  kernel plus the
-[BodyForce](https://mooseframework.inl.gov/source/kernels/BodyForce.html) kernel.
+[BodyForce](BodyForce.md) kernel.
 On the fluid-solid interface,
-a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html)
+a [MatchedValueBC](MatchedValueBC.md)
  applies the value of a variable named `nek_temp` (discussed soon) as a Dirichlet condition.
-The [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+The [HeatConduction](HeatConduction.md)
  kernel requires a material property for the thermal conductivity.
 
 !listing /tutorials/pebble_cht/solid.i
   start=Kernels
   end=Executioner
 
-[AuxVariables](https://mooseframework.inl.gov/source/variables/AuxVariable.html)
+[AuxVariables](AuxVariable.md)
 are used to represent field data which passes between different applications. Here,
 we need to define an auxiliary variable to represent the field data for wall temperature
 (`nek_temp`, to be *received* from NekRS) and the wall heat flux (`flux`, to be *sent*
 to NekRS).
-A [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html) auxiliary kernel is specified
+A [DiffusionFluxAux](DiffusionFluxAux.md) auxiliary kernel is specified
 to compute the flux on the `fluid_solid_interface` boundary. The `flux` variable must be
 a monomial field due to the nature of how MOOSE computes material properties.
 
@@ -233,8 +233,8 @@ a monomial field due to the nature of how MOOSE computes material properties.
   start=AuxVariables
   end=Postprocessors
 
-Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
- and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+Next, the [MultiApps](MultiApps/index.md)
+ and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal
 and MOOSE. The MOOSE heat transfer module is here run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
@@ -265,13 +265,13 @@ interpolation onto NekRS's [!ac](GLL) points).
 For transfers between two native MOOSE applications, you can ensure
 conservation of a transferred field using the `from_postprocessors_to_be_preserved` and
 `to_postprocessors_to_be_preserved` options available to any class inheriting from
-[MultiAppConservativeTransfer](https://mooseframework.inl.gov/moose/source/transfers/MultiAppConservativeTransfer.html).
+[MultiAppConservativeTransfer](MultiAppConservativeTransfer.md).
 However, proper conservation of a field within NekRS (which uses a completely different
 spatial discretization from MOOSE) requires performing such conservations in NekRS itself.
 This is why an integral postprocessor must explicitly be passed.
 
 Next, postprocessors are used to compute the integral heat flux as a
-[SideIntegralVariablePostprocessor](https://mooseframework.inl.gov/source/postprocessors/SideIntegralVariablePostprocessor.html).
+[SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md).
 
 !listing /tutorials/pebble_cht/solid.i
   block=Postprocessors
@@ -387,7 +387,7 @@ heat transfer coefficient computed by NekRS is somewhere in the vicinity of 198.
 Nusselt number - but for more realistic engineering geometries, such correlations
 may not yet exist!
 
-We need to compute three quantities - $q^{''}$, $T_{\text{wall}$, and $T_{\text{bulk}}$.
+We need to compute three quantities - $q^{''}$, $T_{\text{wall}}$, and $T_{\text{bulk}}$.
 For illustration, we'll compute these as a function of space, and divide up the sphere into 5 axial layers. This is shown conceptually below for the fluid domain (left) and solid domain (right). For each layer, we'll compute (i) the average wall temperature from NekRS, (ii) the average bulk temperature from NekRS, and (iii) the average wall heat flux from MOOSE.
 
 !media pebble_htc.png
@@ -396,20 +396,20 @@ For illustration, we'll compute these as a function of space, and divide up the 
   style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 In the solid file, we add a
-[LayeredSideAverage](https://mooseframework.inl.gov/source/userobject/LayeredSideAverage.html)
+[LayeredSideAverage](LayeredSideAverage.md)
 userobject to evaluate the average surface heat flux in these layers.
 We then output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md)
 and by setting `csv = true` in the output.
 
 !listing /tutorials/pebble_cht/solid.i
   start=UserObjects
 
 In the NekRS input file, we add userobjects to compute average wall temperatures
-and bulk fluid temperatures in axial layers with [NekBinnedSideAverage](https://cardinal.cels.anl.gov/source/userobjects/NekBinnedSideAverage.html#)
-and [NekBinnedVolumeAverage](https://cardinal.cels.anl.gov/source/userobjects/NekBinnedVolumeAverage.html) objects.
+and bulk fluid temperatures in axial layers with [NekBinnedSideAverage](NekBinnedSideAverage.html)
+and [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) objects.
 We then output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html). These objects are
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md). These objects are
 actually performing integrations on the actual CFD mesh used by NekRS, so there is no
 approximation happening from data interpolation to the `[Mesh]`.
 

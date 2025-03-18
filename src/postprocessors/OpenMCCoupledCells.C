@@ -25,14 +25,15 @@ registerMooseObject("CardinalApp", OpenMCCoupledCells);
 InputParameters
 OpenMCCoupledCells::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   params.addClassDescription("Number of OpenMC cells receiving temperature/density feedback or "
                              "sending a cell tally to MOOSE");
   return params;
 }
 
 OpenMCCoupledCells::OpenMCCoupledCells(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters)
+  : GeneralPostprocessor(parameters), OpenMCBase(this, parameters)
 {
 }
 

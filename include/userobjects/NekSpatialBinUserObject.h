@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "NekUserObject.h"
+#include "GeneralUserObject.h"
+#include "NekFieldInterface.h"
+#include "NekBase.h"
 #include "SpatialBinUserObject.h"
 
 /**
@@ -26,7 +28,7 @@
  * NekRS solution with a spatial binning formed as the product
  * of an arbitrary number of combined single-set bins.
  */
-class NekSpatialBinUserObject : public NekUserObject
+class NekSpatialBinUserObject : public GeneralUserObject, public NekBase, public NekFieldInterface
 {
 public:
   static InputParameters validParams();
@@ -34,6 +36,17 @@ public:
   NekSpatialBinUserObject(const InputParameters & parameters);
 
   virtual ~NekSpatialBinUserObject();
+
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() override;
+
+  /**
+   * Execute the user object; separating this call from execute() allows
+   * all derived classes to leverage this base class's 'interval' parameter
+   * to decide when to call the user object
+   */
+  virtual void executeUserObject() = 0;
 
   virtual Real spatialValue(const Point & p) const override final;
 
@@ -66,12 +79,6 @@ public:
   const std::vector<unsigned int> unrolledBin(const unsigned int & total_bin_index) const;
 
   /**
-   * Get the integrating field
-   * @return field
-   */
-  const field::NekFieldEnum & field() const { return _field; }
-
-  /**
    * Get the point at which to evaluate the user object
    * @param[in] local_elem_id local element ID on the Nek rank
    * @param[in] local_node_id local node ID on the element
@@ -99,11 +106,14 @@ protected:
    */
   void fillCoordinates(const std::vector<unsigned int> & indices, Point & p) const;
 
+  /// Interval with which to evaluate the user object
+  const unsigned int & _interval;
+
+  /// Whether the mesh this userobject operates on is fixed, allowing caching of volumes and areas
+  bool _fixed_mesh;
+
   /// Names of the userobjects providing the bins
   const std::vector<UserObjectName> & _bin_names;
-
-  /// field to postprocess with the bins
-  const field::NekFieldEnum _field;
 
   /**
    * Whether to map the NekRS space to bins by element centroid (false)
@@ -126,13 +136,6 @@ protected:
 
   /// For each x, y, z direction, which bin provides that direction
   std::vector<unsigned int> _bin_providing_direction;
-
-  /**
-   * Direction in which to evaluate velocity, if using 'field = velocity_component'.
-   * Options: user (then provide a general vector direction with the 'velocity_direction' parameter
-   *          normal (normal to the gap planes, only valid for side bin user objects)
-   */
-  component::BinnedVelocityComponentEnum _velocity_component;
 
   /// total number of bins
   unsigned int _n_bins;

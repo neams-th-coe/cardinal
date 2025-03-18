@@ -17,6 +17,7 @@
   [wrong_uo]
     type = RunException
     input = wrong_uo.i
+    prereq = generate_mesh
     expect_err = "The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!"
     requirement = "The system shall error if the symmetry mapper is not of the correct type"
     required_objects = 'OpenMCCellAverageProblem'

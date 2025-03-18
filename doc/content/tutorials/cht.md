@@ -2,13 +2,13 @@
 
 These tutorials describe how to couple NekRS to MOOSE through *boundary*
 heat transfer by exchanging boundary conditions for wall temperature and heat flux.
-This is shown schematically in [sfr_cht].
+There are two options currently supported for these transfers, as shown in [sfr_cht].
 These types of calculations are referred to as *conjugate heat transfer*.
 
 !media cht.png
   id=sfr_cht
   caption=Illustration of data transfers to couple NekRS to MOOSE for boundary heat transfer in a pin bundle.
-  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 Cardinal uses a general formulation that allows NekRS to couple via conjugate
 heat transfer to *any* MOOSE application that can compute a heat flux. This
@@ -21,7 +21,8 @@ coupling NekRS to any of these other MOOSE thermal-fluid codes.
   caption=NekRS integrates with *any* MOOSE application that can compute a heat flux
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
-Five examples are provided:
+Five examples are provided; the "Pin Bundle Flow" example illustrates how to use both
+the flux-temperature and flux-flux transfers, for easy comparison.
 
 - [Laminar Flow](cht5.md) over a heated pebble
 - [Reflector Bypass Flow](cht1.md) around a reflector block in a pebble bed reactor

@@ -33,5 +33,3 @@ and display it on the MOOSE elements corresponding to each OpenMC cell.
 !syntax parameters /AuxKernels/CellVolumeAux
 
 !syntax inputs /AuxKernels/CellVolumeAux
-
-!syntax children /AuxKernels/CellVolumeAux

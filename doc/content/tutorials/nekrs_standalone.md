@@ -46,7 +46,7 @@ postprocessing and data I/O features. Some useful features include:
   and mass flux-weighted side integrals of the NekRS solution
 - Extracting the NekRS solution into any output format supported by MOOSE (such as
   Exodus and VTK - see the full list of formats
-  [here](https://mooseframework.inl.gov/syntax/Outputs/index.html)).
+  [here](Outputs/index.md)).
 
 Instead of running a NekRS input
 with the `nekrs` executable, you can instead
@@ -60,9 +60,9 @@ Cardinal simply replaces calls to MOOSE solve methods with NekRS solve methods a
 through an [!ac](API). There are no data transfers to/from NekRS. A
 thinly-wrapped simulation uses:
 
-1. [NekRSMesh](/mesh/NekRSMesh.md): create a "mirror" of the NekRS mesh, which can *optionally* be used to interpolate
+1. [NekRSMesh](NekRSMesh.md): create a "mirror" of the NekRS mesh, which can *optionally* be used to interpolate
    a high-order NekRS solution into a lower-order mesh (in any MOOSE-supported format).
-2. [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md): allow MOOSE to run NekRS
+2. [NekRSStandaloneProblem](NekRSStandaloneProblem.md): allow MOOSE to run NekRS
 
 For this tutorial, we will use the `turbPipe` example that ships with the NekRS repository
 as an example case. This case models
@@ -102,7 +102,7 @@ The essential blocks in the input file are:
 - `Mesh`: creates a lower-order mirror of the NekRS mesh
 - `Problem`: replaces MOOSE finite element solves with NekRS solves
 - `Executioner`: controls the time stepping according to the settings in the NekRS input files
-- `Outputs`: outputs any results that have been projected onto the [NekRSMesh](/mesh/NekRSMesh.md) to the specified format.
+- `Outputs`: outputs any results that have been projected onto the [NekRSMesh](NekRSMesh.md) to the specified format.
 
 This input file is run with:
 
@@ -126,9 +126,9 @@ the rest of the contents in the `nek.i` input file.
 This file adds a few additional postprocessing operations to compute:
 
 - pressure drop, computed by subtracting the inlet average pressure from the outlet
-  average pressure with two [NekSideAverage](/postprocessors/NekSideAverage.md)
-  postprocessors and the [DifferencePostprocessor](https://mooseframework.inl.gov/source/postprocessors/DifferencePostprocessor.html)
-- mass flowrate, computed with a [NekMassFluxWeightedSideIntegral](/postprocessors/NekMassFluxWeightedSideIntegral.md)
+  average pressure with two [NekSideAverage](NekSideAverage.md)
+  postprocessors and the [DifferencePostprocessor](DifferencePostprocessor.md)
+- mass flowrate, computed with a [NekMassFluxWeightedSideIntegral](NekMassFluxWeightedSideIntegral.md)
   postprocessor
 
 !listing /tutorials/standalone/nek.i
@@ -159,11 +159,11 @@ time,dP,mdot
 0.018,1.540674311383,-0.78539846245391
 ```
 
-By setting `output = 'pressure velocity'` for [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md),
+By setting `output = 'pressure velocity'` for [NekRSStandaloneProblem](NekRSStandaloneProblem.md),
 we interpolate the NekRS solution (which for this example has $(7+1)^3$ degrees of
 freedom per element, since `polynomialOrder = 7` in `turbPipe.par`)
 onto a second-order version of the same mesh by creating
-[MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+[MooseVariables](MooseVariable.md)
 named `P` and `velocity`. You can then apply *any* MOOSE object to those
 variables, such as postprocessors, userobjects, auxiliary kernels, and so on.
 You can also transfer these variables to another MOOSE application
@@ -175,7 +175,7 @@ the mesh mirror, are shown in [nek_vels].
 
 !media nek_velocity_turbpipe.png
   id=nek_vels
-  caption=NekRS computed axial velocity (top) and the velocity interpolated onto the [NekRSMesh](/mesh/NekRSMesh.md) mirror (bottom)
+  caption=NekRS computed axial velocity (top) and the velocity interpolated onto the [NekRSMesh](NekRSMesh.md) mirror (bottom)
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 We can also apply several userobjects *directly* to the NekRS solution for a
@@ -192,8 +192,8 @@ of the NekRS solution - they are *directly* doing integrals/averages/etc. on
 the [!ac](GLL) points.
 
 If we want to view the output of this averaging on the
-[NekRSMesh](/mesh/NekRSMesh.md), we could visualize it with a
-[SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
+[NekRSMesh](NekRSMesh.md), we could visualize it with a
+[SpatialUserObjectAux](SpatialUserObjectAux.md).
 
 !listing /tutorials/standalone/nek.i
   start=AuxVariables
@@ -214,7 +214,7 @@ be seen).
   style=width:65%;margin-left:auto;margin-right:auto;halign:center
 
 Instead, we can
-leverage MOOSE's [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+leverage MOOSE's [MultiApp](MultiApps/index.md)
 system to transfer the user object to a sub-application with a different mesh
 than what is used in NekRS. Then we can visualize the averaging operation
 perfectly without concern for the fact that the NekRS mesh doesn't have elements

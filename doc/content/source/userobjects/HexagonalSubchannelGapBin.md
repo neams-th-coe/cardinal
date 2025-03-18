@@ -34,6 +34,10 @@ Some user objects allow taking averages of velocity projected onto
 the gap planes. The unit normals for the planes are defined to be in the
 counter-clockwise direction as shown in [fig1].
 
+!alert tip
+To help with debugging, you can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that computes gap indices (bins)
@@ -54,5 +58,3 @@ the gaps.
 !syntax parameters /UserObjects/HexagonalSubchannelGapBin
 
 !syntax inputs /UserObjects/HexagonalSubchannelGapBin
-
-!syntax children /UserObjects/HexagonalSubchannelGapBin

@@ -19,7 +19,7 @@ This behavior can be controlled by setting the `interior_id`, `edge_id`, and
 By default, this class will create a volume mesh of a subchannel discretization
 (i.e. using 3-D elements). By setting `volume_mesh = false`, you can instead create
 2-D plane meshes (on planes perpendicular to `axis`), such as for visualizing results
-from a user object paired with a [LayeredGapBin](/userobjects/LayeredGapBin.md).
+from a user object paired with a [LayeredGapBin](LayeredGapBin.md).
 
 !alert warning
 This class is intended *ONLY* for visualization purposes - node connectivity between
@@ -61,5 +61,3 @@ are again colored by block ID.
 !syntax parameters /Mesh/HexagonalSubchannelMesh
 
 !syntax inputs /Mesh/HexagonalSubchannelMesh
-
-!syntax children /Mesh/HexagonalSubchannelMesh

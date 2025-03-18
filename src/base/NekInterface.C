@@ -24,6 +24,8 @@
 static nekrs::characteristicScales scales;
 static dfloat * sgeo;
 static dfloat * vgeo;
+static unsigned int n_usrwrk_slots;
+static bool is_nondimensional;
 nekrs::usrwrkIndices indices;
 
 namespace nekrs
@@ -67,7 +69,7 @@ setStartTime(const double & start)
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  int num_bytes = scalarFieldOffset() * sizeof(dfloat);
+  int num_bytes = fieldOffset() * sizeof(dfloat);
 
   nrs_t * nrs = (nrs_t *)nrsPtr();
   occa::memory o_write = platform->device.malloc(num_bytes);
@@ -203,6 +205,15 @@ velocityFieldOffset()
   return nrs->fieldOffset;
 }
 
+int
+fieldOffset()
+{
+  if (hasTemperatureVariable())
+    return scalarFieldOffset();
+  else
+    return velocityFieldOffset();
+}
+
 mesh_t *
 entireMesh()
 {
@@ -272,7 +283,7 @@ void
 initializeScratch(const unsigned int & n_slots)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // clear them just to be sure
   freeScratch();
@@ -280,9 +291,10 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
-                                          nrs->usrwrk);
+  nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), nrs->usrwrk);
+
+  n_usrwrk_slots = n_slots;
 }
 
 void
@@ -695,10 +707,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -751,10 +760,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -877,9 +883,9 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
   // scale the volume integral
   integral *= scales.V_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the volume integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * volume;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the volume integral
+  integral += referenceAdditiveScale(integrand) * volume;
 }
 
 void
@@ -893,9 +899,9 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral
+  integral += referenceAdditiveScale(integrand) * area;
 }
 
 void
@@ -910,9 +916,11 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral; we need this form here to avoid a recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    integral += add * area(boundary_id, pp_mesh);
 }
 
 double
@@ -1112,9 +1120,12 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the mass flux integral
-  if (integrand == field::temperature)
-    total_integral += scales.T_ref * massFlowrate(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the mass flux integral; we need this form here to avoid an infinite
+  // recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    total_integral += add * massFlowrate(boundary_id, pp_mesh);
 
   return total_integral;
 }
@@ -1392,6 +1403,27 @@ scalar03(const int id)
 }
 
 double
+usrwrk00(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id];
+}
+
+double
+usrwrk01(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id + nrs->fieldOffset];
+}
+
+double
+usrwrk02(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id + 2 * nrs->fieldOffset];
+}
+
+double
 temperature(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1441,6 +1473,24 @@ velocity(const int id)
   return std::sqrt(nrs->U[id + 0 * offset] * nrs->U[id + 0 * offset] +
                    nrs->U[id + 1 * offset] * nrs->U[id + 1 * offset] +
                    nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
+}
+
+double
+velocity_x_squared(const int id)
+{
+  return std::pow(velocity_x(id), 2);
+}
+
+double
+velocity_y_squared(const int id)
+{
+  return std::pow(velocity_y(id), 2);
+}
+
+double
+velocity_z_squared(const int id)
+{
+  return std::pow(velocity_z(id), 2);
 }
 
 void
@@ -1499,8 +1549,64 @@ mesh_velocity_z(const int id, const dfloat value)
   nrs->usrwrk[indices.mesh_velocity_z + id] = value;
 }
 
+void
+checkFieldValidity(const field::NekFieldEnum & field)
+{
+  // by placing this check here, as opposed to inside the NekFieldInterface,
+  // we can also leverage this error checking for the 'outputs' of NekRSProblemBase,
+  // which does not inherit from NekFieldInterface but still accesses the solutionPointers.
+  // If this gets moved elsewhere, need to be sure to add dedicated testing for
+  // the 'outputs' on NekRSProblemBase.
+
+  // TODO: would be nice for NekRSProblemBase to only access field information via the
+  // NekFieldInterface; refactor later
+
+  switch (field)
+  {
+    case field::temperature:
+      if (!hasTemperatureVariable())
+        mooseError("Cannot find 'temperature' "
+                   "because your Nek case files do not have a temperature variable!");
+      break;
+    case field::scalar01:
+      if (!hasScalarVariable(1))
+        mooseError("Cannot find 'scalar01' "
+                   "because your Nek case files do not have a scalar01 variable!");
+      break;
+    case field::scalar02:
+      if (!hasScalarVariable(2))
+        mooseError("Cannot find 'scalar02' "
+                   "because your Nek case files do not have a scalar02 variable!");
+      break;
+    case field::scalar03:
+      if (!hasScalarVariable(3))
+        mooseError("Cannot find 'scalar03' "
+                   "because your Nek case files do not have a scalar03 variable!");
+      break;
+    case field::usrwrk00:
+      if (n_usrwrk_slots < 1)
+        mooseError("Cannot find 'usrwrk00' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
+    case field::usrwrk01:
+      if (n_usrwrk_slots < 2)
+        mooseError("Cannot find 'usrwrk01' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
+    case field::usrwrk02:
+      if (n_usrwrk_slots < 3)
+        mooseError("Cannot find 'usrwrk02' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
+  }
+}
+
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
+  // we include this here as well, in addition to within the NekFieldInterface, because
+  // the NekRSProblemBase accesses these methods without inheriting from NekFieldInterface
+  checkFieldValidity(field);
+
   double (*f)(int);
 
   switch (field)
@@ -1521,35 +1627,41 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
       mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
                  "interface!");
       break;
+    case field::velocity_x_squared:
+      f = &velocity_x_squared;
+      break;
+    case field::velocity_y_squared:
+      f = &velocity_y_squared;
+      break;
+    case field::velocity_z_squared:
+      f = &velocity_z_squared;
+      break;
     case field::temperature:
-      if (!hasTemperatureVariable())
-        mooseError("Cardinal cannot find 'temperature' "
-                   "because your Nek case files do not have a temperature variable!");
       f = &temperature;
       break;
     case field::pressure:
       f = &pressure;
       break;
     case field::scalar01:
-      if (!hasScalarVariable(1))
-        mooseError("Cardinal cannot find 'scalar01' "
-                   "because your Nek case files do not have a scalar01 variable!");
       f = &scalar01;
       break;
     case field::scalar02:
-      if (!hasScalarVariable(2))
-        mooseError("Cardinal cannot find 'scalar02' "
-                   "because your Nek case files do not have a scalar02 variable!");
       f = &scalar02;
       break;
     case field::scalar03:
-      if (!hasScalarVariable(3))
-        mooseError("Cardinal cannot find 'scalar03' "
-                   "because your Nek case files do not have a scalar03 variable!");
       f = &scalar03;
       break;
     case field::unity:
       f = &unity;
+      break;
+    case field::usrwrk00:
+      f = &usrwrk00;
+      break;
+    case field::usrwrk01:
+      f = &usrwrk01;
+      break;
+    case field::usrwrk02:
+      f = &usrwrk02;
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
@@ -1596,26 +1708,39 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
 }
 
 void
-initializeDimensionalScales(const double U_ref,
-                            const double T_ref,
-                            const double dT_ref,
-                            const double L_ref,
-                            const double rho_ref,
-                            const double Cp_ref)
+initializeDimensionalScales(const double U,
+                            const double T,
+                            const double dT,
+                            const double L,
+                            const double rho,
+                            const double Cp,
+                            const double s01,
+                            const double ds01,
+                            const double s02,
+                            const double ds02,
+                            const double s03,
+                            const double ds03)
 {
-  scales.U_ref = U_ref;
-  scales.T_ref = T_ref;
-  scales.dT_ref = dT_ref;
-  scales.L_ref = L_ref;
-  scales.A_ref = L_ref * L_ref;
-  scales.V_ref = L_ref * L_ref * L_ref;
-  scales.rho_ref = rho_ref;
-  scales.Cp_ref = Cp_ref;
+  scales.U_ref = U;
+  scales.T_ref = T;
+  scales.dT_ref = dT;
+  scales.L_ref = L;
+  scales.A_ref = L * L;
+  scales.V_ref = L * L * L;
+  scales.rho_ref = rho;
+  scales.Cp_ref = Cp;
+  scales.t_ref = L / U;
+  scales.P_ref = rho * U * U;
 
-  scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
-  scales.source_ref = scales.flux_ref / L_ref;
+  scales.s01_ref = s01;
+  scales.ds01_ref = ds01;
+  scales.s02_ref = s02;
+  scales.ds02_ref = ds02;
+  scales.s03_ref = s03;
+  scales.ds03_ref = ds03;
 
-  scales.nondimensional_T = (std::abs(dT_ref - 1.0) > 1e-6) || (std::abs(T_ref) > 1e-6);
+  scales.flux_ref = rho * U * Cp * dT;
+  scales.source_ref = scales.flux_ref / L;
 }
 
 double
@@ -1637,6 +1762,24 @@ referenceLength()
 }
 
 double
+referencePressure()
+{
+  return scales.P_ref;
+}
+
+double
+referenceTime()
+{
+  return scales.t_ref;
+}
+
+double
+referenceVelocity()
+{
+  return scales.U_ref;
+}
+
+double
 referenceArea()
 {
   return scales.A_ref;
@@ -1648,48 +1791,99 @@ referenceVolume()
   return scales.V_ref;
 }
 
+Real
+referenceAdditiveScale(const field::NekFieldEnum & field)
+{
+  switch (field)
+  {
+    case field::temperature:
+      return scales.T_ref;
+    case field::scalar01:
+      return scales.s01_ref;
+    case field::scalar02:
+      return scales.s02_ref;
+    case field::scalar03:
+      return scales.s03_ref;
+    default:
+      return 0;
+  }
+}
+
 void
 dimensionalize(const field::NekFieldEnum & field, double & value)
 {
   switch (field)
   {
     case field::velocity_x:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_y:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_z:
-      value = value * scales.U_ref;
-      break;
     case field::velocity:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_component:
-      mooseError(
-          "The 'velocity_component' field is incompatible with the dimensionalize interface!");
+      value *= scales.U_ref;
+      break;
+    case field::velocity_x_squared:
+    case field::velocity_y_squared:
+    case field::velocity_z_squared:
+      value *= scales.U_ref * scales.U_ref;
       break;
     case field::temperature:
-      value = value * scales.dT_ref;
+      value *= scales.dT_ref;
       break;
     case field::pressure:
-      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      value *= scales.P_ref;
       break;
     case field::scalar01:
-      // no dimensionalization needed
+      value *= scales.ds01_ref;
       break;
     case field::scalar02:
-      // no dimensionalization needed
+      value *= scales.ds02_ref;
       break;
     case field::scalar03:
-      // no dimensionalization needed
+      value *= scales.ds03_ref;
       break;
     case field::unity:
       // no dimensionalization needed
       break;
+
+    case field::usrwrk00:
+      value *= scratchUnits(0);
+      break;
+    case field::usrwrk01:
+      value *= scratchUnits(1);
+      break;
+    case field::usrwrk02:
+      value *= scratchUnits(2);
+      break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
+}
+
+Real
+scratchUnits(const int slot)
+{
+  if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
+    return scales.flux_ref;
+  else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
+    return scales.source_ref;
+  else if (is_nondimensional)
+  {
+    // TODO: we are lazy and did not include all the usrwrk indices
+    mooseDoOnce(mooseWarning(
+        "The units of 'usrwrk0" + std::to_string(slot) +
+        "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +
+        std::to_string(slot) +
+        "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need "
+        "to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+  }
+
+  return 1.0;
+}
+
+void
+nondimensional(const bool n)
+{
+  is_nondimensional = n;
 }
 
 template <>
