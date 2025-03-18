@@ -5,6 +5,11 @@ import sys
 import numpy as np
 from argparse import ArgumentParser
 
+# Common meshing utilities
+this_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_dir, '..'))
+from mesh_utils import build_pattern
+
 # Create a mesh of the gap region between hexagonal ducts
 # enclosed in a cylindrical barrel, without any structural components
 # (i.e. load pads, restraint rings, etc). The sideset IDs are:
@@ -137,19 +142,7 @@ def lattice_centers(nrings, pitch):
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
-
-pattern = "'"
-for i in range(n_rings):
-  for j in range(first_row + i):
-    pattern += " 0"
-  pattern += ";"
-for i in range(n_rings - 1):
-  for j in range(last_row - 1 - i):
-    pattern += " 0"
-  pattern += ";"
-pattern += "'"
+pattern = build_pattern(n_rings)
 
 # This is the half-thickness of the gap
 outer_flat_to_flat = flat_to_flat + 2.0 * thickness
