@@ -1,0 +1,9 @@
+[Tests]
+  [test]
+    type = Exodiff
+    input = openmc.i
+    exodiff = 'openmc_out.e'
+    command_proxy = depletion.py
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
