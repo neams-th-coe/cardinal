@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "SphericalHarmonicsFilter.h"
 
 #include "openmc/tallies/filter_sph_harm.h"
@@ -68,3 +70,4 @@ SphericalHarmonicsFilter::binName(unsigned int bin_index) const
 
   return "";
 }
+#endif
