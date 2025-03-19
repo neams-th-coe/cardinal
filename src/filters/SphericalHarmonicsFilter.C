@@ -30,10 +30,9 @@ SphericalHarmonicsFilter::validParams()
   auto params = FilterBase::validParams();
   params.addClassDescription(
       "A class which provides a thin wrapper around an OpenMC SphericalHarmonicsFilter.");
-  params.addRequiredRangeCheckedParam<unsigned int>(
+  params.addRequiredParam<unsigned int>(
       "order",
-      "order <= 10",
-      "The order of the spherical harmonics expansion. OpenMC only supports up to order 10.");
+      "The order of the spherical harmonics expansion.");
 
   return params;
 }
@@ -43,7 +42,14 @@ SphericalHarmonicsFilter::SphericalHarmonicsFilter(const InputParameters & param
 {
   auto sh_filter = dynamic_cast<openmc::SphericalHarmonicsFilter *>(
       openmc::Filter::create("sphericalharmonics"));
-  sh_filter->set_order(_order);
+  try
+  {
+    sh_filter->set_order(_order);
+  }
+  catch (const std::exception& e)
+  {
+    paramError("order", e.what());
+  }
   sh_filter->set_cosine("particle");
   _filter = sh_filter;
 }
