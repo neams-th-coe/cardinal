@@ -30,9 +30,7 @@ SphericalHarmonicsFilter::validParams()
   auto params = FilterBase::validParams();
   params.addClassDescription(
       "A class which provides a thin wrapper around an OpenMC SphericalHarmonicsFilter.");
-  params.addRequiredParam<unsigned int>(
-      "order",
-      "The order of the spherical harmonics expansion.");
+  params.addRequiredParam<unsigned int>("order", "The order of the spherical harmonics expansion.");
 
   return params;
 }
@@ -46,7 +44,7 @@ SphericalHarmonicsFilter::SphericalHarmonicsFilter(const InputParameters & param
   {
     sh_filter->set_order(_order);
   }
-  catch (const std::exception& e)
+  catch (const std::exception & e)
   {
     paramError("order", e.what());
   }
