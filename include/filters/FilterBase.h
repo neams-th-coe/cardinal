@@ -50,7 +50,7 @@ public:
    * @param[in] bin the filter bin
    * @return whether the bin should be skipped.
    */
-  virtual bool skipBin(const unsigned int bin) const = 0;
+  virtual bool skipBin(const unsigned int bin) const { return false; };
 
   /**
    * A function which returns the short-form name for each bin of

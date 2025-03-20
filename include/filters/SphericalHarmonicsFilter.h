@@ -33,7 +33,8 @@ public:
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * PolarAngleFilter(s) use 'theta' for each filter bin.
+   * SphericalHarmonicsFilter(s) use l_mpos for m >= 0, and l_mneg for
+   * m < 0.
    * @param[in] the bin index
    * @return a short name for the bin represented by bin_index
    */
