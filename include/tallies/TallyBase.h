@@ -172,6 +172,13 @@ public:
   std::vector<std::string> getScoreVars(const std::string & score) const;
 
   /**
+   * Check to see if the given external filter bin is skipped during normalization.
+   * @param[in] ext_bin the external filter bin
+   * @return whether the bin is skipped during normalization or not
+   */
+  bool extBinSkipped(unsigned int ext_bin) const { return _ext_bins_to_skip[ext_bin]; }
+
+  /**
    * Check to see if this tally uses a trigger or not.
    * @return whether this tally uses a trigger or not
    */

@@ -169,26 +169,32 @@ public:
   /**
    * Get the variable(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
+   * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when fetching variable values
    * @return a vector of variable values associated with score
    */
   std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
-                                                                    THREAD_ID tid);
+                                                                    THREAD_ID tid, bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
+   * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when fetching variable values
    * @return a vector of variable values associated with score
    */
   std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
-                                                                 THREAD_ID tid);
+                                                                 THREAD_ID tid, bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
+   * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when fetching variable values
    * @return a vector of variable values associated with score
    */
   std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score,
-                                                                         THREAD_ID tid);
+                                                                         THREAD_ID tid, bool skip_func_exp = false);
 
   /**
    * Apply transformations to point
