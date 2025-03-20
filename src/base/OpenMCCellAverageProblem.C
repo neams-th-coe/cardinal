@@ -742,7 +742,9 @@ OpenMCCellAverageProblem::getTalliesByScore(const std::string & score)
 }
 
 std::vector<const MooseVariableFE<Real> *>
-OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score, THREAD_ID tid, bool skip_func_exp)
+OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
+                                                 THREAD_ID tid,
+                                                 bool skip_func_exp)
 {
   std::vector<const MooseVariableFE<Real> *> score_vars;
   const auto & tallies = _local_tallies;
@@ -755,7 +757,8 @@ OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score, THRE
       {
         if (skip_func_exp && t->extBinSkipped(ext_bin))
           continue;
-        score_vars.emplace_back(dynamic_cast<const MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin])));
+        score_vars.emplace_back(
+            dynamic_cast<const MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin])));
       }
     }
   }
@@ -767,7 +770,9 @@ OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score, THRE
 }
 
 std::vector<const VariableValue *>
-OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score, THREAD_ID tid, bool skip_func_exp)
+OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
+                                                      THREAD_ID tid,
+                                                      bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
   const auto & tallies = _local_tallies;
@@ -794,7 +799,8 @@ OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
 
 std::vector<const VariableValue *>
 OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string & score,
-                                                              THREAD_ID tid, bool skip_func_exp)
+                                                              THREAD_ID tid,
+                                                              bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
   const auto & tallies = _local_tallies;
@@ -808,7 +814,8 @@ OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string 
         if (skip_func_exp && t->extBinSkipped(ext_bin))
           continue;
         score_vars.emplace_back(
-            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin]))->slnNeighbor()));
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin]))
+                  ->slnNeighbor()));
       }
     }
   }
