@@ -172,6 +172,13 @@ public:
   std::vector<std::string> getScoreVars(const std::string & score) const;
 
   /**
+   * Check to see if the given external filter bin is skipped during normalization.
+   * @param[in] ext_bin the external filter bin
+   * @return whether the bin is skipped during normalization or not
+   */
+  bool extBinSkipped(unsigned int ext_bin) const { return _ext_bins_to_skip[ext_bin]; }
+
+  /**
    * Check to see if this tally uses a trigger or not.
    * @return whether this tally uses a trigger or not
    */
@@ -335,6 +342,9 @@ protected:
 
   /// Whether the problem uses adaptive mesh refinement or not.
   const bool _is_adaptive;
+
+  /// External filter bins to skip while computing the tally sum and mean for normalization.
+  std::vector<bool> _ext_bins_to_skip;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;

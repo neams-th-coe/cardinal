@@ -124,7 +124,7 @@ CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       volumetric_tally *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
                                                  _openmc_problem.cellMappedVolume(cell_info)
                                            : 1.0;
-      total += unnormalized_tally;
+      total += _ext_bins_to_skip[ext_bin] ? 0.0 : unnormalized_tally;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
       fillElementalAuxVariable(var, c.second, volumetric_tally);
