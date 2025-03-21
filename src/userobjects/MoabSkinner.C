@@ -240,8 +240,9 @@ MoabSkinner::initialize()
 
   if (_standalone)
   {
-    checkRequiredParam(
-        parameters(), "material_names", "using skinner independent of an OpenMC [Problem]");
+    if (!parameters().isParamValid("material_names"))
+      mooseError("You are using a MoabSkinner, but you have not passed that skinner to your OpenMC Problem. You are either testing the MoabSkinner in an environment without OpenMC (in which case you need to provide the 'material_names' parameter to MoabSkinner), or you forgot to provide the 'skinner' parameter to your OpenMC problem.");
+
     _material_names = getParam<std::vector<std::string>>("material_names");
 
     if (_material_names.size() != _n_block_bins)
@@ -294,6 +295,14 @@ MoabSkinner::update()
 
   // Re-initialise the mesh data
   initialize();
+
+  if (_verbose)
+  {
+    BoundingBox bbox = MeshTools::create_bounding_box(getMooseMesh().getMesh());
+    auto min = bbox.min();
+    auto max = bbox.max();
+    _console << "\n New geometry will have a bounding box from:\n" << "  lower left: (" << min(0) << ", " << min(1) << ", " << min(2) << ")\n" << "  upper right: (" << max(0) << ", " << max(1) << ", " << max(2) << ")" << std::endl;
+  }
 
   // Sort libMesh elements into bins
   sortElemsByResults();

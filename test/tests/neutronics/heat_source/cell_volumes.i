@@ -2,6 +2,11 @@
 # MOOSE elements arent mapped anywhere (this is facilitated by adding an
 # extra pebble to the MOOSE mesh).
 
+[GlobalParams]
+  use_displaced_mesh = true
+  displacements = 'cell_volume cell_volume cell_volume'
+[]
+
 [Mesh]
   [sphere]
     type = FileMeshGenerator
