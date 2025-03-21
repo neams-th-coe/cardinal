@@ -74,9 +74,9 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
 
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;
-  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid))
+  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid, true))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
-  for (const auto v : _openmc_problem->getTallyScoreVariables("flux", _tid))
+  for (const auto v : _openmc_problem->getTallyScoreVariables("flux", _tid, true))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
 
   if (!const_mon)
@@ -85,8 +85,8 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
                "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
 
   // Grab the reaction rate / flux variables from the [Tallies].
-  _rxn_rates = _openmc_problem->getTallyScoreVariableValues(score, _tid);
-  _scalar_fluxes = _openmc_problem->getTallyScoreVariableValues("flux", _tid);
+  _rxn_rates = _openmc_problem->getTallyScoreVariableValues(score, _tid, true);
+  _scalar_fluxes = _openmc_problem->getTallyScoreVariableValues("flux", _tid, true);
 }
 
 void

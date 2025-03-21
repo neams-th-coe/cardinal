@@ -249,6 +249,19 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
   _tally_name = all_var_names;
 
+  // A map of external filter bins to skip when computing sums and means for normalization.
+  std::vector<bool> skip{false};
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<bool> s;
+    for (unsigned int i = 0; i < skip.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        s.push_back(skip[i] || filter->skipBin(j));
+
+    skip = s;
+  }
+  _ext_bins_to_skip = skip;
+
   _openmc_problem.checkDuplicateEntries(_tally_name, "name");
   _openmc_problem.checkDuplicateEntries(_tally_score, "score");
 
@@ -363,8 +376,19 @@ TallyBase::computeSumAndMean()
 {
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
-    _local_sum_tally[score] = _openmc_problem.tallySumAcrossBins({_local_tally}, score);
-    _local_mean_tally[score] = _openmc_problem.tallyMeanAcrossBins({_local_tally}, score);
+    _local_sum_tally[score] = 0.0;
+
+    const unsigned int mapped_bins = _local_tally->n_filter_bins() / _num_ext_filter_bins;
+    for (unsigned int ext = 0; ext < _num_ext_filter_bins; ++ext)
+      for (unsigned int m = 0; m < mapped_bins; ++m)
+        if (!_ext_bins_to_skip[ext])
+          _local_sum_tally[score] +=
+              xt::view(_local_tally->results_,
+                       xt::all(),
+                       score,
+                       static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
+
+    _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
   }
 }
 
