@@ -17,19 +17,22 @@
 /********************************************************************/
 
 #ifdef ENABLE_OPENMC_COUPLING
-#include "EnergyFilter.h"
+#include "EnergyOutFilter.h"
+
 #include "EnergyGroupStructures.h"
+#include "EnergyFilter.h"
+#include "CardinalEnums.h"
 
 #include "openmc/tallies/filter_energy.h"
 
-registerMooseObject("CardinalApp", EnergyFilter);
+registerMooseObject("CardinalApp", EnergyOutFilter);
 
 InputParameters
-EnergyFilter::validParams()
+EnergyOutFilter::validParams()
 {
   auto params = FilterBase::validParams();
   params.addClassDescription(
-      "A class which provides a thin wrapper around an OpenMC EnergyFilter. Energy bins "
+      "A class which provides a thin wrapper around an OpenMC EnergyOutFilter. Energy bins "
       "can either be manually specified in 'energy_boundaries' or picked from a list "
       "provided in 'group_structure'.");
   params.addParam<std::vector<Real>>(
@@ -50,7 +53,7 @@ EnergyFilter::validParams()
   return params;
 }
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters)
+EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
   : FilterBase(parameters), _reverse_bins(getParam<bool>("reverse_bins"))
 {
   if (isParamValid("energy_boundaries") == isParamValid("group_structure"))
@@ -61,7 +64,7 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
   if (isParamValid("energy_boundaries"))
     _energy_bnds = getParam<std::vector<Real>>("energy_boundaries");
   if (isParamValid("group_structure"))
-    _energy_bnds = getGroupBoundaries(
+    _energy_bnds = EnergyFilter::getGroupBoundaries(
         getParam<MooseEnum>("group_structure").getEnum<energyfilter::GroupStructureEnum>(), this);
 
   // Two boundaries are required at minimum to form energy bins.
@@ -74,72 +77,19 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
             _energy_bnds.end(),
             [](const Real & a, const Real & b) { return a < b; });
 
-  // Initialize the OpenMC EnergyFilter.
+  // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
 
-  auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
-  energy_filter->set_bins(_energy_bnds);
-  _filter = energy_filter;
+  auto energy_out_filter = dynamic_cast<openmc::EnergyoutFilter *>(openmc::Filter::create("energyout"));
+  energy_out_filter->set_bins(_energy_bnds);
+  _filter = energy_out_filter;
 }
 
 std::string
-EnergyFilter::binName(unsigned int bin_index) const
+EnergyOutFilter::binName(unsigned int bin_index) const
 {
-  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
-                              : Moose::stringify(bin_index + 1));
+  return "gp" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
+                               : Moose::stringify(bin_index + 1));
 }
 
-std::vector<double>
-EnergyFilter::getGroupBoundaries(energyfilter::GroupStructureEnum group_structure, const MooseObject * obj)
-{
-  using namespace energyfilter;
-  using namespace groupstructures;
-  switch (group_structure)
-  {
-    case CASMO_2:
-      return std::vector<double>(S_CASMO_2, S_CASMO_2 + 3);
-    case CASMO_4:
-      return std::vector<double>(S_CASMO_4, S_CASMO_4 + 5);
-    case CASMO_8:
-      return std::vector<double>(S_CASMO_8, S_CASMO_8 + 9);
-    case CASMO_16:
-      return std::vector<double>(S_CASMO_16, S_CASMO_16 + 17);
-    case CASMO_25:
-      return std::vector<double>(S_CASMO_25, S_CASMO_25 + 26);
-    case CASMO_40:
-      return std::vector<double>(S_CASMO_40, S_CASMO_40 + 41);
-    case VITAMINJ_42:
-      return std::vector<double>(S_VITAMINJ_42, S_VITAMINJ_42 + 43);
-    case SCALE_44:
-      return std::vector<double>(S_SCALE_44, S_SCALE_44 + 45);
-    case MPACT_51:
-      return std::vector<double>(S_MPACT_51, S_MPACT_51 + 52);
-    case MPACT_60:
-      return std::vector<double>(S_MPACT_60, S_MPACT_60 + 61);
-    case MPACT_69:
-      return std::vector<double>(S_MPACT_69, S_MPACT_69 + 70);
-    case CASMO_70:
-      return std::vector<double>(S_CASMO_70, S_CASMO_70 + 71);
-    case XMAS_172:
-      return std::vector<double>(S_XMAS_172, S_XMAS_172 + 173);
-    case VITAMINJ_175:
-      return std::vector<double>(S_VITAMINJ_175, S_VITAMINJ_175 + 176);
-    case SCALE_252:
-      return std::vector<double>(S_SCALE_252, S_SCALE_252 + 253);
-    case TRIPOLI_315:
-      return std::vector<double>(S_TRIPOLI_315, S_TRIPOLI_315 + 316);
-    case SHEM_361:
-      return std::vector<double>(S_SHEM_361, S_SHEM_361 + 362);
-    case CCFE_709:
-      return std::vector<double>(S_CCFE_709, S_CCFE_709 + 710);
-    case UKAEA_1102:
-      return std::vector<double>(S_UKAEA_1102, S_UKAEA_1102 + 1103);
-    case ECCO_1968:
-      return std::vector<double>(S_ECCO_1968, S_ECCO_1968 + 1969);
-    default:
-      obj->mooseError("Internal error: unknown GroupStructureEnum.");
-  }
-
-  return std::vector<double>();
-}
 #endif

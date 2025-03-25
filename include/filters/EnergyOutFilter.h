@@ -18,33 +18,23 @@
 
 #pragma once
 
-#include "CardinalEnums.h"
 #include "FilterBase.h"
 
-class EnergyFilter : public FilterBase
+class EnergyOutFilter : public FilterBase
 {
 public:
   static InputParameters validParams();
 
-  EnergyFilter(const InputParameters & parameters);
+  EnergyOutFilter(const InputParameters & parameters);
 
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * EnergyFilter(s) use 'g' for each filter bin.
+   * EnergyOutFilter(s) use 'gp' for each filter bin.
    * @param[in] the bin index
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;
-
-  /**
-   * A function which converts a GroupStructureEnum into the vector representation of the group
-   * structure.
-   * @param[in] structure the requested group structure
-   * @param[in] obj the Moose object to use for error output
-   * @return the energy gruop boundaries
-   */
-  static std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure, const MooseObject * obj);
 
 private:
   /// The energy bounds used to build bins.
