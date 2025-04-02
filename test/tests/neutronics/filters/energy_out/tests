@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1094'
+  design = 'EnergyOutFilter.md'
+
   [energy_cell_bnds]
     type = CSVDiff
     input = cell.i
