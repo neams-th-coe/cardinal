@@ -48,7 +48,7 @@ AngularLegendreFilter::AngularLegendreFilter(const InputParameters & parameters)
 std::string
 AngularLegendreFilter::binName(unsigned int bin_index) const
 {
-  return "l" + Moose::stringify(bin_index + 1);
+  return "l" + Moose::stringify(bin_index);
 }
 
 #endif
