@@ -90,7 +90,8 @@ EnergyFilter::binName(unsigned int bin_index) const
 }
 
 std::vector<double>
-EnergyFilter::getGroupBoundaries(energyfilter::GroupStructureEnum group_structure, const MooseObject * obj)
+EnergyFilter::getGroupBoundaries(energyfilter::GroupStructureEnum group_structure,
+                                 const MooseObject * obj)
 {
   using namespace energyfilter;
   using namespace groupstructures;

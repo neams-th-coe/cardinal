@@ -38,8 +38,7 @@ AngularLegendreFilter::validParams()
 AngularLegendreFilter::AngularLegendreFilter(const InputParameters & parameters)
   : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
-  auto legendre_filter = dynamic_cast<openmc::LegendreFilter *>(
-      openmc::Filter::create("legendre"));
+  auto legendre_filter = dynamic_cast<openmc::LegendreFilter *>(openmc::Filter::create("legendre"));
 
   legendre_filter->set_order(_order);
   _filter = legendre_filter;

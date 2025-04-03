@@ -44,7 +44,8 @@ public:
    * @param[in] obj the Moose object to use for error output
    * @return the energy gruop boundaries
    */
-  static std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure, const MooseObject * obj);
+  static std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure,
+                                                const MooseObject * obj);
 
 private:
   /// The energy bounds used to build bins.

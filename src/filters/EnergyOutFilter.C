@@ -80,7 +80,8 @@ EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
 
-  auto energy_out_filter = dynamic_cast<openmc::EnergyoutFilter *>(openmc::Filter::create("energyout"));
+  auto energy_out_filter =
+      dynamic_cast<openmc::EnergyoutFilter *>(openmc::Filter::create("energyout"));
   energy_out_filter->set_bins(_energy_bnds);
   _filter = energy_out_filter;
 }
