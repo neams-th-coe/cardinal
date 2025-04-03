@@ -14,7 +14,7 @@ by setting `reverse_bins = true` if you wish to use the conventional multi-group
 
 ## Example Input File Syntax
 
-As an example, a [CellTally](CellTally.md) named `Scattering` applies an `EnergyOutFilter` named `EnergyOut` to bin the final energies from
+As an example, a [CellTally](CellTally.md) named `Scattering` applies an `EnergyOutFilter` named `EnergyOut` to bin the outgoing energies from
 scattered particles into two groups using the CASMO-2 group structure.
 
 ```

@@ -24,6 +24,8 @@
 
 #include "openmc/tallies/filter_particle.h"
 
+registerMooseObject("CardinalApp", ParticleFilter);
+
 InputParameters
 ParticleFilter::validParams()
 {
