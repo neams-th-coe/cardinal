@@ -53,6 +53,7 @@
       score = 'scatter'
       blocks = '100 200'
       filters = 'Legendre'
+      estimator = 'analog'
     []
   []
 

@@ -53,4 +53,12 @@
     requirement = "The system shall error if both energy bin types are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [force_analog]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/EnergyOut/group_structure=CASMO_2 Problem/Tallies/Scattering/estimator=collision'
+    expect_err = "The filter EnergyOut requires an analog estimator!"
+    requirement = "The system shall error if the user attempts to use a non-analog estimator with an EnergyOutFilter."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

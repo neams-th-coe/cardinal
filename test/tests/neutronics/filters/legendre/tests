@@ -18,4 +18,12 @@
                   "The gold file for this test was generated without a Legendre filter."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [force_analog]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Tallies/Scattering/estimator=collision'
+    expect_err = "The filter Legendre requires an analog estimator!"
+    requirement = "The system shall error if the user attempts to use a non-analog estimator with an AngularLegendreFilter."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
