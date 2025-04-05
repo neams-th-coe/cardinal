@@ -36,8 +36,7 @@ EnergyFilter::validParams()
   return params;
 }
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters)
-  : EnergyFilterBase(parameters)
+EnergyFilter::EnergyFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
 {
   // Initialize the OpenMC EnergyFilter.
   _filter_index = openmc::model::tally_filters.size();
