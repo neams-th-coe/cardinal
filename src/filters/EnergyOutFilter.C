@@ -86,7 +86,8 @@ EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
   // Check for duplicate entries.
   if (std::adjacent_find(_energy_bnds.begin(), _energy_bnds.end()) != _energy_bnds.end())
     paramError("energy_boundaries",
-               "You have added duplicate energy boundaries! Each group boundary must be unique to create energy bins.");
+               "You have added duplicate energy boundaries! Each group boundary must be unique to "
+               "create energy bins.");
 
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
