@@ -18,9 +18,9 @@
 
 #pragma once
 
-#include "FilterBase.h"
+#include "EnergyFilterBase.h"
 
-class EnergyOutFilter : public FilterBase
+class EnergyOutFilter : public EnergyFilterBase
 {
 public:
   static InputParameters validParams();
@@ -35,11 +35,4 @@ public:
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;
-
-private:
-  /// The energy bounds used to build bins.
-  std::vector<Real> _energy_bnds;
-
-  /// Whether or not to reverse the ordering of energy bins during output.
-  const bool _reverse_bins;
 };
