@@ -207,18 +207,11 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   // Check the estimator to make sure it doesn't conflict with certain filters.
   for (auto & f : _ext_filters)
-  {
-    if (dynamic_cast<AngularLegendreFilter *>(f.get()) &&
+    if ((dynamic_cast<AngularLegendreFilter *>(f.get()) || dynamic_cast<EnergyOutFilter *>(f.get())) &&
         _estimator != openmc::TallyEstimator::ANALOG)
       paramError("estimator",
                  "The filter " + f->name() +
                      " requires an analog estimator! Please ensure 'estimator' is set to analog.");
-
-    if (dynamic_cast<EnergyOutFilter *>(f.get()) && _estimator != openmc::TallyEstimator::ANALOG)
-      paramError("estimator",
-                 "The filter " + f->name() +
-                     " requires an analog estimator! Please ensure 'estimator' is set to analog.");
-  }
 
   if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");

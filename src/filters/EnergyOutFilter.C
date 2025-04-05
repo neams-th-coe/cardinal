@@ -72,10 +72,21 @@ EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
     paramError("energy_boundaries",
                "At least two energy values are required to create energy bins!");
 
+  // Check to make sure none of the boundaries are negative.
+  for (const auto & bnd : _energy_bnds)
+    if (bnd < 0.0)
+      paramError("energy_boundaries",
+                 "Energy group boundaries must be positive to create energy bins!");
+
   // Sort the boundaries so they're monotonically decreasing.
   std::sort(_energy_bnds.begin(),
             _energy_bnds.end(),
             [](const Real & a, const Real & b) { return a < b; });
+
+  // Check for duplicate entries.
+  if (std::adjacent_find(_energy_bnds.begin(), _energy_bnds.end()) != _energy_bnds.end())
+    paramError("energy_boundaries",
+               "You have added duplicate energy boundaries! Each group boundary must be unique to create energy bins.");
 
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
