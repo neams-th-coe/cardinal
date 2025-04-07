@@ -18,10 +18,9 @@
 
 #pragma once
 
-#include "CardinalEnums.h"
-#include "FilterBase.h"
+#include "EnergyFilterBase.h"
 
-class EnergyFilter : public FilterBase
+class EnergyFilter : public EnergyFilterBase
 {
 public:
   static InputParameters validParams();
@@ -36,19 +35,4 @@ public:
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;
-
-private:
-  /**
-   * A function which converts a GroupStructureEnum into the vector representation of the group
-   * structure.
-   * @param[in] structure the requested group structure
-   * @return the energy gruop boundaries
-   */
-  std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure);
-
-  /// The energy bounds used to build bins.
-  std::vector<Real> _energy_bnds;
-
-  /// Whether or not to reverse the ordering of energy bins during output.
-  const bool _reverse_bins;
 };

@@ -17,39 +17,53 @@
 /********************************************************************/
 
 #ifdef ENABLE_OPENMC_COUPLING
-#include "EnergyFilter.h"
-#include "EnergyGroupStructures.h"
 
-#include "openmc/tallies/filter_energy.h"
+#include "ParticleFilter.h"
 
-registerMooseObject("CardinalApp", EnergyFilter);
+#include "CardinalEnums.h"
+
+#include "openmc/tallies/filter_particle.h"
+
+registerMooseObject("CardinalApp", ParticleFilter);
 
 InputParameters
-EnergyFilter::validParams()
+ParticleFilter::validParams()
 {
-  auto params = EnergyFilterBase::validParams();
+  auto params = FilterBase::validParams();
   params.addClassDescription(
-      "A class which provides a thin wrapper around an OpenMC EnergyFilter. Energy bins "
-      "can either be manually specified in 'energy_boundaries' or picked from a list "
-      "provided in 'group_structure'.");
+      "A class which provides a thin wrapper around an OpenMC ParticleFilter.");
+  params.addRequiredParam<MultiMooseEnum>(
+      "particles", getParticleFilterEnums(), "The particles to filter for.");
 
   return params;
 }
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
+ParticleFilter::ParticleFilter(const InputParameters & parameters) : FilterBase(parameters)
 {
-  // Initialize the OpenMC EnergyFilter.
-  _filter_index = openmc::model::tally_filters.size();
+  for (const auto & m_enum : getParam<MultiMooseEnum>("particles"))
+  {
+    _particles.emplace_back(m_enum);
 
-  auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
-  energy_filter->set_bins(_energy_bnds);
-  _filter = energy_filter;
+    // Need to convert MultiMooseEnum values (all upper case characters) to lower case characters.
+    std::transform(_particles.back().begin(),
+                   _particles.back().end(),
+                   _particles.back().begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+  }
+  auto particle_filter = dynamic_cast<openmc::ParticleFilter *>(openmc::Filter::create("particle"));
+
+  std::vector<openmc::ParticleType> p;
+  for (const auto & ps : _particles)
+    p.emplace_back(openmc::str_to_particle_type(ps));
+
+  particle_filter->set_particles(p);
+  _filter = particle_filter;
 }
 
 std::string
-EnergyFilter::binName(unsigned int bin_index) const
+ParticleFilter::binName(unsigned int bin_index) const
 {
-  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
-                              : Moose::stringify(bin_index + 1));
+  return _particles[bin_index];
 }
+
 #endif

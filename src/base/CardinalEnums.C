@@ -100,6 +100,12 @@ getTallyScoreEnum()
       "flux H3_production total absorption scatter nu_scatter fission nu_fission inverse_velocity");
 }
 
+MultiMooseEnum
+getParticleFilterEnums()
+{
+  return MultiMooseEnum("neutron photon electron positron");
+}
+
 MooseEnum
 getSingleTallyScoreEnum()
 {

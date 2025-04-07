@@ -17,39 +17,37 @@
 /********************************************************************/
 
 #ifdef ENABLE_OPENMC_COUPLING
-#include "EnergyFilter.h"
-#include "EnergyGroupStructures.h"
 
-#include "openmc/tallies/filter_energy.h"
+#include "AngularLegendreFilter.h"
 
-registerMooseObject("CardinalApp", EnergyFilter);
+#include "openmc/tallies/filter_legendre.h"
+
+registerMooseObject("CardinalApp", AngularLegendreFilter);
 
 InputParameters
-EnergyFilter::validParams()
+AngularLegendreFilter::validParams()
 {
-  auto params = EnergyFilterBase::validParams();
+  auto params = FilterBase::validParams();
   params.addClassDescription(
-      "A class which provides a thin wrapper around an OpenMC EnergyFilter. Energy bins "
-      "can either be manually specified in 'energy_boundaries' or picked from a list "
-      "provided in 'group_structure'.");
+      "A class which provides a thin wrapper around an OpenMC LegendreFilter.");
+  params.addRequiredParam<unsigned int>("order", "The order of the Legendre expansion.");
 
   return params;
 }
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
+AngularLegendreFilter::AngularLegendreFilter(const InputParameters & parameters)
+  : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
-  // Initialize the OpenMC EnergyFilter.
-  _filter_index = openmc::model::tally_filters.size();
+  auto legendre_filter = dynamic_cast<openmc::LegendreFilter *>(openmc::Filter::create("legendre"));
 
-  auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
-  energy_filter->set_bins(_energy_bnds);
-  _filter = energy_filter;
+  legendre_filter->set_order(_order);
+  _filter = legendre_filter;
 }
 
 std::string
-EnergyFilter::binName(unsigned int bin_index) const
+AngularLegendreFilter::binName(unsigned int bin_index) const
 {
-  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
-                              : Moose::stringify(bin_index + 1));
+  return "l" + Moose::stringify(bin_index);
 }
+
 #endif

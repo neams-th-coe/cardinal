@@ -17,39 +17,44 @@
 /********************************************************************/
 
 #ifdef ENABLE_OPENMC_COUPLING
-#include "EnergyFilter.h"
+#include "EnergyOutFilter.h"
+
 #include "EnergyGroupStructures.h"
+#include "EnergyFilter.h"
+#include "CardinalEnums.h"
 
 #include "openmc/tallies/filter_energy.h"
 
-registerMooseObject("CardinalApp", EnergyFilter);
+registerMooseObject("CardinalApp", EnergyOutFilter);
 
 InputParameters
-EnergyFilter::validParams()
+EnergyOutFilter::validParams()
 {
   auto params = EnergyFilterBase::validParams();
   params.addClassDescription(
-      "A class which provides a thin wrapper around an OpenMC EnergyFilter. Energy bins "
+      "A class which provides a thin wrapper around an OpenMC EnergyOutFilter. Energy bins "
       "can either be manually specified in 'energy_boundaries' or picked from a list "
       "provided in 'group_structure'.");
 
   return params;
 }
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
+EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
 {
-  // Initialize the OpenMC EnergyFilter.
+  // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
 
-  auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
-  energy_filter->set_bins(_energy_bnds);
-  _filter = energy_filter;
+  auto energy_out_filter =
+      dynamic_cast<openmc::EnergyoutFilter *>(openmc::Filter::create("energyout"));
+  energy_out_filter->set_bins(_energy_bnds);
+  _filter = energy_out_filter;
 }
 
 std::string
-EnergyFilter::binName(unsigned int bin_index) const
+EnergyOutFilter::binName(unsigned int bin_index) const
 {
-  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
-                              : Moose::stringify(bin_index + 1));
+  return "gp" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
+                               : Moose::stringify(bin_index + 1));
 }
+
 #endif
