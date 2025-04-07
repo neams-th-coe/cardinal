@@ -70,4 +70,20 @@
     requirement = "The system shall error if no energy bins are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [duplicate_bnds]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/Energy/energy_boundaries="0.0 6.25e-1 6.25e-1 2.0e7"'
+    expect_err = "You have added duplicate energy boundaries!"
+    requirement = "The system shall error if duplicate energy boundaries are provided."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [negative_bnds]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/Energy/energy_boundaries="-1.0 0.0 6.25e-1 2.0e7"'
+    expect_err = "Energy group boundaries must be positive to create energy bins!"
+    requirement = "The system shall error if negative energy boundaries are provided."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

@@ -16,40 +16,23 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
-#include "EnergyFilter.h"
-#include "EnergyGroupStructures.h"
+#pragma once
 
-#include "openmc/tallies/filter_energy.h"
+#include "EnergyFilterBase.h"
 
-registerMooseObject("CardinalApp", EnergyFilter);
-
-InputParameters
-EnergyFilter::validParams()
+class EnergyOutFilter : public EnergyFilterBase
 {
-  auto params = EnergyFilterBase::validParams();
-  params.addClassDescription(
-      "A class which provides a thin wrapper around an OpenMC EnergyFilter. Energy bins "
-      "can either be manually specified in 'energy_boundaries' or picked from a list "
-      "provided in 'group_structure'.");
+public:
+  static InputParameters validParams();
 
-  return params;
-}
+  EnergyOutFilter(const InputParameters & parameters);
 
-EnergyFilter::EnergyFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
-{
-  // Initialize the OpenMC EnergyFilter.
-  _filter_index = openmc::model::tally_filters.size();
-
-  auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
-  energy_filter->set_bins(_energy_bnds);
-  _filter = energy_filter;
-}
-
-std::string
-EnergyFilter::binName(unsigned int bin_index) const
-{
-  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1)
-                              : Moose::stringify(bin_index + 1));
-}
-#endif
+  /**
+   * A function which returns the short-form name for each bin of
+   * this filter. Used to label auxvariables a TallyBase scores in.
+   * EnergyOutFilter(s) use 'gp' for each filter bin.
+   * @param[in] the bin index
+   * @return a short name for the bin represented by bin_index
+   */
+  virtual std::string binName(unsigned int bin_index) const override;
+};

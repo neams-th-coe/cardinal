@@ -24,6 +24,9 @@
 #include "AuxiliarySystem.h"
 #include "FilterBase.h"
 
+#include "AngularLegendreFilter.h"
+#include "EnergyOutFilter.h"
+
 #include "openmc/settings.h"
 
 InputParameters
@@ -201,6 +204,15 @@ TallyBase::TallyBase(const InputParameters & parameters)
       _ext_filters.push_back(_openmc_problem.getFilter(filter_name));
     }
   }
+
+  // Check the estimator to make sure it doesn't conflict with certain filters.
+  for (auto & f : _ext_filters)
+    if ((dynamic_cast<AngularLegendreFilter *>(f.get()) ||
+         dynamic_cast<EnergyOutFilter *>(f.get())) &&
+        _estimator != openmc::TallyEstimator::ANALOG)
+      paramError("estimator",
+                 "The filter " + f->name() +
+                     " requires an analog estimator! Please ensure 'estimator' is set to analog.");
 
   if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");
