@@ -740,8 +740,7 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
                                                "heating-local",
                                                "kappa-fission",
                                                "fission-q-prompt",
-                                               "fission-q-recoverable",
-                                               "damage-energy"};
+                                               "fission-q-recoverable"};
   return viable_scores.count(score);
 }
 
