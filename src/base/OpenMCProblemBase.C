@@ -736,12 +736,8 @@ OpenMCProblemBase::isReactionRateScore(const std::string & score) const
 bool
 OpenMCProblemBase::isHeatingScore(const std::string & score) const
 {
-  const std::set<std::string> viable_scores = {"heating",
-                                               "heating-local",
-                                               "kappa-fission",
-                                               "fission-q-prompt",
-                                               "fission-q-recoverable",
-                                               "damage-energy"};
+  const std::set<std::string> viable_scores = {
+      "heating", "heating-local", "kappa-fission", "fission-q-prompt", "fission-q-recoverable"};
   return viable_scores.count(score);
 }
 
