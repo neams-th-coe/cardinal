@@ -49,7 +49,7 @@
     type = CSVDiff
     input = openmc_scores.i
     csvdiff = damage_energy_out.csv
-    cli_args = 'Problem/Tallies/Cell/score=damage_energy Outputs/file_base=damage_energy_out'
+    cli_args = "Problem/Tallies/Cell/score='damage_energy kappa_fission' Problem/Tallies/Cell/name='heat_source kappa_fission' Problem/source_rate_normalization=kappa_fission Outputs/file_base=damage_energy_out"
     requirement = "The system shall allow the user to specify a 'damage-energy' score in the OpenMC tally."
     required_objects = 'OpenMCCellAverageProblem'
   []

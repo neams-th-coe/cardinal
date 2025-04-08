@@ -2457,9 +2457,15 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     else
       source *= *_source_strength;
 
-    // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
+    // - Reaction rate scores & 'inverse-velocity' have units of reactions/src (OpenMC) or
+    // reactions/s (Cardinal).
+    // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
+    // damage-energy
+    //   are the same as a heating tally, we don't normalize it like one as it's used as an
+    //   intermediate to compute DPA.
     if (isReactionRateScore(_all_tally_scores[global_score]) ||
-        _all_tally_scores[global_score] == "inverse-velocity")
+        _all_tally_scores[global_score] == "inverse-velocity" ||
+        _all_tally_scores[global_score] == "damage-energy")
       return source;
 
     if (_all_tally_scores[global_score] == "flux")
