@@ -18,9 +18,11 @@
 
 #pragma once
 
-#include "EnergyFilterBase.h"
+#include "FilterBase.h"
+#include "EnergyBinBase.h"
 
-class EnergyFilter : public EnergyFilterBase
+class EnergyFilter : public FilterBase,
+                     public EnergyBinBase
 {
 public:
   static InputParameters validParams();

@@ -18,15 +18,16 @@
 
 #pragma once
 
-#include "CardinalEnums.h"
-#include "FilterBase.h"
+#include "ParallelParamObject.h"
 
-class EnergyFilterBase : public FilterBase
+#include "CardinalEnums.h"
+
+class EnergyBinBase
 {
 public:
   static InputParameters validParams();
 
-  EnergyFilterBase(const InputParameters & parameters);
+  EnergyBinBase(const ParallelParamObject * moose_object, const InputParameters & parameters);
 
   /**
    * A function which converts a GroupStructureEnum into the vector representation of the group
