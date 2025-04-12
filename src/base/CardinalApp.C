@@ -177,6 +177,7 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
 {
   registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
   registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
+  registerSyntax("SetupMGXSAction", "Problem/MGXS");
 
 #ifdef ENABLE_OPENMC_COUPLING
   // Add the [Problem/Filters] block
