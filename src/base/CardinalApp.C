@@ -177,7 +177,6 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
 {
   registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
   registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
-  registerSyntax("SetupMGXSAction", "Problem/MGXS");
 
 #ifdef ENABLE_OPENMC_COUPLING
   // Add the [Problem/Filters] block
@@ -192,6 +191,9 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
                     "add_filters"); // Make sure filters are constructed before tallies.
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
+  
+  // Add the MGXS block.
+  registerSyntax("SetupMGXSAction", "Problem/MGXS");
 #endif
 
 #ifdef ENABLE_NEK_COUPLING

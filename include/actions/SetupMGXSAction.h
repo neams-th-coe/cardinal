@@ -19,11 +19,13 @@
 #pragma once
 
 #include "CardinalAction.h"
-#include "OpenMCBase.h"
+
+#include "CardinalEnums.h"
 #include "EnergyBinBase.h"
 
+class OpenMCCellAverageProblem;
+
 class SetupMGXSAction : public CardinalAction,
-                        public OpenMCBase,
                         public EnergyBinBase
 {
 public:
@@ -34,6 +36,12 @@ public:
   virtual void act() override;
 
 protected:
+  /**
+   * A function to cast the FEProblem to an OpenMCCellAverageProblem
+   * @return a pointer to the OpenMCCellAverageProblem
+   */
+  OpenMCCellAverageProblem * openmcProblem();
+
   /// A function to add the filters necessary for MGXS generation.
   void addFilters();
 
@@ -45,4 +53,26 @@ protected:
 
   /// A function which adds auxkernels that compute the MGXS.
   void addAuxKernels();
+
+  /// The tally type to add.
+  const tally::TallyTypeEnum _t_type;
+
+  /// The particle to filter for when generating cross sections.
+  const MooseEnum _particle;
+
+  /// The Legendre order.
+  const unsigned int _l_order;
+
+  /// Whether or not group-wise scattering cross sections for the scattering matrix
+  /// should be computed.
+  const bool _add_scattering;
+
+  /// Whether or not group-wise nu-fission MGXS should be computed.
+  const bool _add_fission;
+
+  /// Whether or not group-wise kappa-fission values should be computed.
+  const bool _add_kappa_fission;
+
+  /// Whether or not group-wise inverse velocity should be computed.
+  const bool _add_inv_vel;
 };
