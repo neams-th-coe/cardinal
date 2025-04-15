@@ -187,11 +187,17 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   // Add the [Problem/Tallies] block
   registerSyntaxTask("AddTallyAction", "Problem/Tallies/*", "add_tallies");
   registerMooseObjectTask("add_tallies", Tally, false);
-  addTaskDependency("add_tallies",
-                    "add_filters"); // Make sure filters are constructed before tallies.
+  // Make sure filters are constructed before tallies.
+  addTaskDependency("add_tallies", "add_filters");
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
-  
+
+  // Register a modify outputs task to enable variable hiding in the MGXS action.
+  registerTask("modify_outputs", true /* is required */);
+  addTaskDependency("modify_outputs", "common_output");
+  addTaskDependency("modify_outputs", "add_tallies");
+  addTaskDependency("add_output", "modify_outputs");
+
   // Add the MGXS block.
   registerSyntax("SetupMGXSAction", "Problem/MGXS");
 #endif

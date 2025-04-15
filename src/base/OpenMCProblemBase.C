@@ -19,8 +19,10 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
+
 #include "CardinalAppTypes.h"
 #include "AddTallyAction.h"
+#include "SetupMGXSAction.h"
 
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCDomainFilterEditor.h"
@@ -125,12 +127,13 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // necessary/unused input parameters for the valid run modes
   _run_mode = openmc::settings::run_mode;
   const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
+  const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
   switch (_run_mode)
   {
     case openmc::RunMode::EIGENVALUE:
     {
       // Jumping through hoops to see if we're going to add tallies down the line.
-      if (tally_actions.size() > 0)
+      if (tally_actions.size() > 0 || mgxs_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
         _power = &getPostprocessorValue("power");
@@ -143,7 +146,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     }
     case openmc::RunMode::FIXED_SOURCE:
     {
-      if (tally_actions.size() > 0)
+      if (tally_actions.size() > 0 || mgxs_actions.size() > 0)
       {
         checkRequiredParam(params, "source_strength", "running in fixed source mode");
         _source_strength = &getPostprocessorValue("source_strength");

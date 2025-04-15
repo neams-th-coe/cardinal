@@ -23,6 +23,8 @@
 #include "CardinalEnums.h"
 #include "EnergyBinBase.h"
 
+#include "TallyBase.h"
+
 class OpenMCCellAverageProblem;
 
 class SetupMGXSAction : public CardinalAction,
@@ -54,6 +56,9 @@ protected:
   /// A function which adds auxkernels that compute the MGXS.
   void addAuxKernels();
 
+  /// Modify outputs to hide tally variables used to generate MGXS in outputs.
+  void modifyOutputs();
+
   /// The tally type to add.
   const tally::TallyTypeEnum _t_type;
 
@@ -75,4 +80,10 @@ protected:
 
   /// Whether or not group-wise inverse velocity should be computed.
   const bool _add_inv_vel;
+
+  /// Whether tally variables should be hidden.
+  const bool _hide_tally_vars;
+
+  /// A list of tallies added by this action.
+  std::vector<const TallyBase *> _mgxs_tallies;
 };
