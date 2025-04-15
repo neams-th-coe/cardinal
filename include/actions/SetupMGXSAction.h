@@ -37,6 +37,8 @@ public:
 
   virtual void act() override;
 
+  bool addingCellTallies() const { return _t_type == tally::cell; }
+
 protected:
   /**
    * A function to cast the FEProblem to an OpenMCCellAverageProblem

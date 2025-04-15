@@ -19,10 +19,12 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellAverageProblem.h"
+
 #include "DelimitedFileReader.h"
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "SetupMGXSAction.h"
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 
@@ -227,9 +229,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
-  const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
-  for (const auto & act : actions)
+  const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
+  for (const auto & act : tally_actions)
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+
+  // Repeat the same check for SetUpMGXSActions.
+  const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
+  for (const auto & act : mgxs_actions)
+    _has_cell_tallies |= act->addingCellTallies();
   _needs_to_map_cells |= _has_cell_tallies;
 
   if (!_needs_to_map_cells)
