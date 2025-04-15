@@ -81,11 +81,14 @@ protected:
   /// Whether or not group-wise kappa-fission values should be computed.
   const bool _add_kappa_fission;
 
-  /// Whether or not group-wise inverse velocity should be computed.
+  /// Whether or not group-wise inverse velocity values should be computed.
   const bool _add_inv_vel;
 
   /// Whether or not group-wise diffusion coefficients should be computed.
   const bool _add_diffusion;
+
+  /// Whether or not group-wise absorption MGXS should be computed.
+  const bool _add_absorption;
 
   /// Whether tally variables should be hidden.
   const bool _hide_tally_vars;

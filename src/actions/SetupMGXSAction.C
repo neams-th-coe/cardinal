@@ -55,7 +55,7 @@ SetupMGXSAction::validParams()
   params.addParam<bool>(
       "add_scattering",
       true,
-      "Whether or not the multi-group scattering cross section matrix should be generated.");
+      "Whether or not the scattering multi-group cross section matrix should be generated.");
   params.addParam<unsigned int>(
       "legendre_order",
       0,
@@ -68,7 +68,7 @@ SetupMGXSAction::validParams()
   params.addParam<bool>(
       "add_fission",
       false,
-      "Whether or not fission cross sections (neutron production and the discrete chi spectrum) should be generated.");
+      "Whether or not fission multi-group cross sections (neutron production and the discrete chi spectrum) should be generated.");
 
   params.addParam<bool>(
       "add_fission_heating",
@@ -84,6 +84,11 @@ SetupMGXSAction::validParams()
       "add_diffusion_coefficient",
       false,
       "Whether or not per-group particle diffusion coefficients should be generated.");
+
+  params.addParam<bool>(
+      "add_absorption",
+      false,
+      "Whether or not absorption multi-group cross sections should be generated.");
 
   params.addParam<bool>(
     "hide_tally_vars",
@@ -105,6 +110,7 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     _add_kappa_fission(getParam<bool>("add_fission_heating")),
     _add_inv_vel(getParam<bool>("add_inverse_velocity")),
     _add_diffusion(getParam<bool>("add_diffusion_coefficient")),
+    _add_absorption(getParam<bool>("add_absorption")),
     _hide_tally_vars(getParam<bool>("hide_tally_vars")),
     _need_p1_scatter(false)
 {
@@ -275,6 +281,21 @@ SetupMGXSAction::addTallies()
         openmcProblem()->addTally("CellTally", "MGXS_CellTally_Inverse_velocity", params);
         _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
       }
+
+      // Absorption tally.
+      if (_add_absorption)
+      {
+        auto params = _factory.getValidParams("CellTally");
+        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
+        params.set<MooseEnum>("estimator") = "analog";
+        params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
+        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+        setObjectBlocks(params, _blocks);
+
+        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Absorption", params);
+        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+      }
       break;
 
     case tally::TallyTypeEnum::mesh:
@@ -351,6 +372,21 @@ SetupMGXSAction::addTallies()
 
         params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
         openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Inverse_velocity", params);
+        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+      }
+
+      // Absorption tally.
+      if (_add_absorption)
+      {
+        auto params = _factory.getValidParams("MeshTally");
+        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
+        params.set<MooseEnum>("estimator") = "analog";
+        params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
+        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+        setObjectBlocks(params, _blocks);
+
+        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Absorption", params);
         _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
       }
       break;
@@ -467,6 +503,22 @@ SetupMGXSAction::addAuxVars()
     for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
     {
       const std::string name = "diff_g" + Moose::stringify(g + 1);
+      auto params = _factory.getValidParams("MooseVariable");
+      params.set<MooseEnum>("family") = "MONOMIAL";
+      params.set<MooseEnum>("order") = "CONSTANT";
+      setObjectBlocks(params, _blocks);
+
+      openmcProblem()->checkDuplicateVariableName(name);
+      _problem->addAuxVariable("MooseVariable", name, params);
+    }
+  }
+
+  // Absorption MGXE variables.
+  if (_add_absorption)
+  {
+    for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
+    {
+      const std::string name = "abs_xs_g" + Moose::stringify(g + 1);
       auto params = _factory.getValidParams("MooseVariable");
       params.set<MooseEnum>("family") = "MONOMIAL";
       params.set<MooseEnum>("order") = "CONSTANT";
@@ -634,6 +686,22 @@ SetupMGXSAction::addAuxKernels()
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeDiffusionCoeffMGAux", "comp_" + n, params);
+    }
+  }
+
+  // Add auxkernels to compute the absorption MGXS'.
+  if (_add_absorption)
+  {
+    for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
+    {
+      const auto n = "abs_xs_g" + Moose::stringify(g + 1);
+      auto params = _factory.getValidParams("ComputeMGXSAux");
+      params.set<AuxVariableName>("variable") = n;
+      params.set<std::vector<VariableName>>("rxn_rates").emplace_back("mgxs_absorption_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      setObjectBlocks(params, _blocks);
+
+      _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
     }
   }
 }
