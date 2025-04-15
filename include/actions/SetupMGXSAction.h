@@ -84,9 +84,15 @@ protected:
   /// Whether or not group-wise inverse velocity should be computed.
   const bool _add_inv_vel;
 
+  /// Whether or not group-wise diffusion coefficients should be computed.
+  const bool _add_diffusion;
+
   /// Whether tally variables should be hidden.
   const bool _hide_tally_vars;
 
   /// A list of tallies added by this action.
   std::vector<const TallyBase *> _mgxs_tallies;
+
+  /// Whether or not scattering reaction rates need to be at least order P1.
+  bool _need_p1_scatter;
 };

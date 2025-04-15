@@ -78,7 +78,12 @@ SetupMGXSAction::validParams()
   params.addParam<bool>(
       "add_inverse_velocity",
       false,
-      "Whether or not per-group inverse velocities (kappa-fission) should be generated.");
+      "Whether or not per-group inverse velocities should be generated.");
+
+  params.addParam<bool>(
+      "add_diffusion_coefficient",
+      false,
+      "Whether or not per-group particle diffusion coefficients should be generated.");
 
   params.addParam<bool>(
     "hide_tally_vars",
@@ -99,7 +104,9 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     _add_fission(getParam<bool>("add_fission")),
     _add_kappa_fission(getParam<bool>("add_fission_heating")),
     _add_inv_vel(getParam<bool>("add_inverse_velocity")),
-    _hide_tally_vars(getParam<bool>("hide_tally_vars"))
+    _add_diffusion(getParam<bool>("add_diffusion_coefficient")),
+    _hide_tally_vars(getParam<bool>("hide_tally_vars")),
+    _need_p1_scatter(false)
 {
   if (_particle == "electron" || _particle == "positron")
     paramError("particle", "At present, multi-group cross sections can only be generated for neutrons or photons.");
@@ -110,6 +117,9 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
                  "(l = 0). You've set l = " + Moose::stringify(_l_order) + ", the transport correction will not be applied.");
     _transport_correction = false;
   }
+
+  if ((_transport_correction || _add_diffusion) && _l_order == 0)
+    _need_p1_scatter = true;
 }
 
 void
@@ -174,10 +184,10 @@ SetupMGXSAction::addFilters()
   }
 
   // Need an AngularLegendreFilter for scattering cross sections.
-  if (_add_scattering)
+  if (_add_scattering || _add_diffusion)
   {
     auto params = _factory.getValidParams("AngularLegendreFilter");
-    params.set<unsigned int>("order") = _transport_correction ? 1 : _l_order;
+    params.set<unsigned int>("order") = _need_p1_scatter ? 1 : _l_order;
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
     openmcProblem()->addFilter("AngularLegendreFilter", "MGXS_AngularLegendreFilter", params);
@@ -205,7 +215,7 @@ SetupMGXSAction::addTallies()
       }
 
       // Scattering tally.
-      if (_add_scattering)
+      if (_add_scattering || _add_diffusion)
       {
         auto params = _factory.getValidParams("CellTally");
         params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
@@ -236,8 +246,7 @@ SetupMGXSAction::addTallies()
         _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
       }
 
-      // Kappa-fission tally. Multi-group kappa fissions segfault when used for normalization??????????
-      // TODO: figure out what's going on and fix it.
+      // Kappa-fission tally.
       if (_add_kappa_fission)
       {
         auto params = _factory.getValidParams("CellTally");
@@ -284,7 +293,7 @@ SetupMGXSAction::addTallies()
       }
 
       // Scattering tally.
-      if (_add_scattering)
+      if (_add_scattering || _add_diffusion)
       {
         auto params = _factory.getValidParams("MeshTally");
         params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
@@ -315,8 +324,7 @@ SetupMGXSAction::addTallies()
         _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
       }
 
-      // Kappa-fission tally. Multi-group kappa fissions segfault when used for normalization??????????
-      // TODO: figure out what's going on and fix it.
+      // Kappa-fission tally.
       if (_add_kappa_fission)
       {
         auto params = _factory.getValidParams("MeshTally");
@@ -452,6 +460,22 @@ SetupMGXSAction::addAuxVars()
       _problem->addAuxVariable("MooseVariable", name, params);
     }
   }
+
+  // MG diffusion coefficients.
+  if (_add_diffusion)
+  {
+    for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
+    {
+      const std::string name = "diff_g" + Moose::stringify(g + 1);
+      auto params = _factory.getValidParams("MooseVariable");
+      params.set<MooseEnum>("family") = "MONOMIAL";
+      params.set<MooseEnum>("order") = "CONSTANT";
+      setObjectBlocks(params, _blocks);
+
+      openmcProblem()->checkDuplicateVariableName(name);
+      _problem->addAuxVariable("MooseVariable", name, params);
+    }
+  }
 }
 
 void
@@ -509,9 +533,9 @@ SetupMGXSAction::addAuxKernels()
         params.set<AuxVariableName>("variable") = n;
         params.set<std::vector<VariableName>>("p0_scatter_rxn_rate").emplace_back(
           "mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g + 1) + "_l0_" + std::string(_particle));
-        for (unsigned int gg = 0; gg < _energy_bnds.size() - 1; ++gg)
+        for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
           params.set<std::vector<VariableName>>("p1_scatter_rxn_rates").emplace_back(
-            "mgxs_scatter_g" + Moose::stringify(gg + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
+            "mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
         params.set<std::vector<VariableName>>("scalar_flux").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
         setObjectBlocks(params, _blocks);
 
@@ -591,6 +615,25 @@ SetupMGXSAction::addAuxKernels()
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
+    }
+  }
+
+  // Add auxkernels to compute MG diffusion coefficients.
+  if (_add_diffusion)
+  {
+    for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
+    {
+      const std::string n = "diff_g" + Moose::stringify(g + 1);
+      auto params = _factory.getValidParams("ComputeDiffusionCoeffMGAux");
+      params.set<AuxVariableName>("variable") = n;
+      params.set<std::vector<VariableName>>("total_rxn_rate").emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("scalar_flux").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
+        params.set<std::vector<VariableName>>("p1_scatter_rxn_rates").emplace_back(
+          "mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
+      setObjectBlocks(params, _blocks);
+
+      _problem->addAuxKernel("ComputeDiffusionCoeffMGAux", "comp_" + n, params);
     }
   }
 }

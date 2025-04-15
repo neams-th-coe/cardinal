@@ -19,34 +19,34 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "ComputeTCScatterMGXSAux.h"
+#include "ComputeDiffusionCoeffMGAux.h"
 
-registerMooseObject("CardinalApp", ComputeTCScatterMGXSAux);
+registerMooseObject("CardinalApp", ComputeDiffusionCoeffMGAux);
 
 InputParameters
-ComputeTCScatterMGXSAux::validParams()
+ComputeDiffusionCoeffMGAux::validParams()
 {
   auto params = OpenMCAuxKernel::validParams();
   params.addClassDescription(
-    "An auxkernel that computes a transport-corrected P0 scattering multi-group cross "
-    "section using a list of scattering reaction rates and the group-wise scalar flux. "
-    "This is intended to be added by the MGXS action.");
+    "An auxkernel that computes a multi-group diffusion coefficient using a group-wise total "
+    "reaction rate, a list of group-wise P1 scattering reaction rates, and the group-wise "
+    "scalar flux. This is intended to be added by the MGXS action.");
   params.addRequiredCoupledVar(
-    "p0_scatter_rxn_rate",
-    "The P0 group-wise scattering reaction rates to use for computing the transport-corrected scattering cross section.");
+    "total_rxn_rate",
+    "The total reaction rates to use for computing the multi-group diffusion coefficient.");
   params.addRequiredCoupledVar(
     "p1_scatter_rxn_rates",
-    "The P1 group-wise scattering reaction rates to use for computing the transport-corrected scattering cross section.");
+    "The P1 group-wise scattering reaction rates to use for computing the multi-group diffusion coefficient.");
   params.addRequiredCoupledVar(
     "scalar_flux",
-    "The group-wise scalar flux used to compute the transport-corrected scattering cross section.");
+    "The group-wise scalar flux used for computing the multi-group diffusion coefficient.");
 
   return params;
 }
 
-ComputeTCScatterMGXSAux::ComputeTCScatterMGXSAux(const InputParameters & parameters)
+ComputeDiffusionCoeffMGAux::ComputeDiffusionCoeffMGAux(const InputParameters & parameters)
   : OpenMCAuxKernel(parameters),
-    _p0_scattering_rates(coupledValue("p0_scatter_rxn_rate")),
+    _total_rxn_rate(coupledValue("total_rxn_rate")),
     _scalar_flux(coupledValue("scalar_flux"))
 {
   for (unsigned int i = 0; i < coupledComponents("p1_scatter_rxn_rates"); ++i)
@@ -54,13 +54,15 @@ ComputeTCScatterMGXSAux::ComputeTCScatterMGXSAux(const InputParameters & paramet
 }
 
 Real
-ComputeTCScatterMGXSAux::computeValue()
+ComputeDiffusionCoeffMGAux::computeValue()
 {
-  Real num = _p0_scattering_rates[_qp];
+  Real num = _total_rxn_rate[_qp];
   for (unsigned int g = 0; g < _p1_scattering_rates.size(); ++g)
     num -= (*_p1_scattering_rates[g])[_qp];
 
-  return _scalar_flux[_qp] > 0.0 ? num / _scalar_flux[_qp] : 0.0;
+  const Real transport_xs = _scalar_flux[_qp] > 0.0 ? num / _scalar_flux[_qp] : 0.0;
+  const Real diff_coeff = transport_xs > libMesh::TOLERANCE ? 1.0 / (3.0 * transport_xs) : 1.0 / libMesh::TOLERANCE;
+  return diff_coeff;
 }
 
 #endif
