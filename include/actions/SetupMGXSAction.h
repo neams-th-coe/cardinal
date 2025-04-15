@@ -65,12 +65,15 @@ protected:
   /// The particle to filter for when generating cross sections.
   const MooseEnum _particle;
 
-  /// The Legendre order.
-  const unsigned int _l_order;
-
   /// Whether or not group-wise scattering cross sections for the scattering matrix
   /// should be computed.
   const bool _add_scattering;
+
+  /// The Legendre order.
+  const unsigned int _l_order;
+
+  /// Whether a P0 transport correction should be applied to isotropic scattering cross sections.
+  bool _transport_correction;
 
   /// Whether or not group-wise nu-fission MGXS should be computed.
   const bool _add_fission;

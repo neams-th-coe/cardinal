@@ -50,24 +50,31 @@ SetupMGXSAction::validParams()
       getSingleParticleFilterEnum(),
       "The particle to filter for. At present cross sections can only be generated for neutrons or photons, if 'electron' or "
       "'positron' are selected an error will be thrown.");
-  params.addParam<unsigned int>(
-      "legendre_order",
-      0,
-      "The order of the Legendre expansion in scattering angle to use for generating scattering cross sections. Defaults to 0.");
 
   // Options for MGXS generation. At a minimum, we generate multi-group total cross sections.
   params.addParam<bool>(
       "add_scattering",
       true,
       "Whether or not the multi-group scattering cross section matrix should be generated.");
+  params.addParam<unsigned int>(
+      "legendre_order",
+      0,
+      "The order of the Legendre expansion in scattering angle to use for generating scattering cross sections. Defaults to 0.");
+  params.addParam<bool>(
+      "transport_correction",
+      true,
+      "Whether the in-group scattering cross section should include a P0 transport correction or not.");
+
   params.addParam<bool>(
       "add_fission",
       false,
       "Whether or not fission cross sections (neutron production and the discrete chi spectrum) should be generated.");
+
   params.addParam<bool>(
       "add_fission_heating",
       false,
       "Whether or not per-group fission heating (kappa-fission) values should be generated.");
+
   params.addParam<bool>(
       "add_inverse_velocity",
       false,
@@ -86,8 +93,9 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     EnergyBinBase(this, parameters),
     _t_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _particle(getParam<MooseEnum>("particle")),
-    _l_order(getParam<unsigned int>("legendre_order")),
     _add_scattering(getParam<bool>("add_scattering")),
+    _l_order(getParam<unsigned int>("legendre_order")),
+    _transport_correction(getParam<bool>("transport_correction")),
     _add_fission(getParam<bool>("add_fission")),
     _add_kappa_fission(getParam<bool>("add_fission_heating")),
     _add_inv_vel(getParam<bool>("add_inverse_velocity")),
@@ -95,6 +103,13 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
 {
   if (_particle == "electron" || _particle == "positron")
     paramError("particle", "At present, multi-group cross sections can only be generated for neutrons or photons.");
+
+  if (_l_order > 0 && _transport_correction)
+  {
+    mooseWarning("Transport-corrected scattering cross sections can only be used with isotropic scattering "
+                 "(l = 0). You've set l = " + Moose::stringify(_l_order) + ", the transport correction will not be applied.");
+    _transport_correction = false;
+  }
 }
 
 void
@@ -158,11 +173,11 @@ SetupMGXSAction::addFilters()
     openmcProblem()->addFilter("EnergyOutFilter", "MGXS_EnergyOutFilter", params);
   }
 
-  // Need an AngularLegendreFilter for scattering cross sections with a Legendre order greater than 0.
+  // Need an AngularLegendreFilter for scattering cross sections.
   if (_add_scattering)
   {
     auto params = _factory.getValidParams("AngularLegendreFilter");
-    params.set<unsigned int>("order") = _l_order;
+    params.set<unsigned int>("order") = _transport_correction ? 1 : _l_order;
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
     openmcProblem()->addFilter("AngularLegendreFilter", "MGXS_AngularLegendreFilter", params);
@@ -462,6 +477,11 @@ SetupMGXSAction::addAuxKernels()
     {
       for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
       {
+        // Handle within-group scattering cross sections separately for
+        // transport-corrected P0 cross sections.
+        if (g == g_prime && _transport_correction)
+          continue;
+
         for (unsigned int l = 0; l <= _l_order; ++l)
         {
           const auto n = "scatter_xs_g" + Moose::stringify(g + 1)
@@ -476,6 +496,26 @@ SetupMGXSAction::addAuxKernels()
 
           _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
         }
+      }
+    }
+
+    if (_transport_correction)
+    {
+      for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
+      {
+        const auto n = "scatter_xs_g" + Moose::stringify(g + 1)
+                       + "_gp" + Moose::stringify(g + 1) + "_l0";
+        auto params = _factory.getValidParams("ComputeTCScatterMGXSAux");
+        params.set<AuxVariableName>("variable") = n;
+        params.set<std::vector<VariableName>>("p0_scatter_rxn_rate").emplace_back(
+          "mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g + 1) + "_l0_" + std::string(_particle));
+        for (unsigned int gg = 0; gg < _energy_bnds.size() - 1; ++gg)
+          params.set<std::vector<VariableName>>("p1_scatter_rxn_rates").emplace_back(
+            "mgxs_scatter_g" + Moose::stringify(gg + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("scalar_flux").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+        setObjectBlocks(params, _blocks);
+
+        _problem->addAuxKernel("ComputeTCScatterMGXSAux", "comp_" + n, params);
       }
     }
   }
