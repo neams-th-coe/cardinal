@@ -1,0 +1,30 @@
+[Tests]
+  issues = '#1020'
+
+  [diffusion_coefficient]
+    design = 'ComputeDiffusionCoeffMGAux.md'
+
+    [calc]
+      type = CSVDiff
+      input = mg_diffusion_coeff.i
+      csvdiff = mg_diffusion_coeff_out.csv
+      requirement = "The system shall support the calculation of multi-group particle diffusion coefficients."
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [catch_zero_flux]
+      type = CSVDiff
+      input = mg_diffusion_coeff.i
+      csvdiff = zero_flux_out.csv
+      cli_args = "Outputs/file_base='zero_flux_out' AuxKernels/comp_diff_g1/scalar_flux='zero_flux'"
+      requirement = "The system shall prevent divide by zeros when calculating multi-group diffusion coefficients."
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+  []
+
+  [transport_scattering]
+    design = 'ComputeTCScatterMGXSAux.md'
+  []
+  [generic_mgxs]
+    design = 'ComputeMGXSAux.md'
+  []
+[]
