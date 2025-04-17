@@ -89,7 +89,7 @@
 []
 
 [Postprocessors]
-  [pebble_diff_g1]
+  [result]
     type = PointValue
     point = '0 0 0'
     variable = diff_g1

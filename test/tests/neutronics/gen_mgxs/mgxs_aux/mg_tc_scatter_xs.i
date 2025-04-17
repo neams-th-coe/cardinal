@@ -89,7 +89,7 @@
 []
 
 [Postprocessors]
-  [pebble_scatter_g1_g1_l0]
+  [result]
     type = PointValue
     point = '0 0 0'
     variable = scatter_g1_g1_l0

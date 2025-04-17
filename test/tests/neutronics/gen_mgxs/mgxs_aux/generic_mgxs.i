@@ -72,7 +72,7 @@
 []
 
 [Postprocessors]
-  [pebble_total_xs_g1]
+  [result]
     type = PointValue
     point = '0 0 0'
     variable = total_xs_g1

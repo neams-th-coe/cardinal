@@ -61,7 +61,7 @@ ComputeDiffusionCoeffMGAux::computeValue()
     num -= (*_p1_scattering_rates[g])[_qp];
 
   const Real transport_xs = _scalar_flux[_qp] > 0.0 ? num / _scalar_flux[_qp] : 0.0;
-  const Real diff_coeff = transport_xs > libMesh::TOLERANCE ? 1.0 / (3.0 * transport_xs) : 1.0 / libMesh::TOLERANCE;
+  const Real diff_coeff = transport_xs > libMesh::TOLERANCE ? 1.0 / (3.0 * transport_xs) : 1e3;
   return diff_coeff;
 }
 
