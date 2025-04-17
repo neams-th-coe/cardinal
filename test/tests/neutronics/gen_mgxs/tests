@@ -9,6 +9,20 @@
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using mapped distributed cell tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [l0_scatter]
+    type = CSVDiff
+    input = all_mgxs_cell_l0.i
+    csvdiff = all_mgxs_cell_l0_out.csv
+    requirement = "The system shall be capable of generating L = 0 scattering cross sections without a transport correction."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [l1_scatter]
+    type = CSVDiff
+    input = all_mgxs_cell_l1.i
+    csvdiff = all_mgxs_cell_l1_out.csv
+    requirement = "The system shall be capable of generating L > 0 scattering MGXS generation."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [all_mesh]
     type = CSVDiff
     input = all_mgxs_mesh.i
@@ -53,6 +67,14 @@
     cli_args = "Problem/MGXS/particle='photon' Problem/MGXS/add_fission='false'"
     expect_err = "Multi-group fission heating"
     requirement = "The system shall error if the user requests photon cross sections and includes fission."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [l1_scatter_with_transport_corr]
+    type = RunException
+    input = all_mgxs_cell_l1.i
+    cli_args = "--error Problem/MGXS/transport_correction=true"
+    expect_err = "Transport-corrected scattering cross sections can only be used with isotropic scattering"
+    requirement = "The system shall warn the user if they request transport corrected scattering cross sections "
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
