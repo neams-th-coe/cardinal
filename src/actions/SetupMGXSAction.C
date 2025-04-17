@@ -210,197 +210,112 @@ SetupMGXSAction::addFilters()
 void
 SetupMGXSAction::addTallies()
 {
+  // Determine the string form of the tally type.
+  std::string tally_type;
   switch (_t_type)
   {
     case tally::TallyTypeEnum::cell:
-      // Total and flux tally.
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_total"), std::string("mgxs_flux") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Total_Flux", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Scattering tally.
-      if (_add_scattering || _add_diffusion)
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
-        params.set<MooseEnum>("estimator") = "analog";
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_scatter") };
-        params.set<std::vector<std::string>>("filters") =
-          { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_AngularLegendreFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Scatter", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Fission tally.
-      if (_add_fission)
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
-        params.set<MooseEnum>("estimator") = "analog";
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_fission") };
-        params.set<std::vector<std::string>>("filters") =
-          { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Fission", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Kappa-fission tally.
-      if (_add_kappa_fission)
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_kappa_fission") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Kappa_Fission", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Inverse velocity tally.
-      if (_add_inv_vel)
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_inverse_velocity") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Inverse_velocity", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Absorption tally.
-      if (_add_absorption)
-      {
-        auto params = _factory.getValidParams("CellTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("CellTally", "MGXS_CellTally_Absorption", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
+      tally_type = "CellTally";
       break;
 
     case tally::TallyTypeEnum::mesh:
-      // Total and flux tally.
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_total"), std::string("mgxs_flux") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Total_Flux", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Scattering tally.
-      if (_add_scattering || _add_diffusion)
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
-        params.set<MooseEnum>("estimator") = "analog";
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_scatter") };
-        params.set<std::vector<std::string>>("filters") =
-          { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_AngularLegendreFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Scatter", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Fission tally.
-      if (_add_fission)
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
-        params.set<MooseEnum>("estimator") = "analog";
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_fission") };
-        params.set<std::vector<std::string>>("filters") =
-          { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Fission", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Kappa-fission tally.
-      if (_add_kappa_fission)
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_kappa_fission") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Kappa_Fission", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Inverse velocity tally.
-      if (_add_inv_vel)
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_inverse_velocity") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Inverse_velocity", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
-
-      // Absorption tally.
-      if (_add_absorption)
-      {
-        auto params = _factory.getValidParams("MeshTally");
-        params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
-        params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
-        params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
-        params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
-        setObjectBlocks(params, _blocks);
-
-        params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-        openmcProblem()->addTally("MeshTally", "MGXS_MeshTally_Absorption", params);
-        _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
-      }
+      tally_type = "MeshTally";
       break;
 
     default:
       mooseError("Internal error: Unhandled enum in 'tally::TallyTypeEnum'.");
       break;
+  }
+
+  // Total and flux tally.
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
+    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_total"), std::string("mgxs_flux") };
+    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Total_Flux", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+  }
+
+  // Scattering tally.
+  if (_add_scattering || _add_diffusion)
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
+    params.set<MooseEnum>("estimator") = "analog";
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_scatter") };
+    params.set<std::vector<std::string>>("filters") =
+      { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_AngularLegendreFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Scatter", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+  }
+
+  // Fission tally.
+  if (_add_fission)
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
+    params.set<MooseEnum>("estimator") = "analog";
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_fission") };
+    params.set<std::vector<std::string>>("filters") =
+      { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Fission", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+  }
+
+  // Kappa-fission tally.
+  if (_add_kappa_fission)
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
+    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_kappa_fission") };
+    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Kappa_Fission", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+  }
+
+  // Inverse velocity tally.
+  if (_add_inv_vel)
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
+    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_inverse_velocity") };
+    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Inverse_velocity", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
+  }
+
+  // Absorption tally.
+  if (_add_absorption)
+  {
+    auto params = _factory.getValidParams(tally_type);
+    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
+    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
+    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    setObjectBlocks(params, _blocks);
+
+    params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
+    openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Absorption", params);
+    _mgxs_tallies.push_back(openmcProblem()->getLocalTally().back().get());
   }
 }
 
