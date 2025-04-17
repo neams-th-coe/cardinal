@@ -124,6 +124,14 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
   if (_particle == "electron" || _particle == "positron")
     paramError("particle", "At present, multi-group cross sections can only be generated for neutrons or photons.");
 
+  if (_add_fission && _particle == "photon")
+    paramError("add_fission", "Multi-group fission cross sections / chi spectra cannot be "
+               "generated when selecting particle = 'photon'! Please set add_fission = false to continue.");
+
+  if (_add_kappa_fission && _particle == "photon")
+    paramError("add_fission_heating", "Multi-group fission heating values cannot be "
+               "generated when selecting particle = 'photon'! Please set add_fission_heating = false to continue.");
+
   if (_l_order > 0 && _transport_correction)
   {
     mooseWarning("Transport-corrected scattering cross sections can only be used with isotropic scattering "

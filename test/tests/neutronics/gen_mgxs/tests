@@ -1,4 +1,58 @@
 [Tests]
   issues = '#1020'
   design = 'SetupMGXSAction.md'
+
+  [all_cell]
+    type = CSVDiff
+    input = all_mgxs_cell.i
+    csvdiff = all_mgxs_cell_out.csv
+    requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using mapped distributed cell tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [all_mesh]
+    type = CSVDiff
+    input = all_mgxs_mesh.i
+    csvdiff = all_mgxs_mesh_out.csv
+    requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using unstructured mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [hide_tally_vars]
+    type = Exodiff
+    input = hide_tally_vars.i
+    exodiff = hide_tally_vars_out.e
+    requirement = "The system shall be hide tally variables added for MGXS generation unless requested by the user."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [electron]
+    type = RunException
+    input = hide_tally_vars.i
+    cli_args = "Problem/MGXS/particle='electron'"
+    expect_err = "At present, multi-group cross sections can only be generated for neutrons or photons."
+    requirement = "The system shall error if the user requests electron cross sections."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [positron]
+    type = RunException
+    input = hide_tally_vars.i
+    cli_args = "Problem/MGXS/particle='positron'"
+    expect_err = "At present, multi-group cross sections can only be generated for neutrons or photons."
+    requirement = "The system shall error if the user requests positron cross sections."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [photon_fission_xs]
+    type = RunException
+    input = hide_tally_vars.i
+    cli_args = "Problem/MGXS/particle='photon' Problem/MGXS/add_fission_heating='false'"
+    expect_err = "Multi-group fission cross sections"
+    requirement = "The system shall error if the user requests photon cross sections and includes fission."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [photon_fission_heating]
+    type = RunException
+    input = hide_tally_vars.i
+    cli_args = "Problem/MGXS/particle='photon' Problem/MGXS/add_fission='false'"
+    expect_err = "Multi-group fission heating"
+    requirement = "The system shall error if the user requests photon cross sections and includes fission."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
