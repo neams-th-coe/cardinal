@@ -1,0 +1,4 @@
+[Tests]
+  issues = '#1020'
+  design = 'SetupMGXSAction.md'
+[]
