@@ -9,7 +9,7 @@
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using mapped distributed cell tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [l0_scatter]
+  [l0_scatter_no_tc]
     type = CSVDiff
     input = all_mgxs_cell_l0.i
     csvdiff = all_mgxs_cell_l0_out.csv
@@ -21,6 +21,22 @@
     input = all_mgxs_cell_l1.i
     csvdiff = all_mgxs_cell_l1_out.csv
     requirement = "The system shall be capable of generating L > 0 scattering MGXS generation."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [collision]
+    type = CSVDiff
+    input = all_mgxs_cell.i
+    cli_args = "Problem/MGXS/estimator='collision' Outputs/file_base='collision_out'"
+    csvdiff = collision_out.csv
+    requirement = "The system shall be capable of generating multi-group cross sections with a collision estimator."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [analog]
+    type = CSVDiff
+    input = all_mgxs_cell.i
+    cli_args = "Problem/MGXS/estimator='analog' Outputs/file_base='analog_out'"
+    csvdiff = analog_out.csv
+    requirement = "The system shall be capable of generating multi-group cross sections with an analog estimator."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [all_mesh]
@@ -74,7 +90,15 @@
     input = all_mgxs_cell_l1.i
     cli_args = "--error Problem/MGXS/transport_correction=true"
     expect_err = "Transport-corrected scattering cross sections can only be used with isotropic scattering"
-    requirement = "The system shall warn the user if they request transport corrected scattering cross sections "
+    requirement = "The system shall warn the user if they request transport corrected scattering cross sections with L > 0."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [error_mesh_with_tracklength]
+    type = RunException
+    input = all_mgxs_mesh.i
+    cli_args = "--error Problem/MGXS/estimator='tracklength'"
+    expect_err = "You've selected an unstructured mesh tally discretization"
+    requirement = "The system shall warn the user if they select a mesh tally and request a tracklength estimator."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

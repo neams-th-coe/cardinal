@@ -67,6 +67,9 @@ protected:
   /// The particle to filter for when generating cross sections.
   const MooseEnum _particle;
 
+  /// The estimator to use when generating multi-group cross sections.
+  MooseEnum _estimator;
+
   /// Whether or not group-wise scattering cross sections for the scattering matrix
   /// should be computed.
   const bool _add_scattering;

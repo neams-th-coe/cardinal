@@ -14,7 +14,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  initial_properties = xml
   verbose = true
   cell_level = 0
 

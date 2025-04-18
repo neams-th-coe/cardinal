@@ -110,6 +110,7 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     EnergyBinBase(this, parameters),
     _t_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _particle(getParam<MooseEnum>("particle")),
+    _estimator(getParam<MooseEnum>("estimator")),
     _add_scattering(getParam<bool>("add_scattering")),
     _l_order(getParam<unsigned int>("legendre_order")),
     _transport_correction(getParam<bool>("transport_correction")),
@@ -131,6 +132,17 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
   if (_add_kappa_fission && _particle == "photon")
     paramError("add_fission_heating", "Multi-group fission heating values cannot be "
                "generated when selecting particle = 'photon'! Please set add_fission_heating = false to continue.");
+
+  if (_t_type == tally::TallyTypeEnum::mesh && _estimator == "tracklength")
+  {
+    if (isParamSetByUser("estimator"))
+      mooseWarning(
+        "You've selected an unstructured mesh tally discretization for your multi-group cross "
+        "sections and requested a tracklength estimator. Unstructured mesh tallies don't support, "
+        "tracklength estimators, the estimator will be set to 'collision' instead.");
+
+    _estimator.assign("collision");
+  }
 
   if (_l_order > 0 && _transport_correction)
   {
@@ -239,7 +251,7 @@ SetupMGXSAction::addTallies()
   {
     auto params = _factory.getValidParams(tally_type);
     params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
-    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<MooseEnum>("estimator") = _estimator;
     params.set<std::vector<std::string>>("name") = { std::string("mgxs_total"), std::string("mgxs_flux") };
     params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
     setObjectBlocks(params, _blocks);
@@ -286,7 +298,7 @@ SetupMGXSAction::addTallies()
   {
     auto params = _factory.getValidParams(tally_type);
     params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
-    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<MooseEnum>("estimator") = _estimator;
     params.set<std::vector<std::string>>("name") = { std::string("mgxs_kappa_fission") };
     params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
     setObjectBlocks(params, _blocks);
@@ -301,7 +313,7 @@ SetupMGXSAction::addTallies()
   {
     auto params = _factory.getValidParams(tally_type);
     params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
-    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<MooseEnum>("estimator") = _estimator;
     params.set<std::vector<std::string>>("name") = { std::string("mgxs_inverse_velocity") };
     params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
     setObjectBlocks(params, _blocks);
@@ -316,7 +328,7 @@ SetupMGXSAction::addTallies()
   {
     auto params = _factory.getValidParams(tally_type);
     params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
-    params.set<MooseEnum>("estimator") = getParam<MooseEnum>("estimator");
+    params.set<MooseEnum>("estimator") = _estimator;
     params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
     params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
     setObjectBlocks(params, _blocks);
