@@ -35,57 +35,58 @@ InputParameters
 SetupMGXSAction::validParams()
 {
   auto params = CardinalAction::validParams();
-  params.addClassDescription("A class which sets up multi-group cross section generation using Cardinal's mapped tallies.");
+  params.addClassDescription("A class which sets up multi-group cross section generation using "
+                             "Cardinal's mapped tallies.");
   params += EnergyBinBase::validParams();
   // MGXS' are always reversed.
   params.suppressParameter<bool>("reverse_bins");
   params.set<bool>("reverse_bins") = true;
 
-  params.addRequiredParam<MooseEnum>(
-      "tally_type",
-      getTallyTypeEnum(),
-      "The type of spatial tally to use. Options are a distributed cell tally (cell) or an unstructured mesh tally (mesh).");
-  params.addRequiredParam<MooseEnum>(
-      "particle",
-      getSingleParticleFilterEnum(),
-      "The particle to filter for. At present cross sections can only be generated for neutrons or photons, if 'electron' or "
-      "'positron' are selected an error will be thrown.");
+  params.addRequiredParam<MooseEnum>("tally_type",
+                                     getTallyTypeEnum(),
+                                     "The type of spatial tally to use. Options are a distributed "
+                                     "cell tally (cell) or an unstructured mesh tally (mesh).");
+  params.addRequiredParam<MooseEnum>("particle",
+                                     getSingleParticleFilterEnum(),
+                                     "The particle to filter for. At present cross sections can "
+                                     "only be generated for neutrons or photons, if 'electron' or "
+                                     "'positron' are selected an error will be thrown.");
   auto estimator_enum = getTallyEstimatorEnum();
   estimator_enum.assign("tracklength");
   params.addParam<MooseEnum>(
-    "estimator",
-    estimator_enum,
-    "The type of estimator to use with the tallies added for MGXS generation. This is not applied to scattering / fission"
-    " scores as the filters applied to those scores only support analog estimators.");
+      "estimator",
+      estimator_enum,
+      "The type of estimator to use with the tallies added for MGXS generation. This is not "
+      "applied to scattering / fission"
+      " scores as the filters applied to those scores only support analog estimators.");
 
   // Options for MGXS generation. At a minimum, we generate multi-group total cross sections.
   params.addParam<bool>(
       "add_scattering",
       true,
       "Whether or not the scattering multi-group cross section matrix should be generated.");
-  params.addParam<unsigned int>(
-      "legendre_order",
-      0,
-      "The order of the Legendre expansion in scattering angle to use for generating scattering cross sections. Defaults to 0.");
-  params.addParam<bool>(
-      "transport_correction",
-      true,
-      "Whether the in-group scattering cross section should include a P0 transport correction or not.");
+  params.addParam<unsigned int>("legendre_order",
+                                0,
+                                "The order of the Legendre expansion in scattering angle to use "
+                                "for generating scattering cross sections. Defaults to 0.");
+  params.addParam<bool>("transport_correction",
+                        true,
+                        "Whether the in-group scattering cross section should include a P0 "
+                        "transport correction or not.");
 
-  params.addParam<bool>(
-      "add_fission",
-      false,
-      "Whether or not fission multi-group cross sections (neutron production and the discrete chi spectrum) should be generated.");
+  params.addParam<bool>("add_fission",
+                        false,
+                        "Whether or not fission multi-group cross sections (neutron production and "
+                        "the discrete chi spectrum) should be generated.");
 
   params.addParam<bool>(
       "add_fission_heating",
       false,
       "Whether or not per-group fission heating (kappa-fission) values should be generated.");
 
-  params.addParam<bool>(
-      "add_inverse_velocity",
-      false,
-      "Whether or not per-group inverse velocities should be generated.");
+  params.addParam<bool>("add_inverse_velocity",
+                        false,
+                        "Whether or not per-group inverse velocities should be generated.");
 
   params.addParam<bool>(
       "add_diffusion_coefficient",
@@ -97,10 +98,10 @@ SetupMGXSAction::validParams()
       false,
       "Whether or not absorption multi-group cross sections should be generated.");
 
-  params.addParam<bool>(
-    "hide_tally_vars",
-    true,
-    "Whether or not tally variables used to compute multi-group cross sections are hidden in exodus output.");
+  params.addParam<bool>("hide_tally_vars",
+                        true,
+                        "Whether or not tally variables used to compute multi-group cross sections "
+                        "are hidden in exodus output.");
 
   return params;
 }
@@ -123,31 +124,40 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     _need_p1_scatter(false)
 {
   if (_particle == "electron" || _particle == "positron")
-    paramError("particle", "At present, multi-group cross sections can only be generated for neutrons or photons.");
+    paramError(
+        "particle",
+        "At present, multi-group cross sections can only be generated for neutrons or photons.");
 
   if (_add_fission && _particle == "photon")
-    paramError("add_fission", "Multi-group fission cross sections / chi spectra cannot be "
-               "generated when selecting particle = 'photon'! Please set add_fission = false to continue.");
+    paramError("add_fission",
+               "Multi-group fission cross sections / chi spectra cannot be "
+               "generated when selecting particle = 'photon'! Please set add_fission = false to "
+               "continue.");
 
   if (_add_kappa_fission && _particle == "photon")
-    paramError("add_fission_heating", "Multi-group fission heating values cannot be "
-               "generated when selecting particle = 'photon'! Please set add_fission_heating = false to continue.");
+    paramError("add_fission_heating",
+               "Multi-group fission heating values cannot be "
+               "generated when selecting particle = 'photon'! Please set add_fission_heating = "
+               "false to continue.");
 
   if (_t_type == tally::TallyTypeEnum::mesh && _estimator == "tracklength")
   {
     if (isParamSetByUser("estimator"))
       mooseWarning(
-        "You've selected an unstructured mesh tally discretization for your multi-group cross "
-        "sections and requested a tracklength estimator. Unstructured mesh tallies don't support, "
-        "tracklength estimators, the estimator will be set to 'collision' instead.");
+          "You've selected an unstructured mesh tally discretization for your multi-group cross "
+          "sections and requested a tracklength estimator. Unstructured mesh tallies don't "
+          "support, "
+          "tracklength estimators, the estimator will be set to 'collision' instead.");
 
     _estimator.assign("collision");
   }
 
   if (_l_order > 0 && _transport_correction)
   {
-    mooseWarning("Transport-corrected scattering cross sections can only be used with isotropic scattering "
-                 "(l = 0). You've set l = " + Moose::stringify(_l_order) + ", the transport correction will not be applied.");
+    mooseWarning(
+        "Transport-corrected scattering cross sections can only be used with isotropic scattering "
+        "(l = 0). You've set l = " +
+        Moose::stringify(_l_order) + ", the transport correction will not be applied.");
     _transport_correction = false;
   }
 
@@ -179,7 +189,8 @@ SetupMGXSAction::openmcProblem()
 {
   auto p = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
   if (!p)
-    mooseError("MGXS can only be used with problems of the type 'OpenMCCellAverageProblem'! Please ensure you've added one in the [Problem] block.");
+    mooseError("MGXS can only be used with problems of the type 'OpenMCCellAverageProblem'! Please "
+               "ensure you've added one in the [Problem] block.");
   return p;
 }
 
@@ -199,7 +210,8 @@ SetupMGXSAction::addFilters()
   // Need a ParticleFilter for all cross sections.
   {
     auto params = _factory.getValidParams("ParticleFilter");
-    params.set<MultiMooseEnum>("particles") = MultiMooseEnum(getParticleFilterEnums().getRawNames(), _particle, false);
+    params.set<MultiMooseEnum>("particles") =
+        MultiMooseEnum(getParticleFilterEnums().getRawNames(), _particle, false);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
     openmcProblem()->addFilter("ParticleFilter", "MGXS_ParticleFilter", params);
@@ -250,10 +262,13 @@ SetupMGXSAction::addTallies()
   // Total and flux tally.
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
     params.set<MooseEnum>("estimator") = _estimator;
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_total"), std::string("mgxs_flux") };
-    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_total"),
+                                                    std::string("mgxs_flux")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -265,11 +280,14 @@ SetupMGXSAction::addTallies()
   if (_add_scattering || _add_diffusion)
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
     params.set<MooseEnum>("estimator") = "analog";
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_scatter") };
-    params.set<std::vector<std::string>>("filters") =
-      { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_AngularLegendreFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_scatter")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_EnergyOutFilter"),
+                                                       std::string("MGXS_AngularLegendreFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -281,11 +299,13 @@ SetupMGXSAction::addTallies()
   if (_add_fission)
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
     params.set<MooseEnum>("estimator") = "analog";
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_fission") };
-    params.set<std::vector<std::string>>("filters") =
-      { std::string("MGXS_EnergyFilter"), std::string("MGXS_EnergyOutFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_fission")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_EnergyOutFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -297,10 +317,12 @@ SetupMGXSAction::addTallies()
   if (_add_kappa_fission)
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
     params.set<MooseEnum>("estimator") = _estimator;
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_kappa_fission") };
-    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_kappa_fission")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -312,10 +334,12 @@ SetupMGXSAction::addTallies()
   if (_add_inv_vel)
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
     params.set<MooseEnum>("estimator") = _estimator;
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_inverse_velocity") };
-    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_inverse_velocity")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -327,10 +351,12 @@ SetupMGXSAction::addTallies()
   if (_add_absorption)
   {
     auto params = _factory.getValidParams(tally_type);
-    params.set<MultiMooseEnum>("score") = MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
+    params.set<MultiMooseEnum>("score") =
+        MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
     params.set<MooseEnum>("estimator") = _estimator;
-    params.set<std::vector<std::string>>("name") = { std::string("mgxs_absorption") };
-    params.set<std::vector<std::string>>("filters") = { std::string("MGXS_EnergyFilter"), std::string("MGXS_ParticleFilter") };
+    params.set<std::vector<std::string>>("name") = {std::string("mgxs_absorption")};
+    params.set<std::vector<std::string>>("filters") = {std::string("MGXS_EnergyFilter"),
+                                                       std::string("MGXS_ParticleFilter")};
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
@@ -364,9 +390,8 @@ SetupMGXSAction::addAuxVars()
       {
         for (unsigned int l = 0; l <= _l_order; ++l)
         {
-          const std::string name = "scatter_xs_g" + Moose::stringify(g + 1)
-                                   + "_gp" + Moose::stringify(g_prime + 1)
-                                   + "_l" + Moose::stringify(l);
+          const std::string name = "scatter_xs_g" + Moose::stringify(g + 1) + "_gp" +
+                                   Moose::stringify(g_prime + 1) + "_l" + Moose::stringify(l);
           auto params = _factory.getValidParams("MooseVariable");
           params.set<MooseEnum>("family") = "MONOMIAL";
           params.set<MooseEnum>("order") = "CONSTANT";
@@ -481,8 +506,10 @@ SetupMGXSAction::addAuxKernels()
     const auto n = "total_xs_g" + Moose::stringify(g + 1);
     auto params = _factory.getValidParams("ComputeMGXSAux");
     params.set<AuxVariableName>("variable") = n;
-    params.set<std::vector<VariableName>>("rxn_rates").emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
-    params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+    params.set<std::vector<VariableName>>("rxn_rates")
+        .emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+    params.set<std::vector<VariableName>>("normalize_by")
+        .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
     setObjectBlocks(params, _blocks);
 
     _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
@@ -502,14 +529,16 @@ SetupMGXSAction::addAuxKernels()
 
         for (unsigned int l = 0; l <= _l_order; ++l)
         {
-          const auto n = "scatter_xs_g" + Moose::stringify(g + 1)
-                         + "_gp" + Moose::stringify(g_prime + 1)
-                         + "_l" + Moose::stringify(l);
+          const auto n = "scatter_xs_g" + Moose::stringify(g + 1) + "_gp" +
+                         Moose::stringify(g_prime + 1) + "_l" + Moose::stringify(l);
           auto params = _factory.getValidParams("ComputeMGXSAux");
           params.set<AuxVariableName>("variable") = n;
-          params.set<std::vector<VariableName>>("rxn_rates").emplace_back(
-            "mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g_prime + 1) + "_l" + Moose::stringify(l) + "_" + std::string(_particle));
-          params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+          params.set<std::vector<VariableName>>("rxn_rates")
+              .emplace_back("mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" +
+                            Moose::stringify(g_prime + 1) + "_l" + Moose::stringify(l) + "_" +
+                            std::string(_particle));
+          params.set<std::vector<VariableName>>("normalize_by")
+              .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
           setObjectBlocks(params, _blocks);
 
           _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
@@ -521,16 +550,19 @@ SetupMGXSAction::addAuxKernels()
     {
       for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
       {
-        const auto n = "scatter_xs_g" + Moose::stringify(g + 1)
-                       + "_gp" + Moose::stringify(g + 1) + "_l0";
+        const auto n =
+            "scatter_xs_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g + 1) + "_l0";
         auto params = _factory.getValidParams("ComputeTCScatterMGXSAux");
         params.set<AuxVariableName>("variable") = n;
-        params.set<std::vector<VariableName>>("p0_scatter_rxn_rate").emplace_back(
-          "mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g + 1) + "_l0_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("p0_scatter_rxn_rate")
+            .emplace_back("mgxs_scatter_g" + Moose::stringify(g + 1) + "_gp" +
+                          Moose::stringify(g + 1) + "_l0_" + std::string(_particle));
         for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
-          params.set<std::vector<VariableName>>("p1_scatter_rxn_rates").emplace_back(
-            "mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
-        params.set<std::vector<VariableName>>("scalar_flux").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+          params.set<std::vector<VariableName>>("p1_scatter_rxn_rates")
+              .emplace_back("mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" +
+                            Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("scalar_flux")
+            .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
         setObjectBlocks(params, _blocks);
 
         _problem->addAuxKernel("ComputeTCScatterMGXSAux", "comp_" + n, params);
@@ -548,10 +580,12 @@ SetupMGXSAction::addAuxKernels()
       params.set<AuxVariableName>("variable") = n;
       for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
       {
-        params.set<std::vector<VariableName>>("rxn_rates").emplace_back(
-          "mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("rxn_rates")
+            .emplace_back("mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" +
+                          Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
       }
-      params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("normalize_by")
+          .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
@@ -560,8 +594,8 @@ SetupMGXSAction::addAuxKernels()
     std::vector<VariableName> all_fission;
     for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
       for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
-        all_fission.emplace_back(
-          "mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
+        all_fission.emplace_back("mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" +
+                                 Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
 
     for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
     {
@@ -570,8 +604,9 @@ SetupMGXSAction::addAuxKernels()
       params.set<AuxVariableName>("variable") = n;
       for (unsigned int g = 0; g < _energy_bnds.size() - 1; ++g)
       {
-        params.set<std::vector<VariableName>>("rxn_rates").emplace_back(
-          "mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" + Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("rxn_rates")
+            .emplace_back("mgxs_fission_g" + Moose::stringify(g + 1) + "_gp" +
+                          Moose::stringify(g_prime + 1) + "_" + std::string(_particle));
       }
       params.set<std::vector<VariableName>>("normalize_by") = all_fission;
       setObjectBlocks(params, _blocks);
@@ -588,8 +623,11 @@ SetupMGXSAction::addAuxKernels()
       const auto n = "kappa_fission_g" + Moose::stringify(g + 1);
       auto params = _factory.getValidParams("ComputeMGXSAux");
       params.set<AuxVariableName>("variable") = n;
-      params.set<std::vector<VariableName>>("rxn_rates").emplace_back("mgxs_kappa_fission_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
-      params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("rxn_rates")
+          .emplace_back("mgxs_kappa_fission_g" + Moose::stringify(g + 1) + "_" +
+                        std::string(_particle));
+      params.set<std::vector<VariableName>>("normalize_by")
+          .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
@@ -604,8 +642,11 @@ SetupMGXSAction::addAuxKernels()
       const auto n = "inv_v_g" + Moose::stringify(g + 1);
       auto params = _factory.getValidParams("ComputeMGXSAux");
       params.set<AuxVariableName>("variable") = n;
-      params.set<std::vector<VariableName>>("rxn_rates").emplace_back("mgxs_inverse_velocity_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
-      params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("rxn_rates")
+          .emplace_back("mgxs_inverse_velocity_g" + Moose::stringify(g + 1) + "_" +
+                        std::string(_particle));
+      params.set<std::vector<VariableName>>("normalize_by")
+          .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);
@@ -620,11 +661,14 @@ SetupMGXSAction::addAuxKernels()
       const std::string n = "diff_g" + Moose::stringify(g + 1);
       auto params = _factory.getValidParams("ComputeDiffusionCoeffMGAux");
       params.set<AuxVariableName>("variable") = n;
-      params.set<std::vector<VariableName>>("total_rxn_rate").emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
-      params.set<std::vector<VariableName>>("scalar_flux").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("total_rxn_rate")
+          .emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("scalar_flux")
+          .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
-        params.set<std::vector<VariableName>>("p1_scatter_rxn_rates").emplace_back(
-          "mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" + Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
+        params.set<std::vector<VariableName>>("p1_scatter_rxn_rates")
+            .emplace_back("mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" +
+                          Moose::stringify(g + 1) + "_l1_" + std::string(_particle));
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeDiffusionCoeffMGAux", "comp_" + n, params);
@@ -639,8 +683,11 @@ SetupMGXSAction::addAuxKernels()
       const auto n = "abs_xs_g" + Moose::stringify(g + 1);
       auto params = _factory.getValidParams("ComputeMGXSAux");
       params.set<AuxVariableName>("variable") = n;
-      params.set<std::vector<VariableName>>("rxn_rates").emplace_back("mgxs_absorption_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
-      params.set<std::vector<VariableName>>("normalize_by").emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<std::vector<VariableName>>("rxn_rates")
+          .emplace_back("mgxs_absorption_g" + Moose::stringify(g + 1) + "_" +
+                        std::string(_particle));
+      params.set<std::vector<VariableName>>("normalize_by")
+          .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       setObjectBlocks(params, _blocks);
 
       _problem->addAuxKernel("ComputeMGXSAux", "comp_" + n, params);

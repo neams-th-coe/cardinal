@@ -16,7 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "ComputeDiffusionCoeffMGAux.h"
@@ -28,18 +27,18 @@ ComputeDiffusionCoeffMGAux::validParams()
 {
   auto params = OpenMCAuxKernel::validParams();
   params.addClassDescription(
-    "An auxkernel that computes a multi-group diffusion coefficient using a group-wise total "
-    "reaction rate, a list of group-wise P1 scattering reaction rates, and the group-wise "
-    "scalar flux. This is intended to be added by the MGXS action.");
+      "An auxkernel that computes a multi-group diffusion coefficient using a group-wise total "
+      "reaction rate, a list of group-wise P1 scattering reaction rates, and the group-wise "
+      "scalar flux. This is intended to be added by the MGXS action.");
   params.addRequiredCoupledVar(
-    "total_rxn_rate",
-    "The total reaction rates to use for computing the multi-group diffusion coefficient.");
+      "total_rxn_rate",
+      "The total reaction rates to use for computing the multi-group diffusion coefficient.");
+  params.addRequiredCoupledVar("p1_scatter_rxn_rates",
+                               "The P1 group-wise scattering reaction rates to use for computing "
+                               "the multi-group diffusion coefficient.");
   params.addRequiredCoupledVar(
-    "p1_scatter_rxn_rates",
-    "The P1 group-wise scattering reaction rates to use for computing the multi-group diffusion coefficient.");
-  params.addRequiredCoupledVar(
-    "scalar_flux",
-    "The group-wise scalar flux used for computing the multi-group diffusion coefficient.");
+      "scalar_flux",
+      "The group-wise scalar flux used for computing the multi-group diffusion coefficient.");
 
   return params;
 }

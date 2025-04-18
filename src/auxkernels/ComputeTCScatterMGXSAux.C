@@ -16,7 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "ComputeTCScatterMGXSAux.h"
@@ -28,18 +27,18 @@ ComputeTCScatterMGXSAux::validParams()
 {
   auto params = OpenMCAuxKernel::validParams();
   params.addClassDescription(
-    "An auxkernel that computes a transport-corrected P0 scattering multi-group cross "
-    "section using a list of scattering reaction rates and the group-wise scalar flux. "
-    "This is intended to be added by the MGXS action.");
-  params.addRequiredCoupledVar(
-    "p0_scatter_rxn_rate",
-    "The P0 group-wise scattering reaction rates to use for computing the transport-corrected scattering cross section.");
-  params.addRequiredCoupledVar(
-    "p1_scatter_rxn_rates",
-    "The P1 group-wise scattering reaction rates to use for computing the transport-corrected scattering cross section.");
-  params.addRequiredCoupledVar(
-    "scalar_flux",
-    "The group-wise scalar flux used to compute the transport-corrected scattering cross section.");
+      "An auxkernel that computes a transport-corrected P0 scattering multi-group cross "
+      "section using a list of scattering reaction rates and the group-wise scalar flux. "
+      "This is intended to be added by the MGXS action.");
+  params.addRequiredCoupledVar("p0_scatter_rxn_rate",
+                               "The P0 group-wise scattering reaction rates to use for computing "
+                               "the transport-corrected scattering cross section.");
+  params.addRequiredCoupledVar("p1_scatter_rxn_rates",
+                               "The P1 group-wise scattering reaction rates to use for computing "
+                               "the transport-corrected scattering cross section.");
+  params.addRequiredCoupledVar("scalar_flux",
+                               "The group-wise scalar flux used to compute the transport-corrected "
+                               "scattering cross section.");
 
   return params;
 }

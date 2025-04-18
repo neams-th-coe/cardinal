@@ -27,26 +27,26 @@ ComputeMGXSAux::validParams()
 {
   auto params = OpenMCAuxKernel::validParams();
   params.addClassDescription(
-    "An auxkernel that computes a multi-group cross section using a list of group-wise reaction rates and a list of "
-    "normalization factors. This is intended to be added by the MGXS action.");
+      "An auxkernel that computes a multi-group cross section using a list of group-wise reaction "
+      "rates and a list of "
+      "normalization factors. This is intended to be added by the MGXS action.");
   params.addRequiredCoupledVar(
-    "rxn_rates",
-    "The group-wise reaction rates to use for computing the multi-group cross section.");
-  params.addRequiredCoupledVar(
-    "normalize_by",
-    "The normalization factor to use when computing multi-group cross sections. This is usually the group-wise scalar flux.");
+      "rxn_rates",
+      "The group-wise reaction rates to use for computing the multi-group cross section.");
+  params.addRequiredCoupledVar("normalize_by",
+                               "The normalization factor to use when computing multi-group cross "
+                               "sections. This is usually the group-wise scalar flux.");
 
   return params;
 }
 
-ComputeMGXSAux::ComputeMGXSAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters)
+ComputeMGXSAux::ComputeMGXSAux(const InputParameters & parameters) : OpenMCAuxKernel(parameters)
 {
   for (unsigned int i = 0; i < coupledComponents("rxn_rates"); ++i)
     _mg_reaction_rates.emplace_back(&coupledValue("rxn_rates", i));
 
   for (unsigned int i = 0; i < coupledComponents("normalize_by"); ++i)
-  _norm_factors.emplace_back(&coupledValue("normalize_by", i));
+    _norm_factors.emplace_back(&coupledValue("normalize_by", i));
 }
 
 Real

@@ -27,8 +27,7 @@
 
 class OpenMCCellAverageProblem;
 
-class SetupMGXSAction : public CardinalAction,
-                        public EnergyBinBase
+class SetupMGXSAction : public CardinalAction, public EnergyBinBase
 {
 public:
   static InputParameters validParams();

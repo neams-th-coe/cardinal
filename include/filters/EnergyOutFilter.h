@@ -21,8 +21,7 @@
 #include "FilterBase.h"
 #include "EnergyBinBase.h"
 
-class EnergyOutFilter : public FilterBase,
-                        public EnergyBinBase
+class EnergyOutFilter : public FilterBase, public EnergyBinBase
 {
 public:
   static InputParameters validParams();

@@ -23,7 +23,6 @@
 class ComputeTCScatterMGXSAux : public OpenMCAuxKernel
 {
 public:
-
   static InputParameters validParams();
 
   ComputeTCScatterMGXSAux(const InputParameters & parameters);

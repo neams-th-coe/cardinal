@@ -43,19 +43,22 @@ EnergyBinBase::validParams()
   return params;
 }
 
-EnergyBinBase::EnergyBinBase(const ParallelParamObject * moose_object, const InputParameters & parameters)
+EnergyBinBase::EnergyBinBase(const ParallelParamObject * moose_object,
+                             const InputParameters & parameters)
   : _reverse_bins(moose_object->getParam<bool>("reverse_bins"))
 {
-  if (moose_object->isParamValid("energy_boundaries") == moose_object->isParamValid("group_structure"))
-    moose_object->mooseError("You have either set both 'energy_boundaries' and 'group_structure' or have not "
-                             "specified a bin option. Please specify either 'energy_boundaries' or "
-                             "'group_structure'.");
+  if (moose_object->isParamValid("energy_boundaries") ==
+      moose_object->isParamValid("group_structure"))
+    moose_object->mooseError(
+        "You have either set both 'energy_boundaries' and 'group_structure' or have not "
+        "specified a bin option. Please specify either 'energy_boundaries' or "
+        "'group_structure'.");
 
   if (moose_object->isParamValid("energy_boundaries"))
     _energy_bnds = moose_object->getParam<std::vector<Real>>("energy_boundaries");
   if (moose_object->isParamValid("group_structure"))
-    _energy_bnds = this->getGroupBoundaries(
-      moose_object->getParam<MooseEnum>("group_structure").getEnum<energyfilter::GroupStructureEnum>());
+    _energy_bnds = this->getGroupBoundaries(moose_object->getParam<MooseEnum>("group_structure")
+                                                .getEnum<energyfilter::GroupStructureEnum>());
 
   // Two boundaries are required at minimum to form energy bins.
   if (_energy_bnds.size() < 2)
@@ -75,9 +78,10 @@ EnergyBinBase::EnergyBinBase(const ParallelParamObject * moose_object, const Inp
 
   // Check for duplicate entries.
   if (std::adjacent_find(_energy_bnds.begin(), _energy_bnds.end()) != _energy_bnds.end())
-    moose_object->paramError("energy_boundaries",
-                             "You have added duplicate energy boundaries! Each group boundary must be unique to "
-                             "create energy bins.");
+    moose_object->paramError(
+        "energy_boundaries",
+        "You have added duplicate energy boundaries! Each group boundary must be unique to "
+        "create energy bins.");
 }
 
 std::vector<double>

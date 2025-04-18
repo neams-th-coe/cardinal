@@ -41,8 +41,7 @@ EnergyOutFilter::validParams()
 }
 
 EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
-  : FilterBase(parameters),
-    EnergyBinBase(this, parameters)
+  : FilterBase(parameters), EnergyBinBase(this, parameters)
 {
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
