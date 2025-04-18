@@ -3,7 +3,7 @@
 !alert note
 `SetupMGXSAction` can only set up multi-group cross section generation in problems which contain a
 [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) in the `[Problem]` block. Otherwise,
-attempting to add a tally will result in an error.
+attempting to add multi-group cross sections will result in an error.
 
 ## Overview
 
@@ -115,7 +115,8 @@ where
 \langle\sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{f}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
 \end{equation}
 
-$\nu\Sigma_{f,i,g}$ is the homogenized neutron production MGXS and $\nu\Sigma_{f}(\vec{r}, E)$ is the equivalent continuous-energy macroscopic cross section. The tallies used to compute $\nu\Sigma_{f,i,g}$ are also used to compute $\chi_{i,g}$, necessitating the use of an `analog` estimator for $\nu\Sigma_{f,i,g}$.
+$\nu\Sigma_{f,i,g}$ is the homogenized neutron production MGXS and $\nu\Sigma_{f}(\vec{r}, E)$ is the equivalent continuous-energy macroscopic cross section. The tallies used to compute $\nu\Sigma_{f,i,g}$ are also used to compute $\chi_{i,g}$, necessitating the use of an `analog` estimator for $\nu\Sigma_{f,i,g}$. This cross
+section is not available for photons.
 
 ### Discrete Chi Spectra
 
@@ -140,7 +141,7 @@ and
 \langle\nu\Sigma_{f}\psi\rangle_{i} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{0}^{\infty}\,dE'\int_{0}^{\infty}\,dE\,\chi(\vec{r}, E)\nu\Sigma_{f}(\vec{r}, E')\psi(\vec{r}, E', \hat{\Omega}')
 \end{equation}
 
-$\chi_{i,g}$ is the homogenized MG chi spectra and $\chi(\vec{r}, E)$ is the equivalent continuous-energy spectra. The need to know the entering and exiting energies for the nu-fission reaction rate necessitates the use of an `analog` estimator for $\chi_{i,g}$.
+$\chi_{i,g}$ is the homogenized MG chi spectra and $\chi(\vec{r}, E)$ is the equivalent continuous-energy spectra. The need to know the entering and exiting energies for the nu-fission reaction rate necessitates the use of an `analog` estimator for $\chi_{i,g}$. This property is not available for photons.
 
 ### Fission Heating Values
 
@@ -159,6 +160,7 @@ where
 \end{equation}
 
 $\kappa\Sigma_{f,i,g}$ is the homogenized MG fission heating cross section and $\kappa\Sigma_{f}(\vec{r}, E)$ is the equivalent continuous-energy cross section.
+This property is not available for photons.
 
 ### Inverse Velocity Values
 
@@ -202,4 +204,3 @@ The example below computes every available group property using a distributed ce
   block=Problem
 
 !syntax parameters /Problem/MGXS/SetupMGXSAction
-
