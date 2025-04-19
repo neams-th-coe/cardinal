@@ -43,6 +43,7 @@
     type = CSVDiff
     input = all_mgxs_mesh.i
     csvdiff = all_mgxs_mesh_out.csv
+    mesh_mode = 'replicated'
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using unstructured mesh tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
