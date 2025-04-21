@@ -766,6 +766,15 @@ OpenMCProblemBase::numCells() const
   return n_openmc_cells;
 }
 
+const openmc::Tally &
+OpenMCProblemBase::getKineticsParamTally()
+{
+  if (!_calc_kinetics_params || !_ifp_tally)
+    mooseError("Kinetics parameters have not been enabled!");
+
+  return *_ifp_tally;
+}
+
 bool
 OpenMCProblemBase::isReactionRateScore(const std::string & score) const
 {

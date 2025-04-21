@@ -355,6 +355,12 @@ public:
    */
   virtual std::vector<int32_t> getMappedTallyIDs() const = 0;
 
+  /**
+   * Get the tally responsible for accumulating the scores for \Lambda_{eff} and \beta_{eff}.
+   * @return the global IFP tally
+   */
+  const openmc::Tally & getKineticsParamTally();
+
 protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
