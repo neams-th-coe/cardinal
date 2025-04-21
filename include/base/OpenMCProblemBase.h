@@ -492,6 +492,15 @@ protected:
    */
   bool _run_on_adaptivity_cycle;
 
+  /// A flag to indicate if OpenMC is calculating kinetics parameters.
+  const bool _calc_kinetics_params;
+
+  /// The index of a global tally to accumulate the scores required for kinetics parameters.
+  int _ifp_tally_index = -1;
+
+  /// The global tally used to accumulate the scores required for kinetics parameters.
+  openmc::Tally * _ifp_tally = nullptr;
+
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};
 
