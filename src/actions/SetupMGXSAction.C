@@ -124,9 +124,8 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     _need_p1_scatter(false)
 {
   if (_particle == "electron" || _particle == "positron")
-    paramError(
-        "particle",
-        "Multi-group cross sections can only be generated for neutrons or photons.");
+    paramError("particle",
+               "Multi-group cross sections can only be generated for neutrons or photons.");
 
   if (_add_fission && _particle == "photon")
     paramError("add_fission",
@@ -153,7 +152,8 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
 
   if (_estimator != "analog" && (_add_fission || _add_scattering || _add_diffusion))
   {
-    mooseWarning("You've requested the generation of scattering / fission / diffusion group constants with a "
+    mooseWarning("You've requested the generation of scattering / fission / diffusion group "
+                 "constants with a "
                  "non-analog estimator. At present these MGXS don't support 'collision' / "
                  "'tracklength' estimators, the estimator will be set to 'analog' instead.");
 
