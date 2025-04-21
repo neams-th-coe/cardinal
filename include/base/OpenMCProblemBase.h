@@ -356,6 +356,12 @@ public:
   virtual std::vector<int32_t> getMappedTallyIDs() const = 0;
 
   /**
+   * Whether or not the problem is tallying kinetics parameters.
+   * @return if the problem is tallying kinetics parameters
+   */
+  bool computeKineticsParams() const { return _calc_kinetics_params; }
+
+  /**
    * Get the tally responsible for accumulating the scores for \Lambda_{eff} and \beta_{eff}.
    * @return the global IFP tally
    */

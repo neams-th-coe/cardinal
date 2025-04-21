@@ -40,6 +40,9 @@ BetaEffective::BetaEffective(const InputParameters & parameters)
 {
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
     mooseError("Beta effective is only computed when running OpenMC in eigenvalue mode!");
+
+  if (!_openmc_problem->computeKineticsParams())
+    mooseError("BetaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
 }
 
 Real

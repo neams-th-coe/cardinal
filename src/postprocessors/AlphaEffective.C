@@ -35,7 +35,10 @@ AlphaEffective::validParams()
 
 AlphaEffective::AlphaEffective(const InputParameters & parameters)
   : KEigenvalue(parameters)
-{ }
+{
+  if (!_openmc_problem->computeKineticsParams())
+    mooseError("AlphaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
+}
 
 Real
 AlphaEffective::getValue() const
