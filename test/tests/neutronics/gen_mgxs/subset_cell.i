@@ -30,17 +30,17 @@
     estimator = 'analog'
     hide_tally_vars = true
 
-    add_scattering = true
+    add_scattering = false
     legendre_order = 0
     transport_correction = true
 
-    add_fission = true
+    add_fission = false
 
     add_fission_heating = true
 
     add_inverse_velocity = true
 
-    add_diffusion_coefficient = true
+    add_diffusion_coefficient = false
 
     add_absorption = true
   []
@@ -61,26 +61,6 @@
     point = '0 0 0'
     variable = abs_xs_g2
   []
-  [chi_g1]
-    type = PointValue
-    point = '0 0 0'
-    variable = chi_g1
-  []
-  [chi_g2]
-    type = PointValue
-    point = '0 0 0'
-    variable = chi_g2
-  []
-  [diff_g1]
-    type = PointValue
-    point = '0 0 0'
-    variable = diff_g1
-  []
-  [diff_g2]
-    type = PointValue
-    point = '0 0 0'
-    variable = diff_g2
-  []
   [inv_v_g1]
     type = PointValue
     point = '0 0 0'
@@ -100,36 +80,6 @@
     type = PointValue
     point = '0 0 0'
     variable = kappa_fission_g2
-  []
-  [nu_fission_xs_g1]
-    type = PointValue
-    point = '0 0 0'
-    variable = nu_fission_xs_g1
-  []
-  [nu_fission_xs_g2]
-    type = PointValue
-    point = '0 0 0'
-    variable = nu_fission_xs_g2
-  []
-  [scatter_xs_g1_gp1_l0]
-    type = PointValue
-    point = '0 0 0'
-    variable = scatter_xs_g1_gp1_l0
-  []
-  [scatter_xs_g1_gp2_l0]
-    type = PointValue
-    point = '0 0 0'
-    variable = scatter_xs_g1_gp2_l0
-  []
-  [scatter_xs_g2_gp1_l0]
-    type = PointValue
-    point = '0 0 0'
-    variable = scatter_xs_g2_gp1_l0
-  []
-  [scatter_xs_g2_gp2_l0]
-    type = PointValue
-    point = '0 0 0'
-    variable = scatter_xs_g2_gp2_l0
   []
   [total_xs_g1]
     type = PointValue

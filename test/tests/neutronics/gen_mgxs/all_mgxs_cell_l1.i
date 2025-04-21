@@ -32,7 +32,7 @@
     tally_type = cell
     particle = neutron
     group_structure = CASMO_2
-    estimator = 'tracklength'
+    estimator = 'analog'
     hide_tally_vars = true
 
     add_scattering = true

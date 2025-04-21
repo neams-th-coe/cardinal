@@ -126,7 +126,7 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
   if (_particle == "electron" || _particle == "positron")
     paramError(
         "particle",
-        "At present, multi-group cross sections can only be generated for neutrons or photons.");
+        "Multi-group cross sections can only be generated for neutrons or photons.");
 
   if (_add_fission && _particle == "photon")
     paramError("add_fission",
@@ -146,10 +146,18 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
       mooseWarning(
           "You've selected an unstructured mesh tally discretization for your multi-group cross "
           "sections and requested a tracklength estimator. Unstructured mesh tallies don't "
-          "support, "
-          "tracklength estimators, the estimator will be set to 'collision' instead.");
+          "support, tracklength estimators, the estimator will be set to 'collision' instead.");
 
     _estimator.assign("collision");
+  }
+
+  if (_estimator != "analog" && (_add_fission || _add_scattering || _add_diffusion))
+  {
+    mooseWarning("You've requested the generation of scattering / fission / diffusion group constants with a "
+                 "non-analog estimator. At present these MGXS don't support 'collision' / "
+                 "'tracklength' estimators, the estimator will be set to 'analog' instead.");
+
+    _estimator.assign("analog");
   }
 
   if (_l_order > 0 && _transport_correction)
@@ -218,7 +226,7 @@ SetupMGXSAction::addFilters()
   }
 
   // Need an EnergyOutFilter for scattering / neutron production cross sections.
-  if (_add_scattering || _add_fission)
+  if (_add_scattering || _add_fission || _add_diffusion)
   {
     auto params = _factory.getValidParams("EnergyOutFilter");
     params.set<std::vector<Real>>("energy_boundaries") = _energy_bnds;

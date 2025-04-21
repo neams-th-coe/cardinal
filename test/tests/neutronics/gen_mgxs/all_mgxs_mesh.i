@@ -27,7 +27,7 @@
     tally_type = mesh
     particle = neutron
     group_structure = CASMO_2
-    estimator = 'collision'
+    estimator = 'analog'
     hide_tally_vars = true
 
     add_scattering = true

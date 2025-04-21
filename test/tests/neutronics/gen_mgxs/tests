@@ -25,18 +25,18 @@
   []
   [collision]
     type = CSVDiff
-    input = all_mgxs_cell.i
+    input = subset_cell.i
     cli_args = "Problem/MGXS/estimator='collision' Outputs/file_base='collision_out'"
     csvdiff = collision_out.csv
-    requirement = "The system shall be capable of generating multi-group cross sections with a collision estimator."
+    requirement = "The system shall be capable of generating certain multi-group cross sections with a collision estimator."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [analog]
+  [tracklength]
     type = CSVDiff
-    input = all_mgxs_cell.i
-    cli_args = "Problem/MGXS/estimator='analog' Outputs/file_base='analog_out'"
-    csvdiff = analog_out.csv
-    requirement = "The system shall be capable of generating multi-group cross sections with an analog estimator."
+    input = subset_cell.i
+    cli_args = "Problem/MGXS/estimator='tracklength' Outputs/file_base='tracklength_out'"
+    csvdiff = tracklength_out.csv
+    requirement = "The system shall be capable of generating certain multi-group cross sections with a tracklength estimator."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [all_mesh]
@@ -58,7 +58,7 @@
     type = RunException
     input = hide_tally_vars.i
     cli_args = "Problem/MGXS/particle='electron'"
-    expect_err = "At present, multi-group cross sections can only be generated for neutrons or photons."
+    expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
     requirement = "The system shall error if the user requests electron cross sections."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -66,7 +66,7 @@
     type = RunException
     input = hide_tally_vars.i
     cli_args = "Problem/MGXS/particle='positron'"
-    expect_err = "At present, multi-group cross sections can only be generated for neutrons or photons."
+    expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
     requirement = "The system shall error if the user requests positron cross sections."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -100,6 +100,15 @@
     cli_args = "--error Problem/MGXS/estimator='tracklength'"
     expect_err = "You've selected an unstructured mesh tally discretization"
     requirement = "The system shall warn the user if they select a mesh tally and request a tracklength estimator."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [error_non_analog]
+    type = RunException
+    input = all_mgxs_mesh.i
+    cli_args = "--error Problem/MGXS/estimator='collision'"
+    expect_err = "You've requested the generation of scattering"
+    requirement = "The system shall warn the user if they wish to generate scattering / fission / diffusion group properties"
+                  " without an analog estimator."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

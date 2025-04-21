@@ -27,7 +27,7 @@
     tally_type = cell
     particle = neutron
     energy_boundaries = '1e7 0.0'
-    estimator = 'tracklength'
+    estimator = 'analog'
 
     add_scattering = true
     legendre_order = 0
