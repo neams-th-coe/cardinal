@@ -79,7 +79,7 @@ OpenMCProblemBase::validParams()
   params.addParam<bool>("calc_kinetics_params",
                         false,
                         "Whether or not Cardinal should enable the calculation of kinetics "
-                        "parameters (Lambda effective / beta effective).");
+                        "parameters (Lambda effective and beta effective).");
   params.addParam<unsigned int>(
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
@@ -357,7 +357,7 @@ OpenMCProblemBase::externalSolve()
   // Reinitialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
-    if (_ifp_tally_index > -1 || _ifp_tally)
+    if (_ifp_tally)
     {
       openmc::model::tallies.erase(openmc::model::tallies.begin() + _ifp_tally_index);
       _ifp_tally = nullptr;
@@ -771,7 +771,7 @@ OpenMCProblemBase::numCells() const
 const openmc::Tally &
 OpenMCProblemBase::getKineticsParamTally()
 {
-  if (!_calc_kinetics_params || !_ifp_tally)
+  if (!_ifp_tally)
     mooseError("Internal error: kinetics parameters have not been enabled.");
 
   return *_ifp_tally;
