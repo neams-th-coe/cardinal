@@ -79,7 +79,7 @@ OpenMCProblemBase::validParams()
   params.addParam<bool>(
     "calc_kinetics_params",
     false,
-    "Whether or not Cardinal should enable the calculation of kinetics parameters (Alpha effective / beta effective).");
+    "Whether or not Cardinal should enable the calculation of kinetics parameters (Lambda effective / beta effective).");
   params.addParam<unsigned int>(
     "ifp_generations",
     openmc::DEFAULT_IFP_N_GENERATION,

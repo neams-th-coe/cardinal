@@ -20,12 +20,12 @@
 
 #include "KEigenvalue.h"
 
-class AlphaEffective : public KEigenvalue
+class LambdaEffective : public KEigenvalue
 {
 public:
   static InputParameters validParams();
 
-  AlphaEffective(const InputParameters & parameters);
+  LambdaEffective(const InputParameters & parameters);
 
   virtual Real getValue() const override;
 };

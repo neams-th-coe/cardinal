@@ -18,30 +18,30 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "AlphaEffective.h"
+#include "LambdaEffective.h"
 
 #include "OpenMCProblemBase.h"
 
-registerMooseObject("CardinalApp", AlphaEffective);
+registerMooseObject("CardinalApp", LambdaEffective);
 
 InputParameters
-AlphaEffective::validParams()
+LambdaEffective::validParams()
 {
   auto params = KEigenvalue::validParams();
-  params.addClassDescription("A post-processor which computes and returns the kinetics parameter $\\Alpha_{eff}$.");
+  params.addClassDescription("A post-processor which computes and returns the kinetics parameter $\\Lambda_{eff}$.");
 
   return params;
 }
 
-AlphaEffective::AlphaEffective(const InputParameters & parameters)
+LambdaEffective::LambdaEffective(const InputParameters & parameters)
   : KEigenvalue(parameters)
 {
   if (!_openmc_problem->computeKineticsParams())
-    mooseError("AlphaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
+    mooseError("LambdaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
 }
 
 Real
-AlphaEffective::getValue() const
+LambdaEffective::getValue() const
 {
   const auto & ifp_tally = _openmc_problem->getKineticsParamTally();
 
