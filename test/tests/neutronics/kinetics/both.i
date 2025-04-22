@@ -58,8 +58,8 @@
 []
 
 [Postprocessors]
-  [alpha]
-    type = AlphaEffective
+  [lambda]
+    type = LambdaEffective
   []
   [beta]
     type = BetaEffective
