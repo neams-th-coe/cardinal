@@ -76,14 +76,14 @@ OpenMCProblemBase::validParams()
       "optimization for scenarios where you may not want the statepoint files anyways");
 
   // Kinetics parameters.
-  params.addParam<bool>(
-    "calc_kinetics_params",
-    false,
-    "Whether or not Cardinal should enable the calculation of kinetics parameters (Lambda effective / beta effective).");
+  params.addParam<bool>("calc_kinetics_params",
+                        false,
+                        "Whether or not Cardinal should enable the calculation of kinetics "
+                        "parameters (Lambda effective / beta effective).");
   params.addParam<unsigned int>(
-    "ifp_generations",
-    openmc::DEFAULT_IFP_N_GENERATION,
-    "The number of generations to use with the method of iterated fission probabilities.");
+      "ifp_generations",
+      openmc::DEFAULT_IFP_N_GENERATION,
+      "The number of generations to use with the method of iterated fission probabilities.");
 
   return params;
 }
@@ -215,14 +215,16 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   if (_calc_kinetics_params)
   {
     if (_run_mode != openmc::RunMode::EIGENVALUE)
-      paramError("calc_kinetics_params", "Kinetic parameters can only be calculated in k-eigenvalue mode!");
+      paramError("calc_kinetics_params",
+                 "Kinetic parameters can only be calculated in k-eigenvalue mode!");
 
     openmc::settings::ifp_on = true;
     openmc::settings::ifp_parameter = openmc::IFPParameter::Both;
 
     openmc::settings::ifp_n_generation = getParam<unsigned int>("ifp_generations");
     if (openmc::settings::ifp_n_generation > openmc::settings::n_inactive)
-      paramError("ifp_generations", "'ifp_generations' must be less than or equal to the number of inactive batches!");
+      paramError("ifp_generations",
+                 "'ifp_generations' must be less than or equal to the number of inactive batches!");
   }
 }
 

@@ -28,16 +28,17 @@ InputParameters
 LambdaEffective::validParams()
 {
   auto params = KEigenvalue::validParams();
-  params.addClassDescription("A post-processor which computes and returns the kinetics parameter $\\Lambda_{eff}$.");
+  params.addClassDescription(
+      "A post-processor which computes and returns the kinetics parameter $\\Lambda_{eff}$.");
 
   return params;
 }
 
-LambdaEffective::LambdaEffective(const InputParameters & parameters)
-  : KEigenvalue(parameters)
+LambdaEffective::LambdaEffective(const InputParameters & parameters) : KEigenvalue(parameters)
 {
   if (!_openmc_problem->computeKineticsParams())
-    mooseError("LambdaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
+    mooseError(
+        "LambdaEffective can only be used if the OpenMC problem is computing kinetics parameters!");
 }
 
 Real
@@ -45,8 +46,12 @@ LambdaEffective::getValue() const
 {
   const auto & ifp_tally = _openmc_problem->getKineticsParamTally();
 
-  const Real num = xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[0] / ifp_tally.n_realizations_;
-  const Real den = xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0] / ifp_tally.n_realizations_;
+  const Real num =
+      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[0] /
+      ifp_tally.n_realizations_;
+  const Real den =
+      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0] /
+      ifp_tally.n_realizations_;
 
   return num / den / KEigenvalue::getValue();
 }

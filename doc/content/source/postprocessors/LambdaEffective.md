@@ -2,7 +2,8 @@
 
 ## Description
 
-`LambdaEffective` computes $\Lambda{eff}$ given that the [OpenMC problem](OpenMCCellAverageProblem.md) is set up to compute kinetics parameters with the method of iterative fission probabilities.
+`LambdaEffective` computes $\Lambda_{eff}$ given that the [OpenMC problem](OpenMCCellAverageProblem.md)
+is set up to compute kinetics parameters with the method of iterative fission probabilities.
 
 ## Example Input Syntax
 
