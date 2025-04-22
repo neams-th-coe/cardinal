@@ -404,11 +404,11 @@ can be used to create tallies and/or filters as well. In either case, these
 objects do not interact with tallies and filters used to map data to the mesh
 mirror ([#mapped]).
 
-## Neutron Kinetics
+## Neutron Kinetics Parameters
 
 Cardinal exposes the calculation of neutron kinetics parameters in OpenMC with iterated
 fission probabilities. $\Lambda_{eff}$ and $\beta_{eff}$ can be obtained by first setting
-`calc_kinetics_params = true`. The parameters can then be accessed with a
+`calc_kinetics_params = true`. The parameters can then be accessed with
 [LambdaEffective](LambdaEffective.md) and [BetaEffective](BetaEffective.md) post-processors
 after the OpenMC simulation finishes. An example of this capability can be found below.
 
