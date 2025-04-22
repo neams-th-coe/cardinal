@@ -407,9 +407,9 @@ mirror ([#mapped]).
 ## Neutron Kinetics
 
 Cardinal exposes the calculation of neutron kinetics parameters in OpenMC with iterated
-fission probabilities. $\Lambda_{eff}$ and $\beta_{eff}$ can be obtainedd by first setting
+fission probabilities. $\Lambda_{eff}$ and $\beta_{eff}$ can be obtained by first setting
 `calc_kinetics_params = true`. The parameters can then be accessed with a
-[LambdaEffective](LambdaEffective.md) and [Betaffective](BetaEffective.md) post-processors
+[LambdaEffective](LambdaEffective.md) and [BetaEffective](BetaEffective.md) post-processors
 after the OpenMC simulation finishes. An example of this capability can be found below.
 
 !listing test/tests/neutronics/kinetics/both.i
@@ -425,7 +425,7 @@ of inactive batches.
 !alert note
 The memory cost of a simulation running with iterated fission probabilities scales linearly
 with `ifp_generations` (an extra double and an extra integrer must be tracked per particle
-for each generation). It is recommend that this number be minimized when possible.
+for each generation). It is recommend that the number of IFP generations be minimized when possible.
 
 ## Other Features
 

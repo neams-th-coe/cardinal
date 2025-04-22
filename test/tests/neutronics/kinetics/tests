@@ -1,6 +1,6 @@
 [Tests]
   issues = '#1104'
-  design = 'AlphaEffective.md BetaEffective.md OpenMCCellAverageProblem.md'
+  design = 'LambdaEffective.md BetaEffective.md OpenMCCellAverageProblem.md'
 
   [compute_both]
     type = CSVDiff
@@ -14,7 +14,7 @@
     input = both.i
     cli_args = 'Problem/calc_kinetics_params=false'
     expect_err = "LambdaEffective can only be used if the OpenMC problem is computing kinetics parameters!"
-    requirement = "The system shall error if the problem does not enable IFP calculations and attempts to add an AlphaEffective post processor."
+    requirement = "The system shall error if the problem does not enable IFP calculations and attempts to add an LambdaEffective post processor."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [no_ifp_beta]
