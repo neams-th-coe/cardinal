@@ -46,10 +46,4 @@ OpenMCBase::stdev(const double & mean, const double & sum_sq, unsigned int reali
              : 0.0;
 }
 
-Real
-OpenMCBase::relerr(const double & mean, const double & sum_sq, unsigned int realizations) const
-{
-  return mean > 0.0 ? stdev(mean, sum_sq, realizations) / mean : 0.0;
-}
-
 #endif

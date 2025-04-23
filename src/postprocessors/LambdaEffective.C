@@ -58,24 +58,24 @@ LambdaEffective::getValue() const
   const auto & ifp_tally = _openmc_problem->getKineticsParamTally();
   const auto n = ifp_tally.n_realizations_;
 
-  const Real num_mean =
-      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[0] / n;
-  const Real den_mean =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0] / n;
+  const auto num_sum =
+      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  const auto den_sum =
+      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM));
 
-  const Real num_ss =
-      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
-  const Real den_ss =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
+  const auto num_ss =
+      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+  const auto den_ss =
+      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
   double k_eff[2];
   openmc::openmc_get_keff(k_eff);
   const Real k_rel = k_eff[1] / k_eff[0];
 
-  const Real lambda_eff = num_mean / den_mean / k_eff[0];
+  const Real lambda_eff = (num_sum[0] / n) / (den_sum[0] / n) / k_eff[0];
 
-  const Real num_rel = relerr(num_mean, num_ss, n);
-  const Real den_rel = relerr(den_mean, den_ss, n);
+  const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n)[0];
+  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n)[0];
   const Real lambda_rel = std::sqrt(num_rel * num_rel + den_rel * den_rel + k_rel * k_rel);
 
   switch (_output)
