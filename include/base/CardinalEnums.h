@@ -253,12 +253,12 @@ enum RelaxationEnum
 
 namespace kinetics
 {
-  enum KineticsOutputEnum
-  {
-    Value,
-    StDev,
-    RelError
-  };
+enum KineticsOutputEnum
+{
+  Value,
+  StDev,
+  RelError
+};
 }
 
 enum OpenMCFilterType

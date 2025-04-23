@@ -32,10 +32,10 @@ BetaEffective::validParams()
   params.addClassDescription(
       "A post-processor which computes and returns the kinetics parameter $\\beta_{eff}$.");
   params.addParam<MooseEnum>(
-    "output",
-    getKineticsOutputEnum(),
-    "The value to output. Options are $\\beta_{eff}$ (val), the standard deviation "
-    "of $\\beta_{eff}$ (std_dev), or the relative error of $\\beta_{eff}$ (rel_err).");
+      "output",
+      getKineticsOutputEnum(),
+      "The value to output. Options are $\\beta_{eff}$ (val), the standard deviation "
+      "of $\\beta_{eff}$ (std_dev), or the relative error of $\\beta_{eff}$ (rel_err).");
 
   return params;
 }
