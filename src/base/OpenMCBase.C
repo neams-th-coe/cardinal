@@ -38,4 +38,16 @@ OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters &
                " can only be used with problems of type 'OpenMCCellAverageProblem'!");
 }
 
+Real
+OpenMCBase::stdev(const double & mean, const double & sum_sq, unsigned int realizations) const
+{
+  return realizations > 1 ? std::sqrt(std::max(0.0, (sum_sq / realizations - mean * mean) / (realizations - 1))) : 0.0;
+}
+
+Real
+OpenMCBase::relerr(const double & mean, const double & sum_sq, unsigned int realizations) const
+{
+  return mean > 0.0 ? stdev(mean, sum_sq, realizations) / mean : 0.0;
+}
+
 #endif

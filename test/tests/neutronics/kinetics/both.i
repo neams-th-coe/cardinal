@@ -21,8 +21,24 @@
   [lambda]
     type = LambdaEffective
   []
+  [lambda_rel]
+    type = LambdaEffective
+    output = rel_err
+  []
+  [lambda_std]
+    type = LambdaEffective
+    output = std_dev
+  []
   [beta]
     type = BetaEffective
+  []
+  [beta_rel]
+    type = BetaEffective
+    output = rel_err
+  []
+  [beta_std]
+    type = BetaEffective
+    output = std_dev
   []
 []
 

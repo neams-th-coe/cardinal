@@ -40,14 +40,6 @@ public:
 
 protected:
   /**
-   * Compute standard deviation
-   * @param[in] mean mean
-   * @param[in] sum_sq sum squared
-   * @return standard deviation given N OpenMC realizations
-   */
-  Real stdev(const double & mean, const double & sum_sq) const;
-
-  /**
    * Type of k-effective standard deviation value to report. Options:
    * collision, absorption, tracklength, and combined (default).
    *

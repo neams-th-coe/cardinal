@@ -31,4 +31,8 @@ public:
   virtual void execute() override {}
 
   virtual Real getValue() const override;
+
+protected:
+  /// The value of the kinetics parameter to output.
+  const kinetics::KineticsOutputEnum _output;
 };
