@@ -23,7 +23,8 @@
 #include "openmc/math_functions.h"
 #include "openmc/constants.h"
 
-registerMooseObject("CardinalApp", KStandardDeviation);
+//registerMooseObject("CardinalApp", KStandardDeviation);
+registerMooseObjectDeprecated("CardinalApp", KStandardDeviation, "05/31/2025 24:00");
 
 InputParameters
 KStandardDeviation::validParams()

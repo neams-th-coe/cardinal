@@ -130,7 +130,7 @@ getFilterTypeEnum()
 }
 
 MooseEnum
-getKineticsOutputEnum()
+getEigenKineticsOutputEnum()
 {
   return MooseEnum("val std_dev rel_err", "val");
 }
