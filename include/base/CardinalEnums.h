@@ -38,6 +38,7 @@ MooseEnum getSingleTallyScoreEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
+MooseEnum getKineticsOutputEnum();
 
 namespace nek_mesh
 {
@@ -249,6 +250,16 @@ enum RelaxationEnum
   none
 };
 } // namespace relaxation
+
+namespace kinetics
+{
+enum KineticsOutputEnum
+{
+  Value,
+  StDev,
+  RelError
+};
+}
 
 enum OpenMCFilterType
 {

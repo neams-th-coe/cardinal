@@ -74,6 +74,17 @@ OpenMCProblemBase::validParams()
       false,
       "Whether to skip writing any statepoint files from OpenMC; this is a performance "
       "optimization for scenarios where you may not want the statepoint files anyways");
+
+  // Kinetics parameters.
+  params.addParam<bool>("calc_kinetics_params",
+                        false,
+                        "Whether or not Cardinal should enable the calculation of kinetics "
+                        "parameters (Lambda effective and beta effective).");
+  params.addParam<unsigned int>(
+      "ifp_generations",
+      openmc::DEFAULT_IFP_N_GENERATION,
+      "The number of generations to use with the method of iterated fission probabilities.");
+
   return params;
 }
 
@@ -88,7 +99,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _fixed_point_iteration(-1),
     _total_n_particles(0),
     _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
-    _run_on_adaptivity_cycle(true)
+    _run_on_adaptivity_cycle(true),
+    _calc_kinetics_params(getParam<bool>("calc_kinetics_params"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
@@ -198,6 +210,22 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // The OpenMC wrapping doesn't require material properties itself, but we might
   // define them on some blocks of the domain for other auxiliary kernel purposes
   setMaterialCoverageCheck(false);
+
+  // If the user requests kinetics parameters, make sure it's enabled in OpenMC.
+  if (_calc_kinetics_params)
+  {
+    if (_run_mode != openmc::RunMode::EIGENVALUE)
+      paramError("calc_kinetics_params",
+                 "Kinetic parameters can only be calculated in k-eigenvalue mode!");
+
+    openmc::settings::ifp_on = true;
+    openmc::settings::ifp_parameter = openmc::IFPParameter::Both;
+
+    openmc::settings::ifp_n_generation = getParam<unsigned int>("ifp_generations");
+    if (openmc::settings::ifp_n_generation > openmc::settings::n_inactive)
+      paramError("ifp_generations",
+                 "'ifp_generations' must be less than or equal to the number of inactive batches!");
+  }
 }
 
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
@@ -324,6 +352,21 @@ OpenMCProblemBase::externalSolve()
     openmc::free_memory_source();
     openmc::model::external_sources.push_back(
         std::make_unique<openmc::FileSource>(sourceBankFileName()));
+  }
+
+  // Reinitialize the IFP parameters tally.
+  if (_calc_kinetics_params)
+  {
+    if (_ifp_tally)
+    {
+      openmc::model::tallies.erase(openmc::model::tallies.begin() + _ifp_tally_index);
+      _ifp_tally = nullptr;
+    }
+
+    _ifp_tally_index = openmc::model::tallies.size();
+    _ifp_tally = openmc::Tally::create();
+    _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
+    _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
   }
 
   // update tallies as needed before starting the OpenMC run
@@ -723,6 +766,15 @@ OpenMCProblemBase::numCells() const
     n_openmc_cells += c->n_instances_;
 
   return n_openmc_cells;
+}
+
+const openmc::Tally &
+OpenMCProblemBase::getKineticsParamTally()
+{
+  if (!_ifp_tally)
+    mooseError("Internal error: kinetics parameters have not been enabled.");
+
+  return *_ifp_tally;
 }
 
 bool

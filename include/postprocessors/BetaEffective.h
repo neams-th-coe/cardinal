@@ -16,34 +16,23 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
+#include "GeneralPostprocessor.h"
 
 #include "OpenMCBase.h"
 
-#include "libmesh/elem.h"
-
-InputParameters
-OpenMCBase::validParams()
+class BetaEffective : public GeneralPostprocessor, public OpenMCBase
 {
-  InputParameters params = emptyInputParameters();
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters)
-  : _openmc_problem(
-        dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
-{
-  if (!_openmc_problem)
-    mooseError(moose_object->type() +
-               " can only be used with problems of type 'OpenMCCellAverageProblem'!");
-}
+  BetaEffective(const InputParameters & parameters);
 
-Real
-OpenMCBase::stdev(const double & mean, const double & sum_sq, unsigned int realizations) const
-{
-  return realizations > 1
-             ? std::sqrt(std::max(0.0, (sum_sq / realizations - mean * mean) / (realizations - 1)))
-             : 0.0;
-}
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
-#endif
+  virtual Real getValue() const override;
+
+protected:
+  /// The value of the kinetics parameter to output.
+  const kinetics::KineticsOutputEnum _output;
+};

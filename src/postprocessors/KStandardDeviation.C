@@ -47,13 +47,6 @@ KStandardDeviation::KStandardDeviation(const InputParameters & parameters)
 }
 
 Real
-KStandardDeviation::stdev(const double & mean, const double & sum_sq) const
-{
-  int n = openmc::simulation::n_realizations;
-  return n > 1 ? std::sqrt(std::max(0.0, (sum_sq / n - mean * mean) / (n - 1))) : 0.0;
-}
-
-Real
 KStandardDeviation::getValue() const
 {
   const auto & gt = openmc::simulation::global_tallies;
@@ -72,19 +65,19 @@ KStandardDeviation::getValue() const
     {
       double mean = gt(openmc::GlobalTally::K_COLLISION, openmc::TallyResult::SUM) / n;
       double sum_sq = gt(openmc::GlobalTally::K_COLLISION, openmc::TallyResult::SUM_SQ);
-      return t_n1 * stdev(mean, sum_sq);
+      return t_n1 * stdev(mean, sum_sq, openmc::simulation::n_realizations);
     }
     case eigenvalue::absorption:
     {
       double mean = gt(openmc::GlobalTally::K_ABSORPTION, openmc::TallyResult::SUM) / n;
       double sum_sq = gt(openmc::GlobalTally::K_ABSORPTION, openmc::TallyResult::SUM_SQ);
-      return t_n1 * stdev(mean, sum_sq);
+      return t_n1 * stdev(mean, sum_sq, openmc::simulation::n_realizations);
     }
     case eigenvalue::tracklength:
     {
       double mean = gt(openmc::GlobalTally::K_TRACKLENGTH, openmc::TallyResult::SUM) / n;
       double sum_sq = gt(openmc::GlobalTally::K_TRACKLENGTH, openmc::TallyResult::SUM_SQ);
-      return t_n1 * stdev(mean, sum_sq);
+      return t_n1 * stdev(mean, sum_sq, openmc::simulation::n_realizations);
     }
     case eigenvalue::combined:
     {
