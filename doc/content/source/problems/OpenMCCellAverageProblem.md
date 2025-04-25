@@ -404,6 +404,29 @@ can be used to create tallies and/or filters as well. In either case, these
 objects do not interact with tallies and filters used to map data to the mesh
 mirror ([#mapped]).
 
+## Neutron Kinetics Parameters
+
+Cardinal exposes the calculation of neutron kinetics parameters in OpenMC with iterated
+fission probabilities. $\Lambda_{eff}$ and $\beta_{eff}$ can be obtained by first setting
+`calc_kinetics_params = true`. The parameters can then be accessed with
+[LambdaEffective](LambdaEffective.md) and [BetaEffective](BetaEffective.md) post-processors
+after the OpenMC simulation finishes. An example of this capability can be found below.
+
+!listing test/tests/neutronics/kinetics/both.i
+  block=Problem
+
+!listing test/tests/neutronics/kinetics/both.i
+  block=Postprocessors
+
+The number of generations tracked to compute these kinetic parameters can be specified by
+setting `ifp_generations`. Note that `ifp_generations` must be less than or equal to the number
+of inactive batches.
+
+!alert note
+The memory cost of a simulation running with iterated fission probabilities scales linearly
+with `ifp_generations` (an extra double and an extra integrer must be tracked per particle
+for each generation). It is recommend that the number of IFP generations be minimized when possible.
+
 ## Other Features
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of

@@ -355,6 +355,18 @@ public:
    */
   virtual std::vector<int32_t> getMappedTallyIDs() const = 0;
 
+  /**
+   * Whether or not the problem is tallying kinetics parameters.
+   * @return if the problem is tallying kinetics parameters
+   */
+  bool computeKineticsParams() const { return _calc_kinetics_params; }
+
+  /**
+   * Get the tally responsible for accumulating the scores for \Lambda_{eff} and \beta_{eff}.
+   * @return the global IFP tally
+   */
+  const openmc::Tally & getKineticsParamTally();
+
 protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
@@ -491,6 +503,15 @@ protected:
    * didn't refine/coarsen the mesh on the last cycle.
    */
   bool _run_on_adaptivity_cycle;
+
+  /// A flag to indicate if OpenMC is calculating kinetics parameters.
+  const bool _calc_kinetics_params;
+
+  /// The index of a global tally to accumulate the scores required for kinetics parameters.
+  int _ifp_tally_index = -1;
+
+  /// The global tally used to accumulate the scores required for kinetics parameters.
+  openmc::Tally * _ifp_tally = nullptr;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};

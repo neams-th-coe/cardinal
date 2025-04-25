@@ -128,3 +128,9 @@ getFilterTypeEnum()
 {
   return MooseEnum("cell material universe mesh none", "none");
 }
+
+MooseEnum
+getKineticsOutputEnum()
+{
+  return MooseEnum("val std_dev rel_err", "val");
+}
