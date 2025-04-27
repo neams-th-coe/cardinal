@@ -41,8 +41,7 @@ LambdaEffective::validParams()
   return params;
 }
 
-LambdaEffective::LambdaEffective(const InputParameters & parameters)
-  : KEigenvalue(parameters)
+LambdaEffective::LambdaEffective(const InputParameters & parameters) : KEigenvalue(parameters)
 {
   if (!_openmc_problem->computeKineticsParams())
     mooseError(
@@ -86,7 +85,8 @@ LambdaEffective::getValue() const
       return lambda_rel;
 
     default:
-      mooseError("Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in LambdaEffective.");
+      mooseError(
+          "Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in LambdaEffective.");
       break;
   }
 

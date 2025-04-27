@@ -84,7 +84,8 @@ BetaEffective::getValue() const
       return beta_eff_rel;
 
     default:
-      mooseError("Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in BetaEffective.");
+      mooseError(
+          "Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in BetaEffective.");
       break;
   }
 
