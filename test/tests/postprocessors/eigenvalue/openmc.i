@@ -76,6 +76,26 @@
     output = 'std_dev'
     value_type = 'combined'
   []
+  [k_collision_rel]
+    type = KEigenvalue
+    output = 'rel_err'
+    value_type = 'collision'
+  []
+  [k_absorption_rel]
+    type = KEigenvalue
+    output = 'rel_err'
+    value_type = 'absorption'
+  []
+  [k_tracklength_rel]
+    type = KEigenvalue
+    output = 'rel_err'
+    value_type = 'tracklength'
+  []
+  [k_combined_rel]
+    type = KEigenvalue
+    output = 'rel_err'
+    value_type = 'combined'
+  []
 []
 
 [Outputs]
