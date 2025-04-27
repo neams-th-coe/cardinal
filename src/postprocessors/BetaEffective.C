@@ -84,8 +84,7 @@ BetaEffective::getValue() const
       return beta_eff_rel;
 
     default:
-      mooseError(
-          "Internal error: Unhandled statistics::OutputEnum enum in BetaEffective.");
+      mooseError("Internal error: Unhandled statistics::OutputEnum enum in BetaEffective.");
       break;
   }
 

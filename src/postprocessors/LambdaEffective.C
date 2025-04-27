@@ -85,8 +85,7 @@ LambdaEffective::getValue() const
       return lambda_rel;
 
     default:
-      mooseError(
-          "Internal error: Unhandled statistics::OutputEnum enum in LambdaEffective.");
+      mooseError("Internal error: Unhandled statistics::OutputEnum enum in LambdaEffective.");
       break;
   }
 
