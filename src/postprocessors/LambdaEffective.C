@@ -34,8 +34,8 @@ LambdaEffective::validParams()
       "A post-processor which computes and returns the kinetics parameter $\\Lambda_{eff}$.");
   params.addParam<MooseEnum>(
       "output",
-      getEigenKineticsOutputEnum(),
-      "The value to output. Options are $\\Lambda_{eff}$ (val), the standard deviation "
+      getStatsOutputEnum(),
+      "The value to output. Options are $\\Lambda_{eff}$ (mean), the standard deviation "
       "of $\\Lambda_{eff}$ (std_dev), or the relative error of $\\Lambda_{eff}$ (rel_err).");
 
   return params;
@@ -75,18 +75,18 @@ LambdaEffective::getValue() const
 
   switch (_output)
   {
-    case eigenvalue::EigenKineticsOutputEnum::Value:
+    case statistics::OutputEnum::Mean:
       return lambda_eff;
 
-    case eigenvalue::EigenKineticsOutputEnum::StDev:
+    case statistics::OutputEnum::StDev:
       return lambda_eff * lambda_rel;
 
-    case eigenvalue::EigenKineticsOutputEnum::RelError:
+    case statistics::OutputEnum::RelError:
       return lambda_rel;
 
     default:
       mooseError(
-          "Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in LambdaEffective.");
+          "Internal error: Unhandled statistics::OutputEnum enum in LambdaEffective.");
       break;
   }
 

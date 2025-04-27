@@ -36,8 +36,8 @@ KEigenvalue::validParams()
                              "Type of eigenvalue global tally to report");
   params.addParam<MooseEnum>(
       "output",
-      getEigenKineticsOutputEnum(),
-      "The value to output. Options are $k_{eff}$ (val), the standard deviation "
+      getStatsOutputEnum(),
+      "The value to output. Options are $k_{eff}$ (mean), the standard deviation "
       "of $k_{eff}$ (std_dev), or the relative error of $k_{eff}$ (rel_err).");
   return params;
 }
@@ -46,7 +46,7 @@ KEigenvalue::KEigenvalue(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>()),
-    _output(getParam<MooseEnum>("output").getEnum<eigenvalue::EigenKineticsOutputEnum>())
+    _output(getParam<MooseEnum>("output").getEnum<statistics::OutputEnum>())
 {
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
     mooseError("Eigenvalues are only computed when running OpenMC in eigenvalue mode!");
@@ -57,17 +57,17 @@ KEigenvalue::getValue() const
 {
   switch (_output)
   {
-    case eigenvalue::EigenKineticsOutputEnum::Value:
+    case statistics::OutputEnum::Mean:
       return kMean();
 
-    case eigenvalue::EigenKineticsOutputEnum::StDev:
+    case statistics::OutputEnum::StDev:
       return KStandardDeviation();
 
-    case eigenvalue::EigenKineticsOutputEnum::RelError:
+    case statistics::OutputEnum::RelError:
       return kRelativeError();
 
     default:
-      mooseError("Internal error: Unhandled kinetics::KineticsOutputEnum.");
+      mooseError("Internal error: Unhandled statistics::OutputEnum enum in KEigenvalue.");
       break;
   }
 }

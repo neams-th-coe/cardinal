@@ -38,7 +38,7 @@ MooseEnum getSingleTallyScoreEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
-MooseEnum getEigenKineticsOutputEnum();
+MooseEnum getStatsOutputEnum();
 
 namespace nek_mesh
 {
@@ -237,15 +237,18 @@ enum EigenvalueEnum
   tracklength,
   combined
 };
+} // namespace eigenvalue
 
-/// The type of output for both the k-eigenvalue and kinetics parameters.
-enum EigenKineticsOutputEnum
+namespace statistics
 {
-  Value,
+/// The type of output for both the k-eigenvalue and kinetics parameters.
+enum OutputEnum
+{
+  Mean,
   StDev,
   RelError
 };
-} // namespace eigenvalue
+} // namespace statistics
 
 namespace relaxation
 {

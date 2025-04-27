@@ -34,5 +34,5 @@ public:
 
 protected:
   /// The value of the kinetics parameter to output.
-  const eigenvalue::EigenKineticsOutputEnum _output;
+  const statistics::OutputEnum _output;
 };

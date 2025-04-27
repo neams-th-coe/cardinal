@@ -33,8 +33,8 @@ BetaEffective::validParams()
       "A post-processor which computes and returns the kinetics parameter $\\beta_{eff}$.");
   params.addParam<MooseEnum>(
       "output",
-      getEigenKineticsOutputEnum(),
-      "The value to output. Options are $\\beta_{eff}$ (val), the standard deviation "
+      getStatsOutputEnum(),
+      "The value to output. Options are $\\beta_{eff}$ (mean), the standard deviation "
       "of $\\beta_{eff}$ (std_dev), or the relative error of $\\beta_{eff}$ (rel_err).");
 
   return params;
@@ -43,7 +43,7 @@ BetaEffective::validParams()
 BetaEffective::BetaEffective(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     OpenMCBase(this, parameters),
-    _output(getParam<MooseEnum>("output").getEnum<eigenvalue::EigenKineticsOutputEnum>())
+    _output(getParam<MooseEnum>("output").getEnum<statistics::OutputEnum>())
 {
   if (!_openmc_problem->computeKineticsParams())
     mooseError(
@@ -74,18 +74,18 @@ BetaEffective::getValue() const
 
   switch (_output)
   {
-    case eigenvalue::EigenKineticsOutputEnum::Value:
+    case statistics::OutputEnum::Mean:
       return beta_eff;
 
-    case eigenvalue::EigenKineticsOutputEnum::StDev:
+    case statistics::OutputEnum::StDev:
       return beta_eff * beta_eff_rel;
 
-    case eigenvalue::EigenKineticsOutputEnum::RelError:
+    case statistics::OutputEnum::RelError:
       return beta_eff_rel;
 
     default:
       mooseError(
-          "Internal error: Unhandled eigenvalue::EigenKineticsOutputEnum enum in BetaEffective.");
+          "Internal error: Unhandled statistics::OutputEnum enum in BetaEffective.");
       break;
   }
 
