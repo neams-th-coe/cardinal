@@ -88,7 +88,7 @@ it is possible for a metric to succeed when more batches or more particles per
 batch are truly needed. These metrics should be considered along side inspection
 of the plots of the Shannon Entropy, which typically takes longer than the
 eigenvalue to converge. Having a converged fission source is important so that
-when the active batches begin tallying, there is no contamination from the 
+when the active batches begin tallying, there is no contamination from the
 source's initial guess impacting the tallies.
 
 !media example_entropy_plots.png
@@ -128,7 +128,8 @@ You will also need to copy and paste the following into your input file:
     type = KEigenvalue
   []
   [k_std_dev]
-    type = KStandardDeviation
+    type = KEigenvalue
+    output = 'std_dev'
   []
   [max_power]
     type = ElementExtremeValue
