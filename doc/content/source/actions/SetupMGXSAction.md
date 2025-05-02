@@ -36,7 +36,7 @@ where
 
 \begin{equation}
 \label{eq:mg_Tot_rxn_rate}
-\langle\sigma_{t}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\Sigma_{t}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
+\langle\Sigma_{t}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\Sigma_{t}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
 \end{equation}
 
 and
@@ -61,7 +61,7 @@ where
 
 \begin{equation}
 \label{eq:mg_abs_rxn_rate}
-\langle\sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\Sigma_{a}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
+\langle\Sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\Sigma_{a}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
 \end{equation}
 
 $\Sigma_{a,i,g}$ is the homogenized absorption [!ac](MGXS) and $\Sigma_{a}(\vec{r}, E)$ is the equivalent continuous-energy macroscopic cross section.
@@ -77,14 +77,14 @@ are computed with `analog` estimators:
 
 \begin{equation}
 \label{eq:mg_scatter_xs}
-\Sigma_{s,i,\ell,g'\rightarrow g} = \frac{\langle\sigma_{s}\psi\rangle_{i,\ell,g\rightarrow g'}}{\langle\psi\rangle_{i,g}}
+\Sigma_{s,i,\ell,g'\rightarrow g} = \frac{\langle\Sigma_{s}\psi\rangle_{i,\ell,g\rightarrow g'}}{\langle\psi\rangle_{i,g}}
 \end{equation}
 
 where
 
 \begin{equation}
 \label{eq:mg_scatter_rxn_rate}
-\langle\nu\sigma_{s}\psi\rangle_{i,\ell,g'\rightarrow g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{E'_{g}}^{E'_{g-1}}\,dE'\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{s}(\vec{r}, \mu, E'\rightarrow E)P_{\ell}(\mu)\psi(\vec{r}, E, \hat{\Omega}')
+\langle\nu\Sigma_{s}\psi\rangle_{i,\ell,g'\rightarrow g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{E'_{g}}^{E'_{g-1}}\,dE'\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{s}(\vec{r}, \mu, E'\rightarrow E)P_{\ell}(\mu)\psi(\vec{r}, E, \hat{\Omega}')
 \end{equation}
 
 $\nu\Sigma_{s,i,\ell,g'\rightarrow g}$ is the homogenized nu-scatter [!ac](MGXS), $\nu\Sigma_{s}(\vec{r}, \mu, E'\rightarrow E)$ is the equivalent continuous-energy macroscopic cross section, $P_{\ell}(\mu)$ are the Legendre polynomials, and $E'$ indicates the energy entering a scattering reaction.
@@ -92,7 +92,7 @@ $\nu\Sigma_{s,i,\ell,g'\rightarrow g}$ is the homogenized nu-scatter [!ac](MGXS)
 
 \begin{equation}
 \label{eq:mg_scatter_tc_xs}
-\Sigma_{s,i,0,g'\rightarrow g} = \frac{\langle\sigma_{s}\psi\rangle_{i,0,g\rightarrow g'} - \delta_{gg'}\sum_{g''}\langle\sigma_{s}\psi\rangle_{i,1,g''\rightarrow g}}{\langle\psi\rangle_{i,g}}
+\Sigma_{s,i,0,g'\rightarrow g} = \frac{\langle\Sigma_{s}\psi\rangle_{i,0,g\rightarrow g'} - \delta_{gg'}\sum_{g''}\langle\Sigma_{s}\psi\rangle_{i,1,g''\rightarrow g}}{\langle\psi\rangle_{i,g}}
 \end{equation}
 
 where $\delta_{gg'}$ is the Khronecker delta function. The transport correction can be applied by setting `transport_correction = true`.
@@ -110,7 +110,7 @@ where
 
 \begin{equation}
 \label{eq:mg_prod_rxn_rate}
-\langle\sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{f}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
+\langle\Sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{f}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
 \end{equation}
 
 $\nu\Sigma_{f,i,g}$ is the homogenized neutron production [!ac](MGXS) and $\nu\Sigma_{f}(\vec{r}, E)$ is the equivalent continuous-energy macroscopic cross section. The tallies used to compute $\nu\Sigma_{f,i,g}$ are also used to compute $\chi_{i,g}$, necessitating the use of an `analog` estimator for $\nu\Sigma_{f,i,g}$. This
@@ -189,7 +189,7 @@ D_{i,g} = \frac{1}{3\Sigma_{tr,i,g}}
 
 \begin{equation}
 \label{eq:mg_tr}
-\Sigma_{tr,i,g} = \frac{\langle\sigma_{t}\psi\rangle_{i,g} - \sum_{g'}\langle\nu\sigma_{s}\psi\rangle_{i,1,g'\rightarrow g}}{\langle\psi\rangle_{i,g}}
+\Sigma_{tr,i,g} = \frac{\langle\Sigma_{t}\psi\rangle_{i,g} - \sum_{g'}\langle\nu\Sigma_{s}\psi\rangle_{i,1,g'\rightarrow g}}{\langle\psi\rangle_{i,g}}
 \end{equation}
 
 $D_{i,g}$ is the homogenized MG diffusion coefficient and $\Sigma_{tr,i,g}$ is the homogenized transport [!ac](MGXS).
