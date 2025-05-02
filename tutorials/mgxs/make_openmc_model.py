@@ -31,11 +31,10 @@
 
 import openmc
 import numpy as np
-import openmc.universe
 from argparse import ArgumentParser
 
 ap = ArgumentParser()
-ap.add_argument('-n', dest='n_axial', type=int, default=5,
+ap.add_argument('-n', dest='n_axial', type=int, default=10,
                 help='Number of axial core divisions')
 args = ap.parse_args()
 
@@ -226,7 +225,7 @@ ref_assembly_cells = [
   [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 6
   [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 7
   [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 8
-  [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 9
+  [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, fis_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 9
   [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 10
   [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 11
   [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 12

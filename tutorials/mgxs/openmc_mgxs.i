@@ -32,7 +32,7 @@
     particle = neutron
     group_structure = CASMO_2
     estimator = 'analog'
-    hide_tally_vars = true
+    block = '0 1 3 4 5 6 7 8 9 10'
 
     add_scattering = true
     legendre_order = 0

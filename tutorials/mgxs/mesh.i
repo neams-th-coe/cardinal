@@ -3,6 +3,7 @@
 #----------------------------------------------------------------------------------------
 pitch        = 1.26
 fuel_height  = 192.78
+refl_height  = 21.42
 r_fuel       = 0.4095
 r_fuel_gap   = 0.4180
 r_fuel_clad  = 0.4750
@@ -16,7 +17,7 @@ r_guide_clad = 0.5400
 NUM_SECTORS              = 2
 FUEL_RADIAL_DIVISIONS    = 2
 BACKGROUND_DIVISIONS     = 1
-AXIAL_DIVISIONS          = 5
+AXIAL_DIVISIONS          = 10
 #----------------------------------------------------------------------------------------
 
 [Mesh]
@@ -29,8 +30,8 @@ AXIAL_DIVISIONS          = 5
     polygon_size = ${fparse pitch / 2.0}
 
     ring_block_ids = '0 1 2 3'
-    ring_block_names = 'uo2_center uo2 fuel_gap zr_clad'
-    background_block_ids = '17'
+    ring_block_names = 'uo2_tri uo2 fuel_gap zr_clad'
+    background_block_ids = '9'
     background_block_names = 'water'
     background_intervals = ${BACKGROUND_DIVISIONS}
 
@@ -48,9 +49,9 @@ AXIAL_DIVISIONS          = 5
     ring_intervals = '${FUEL_RADIAL_DIVISIONS} 1'
     polygon_size = ${fparse pitch / 2.0}
 
-    ring_block_ids = '10 11 12'
-    ring_block_names = 'guide_center guide al_clad'
-    background_block_ids = '17'
+    ring_block_ids = '4 5 6'
+    ring_block_names = 'guide_tri guide al_clad'
+    background_block_ids = '9'
     background_block_names = 'water'
     background_intervals = ${BACKGROUND_DIVISIONS}
 
@@ -68,9 +69,9 @@ AXIAL_DIVISIONS          = 5
     ring_intervals = '${FUEL_RADIAL_DIVISIONS} 1'
     polygon_size = ${fparse pitch / 2.0}
 
-    ring_block_ids = '15 16 12'
-    ring_block_names = 'fission_center fission al_clad'
-    background_block_ids = '17'
+    ring_block_ids = '7 8 6'
+    ring_block_names = 'fission_tri fission al_clad'
+    background_block_ids = '9'
     background_block_names = 'water'
     background_intervals = ${BACKGROUND_DIVISIONS}
 
@@ -107,22 +108,24 @@ AXIAL_DIVISIONS          = 5
     id_name = 'pin_id'
     generate_core_metadata = false
   []
-  [Delete_Blocks]
-    type = BlockDeletionGenerator
-    input = UO2_Assembly
-    # Deleting the gap blocks to avoid erroneous mesh refinement.
-    block = '2'
-  []
   [To_Origin]
     type = TransformGenerator
-    input = 'Delete_Blocks'
+    input = 'UO2_Assembly'
     transform = TRANSLATE_CENTER_ORIGIN
   []
   [3D_Core]
     type = AdvancedExtruderGenerator
     input = 'To_Origin'
-    heights = '${fparse fuel_height}'
-    num_layers = '${AXIAL_DIVISIONS}'
+    heights = '${fparse fuel_height} ${fparse refl_height}'
+    num_layers = '${AXIAL_DIVISIONS} 1'
+    subdomain_swaps = ';
+                       0 10 1 9 2 9 3 9'
     direction = '0.0 0.0 1.0'
+  []
+  [Rename]
+    type = RenameBlockGenerator
+    input = '3D_Core'
+    old_block = '10'
+    new_block = 'water_tri'
   []
 []
