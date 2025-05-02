@@ -15,7 +15,7 @@ specified in `energy_boundaries`, or a common group structure can be selected by
 particle to filter for can be selected in `particle` - at present valid options include `neutron` and `photon` cross
 sections. The tally estimator used to generate the [!ac](MGXS) can be selected by setting
 `estimator`. Please note that if you request the generation of [!ac](MGXS) derived from `nu-scatter` / `nu-fission` scores the
-value of estimator will be overriden to `analog` (a limitation of the current implementation), and setting `tally_type = mesh` requires a
+choice of estimator will be overriden to `analog` (a limitation of the current implementation), and setting `tally_type = mesh` requires a
 non-tracklength estimator. A description of the group properties available through this action can be found below.
 
 ## Supported Group Properties
@@ -25,8 +25,7 @@ of this approach below; for additional details we refer users to [OpenMC's MGXS 
 
 ### Total Cross Sections
 
-At a minimum, this action always computes total [!ac](MGXS), which is computed with the following formula (implemented with
-Cardinal's mapped tallies and filters):
+At a minimum, this action always computes total [!ac](MGXS), which is computed with the following formula:
 
 \begin{equation}
 \label{eq:mg_total_xs}
@@ -55,7 +54,7 @@ Absorption cross sections can be added by setting `add_absorption = true`, and a
 
 \begin{equation}
 \label{eq:mg_abs_xs}
-\Sigma_{t,i,g} = \frac{\langle\Sigma_{a}\psi\rangle_{i,g}}{\langle\psi\rangle_{i,g}}
+\Sigma_{a,i,g} = \frac{\langle\Sigma_{a}\psi\rangle_{i,g}}{\langle\psi\rangle_{i,g}}
 \end{equation}
 
 where
