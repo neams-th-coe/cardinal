@@ -143,7 +143,8 @@ tmax = 1150.0
     type = KEigenvalue
   []
   [k_std_dev]
-    type = KStandardDeviation
+    type = KEigenvalue
+    output = 'std_dev'
   []
   [max_tally_err]
     type = TallyRelativeError

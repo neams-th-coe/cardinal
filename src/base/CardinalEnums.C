@@ -130,7 +130,7 @@ getFilterTypeEnum()
 }
 
 MooseEnum
-getKineticsOutputEnum()
+getStatsOutputEnum()
 {
-  return MooseEnum("val std_dev rel_err", "val");
+  return MooseEnum("mean std_dev rel_err", "mean");
 }
