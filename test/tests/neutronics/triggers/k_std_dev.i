@@ -32,7 +32,8 @@
 
 [Postprocessors]
   [k_std_dev]
-    type = KStandardDeviation
+    type = KEigenvalue
+    output = 'std_dev'
   []
 []
 

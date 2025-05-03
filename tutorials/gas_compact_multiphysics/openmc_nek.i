@@ -1,4 +1,4 @@
-!include common_input.i 
+!include common_input.i
 
 # This input file runs coupled OpenMC Monte Carlo transport, MOOSE heat
 # conduction, and NekRS fluid flow and heat transfer.
@@ -177,7 +177,8 @@ N = 1000
     type = KEigenvalue
   []
   [k_std_dev]
-    type = KStandardDeviation
+    type = KEigenvalue
+    output = 'std_dev'
   []
   [min_power]
     type = ElementExtremeValue

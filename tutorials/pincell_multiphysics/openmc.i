@@ -191,6 +191,7 @@ dT = ${fparse power / mdot / Cp}
     type = KEigenvalue
   []
   [k_std_dev]
-    type = KStandardDeviation
+    type = KEigenvalue
+    output = 'std_dev'
   []
 []

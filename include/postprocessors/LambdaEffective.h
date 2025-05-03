@@ -18,23 +18,14 @@
 
 #pragma once
 
-#include "GeneralPostprocessor.h"
+#include "KEigenvalue.h"
 
-#include "OpenMCBase.h"
-
-class LambdaEffective : public GeneralPostprocessor, public OpenMCBase
+class LambdaEffective : public KEigenvalue
 {
 public:
   static InputParameters validParams();
 
   LambdaEffective(const InputParameters & parameters);
 
-  virtual void initialize() override {}
-  virtual void execute() override {}
-
   virtual Real getValue() const override;
-
-protected:
-  /// The value of the kinetics parameter to output.
-  const kinetics::KineticsOutputEnum _output;
 };

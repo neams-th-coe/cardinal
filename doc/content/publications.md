@@ -189,6 +189,12 @@ A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Broo
 ["A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"](https://ui.adsabs.harvard.edu/abs/2023arXiv230811777C/abstract)
 *Proceedings of M&C* (2023)
 
+# Adaptive Mesh Refinement
+
+K. C. Sawatzky, E. W. Ahammed, P. P.H. Wilson, P. C. Shriwise, P. K. Romano, A. J. Novak,
+["Adaptive Mesh Refinement Applied to Unstructured Mesh Tallies in Cardinal-OpenMC"](https://www.ans.org/meetings/ac2025/sessions/attachment/paper-12816/)
+*Proceedings of the ANS Annual Meeting* (2025)
+
 # AI/ML
 
 V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,

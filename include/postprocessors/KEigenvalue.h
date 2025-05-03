@@ -40,6 +40,24 @@ public:
 
 protected:
   /**
+   * A function which computes the mean value of k_{eff}.
+   * @return the mean value of the k-eigenvalue
+   */
+  Real kMean() const;
+
+  /**
+   * A function which computes the standard deviation of k_{eff}.
+   * @return the standard deviation of the k-eigenvalue
+   */
+  Real KStandardDeviation() const;
+
+  /**
+   * A function which computes the relative error of k_{eff}.
+   * @return the relative error of the k-eigenvalue
+   */
+  Real kRelativeError() const;
+
+  /**
    * Type of k-effective value to report. Options:
    * collision, absorption, tracklength, and combined (default).
    *
@@ -48,4 +66,7 @@ protected:
    * and tracklength estimates.
    */
   const eigenvalue::EigenvalueEnum _type;
+
+  /// The value of the kinetics parameter to output.
+  const statistics::OutputEnum _output;
 };
