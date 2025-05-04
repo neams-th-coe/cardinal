@@ -5,6 +5,38 @@
   []
 []
 
+[AuxVariables]
+  [scatter_ratio_g1]
+    type = MooseVariable
+    family = MONOMIAL
+    order = CONSTANT
+    block = '0 1 3 4 5 6 7 8 9 10'
+  []
+  [scatter_ratio_g2]
+    type = MooseVariable
+    family = MONOMIAL
+    order = CONSTANT
+    block = '0 1 3 4 5 6 7 8 9 10'
+  []
+[]
+
+[AuxKernels]
+  [comp_scatter_ratio_g1]
+    type = ParsedAux
+    variable = scatter_ratio_g1
+    coupled_variables = 'total_xs_g1 scatter_xs_g1_gp1_l0 scatter_xs_g1_gp2_l0'
+    expression = '(scatter_xs_g1_gp1_l0 + scatter_xs_g1_gp2_l0) / total_xs_g1'
+    block = '0 1 3 4 5 6 7 8 9 10'
+  []
+  [comp_scatter_ratio_g2]
+    type = ParsedAux
+    variable = scatter_ratio_g2
+    coupled_variables = 'total_xs_g2 scatter_xs_g2_gp1_l0 scatter_xs_g2_gp2_l0'
+    expression = '(scatter_xs_g2_gp1_l0 + scatter_xs_g2_gp2_l0) / total_xs_g2'
+    block = '0 1 3 4 5 6 7 8 9 10'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   # Since we're generating multi-group cross sections the value
@@ -22,26 +54,20 @@
   # The MGXS block is adding fission heating, so we set the source
   # rate normalization to 'kappa_fission'.
   source_rate_normalization = 'kappa_fission'
+[]
 
-  # We aren't computing MGXS on the helium cells, so we need to disable
-  # the tally sum check.
-  check_tally_sum = false
+[Problem/MGXS]
+  tally_type = cell
+  group_structure = CASMO_2
+  particle = neutron
+  estimator = analog
+  block = '0 1 3 4 5 6 7 8 9 10'
 
-  [MGXS]
-    tally_type = cell
-    particle = neutron
-    group_structure = CASMO_2
-    estimator = 'analog'
-    block = '0 1 3 4 5 6 7 8 9 10'
+  add_fission = true
 
-    add_scattering = true
-    legendre_order = 0
-    transport_correction = true
+  add_fission_heating = true
 
-    add_fission = true
-
-    add_fission_heating = true
-  []
+  transport_correction = false
 []
 
 [Executioner]
@@ -52,3 +78,4 @@
   exodus = true
   execute_on = 'TIMESTEP_END'
 []
+

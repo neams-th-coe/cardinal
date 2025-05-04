@@ -6,4 +6,5 @@
   - MGXS results are written to the mesh mirror with the spatial fidelity of the mapped tally objects;
   - Currently supported cross sections / group-wise properties include: total, absorption, nu-scattering, nu-fission, chi, kappa-fission, inverse velocity, and particle diffusion coefficients;
   - Group boundaries can either be supplied, or selected from a list of common group structures;
-  - Transport corrections are supported for P0 within-group scattering cross sections.
+  - Transport corrections are supported for P0 within-group scattering cross sections;
+  - A [tutorial for this capability](openmc_mgxs.md) has been added.

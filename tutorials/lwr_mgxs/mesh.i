@@ -14,10 +14,10 @@ r_guide_clad = 0.5400
 #----------------------------------------------------------------------------------------
 # Meshing parameters
 #----------------------------------------------------------------------------------------
-NUM_SECTORS              = 2
-FUEL_RADIAL_DIVISIONS    = 2
+NUM_SECTORS              = 4
+FUEL_RADIAL_DIVISIONS    = 4
 BACKGROUND_DIVISIONS     = 1
-AXIAL_DIVISIONS          = 10
+AXIAL_DIVISIONS          = 20
 #----------------------------------------------------------------------------------------
 
 [Mesh]
@@ -117,7 +117,7 @@ AXIAL_DIVISIONS          = 10
     type = AdvancedExtruderGenerator
     input = 'To_Origin'
     heights = '${fparse fuel_height} ${fparse refl_height}'
-    num_layers = '${AXIAL_DIVISIONS} 1'
+    num_layers = '${AXIAL_DIVISIONS} 2'
     subdomain_swaps = ';
                        0 10 1 9 2 9 3 9'
     direction = '0.0 0.0 1.0'

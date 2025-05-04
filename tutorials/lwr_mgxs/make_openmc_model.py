@@ -34,7 +34,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 ap = ArgumentParser()
-ap.add_argument('-n', dest='n_axial', type=int, default=10,
+ap.add_argument('-n', dest='n_axial', type=int, default=1,
                 help='Number of axial core divisions')
 args = ap.parse_args()
 
