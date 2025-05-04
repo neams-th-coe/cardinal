@@ -87,10 +87,15 @@ public:
   virtual void setScaling(const Real & scale) { _scaling = scale; }
 
   /**
-   * Set the verbosity level
+   * Set the verbosity level; if verbose output is already enabled, we will
+   * not override it. This function is only meant for enabling verbosity if
+   * the problem has verbosity on.
    * @param[in] verbose whether to print diagnostic information
    */
-  virtual void setVerbosity(const bool & verbose) { _verbose = verbose; }
+  virtual void setVerbosity(const bool & verbose) {
+    if (!_verbose)
+      _verbose = verbose;
+  }
 
   /**
    * Indicate whether this userobject is run by itself (for testing purposes)
