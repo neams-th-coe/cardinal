@@ -351,6 +351,51 @@ export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_section
 
 !listing scripts/job_bitterroot language=bash caption=Sample job script with the `moose` project code id=bt2
 
+## Windriver
+
+[Windriver](https://inl.gov/hpc/about/) is an [!ac](HPC) system at [!ac](INL). It has 843 compute nodes, each with
+2 Intel Xeon Platinum 8480+ CPUs which results in 112 cores per node. The `.bashrc` and submission script are similar
+to that of Bitterroot as the machines utilize the same compute hardware and modules.
+
+!listing! language=bash caption=Sample `~/.bashrc` for Windriver id=wnd1
+# .bashrc template for users
+# then source a bashrc_local file in home dir...
+
+# Source global definitions
+
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# Source local definitions
+
+if [ -f  ~/.bashrc_local ]; then
+       . ~/.bashrc_local
+fi
+
+# Load Windriver modules if we're SSH'ing into one of the Windriver login nodes.
+if [ "$SHORTHOST" = "windriver1" ] || [ "$SHORTHOST" = "windriver2" ]; then
+  echo "Loading Windriver modules..."
+  module purge
+  module load use.moose moose-tools cmake openmpi
+fi
+
+# Revise for your Cardinal installation location.
+export NEKRS_HOME=${HOME}/cardinal/install
+
+# Revise for your cross section location.
+export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+!listing-end!
+
+This submission script is not optimized for any particular problem run with Cardinal:
+
+!listing scripts/job_windriver language=bash caption=Sample job script with the `moose` project code id=wnd2
+
+This submission script optimizes performance for OpenMC on Windriver using shared memory parallelism and NUMBA bindings on a compute node:
+
+!listing scripts/job_windriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
+
 ## Summit
 
 [Summit](https://docs.olcf.ornl.gov/systems/summit_user_guide.html)

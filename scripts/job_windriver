@@ -1,0 +1,20 @@
+#!/bin/bash
+# Run this script with sbatch job_windriver
+
+#SBATCH --job-name=cardinal
+#SBATCH --output=cardinal_%j.log
+#SBATCH --error=cardinal_%j.err
+#SBATCH --wckey=moose
+#SBATCH --ntasks-per-node=112
+#SBATCH --nodes=1 # Number of compute nodes you're requesting.
+#SBATCH --time=1:00:00
+
+#SBATCH --mail-user=<YOUR_EMAIL_HERE>
+#SBATCH --mail-type=all
+
+module purge
+module load use.moose moose-tools openmpi
+
+let tasks=${SLURM_NNODES}*${SLURM_NTASKS_PER_NODE}
+
+mpiexec -np ${tasks} $HOME/cardinal/cardinal-opt -i ./openmc.i > ./logfile.txt
