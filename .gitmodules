@@ -37,3 +37,6 @@
 [submodule "contrib/double-down"]
 	path = contrib/double-down
 	url = https://github.com/pshriwise/double-down.git
+[submodule "contrib/embree"]
+	path = contrib/embree
+	url = https://github.com/RenderKit/embree.git
