@@ -928,12 +928,18 @@ void z_displacement(const int id, const dfloat value);
 
 /**
  * Initialize the characteristic scales for a nondimesional solution
- * @param[in] U_ref reference velocity
- * @param[in] T_ref reference temperature
- * @param[in] dT_ref reference temperature range
- * @param[in] L_ref reference length scale
- * @param[in] rho_ref reference density
- * @param[in] Cp_ref reference heat capacity
+ * @param[in] U reference velocity
+ * @param[in] T reference temperature
+ * @param[in] dT reference temperature range
+ * @param[in] L reference length scale
+ * @param[in] rho reference density
+ * @param[in] Cp reference heat capacity
+ * @param[in] s01 reference scalar01
+ * @param[in] ds01 reference s01 range
+ * @param[in] s02 reference scalar02
+ * @param[in] ds02 reference s02 range
+ * @param[in] s03 reference scalar03
+ * @param[in] ds03 reference s03 range
  */
 void initializeDimensionalScales(const double U,
                                  const double T,
