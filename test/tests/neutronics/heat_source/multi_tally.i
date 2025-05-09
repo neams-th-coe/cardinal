@@ -44,7 +44,7 @@
     [Cell]
       type = CellTally
       score = 'kappa_fission heating'
-      blocks = '100 200'
+      block = '100 200'
     []
   []
 []

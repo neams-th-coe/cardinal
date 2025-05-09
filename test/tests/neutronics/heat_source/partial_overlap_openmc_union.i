@@ -51,7 +51,7 @@
     [Cell]
       type = CellTally
       name = heat_source
-      blocks = '100 200'
+      block = '100 200'
     []
   []
 []
