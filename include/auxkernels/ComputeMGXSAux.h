@@ -20,6 +20,11 @@
 
 #include "OpenMCAuxKernel.h"
 
+/**
+ * This auxkernel computes an arbitrary multi-group cross
+ * section given a group-wise reaction rate and a group-wise
+ * scalar flux.
+ */
 class ComputeMGXSAux : public OpenMCAuxKernel
 {
 public:

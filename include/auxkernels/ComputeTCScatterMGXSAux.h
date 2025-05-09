@@ -20,6 +20,12 @@
 
 #include "OpenMCAuxKernel.h"
 
+/**
+ * This auxkernel computes an transport-corrected multi-group
+ * cross section given a group-wise scattering reaction rate,
+ * and the outgoing sum of group-wise P1 scattering reaction
+ * rates, and the scalar flux.
+ */
 class ComputeTCScatterMGXSAux : public OpenMCAuxKernel
 {
 public:

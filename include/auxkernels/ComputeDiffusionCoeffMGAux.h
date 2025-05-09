@@ -2,6 +2,11 @@
 
 #include "OpenMCAuxKernel.h"
 
+/**
+ * This auxkernel computes multi-group particle diffusion coefficients
+ * given a group-wise total reaction rate, the outgoing sum of group-wise
+ * P1 scattering reaction rates, and the group-wise scalar flux.
+ */
 class ComputeDiffusionCoeffMGAux : public OpenMCAuxKernel
 {
 public:

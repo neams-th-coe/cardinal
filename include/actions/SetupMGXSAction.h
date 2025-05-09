@@ -27,6 +27,11 @@
 
 class OpenMCCellAverageProblem;
 
+/**
+ * This action automates the generation of multi-group cross sections
+ * for an OpenMC case wrapped in Cardinal. These cross sections
+ * are generated with Cardinal's mapped tally system.
+ */
 class SetupMGXSAction : public CardinalAction, public EnergyBinBase
 {
 public:
