@@ -30,7 +30,7 @@
     [Cell]
       type = CellTally
       score = 'heating flux H3_production'
-      blocks = '100'
+      block =  '100'
     []
   []
 []

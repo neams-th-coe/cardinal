@@ -45,7 +45,7 @@
     [Cell]
       type = CellTally
       score = 'heating flux'
-      blocks = '100 200'
+      block =  '100 200'
     []
   []
 []

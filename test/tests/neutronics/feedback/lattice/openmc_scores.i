@@ -19,7 +19,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '1 2 3'
+      block = '1 2 3'
       score = heating
       name = heat_source
     []

@@ -48,7 +48,7 @@ h = 1.0
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '0 100'
+      block = '0 100'
       score = heating_local
     []
   []

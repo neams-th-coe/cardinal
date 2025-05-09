@@ -46,7 +46,7 @@
     [Cell]
       type = CellTally
       score = 'inverse_velocity nu_fission nu_scatter'
-      blocks = '100 200'
+      block = '100 200'
     []
   []
 []

@@ -60,7 +60,7 @@
       score = 'kappa_fission fission flux'
       name = 'heat_source fission flux'
       output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
-      blocks = 'uo2_center uo2'
+      block = 'uo2_center uo2'
     []
   []
 []

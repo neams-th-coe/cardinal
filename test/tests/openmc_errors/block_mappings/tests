@@ -2,7 +2,7 @@
   [nonexistent_block]
     type = RunException
     input = nonexistent_block.i
-    expect_err = "Block 'who' specified in 'blocks' not found in mesh!"
+    expect_err = "Block 'who' specified in 'block' not found in mesh!"
     requirement = "The system shall error if the user specifies a block for coupling that does not exist."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -43,7 +43,7 @@
   [multiple_tally_settings]
     type = RunException
     input = multiple_tally_settings.i
-    expect_err = "cell id 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'blocks', but block 200 is not."
+    expect_err = "cell id 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'block', but block 200 is not."
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
     required_objects = 'OpenMCCellAverageProblem'
   []
