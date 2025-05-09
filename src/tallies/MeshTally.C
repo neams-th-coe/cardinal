@@ -40,6 +40,9 @@ MeshTally::validParams()
       "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, this mesh "
       "tally will be applied over the entire mesh.");
+  params.addParam<std::vector<SubdomainName>>(
+      "blocks",
+      "This parameter is deprecated, use 'block' instead!");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -54,6 +57,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _instance(getParam<unsigned int>("instance")),
     _use_dof_map(_is_adaptive || isParamValid("block"))
 {
+  if (isParamSetByUser("blocks"))
+    mooseError("This parameter is deprecated, use 'block' instead!");
+
   bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
