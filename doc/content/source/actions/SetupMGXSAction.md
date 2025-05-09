@@ -110,7 +110,7 @@ where
 
 \begin{equation}
 \label{eq:mg_prod_rxn_rate}
-\langle\Sigma_{a}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{f}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
+\langle\nu\Sigma_f\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega\int_{E_{g}}^{E_{g-1}}\,dE\,\nu\Sigma_{f}(\vec{r}, E)\psi(\vec{r}, E, \hat{\Omega})
 \end{equation}
 
 $\nu\Sigma_{f,i,g}$ is the homogenized neutron production [!ac](MGXS) and $\nu\Sigma_{f}(\vec{r}, E)$ is the equivalent continuous-energy macroscopic cross section. The tallies used to compute $\nu\Sigma_{f,i,g}$ are also used to compute $\chi_{i,g}$, necessitating the use of an `analog` estimator for $\nu\Sigma_{f,i,g}$. This
@@ -129,14 +129,14 @@ where
 
 \begin{equation}
 \label{eq:mg_chi_rxn_rate}
-\langle\chi\nu\Sigma_{f}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{0}^{\infty}\,dE'\int_{E_{g}}^{E_{g-1}}\,dE\,\chi(\vec{r}, E)\nu\Sigma_{f}(\vec{r}, E')\psi(\vec{r}, E', \hat{\Omega}')
+\langle\chi\nu\Sigma_{f}\psi\rangle_{i,g} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{0}^{\infty}\,dE'\int_{E_{g}}^{E_{g-1}}\,dE\,\chi(E)\nu\Sigma_{f}(\vec{r}, E')\psi(\vec{r}, E', \hat{\Omega}')
 \end{equation}
 
 and
 
 \begin{equation}
 \label{eq:mg_chi_norm}
-\langle\nu\Sigma_{f}\psi\rangle_{i} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{0}^{\infty}\,dE'\int_{0}^{\infty}\,dE\,\chi(\vec{r}, E)\nu\Sigma_{f}(\vec{r}, E')\psi(\vec{r}, E', \hat{\Omega}')
+\langle\nu\Sigma_{f}\psi\rangle_{i} = \int_{V_i}\,dr^3\int_{4\pi}\,d\Omega'\int_{0}^{\infty}\,dE'\int_{0}^{\infty}\,dE\,\chi(E)\nu\Sigma_{f}(\vec{r}, E')\psi(\vec{r}, E', \hat{\Omega}')
 \end{equation}
 
 $\chi_{i,g}$ is the homogenized MG chi spectra and $\chi(\vec{r}, E)$ is the equivalent continuous-energy spectra. The need to know the entering and exiting energies for the nu-fission reaction rate necessitates the use of an `analog` estimator for $\chi_{i,g}$. This property is not available for photons.
