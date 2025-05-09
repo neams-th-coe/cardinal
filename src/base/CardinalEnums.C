@@ -59,7 +59,7 @@ getOperationEnum()
 MooseEnum
 getTallyTypeEnum()
 {
-  return MooseEnum("cell mesh none");
+  return MooseEnum("cell mesh");
 }
 
 MooseEnum
@@ -112,6 +112,12 @@ getSingleTallyScoreEnum()
   return MooseEnum(
       "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy "
       "flux H3_production total absorption scatter nu_scatter fission nu_fission inverse_velocity");
+}
+
+MooseEnum
+getSingleParticleFilterEnum()
+{
+  return MooseEnum("neutron photon electron positron");
 }
 
 MooseEnum

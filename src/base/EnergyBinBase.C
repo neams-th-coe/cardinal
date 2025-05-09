@@ -18,12 +18,13 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "EnergyFilterBase.h"
+#include "EnergyBinBase.h"
+#include "EnergyGroupStructures.h"
 
 InputParameters
-EnergyFilterBase::validParams()
+EnergyBinBase::validParams()
 {
-  auto params = FilterBase::validParams();
+  auto params = emptyInputParameters();
   params.addParam<std::vector<Real>>(
       "energy_boundaries",
       "The energy boundaries to use to form energy bins. The boundaries must be provided "
@@ -42,30 +43,33 @@ EnergyFilterBase::validParams()
   return params;
 }
 
-EnergyFilterBase::EnergyFilterBase(const InputParameters & parameters)
-  : FilterBase(parameters), _reverse_bins(getParam<bool>("reverse_bins"))
+EnergyBinBase::EnergyBinBase(const ParallelParamObject * moose_object,
+                             const InputParameters & parameters)
+  : _reverse_bins(moose_object->getParam<bool>("reverse_bins"))
 {
-  if (isParamValid("energy_boundaries") == isParamValid("group_structure"))
-    mooseError("You have either set both 'energy_boundaries' and 'group_structure' or have not "
-               "specified a bin option. Please specify either 'energy_boundaries' or "
-               "'group_structure'.");
+  if (moose_object->isParamValid("energy_boundaries") ==
+      moose_object->isParamValid("group_structure"))
+    moose_object->mooseError(
+        "You have either set both 'energy_boundaries' and 'group_structure' or have not "
+        "specified a bin option. Please specify either 'energy_boundaries' or "
+        "'group_structure'.");
 
-  if (isParamValid("energy_boundaries"))
-    _energy_bnds = getParam<std::vector<Real>>("energy_boundaries");
-  if (isParamValid("group_structure"))
-    _energy_bnds = getGroupBoundaries(
-        getParam<MooseEnum>("group_structure").getEnum<energyfilter::GroupStructureEnum>());
+  if (moose_object->isParamValid("energy_boundaries"))
+    _energy_bnds = moose_object->getParam<std::vector<Real>>("energy_boundaries");
+  if (moose_object->isParamValid("group_structure"))
+    _energy_bnds = this->getGroupBoundaries(moose_object->getParam<MooseEnum>("group_structure")
+                                                .getEnum<energyfilter::GroupStructureEnum>());
 
   // Two boundaries are required at minimum to form energy bins.
   if (_energy_bnds.size() < 2)
-    paramError("energy_boundaries",
-               "At least two energy values are required to create energy bins!");
+    moose_object->paramError("energy_boundaries",
+                             "At least two energy values are required to create energy bins!");
 
   // Check to make sure none of the boundaries are negative.
   for (const auto & bnd : _energy_bnds)
     if (bnd < 0.0)
-      paramError("energy_boundaries",
-                 "Energy group boundaries must be positive to create energy bins!");
+      moose_object->paramError("energy_boundaries",
+                               "Energy group boundaries must be positive to create energy bins!");
 
   // Sort the boundaries so they're monotonically decreasing.
   std::sort(_energy_bnds.begin(),
@@ -74,13 +78,14 @@ EnergyFilterBase::EnergyFilterBase(const InputParameters & parameters)
 
   // Check for duplicate entries.
   if (std::adjacent_find(_energy_bnds.begin(), _energy_bnds.end()) != _energy_bnds.end())
-    paramError("energy_boundaries",
-               "You have added duplicate energy boundaries! Each group boundary must be unique to "
-               "create energy bins.");
+    moose_object->paramError(
+        "energy_boundaries",
+        "You have added duplicate energy boundaries! Each group boundary must be unique to "
+        "create energy bins.");
 }
 
 std::vector<double>
-EnergyFilterBase::getGroupBoundaries(energyfilter::GroupStructureEnum group_structure)
+EnergyBinBase::getGroupBoundaries(energyfilter::GroupStructureEnum group_structure)
 {
   using namespace energyfilter;
   using namespace groupstructures;

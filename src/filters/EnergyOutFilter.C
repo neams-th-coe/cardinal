@@ -30,7 +30,8 @@ registerMooseObject("CardinalApp", EnergyOutFilter);
 InputParameters
 EnergyOutFilter::validParams()
 {
-  auto params = EnergyFilterBase::validParams();
+  auto params = FilterBase::validParams();
+  params += EnergyBinBase::validParams();
   params.addClassDescription(
       "A class which provides a thin wrapper around an OpenMC EnergyOutFilter. Energy bins "
       "can either be manually specified in 'energy_boundaries' or picked from a list "
@@ -39,7 +40,8 @@ EnergyOutFilter::validParams()
   return params;
 }
 
-EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters) : EnergyFilterBase(parameters)
+EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
+  : FilterBase(parameters), EnergyBinBase(this, parameters)
 {
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();

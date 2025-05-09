@@ -19,10 +19,12 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellAverageProblem.h"
+
 #include "DelimitedFileReader.h"
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "SetupMGXSAction.h"
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 
@@ -227,9 +229,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
-  const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
-  for (const auto & act : actions)
+  const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
+  for (const auto & act : tally_actions)
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+
+  // Repeat the same check for SetUpMGXSActions.
+  const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
+  for (const auto & act : mgxs_actions)
+    _has_cell_tallies |= act->addingCellTallies();
   _needs_to_map_cells |= _has_cell_tallies;
 
   if (!_needs_to_map_cells)
@@ -2458,11 +2465,10 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
       source *= *_source_strength;
 
     // - Reaction rate scores & 'inverse-velocity' have units of reactions/src (OpenMC) or
-    // reactions/s (Cardinal).
+    //   reactions/s (Cardinal).
     // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
-    // damage-energy
-    //   are the same as a heating tally, we don't normalize it like one as it's used as an
-    //   intermediate to compute DPA.
+    //   damage-energy are the same as a heating tally, we don't normalize it like one as it's
+    //   used as an intermediate to compute DPA.
     if (isReactionRateScore(_all_tally_scores[global_score]) ||
         _all_tally_scores[global_score] == "inverse-velocity" ||
         _all_tally_scores[global_score] == "damage-energy")

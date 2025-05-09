@@ -29,7 +29,7 @@ OpenMCBase::validParams()
   return params;
 }
 
-OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters)
+OpenMCBase::OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters)
   : _openmc_problem(
         dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
 {

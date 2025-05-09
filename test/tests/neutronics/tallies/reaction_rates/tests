@@ -12,17 +12,19 @@
   [mgxs]
     issues = '#1089'
     design = 'AddTallyAction.md'
+    requirement = "The system shall allow tallying of nu-scatter, nu-fission, and inverse-velocity in fixed source mode."
+
     [reaction_rates]
       type = CSVDiff
       input = openmc_mgxs_rxn.i
+      detail = "The system shall compute nu-scatter, nu-fission, and inverse-velocity scores fixed source mode."
       csvdiff = openmc_mgxs_rxn_out.csv
-      requirement = "The system shall allow tallying of nu-scatter, nu-fission, and inverse-velocity in fixed source mode."
       required_objects = 'OpenMCCellAverageProblem'
     []
     [nu_scatter_analog]
       type = RunException
       input = openmc_mgxs_rxn.i
-      requirement = "The system shall error if the user attempts to specify a nu-scatter score without an analog estimator."
+      detail = "The system shall error if the user attempts to specify a nu-scatter score without an analog estimator."
       required_objects = 'OpenMCCellAverageProblem'
       cli_args = 'Problem/Tallies/Cell/estimator=tracklength'
       expect_err = 'Non-analog estimators are not supported for nu_scatter scores!'

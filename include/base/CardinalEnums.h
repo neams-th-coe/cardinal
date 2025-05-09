@@ -35,6 +35,7 @@ MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
 MultiMooseEnum getParticleFilterEnums();
 MooseEnum getSingleTallyScoreEnum();
+MooseEnum getSingleParticleFilterEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
@@ -142,8 +143,7 @@ namespace tally
 enum TallyTypeEnum
 {
   cell,
-  mesh,
-  none
+  mesh
 };
 
 /// Type of estimator to use for OpenMC tallies

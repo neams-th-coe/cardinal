@@ -35,6 +35,11 @@ CardinalAction::CardinalAction(const InputParameters & parameters)
 void
 CardinalAction::setObjectBlocks(InputParameters & params, const std::vector<SubdomainName> & blocks)
 {
-  for (const auto & id : blocks)
-    params.set<std::vector<SubdomainName>>("block").push_back(Moose::stringify(id));
+  if (params.have_parameter<std::vector<SubdomainName>>("block"))
+    for (const auto & id : blocks)
+      params.set<std::vector<SubdomainName>>("block").push_back(Moose::stringify(id));
+
+  if (params.have_parameter<std::vector<SubdomainName>>("blocks"))
+    for (const auto & id : blocks)
+      params.set<std::vector<SubdomainName>>("blocks").push_back(Moose::stringify(id));
 }

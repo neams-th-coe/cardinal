@@ -32,7 +32,7 @@ class OpenMCBase
 public:
   static InputParameters validParams();
 
-  OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters);
+  OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters);
 
 protected:
   /**
