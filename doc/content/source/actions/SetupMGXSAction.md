@@ -68,12 +68,12 @@ $\Sigma_{a,i,g}$ is the homogenized absorption [!ac](MGXS) and $\Sigma_{a}(\vec{
 
 ### Nu-Scattering Matrices
 
-By default this action adds [!ac](MGXS) scattering matrices with particle multiplication, though this behaviour can be disabled by setting
-`add_scattering = false`. Scattering cross sections are expanded in Legendre moments of $\mu = \hat{\Omega}'\cdot\hat{\Omega}$,
-where $\hat{\Omega}'$ is the direction entering a scattering reaction and $\hat{\Omega}$ is the direction exiting a scattering
-reaction. The maximum order of the Legendre expansion can be specified by setting `legendre_order` (where the default of 0 indicates
-isotropic scattering). At present, `SetupMGXSAction` implements a 'simple' formulation of the scattering matrix where the elements
-are computed with `analog` estimators:
+By default this action adds [!ac](MGXS) scattering matrices with particle multiplication. If the user does not wish to compute `nu-scatter`
+matrices, `add_scattering` can be set to `false` to disable them. Scattering cross sections are expanded in Legendre moments of
+$\mu = \hat{\Omega}'\cdot\hat{\Omega}$, where $\hat{\Omega}'$ is the direction entering a scattering reaction and $\hat{\Omega}$
+is the direction exiting a scattering reaction. The maximum order of the Legendre expansion can be specified by setting
+`legendre_order` (where the default of 0 indicates isotropic scattering). At present, `SetupMGXSAction` implements a 'simple'
+formulation of the scattering matrix where the elements are computed with `analog` estimators:
 
 \begin{equation}
 \label{eq:mg_scatter_xs}

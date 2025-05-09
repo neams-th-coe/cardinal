@@ -17,6 +17,9 @@ public:
 protected:
   virtual Real computeValue() override;
 
+  /// The value the diffusion coefficient should take in a void region.
+  const Real & _void_diff;
+
   /// The group-wise total reaction rate for computing the MG diffusion coefficient.
   const VariableValue & _total_rxn_rate;
 

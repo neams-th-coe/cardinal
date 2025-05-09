@@ -39,12 +39,17 @@ ComputeDiffusionCoeffMGAux::validParams()
   params.addRequiredCoupledVar(
       "scalar_flux",
       "The group-wise scalar flux used for computing the multi-group diffusion coefficient.");
+  params.addParam<Real>(
+      "void_diffusion_coefficient",
+      1e3,
+      "The value the diffusion coefficient should take in a void region.");
 
   return params;
 }
 
 ComputeDiffusionCoeffMGAux::ComputeDiffusionCoeffMGAux(const InputParameters & parameters)
   : OpenMCAuxKernel(parameters),
+    _void_diff(getParam<Real>("void_diffusion_coefficient")),
     _total_rxn_rate(coupledValue("total_rxn_rate")),
     _scalar_flux(coupledValue("scalar_flux"))
 {
@@ -60,7 +65,7 @@ ComputeDiffusionCoeffMGAux::computeValue()
     num -= (*_p1_scattering_rates[g])[_qp];
 
   const Real transport_xs = _scalar_flux[_qp] > 0.0 ? num / _scalar_flux[_qp] : 0.0;
-  const Real diff_coeff = transport_xs > libMesh::TOLERANCE ? 1.0 / (3.0 * transport_xs) : 1e3;
+  const Real diff_coeff = transport_xs > libMesh::TOLERANCE ? 1.0 / (3.0 * transport_xs) : _void_diff;
   return diff_coeff;
 }
 

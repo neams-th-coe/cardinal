@@ -96,6 +96,9 @@ protected:
   /// Whether or not group-wise diffusion coefficients should be computed.
   const bool _add_diffusion;
 
+  /// The value the diffusion coefficient should take in a void region.
+  const Real & _void_diff;
+
   /// Whether or not group-wise absorption MGXS should be computed.
   const bool _add_absorption;
 

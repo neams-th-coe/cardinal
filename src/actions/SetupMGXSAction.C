@@ -92,6 +92,10 @@ SetupMGXSAction::validParams()
       "add_diffusion_coefficient",
       false,
       "Whether or not per-group particle diffusion coefficients should be generated.");
+  params.addParam<Real>(
+      "void_diffusion_coefficient",
+      1e3,
+      "The value the diffusion coefficient should take in a void region.");
 
   params.addParam<bool>(
       "add_absorption",
@@ -119,6 +123,7 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
     _add_kappa_fission(getParam<bool>("add_fission_heating")),
     _add_inv_vel(getParam<bool>("add_inverse_velocity")),
     _add_diffusion(getParam<bool>("add_diffusion_coefficient")),
+    _void_diff(getParam<Real>("void_diffusion_coefficient")),
     _add_absorption(getParam<bool>("add_absorption")),
     _hide_tally_vars(getParam<bool>("hide_tally_vars")),
     _need_p1_scatter(false)
@@ -673,6 +678,7 @@ SetupMGXSAction::addAuxKernels()
           .emplace_back("mgxs_total_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
       params.set<std::vector<VariableName>>("scalar_flux")
           .emplace_back("mgxs_flux_g" + Moose::stringify(g + 1) + "_" + std::string(_particle));
+      params.set<Real>("void_diffusion_coefficient") = _void_diff;
       for (unsigned int g_prime = 0; g_prime < _energy_bnds.size() - 1; ++g_prime)
         params.set<std::vector<VariableName>>("p1_scatter_rxn_rates")
             .emplace_back("mgxs_scatter_g" + Moose::stringify(g_prime + 1) + "_gp" +
