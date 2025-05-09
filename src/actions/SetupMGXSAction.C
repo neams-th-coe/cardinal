@@ -44,8 +44,7 @@ SetupMGXSAction::validParams()
 
   params.addRequiredParam<MooseEnum>("tally_type",
                                      getTallyTypeEnum(),
-                                     "The type of spatial tally to use. Options are a distributed "
-                                     "cell tally (cell) or an unstructured mesh tally (mesh).");
+                                     "The type of spatial tally to use");
   params.addRequiredParam<MooseEnum>("particle",
                                      getSingleParticleFilterEnum(),
                                      "The particle to filter for. At present cross sections can "
@@ -135,7 +134,7 @@ SetupMGXSAction::SetupMGXSAction(const InputParameters & parameters)
   if (_add_fission && _particle == "photon")
     paramError("add_fission",
                "Multi-group fission cross sections / chi spectra cannot be "
-               "generated when selecting particle = 'photon'! Please set add_fission = false to "
+               "generated when selecting particle = 'photon'! Please set 'add_fission = false' to "
                "continue.");
 
   if (_add_kappa_fission && _particle == "photon")
