@@ -143,7 +143,7 @@
   [file_mesh_block_restrict]
     type = RunException
     input = one_mesh.i
-    cli_args = 'Problem/Tallies/Mesh/blocks=100'
+    cli_args = 'Problem/Tallies/Mesh/block=100'
     expect_err = "Block restriction is currently not supported for mesh tallies which load a mesh from a file!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction when using a mesh template."
     required_objects = 'OpenMCCellAverageProblem'
@@ -151,8 +151,8 @@
   [block_restrict_no_blocks]
     type = RunException
     input = one_mesh_no_input_file.i
-    cli_args = "Problem/Tallies/Mesh/blocks='' Mesh/parallel_type=replicated"
-    expect_err = "Subdomain names must be provided if using 'blocks'!"
+    cli_args = "Problem/Tallies/Mesh/block='' Mesh/parallel_type=replicated"
+    expect_err = "Subdomain names must be provided if using 'block'!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
     required_objects = 'OpenMCCellAverageProblem'
   []

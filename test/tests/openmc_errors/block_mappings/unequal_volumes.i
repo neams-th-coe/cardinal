@@ -37,7 +37,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '100'
+      block = '100'
       check_equal_mapped_tally_volumes = true
     []
   []

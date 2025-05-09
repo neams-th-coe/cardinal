@@ -129,7 +129,7 @@ dT = ${fparse power / mdot / Cp}
   [Tallies]
     [heat_source]
       type = CellTally
-      blocks = '2'
+      block = '2'
       name = heat_source
 
       check_equal_mapped_tally_volumes = true

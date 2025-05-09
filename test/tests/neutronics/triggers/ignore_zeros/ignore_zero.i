@@ -47,7 +47,7 @@
     [Cell]
       type = CellTally
       score = 'H3_production'
-      blocks = '100 200'
+      block = '100 200'
       trigger = 'rel_err'
       # If tally bins with zeros are ignored, this will fire immediately since
       # the fluid region doesn't have a tritium production score.
