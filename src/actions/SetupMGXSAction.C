@@ -91,10 +91,9 @@ SetupMGXSAction::validParams()
       "add_diffusion_coefficient",
       false,
       "Whether or not per-group particle diffusion coefficients should be generated.");
-  params.addParam<Real>(
-      "void_diffusion_coefficient",
-      1e3,
-      "The value the diffusion coefficient should take in a void region.");
+  params.addParam<Real>("void_diffusion_coefficient",
+                        1e3,
+                        "The value the diffusion coefficient should take in a void region.");
 
   params.addParam<bool>(
       "add_absorption",
