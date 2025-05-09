@@ -42,9 +42,8 @@ SetupMGXSAction::validParams()
   params.suppressParameter<bool>("reverse_bins");
   params.set<bool>("reverse_bins") = true;
 
-  params.addRequiredParam<MooseEnum>("tally_type",
-                                     getTallyTypeEnum(),
-                                     "The type of spatial tally to use");
+  params.addRequiredParam<MooseEnum>(
+      "tally_type", getTallyTypeEnum(), "The type of spatial tally to use");
   params.addRequiredParam<MooseEnum>("particle",
                                      getSingleParticleFilterEnum(),
                                      "The particle to filter for. At present cross sections can "
