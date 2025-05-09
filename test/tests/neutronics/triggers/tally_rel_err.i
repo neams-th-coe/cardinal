@@ -29,7 +29,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '100'
+      block = '100'
       trigger = rel_err
       trigger_threshold = 2e-2
     []

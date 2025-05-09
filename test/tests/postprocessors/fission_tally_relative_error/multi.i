@@ -29,7 +29,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '100'
+      block = '100'
       score = 'heating kappa_fission'
 
       # this outputs the fission tally standard deviation in space
