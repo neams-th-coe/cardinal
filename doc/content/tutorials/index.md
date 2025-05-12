@@ -86,16 +86,17 @@ Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://ww
 8. [Temperature coupling to MOOSE](openmc_solid.md)
 9. [Temperature and density coupling to MOOSE](openmc_fluid.md)
 10. [Adaptive mesh refinement on mesh tallies](openmc_amr.md)
+11. [Multi-group cross section generation](openmc_mgxs.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
 
-11. [Coupling of NekRS, OpenMC, and MOOSE](coupled.md)
+12. [Coupling of NekRS, OpenMC, and MOOSE](coupled.md)
 
 ## Miscellaneous
 
-12. [Converting CSG to CAD for multiphysics](csg_to_cad.md)
-13. [Restarting coupled NekRS and MOOSE simulations](restart_nek_moose.md)
-14. [Coupling to arbitrary MOOSE applications](other_apps.md)
-15. [Assessing convergence](convergence.md)
-16. [What Transfer should I use?](transfers.md)
+13. [Converting CSG to CAD for multiphysics](csg_to_cad.md)
+14. [Restarting coupled NekRS and MOOSE simulations](restart_nek_moose.md)
+15. [Coupling to arbitrary MOOSE applications](other_apps.md)
+16. [Assessing convergence](convergence.md)
+17. [What Transfer should I use?](transfers.md)
