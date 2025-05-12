@@ -157,6 +157,11 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 ["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework"](https://www.researchgate.net/publication/359121160_COUPLED_MONTE_CARLO_TRANSPORT_AND_CONJUGATE_HEAT_TRANSFER_FOR_WIRE-WRAPPED_BUNDLES_WITHIN_THE_MOOSE_FRAMEWORK)
 *Proceedings of Nureth* (2022)
 
+# Space Nuclear Reactors
+
+M. Dalinger, E. Merzari, T. Nguyen, M. Seneca, and R. Martineau, ["Multiphysics Modeling of SNAP 10A/2 Space Reactor with Cardinal"](https://www.ans.org/meetings/nets2025/session/view-2957/)
+*Proceedings of NETS* (2025)
+
 # Fusion Devices
 
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
