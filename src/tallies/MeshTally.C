@@ -40,9 +40,8 @@ MeshTally::validParams()
       "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, this mesh "
       "tally will be applied over the entire mesh.");
-  params.addParam<std::vector<SubdomainName>>(
-      "blocks",
-      "This parameter is deprecated, use 'block' instead!");
+  params.addParam<std::vector<SubdomainName>>("blocks",
+                                              "This parameter is deprecated, use 'block' instead!");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);

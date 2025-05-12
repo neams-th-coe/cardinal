@@ -30,9 +30,8 @@ CellTally::validParams()
       "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, cell "
       "tallies will be applied over the entire mesh.");
-  params.addParam<std::vector<SubdomainName>>(
-      "blocks",
-      "This parameter is deprecated, use 'block' instead!");
+  params.addParam<std::vector<SubdomainName>>("blocks",
+                                              "This parameter is deprecated, use 'block' instead!");
 
   params.addParam<bool>(
       "check_equal_mapped_tally_volumes",
