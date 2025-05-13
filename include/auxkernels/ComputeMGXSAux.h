@@ -18,28 +18,26 @@
 
 #pragma once
 
-#include "CardinalEnums.h"
-#include "FilterBase.h"
+#include "OpenMCAuxKernel.h"
 
-class EnergyFilterBase : public FilterBase
+/**
+ * This auxkernel computes an arbitrary multi-group cross
+ * section given a group-wise reaction rate and a group-wise
+ * scalar flux.
+ */
+class ComputeMGXSAux : public OpenMCAuxKernel
 {
 public:
   static InputParameters validParams();
 
-  EnergyFilterBase(const InputParameters & parameters);
-
-  /**
-   * A function which converts a GroupStructureEnum into the vector representation of the group
-   * structure.
-   * @param[in] structure the requested group structure
-   * @return the energy gruop boundaries
-   */
-  std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure);
+  ComputeMGXSAux(const InputParameters & parameters);
 
 protected:
-  /// The energy bounds used to build bins.
-  std::vector<Real> _energy_bnds;
+  virtual Real computeValue() override;
 
-  /// Whether or not to reverse the ordering of energy bins during output.
-  const bool _reverse_bins;
+  /// The reaction rates for computing the MGXS.
+  std::vector<const VariableValue *> _mg_reaction_rates;
+
+  /// The normalization factor. Normally the group-wise scalar flux.
+  std::vector<const VariableValue *> _norm_factors;
 };
