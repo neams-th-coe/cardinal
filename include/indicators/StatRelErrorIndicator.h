@@ -20,21 +20,17 @@
 
 #include "OpenMCIndicator.h"
 
-/**
- * An Indicator which returns the maximum statistical error of a tally score in an element.
- */
- class StatRelErrorIndicator : public OpenMCIndicator
- {
- public:
-   static InputParameters validParams();
+// An Indicator which returns the maximum statistical error of a tally score in an element.
+class StatRelErrorIndicator : public OpenMCIndicator
+{
+public:
+  static InputParameters validParams();
 
-   StatRelErrorIndicator(const InputParameters & parameters);
+  StatRelErrorIndicator(const InputParameters & parameters);
 
-   virtual void computeIndicator() override;
+  virtual void computeIndicator() override;
 
- protected:
-   /**
-    * The variables containing the tally score relative errors.
-    */
-   std::vector<const VariableValue *> _tally_rel_error;
- };
+protected:
+  /// The variables containing the tally score relative errors.
+  std::vector<const VariableValue *> _tally_rel_error;
+};

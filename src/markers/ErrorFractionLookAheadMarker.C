@@ -30,12 +30,6 @@ ErrorFractionLookAheadMarker::validParams()
                              "the min/max error from the supplied indicator and the relative error of a tally value.");
   params.addRequiredRangeCheckedParam<Real>("rel_error_refine", "0 <= rel_error_refine <= 1", "The relative error refinement threshold.");
   params.addRequiredParam<IndicatorName>("stat_error_indicator", "The name of the statistical relative error Indicator that this Marker uses.");
-  params.addParam<MooseEnum>(
-    "lh_order",
-    MooseEnum("constant root linear quadratic", "linear"),
-    "The exponent applied to the number of child elements when estimating the "
-    "relative error post-refinement. Options are constant (0), root (1/2), linear (1), "
-    "and quadratic (2).");
 
   return params;
 }
@@ -44,8 +38,7 @@ ErrorFractionLookAheadMarker::ErrorFractionLookAheadMarker(const InputParameters
   : ErrorFractionMarker(parameters),
     OpenMCBase(this, parameters),
     _rel_error_limit(getParam<Real>("rel_error_refine")),
-    _rel_error_vec(getErrorVector(parameters.get<IndicatorName>("stat_error_indicator"))),
-    _order(getParam<MooseEnum>("lh_order").getEnum<LookAheadOrder>())
+    _rel_error_vec(getErrorVector(parameters.get<IndicatorName>("stat_error_indicator")))
 {
   if (_rel_error_vec.size() != _error_vector.size())
     mooseError("The statistical relative error indicator and the spatial error indicator must act on the same subset of the mesh!");
@@ -78,32 +71,14 @@ ErrorFractionLookAheadMarker::markerSetup()
 Marker::MarkerValue
 ErrorFractionLookAheadMarker::computeElementMarker()
 {
-  Real m = 1.0;
-  switch (_order)
-  {
-    case LookAheadOrder::Constant:
-      m = 1.0;
-      break;
-    case LookAheadOrder::Root:
-      m = std::sqrt(_current_elem->n_children());
-      break;
-    case LookAheadOrder::Linear:
-      m = _current_elem->n_children();
-      break;
-    case LookAheadOrder::Quadratic:
-      m = _current_elem->n_children() * _current_elem->n_children();
-      break;
-    default:
-      mooseError("Internal error: Unsupported LookAheadOrder.");
-      break;
-  }
+  Real m = std::sqrt(_current_elem->n_children());
 
   Real max_rel_error = _rel_error_vec[_current_elem->id()] * m;
   Real error = _error_vector[_current_elem->id()];
 
   if (error > _refine_cutoff && max_rel_error <= _rel_error_limit)
     return REFINE;
-  else if (error < _coarsen_cutoff && max_rel_error > _rel_error_limit)
+  else if (error < _coarsen_cutoff || max_rel_error > _rel_error_limit)
     return COARSEN;
 
   return DO_NOTHING;
