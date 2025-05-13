@@ -1,0 +1,24 @@
+#!/bin/bash
+# Run this script with sbatch job_windriver_openmc
+
+#SBATCH --job-name=cardinal
+#SBATCH --output=cardinal_%j.log
+#SBATCH --error=cardinal_%j.err
+#SBATCH --wckey=moose
+#SBATCH --ntasks-per-node=8 # Only use 8 tasks per compute node as there are 4 NUMBA nodes per socket, and 2 sockets per node.
+#SBATCH --cpus-per-task=14 # Use 14 hardware threads per MPI task to match the number of hardware threads per NUMBA node.
+#SBATCH --nodes=1 # Number of compute nodes you're requesting.
+#SBATCH --time=1:00:00
+
+#SBATCH --mail-user=<YOUR_EMAIL_HERE>
+#SBATCH --mail-type=all
+
+module purge
+module load use.moose moose-tools openmpi
+
+# Total number of MPI ranks is the number of NUMBA nodes per compute node multiplied by the number of compute nodes requested by the user.
+let tasks=${SLURM_NNODES}*${SLURM_NTASKS_PER_NODE}
+
+# Run Cardinal and specify that we should bind MPI processes to NUMBA nodes,
+# see: https://docs.openmc.org/en/stable/usersguide/parallel.html
+mpiexec -np ${tasks} --bind-to numa --map-by numa $HOME/cardinal/cardinal-opt -i ./openmc.i --n-threads=${SLURM_CPUS_PER_TASK} > ./logfile.txt
