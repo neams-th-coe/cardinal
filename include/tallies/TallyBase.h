@@ -124,7 +124,7 @@ public:
 
   /**
    * Get the index corresponding to a specific score.
-   * @param[in] the score
+   * @param[in] score the score
    * @return the index of the score, -1 indicates the score does not exist
    */
   int scoreIndex(const std::string & score) const;

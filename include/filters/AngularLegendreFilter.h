@@ -34,7 +34,7 @@ public:
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
    * AngularLegendreFilter(s) use l.
-   * @param[in] the bin index
+   * @param[in] bin_index the bin index
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;

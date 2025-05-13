@@ -32,7 +32,7 @@ public:
   /**
    * A function which converts a GroupStructureEnum into the vector representation of the group
    * structure.
-   * @param[in] structure the requested group structure
+   * @param[in] group_structure the requested group structure
    * @return the energy gruop boundaries
    */
   std::vector<double> getGroupBoundaries(energyfilter::GroupStructureEnum group_structure);
