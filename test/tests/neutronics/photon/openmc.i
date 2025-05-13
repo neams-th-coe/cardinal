@@ -12,7 +12,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '1'
+      block = '1'
       score = 'heating'
       estimator = tracklength
     []

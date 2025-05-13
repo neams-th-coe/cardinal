@@ -23,7 +23,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '1'
+      block = '1'
       score = 'heating kappa_fission'
       output = 'unrelaxed_tally_std_dev'
     []
