@@ -8,12 +8,14 @@
     input = cube
     combinatorial_geometry = 'z < 0.0'
     block_id = 1
+    epsilon = 1e-8
   []
   [id2]
     type = ParsedSubdomainMeshGenerator
     input = id1
     combinatorial_geometry = 'z >= 0.0'
     block_id = 3
+    epsilon = 1e-8
   []
 []
 
