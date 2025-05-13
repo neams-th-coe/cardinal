@@ -26,6 +26,7 @@
  * @param p input parameters object
  * @param names names of the input parameters
  * @param explanation short explanation of the reason why parameter is unused
+ * @param error whether to throw an error if parameter is unused
  */
 void checkUnusedParam(const InputParameters & p,
                       const std::vector<std::string> & names,
@@ -38,6 +39,7 @@ void checkUnusedParam(const InputParameters & p,
  * @param p input parameters object
  * @param name name of the input parameter
  * @param explanation short explanation of the reason why parameter is unused
+ * @param error whether to throw an error if parameter is unused
  */
 void checkUnusedParam(const InputParameters & p,
                       const std::string & name,
