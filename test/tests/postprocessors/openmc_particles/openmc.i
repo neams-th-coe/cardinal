@@ -27,7 +27,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '100'
+      block = '100'
     []
   []
 []

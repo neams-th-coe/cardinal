@@ -107,7 +107,7 @@ N = 1000
   [Tallies]
     [heat_source]
       type = CellTally
-      blocks = ${fuel_blocks}
+      block = ${fuel_blocks}
       name = heat_source
 
       check_equal_mapped_tally_volumes = true
