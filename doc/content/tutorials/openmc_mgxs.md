@@ -183,8 +183,11 @@ as a neutron moderator.
   caption=The generated [!ac](MGXS) at the core centerline. Left: $\Sigma_{t,g}$. Right: $\Sigma_{s,g} / \Sigma_{t,g}$.
   style=width:60%;margin-left:auto;margin-right:auto
 
+## Results in a Deterministic Code id=gnat
+
 While not a capability available in Cardinal, we take these [!ac](MGXS) and use them as an input in a deterministic solver to showcase the end
-result of a standard two-step calculation. The fast and thermal fluxes from the discrete-ordinates code Gnat ([!cite](gnat_1)) using these cross
+result of a standard two-step calculation. The fast and thermal fluxes from the
+[discrete-ordinates code Gnat](https://github.com/OTU-Centre-for-SMRs/gnat) ([!cite](gnat_1)) using these cross
 sections can be found in [mgxs_det_g1] and [mgxs_det_g2]. The predicted continuous-energy value of $k_{eff}$
 from Cardinal-OpenMC is $0.64684$. Gnat (using 200 directions per energy group) obtains a multi-group $k_{eff}$ of $0.64372$, yielding $\Delta k_{eff} = 312$
 pcm. There is likely some amount of cancellation of error in the deterministic result, evidenced by the surprisingly good agreement obtained without using
