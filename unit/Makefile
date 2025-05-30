@@ -98,6 +98,7 @@ REACTOR             := yes
 SOLID_PROPERTIES    := yes
 STOCHASTIC_TOOLS    := yes
 SOLID_MECHANICS     := yes
+SUBCHANNEL          := yes
 THERMAL_HYDRAULICS  := yes
 
 # Configure the optional dependencies (NekRS, OpenMC, submodules, etc.)
