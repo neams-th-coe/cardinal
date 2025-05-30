@@ -7,6 +7,8 @@ endef
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
 DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
+DOUBLEDOWN_DIR      ?= $(CONTRIB_DIR)/double-down
+EMBREE_DIR          ?= $(CONTRIB_DIR)/embree
 MOAB_DIR            ?= $(CONTRIB_DIR)/moab
 GRIFFIN_DIR         ?= $(CONTRIB_DIR)/griffin
 BISON_DIR           ?= $(CONTRIB_DIR)/bison
@@ -18,18 +20,20 @@ IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 
 # Then, we can find which optional dependencies we have been pulled in
 # by seeing if those directories are empty or not
-MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
-NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
-OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
-DAGMC_CONTENT     := $(shell ls $(DAGMC_DIR) 2> /dev/null)
-MOAB_CONTENT      := $(shell ls $(MOAB_DIR) 2> /dev/null)
-GRIFFIN_CONTENT   := $(shell ls $(GRIFFIN_DIR) 2> /dev/null)
-BISON_CONTENT     := $(shell ls $(BISON_DIR) 2> /dev/null)
-SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
-SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
-SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
-POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
-IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
+MOOSE_CONTENT      := $(shell ls $(MOOSE_DIR) 2> /dev/null)
+NEKRS_CONTENT      := $(shell ls $(NEKRS_DIR) 2> /dev/null)
+OPENMC_CONTENT     := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+DAGMC_CONTENT      := $(shell ls $(DAGMC_DIR) 2> /dev/null)
+DOUBLEDOWN_CONTENT := $(shell ls $(DOUBLEDOWN_DIR) 2> /dev/null)
+EMBREE_CONTENT     := $(shell ls $(EMBREE_DIR) 2> /dev/null)
+MOAB_CONTENT       := $(shell ls $(MOAB_DIR) 2> /dev/null)
+GRIFFIN_CONTENT    := $(shell ls $(GRIFFIN_DIR) 2> /dev/null)
+BISON_CONTENT      := $(shell ls $(BISON_DIR) 2> /dev/null)
+SAM_CONTENT        := $(shell ls $(SAM_DIR) 2> /dev/null)
+SOCKEYE_CONTENT    := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
+SODIUM_CONTENT     := $(shell ls $(SODIUM_DIR) 2> /dev/null)
+POTASSIUM_CONTENT  := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
+IAPWS95_CONTENT    := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
 # convert ENABLE_NEK, ENABLE_OPENMC, and ENABLE_DAGMC to consistent truthy value
 ifeq ($(ENABLE_OPENMC),$(filter $(ENABLE_OPENMC), true yes on 1 TRUE YES ON))
@@ -55,7 +59,7 @@ endif
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 else
-  $(info Cardinal is using MOOSE from     $(MOOSE_DIR))
+  $(info Cardinal is using MOOSE from           $(MOOSE_DIR))
 endif
 
 moose_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moose | cut -c1)
@@ -67,7 +71,7 @@ ifeq ($(ENABLE_NEK), yes)
   ifeq ($(NEKRS_CONTENT),)
     $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using NekRS from     $(NEKRS_DIR))
+    $(info Cardinal is using NekRS from           $(NEKRS_DIR))
   endif
 
   nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
@@ -80,7 +84,7 @@ ifeq ($(ENABLE_OPENMC), yes)
   ifeq ($(OPENMC_CONTENT),)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using OpenMC from    $(OPENMC_DIR))
+    $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
   endif
 
   openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
@@ -93,17 +97,37 @@ ifeq ($(ENABLE_DAGMC), yes)
   ifeq ($(DAGMC_CONTENT),)
     $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using DAGMC from     $(DAGMC_DIR))
+    $(info Cardinal is using DAGMC from           $(DAGMC_DIR))
+  endif
+	ifeq ($(DOUBLEDOWN_CONTENT),)
+    $(error $n"Double-Down does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Double-Down submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using Double-Down from     $(DOUBLEDOWN_DIR))
+  endif
+	ifeq ($(EMBREE_CONTENT),)
+    $(error $n"Embree does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Embree submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using Embree from          $(EMBREE_DIR))
   endif
   ifeq ($(MOAB_CONTENT),)
     $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using Moab from      $(MOAB_DIR))
+    $(info Cardinal is using Moab from            $(MOAB_DIR))
   endif
 
   DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)
   ifneq (,$(findstring +,$(DAGMC_status)))
     $(warning $n"***WARNING***: Your DagMC submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+  endif
+
+	EMBREE_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep embree | cut -c1)
+  ifneq (,$(findstring +,$(EMBREE_status)))
+    $(warning $n"***WARNING***: Your Embree submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+  endif
+
+	DOUBLEDOWN_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep double-down | cut -c1)
+  ifneq (,$(findstring +,$(DOUBLEDOWN_status)))
+    $(warning $n"***WARNING***: Your Double-Down submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
   endif
 
   moab_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moab | cut -c1)
