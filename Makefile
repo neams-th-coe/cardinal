@@ -123,6 +123,12 @@ endif
 DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
 DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
+DOUBLEDOWN_BUILDDIR := $(CARDINAL_DIR)/build/double-down
+DOUBLEDOWN_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
+EMBREE_BUILDDIR := $(CARDINAL_DIR)/build/embree
+EMBREE_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
 MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
 MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
@@ -235,11 +241,19 @@ INSTALLABLE_DIRS   := test/tests->tests tutorials
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
   include          $(CARDINAL_DIR)/config/moab.mk
+	include          $(CARDINAL_DIR)/config/embree.mk
+	include          $(CARDINAL_DIR)/config/double_down.mk
   include          $(CARDINAL_DIR)/config/dagmc.mk
 else
 
 build_dagmc:
 	$(info Skipping DagMC build because ENABLE_DAGMC is not set to 'yes')
+
+build_doubledown:
+	$(info Skipping Double-Down build because ENABLE_DAGMC is not set to 'yes')
+
+build_embree:
+	$(info Skipping Embree build because ENABLE_DAGMC is not set to 'yes')
 
 build_moab:
 	$(info Skipping MOAB build because ENABLE_DAGMC is not set to 'yes')
@@ -289,7 +303,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
   ifeq ($(ENABLE_DAGMC), ON)
-    ADDITIONAL_LIBS += -ldagmc -lMOAB
+    ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd
   endif
   ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 endif
@@ -305,8 +319,8 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
 # We need to build these first so we get include dirs
-$(app_objects): build_nekrs build_moab build_dagmc build_openmc
-$(test_objects): build_nekrs build_moab build_dagmc build_openmc
+$(app_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
+$(test_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
@@ -321,7 +335,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
   ifeq ($(ENABLE_DAGMC), ON)
-    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB
+    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB -lembree4 -ldd
   endif
   CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
