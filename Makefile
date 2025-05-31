@@ -10,6 +10,8 @@
 # * NEKRS_DIR        : Top-level NekRS dir (default: $(CONTRIB_DIR)/nekRS)
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
 # * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
+# * EMBREE_DIR       : Top-level Embree dir (default: $(CONTRIB_DIR)/embree)
+# * DOUBLEDOWN_DIR   : Top-level Double-Down dir (default: $(CONTRIB_DIR)/double-down)
 # * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
 # * GRIFFIN_DIR      : Top-level Griffin dir (default: $(CONTRIB_DIR)/griffin)
 # * BISON_DIR        : Top-level Bison dir (default: $(CONTRIB_DIR)/bison)
