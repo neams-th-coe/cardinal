@@ -304,7 +304,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
   ifeq ($(ENABLE_DAGMC), ON)
-    ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd
+    ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd -lpthread
   endif
   ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 endif
@@ -336,7 +336,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
   ifeq ($(ENABLE_DAGMC), ON)
-    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB -lembree4 -ldd
+    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB -lembree4 -ldd -lpthread
   endif
   CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
