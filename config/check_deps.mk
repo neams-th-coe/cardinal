@@ -35,7 +35,7 @@ SODIUM_CONTENT     := $(shell ls $(SODIUM_DIR) 2> /dev/null)
 POTASSIUM_CONTENT  := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_CONTENT    := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
-# convert ENABLE_NEK, ENABLE_OPENMC, and ENABLE_DAGMC to consistent truthy value
+# convert ENABLE_NEK, ENABLE_OPENMC, ENABLE_DOUBLE_DOWN, and ENABLE_DAGMC to consistent truthy value
 ifeq ($(ENABLE_OPENMC),$(filter $(ENABLE_OPENMC), true yes on 1 TRUE YES ON))
   ENABLE_OPENMC := yes
 endif
@@ -44,6 +44,9 @@ ifeq ($(ENABLE_NEK),$(filter $(ENABLE_NEK), true yes on 1 TRUE YES ON))
 endif
 ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
   ENABLE_DAGMC := yes
+endif
+ifeq ($(ENABLE_DOUBLE_DOWN),$(filter $(ENABLE_DOUBLE_DOWN), true yes on 1 TRUE YES ON))
+  ENABLE_DOUBLE_DOWN := yes
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
@@ -99,15 +102,17 @@ ifeq ($(ENABLE_DAGMC), yes)
   else
     $(info Cardinal is using DAGMC from           $(DAGMC_DIR))
   endif
-	ifeq ($(DOUBLEDOWN_CONTENT),)
-    $(error $n"Double-Down does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Double-Down submodule, use ./scripts/get-dependencies.sh")
-  else
-    $(info Cardinal is using Double-Down from     $(DOUBLEDOWN_DIR))
-  endif
-	ifeq ($(EMBREE_CONTENT),)
-    $(error $n"Embree does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Embree submodule, use ./scripts/get-dependencies.sh")
-  else
-    $(info Cardinal is using Embree from          $(EMBREE_DIR))
+	ifeq ($(ENABLE_DOUBLE_DOWN), yes)
+		ifeq ($(DOUBLEDOWN_CONTENT),)
+  	  $(error $n"Double-Down does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Double-Down submodule, use ./scripts/get-dependencies.sh")
+  	else
+  	  $(info Cardinal is using Double-Down from     $(DOUBLEDOWN_DIR))
+  	endif
+		ifeq ($(EMBREE_CONTENT),)
+  	  $(error $n"Embree does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Embree submodule, use ./scripts/get-dependencies.sh")
+  	else
+  	  $(info Cardinal is using Embree from          $(EMBREE_DIR))
+		endif
   endif
   ifeq ($(MOAB_CONTENT),)
     $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")

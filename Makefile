@@ -46,6 +46,10 @@ ENABLE_OPENMC       ?= yes
 # Whether you want to build OpenMC with DAGMC support
 ENABLE_DAGMC        ?= no
 
+# Whether we want to use the double-precision interface to Embree for ray tracing instead of MOAB.
+# This is disabled by default as some DAGMC tests fail when using Embree.
+ENABLE_DOUBLE_DOWN  ?= no
+
 # What GPU backends to enable for Nek (if any)
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
@@ -243,8 +247,13 @@ INSTALLABLE_DIRS   := test/tests->tests tutorials
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
   include          $(CARDINAL_DIR)/config/moab.mk
-	include          $(CARDINAL_DIR)/config/embree.mk
-	include          $(CARDINAL_DIR)/config/double_down.mk
+	ifeq ($(ENABLE_DOUBLE_DOWN), yes)
+		ENABLE_DOUBLE_DOWN := ON
+		include        $(CARDINAL_DIR)/config/embree.mk
+		include        $(CARDINAL_DIR)/config/double_down.mk
+	else
+		ENABLE_DOUBLE_DOWN := OFF
+	endif
   include          $(CARDINAL_DIR)/config/dagmc.mk
 else
 
@@ -260,6 +269,14 @@ build_embree:
 build_moab:
 	$(info Skipping MOAB build because ENABLE_DAGMC is not set to 'yes')
 
+endif
+
+ifeq ($(ENABLE_DOUBLE_DOWN), OFF)
+build_doubledown:
+	$(info Skipping Double-Down build because ENABLE_DOUBLE_DOWN is not set to 'yes')
+
+build_embree:
+	$(info Skipping Embree build because ENABLE_DOUBLE_DOWN is not set to 'yes')
 endif
 
 # autoconf-archive puts some arguments (e.g. -std=c++17) into the compiler
@@ -306,6 +323,9 @@ ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
   ifeq ($(ENABLE_DAGMC), ON)
     ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd
+		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
+			ADDITIONAL_LIBS += -lembree4 -ldd
+		endif
   endif
   ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 endif
@@ -337,7 +357,10 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
   ifeq ($(ENABLE_DAGMC), ON)
-    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB -lembree4 -ldd
+    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB
+		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
+			CARDINAL_EXTERNAL_FLAGS += -lembree4 -ldd
+		endif
   endif
   CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
