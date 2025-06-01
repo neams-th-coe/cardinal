@@ -46,7 +46,7 @@ ENABLE_DAGMC        ?= no
 
 # Whether we want to use the double-precision interface to Embree for ray tracing instead of MOAB.
 # This is disabled by default as some DAGMC tests fail when using Embree.
-ENABLE_DOUBLE_DOWN  ?= no
+ENABLE_DOUBLE_DOWN  ?= yes
 
 # What GPU backends to enable for Nek (if any)
 OCCA_CUDA_ENABLED=0
