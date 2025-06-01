@@ -265,7 +265,7 @@ build_moab:
 endif
 
 ifeq ($(ENABLE_DOUBLE_DOWN), OFF)
-build_doubledown:
+build_doubledown: build_moab
 	$(info Skipping Double-Down build because ENABLE_DOUBLE_DOWN is not set to 'yes')
 
 build_embree:
