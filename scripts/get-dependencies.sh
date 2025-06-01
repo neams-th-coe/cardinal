@@ -9,6 +9,8 @@ git submodule update --init --recursive contrib/openmc
 git submodule update --init contrib/DAGMC
 git submodule update --init contrib/moab
 git submodule update --init test/tests/nek_ci
+git submodule update --init contrib/double-down
+git submodule update --init contrib/embree
 
 set +ex
 

@@ -34,3 +34,9 @@
 [submodule "test/tests/nek_ci"]
 	path = test/tests/nek_ci
 	url = https://github.com/neams-th-coe/nek_ci.git
+[submodule "contrib/double-down"]
+	path = contrib/double-down
+	url = https://github.com/pshriwise/double-down.git
+[submodule "contrib/embree"]
+	path = contrib/embree
+	url = https://github.com/RenderKit/embree.git
