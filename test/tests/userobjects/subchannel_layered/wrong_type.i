@@ -6,7 +6,6 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
 []
 
 [UserObjects]

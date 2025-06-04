@@ -6,7 +6,14 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      direction = from_nek
+      field = temperature
+    []
+  []
 []
 
 [AuxVariables]
