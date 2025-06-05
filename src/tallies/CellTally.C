@@ -45,10 +45,7 @@ CellTally::validParams()
                                     1e-8,
                                     "equal_tally_volume_abs_tol > 0",
                                     "Absolute tolerance for comparing tally volumes");
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
-  
+
   return params;
 }
 
@@ -66,20 +63,12 @@ CellTally::CellTally(const InputParameters & parameters)
     if (block_names.empty())
       paramError("block", "Subdomain names must be provided if using 'block'!");
 
-<<<<<<< HEAD
     auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
-=======
-    auto block_ids = getMooseMesh().getSubdomainIDs(block_names);
->>>>>>> e2bb504b (rebsing my branch)
     std::copy(
         block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
 
     // Check to make sure all of the blocks are in the mesh.
-<<<<<<< HEAD
     const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
-=======
-    const auto & subdomains = getMooseMesh().meshSubdomains();
->>>>>>> e2bb504b (rebsing my branch)
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
         paramError("block",
@@ -88,11 +77,7 @@ CellTally::CellTally(const InputParameters & parameters)
   else
   {
     // Tally over all mesh blocks if no blocks are provided.
-<<<<<<< HEAD
     for (const auto & s : _openmc_problem.getMooseMesh().meshSubdomains())
-=======
-    for (const auto & s : getMooseMesh().meshSubdomains())
->>>>>>> e2bb504b (rebsing my branch)
       _tally_blocks.insert(s);
   }
 }
@@ -202,17 +187,6 @@ CellTally::checkCellMappedSubdomains()
 
     _cell_has_tally[cell_info] = at_least_one_in_tallies;
   }
-}
-
-MooseMesh &
-CellTally::getMooseMesh()
-{
-  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
-    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
-               "set use_displaced_mesh = False");
-  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
-              ? _openmc_problem.getDisplacedProblem()->mesh()
-              : _openmc_problem.mesh());
 }
 
 std::vector<OpenMCCellAverageProblem::cellInfo>

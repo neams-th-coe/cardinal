@@ -20,7 +20,6 @@
 
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
-#include "MooseMesh.h"
 
 /// Tally/filter includes.
 #include "TallyBase.h"
@@ -1111,9 +1110,6 @@ protected:
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;
-
-  /// Get a modifyable reference to the Moose mesh
-  virtual const MooseMesh & getMooseMesh() const;
 
   /// Mapping from temperature variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _temp_vars_to_blocks;

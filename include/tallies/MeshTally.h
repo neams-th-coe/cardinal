@@ -74,7 +74,7 @@ protected:
    * each element. This function performs as many checks as possible to ensure that the meshes
    * are indeed identical.
    */
-  void checkMeshTemplateAndTranslations() const;
+  void checkMeshTemplateAndTranslations();
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
