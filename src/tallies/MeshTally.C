@@ -171,8 +171,8 @@ MeshTally::spatialFilter()
     // elements in the desired blocks.
     if (_tally_blocks.size() > 0)
     {
-      _libmesh_mesh_copy =
-          std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), getMooseMesh().dimension());
+      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(),
+                                                                     getMooseMesh().dimension());
 
       msh->create_submesh(*_libmesh_mesh_copy.get(),
                           msh->active_subdomain_set_elements_begin(_tally_blocks),

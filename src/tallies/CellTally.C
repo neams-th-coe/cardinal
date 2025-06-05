@@ -45,7 +45,7 @@ CellTally::validParams()
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
-  
+
   return params;
 }
 
