@@ -5,7 +5,7 @@
     csvdiff = 1d_out_from_uo_0002.csv
     cli_args = 'UserObjects/vol_integral/check_zero_contributions=false'
     requirement = "The output points shall be automatically output for a single-axis radial distribution."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [2d_output]
     type = CSVDiff
@@ -13,6 +13,6 @@
     csvdiff = 2d_out_from_uo_0002.csv
     cli_args = 'UserObjects/vol_integral/check_zero_contributions=false'
     requirement = "The output points shall be automatically output for a single-axis radial distribution plus a 1-D distribution."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

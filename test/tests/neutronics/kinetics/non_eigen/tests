@@ -7,6 +7,6 @@
     input = openmc.i
     expect_err = "Kinetic parameters can only be calculated in k-eigenvalue mode!"
     requirement = "The system shall error if the problem attempts to enable IFP calculations when running in fixed source mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

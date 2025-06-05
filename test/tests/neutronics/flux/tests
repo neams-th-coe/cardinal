@@ -4,7 +4,7 @@
     input = flux.i
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [flip_order]
     type = CSVDiff
@@ -12,7 +12,7 @@
     cli_args = 'Problem/Tallies/Cell/score="flux heating"'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when listed in an arbitrary order."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [flip_order_and_name]
     type = CSVDiff
@@ -20,7 +20,7 @@
     cli_args = 'Problem/Tallies/Cell/score="flux heating" Problem/Tallies/Cell/name="flux0 heating0" Postprocessors/flux_pebble1/variable=flux0 Postprocessors/flux_pebble2/variable=flux0 Postprocessors/flux_pebble3/variable=flux0 Postprocessors/flux_fluid/variable=flux0 Problem/source_rate_normalization="heating"'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when listed in an arbitrary order and with user-defined names."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [not_already_added]
     type = CSVDiff
@@ -28,7 +28,7 @@
     cli_args = 'Problem/Tallies/Cell/score="flux" Problem/source_rate_normalization=heating'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when the source rate normalization tally is not already added."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_name]
     type = RunException
@@ -37,13 +37,13 @@
     expect_err = "When specifying 'name', the score indicated in 'source_rate_normalization' must be\n"
                  "listed in 'score' so that we know what you want to name that score \(heating\)"
     requirement = "The system shall error if the user tries to name only a partial set of the total tally scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_norm]
     type = RunException
     input = missing_norm.i
     expect_err = "When using a non-heating tally \(flux, H3_production\) in eigenvalue mode"
     requirement = "The system shall error if the user omits the required normalization tally for non-heating scores in eigenvalue mode"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

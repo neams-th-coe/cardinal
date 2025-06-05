@@ -4,7 +4,7 @@
     input = invalid_boundary.i
     expect_err = "Invalid 'boundary' entry: 5"
     requirement = "The system shall error if an invalid boundary ID is specified"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [z_bins]
     type = Exodiff
@@ -12,20 +12,20 @@
     exodiff = z_bins_out.e
     rel_err = 5e-4
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the quadrature point"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [z_bins_by_centroid]
     type = Exodiff
     input = z_bins_by_centroid.i
     exodiff = z_bins_by_centroid_out.e
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the face centroid"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [side_average]
     type = Exodiff
     input = side_average.i
     exodiff = side_average_out.e
     requirement = "The system shall correctly average over a sideset in the NekRS domain"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

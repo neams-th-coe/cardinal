@@ -11,7 +11,7 @@
                   "flux is imposed in nekRS through a boundary. The same problem is created in a standalone "
                   "MOOSE simulation, in moose.i. Temperatures agree to within 0.2% degrees, and the agreement "
                   "can be made better by using finer meshes in the coupled Cardinal case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [pyramid_exact]
     type = CSVDiff
@@ -23,7 +23,7 @@
                   "volumetric heating when using an exact mesh mirror. The solution is nearly identical "
                   "to the pyramid test and the usrwrk output for flux and volumetric heating match the "
                   "auxiliary variables in the Nek-wrapped input."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [duplicate_temp]
     type = RunException
@@ -31,6 +31,6 @@
     cli_args = "AuxVariables/heat_source/order=FIRST"
     expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source', but you already have a variable by this name."
     requirement = "The system shall error if the user specifies a duplicate variable with a name overlapping with special names reserved for Cardinal data transfers."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

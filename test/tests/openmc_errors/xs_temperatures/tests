@@ -6,7 +6,7 @@
     expect_err = "In attempting to set cell id 1, instance 0 \(of 1\) to temperature -100 \(K\), OpenMC reported:\n\n"
     requirement = "The system shall error if we attempt to set a temperature in OpenMC below the "
                   "lower bound of available data when using the interpolation method."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [interpolation_max]
     type = RunException
@@ -14,6 +14,6 @@
     expect_err = "In attempting to set cell id 1, instance 0 \(of 1\) to temperature 100000 \(K\), OpenMC reported:\n\n"
     requirement = "The system shall error if we attempt to set a temperature in OpenMC above the "
                   "upper bound of available data when using the interpolation method."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -8,13 +8,13 @@
     input = nek.i
     csvdiff = nek_out.csv
     requirement = 'dimensional form'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [nondimensional]
     type = CSVDiff
     input = nondimensional.i
     csvdiff = nondimensional_out.csv
     requirement = 'nondimensional form'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

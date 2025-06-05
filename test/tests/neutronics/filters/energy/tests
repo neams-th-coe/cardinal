@@ -7,7 +7,7 @@
     requirement = "The system shall be capable of adding an EnergyFilter (with energy boundaries provided) "
                   "to a CellTally. This test also ensures multi-group fluxes sum to the total flux for "
                   "cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [energy_cell_structure]
     type = CSVDiff
@@ -17,14 +17,14 @@
     requirement = "The system shall be capable of adding an EnergyFilter (with a group structure) "
                   "to a CellTally. This test also ensures multi-group fluxes sum to the total flux for "
                   "cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [energy_mesh]
     type = CSVDiff
     input = mesh.i
     csvdiff = mesh_out.csv
     requirement = "The system shall be capable of adding an EnergyFilter to a MeshTally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [group_sum]
     type = Exodiff
@@ -33,7 +33,7 @@
     requirement = "The system shall correctly compute multi-group fluxes with mesh tallies such that the "
                   "sum of the flux over each group equals the total flux. The gold file was generated "
                   "with an input file that scored the flux without an EnergyFilter."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [not_enough_bnds]
     type = RunException
@@ -41,7 +41,7 @@
     cli_args = 'Problem/Filters/Energy/energy_boundaries="1.0"'
     expect_err = "At least two energy values are required to create energy bins!"
     requirement = "The system shall error if there aren't enough energy boundaries to form an EnergyTally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [bnds_wrong_order]
     type = CSVDiff
@@ -49,7 +49,7 @@
     cli_args = 'Problem/Filters/Energy/energy_boundaries="2.0e7 6.25e-1 0.0"'
     csvdiff = cell_out.csv
     requirement = "The system shall automatically sort bins to ensure they're monotonically increasing."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_bins]
     type = RunException
@@ -58,7 +58,7 @@
                  "specified a bin option. Please specify either 'energy_boundaries' or "
                  "'group_structure'."
     requirement = "The system shall error if no energy bins are provided."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [both_bins]
     type = RunException
@@ -68,7 +68,7 @@
                  "specified a bin option. Please specify either 'energy_boundaries' or "
                  "'group_structure'."
     requirement = "The system shall error if no energy bins are provided."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [duplicate_bnds]
     type = RunException
@@ -76,7 +76,7 @@
     cli_args = 'Problem/Filters/Energy/energy_boundaries="0.0 6.25e-1 6.25e-1 2.0e7"'
     expect_err = "You have added duplicate energy boundaries!"
     requirement = "The system shall error if duplicate energy boundaries are provided."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [negative_bnds]
     type = RunException
@@ -84,6 +84,6 @@
     cli_args = 'Problem/Filters/Energy/energy_boundaries="-1.0 0.0 6.25e-1 2.0e7"'
     expect_err = "Energy group boundaries must be positive to create energy bins!"
     requirement = "The system shall error if negative energy boundaries are provided."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -9,6 +9,6 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The k-eigenvalue and its standard deviation shall be correctly retrieved from the OpenMC solution."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

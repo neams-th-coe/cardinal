@@ -5,7 +5,7 @@
     check_files = 'pyramid/nek_out.csv pyramid/pyramid0.f00001'
     requirement = "Cardinal shall be able to run NekRS input files nested within subdirectories in the same "
                   "fashion that a standalone NekRS case will"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_directory]
     type = RunException
@@ -13,6 +13,6 @@
     cli_args = 'Problem/casename="invalid/pyramid"'
     expect_err = "Failed to find 'invalid/'! Did you set the 'casename' correctly?"
     requirement = "The system shall error if an invalid directory path is provided for the case"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

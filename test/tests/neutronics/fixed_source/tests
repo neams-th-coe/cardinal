@@ -5,7 +5,7 @@
     csvdiff = overlap_all_out.csv
     requirement = "The system shall correctly normalize tallies from a fixed source simulation when there "
                   "is perfect overlap between the OpenMC model and the MOOSE mesh."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [normalize_unused]
     type = RunException
@@ -14,7 +14,7 @@
     expect_err = "When running OpenMC in fixed source mode, the 'normalize_by_global_tally' parameter is unused"
     requirement = "The system shall notify the user that the settings related to normalizing by global "
                   "or local tallies are inconsequential for fixed source mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_power]
     type = RunException
@@ -23,7 +23,7 @@
     expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the total tally sum does not match the system-wide value for "
                   "fixed source simulations."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [overlap_solid]
     type = CSVDiff
@@ -31,13 +31,13 @@
     csvdiff = overlap_solid_out.csv
     requirement = "The system shall correctly normalize tallies from a fixed source simulation when there "
                   "is only partial overlap between the OpenMC model and MOOSE domain."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [flux]
     type = CSVDiff
     input = flux.i
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for fixed source simulations."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

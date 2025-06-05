@@ -9,21 +9,21 @@
       input = points.i
       csvdiff = points_out.csv
       detail = 'dimensional form'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
     [nondimensional]
       type = CSVDiff
       input = points_nondimensional.i
       csvdiff = points_nondimensional_out.csv
       detail = 'non-dimensional form'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
     [usrwrk_units]
       type = CSVDiff
       input = usrwrk_units.i
       csvdiff = usrwrk_units_out.csv
       detail = 'non-dimensional scaling of usrwrk slots for which the units are known'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
   []
 
@@ -36,7 +36,7 @@
       cli_args = 'Postprocessors/usrwrk/field=usrwrk00 --error'
       expect_err = "The units of 'usrwrk00' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'."
       detail = 'usrwrk slot 0'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
     [u01]
       type = RunException
@@ -44,7 +44,7 @@
       cli_args = 'Postprocessors/usrwrk/field=usrwrk01 --error'
       expect_err = "The units of 'usrwrk01' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk01'."
       detail = 'usrwrk slot 1'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
     [u02]
       type = RunException
@@ -52,7 +52,7 @@
       cli_args = '--error'
       expect_err = "The units of 'usrwrk02' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk02'."
       detail = 'usrwrk slot 2'
-      required_objects = 'NekRSProblem'
+      capabilities = 'nekrs'
     []
   []
 []

@@ -12,7 +12,7 @@
                   "conservation of energy and realistic thermal solutions. Exact conservation of energy "
                   "(based on the power imposed in the solid) will not be observed because some heat flux "
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     max_time = 500
   []
   [sfr_pincell_vpp]
@@ -25,7 +25,7 @@
     requirement = "Individually conserving heat flux sideset by sideset shall give equivalent results "
                   "to the all-combined option when there is just one coupling sideset. The gold file "
                   "for this test is identical to that for the sfr_pincell case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     max_time = 500
   []
   [impose_heat_flux]
@@ -34,7 +34,7 @@
     csvdiff = nek_isolated_out.csv
     min_parallel = 6
     requirement = "The system shall allow imposing heat flux through a dummy main application, instead of coupling NekRS via conjugate heat transfer. This is verified by computing the heat flux on the NekRS mesh, which adequately matches an initial value set in a postprocessor. This gold file is also identical to that obtained by running a dummy main app (solid_dummy) that passes in the desired flux_integral initial condition."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     issues = '#797'
   []
 []

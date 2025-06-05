@@ -5,7 +5,7 @@
     expect_err = "material 2 is present in more than one density feedback cell.\n"
     requirement = "The system shall error if we attempt to set a density in a material that is repeated "
                   "throughout our list of fluid cells."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_error_for_solid]
     type = RunApp
@@ -13,6 +13,6 @@
     check_input = true
     requirement = "If the same material appears in more than one solid cell, there should be no error "
                   "like there is for the fluid case, because we do not change the density of solid cells."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -5,13 +5,13 @@
     expect_err = "Densities less than or equal to zero cannot be set in the OpenMC model!\n\n"
                  " cell id 1, instance 0 \(of 1\) set to density 0 \(kg/m3\)"
     requirement = "The system shall error if we attempt to set a density less than or equal to zero in OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [void_density]
     type = RunException
     input = void_density.i
     expect_err = "Cannot set density for cell id 2, instance 0 \(of 1\) because this cell is void \(vacuum\)!"
     requirement = "The system shall error if we attempt to set a density in a void OpenMC cell"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

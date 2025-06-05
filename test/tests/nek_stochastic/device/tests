@@ -3,7 +3,7 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre pyramid 1'
     requirement = "The system shall precompile a NekRS case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [device]
@@ -15,7 +15,7 @@
                   "random values from MOOSE to NekRS. The values of the random variables are used to apply a "
                   "Dirichlet boundary condition on temperature, which we confirm by looking at the value of "
                   "temperature on the boundary using postprocessors."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     mesh_mode = replicated
   []
 []

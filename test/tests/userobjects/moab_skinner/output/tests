@@ -5,14 +5,14 @@
     check_files = 'moab_mesh_0.h5m'
     mesh_mode = 'replicated'
     requirement = "The system shall output the MOAB mesh copied from libMesh into the .h5m format"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [convert_to_gmsh]
     type = RunCommand
     prereq = output_mesh
     command = '../../../../../install/bin/mbconvert moab_mesh_0.h5m mesh.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
     installation_type = in_tree
     use_shell = True
   []

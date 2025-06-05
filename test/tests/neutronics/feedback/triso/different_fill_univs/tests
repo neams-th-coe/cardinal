@@ -5,7 +5,7 @@
     expect_err = "Not all cells contain cell ID 2."
     requirement = "The system shall error if trying to utilize identical cell fills "
                   "but the filling cell IDs are not identical among the cells"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [non_solid]
     type = RunException
@@ -13,7 +13,7 @@
     cli_args = 'Problem/temperature_blocks="1 2" Problem/density_blocks="2" Problem/identical_cell_fills="2"'
     expect_err = "Entries in 'identical_cell_fills' cannot be contained in 'density_blocks'"
     requirement = "The system shall error if trying to utilize identical cell fills for a non-solid block"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [inconsistent_map]
     type = RunException
@@ -22,6 +22,6 @@
     expect_err = "Cell id 22, instance  0 \(of  1\) mapped to inconsistent 'identical_cell_fills' settings.\n"
                  "Subdomain 2 is in 'identical_cell_fills', but 1 is not."
     requirement = "The system shall error if inconsistent settings are applied for the identical cell mapping"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -4,14 +4,14 @@
     input = main.i
     requirement = "The NekRS wrapping shall allow a zero total flux to be sent from MOOSE to NekRS "
                   "when all sidesets are conserved together."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [zero_flux_total_vpp]
     type = RunApp
     input = main_vpp.i
     requirement = "The NekRS wrapping shall allow a zero total flux to be sent from MOOSE to NekRS "
                   "when sidesets are individually conserved."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [vpp_disjoint]
     type = CSVDiff
@@ -19,7 +19,7 @@
     csvdiff = main_disjoint_out_nek0.csv
     requirement = "The NekRS wrapping shall allow unique sideset fluxes provided that the sidesets do not "
                   "share any nodes in the NekRS mesh."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [vpp_disjoint_zero]
     type = CSVDiff
@@ -27,7 +27,7 @@
     csvdiff = main_zero_out_nek0.csv
     requirement = "The NekRS wrapping shall allow unique sideset fluxes provided that the sidesets do not "
                   "share any nodes in the NekRS mesh, with some sidesets being zero flux."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [mismatch_length]
     type = RunException
@@ -35,7 +35,7 @@
     expect_err = "The sideset flux reporter transferred to NekRS must have a length equal to"
     requirement = "The system shall print a helpful error message if the sideset flux reporter does "
                   "not have the correct length."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [nodes_on_shared]
     type = RunException
@@ -43,6 +43,6 @@
     expect_err = "Flux normalization process failed!"
     requirement = "The system shall error if conserving flux on each unique sideset, but with nodes "
                   "shared across multiple sidesets."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

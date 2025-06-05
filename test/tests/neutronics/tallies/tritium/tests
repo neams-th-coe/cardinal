@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall allow tallying of tritium production rates in fixed source mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

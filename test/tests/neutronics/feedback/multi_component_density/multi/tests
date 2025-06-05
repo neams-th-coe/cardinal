@@ -4,14 +4,14 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall allow reading density from user-defined names, with one density variable per cell. Reference values were obtained by running OpenMC standalone."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_vars]
     type = CSVDiff
     input = multi_vars.i
     csvdiff = multi_vars_out.csv
     requirement = "The system shall allow reading density from user-defined names, with more than one density variable per cell"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_vars_alt]
     type = CSVDiff
@@ -19,6 +19,6 @@
     csvdiff = multi_vars_out.csv
     cli_args = "Outputs/file_base=multi_vars_out"
     requirement = "The system shall allow lumping of subdomains together, equivalent to explicitly listing density correspondence to blocks"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

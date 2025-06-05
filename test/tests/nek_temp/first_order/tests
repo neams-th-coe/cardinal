@@ -10,7 +10,7 @@
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [first_order_volume_temperature]
     type = Exodiff
@@ -21,6 +21,6 @@
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

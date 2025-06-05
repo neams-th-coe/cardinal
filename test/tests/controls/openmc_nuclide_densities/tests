@@ -4,13 +4,13 @@
     input = error.i
     expect_err = 'The given UserObject does not exist or it is not a OpenMCNuclideDensities object'
     requirement = 'The system shall error if the controls is not used with the proper user object'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [mat]
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = 'The system shall change OpenMC material compositions via a controls'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

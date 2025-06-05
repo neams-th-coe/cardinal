@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall output the number of coupled OpenMC cells"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -8,7 +8,7 @@
     csvdiff = cell_out.csv
     cli_args = 'Problem/Filters/EnergyOut/energy_boundaries="0.0 6.25e-1 2.0e7"'
     requirement = "The system shall be capable of adding an EnergyOutFilter (with energy boundaries provided)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [energy_cell_structure]
     type = CSVDiff
@@ -16,7 +16,7 @@
     csvdiff = cell_out.csv
     cli_args = 'Problem/Filters/EnergyOut/group_structure=CASMO_2'
     requirement = "The system shall be capable of adding an EnergyOutFilter (with a group structure)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [force_analog]
     type = RunException
@@ -24,6 +24,6 @@
     cli_args = 'Problem/Filters/EnergyOut/group_structure=CASMO_2 Problem/Tallies/Scattering/estimator=collision'
     expect_err = "The filter EnergyOut requires an analog estimator!"
     requirement = "The system shall error if the user attempts to use a non-analog estimator with an EnergyOutFilter."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -10,7 +10,7 @@
       input = mg_diffusion_coeff.i
       csvdiff = mg_diffusion_coeff_out.csv
       detail = "The system shall calculate multi-group particle diffusion coefficients."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [catch_zero_flux]
       type = CSVDiff
@@ -19,7 +19,7 @@
       cli_args = "Outputs/file_base='diff_zero_flux_out' AuxKernels/comp_diff_g1/scalar_flux='zero_flux'"
       detail = "The system shall prevent divide by zeros when calculating multi-group diffusion coefficients. "
                "This also checks for cases where the transport cross section is zero."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
   []
 
@@ -32,7 +32,7 @@
       input = mg_tc_scatter_xs.i
       csvdiff = mg_tc_scatter_xs_out.csv
       detail = "The system shall calculate multi-group transport corrected P0 scattering cross sections."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [catch_zero_flux]
       type = CSVDiff
@@ -40,7 +40,7 @@
       csvdiff = zero_flux_out.csv
       cli_args = "Outputs/file_base='zero_flux_out' AuxKernels/comp_scatter_g1_g1_l0/scalar_flux='zero_flux'"
       detail = "The system shall prevent divide by zeros when calculating transport corrected P0 scattering cross sections."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
   []
 
@@ -53,7 +53,7 @@
       input = generic_mgxs.i
       csvdiff = generic_mgxs_out.csv
       detail = "The system shall calculate multi-group cross sections using an arbitrary reaction rate and normalization factor."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [catch_zero_flux]
       type = CSVDiff
@@ -61,7 +61,7 @@
       csvdiff = zero_flux_out.csv
       cli_args = "Outputs/file_base='zero_flux_out' AuxKernels/comp_total_g1/normalize_by='zero_flux'"
       detail = "The system shall prevent divide by zeros when calculating cross sections."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
   []
 []

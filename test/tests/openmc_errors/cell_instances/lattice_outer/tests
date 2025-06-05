@@ -4,6 +4,6 @@
     input = temp.i
     expect_err = "mapped to cell 2 in the OpenMC model is inside a universe used as the 'outer' universe of a lattice."
     requirement = "The system shall error if attempting to pass temperature feedback to a lattice outer universe due to lack of instance support in OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

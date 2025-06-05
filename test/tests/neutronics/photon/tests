@@ -4,7 +4,7 @@
     input = openmc.i
     expect_err = "Tracklength estimators are currently incompatible with photon transport and heating scores!"
     requirement = "The system shall error if using incompatible tally estimator with a photon transport heating score."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
     issues = '#1114'
     design = 'AddTallyAction.md'
   []
@@ -15,7 +15,7 @@
     expect_err = "A single tally cannot score both nu_scatter and heating when photon transport is enabled"
     requirement = "The system shall error if using a single tally with a photon transport heating score and nu-scatter score."
     cli_args = 'Problem/Tallies/Cell/score="nu_scatter heating" Problem/Tallies/Cell/estimator=""'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
     issues = '#1089'
     design = 'AddTallyAction.md'
   []

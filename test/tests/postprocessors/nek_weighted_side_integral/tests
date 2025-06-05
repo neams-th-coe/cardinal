@@ -12,7 +12,7 @@
                   "Perfect agreement is not to be expected, since the underlying basis functions "
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_field]
     type = RunException
@@ -20,6 +20,6 @@
     cli_args = "Postprocessors/weighted_T_side1/field=velocity_component Postprocessors/weighted_T_side1/velocity_direction='1 0 0'"
     expect_err = "This class does not support 'field = velocity_component'"
     requirement = "System shall error if using an unsupported field with a mass flux weighted postprocessor."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []
