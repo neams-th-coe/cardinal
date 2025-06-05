@@ -8,7 +8,14 @@ gap_thickness = ${fparse 0.1 * 7.646e-3}
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'pressure'
+
+  [FieldTransfers]
+    [P]
+      type = NekFieldVariable
+      direction = from_nek
+      field = pressure
+    []
+  []
 []
 
 [AuxVariables]

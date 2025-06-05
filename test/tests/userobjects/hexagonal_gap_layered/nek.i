@@ -8,7 +8,14 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [AuxVariables]

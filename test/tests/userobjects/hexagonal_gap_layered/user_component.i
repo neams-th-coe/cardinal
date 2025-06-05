@@ -8,7 +8,24 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'velocity'
+
+  [FieldTransfers]
+    [vel_x]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_x
+    []
+    [vel_y]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_y
+    []
+    [vel_z]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_z
+    []
+  []
 []
 
 [AuxVariables]
