@@ -5,6 +5,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'brick'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

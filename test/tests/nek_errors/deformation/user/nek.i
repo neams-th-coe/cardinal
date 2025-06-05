@@ -9,6 +9,14 @@
   type = NekRSProblem
   casename = 'user'
   has_heat_source = false
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

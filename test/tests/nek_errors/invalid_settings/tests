@@ -5,7 +5,7 @@
   [executioner]
     type = RunException
     input = executioner.i
-    expect_err = "A 'Transient' executioner must be used with 'NekRSProblem', but you have specified the 'Steady' executioner!"
+    expect_err = "A 'Transient' executioner must be used with 'NekRSStandaloneProblem', but you have specified the 'Steady' executioner!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct executioner."
     max_parallel = 12
     required_objects = 'NekRSProblem'
@@ -46,7 +46,7 @@
   [timestepper]
     type = RunException
     input = timestepper.i
-    expect_err = "The 'NekTimeStepper' stepper must be used with 'NekRSProblem', "
+    expect_err = "The 'NekTimeStepper' stepper must be used with 'NekRSStandaloneProblem', "
                  "but you have specified the 'ConstantDT' time stepper!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
     max_parallel = 12

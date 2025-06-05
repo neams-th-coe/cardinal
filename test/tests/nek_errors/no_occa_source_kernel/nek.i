@@ -1,6 +1,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'cube'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

@@ -18,6 +18,14 @@
   casename = 'brick2'
   has_heat_source = false
   n_usrwrk_slots = 1
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

@@ -9,6 +9,14 @@
   type = NekRSProblem
   has_heat_source = false
   casename = 'elast_nomv'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

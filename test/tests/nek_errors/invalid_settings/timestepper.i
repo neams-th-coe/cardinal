@@ -4,7 +4,7 @@
 []
 
 [Problem]
-  type = NekRSProblem
+  type = NekRSStandaloneProblem
   casename = 'brick'
 []
 
