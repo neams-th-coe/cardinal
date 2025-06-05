@@ -23,4 +23,11 @@
     requirement = "The system shall error if there is a mismatch between parameter lengths for writing usrwrk field files"
     required_objects = 'NekRSProblem'
   []
+  [bad_name]
+    type = RunException
+    input = bad_name.i
+    expect_err = "We tried to choose a default 'field' as 'temp', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter."
+    requirement = "The system shall error if the default choice for the field cannot be matched from the object name."
+    required_objects = 'NekRSProblem'
+  []
 []
