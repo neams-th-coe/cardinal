@@ -183,7 +183,6 @@ CellTally::checkCellMappedSubdomains()
   }
 }
 
-
 std::vector<OpenMCCellAverageProblem::cellInfo>
 CellTally::getTallyCells() const
 {

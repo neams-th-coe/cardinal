@@ -352,5 +352,4 @@ protected:
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
-
 };

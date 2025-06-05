@@ -69,7 +69,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
 
   // Error check the mesh template.
-  if (_openmc_problem.getMooseMesh().getMesh().allow_renumbering() && !_openmc_problem.getMooseMesh().getMesh().is_replicated())
+  if (_openmc_problem.getMooseMesh().getMesh().allow_renumbering() &&
+      !_openmc_problem.getMooseMesh().getMesh().is_replicated())
     mooseError(
         "Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
@@ -142,7 +143,8 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
-    auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_openmc_problem.getMooseMesh().getMeshPtr());
+    auto msh =
+        dynamic_cast<const libMesh::ReplicatedMesh *>(_openmc_problem.getMooseMesh().getMeshPtr());
     if (!msh)
       mooseError("Internal error: The mesh is not a replicated mesh.");
 
@@ -167,8 +169,8 @@ MeshTally::spatialFilter()
     // elements in the desired blocks.
     if (_tally_blocks.size() > 0)
     {
-      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(),
-                                                                     _openmc_problem.getMooseMesh().dimension());
+      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(
+          _openmc_problem.comm(), _openmc_problem.getMooseMesh().dimension());
 
       msh->create_submesh(*_libmesh_mesh_copy.get(),
                           msh->active_subdomain_set_elements_begin(_tally_blocks),
@@ -181,8 +183,8 @@ MeshTally::spatialFilter()
           std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
     }
     else
-      openmc::model::meshes.emplace_back(
-          std::make_unique<openmc::LibMesh>(_openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
+      openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(
+          _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
   }
   else
     openmc::model::meshes.emplace_back(
