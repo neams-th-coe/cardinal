@@ -57,12 +57,12 @@ CellTally::CellTally(const InputParameters & parameters)
     if (block_names.empty())
       paramError("blocks", "Subdomain names must be provided if using 'blocks'!");
 
-    auto block_ids = getMooseMesh().getSubdomainIDs(block_names);
+    auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
     std::copy(
         block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
 
     // Check to make sure all of the blocks are in the mesh.
-    const auto & subdomains = getMooseMesh().meshSubdomains();
+    const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
         paramError("blocks",
@@ -71,7 +71,7 @@ CellTally::CellTally(const InputParameters & parameters)
   else
   {
     // Tally over all mesh blocks if no blocks are provided.
-    for (const auto & s : getMooseMesh().meshSubdomains())
+    for (const auto & s : _openmc_problem.getMooseMesh().meshSubdomains())
       _tally_blocks.insert(s);
   }
 }
@@ -183,16 +183,6 @@ CellTally::checkCellMappedSubdomains()
   }
 }
 
-MooseMesh &
-CellTally::getMooseMesh()
-{
-  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
-    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
-               "set use_displaced_mesh = False");
-  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
-              ? _openmc_problem.getDisplacedProblem()->mesh()
-              : _openmc_problem.mesh());
-}
 
 std::vector<OpenMCCellAverageProblem::cellInfo>
 CellTally::getTallyCells() const

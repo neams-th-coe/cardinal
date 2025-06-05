@@ -69,7 +69,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
 
   // Error check the mesh template.
-  if (getMooseMesh().getMesh().allow_renumbering() && !getMooseMesh().getMesh().is_replicated())
+  if (_openmc_problem.getMooseMesh().getMesh().allow_renumbering() && !_openmc_problem.getMooseMesh().getMesh().is_replicated())
     mooseError(
         "Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
@@ -98,7 +98,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
     // for distributed meshes, each rank only owns a portion of the mesh information, but
     // OpenMC wants the entire mesh to be available on every rank. We might be able to add
     // this feature in the future, but will need to investigate
-    if (!getMooseMesh().getMesh().is_replicated())
+    if (!_openmc_problem.getMooseMesh().getMesh().is_replicated())
       mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
                  "for distributed meshes!");
 
@@ -114,12 +114,12 @@ MeshTally::MeshTally(const InputParameters & parameters)
       if (block_names.empty())
         paramError("blocks", "Subdomain names must be provided if using 'blocks'!");
 
-      auto block_ids = getMooseMesh().getSubdomainIDs(block_names);
+      auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
       std::copy(
           block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
 
       // Check to make sure all of the blocks are in the mesh.
-      const auto & subdomains = getMooseMesh().meshSubdomains();
+      const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
       for (std::size_t b = 0; b < block_names.size(); ++b)
         if (subdomains.find(block_ids[b]) == subdomains.end())
           paramError("blocks",
@@ -142,7 +142,7 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
-    auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(getMooseMesh().getMeshPtr());
+    auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_openmc_problem.getMooseMesh().getMeshPtr());
     if (!msh)
       mooseError("Internal error: The mesh is not a replicated mesh.");
 
@@ -168,7 +168,7 @@ MeshTally::spatialFilter()
     if (_tally_blocks.size() > 0)
     {
       _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(),
-                                                                     getMooseMesh().dimension());
+                                                                     _openmc_problem.getMooseMesh().dimension());
 
       msh->create_submesh(*_libmesh_mesh_copy.get(),
                           msh->active_subdomain_set_elements_begin(_tally_blocks),
@@ -182,7 +182,7 @@ MeshTally::spatialFilter()
     }
     else
       openmc::model::meshes.emplace_back(
-          std::make_unique<openmc::LibMesh>(getMooseMesh().getMesh(), _openmc_problem.scaling()));
+          std::make_unique<openmc::LibMesh>(_openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
   }
   else
     openmc::model::meshes.emplace_back(
@@ -251,17 +251,6 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
   return total;
 }
 
-MooseMesh &
-MeshTally::getMooseMesh()
-{
-  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
-    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
-               "set use_displaced_mesh = False");
-  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
-              ? _openmc_problem.getDisplacedProblem()->mesh()
-              : _openmc_problem.mesh());
-}
-
 void
 MeshTally::checkMeshTemplateAndTranslations()
 {
@@ -278,7 +267,7 @@ MeshTally::checkMeshTemplateAndTranslations()
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
     auto elem_id = _use_dof_map ? _bin_to_element_mapping[e] : mesh_offset + e;
-    auto elem_ptr = getMooseMesh().queryElemPtr(elem_id);
+    auto elem_ptr = _openmc_problem.getMooseMesh().queryElemPtr(elem_id);
 
     // if element is not on this part of the distributed mesh, skip it
     if (!elem_ptr)
