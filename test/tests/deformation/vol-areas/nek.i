@@ -9,6 +9,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

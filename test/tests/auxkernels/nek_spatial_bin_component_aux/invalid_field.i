@@ -1,7 +1,6 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'brick'
-  output = 'pressure'
 []
 
 [Mesh]

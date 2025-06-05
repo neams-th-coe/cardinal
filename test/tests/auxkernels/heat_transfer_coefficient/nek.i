@@ -4,6 +4,13 @@
   initial_flux_integral = 1000
   synchronization_interval = constant
   constant_interval = 100
+
+  [FieldTransfers]
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

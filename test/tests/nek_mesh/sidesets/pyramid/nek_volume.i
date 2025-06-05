@@ -1,5 +1,5 @@
 [Problem]
-  type = NekRSProblem
+  type = NekRSStandaloneProblem
   casename = 'pyramid'
 []
 
@@ -21,7 +21,6 @@
 [Outputs]
   exodus = true
   csv = true
-  hide = 'flux_integral source_integral'
 []
 
 [Postprocessors]

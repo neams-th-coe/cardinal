@@ -10,6 +10,14 @@
   type = NekRSProblem
   casename = 'nekbox'
   synchronization_interval = parent_app
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [AuxVariables]
