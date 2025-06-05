@@ -18,55 +18,19 @@
 
 #pragma once
 
-#include "MooseObject.h"
+#include "FieldTransferBase.h"
 
-class NekRSProblemBase;
-class NekRSMesh;
-class AuxiliarySystem;
-
-/**
- * Base class for facilitating a data transfer between MOOSE and the NekRS
- * code internals.
- */
-class FieldTransferBase : public MooseObject
+class ConservativeFieldTransfer : public FieldTransferBase
 {
 public:
   static InputParameters validParams();
 
-  FieldTransferBase(const InputParameters & parameters);
-
-  /**
-   * Add a MOOSE variable to facilitate coupling
-   * @param[in] name variable name
-   */
-  void addExternalVariable(const std::string name);
-
-  /**
-   * Add a postprocessor to facilitate coupling
-   * @param[in] name postprocessor name
-   * @param[in] initial initial value to use for the postprocessor
-   */
-  void addExternalPostprocessor(const std::string name, const Real initial);
-
-  /**
-   * Variable name added by this object
-   * @return variable name
-   */
-  std::string variableName() const { return _variable; }
+  ConservativeFieldTransfer(const InputParameters & parameters);
 
 protected:
-  /// The NekRSProblem using the field transfer interface
-  NekRSProblemBase & _nek_problem;
+  /// Absolute tolerance for checking conservation
+  const Real & _abs_tol;
 
-  /// The underlying NekRSMesh mirror
-  NekRSMesh * _nek_mesh;
-
-  /// Direction of the transfer
-  const MooseEnum & _direction;
-
-  /// Variable name to create in MOOSE to facilitate data passing
-  std::string _variable;
-
-  /// Internal number for the variable created in MOOSE
-  unsigned int _variable_number;
+  /// Relative tolerance for checking conservation
+  const Real & _rel_tol;
 };

@@ -19,8 +19,10 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSProblemBase.h"
+#include "NekRSMesh.h"
 #include "FieldTransferBase.h"
 #include "UserErrorChecking.h"
+#include "AuxiliarySystem.h"
 
 registerMooseObject("CardinalApp", FieldTransferBase);
 
@@ -46,6 +48,11 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
     _nek_problem(*getParam<NekRSProblemBase *>("_nek_problem")),
     _direction(getParam<MooseEnum>("direction"))
 {
+  _nek_mesh = dynamic_cast<NekRSMesh *>(&(getMooseApp().feProblem().mesh()));
+
+  if (!_nek_mesh)
+    mooseError("Mesh for must be of type 'NekRSMesh'");
+
   // when writing data into Nek, we require a variable to read from; if not
   // provided, then choose the object name as default
   if (_direction == "to_nek")
@@ -76,5 +83,14 @@ FieldTransferBase::addExternalVariable(const std::string name)
   auto var_params = _nek_problem.getExternalVariableParameters();
   _nek_problem.checkDuplicateVariableName(name);
   _nek_problem.addAuxVariable("MooseVariable", name, var_params);
+}
+
+void
+FieldTransferBase::addExternalPostprocessor(const std::string name, const Real initial)
+{
+  auto pp_params = _factory.getValidParams("Receiver");
+  pp_params.set<Real>("default") = initial;
+  _nek_problem.addPostprocessor("Receiver", name, pp_params);
+  _variable_number = _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, _variable).number();
 }
 #endif
