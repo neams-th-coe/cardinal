@@ -12,6 +12,14 @@
     rho = 834.5
     Cp = 1228.0
   []
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

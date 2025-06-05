@@ -2,6 +2,14 @@
   type = NekRSProblem
   casename = 'sfr_pin'
   initial_flux_integral = 10
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

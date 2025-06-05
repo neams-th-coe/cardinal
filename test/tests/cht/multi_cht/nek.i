@@ -6,7 +6,23 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'conj_ht'
-  output = 'temperature pressure scalar01'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      direction = from_nek
+      field = temperature
+    []
+    [P]
+      type = NekFieldVariable
+      direction = from_nek
+      field = pressure
+    []
+    [scalar01]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

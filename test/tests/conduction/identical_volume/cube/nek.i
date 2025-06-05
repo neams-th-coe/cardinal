@@ -8,6 +8,14 @@
   # source, which is actually used),
   # so we can skip allocating extra
   n_usrwrk_slots = 2
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

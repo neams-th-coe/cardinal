@@ -8,6 +8,14 @@
   type = NekRSProblem
   casename = 'onepebble2'
   first_reserved_usrwrk_slot = 1
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

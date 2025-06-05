@@ -11,6 +11,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'onepebble2'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]
