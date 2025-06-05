@@ -58,7 +58,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation")
                                                        : Point(0.0, 0.0, 0.0)),
     _instance(getParam<unsigned int>("instance")),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _use_dof_map(_is_adaptive || isParamValid("blocks"))
 {
   if (isParamSetByUser("blocks"))

@@ -55,8 +55,7 @@ CellTally::validParams()
 CellTally::CellTally(const InputParameters & parameters)
   : TallyBase(parameters),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
-    _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
-    _use_displaced(getParam<bool>("use_displaced_mesh"))
+    _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
 {
   if (isParamSetByUser("blocks"))
     mooseError("This parameter is deprecated, use 'block' instead!");

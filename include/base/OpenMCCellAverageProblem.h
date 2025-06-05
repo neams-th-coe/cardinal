@@ -20,7 +20,6 @@
 
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
-#include "OpenMCVolumeCalculation.h"
 #include "MooseMesh.h"
 
 /// Tally/filter includes.
