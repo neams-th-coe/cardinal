@@ -42,9 +42,6 @@ CellTally::validParams()
                                     1e-8,
                                     "equal_tally_volume_abs_tol > 0",
                                     "Absolute tolerance for comparing tally volumes");
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }

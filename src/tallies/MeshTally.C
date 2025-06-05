@@ -44,9 +44,6 @@ MeshTally::validParams()
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }
