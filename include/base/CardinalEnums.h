@@ -25,6 +25,7 @@ MooseEnum getSynchronizationEnum();
 MooseEnum getNekOrderEnum();
 MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
+MooseEnum getNekOutputEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getTallyEstimatorEnum();
@@ -125,6 +126,22 @@ enum NekWriteEnum
   mesh_velocity_z
 };
 } // namespace field
+
+namespace output
+{
+/// Enumeration of possible fields to read from NekRS
+enum NekOutputEnum
+{
+  velocity_x,
+  velocity_y,
+  velocity_z,
+  temperature,
+  pressure,
+  scalar01,
+  scalar02,
+  scalar03
+};
+} // namespace output
 
 namespace operation
 {

@@ -51,6 +51,13 @@ getNekFieldEnum()
 }
 
 MooseEnum
+getNekOutputEnum()
+{
+  return MooseEnum("velocity_x velocity_y velocity_z temperature pressure scalar01 scalar02 scalar03");
+}
+
+
+MooseEnum
 getOperationEnum()
 {
   return MooseEnum("max min average", "max");
