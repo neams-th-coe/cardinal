@@ -18,7 +18,7 @@
                   "0.1% difference in temperatures (this is to be expected, though, because "
                   "the _solve_ is not exactly the same between a nondimensional and dimensional case - "
                   "the governing equation is the same, but not necessarily the number of iterations, etc. "
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [sfr_pincell_exact]
     type = CSVDiff
@@ -33,6 +33,6 @@
                   "the sfr_pincell case, and results are very similar with only small differences "
                   "due to the different mesh mirror representations. The usrwrk_output feature was "
                   "also used to check the correctness of the flux map into NekRS."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -5,14 +5,14 @@
     cli_args = 'UserObjects/vol/lower_left="10.0 0.0 0.0"'
     expect_err = "The 'upper_right' \(2.5, 2.5, 10\) must be greater than the 'lower_left' \(10, 0, 0\)!"
     requirement = "The system shall error if an invalid bounding box is specified for volume calculations"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [single_level]
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall map stochastic volumes for each OpenMC cell which maps to MOOSE."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [single_level_scaling]
     type = CSVDiff
@@ -20,7 +20,7 @@
     csvdiff = scaling_out.csv
     requirement = "The system shall map stochastic volumes for each OpenMC cell which maps to MOOSE when the Mesh "
                   "is not in units of centimeters"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_vol]
     type = RunException
@@ -28,7 +28,7 @@
     expect_err = "To display the actual OpenMC cell volumes"
     requirement = "The system shall error if trying to view stochastic volumes without the stochastic "
                   "volume calculation having been created."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [rel_err_trigger]
     type = CSVDiff
@@ -36,13 +36,13 @@
     csvdiff = rel_err_out.csv
     cli_args = 'UserObjects/vol/trigger=rel_err UserObjects/vol/trigger_threshold=1e-2 Outputs/file_base=rel_err_out'
     requirement = "The system shall terminate the stochastic volume calculation using a relative error metric."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [user_bb]
     type = CSVDiff
     input = user_bb.i
     csvdiff = user_bb_out.csv
     requirement = "The system shall correctly compute volumes in OpenMC when using a user-provided bounding box."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

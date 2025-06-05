@@ -7,7 +7,7 @@
     requirement = "The system shall allow any cell which maps to a particular subdomain to be set with an identical "
                   "cell fill. Here, the gold files were created using an input which does not use this feature "
                   "(which we also compare to a standalone OpenMC run)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [warn_unused]
     type = RunException
@@ -16,6 +16,6 @@
     expect_err = "You specified 'identical_cell_fills', but all cells which mapped to these subdomains"
     requirement = "The system shall warn the user if the identical cell fill is unused because all mapped "
                   "cells are simple, material-fills."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

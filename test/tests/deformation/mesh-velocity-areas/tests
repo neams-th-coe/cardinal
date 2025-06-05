@@ -10,7 +10,7 @@
                   "NekRS meshes, which agree very well. Improved agreement is obtained by decreasing "
                   "the time step of the data transfers, due to the first-order finite difference "
                   "approximation made for velocity."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [volume]
     type = CSVDiff
@@ -21,6 +21,6 @@
     requirement = "A boundary displacement in the main app will displace the mesh in NekRS "
                   "when using a volume mesh mirror. We use the same gold file as for the boundary test, "
                   "proving equivalence."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -4,7 +4,7 @@
     input = multi_filter.i
     csvdiff = multi_filter_out.csv
     requirement = "The system shall support multiple filters within a tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_norm_score]
     type = CSVDiff
@@ -12,7 +12,7 @@
     csvdiff = filter_no_norm_score_out.csv
     requirement = "The system shall support the automatic addition of the requested source rate normalization score to a single tally when"
                   " using filters."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_filter]
     type = RunException
@@ -20,13 +20,13 @@
     cli_args = 'Problem/Tallies/Flux/filters="blank"'
     expect_err = "Filter with the name blank does not exist!"
     requirement = "The system shall error if a non-existent filter is requested by a tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [wrong_problem]
     type = RunException
     input = wrong_problem.i
     expect_err = "The simulation must use an OpenMCCellAverageProblem when using the filter system!"
     requirement = "The system shall error if a filter is added when an OpenMCCellAverageProblem is not present."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

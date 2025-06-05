@@ -5,6 +5,6 @@
     expect_err = "The cell caching failed to get correct instances for material cell ID 1302"
     requirement = "The system shall error if the single-increment applied to the tally cell contained "
                   "material instances fails, such as when a TRISO universe is not being tallied."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

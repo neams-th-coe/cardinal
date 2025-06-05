@@ -15,6 +15,6 @@
     requirement = "The system shall be able to generate MGXS for an LWR assembly."
     prereq = 'gen_assembly_mgxs'
     min_parallel = 2
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

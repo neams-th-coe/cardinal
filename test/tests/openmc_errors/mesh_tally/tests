@@ -4,7 +4,7 @@
     input = incorrect_scaling.i
     expect_err = "The centroids of the 'mesh_template' differ from the centroids of the"
     requirement = "The system shall error if the mesh template is not provided in the same units as the [Mesh]."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [incorrect_order]
     type = RunException
@@ -12,7 +12,7 @@
     expect_err = "Centroid for element 256 in the"
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "the order of mesh translations does not match the order of inputs in a CombinerGenerator."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [incorrect_file]
     type = RunException
@@ -20,7 +20,7 @@
     expect_err = "Centroid for element 0 in the"
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "a totally different mesh is used (pincell versus pebbles)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [invalid_estimator]
     type = RunException
@@ -29,6 +29,6 @@
     expect_err = "Tracklength estimators are currently incompatible with mesh tallies!"
     requirement = "The system shall error if a tracklength estimator is attempted with unstructured mesh tallies, "
                   "since this capability is not supported in libMesh."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

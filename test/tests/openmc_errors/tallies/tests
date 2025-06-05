@@ -4,7 +4,7 @@
     input = separate_tallies.i
     expect_err = "Cannot assume separate tallies"
     requirement = "The system shall error if attempting to use separate tallies when a global tally exists"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [invalid_length]
     type = RunException
@@ -12,7 +12,7 @@
     cli_args = 'Problem/Tallies/Cell/score="damage_energy kappa_fission" Problem/Tallies/Cell/name="heat_source"'
     expect_err = "'name' must be the same length as 'score'!"
     requirement = "The system shall error if name and score are not the same length."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_threshold]
     type = RunException
@@ -20,7 +20,7 @@
     cli_args = 'Problem/Tallies/Cell/trigger="rel_err"'
     expect_err = "You must either specify none or both of 'trigger' and 'trigger_threshold'. You have specified only one."
     requirement = "The system shall error if trigger and trigger_threshold are not simultaneously specified"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [duplicate_name]
     type = RunException
@@ -28,7 +28,7 @@
     cli_args = 'Problem/Tallies/Cell/score="damage_energy kappa_fission" Problem/Tallies/Cell/name="heat_source heat_source"'
     expect_err = "Entries cannot be repeated in 'name'!"
     requirement = "The system shall error if name has duplicate entries."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [duplicate_score]
     type = RunException
@@ -36,6 +36,6 @@
     cli_args = 'Problem/Tallies/Cell/score="damage_energy damage_energy" Problem/Tallies/Cell/name="heat1 heat2"'
     expect_err = "Entries cannot be repeated in 'score'!"
     requirement = "The system shall error if score has duplicate entries."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

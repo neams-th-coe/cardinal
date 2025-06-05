@@ -4,6 +4,6 @@
     input = bison.i
     requirement = "Cardinal shall be able to run BISON as a main application without any data transfers. "
                   "This test just ensures correct setup of BISON as a submodule with app registration."
-    required_applications = 'BisonApp'
+    capabilities = 'bisonapp'
   []
 []

@@ -3,7 +3,7 @@
     type = RunException
     input = nek.i
     cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/casename='nomesh_solver' --error"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     max_parallel = 64
     expect_err = "Your NekRSMesh has 'displacements', but 'nomesh_solver.par' does not have a"
     requirement = "The system shall error if Cardinal has displacements associated with NekRSMesh, but there is no mesh solver."
@@ -12,7 +12,7 @@
     type = RunException
     input = nek.i
     cli_args = "Mesh/volume=false Mesh/boundary='2' Mesh/displacements='disp_x disp_y disp_z'"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     max_parallel = 64
 
     expect_err = "For boundary-coupled moving mesh problems, you need at least one boundary in"
@@ -24,7 +24,7 @@
     type = RunException
     input = nek.i
     cli_args = "Mesh/volume=true Mesh/displacements='disp_x disp_y disp_z'"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     max_parallel = 64
     expect_err = "'elast_nomv.par' has a solver in the"
     requirement = "The system shall error if Cardinal is using the NekRS mesh blending solver without indicating the moving boundary of interest"

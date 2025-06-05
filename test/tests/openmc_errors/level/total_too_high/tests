@@ -5,6 +5,6 @@
     expect_err = "Coordinate level for finding cells cannot be greater than total number of coordinate levels: 1!"
     requirement = "The system shall error if the specified coordinate level for finding a cell "
                   "is greater than the maximum number of coordinate levels throughout the geometry."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

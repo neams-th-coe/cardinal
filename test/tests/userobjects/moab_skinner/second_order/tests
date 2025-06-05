@@ -5,14 +5,14 @@
     exodiff = all_bins_out.e
     mesh_mode = 'replicated'
     requirement = "The system shall bin elements according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume for second-order tets."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [convert_to_gmsh_step0]
     type = RunCommand
     prereq = bins
     command = '../../../../../install/bin/mbconvert moab_skins_0.h5m skins0.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
     installation_type = in_tree
     use_shell = True
   []
@@ -21,7 +21,7 @@
     prereq = bins
     command = '../../../../../install/bin/mbconvert moab_skins_1.h5m skins1.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
     installation_type = in_tree
     use_shell = True
   []

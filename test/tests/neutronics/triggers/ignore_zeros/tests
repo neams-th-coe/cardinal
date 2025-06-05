@@ -7,7 +7,7 @@
                   "by measuring the maximum tally relative error of the H3 score. A smaller tally "
                   "relative error indicates the simulation ran to max batches and didn't ignore the "
                   "zero bin. If the zero bin is ignored, the simulation should only run 50 batches."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [length_igore_zero]
     type = RunException
@@ -15,7 +15,7 @@
     cli_args = 'Problem/Tallies/Cell/trigger_ignore_zeros="true true"'
     requirement = "The system shall enforce correct trigger ignore zero length"
     expect_err = "'trigger_ignore_zeros' \(size 2\) must have the same length as 'score' \(size 1\)"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [set_trigger_ignore_zero]
     type = RunException
@@ -23,6 +23,6 @@
     cli_args = 'Problem/Tallies/Cell/trigger_ignore_zeros=""'
     requirement = "The system shall ensure that the users provide values of trigger_ignore_zeros when the parameter is set."
     expect_err = "trigger_ignore_zeros cannot be empty!"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

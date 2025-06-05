@@ -4,6 +4,6 @@
     input = volume.i
     expect_err = "Running OpenMC in plotting, particle, and volume modes is not supported"
     requirement = "The system shall error if attempting to run OpenMC in volume mode through Cardinal."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -5,7 +5,7 @@
     expect_err = "The 'write_fld_files' setting should only be true when multiple Nek simulations "
                  "are run as sub-apps on a master app. Your input has Nek as the master app."
     requirement = "The system shall error if trying to write output files for a Nek input without sibling apps"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [two_channels]
     type = Exodiff
@@ -16,7 +16,7 @@
     requirement = "The system shall be able to run multiple Nek simulations translated throughout "
                   "a master app's domain. This test compares against a MOOSE standalone case, and "
                   "gives less than 0.3% difference in various temperature metrics."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [app_outputs]
     type = CheckFiles
@@ -26,6 +26,6 @@
     min_parallel = 2
     requirement = "The correct output files shall be written when writing separate output files for repeated "
                   "Nek simulation instances."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

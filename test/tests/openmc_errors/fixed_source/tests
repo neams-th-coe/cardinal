@@ -5,7 +5,7 @@
     expect_err = "Eigenvalues are only computed when running OpenMC in eigenvalue mode!"
     requirement = "The system shall error if attempting to extract the eigenvalue from an OpenMC run that is "
                   "not run with eigenvalue mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [k_std_dev]
     type = RunException
@@ -14,7 +14,7 @@
     expect_err = "Eigenvalues are only computed when running OpenMC in eigenvalue mode!"
     requirement = "The system shall error if attempting to extract the eigenvalue standard deviation from an "
                   "OpenMC run that is not run with eigenvalue mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [k_trigger]
     type = RunException
@@ -22,6 +22,6 @@
     expect_err = "Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!"
     requirement = "The system shall error if attempting to set a k trigger for an OpenMC mode that doesn't "
                   "have a notion of eigenvalues"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

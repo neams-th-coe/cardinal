@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = 'The system shall correctly apply unique temperature feedback to an identical universe filled into multiple (non-lattice) cells. The reference solution from an identical OpenMC-only case is in the standalone directory.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

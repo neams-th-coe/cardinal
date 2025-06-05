@@ -10,7 +10,7 @@
     input = openmc.i
     cli_args = 'Problem/particles=500 Problem/inactive_batches=50 Problem/batches=100 Executioner/num_steps=1'
     requirement = "The system shall run OpenMC on an LWR pincell"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [lwr_pincell]
     type = CSVDiff
@@ -20,7 +20,7 @@
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [lwr_pincell_mesh]
     type = CSVDiff
@@ -31,6 +31,6 @@
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with an unstructured mesh tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

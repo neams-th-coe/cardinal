@@ -8,7 +8,7 @@
                   "input file run with the skinner disabled. The CSG file used for comparison is in "
                   "the csg_step_1 directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [skin]
     type = Exodiff
@@ -19,7 +19,7 @@
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [skin_direct]
     type = Exodiff
@@ -30,7 +30,7 @@
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [disjoint_bins]
     type = Exodiff
@@ -41,7 +41,7 @@
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory. For this case, a bin is split across disjoint elements."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [scale_mesh]
     type = RunApp
@@ -57,6 +57,6 @@
     cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall give identical results when scaling the Mesh by an arbitrary multiplier. The gold file was compared against a case with no scaling (scaling = 1) to get identical results."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

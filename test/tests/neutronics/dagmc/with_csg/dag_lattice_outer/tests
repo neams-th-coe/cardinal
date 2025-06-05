@@ -5,6 +5,6 @@
     expect_err = "The 'skinner' cannot be used when the DAGMC universe is used as the outer universe of a lattice."
     requirement = "The system shall error if the DAGMC universe is used as a lattice element. If so, the "
                   "DAGMC geometry may be replicated and so the skinner may produce an incorrect skin."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

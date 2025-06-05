@@ -9,6 +9,6 @@
                   "conjugate heat transfer when using an initial offset in the scratch space. "
                   "The gold file was created when using no offset to prove equivalence."
     rel_err = 1e-5
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -5,6 +5,6 @@
     expect_err = "All entries in 'mesh_translations_file' must contain exactly 3 coordinates."
     requirement = "The system shall error if a particular set of coordinates in the mesh translations "
                   "does not have all requisite x, y, and z components."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

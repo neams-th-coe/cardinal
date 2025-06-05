@@ -5,7 +5,7 @@
     csvdiff = nek_out.csv
     abs_zero = 1e-12
     requirement = "The system shall allow pressure drag to be computed in the x, y, and z directions in dimensional form. This test compares drag as computed via Nek with by-hand calculations using combinations of native MOOSE postprocessors acting on the NekRS pressure mapped to the mesh mirror, for dimensional form"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [pressure_nondim]
     type = CSVDiff
@@ -13,7 +13,7 @@
     csvdiff = nek_nondimensional_out.csv
     abs_zero = 1e-12
     requirement = "The system shall allow pressure drag to be computed in the x, y, and z directions in dimensional form. This test compares drag as computed via Nek with by-hand calculations using combinations of native MOOSE postprocessors acting on the NekRS pressure mapped to the mesh mirror, for nondimensional form"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_mesh]
     type = RunException
@@ -21,6 +21,6 @@
     cli_args = 'Postprocessors/pressure_x/mesh=all'
     expect_err = "The 'NekPressureSurfaceForce' postprocessor can only be applied to"
     requirement = "The system shall error if trying to compute pressure drag on non-fluid NekRS boundaries"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

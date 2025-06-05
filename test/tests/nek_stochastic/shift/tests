@@ -8,6 +8,6 @@
                   'this by using the first slot in the scratch space to set the value of scalar01, but use '
                   'the subsequent slots to obtain data from MOOSE. We show that the scalar01 is unaffected '
                   'by the Cardinal copy into the other part of the scratch space.'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

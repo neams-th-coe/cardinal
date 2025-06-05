@@ -7,7 +7,7 @@
     input = both.i
     csvdiff = both_out.csv
     requirement = "The system shall be able to calculate neutron kinetics parameters."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_ifp_lambda]
     type = RunException
@@ -15,14 +15,14 @@
     cli_args = 'Problem/calc_kinetics_params=false'
     expect_err = "LambdaEffective can only be used if the OpenMC problem is computing kinetics parameters!"
     requirement = "The system shall error if the problem does not enable IFP calculations and attempts to add an LambdaEffective post processor."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_ifp_beta]
     type = RunException
     input = beta.i
     expect_err = "BetaEffective can only be used if the OpenMC problem is computing kinetics parameters!"
     requirement = "The system shall error if the problem does not enable IFP calculations and attempts to add a BetaEffective post processor."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [more_ifp_gen_then_inactive]
     type = RunException
@@ -30,6 +30,6 @@
     cli_args = 'Problem/ifp_generations=20'
     expect_err = "'ifp_generations' must be less than or equal to the number of inactive batches!"
     requirement = "The system shall error if the problem does not enable IFP calculations and attempts to add a BetaEffective post processor."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

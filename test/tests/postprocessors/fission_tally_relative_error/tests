@@ -7,7 +7,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The maximum and minimum tally relative errors shall be correctly retrieved from the OpenMC solution."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_score]
     type = CSVDiff
@@ -17,7 +17,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The maximum and minimum tally relative errors shall be correctly retrieved from the OpenMC solution when using multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [nonexistent_score]
     type = RunException
@@ -28,7 +28,7 @@
     max_parallel = 8
     expect_err = "To extract the relative error of the 'flux' score"
     requirement = "The system shall error if trying to extract score information that does not exist"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [manual_rel_err_calc]
     type = CSVDiff
@@ -38,6 +38,6 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall prove equivalence between a by-hand calculation of relative error (std_dev output divided by tally value) as compared to the tally relative error postprocessor."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

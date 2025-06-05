@@ -8,6 +8,6 @@
     requirement = "The system shall error if there is an obvious mismatch between the [Mesh] and "
                   "DAGMC model for the case where the number of DAGMC materials which map to each "
                   "[Mesh] subdomain do not match."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []
