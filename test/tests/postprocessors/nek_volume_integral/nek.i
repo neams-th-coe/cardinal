@@ -1,8 +1,7 @@
 [Problem]
-  type = NekRSProblem
+  type = NekRSStandaloneProblem
   casename = 'pyramid'
   n_usrwrk_slots = 4
-  has_heat_source = false
 []
 
 [Mesh]
@@ -19,10 +18,8 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-    execute_on = 'final'
-  []
+  csv = true
+  execute_on = 'final'
 []
 
 [Postprocessors]

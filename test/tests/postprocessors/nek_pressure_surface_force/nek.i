@@ -1,7 +1,14 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'brick'
-  output = 'pressure'
+
+  [FieldTransfers]
+    [P]
+      type = NekFieldVariable
+      field = pressure
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]
