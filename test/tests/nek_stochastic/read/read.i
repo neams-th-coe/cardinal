@@ -6,7 +6,14 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'read'
-  output = 'scalar02'
+
+  [FieldTransfers]
+    [scalar02]
+      type = NekFieldVariable
+      direction = from_nek
+      field = scalar02
+    []
+  []
 []
 
 [Executioner]

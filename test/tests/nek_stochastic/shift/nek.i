@@ -8,8 +8,22 @@
   casename = 'brick'
   n_usrwrk_slots = 3
 
-  output = 'scalar01 scalar02 scalar03'
   first_reserved_usrwrk_slot = 1
+
+  [FieldTransfers]
+    [scalar01]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar02]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar03]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

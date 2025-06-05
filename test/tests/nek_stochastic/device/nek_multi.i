@@ -7,7 +7,6 @@
   type = NekRSStandaloneProblem
   casename = 'pyramid'
   n_usrwrk_slots = 1
-  output = 'temperature'
 []
 
 [Executioner]

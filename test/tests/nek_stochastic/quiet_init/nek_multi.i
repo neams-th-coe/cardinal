@@ -8,7 +8,12 @@
   casename = 'ethier'
   n_usrwrk_slots = 2
 
-  output = 'scalar02'
+  [FieldTransfers]
+    [scalar02]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

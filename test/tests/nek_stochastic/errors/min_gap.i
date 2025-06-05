@@ -8,6 +8,14 @@
   type = NekRSProblem
   n_usrwrk_slots = 4
   casename = 'ethier'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

@@ -6,7 +6,6 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'ethier'
-  output = 'temperature'
 []
 
 [Executioner]
