@@ -20,7 +20,6 @@
 
 #include "TallyBase.h"
 #include "OpenMCCellAverageProblem.h"
-#include "MooseMesh.h"
 
 #include "openmc/tallies/filter_mesh.h"
 
@@ -28,9 +27,6 @@ namespace libMesh
 {
 class ReplicatedMesh;
 }
-
-class OpenMCCellAverageProblem;
-class MooseMesh;
 
 class MeshTally : public TallyBase
 {
