@@ -10,6 +10,14 @@
     L = 0.5
     U = 1.0
   []
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

@@ -3,6 +3,14 @@
   casename = 'pyramid_low'
   usrwrk_output = '0 1'
   usrwrk_output_prefix = 'flx src'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

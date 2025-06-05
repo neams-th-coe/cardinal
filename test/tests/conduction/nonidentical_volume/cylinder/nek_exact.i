@@ -3,6 +3,14 @@
   casename = 'cylinder_low'
   usrwrk_output = '1'
   usrwrk_output_prefix = 'src'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

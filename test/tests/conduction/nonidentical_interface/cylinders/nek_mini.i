@@ -2,6 +2,14 @@
   type = NekRSProblem
   casename = 'cylinder'
   synchronization_interval = parent_app
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

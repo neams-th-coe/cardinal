@@ -2,6 +2,14 @@
   type = NekRSProblem
   casename = 'pyramid'
   conserve_flux_by_sideset = true
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]
