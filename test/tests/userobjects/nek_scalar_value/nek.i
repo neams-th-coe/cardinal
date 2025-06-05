@@ -2,7 +2,14 @@
   type = NekRSProblem
   casename = 'pyramid'
   has_heat_source = false
-  output = 'temperature'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      direction = from_nek
+      field = temperature
+    []
+  []
 []
 
 [Mesh]

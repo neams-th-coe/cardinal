@@ -1,7 +1,6 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'cylinder'
-  output = 'pressure'
 
   [Dimensionalize]
     L = 5.0

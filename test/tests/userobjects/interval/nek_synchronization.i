@@ -1,7 +1,6 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'brick'
-  output = 'velocity'
 
   [Dimensionalize]
     L = 2.0
@@ -14,6 +13,24 @@
 
   synchronization_interval = constant
   constant_interval = 3
+
+  [FieldTransfers]
+    [vel_x]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_x
+    []
+    [vel_y]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_y
+    []
+    [vel_z]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_z
+    []
+  []
 []
 
 [Mesh]
