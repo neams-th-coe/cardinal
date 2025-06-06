@@ -282,6 +282,9 @@ scratchAvailable()
 void
 initializeScratch(const unsigned int & n_slots)
 {
+  if (n_slots == 0)
+    return;
+
   nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = entireMesh();
 
@@ -495,104 +498,6 @@ usrwrkSideIntegral(const unsigned int & slot,
     MPI_Allreduce(&integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   return total_integral;
-}
-
-bool
-normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
-                       const std::vector<int> & boundary,
-                       const std::vector<double> & moose_integral,
-                       std::vector<double> & nek_integral,
-                       double & normalized_nek_integral)
-{
-  // scale the nek flux to dimensional form for the sake of normalizing against
-  // a dimensional MOOSE flux
-  for (auto & i : nek_integral)
-    i *= scales.A_ref * scales.flux_ref;
-
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
-  {
-    if (nek_boundary_coupling.process[k] == commRank())
-    {
-      int i = nek_boundary_coupling.element[k];
-      int j = nek_boundary_coupling.face[k];
-
-      int face_id = mesh->EToB[i * mesh->Nfaces + j];
-      auto it = std::find(boundary.begin(), boundary.end(), face_id);
-      auto b_index = it - boundary.begin();
-
-      // avoid divide-by-zero
-      double ratio = 1.0;
-      if (std::abs(nek_integral[b_index]) > abs_tol)
-        ratio = moose_integral[b_index] / nek_integral[b_index];
-
-      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-
-      for (int v = 0; v < mesh->Nfp; ++v)
-      {
-        int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
-      }
-    }
-  }
-
-  // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = usrwrkSideIntegral(indices.flux, boundary, nek_mesh::all);
-  normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
-  double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
-  bool low_rel_err = std::abs(total_moose_integral) > abs_tol ?
-                     std::abs(normalized_nek_integral - total_moose_integral) / total_moose_integral < rel_tol : true;
-  bool low_abs_err = std::abs(normalized_nek_integral - total_moose_integral) < abs_tol;
-
-  return low_rel_err || low_abs_err;
-}
-
-
-bool
-normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
-              const std::vector<int> & boundary,
-              const double moose_integral,
-              double nek_integral,
-              double & normalized_nek_integral)
-{
-  // scale the nek flux to dimensional form for the sake of normalizing against
-  // a dimensional MOOSE flux
-  nek_integral *= scales.A_ref * scales.flux_ref;
-
-  // avoid divide-by-zero
-  if (std::abs(nek_integral) < abs_tol)
-    return true;
-
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  const double ratio = moose_integral / nek_integral;
-
-  for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
-  {
-    if (nek_boundary_coupling.process[k] == commRank())
-    {
-      int i = nek_boundary_coupling.element[k];
-      int j = nek_boundary_coupling.face[k];
-      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-
-      for (int v = 0; v < mesh->Nfp; ++v)
-      {
-        int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
-      }
-    }
-  }
-
-  // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = usrwrkSideIntegral(indices.flux, boundary, nek_mesh::all);
-  normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
-  bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
-  bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
-
-  return low_rel_err || low_abs_err;
 }
 
 void
@@ -1553,12 +1458,12 @@ void
 checkFieldValidity(const field::NekFieldEnum & field)
 {
   // by placing this check here, as opposed to inside the NekFieldInterface,
-  // we can also leverage this error checking for the 'outputs' of NekRSProblemBase,
+  // we can also leverage this error checking for the 'outputs' of NekRSProblem,
   // which does not inherit from NekFieldInterface but still accesses the solutionPointers.
   // If this gets moved elsewhere, need to be sure to add dedicated testing for
-  // the 'outputs' on NekRSProblemBase.
+  // the 'outputs' on NekRSProblem.
 
-  // TODO: would be nice for NekRSProblemBase to only access field information via the
+  // TODO: would be nice for NekRSProblem to only access field information via the
   // NekFieldInterface; refactor later
 
   switch (field)
@@ -1604,7 +1509,7 @@ checkFieldValidity(const field::NekFieldEnum & field)
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
   // we include this here as well, in addition to within the NekFieldInterface, because
-  // the NekRSProblemBase accesses these methods without inheriting from NekFieldInterface
+  // the NekRSProblem accesses these methods without inheriting from NekFieldInterface
   checkFieldValidity(field);
 
   double (*f)(int);
