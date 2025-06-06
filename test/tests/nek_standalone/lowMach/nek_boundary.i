@@ -5,11 +5,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'lowMach'
-
-  # We omit the non-dimensional settings here in order to just extract the
-  # non-dimensional solution as-is, without dimensionalizing it.
 
   [FieldTransfers]
     [temp]

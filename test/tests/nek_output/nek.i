@@ -1,7 +1,21 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'pyramid'
-  output = 'scalar01 scalar02 scalar03'
+
+  [FieldTransfers]
+    [scalar01]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar02]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar03]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

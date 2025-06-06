@@ -4,16 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'conj_ht'
-
-  [FieldTransfers]
-    [temp]
-      type = NekFieldVariable
-      direction = from_nek
-      field = temperature
-    []
-  []
 []
 
 [Executioner]
