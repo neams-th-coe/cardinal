@@ -3,8 +3,7 @@
     type = RunException
     input = nek.i
     expect_err = "The 'write_fld_files' setting should only be true when multiple Nek simulations "
-                 "are run as sub-apps on a master app.\n"
-                 "Your input has Nek as the master app."
+                 "are run as sub-apps on a master app. Your input has Nek as the master app."
     requirement = "The system shall error if trying to write output files for a Nek input without sibling apps"
     required_objects = 'NekRSProblem'
   []
