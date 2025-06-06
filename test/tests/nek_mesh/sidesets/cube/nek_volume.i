@@ -1,5 +1,5 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'cube'
 []
 
