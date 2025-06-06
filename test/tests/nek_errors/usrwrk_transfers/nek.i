@@ -1,19 +1,24 @@
-[Problem]
-  type = NekRSProblem
-  casename = 'cube'
-
-  [FieldTransfers]
-    [heat_source]
-      type = NekVolumetricSource
-      usrwrk_slot = 1
-      direction = to_nek
-    []
-  []
-[]
-
 [Mesh]
   type = NekRSMesh
-  volume = true
+  boundary = '6'
+[]
+
+[Problem]
+  type = NekRSProblem
+  casename = 'brick'
+
+  [FieldTransfers]
+    [flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = '1 1'
+    []
+    [source]
+      type = NekVolumetricSource
+      direction = to_nek
+      usrwrk_slot = '2'
+    []
+  []
 []
 
 [Executioner]
@@ -22,8 +27,4 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-[]
-
-[Outputs]
-  exodus = true
 []

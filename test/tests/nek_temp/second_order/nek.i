@@ -26,6 +26,10 @@
   []
   [difference]
   []
+  [avg_flux] # only here to avoid a re-gold; otherwise not necessary
+    order = SECOND
+    family = LAGRANGE
+  []
 []
 
 [ICs]
@@ -87,5 +91,4 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'flux_integral'
 []

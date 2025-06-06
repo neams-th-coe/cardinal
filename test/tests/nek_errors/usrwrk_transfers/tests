@@ -1,0 +1,25 @@
+[Tests]
+  [duplicate_scratch]
+    type = RunException
+    input = nek.i
+    expect_err = "There are duplicate entries in 'usrwrk_slot': 1 1 ; duplicate entries are not allowed because the field transfer will overwrite itself."
+    requirement = "MOOSE shall throw an error if a single transfer tries to occupy the same slot more than once"
+    required_objects = 'NekRSProblem'
+  []
+  [exceed_allocated]
+    type = RunException
+    input = nek.i
+    cli_args = 'Problem/FieldTransfers/flux/usrwrk_slot="7"'
+    expect_err = "Cannot write into usrwrk slot 7 because only 7 have been allocated with 'n_usrwrk_slots'. Slots are zero-indexed, so the maximum acceptable value in 'usrwrk_slot' is 6."
+    requirement = "MOOSE shall throw an error if a attempting to write into a usrwrk slot which has not been allocated"
+    required_objects = 'NekRSProblem'
+  []
+  [duplicate_across]
+    type = RunException
+    input = nek.i
+    cli_args = 'Problem/FieldTransfers/flux/usrwrk_slot="2"'
+    expect_err = "A duplicate slot, 2, has been found across multiple FieldTransfer objects. Duplicate slots are not allowed across different transfers because they will overwrite each other."
+    requirement = "MOOSE shall throw an error if a attempting to write into a usrwrk slot already claimed by another field transfer"
+    required_objects = 'NekRSProblem'
+  []
+[]

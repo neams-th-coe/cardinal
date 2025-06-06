@@ -87,5 +87,4 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'source_integral heat_source'
 []
