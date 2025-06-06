@@ -58,10 +58,7 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
 void
 NekInitAction::act()
 {
-  bool is_nek_problem = _type == "NekRSProblem" || _type == "NekRSStandaloneProblem" ||
-                        _type == "NekRSSeparateDomainProblem";
-
-  if (!is_nek_problem)
+  if (_type != "NekRSProblem")
     return;
 
   const auto timeStart = std::chrono::high_resolution_clock::now();
@@ -158,34 +155,15 @@ NekInitAction::act()
 
   _console << "initialization took " << elapsedTime << " s" << std::endl;
 
-  // setup actions only needed if coupling with MOOSE
-  if (_type == "NekRSProblem")
-  {
-    // First check we should do is that a temperature variable exists, or else many
-    // of our indexes into `nrs->cds` would give seg faults
-    if (!nekrs::hasTemperatureVariable())
-      mooseError("To properly transfer temperature and heat flux between nekRS and MOOSE, "
-                 "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-                 "TEMPERATURE block in '" +
-                 setup_file + ".par'?\nNote: you can set 'solver = none' in '" + setup_file +
-                 ".par' if you don't want to solve for temperature.");
-  }
+  if (!nekrs::scratchAvailable())
+    mooseError(
+        "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal, "
+        "but you have tried allocating them separately inside your case files. Please remove the "
+        "manual allocation of the space in your user files, and be sure to only write such that"
+        "the space reserved for coupling data is untouched.");
 
-  bool always_allocate = _type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem";
-  bool special_allocate = _type == "NekRSStandaloneProblem" && _specified_scratch;
-  if (always_allocate || special_allocate)
-  {
-    if (!nekrs::scratchAvailable())
-      mooseError(
-          "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal,\n"
-          "but you have tried allocating them separately inside your case files. Please remove "
-          "the\n"
-          "manual allocation of the space in your user files, and be sure to only write such that\n"
-          "the space reserved for coupling data is untouched.");
-
-    // Initialize scratch space in NekRS to write data incoming data from MOOSE
-    nekrs::initializeScratch(_n_usrwrk_slots);
-  }
+  // Initialize scratch space in NekRS to write data incoming data from MOOSE
+  nekrs::initializeScratch(_n_usrwrk_slots);
 }
 
 inipp::Ini *

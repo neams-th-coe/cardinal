@@ -18,7 +18,7 @@
 
 #ifdef ENABLE_NEK_COUPLING
 #include "DimensionalizeAction.h"
-#include "NekRSProblemBase.h"
+#include "NekRSProblem.h"
 #include "NekInterface.h"
 #include "VariadicTable.h"
 #include "NekRSMesh.h"
@@ -76,12 +76,11 @@ DimensionalizeAction::act()
 {
   if (_current_task == "add_dimensionalization")
   {
-    auto nek_problem = dynamic_cast<NekRSProblemBase *>(_problem.get());
+    auto nek_problem = dynamic_cast<NekRSProblem *>(_problem.get());
 
     if (!nek_problem)
       mooseError("The [Dimensionalize] block can only be used with wrapped Nek cases! "
-                 "You need to change the [Problem] block to a Nek-wrapped problem.\n\n"
-                 "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
+                 "You need to change the [Problem] block to type NekRSProblem.");
 
     // check if the temperature actually exists
     if (!nekrs::hasTemperatureVariable())
