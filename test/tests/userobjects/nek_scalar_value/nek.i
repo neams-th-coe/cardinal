@@ -1,15 +1,6 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
-  has_heat_source = false
-
-  [FieldTransfers]
-    [temp]
-      type = NekFieldVariable
-      direction = from_nek
-      field = temperature
-    []
-  []
 []
 
 [Mesh]
@@ -28,9 +19,11 @@
 [UserObjects]
   [scalar1]
     type = NekScalarValue
+    usrwrk_slot = 0
   []
   [scalar2]
     type = NekScalarValue
+    usrwrk_slot = 0
   []
 []
 

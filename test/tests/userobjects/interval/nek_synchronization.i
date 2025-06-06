@@ -1,5 +1,5 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'brick'
 
   [Dimensionalize]
@@ -42,7 +42,7 @@
 [Postprocessors]
   [vz_in]
     type = SideAverageValue
-    variable = 'vel_z'
+    variable = vel_z
     boundary = '1'
   []
 []

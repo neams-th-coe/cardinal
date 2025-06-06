@@ -6,7 +6,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
 
   [FieldTransfers]

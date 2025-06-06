@@ -4,16 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
-
-  [FieldTransfers]
-    [temp]
-      type = NekFieldVariable
-      direction = from_nek
-      field = temperature
-    []
-  []
 []
 
 [AuxVariables]
@@ -147,5 +139,4 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp'
 []

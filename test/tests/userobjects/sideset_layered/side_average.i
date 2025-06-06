@@ -9,7 +9,7 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
 
   [FieldTransfers]

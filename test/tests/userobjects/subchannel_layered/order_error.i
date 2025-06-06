@@ -4,7 +4,7 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
 []
 
@@ -29,8 +29,4 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-[]
-
-[Outputs]
-  exodus = true
 []
