@@ -207,6 +207,12 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerSyntax("DimensionalizeAction", "Problem/Dimensionalize");
   registerTask("add_dimensionalization", false /* is required */);
   addTaskDependency("add_dimensionalization", "init_mesh");
+
+  // Add the [Problem/FieldTransfers] block
+  registerSyntaxTask("AddFieldTransferAction", "Problem/FieldTransfers/*", "add_field_transfers");
+  registerMooseObjectTask("add_field_transfers", FieldTransfer, false);
+  addTaskDependency("add_field_transfers", "init_mesh");
+  addTaskDependency("add_external_aux_variables", "add_field_transfers");
 #endif
 
   registerTask("add_heat_source_ic", false /* is required */);
