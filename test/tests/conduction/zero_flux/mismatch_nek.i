@@ -1,13 +1,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
-  conserve_flux_by_sideset = true
 
   [FieldTransfers]
-    [temp]
-      type = NekFieldVariable
-      field = temperature
-      direction = from_nek
+    [avg_flux]
+      type = NekBoundaryFlux
+      usrwrk_slot = 0
+      direction = to_nek
+      conserve_flux_by_sideset = true
+      postprocessor_to_conserve = flux_integral
     []
   []
 []
