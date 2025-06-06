@@ -38,7 +38,7 @@ public:
   virtual void initialize() override {}
   virtual void finalize() override {}
 
-  /// Instead, we want to have a separate method that we can call from NekRSProblemBase
+  /// Instead, we want to have a separate method that we can call from NekRSProblem
   virtual void setValue();
 
   /**
@@ -65,7 +65,7 @@ protected:
   const Real & _scaling;
 
   /// Slot in usrwrk to write the scalar value
-  unsigned int _usrwrk_slot;
+  const unsigned int & _usrwrk_slot;
 
   /// Counter of this object, to be set by NekRSProblem
   unsigned int _counter;

@@ -19,7 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekScalarValue.h"
-#include "NekRSProblemBase.h"
+#include "NekRSProblem.h"
 #include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekScalarValue);
@@ -34,8 +34,7 @@ NekScalarValue::validParams()
       1.0,
       "Multiplier on 'value', typically used to convert from dimensional form into NekRS's "
       "non-dimensional form, if using a non-dimensional NekRS solve.");
-  params.addParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value; "
-    "if not specified, this defaults to the first unused slot");
+  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value");
   params.declareControllable("value");
   params.addClassDescription("Writes a scalar value from MOOSE into NekRS's scratch space");
   return params;
@@ -44,36 +43,34 @@ NekScalarValue::validParams()
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _value(getParam<Real>("value")),
-    _scaling(getParam<Real>("scaling"))
+    _scaling(getParam<Real>("scaling")),
+    _usrwrk_slot(getParam<unsigned int>("usrwrk_slot"))
 {
-  const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
+  const NekRSProblem * nek_problem = dynamic_cast<const NekRSProblem *>(&_fe_problem);
   if (!nek_problem)
   {
     std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
     mooseError("This user object can only be used with wrapped Nek cases!\n"
                "You need to change the problem type from '" +
                _fe_problem.type() + "'" + extra_help +
-               " to a Nek-wrapped problem.\n\n"
-               "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
+               " to 'NekRSProblem'.");
   }
 
-  // pick a reasonable default if not specified
-  auto first_available_slot = nek_problem->scratchSpaceReservedForCoupling().second;
-  if (isParamValid("usrwrk_slot"))
-    _usrwrk_slot = getParam<unsigned int>("usrwrk_slot");
-  else
-    _usrwrk_slot = first_available_slot;
+  auto field_usrwrk_map = nek_problem->fieldUsrwrkMap();
 
-  // check that we're not writing into space that's definitely being used for coupling
-  if (first_available_slot > 0)
-    if (_usrwrk_slot < first_available_slot)
-      mooseError("Cannot write into a scratch space slot reserved for Nek-MOOSE coupling!\n"
-                 "For this case, you must set 'usrwrk_slot' greater than or equal to ",
-                 Moose::stringify(first_available_slot));
+  // check that we're not writing into space that's used for field transfers
+  if (field_usrwrk_map.find(_usrwrk_slot) != field_usrwrk_map.end())
+  {
+    std::string unavailable_slots = "";
+    for (const auto & f : field_usrwrk_map)
+      unavailable_slots += Moose::stringify(f) + " ";
+
+    paramError("usrwrk_slot", "The usrwrk slot " + Moose::stringify(_usrwrk_slot) + " is already used by the FieldTransfers for writing field data into NekRS. You cannot set 'usrwrk_slot' to any of: " + unavailable_slots);
+  }
 
   if (_usrwrk_slot >= nek_problem->nUsrWrkSlots())
     paramError("usrwrk_slot", "This parameter cannot exceed the available pre-allocated slots (",
-      Moose::stringify(nek_problem->nUsrWrkSlots()), ").\nPlease either change this parameter, "
+      Moose::stringify(nek_problem->nUsrWrkSlots()), "). Please either change this parameter, "
       "or increase 'n_usrwrk_slots' in the [Problem] block.");
 }
 
