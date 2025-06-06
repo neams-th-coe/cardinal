@@ -1,11 +1,21 @@
 [Problem]
   type = NekRSProblem
   casename = 'brick'
-  initial_flux_integral = 1
-  initial_source_integral = 2
 
-  # shift arbitrarily, so show the method works more generally
-  first_reserved_usrwrk_slot = 1
+  [FieldTransfers]
+    [avg_flux]
+      type = NekBoundaryFlux
+      initial_flux_integral = 1
+      usrwrk_slot = 1
+      direction = to_nek
+    []
+    [heat_source]
+      type = NekVolumetricSource
+      initial_source_integral = 2
+      usrwrk_slot = 2
+      direction = to_nek
+    []
+  []
 
   [Dimensionalize]
     L = 5.0
@@ -80,5 +90,5 @@
 
 [Outputs]
   csv = true
-  hide = 'flux_integral source_integral'
+  hide = 'avg_flux_integral heat_source_integral'
 []
