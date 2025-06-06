@@ -4,6 +4,12 @@
   synchronization_interval = parent_app
 
   [FieldTransfers]
+    [avg_flux]
+      type = NekBoundaryFlux
+      usrwrk_slot = 0
+      direction = to_nek
+      postprocessor_to_conserve = flux_integral
+    []
     [temp]
       type = NekFieldVariable
       field = temperature
