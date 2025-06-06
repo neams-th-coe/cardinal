@@ -13,6 +13,12 @@
   casename = 'onepebble2'
 
   [FieldTransfers]
+    [avg_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      postprocessor_to_conserve = flux_integral
+      usrwrk_slot = 0
+    []
     [temp]
       type = NekFieldVariable
       field = temperature
