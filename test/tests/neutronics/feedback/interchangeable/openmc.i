@@ -75,7 +75,7 @@ active = ''
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '0 1'
+      block = '0 1'
     []
   []
 []

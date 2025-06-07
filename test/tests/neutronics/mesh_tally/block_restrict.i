@@ -54,7 +54,7 @@
   [Tallies]
     [Mesh]
       type = MeshTally
-      blocks = '200'
+      block = '200'
     []
   []
 []

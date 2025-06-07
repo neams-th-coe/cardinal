@@ -64,7 +64,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = 'compacts'
+      block = 'compacts'
       check_equal_mapped_tally_volumes = true
     []
   []

@@ -49,12 +49,12 @@
     [Heating]
       type = CellTally
       score = 'kappa_fission'
-      blocks = '100 200'
+      block = '100 200'
     []
     [Flux]
       type = CellTally
       score = 'flux'
-      blocks = '100 200'
+      block = '100 200'
       filters = 'SPH_XML'
     []
   []

@@ -46,12 +46,12 @@
     [Heating]
       type = CellTally
       score = 'kappa_fission'
-      blocks = '100 200'
+      block = '100 200'
     []
     [Scattering]
       type = CellTally
       score = 'scatter'
-      blocks = '100 200'
+      block = '100 200'
       filters = 'EnergyOut'
       estimator = 'analog'
     []

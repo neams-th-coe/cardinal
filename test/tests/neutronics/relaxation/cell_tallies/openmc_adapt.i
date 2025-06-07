@@ -53,7 +53,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '0'
+      block = '0'
     []
   []
 []

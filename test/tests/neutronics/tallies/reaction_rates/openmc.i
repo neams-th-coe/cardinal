@@ -46,7 +46,7 @@
     [Cell]
       type = CellTally
       score = 'absorption fission scatter total'
-      blocks = '100 200'
+      block = '100 200'
     []
   []
 []

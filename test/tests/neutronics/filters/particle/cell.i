@@ -46,7 +46,7 @@
     [Heating]
       type = CellTally
       score = 'heating'
-      blocks = '100 200'
+      block = '100 200'
       filters = 'Particle'
     []
   []
