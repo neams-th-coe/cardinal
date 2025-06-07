@@ -2,14 +2,6 @@
   type = NekRSProblem
   synchronization_interval = parent_app
   casename = 'cube'
-
-  [FieldTransfers]
-    [temp]
-      type = NekFieldVariable
-      field = temperature
-      direction = from_nek
-    []
-  []
 []
 
 [Mesh]
@@ -23,9 +15,4 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-[]
-
-[Outputs]
-  exodus = true
-  execute_on = 'final'
 []
