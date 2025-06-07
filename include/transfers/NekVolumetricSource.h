@@ -18,12 +18,17 @@
 
 #pragma once
 
-#include "CardinalEnums.h"
-#include "PostprocessorInterface.h"
+#include "ConservativeFieldTransfer.h"
 
-class AuxiliarySystem;
-
-class NekVolumetricSource : public FieldTransferBase, public PostprocessorInterface
+/**
+ * Performs a transfer of a volumetric source between NekRS and MOOSE.
+ * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
+ * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
+ * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
+ * conservation, we send the source integral to nekRS for internval
+ * normalization of the source applied on the nekRS mesh.
+ */
+class NekVolumetricSource : public ConservativeFieldTransfer
 {
 public:
   static InputParameters validParams();
@@ -32,8 +37,7 @@ public:
 
   ~NekVolumetricSource();
 
-  /// Send the volumetric source term to NekRS
-  void sendDataToNek();
+  virtual void sendDataToNek() override;
 
 protected:
   /**
@@ -51,23 +55,9 @@ protected:
   /// Initial value to use for the total volumetric source for ensuring conservation
   const Real & _initial_source_integral;
 
-   /**
-   * \brief Total volume-integrated volumetric source coming from the coupled MOOSE app.
-   *
-   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
-   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
-   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
-   * conservation, we send the total source integral to nekRS for internal
-   * normalization of the source applied on the nekRS mesh.
-   */
+   /// Total volume-integrated volumetric source coming from the coupled MOOSE app.
   const PostprocessorValue * _source_integral = nullptr;
 
   /// MOOSE source interpolated onto the data transfer mesh
   double * _source_elem = nullptr;
-
-  /// Absolute tolerance for checking flux/heat source normalizations
-  const Real & _abs_tol;
-
-  /// Relative tolerance for checking flux/heat source normalizations
-  const Real & _rel_tol;
 };

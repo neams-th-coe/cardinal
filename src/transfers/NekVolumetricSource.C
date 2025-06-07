@@ -19,74 +19,57 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekVolumetricSource.h"
-#include "AuxiliarySystem.h"
 
 registerMooseObject("CardinalApp", NekVolumetricSource);
-
-extern nekrs::usrwrkIndices indices;
 
 InputParameters
 NekVolumetricSource::validParams()
 {
-  // TODO: class needs to be generalized to any volumetric source; currently only
-  // written for heat sources
-  auto params = FieldTransferBase::validParams();
-  params.addParam<std::string>("postprocessor_to_conserve", "Name of the postprocessor containing the integral of the source term in order to ensure conservation; defaults to the name of the object plus '_integral'");
-  params.addParam<unsigned int>("usrwrk_slot", "When 'direction = to_nek', the slot in the usrwrk array to write the source term.");
+  auto params = ConservativeFieldTransfer::validParams();
   params.addParam<Real>(
     "initial_source_integral",
     0,
-    "Initial value to use for the 'postprocessor_to_conserve', to ensure conservation; this initial value will be overridden once the coupled app executes its transfer of the volumetric source term integral into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs first, or if you are running NekRS in isolation but still want to apply a source term via Cardinal. Remember that this parameter is only used to normalize the source term 'source_variable', so you will need to populate an initial shape (magnitude is unimportant because it will be normalized by this parameter).");
-
-  params.addRangeCheckedParam<Real>("normalization_abs_tol", 1e-8, "normalization_abs_tol > 0",
-    "Absolute tolerance for checking if conservation is maintained during transfer");
-
-  params.addRangeCheckedParam<Real>("normalization_rel_tol", 1e-5, "normalization_rel_tol > 0",
-    "Relative tolerance for checking if conservation is maintained during transfer");
-
+    "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be overridden once the coupled app executes its transfer of the volumetric source term integral into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs first, or if you are running NekRS in isolation but still want to apply a source term via Cardinal. Remember that this parameter is only used to normalize the source term 'source_variable', so you will need to populate an initial shape.");
   params.addClassDescription("Reads/writes volumetric source data between NekRS and MOOSE.");
   return params;
 }
 
 NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
-  : FieldTransferBase(parameters),
-    PostprocessorInterface(this),
-    _initial_source_integral(getParam<Real>("initial_source_integral")),
-    _abs_tol(getParam<Real>("normalization_abs_tol")),
-    _rel_tol(getParam<Real>("normalization_rel_tol"))
+  : ConservativeFieldTransfer(parameters),
+    _initial_source_integral(getParam<Real>("initial_source_integral"))
 {
-  if (!_nek_problem.volume())
-    mooseError("The NekVolumetricSource object can only be used when there is volumetric coupling of NekRS with MOOSE, i.e. when 'volume = true' in NekRSMesh.");
-
   if (_direction == "to_nek")
   {
-    checkRequiredParam(parameters, "usrwrk_slot", "'direction = to_nek'");
-    indices.heat_source = getParam<unsigned int>("usrwrk_slot") * nekrs::fieldOffset();
-  }
-  else if (_direction == "from_nek")
-    paramError("direction", "The NekVolumetricSource currently only supports transfers 'to_nek'; contact the Cardinal developer team if you require reading of NekRS volumetric source terms.");
-  else
-    mooseError("Unhandled NekDirectionEnum in NekVolumetricSource!");
+    addExternalVariable(_usrwrk_slot[0], _variable);
+    indices.heat_source = _usrwrk_slot[0] * nekrs::fieldOffset();
 
-  std::string postprocessor_name;
-  if (isParamValid("postprocessor_to_conserve"))
-    postprocessor_name = getParam<std::string>("postprocessor_to_conserve");
-  else
-    postprocessor_name = name() + "_integral";
+    if (_usrwrk_slot.size() > 1)
+      paramError("usrwrk_slot", "'usrwrk_slot' must be of length 1 for volumetric source transfers; you have entered a vector of length " + Moose::stringify(_usrwrk_slot.size()));
+  }
+
+  if (!_nek_mesh->volume())
+    mooseError("The NekVolumetricSource object can only be used when there is volumetric coupling of NekRS with MOOSE, i.e. when 'volume = true' in NekRSMesh.");
+
+  if (_direction == "from_nek")
+    paramError("direction", "The NekVolumetricSource currently only supports transfers 'to_nek'; contact the Cardinal developer team if you require reading of NekRS volumetric source terms.");
 
   // Check that there is a udf function providing the source for the passive scalar
   // equations. NOTE: This check is imperfect, because even if there is a source kernel,
   // we cannot tell _which_ passive scalar equation that it is applied to (we have
   // source kernels for the RANS passive scalar equations, for instance).
   if (nekrs::hasTemperatureSolve() && !nekrs::hasHeatSourceKernel())
-    mooseError("In order to send a heat source to nekRS, you must have an OCCA kernel for the source in the passive scalar equations!");
+    mooseError("In order to send a volumetric heat source to NekRS, you must have an OCCA source kernel in the passive scalar equations!");
 
-  addExternalPostprocessor(postprocessor_name, _initial_source_integral);
-  _source_integral = &getPostprocessorValueByName(postprocessor_name);
+  if (!nekrs::hasTemperatureVariable())
+    mooseError("In order to send a volumetric heat source to NekRS, your case files must have a [TEMPERATURE] block. Note that you can set 'solver = none' in '" + _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
 
-  int n_per_vol = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _nek_mesh->numVerticesPerVolume();
-  _source_elem = (double *)calloc(n_per_vol, sizeof(double));
+  if (!nekrs::hasTemperatureSolve())
+    mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() + ".par', NekRS will not solve for temperature. The volumetric heat source sent by this object will be unused.");
+
+  addExternalPostprocessor(_postprocessor_name, _initial_source_integral);
+  _source_integral = &getPostprocessorValueByName(_postprocessor_name);
+
+  _source_elem = (double *)calloc(_n_per_vol, sizeof(double));
 }
 
 NekVolumetricSource::~NekVolumetricSource()
@@ -123,13 +106,13 @@ NekVolumetricSource::sendDataToNek()
 {
   _console << "Sending volumetric source to NekRS..." << std::endl;
 
-  for (unsigned int e = 0; e < _nek_problem.nVolumeElems(); e++)
+  for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
   {
     // We can only write into the nekRS scratch space if that face is "owned" by the current process
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number, 1.0 / nekrs::referenceSource(), &_source_elem);
+    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], 1.0 / nekrs::referenceSource(), &_source_elem);
     _nek_problem.writeVolumeSolution(e, field::heat_source, _source_elem);
   }
 
@@ -162,24 +145,18 @@ NekVolumetricSource::sendDataToNek()
   // be very different from one another.
   if (moose_source &&
       (std::abs(nek_source * nek_source_print_mult - moose_source) / moose_source) > 0.25)
-    mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 25\%! "
-                             "This could indicate that your geometries do not line up properly "
-                             "or there is some other mistake in the data transfer (check the "
-                             "exodus output files to see if the transferred data looks sensible)."));
+    mooseDoOnce(mooseWarning("NekRS source differs from MOOSE source by more than 25\%! This is NOT necessarily a problem - but it could indicate that your geometries don't line up properly or something is amiss with your transfer. We recommend opening the output files to visually inspect the volumetric source in both the main and sub applications to check that the fields look correct."));
 
   if (!successful_normalization)
-    mooseError("Heat source normalization process failed! nekRS integrated heat source: ",
+    mooseError("Volumetric source normalization process failed! NekRS integrated source: ",
                normalized_nek_source,
-               " MOOSE integrated heat source: ",
-               moose_source,
-               ".\n\nThis may happen if the nekRS mesh "
-               "is very different from that used in the App sending heat source to nekRS and the "
-               "nearest node transfer is only picking up zero values in the coupled App."
-               "OR, this error could indicate that your tolerances for comparing the re-normalized "
-               "Nek heat source with the incoming MOOSE heat source are too tight. If the NekRS heat source (",
-               normalized_nek_source, ") is acceptably close to the MOOSE heat source (", moose_source, "), "
-               "then you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' "
-               "parameters");
+               " MOOSE integrated source: ",
+               moose_source, ".\n\n",
+               "There are a few reason this might happen:\n\n"
+               "- You forgot to add a transfer in the parent application to write into the " + name() + "variable, in which case no matter what you try to normalize by, the source in NekRS is always zero.\n\n"
+               "- You forgot to add a transfer in the parent application to write into the " + name() + "_integral postprocessor, in which case the value of the postprocessor will always be zero.\n\n"
+               "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the meshes in Paraview by running your input files with the --mesh-only flag.\n\n"
+               "- Your tolerances for comparing the re-normalized NekRS volumetric source with the incoming MOOSE volumetric source are too tight. If the NekRS volumetric source is acceptably close to the MOOSE volumetric source, you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters.");
 }
 
 #endif
