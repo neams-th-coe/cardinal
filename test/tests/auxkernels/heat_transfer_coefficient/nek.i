@@ -1,14 +1,15 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
-  initial_flux_integral = 1000
   synchronization_interval = constant
   constant_interval = 100
 
   [FieldTransfers]
-    [temperature]
-      type = NekFieldVariable
-      direction = from_nek
+    [avg_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+      initial_flux_integral = 1000
     []
   []
 []
@@ -108,5 +109,5 @@
 [Outputs]
   csv = true
   time_step_interval = 100
-  hide = 'flux_integral'
+  hide = 'avg_flux_integral'
 []
