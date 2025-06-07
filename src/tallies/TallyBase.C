@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 #include "TallyBase.h"
+#include "DisplacedProblem.h"
 
 #include "OpenMCCellAverageProblem.h"
 #include "UserErrorChecking.h"
@@ -80,6 +81,9 @@ TallyBase::validParams()
 
   params.registerBase("Tally");
   params.registerSystemAttributeName("Tally");
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }
@@ -93,6 +97,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output")),
+    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
 {
   if (isParamValid("score"))
@@ -337,6 +342,10 @@ TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
                         unsigned int global_score,
                         const std::string & output_type)
 {
+  if (_use_displaced)
+  {
+    _openmc_problem.getDisplacedProblem()->updateMesh();
+  }
   Real total = 0.0;
 
   if (output_type == "relaxed")
@@ -496,7 +505,7 @@ TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
   // loop over all the elements and set the specified variable to the specified value
   for (const auto & e : elem_ids)
   {
-    auto elem_ptr = _mesh.queryElemPtr(e);
+    auto elem_ptr = _openmc_problem.getMooseMesh().queryElemPtr(e);
 
     if (!_openmc_problem.isLocalElem(elem_ptr))
       continue;

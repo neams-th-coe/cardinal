@@ -413,6 +413,9 @@ public:
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION{3};
 
+  /// Get a modifyable reference to the Moose mesh
+  virtual const MooseMesh & getMooseMesh() const;
+
 protected:
   /**
    * Get the cell level in OpenMC to use for coupling
@@ -944,6 +947,9 @@ protected:
    * the tally sum
    */
   const bool _needs_global_tally;
+
+  /// Whether OpenMCCellAverageProblem should use the displaced mesh
+  const bool & _use_displaced;
 
   /**
    * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is
