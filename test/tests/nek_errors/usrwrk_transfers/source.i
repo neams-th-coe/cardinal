@@ -1,6 +1,6 @@
 [Mesh]
   type = NekRSMesh
-  boundary = '6'
+  volume = true
 []
 
 [Problem]
@@ -8,10 +8,10 @@
   casename = 'brick'
 
   [FieldTransfers]
-    [flux]
-      type = NekBoundaryFlux
+    [source]
+      type = NekVolumetricSource
       direction = to_nek
-      usrwrk_slot = 0
+      usrwrk_slot = '1 2'
     []
   []
 []
@@ -22,8 +22,4 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-[]
-
-[Outputs]
-  exodus = true
 []

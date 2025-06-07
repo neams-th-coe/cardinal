@@ -1,6 +1,6 @@
 [Mesh]
   type = NekRSMesh
-  boundary = '6'
+  volume = true
 []
 
 [Problem]
@@ -8,8 +8,8 @@
   casename = 'brick'
 
   [FieldTransfers]
-    [flux]
-      type = NekBoundaryFlux
+    [heat]
+      type = NekVolumetricSource
       direction = to_nek
       usrwrk_slot = 0
     []

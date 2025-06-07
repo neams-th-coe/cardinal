@@ -11,12 +11,20 @@
     [flux]
       type = NekBoundaryFlux
       direction = to_nek
-      usrwrk_slot = '1 1'
+      usrwrk_slot = '1'
     []
     [source]
-      type = NekVolumetricSource
+      type = NekBoundaryFlux
       direction = to_nek
       usrwrk_slot = '2'
+    []
+  []
+
+  [ScalarTransfers]
+    [scalar]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = '3'
     []
   []
 []
