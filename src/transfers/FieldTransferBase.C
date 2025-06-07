@@ -18,79 +18,128 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekRSProblemBase.h"
-#include "NekRSMesh.h"
+#include "NekRSProblem.h"
 #include "FieldTransferBase.h"
 #include "UserErrorChecking.h"
 #include "AuxiliarySystem.h"
 
-registerMooseObject("CardinalApp", FieldTransferBase);
+std::map<unsigned int, std::string> FieldTransferBase::_field_usrwrk_map;
 
 InputParameters
 FieldTransferBase::validParams()
 {
-  auto params = MooseObject::validParams();
-  MooseEnum direction("to_nek from_nek");
-  params.addRequiredParam<MooseEnum>("direction", direction, "Direction in which to send data; 'from_nek' will read from the 'field' variable in NekRS and write into the 'variable'; 'to_nek' will read from the 'variable' and write into the 'field' variable in NekRS");
-
-  params.addParam<std::string>("variable", "Variable to fill with NekRS 'field' data, if 'direction = from_nek'; defaults to name of this object if not provided");
-  params.addParam<std::string>("source_variable", "Variable to read from to populate the NekRS 'field', if 'direction = to_nek'; defaults to the name of this object if not provided");
-
-  params.addPrivateParam<NekRSProblemBase *>("_nek_problem");
+  auto params = NekTransferBase::validParams();
+  params.addParam<std::vector<unsigned int>>("usrwrk_slot", "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data; provide one entry for each quantity being passed");
+  params.addClassDescription("Base class for transferring field data between NekRS and MOOSE.");
   params.registerBase("FieldTransfer");
   params.registerSystemAttributeName("FieldTransfer");
-
   return params;
 }
 
 FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
-  : MooseObject(parameters),
-    _nek_problem(*getParam<NekRSProblemBase *>("_nek_problem")),
-    _direction(getParam<MooseEnum>("direction"))
+  : NekTransferBase(parameters),
+    _variable(name())
 {
-  _nek_mesh = dynamic_cast<NekRSMesh *>(&(getMooseApp().feProblem().mesh()));
-
-  if (!_nek_mesh)
-    mooseError("Mesh for must be of type 'NekRSMesh'");
-
-  // when writing data into Nek, we require a variable to read from; if not
-  // provided, then choose the object name as default
   if (_direction == "to_nek")
   {
-    checkUnusedParam(parameters, "variable", "writing data 'to_nek'");
-    if (isParamValid("source_variable"))
-      _variable = getParam<std::string>("source_variable");
-    else
-      _variable = name();
-  }
-  else if (_direction == "from_nek")
-  {
-    checkUnusedParam(parameters, "source_variable", "reading data 'from_nek'");
-    if (isParamValid("variable"))
-      _variable = getParam<std::string>("variable");
-    else
-      _variable = name();
-  }
-  else
-    mooseError("Unhandled direction enum in FieldTransferBase!");
+    checkRequiredParam(parameters, "usrwrk_slot", "writing data 'to_nek'");
+    _usrwrk_slot = getParam<std::vector<unsigned int>>("usrwrk_slot");
 
-  addExternalVariable(_variable);
+    // there should be no duplicates within a single transfer
+    std::set<unsigned int> slots(_usrwrk_slot.begin(), _usrwrk_slot.end());
+    if (slots.size() != _usrwrk_slot.size())
+    {
+      std::string slots;
+      for (const auto & u : _usrwrk_slot)
+        slots += Moose::stringify(u) + " ";
+      paramError("usrwrk_slot", "There are duplicate entries in 'usrwrk_slot': " + slots + "; duplicate entries are not allowed because the field transfer will overwrite itself. Cardinal has allocated " + Moose::stringify(_nek_problem.nUsrWrkSlots()) + " usrwrk slots; if you need more, set 'n_usrwrk_slots' in the [Problem] block.");
+    }
+
+    // each slot should not be greater than the amount allocated
+    for (const auto & u : _usrwrk_slot)
+      checkAllocatedUsrwrkSlot(u);
+  }
 }
 
 void
 FieldTransferBase::addExternalVariable(const std::string name)
 {
-  auto var_params = _nek_problem.getExternalVariableParameters();
+  InputParameters var_params = _factory.getValidParams("MooseVariable");
+  var_params.set<MooseEnum>("family") = "LAGRANGE";
+
+  switch (_nek_mesh->order())
+  {
+    case order::first:
+      var_params.set<MooseEnum>("order") = "FIRST";
+      break;
+    case order::second:
+      var_params.set<MooseEnum>("order") = "SECOND";
+      break;
+    default:
+      mooseError("Unhandled 'NekOrderEnum' in 'FieldTransferBase'!");
+  }
+
   _nek_problem.checkDuplicateVariableName(name);
   _nek_problem.addAuxVariable("MooseVariable", name, var_params);
+  _variable_number.insert(std::pair<std::string, unsigned int>(name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, _variable).number()));
 }
 
 void
-FieldTransferBase::addExternalPostprocessor(const std::string name, const Real initial)
+FieldTransferBase::addExternalVariable(const unsigned int slot, const std::string name)
 {
-  auto pp_params = _factory.getValidParams("Receiver");
-  pp_params.set<Real>("default") = initial;
-  _nek_problem.addPostprocessor("Receiver", name, pp_params);
-  _variable_number = _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, _variable).number();
+  addExternalVariable(name);
+
+  // check that no other field transfer is trying to write into the same slot;
+  // we don't need to check the scalar transfers, because they will always execute
+  // after the field transfers
+  bool duplicate_field = _field_usrwrk_map.find(slot) != _field_usrwrk_map.end();
+  if (duplicate_field)
+    paramError("usrwrk_slot", "A duplicate slot, " + Moose::stringify(slot) + ", is being used by another FieldTransfer. Duplicate slots are not allowed for field transfers because these transfers will overwrite all data in that slot. If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
+
+  _field_usrwrk_map.insert({slot, name});
+}
+
+void
+FieldTransferBase::fillAuxVariable(const unsigned int var_number, const double * value)
+{
+  auto & solution = _nek_problem.getAuxiliarySystem().solution();
+  auto sys_number = _nek_problem.getAuxiliarySystem().number();
+  auto pid = _communicator.rank();
+
+  for (unsigned int e = 0; e < _nek_mesh->numElems(); e++)
+  {
+    for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+    {
+      auto elem_ptr = _nek_mesh->queryElemPtr(e * _nek_mesh->nMoosePerNek() + build);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+      {
+        libmesh_assert(!_nek_mesh->getMesh().is_serial());
+        continue;
+      }
+
+      for (unsigned int n = 0; n < _nek_mesh->numVerticesPerElem(); n++)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+        // vertex is "owned" by the present MOOSE process.
+        if (node_ptr->processor_id() == pid)
+        {
+          int node_index = _nek_mesh->nodeIndex(n);
+          auto node_offset = (e * _nek_mesh->nMoosePerNek() + build) * _nek_mesh->numVerticesPerElem() + node_index;
+
+          // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary
+          // system
+          auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
+          solution.set(dof_idx, value[node_offset]);
+        }
+      }
+    }
+  }
+
+  solution.close();
 }
 #endif

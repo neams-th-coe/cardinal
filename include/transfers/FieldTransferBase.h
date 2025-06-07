@@ -18,22 +18,32 @@
 
 #pragma once
 
-#include "MooseObject.h"
-
-class NekRSProblemBase;
-class NekRSMesh;
-class AuxiliarySystem;
+#include "NekTransferBase.h"
 
 /**
  * Base class for facilitating a data transfer between MOOSE and the NekRS
- * code internals.
+ * code internals for a field (a variable defined at the GLL points).
  */
-class FieldTransferBase : public MooseObject
+class FieldTransferBase : public NekTransferBase
 {
 public:
   static InputParameters validParams();
 
   FieldTransferBase(const InputParameters & parameters);
+
+  /**
+   * Get the mapping of usrwrk slots to variable names for all field transfers
+   * @return map ordered as (slot number, name)
+   */
+  static std::map<unsigned int, std::string> usrwrkMap() { return _field_usrwrk_map; }
+
+protected:
+  /**
+   * Fill an outgoing auxiliary variable field with nekRS solution data
+   * @param[in] var_number auxiliary variable number
+   * @param[in] value nekRS solution data to fill the variable with
+   */
+  void fillAuxVariable(const unsigned int var_number, const double * value);
 
   /**
    * Add a MOOSE variable to facilitate coupling
@@ -42,31 +52,24 @@ public:
   void addExternalVariable(const std::string name);
 
   /**
-   * Add a postprocessor to facilitate coupling
-   * @param[in] name postprocessor name
-   * @param[in] initial initial value to use for the postprocessor
+   * Add a MOOSE variable to facilitate coupling
+   * @param[in] slot slot in usrwrk array holding this field
+   * @param[in] name variable name
    */
-  void addExternalPostprocessor(const std::string name, const Real initial);
-
-  /**
-   * Variable name added by this object
-   * @return variable name
-   */
-  std::string variableName() const { return _variable; }
-
-protected:
-  /// The NekRSProblem using the field transfer interface
-  NekRSProblemBase & _nek_problem;
-
-  /// The underlying NekRSMesh mirror
-  NekRSMesh * _nek_mesh;
-
-  /// Direction of the transfer
-  const MooseEnum & _direction;
+  void addExternalVariable(const unsigned int slot, const std::string name);
 
   /// Variable name to create in MOOSE to facilitate data passing
   std::string _variable;
 
-  /// Internal number for the variable created in MOOSE
-  unsigned int _variable_number;
+  /// Slot in usrwrk array to use for writing data, if 'direction = to_nek'
+  std::vector<unsigned int> _usrwrk_slot;
+
+  /// Internal number for the variable(s) created in MOOSE (name, number)
+  std::map<std::string, unsigned int> _variable_number;
+
+  /**
+   * Information about data stored in the usrwrk array for error checking and diagnostics;
+   * stored as (slot, variable name in MOOSE)
+   */
+  static std::map<unsigned int, std::string> _field_usrwrk_map;
 };
