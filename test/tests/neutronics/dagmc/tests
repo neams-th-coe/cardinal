@@ -4,7 +4,7 @@
     input = wrong_uo.i
     expect_err = "The 'skinner' user object must be of type MoabSkinner!"
     requirement = "The system shall error if the skinner user object is not the correct type"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [missing_graveyard]
     type = RunException
@@ -12,7 +12,7 @@
     cli_args = '--error'
     expect_err = "Overriding graveyard setting from false to true.\nTo hide this warning, set 'build_graveyard = true'"
     requirement = "The system shall warn if the graveyard is missing for OpenMC skinned models"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [no_symmetry]
     type = RunException
@@ -20,13 +20,13 @@
     expect_err = "Cannot combine the 'skinner' with 'symmetry_mapper'!"
     requirement = "The system shall error if applying a symmetry mapping to an OpenMC model which must "
                   "already exactly match the mesh."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [properties]
     type = RunException
     input = properties.i
     expect_err = "Cannot load initial temperature and density properties from HDF5 files"
     requirement = "The system shall error if loading properties from HDF5 for skinned problems"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

@@ -3,7 +3,7 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrsmpi turbPipe 4'
     requirement = "The system shall run nekRS as a standalone run with the NekRS executable."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [standalone]
@@ -11,6 +11,6 @@
     input = nek.i
     min_parallel = 4
     requirement = 'Cardinal shall be able to run a NekRS standalone simulation.'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

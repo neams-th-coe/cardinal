@@ -4,13 +4,13 @@
     input = nek_bin_aux.i
     expect_err = "This auxkernel can only be combined with NekSpatialBinUserObject-derived classes!"
     requirement = "System shall error if auxkernel is not paired with a compatible bin user object."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_field]
     type = RunException
     input = invalid_field.i
     expect_err = "This auxkernel can only be used with a binning user object that sets 'field = velocity_component'!"
     requirement = "System shall error if auxkernel is not paired with a velocity vector bin user object."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

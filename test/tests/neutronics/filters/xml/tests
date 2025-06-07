@@ -4,14 +4,14 @@
     input = cell.i
     csvdiff = cell_out.csv
     requirement = "The system shall allow cell tallies to access filters added in the OpenMC tallies XML file."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [arbitrary_mesh]
     type = CSVDiff
     input = mesh.i
     csvdiff = mesh_out.csv
     requirement = "The system shall allow mesh tallies to access filters added in the OpenMC tallies XML file."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_filter]
     type = RunException
@@ -20,7 +20,7 @@
     expect_err = "A filter with the id 30 does not exist in the OpenMC model! Please make sure the filter has been added "
                  "in the OpenMC model and you've supplied the correct filter id."
     requirement = "The system shall error if a filter with the id requested has not been added by the tallie xml file."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [spatial_filter_error]
     type = RunException
@@ -30,7 +30,7 @@
                  "spatial filters from the OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
                  "performed by Cardinal's tally objects."
     requirement = "The system shall error if the user selects a spatial filter."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [func_exp_warning]
     type = RunException
@@ -40,7 +40,7 @@
                  "as the sum over all tally bins may not be well posed if any bins contain functional expansion coefficients."
     requirement = "The system shall warn the user if they have selected a functional expansion filter and set "
                   "allow_expansion_filters = true."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [func_exp_error]
     type = RunException
@@ -52,6 +52,6 @@
                  "'allow_expansion_filters' to true."
     requirement = "The system shall error if the user selected a functional expansion filter without setting "
                   "allow_expansion_filters = true."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

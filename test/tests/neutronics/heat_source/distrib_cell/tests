@@ -9,6 +9,6 @@
     max_parallel = 4
     requirement = "The heat source shall be correctly mapped if the solid cell level is not "
                   "the highest level."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

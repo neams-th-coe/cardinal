@@ -8,6 +8,6 @@
                   "This input sets up a pincell with lattices where all cells of interest are on level 1. "
                   "Surrounding this pincell is an exterior cell on level 0. Cell IDs, instances, and temperatures "
                   "all correctly reflect using the lowest available level in the exterior region."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

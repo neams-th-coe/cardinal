@@ -6,14 +6,14 @@
     abs_zero = 1e-8
     requirement = "Nek-wrapped MOOSE cases shall be able to output the "
                   "passive scalars from the Nek solution onto the mesh mirror."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_high_slot]
     type = RunException
     input = nek_fld.i
     expect_err = "Cannot write field file for usrwrk slot greater than the total number of allocated slots: 2!"
     requirement = "The system shall error if trying to write a usrwrk slot greater than the total number of allocated slots"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [mismatch_length]
     type = RunException
@@ -21,6 +21,6 @@
     cli_args = 'Problem/usrwrk_output="0 1" Problem/usrwrk_output_prefix="abc"'
     expect_err = "The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!"
     requirement = "The system shall error if there is a mismatch between parameter lengths for writing usrwrk field files"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

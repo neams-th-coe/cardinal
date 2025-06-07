@@ -5,7 +5,7 @@
     csvdiff = openmc_out.csv
     requirement = "The system shall allow for the use of CSG and DAGMC geometry when using the MOABSkinner."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
     skip = 'Non-deterministic!'
   []
 []

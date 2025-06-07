@@ -8,7 +8,7 @@
                   "input file run with the skinner disabled. The CSG file used for comparison is in "
                   "the csg_step_1 directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [skin]
     type = Exodiff
@@ -19,7 +19,7 @@
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [skin_null_density]
     type = Exodiff
@@ -28,7 +28,7 @@
     exodiff = openmc_out.e
     requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning with a single density bin when compared to a case without any density skinning at all."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [scale_mesh]
     type = RunApp
@@ -44,7 +44,7 @@
     cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall give identical results when scaling the Mesh by an arbitrary multiplier. The gold file was compared against a case with no scaling (scaling = 1) to get identical results."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [unmapped_cells]
     type = RunException
@@ -54,6 +54,6 @@
                  " model maps one to one to the mesh mirror; if that is not the case the skinner may delete some parts of your "
                  "OpenMC model when the underlying geometry is regenerated. You have 1 unmapped DAGMC cells out of 3 DAGMC cells."
     requirement = "The system shall warn the user when there is a mismatch between the mesh mirror and the initial OpenMC DAGMC geometry."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

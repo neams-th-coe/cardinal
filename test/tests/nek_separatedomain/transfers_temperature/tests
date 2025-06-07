@@ -7,7 +7,7 @@
     requirement = "Cardinal shall be able to transfer inlet temperature and velocity to the inlet_boundary of NekRS. "
                   "We check this by applying those boundary conditions in NekRS, and looking at postprocessors on "
                   "those boundaries to match the values we sent in."
-    required_objects = 'NekRSSeparateDomainProblem'
+    capabilities = 'nekrs'
   []
   [inlet_outlet_t]
     type = CSVDiff
@@ -19,7 +19,7 @@
                   "We check this by applying those boundary conditions in NekRS, and looking at postprocessors on "
                   "those boundaries to match the values we sent in. Cardinal shall also be able to extract outlet "
                   "temperature and velocity from outlet_boundary. We check this by fetching these values using postprocessors."
-    required_objects = 'NekRSSeparateDomainProblem'
+    capabilities = 'nekrs'
   []
   [outlet_t]
     type = CSVDiff
@@ -28,6 +28,6 @@
     cli_args = 'Outputs/file_base=outlet_T Problem/coupling_type="outlet" Transfers/active="" Outputs/hide="dP inlet_P outlet_P"'
     requirement = "Cardinal shall be able to extract outlet temperature and velocity from outlet_boundary of NekRS. "
                   "We check this by fetching those values using postprocessors."
-    required_objects = 'NekRSSeparateDomainProblem'
+    capabilities = 'nekrs'
   []
 []

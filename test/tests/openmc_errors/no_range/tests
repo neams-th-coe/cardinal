@@ -7,6 +7,6 @@
     requirement = "The system shall warn the user if they did not set the temperature range, protecting against "
                   "seg faults within the tracking loop when trying to access nuclear data at temperatures that "
                   "Cardinal wants to apply, but that weren't actually loaded at initialization."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

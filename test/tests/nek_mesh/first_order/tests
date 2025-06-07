@@ -5,7 +5,7 @@
     exodiff = nek_out.e
     requirement = "NekRSMesh shall construct a first-order surface mesh from a list of boundary IDs. "
                   "The ordering for the nodes shall be based on the libMesh ordering."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [first_order_volume_mesh]
     type = Exodiff
@@ -13,6 +13,6 @@
     exodiff = nek_volume_out.e
     requirement = "NekRSMesh shall construct a first-order volume mesh. "
                   "The ordering for the nodes shall be based on the libMesh ordering."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -10,7 +10,7 @@
       cli_args = 'UserObjects/tally_editor_uo/tally_id=3000'
       expect_err = 'Tally 3000 does not exist in the OpenMC model'
       detail = 'trying to edit a non-existant tally'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [nonexistent_nuclide]
       type = RunException
@@ -18,7 +18,7 @@
       cli_args = 'UserObjects/tally_editor_uo/nuclides="fake fake2"'
       expect_err = "Nuclide 'fake' is not present in library."
       detail = "trying to add a nuclide not accessible in the cross section library"
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [invalid_score]
       type = RunException
@@ -26,7 +26,7 @@
       cli_args = 'UserObjects/tally_editor_uo/scores="invalid"'
       expect_err = 'Invalid tally score "invalid".'
       detail = 'trying to add an invalid score to a tally'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [nonexistent_filter]
       type = RunException
@@ -34,7 +34,7 @@
       cli_args = 'UserObjects/new_filter/create_filter=false'
       expect_err = 'Filter 100 does not exist and create_filter is false'
       detail = 'the filter referenced by an OpenMCFilterEditor via ID does not exist and is not flagged for creation'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [clashing_filter_types]
       type = RunException
@@ -42,28 +42,28 @@
       cli_args = 'UserObjects/new_filter/filter_type="universe" UserObjects/new_filter/filter_id=1'
       expect_err = 'An existing filter, Filter 1, is of type "cell" and cannot be changed to type "universe"'
       detail = 'an OpenMCDomainFilter editor exists with the same filter ID but a different filter type'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [clashing_filter_ids]
       type = RunException
       input = clashing_filter_ids.i
       expect_err = 'Filter ID \(10\) found in multiple OpenMCDomainFilterEditors'
       detail = 'more than one OpenMCDomainFilterEditor eixsts with the same filter ID'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [clashing_tally_ids]
       type = RunException
       input = clashing_tally_ids.i
       expect_err = 'Tally ID \(10\) found in multiple OpenMCTallyEditors'
       detail = 'more than one OpenMCTallyEditor eixsts with the same tally ID'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [clashing_mapped_tally]
       type = RunException
       input = clash_mapped_tally.i
       expect_err = 'Tally ID 3 is a tally which Cardinal has automatically created and is controlling'
       detail = 'an OpenMCTallyEditor eixsts for a mapped tally created by Cardinal'
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
   []
 
@@ -74,7 +74,7 @@
     file_expect_out ='U238'
     requirement = 'Ensure that nuclides specified by a tally editor UO are present in the tally output'
     cli_args = 'UserObjects/tally_editor_uo/nuclides="U238"'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [scatter_tally]
     type = CheckFiles
@@ -82,7 +82,7 @@
     check_files = tallies.out
     requirement = 'Ensure that the scattering score specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Scattering Rate'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [absorption_u238]
     type = CheckFiles
@@ -90,7 +90,7 @@
     check_files = tallies.out
     requirement = 'Ensure that the absorption score for a specific nuclide specified by a tally editor UO are present in the tally output'
     file_expect_out = 'U238\n   Absorption Rate'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [add_cell_filter]
     type = CheckFiles
@@ -98,7 +98,7 @@
     check_files = tallies.out
     requirement = 'Ensure that a cell filter specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Cell'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [add_material_filter]
     type = CheckFiles
@@ -107,7 +107,7 @@
     cli_args = 'UserObjects/new_filter/filter_type="material"'
     requirement = 'Ensure that a material filter specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Material'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [add_universe_filter]
     type = CheckFiles
@@ -116,6 +116,6 @@
     cli_args = 'UserObjects/new_filter/filter_type="universe"'
     requirement = 'Ensure that a universe filters specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Universe'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

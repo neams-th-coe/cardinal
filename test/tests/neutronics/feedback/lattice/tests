@@ -7,7 +7,7 @@
                   "and MOOSE and a solid pincell model when the model is set up with distributed cells. "
                   "The solution for temperature, density, and heat source show an exact agreement with "
                   "a case built without distributed cells in ../single_level."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [pincell_null_mat]
     type = Exodiff
@@ -18,7 +18,7 @@
                   "and MOOSE and a solid pincell model when the model is set up with distributed cells, "
                   "but with material feedback applied by material. The gold file is identical to a cell-based "
                   "feedback because we still have one unique material per cell."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [pincell_null_fixed_mesh]
     type = Exodiff
@@ -27,7 +27,7 @@
     cli_args = 'MultiApps/openmc/cli_args=Problem/fixed_mesh=false'
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [heating]
     type = CSVDiff
@@ -35,7 +35,7 @@
     csvdiff = heating_out.csv
     cli_args = 'Outputs/file_base=heating_out'
     requirement = "The system shall allow the user to specify a 'heating' score in the OpenMC tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [heating_local]
     type = CSVDiff
@@ -43,7 +43,7 @@
     csvdiff = heating_local_out.csv
     cli_args = 'Problem/Tallies/Cell/score=heating_local Outputs/file_base=heating_local_out'
     requirement = "The system shall allow the user to specify a 'heating-local' score in the OpenMC tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [damage_energy]
     type = CSVDiff
@@ -51,7 +51,7 @@
     csvdiff = damage_energy_out.csv
     cli_args = "Problem/Tallies/Cell/score='damage_energy kappa_fission' Problem/Tallies/Cell/name='heat_source kappa_fission' Problem/source_rate_normalization=kappa_fission Outputs/file_base=damage_energy_out"
     requirement = "The system shall allow the user to specify a 'damage-energy' score in the OpenMC tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [fission_q_prompt]
     type = CSVDiff
@@ -59,7 +59,7 @@
     csvdiff = fission_q_prompt_out.csv
     cli_args = 'Problem/Tallies/Cell/score=fission_q_prompt Outputs/file_base=fission_q_prompt_out'
     requirement = "The system shall allow the user to specify a 'fission-q-prompt' score in the OpenMC tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [fission_q_recoverable]
     type = CSVDiff
@@ -67,7 +67,7 @@
     csvdiff = fission_q_recoverable_out.csv
     cli_args = 'Problem/Tallies/Cell/score=fission_q_recoverable Outputs/file_base=fission_q_recoverable_out'
     requirement = "The system shall allow the user to specify a 'fission-q-recoverable' score in the OpenMC tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [duplicate_variable]
     type = RunException
@@ -75,13 +75,13 @@
     cli_args = "AuxVariables/heat_source/order=FIRST"
     expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source', but you already have a variable by this name."
     requirement = "The system shall error if the user adds a duplicate variable with a name Cardinal reserves for OpenMC coupling."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [nonmaterial_fluid]
     type = RunException
     input = non_material_fluid.i
     expect_err = "Density transfer does not currently support cells filled with universes or lattices!"
     requirement = "The system shall error if trying to set density in a cell filled by a universe or lattice."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

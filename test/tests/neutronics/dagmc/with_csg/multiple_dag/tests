@@ -5,6 +5,6 @@
     expect_err = "The 'skinner' can only be used when the OpenMC geometry contains a single DAGMC universe."
     requirement = "The system shall error if there are more than one DAGMC universe. If so, the universe "
                   "to skin cannot be automatically determined."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

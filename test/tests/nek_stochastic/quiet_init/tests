@@ -3,7 +3,7 @@
     type = RunCommand
     command = 'rm -rf .cache/'
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [driver_multi_1]
@@ -17,13 +17,13 @@
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [clear1]
     type = RunCommand
     command = 'rm -rf .cache/'
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [driver_multi_2]
@@ -38,14 +38,14 @@
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [clear2]
     type = RunCommand
     command = 'rm -rf .cache/'
     prereq = driver_multi_2
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [driver_multi_3]
@@ -60,14 +60,14 @@
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [clear3]
     type = RunCommand
     command = 'rm -rf .cache/'
     prereq = driver_multi_3
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [driver_multi_4]
@@ -81,7 +81,7 @@
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     skip = 'Need to resolve random failure'
   []
 []

@@ -12,6 +12,6 @@
                   "Perfect agreement is not to be expected, since the underlying basis functions "
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

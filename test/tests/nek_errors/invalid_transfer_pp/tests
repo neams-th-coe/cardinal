@@ -7,6 +7,6 @@
         "postprocessor is not zero."
     requirement = "When using the minimized transfers setting, the default value for the "
                   "postprocessor in the master application must not be zero."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -6,7 +6,7 @@
     mesh_mode = 'replicated'
     expect_err = "'temperature_max' must be greater than 'temperature_min'"
     requirement = "The system shall error if the maximum temperature is lower than the minimum temperature for the skinner bins"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [invalid_max_density]
     type = RunException
@@ -15,7 +15,7 @@
     mesh_mode = 'replicated'
     expect_err = "'density_max' must be greater than 'density_min'"
     requirement = "The system shall error if the maximum density is lower than the minimum density for the skinner bins"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [too_low_temp]
     type = RunException
@@ -24,7 +24,7 @@
     mesh_mode = 'replicated'
     expect_err = "Variable 'temp' has value below minimum range of bins. Please decrease 'temperature_min'."
     requirement = "The system shall error if the temperature is below the minimum bin bound"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [too_high_temp]
     type = RunException
@@ -33,7 +33,7 @@
     mesh_mode = 'replicated'
     expect_err = "Variable 'temp' has value above maximum range of bins. Please increase 'temperature_max'."
     requirement = "The system shall error if the temperature is above the maximum bin bound"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [too_low_density]
     type = RunException
@@ -42,7 +42,7 @@
     mesh_mode = 'replicated'
     expect_err = "Variable 'rho' has value below minimum range of bins. Please decrease 'density_min'."
     requirement = "The system shall error if the density is below the minimum bin bound"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [too_high_density]
     type = RunException
@@ -51,7 +51,7 @@
     mesh_mode = 'replicated'
     expect_err = "Variable 'rho' has value above maximum range of bins. Please increase 'density_max'."
     requirement = "The system shall error if the density is above the maximum bin bound"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [invalid_mesh]
     type = RunException
@@ -60,7 +60,7 @@
     mesh_mode = 'replicated'
     expect_err = "The MoabSkinner can only be used with a tetrahedral \[Mesh\]!"
     requirement = "The system shall error if the skinned mesh does not contain tetrahedral elements"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [invalid_graveyard_scales]
     type = RunException
@@ -69,7 +69,7 @@
     mesh_mode = 'replicated'
     expect_err = "'graveyard_scale_outer' must be greater than 'graveyard_scale_inner'!"
     requirement = "The system shall error if the outer graveyard surface is not larger than the inner graveyard surface"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [no_aux_temp]
     type = RunException
@@ -78,7 +78,7 @@
     expect_err = "Cannot find auxiliary variable 'temperature'!"
     mesh_mode = 'replicated'
     requirement = "The system shall error if the specified temperature auxiliary variable cannot be found"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [no_aux_density]
     type = RunException
@@ -87,7 +87,7 @@
     mesh_mode = 'replicated'
     expect_err = "Cannot find auxiliary variable 'den'!"
     requirement = "The system shall error if the specified density auxiliary variable cannot be found"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [overlap_t_rho]
     type = RunException
@@ -96,7 +96,7 @@
     mesh_mode = 'replicated'
     expect_err = "The 'temperature' and 'density' variables cannot be the same!"
     requirement = "The system shall error if the specified density and temperature auxiliary variables are the same"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [distributed]
     type = RunException
@@ -104,7 +104,7 @@
     mesh_mode = 'distributed'
     expect_err = "MoabSkinner does not yet support distributed meshes!"
     requirement = "The system shall error if trying to run in distributed mesh mode"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [incorrect_material_names]
     type = RunException
@@ -113,6 +113,6 @@
     mesh_mode = 'replicated'
     expect_err = "This parameter must be the same length as the number of subdomains in the mesh \(1\)"
     requirement = "The system shall error if the material_names provided to the skinner do not match the required length"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

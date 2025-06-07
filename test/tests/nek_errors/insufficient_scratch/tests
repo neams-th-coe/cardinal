@@ -7,7 +7,7 @@
                  "'n_usrwrk_slots' must be greater than or equal to 1"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSProblem always requires at least 1 slot"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_b]
     type = RunException
@@ -16,7 +16,7 @@
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 2"
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_c]
     type = RunException
@@ -25,7 +25,7 @@
                  "'n_usrwrk_slots' must be greater than or equal to 3"
     mesh_mode = 'replicated'
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_d]
     type = RunException
@@ -34,7 +34,7 @@
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 2"
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_e]
     type = RunException
@@ -43,7 +43,7 @@
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 3"
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_f]
     type = RunException
@@ -52,7 +52,7 @@
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 3"
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_g]
     type = RunException
@@ -61,7 +61,7 @@
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 3"
     requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_h]
     type = RunException
@@ -70,7 +70,7 @@
     expect_err = "The 'first_reserved_usrwrk_slot' \(8\) must be less than 'n_usrwrk_slots' \(8\)!"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "an initial shift cannot exceed the number of allocated slots"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_small_i]
     type = RunException
@@ -81,6 +81,6 @@
     mesh_mode = 'replicated'
     requirement = "The system shall error if the user enters too small a scratch space allocation, "
                   "when using a front shift for the slots"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

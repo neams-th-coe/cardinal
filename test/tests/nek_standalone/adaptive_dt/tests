@@ -4,7 +4,7 @@
     input = nek.i
     csvdiff = nek_out.csv
     requirement = "The system shall support adaptive time stepping in NekRS when running as the main application."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [variable_dt_nondim]
     type = CSVDiff
@@ -12,6 +12,6 @@
     csvdiff = nek_nondim_out.csv
     requirement = "The system shall support adaptive time stepping in NekRS when running as the main application "
                   "and with a non-dimensional formulation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

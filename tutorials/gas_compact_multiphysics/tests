@@ -19,7 +19,7 @@
     cli_args = 'Problem/particles=200 Executioner/num_steps=2 Problem/inactive_batches=10 Problem/batches=20 Problem/Tallies/heat_source/trigger=none Problem/k_trigger=none Outputs/csv/file_base=openmc_thm_test_out Problem/identical_cell_fills="compacts compacts_trimmer_tri"'
     min_parallel = 2
     requirement = 'The system shall solve for coupled OpenMC, heat conduction, and THM fluid flow for a TRISO compact.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [openmc_nek_moose] # can't test the nek.i, too big
     type = RunApp
@@ -29,6 +29,6 @@
     mesh_mode = 'replicated' # MultiAppGeometricInterpolationTransfer not supported
     cli_args = "Problem/particles=200 Executioner/num_steps=1 Problem/inactive_batches=10 Problem/batches=20 Problem/Tallies/heat_source/trigger=none Problem/k_trigger=none Outputs/csv/file_base=openmc_nek_test_out Problem/identical_cell_fills='compacts compacts_trimmer_tri' bison:MultiApps/active='' bison:Transfers/active='' Problem/initial_properties=xml"
     requirement = 'The system shall solve for coupled OpenMC and heat conduction for a TRISO compact.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -5,6 +5,6 @@
     expect_err = "material 1 is present in more than one OpenMC cell with different density feedback settings!"
     requirement = "The system shall error if a fluid material exists in non-fluid parts of the domain, because "
                   "density would inadvertently be changed in other parts of the OpenMC model."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

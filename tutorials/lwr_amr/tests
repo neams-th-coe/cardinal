@@ -15,7 +15,7 @@
     prereq = 'gen_assembly_amr'
     min_parallel = 2
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [gen_pin_amr]
     type = RunApp
@@ -30,6 +30,6 @@
     requirement = "The system shall be able to run AMR calculations on an LWR pincell."
     prereq = 'gen_pin_amr'
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

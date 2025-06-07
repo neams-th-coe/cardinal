@@ -5,7 +5,7 @@
     exodiff = exact_in.e
     cli_args = '--mesh-only'
     requirement = "The system shall be able to generate an exact first-order boundary mesh mirror."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [volume_exact]
     type = Exodiff
@@ -13,7 +13,7 @@
     exodiff = exact_volume_in.e
     cli_args = '--mesh-only'
     requirement = "The system shall be able to generate an exact first-order volume mesh mirror."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [second_exact]
     type = RunException
@@ -21,6 +21,6 @@
     cli_args = 'Mesh/order=SECOND'
     expect_err = "When building an exact mesh mirror, the 'order' must be FIRST!"
     requirement = "The system shall error if trying to build an exact mesh mirror that is second order."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []
