@@ -34,7 +34,10 @@ NekFieldVariable::validParams()
 NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
-  if (_direction != "from_nek")
+  if (_direction == "from_nek")
+    addExternalVariable(_variable);
+
+  if (_direction == "to_nek")
     paramError("direction", "The NekFieldVariable currently only supports transfers 'from_nek'; contact the Cardinal developer team if you require writing of NekRS field variables.");
 
   if (isParamValid("field"))
@@ -51,6 +54,13 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     else
       paramError("field", "We tried to choose a default 'field' as '" + name() + "', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter.");
   }
+
+  _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
+}
+
+NekFieldVariable::~NekFieldVariable()
+{
+  freePointer(_external_data);
 }
 
 field::NekFieldEnum
@@ -76,6 +86,17 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
     return field::scalar03;
 
   mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
+}
+
+void
+NekFieldVariable::readDataFromNek()
+{
+  if (!_nek_mesh->volume())
+    _nek_problem.boundarySolution(_field, _external_data);
+  else
+    _nek_problem.volumeSolution(_field, _external_data);
+
+  fillAuxVariable(_variable_number[_variable], _external_data);
 }
 
 #endif

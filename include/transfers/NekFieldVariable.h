@@ -20,6 +20,7 @@
 
 #include "CardinalEnums.h"
 
+/// Transfers field data (NekRS solution fields) between NekRS and MOOSE
 class NekFieldVariable : public FieldTransferBase
 {
 public:
@@ -27,11 +28,9 @@ public:
 
   NekFieldVariable(const InputParameters & parameters);
 
-  /**
-   * The field which NekRS is writing/reading from
-   * @return the field
-   */
-  const field::NekFieldEnum field() const { return _field; }
+  ~NekFieldVariable();
+
+  virtual void readDataFromNek() override;
 
 protected:
   /**
@@ -44,4 +43,7 @@ protected:
 
   /// NekRS field to read/write
   field::NekFieldEnum _field;
+
+  /// Scratch space to place external NekRS fields before writing into auxiliary variables
+  double * _external_data = nullptr;
 };
