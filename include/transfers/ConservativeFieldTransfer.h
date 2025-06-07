@@ -33,4 +33,7 @@ protected:
 
   /// Relative tolerance for checking conservation
   const Real & _rel_tol;
+
+  /// Name of the postprocessor/vectorpostprocessor used to apply conservation
+  std::string _postprocessor_name;
 };

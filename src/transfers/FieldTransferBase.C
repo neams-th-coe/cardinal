@@ -21,7 +21,6 @@
 #include "NekRSProblem.h"
 #include "FieldTransferBase.h"
 #include "UserErrorChecking.h"
-#include "AuxiliarySystem.h"
 
 std::map<unsigned int, std::string> FieldTransferBase::_field_usrwrk_map;
 
@@ -59,6 +58,11 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
     for (const auto & u : _usrwrk_slot)
       checkAllocatedUsrwrkSlot(u);
   }
+
+  _n_per_surf = _nek_mesh->exactMirror() ?
+    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _nek_mesh->numVerticesPerSurface();
+  _n_per_vol = _nek_mesh->exactMirror() ?
+    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _nek_mesh->numVerticesPerVolume();
 }
 
 void

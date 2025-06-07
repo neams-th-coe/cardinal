@@ -19,6 +19,7 @@
 #pragma once
 
 #include "NekTransferBase.h"
+#include "AuxiliarySystem.h"
 
 /**
  * Base class for facilitating a data transfer between MOOSE and the NekRS
@@ -66,6 +67,12 @@ protected:
 
   /// Internal number for the variable(s) created in MOOSE (name, number)
   std::map<std::string, unsigned int> _variable_number;
+
+  /// Number of points on the MOOSE mesh to write per element surface
+  int _n_per_surf;
+
+  /// Number of points on the MOOSE mesh to write per element volume
+  int _n_per_vol;
 
   /**
    * Information about data stored in the usrwrk array for error checking and diagnostics;

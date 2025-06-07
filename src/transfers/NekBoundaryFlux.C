@@ -49,6 +49,9 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 {
   if (_direction == "to_nek")
   {
+    if (_usrwrk_slot.size() > 1)
+      paramError("usrwrk_slot", "'usrwrk_slot' must be of length 1 for boundary flux transfers; you have entered a vector of length " + Moose::stringify(_usrwrk_slot.size()));
+
     addExternalVariable(_usrwrk_slot[0], _variable);
     indices.flux = _usrwrk_slot[0] * nekrs::fieldOffset();
   }
@@ -97,12 +100,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   else
     _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
 
-  int n_per_surf = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _nek_mesh->numVerticesPerSurface();
-  int n_per_vol = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _nek_mesh->numVerticesPerVolume();
-  _flux_face = (double *)calloc(n_per_surf, sizeof(double));
-  _flux_elem = (double *)calloc(n_per_vol, sizeof(double));
+  _flux_face = (double *)calloc(_n_per_surf, sizeof(double));
+  _flux_elem = (double *)calloc(_n_per_vol, sizeof(double));
 }
 
 NekBoundaryFlux::~NekBoundaryFlux()
@@ -205,7 +204,7 @@ NekBoundaryFlux::sendDataToNek()
     mooseError("Flux normalization process failed! NekRS integrated flux: ",
                normalized_nek_flux,
                " MOOSE integrated flux: ",
-               total_moose_flux, ".\n",
+               total_moose_flux, ".\n\n",
                "There are a few reason this might happen:\n\n"
                "- You forgot to add a transfer in the parent application to write into the " + name() + "variable, in which case no matter what you try to normalize by, the flux in NekRS is always zero.\n\n"
                "- You forgot to add a transfer in the parent application to write into the " + name() + "_integral postprocessor, in which case the value of the postprocessor will always be zero.\n\n"
