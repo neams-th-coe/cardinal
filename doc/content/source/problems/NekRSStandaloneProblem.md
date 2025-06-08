@@ -1,34 +1,5 @@
 # NekRSStandaloneProblem
 
-This class performs all activities related to solving NekRS as a MOOSE application.
-This class differs from the [NekRSProblem](NekRSProblem.md) class because this class
-does not *couple* NekRS to another MOOSE application. Instead, this class
-simply allows standalone NekRS simulations to be run using the Cardinal executable,
-which allows uncoupled NekRS simulations to take advantage of a number of features
-available in Cardinal, such as:
-
-- Postprocessors to query the solution, evaluate heat balances and pressure drops,
-  or evaluate solution convergence
-- UserObjects to project the NekRS solution onto other discretization schemes,
-  such as a subchannel discretization, or onto other MOOSE applications, such as
-  for providing closures
-- Automatic conversion of nondimensional NekRS solutions into dimensional form
-
-In other words, this class allows NekRS input files to be run through Cardinal
-without *any* modifications.
-
-!include nek_classes.md
-
-The smallest possible MOOSE-wrapped input file that can be used to run NekRS standalone
-cases is shown below. This input file in particular runs the `channel` example that ships
-with the NekRS repository.
-
-In this input file, `casename` is the prefix describing the NekRS input files, i.e. this
-parameter would be `casename = channel` if the NekRS input files are `channel.re2`,
-`channel.par`, `channel.udf`, and `channel.oudf`.
-
-!listing test/tests/nek_standalone/channel/nek.i id=l22 caption=Smallest possible input file for running a standalone NekRS simulation within Cardinal
-  end=Postprocessors
 
 In other words, you can either run the `channel` NekRS example with
 the standalone NekRS executable (which does not bring any advantages of Cardinal),
