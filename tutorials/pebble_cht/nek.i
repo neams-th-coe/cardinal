@@ -8,6 +8,19 @@
 [Problem]
   type = NekRSProblem
   casename = 'pebble'
+
+  [FieldTransfers]
+    [flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temp]
+      type = NekFieldVariable
+      direction = from_nek
+      field = temperature
+    []
+  []
 []
 
 [Executioner]

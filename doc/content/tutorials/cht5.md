@@ -28,7 +28,7 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in a [previous tutorial](nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$. If you have not
+specifications are given in a [previous tutorial](nek_intro.md). If you have not
 reviewed this prior tutorial, we highly recommend doing so before proceeding.
 
 The MOOSE heat transfer module shall be used to solve for the solid temperature.
@@ -79,8 +79,7 @@ for this example).
 
 A mirror of the NekRS mesh
 is constructed using the [NekRSMesh](NekRSMesh.md). The
-`boundary` parameter indicates the boundaries through which NekRS is coupled
-via conjugate heat transfer to MOOSE.
+`boundary` parameter indicates the boundaries through which NekRS is coupled to MOOSE.
 
 !listing /tutorials/pebble_cht/nek.i
   block=Mesh
@@ -98,8 +97,14 @@ The `casename` is used to supply the file name prefix for
 the NekRS input files.
 
 !listing /tutorials/pebble_cht/nek.i
-  start=Problem
-  end=Executioner
+  block=Problem
+
+The [FieldTransfers](AddFieldTransferAction.md) block then adds the field transfers
+to represent data passing between `nek.i` and NekRS's internal data structures. A
+[NekBoundaryFlux](NekBoundaryFlux.md) is used to write a wall flux into NekRS. This
+object will automatically create an auxiliary variable named `flux` and a postprocessor
+named `flux_integral` to use for ensuring conservation. Then, the [NekFieldVariable](NekFieldVariable.md) is used to fetch temperature from NekRS and write into an auxiliary
+variable named `temp`.
 
 Next, a [Transient](Transient.md) executioner
 is specified. This is the same executioner used for most transient MOOSE simulations, except now a
@@ -124,37 +129,6 @@ with the usual field file format used by standalone NekRS calculations.
 
 !listing /tutorials/pebble_cht/nek.i
   block=Outputs
-
-You will likely notice that many of the almost-always-included MOOSE blocks are absent
-from the `nek.i` input file - for instance, there are no nonlinear or auxiliary variables
-in the input file.
-The [NekRSProblem](NekRSProblem.md) class assists in input file setup by declaring many of these coupling fields
-automatically. For this example, two auxiliary variables named `temp` and `avg_flux` are
-added automatically, as if the following were included in the input file:
-
-!listing
-[AuxVariables]
-  [avg_flux]
-  []
-  [temp]
-  []
-[]
-
-These variables receive incoming and outgoing transfers to/from NekRS; the order is set
-to match the order of the [NekRSMesh](NekRSMesh.md).
-A postprocessor named `flux_integral`
-is also added automatically to receive the value of the heat flux
-integral from MOOSE for internal normalization in NekRS. It is as if the following is added
-to the input file:
-
-!listing
-[Postprocessors]
-  [flux_integral]
-    type = Receiver
-  []
-[]
-
-You will see `temp`, `avg_flux`, and `flux_integral` referred to in the solid input file `[Transfers]` block,
 
 ### Solid Input Files
 
@@ -307,24 +281,26 @@ are actually unused. But it is in this table where you can find out what the "sl
 the scratch space represent from MOOSE if you are unsure.
 
 ```
-  ===================>     MAPPING FROM MOOSE TO NEKRS      <===================
+ ===================>     MAPPING FROM MOOSE TO NEKRS      <===================
 
-           Slice:  entry in NekRS scratch space
-        Quantity:  physical meaning or name of data in this slice
-   How to Access:  C++ code to use in NekRS files; for the .udf instructions,
-                   'n' indicates a loop variable over GLL points
+           Slot:  slice in scratch space holding the data
+ MOOSE quantity:  name of the AuxVariable or Postprocessor that gets written into
+                  this slot. If 'unused', this means that the space has been
+                  allocated, but Cardinal is not otherwise using it for coupling
+  How to Access:  C++ code to use in NekRS files; for the .udf instructions,
+                  'n' indicates a loop variable over GLL points
 
- ------------------------------------------------------------------------------------------------
- | Quantity |           How to Access (.oudf)           |         How to Access (.udf)          |
- ------------------------------------------------------------------------------------------------
- | flux     | bc->usrwrk[0 * bc->fieldOffset + bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[1 * bc->fieldOffset + bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[2 * bc->fieldOffset + bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[3 * bc->fieldOffset + bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[4 * bc->fieldOffset + bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[5 * bc->fieldOffset + bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[6 * bc->fieldOffset + bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
- ------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+| Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
+-----------------------------------------------------------------------------------------------------------
+|    0 | flux           | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
+|    1 | unused         | bc->usrwrk[1 * bc->fieldOffset+bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
+|    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
+|    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
+|    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
+|    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
+|    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
+-----------------------------------------------------------------------------------------------------------
 ```
 
 When the simulation has completed, you will have created a number of different output files:

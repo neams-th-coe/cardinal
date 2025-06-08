@@ -693,21 +693,6 @@ struct usrwrkIndices
 
   /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z = -1;
-
-  /// boundary velocity (for separate domain coupling)
-  int boundary_velocity = -1;
-
-  /// boundary temperature (for separate domain coupling)
-  int boundary_temperature = -1;
-
-  /// boundary scalar01 (for separate domain coupling)
-  int boundary_scalar01 = -1;
-
-  /// boundary scalar02 (for separate domain coupling)
-  int boundary_scalar02 = -1;
-
-  /// boundary scalar03 (for separate domain coupling)
-  int boundary_scalar03 = -1;
 };
 
 /**

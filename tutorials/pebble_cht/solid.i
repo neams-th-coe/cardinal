@@ -82,7 +82,7 @@ thermal_conductivity = 2.0
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = flux
     search_value_conflicts = false
   []
   [flux_integral_to_nek]
