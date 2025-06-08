@@ -8,9 +8,13 @@
 [Problem]
   type = NekRSProblem
   casename = 'user'
-  has_heat_source = false
 
   [FieldTransfers]
+    [disp]
+      type = NekMeshDeformation
+      direction = to_nek
+      usrwrk_slot = '0 1 2'
+    []
     [temp]
       type = NekFieldVariable
       field = temperature

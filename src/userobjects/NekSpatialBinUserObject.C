@@ -78,7 +78,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     // first check that the user object exists
     if (!hasUserObjectByName<UserObject>(b))
       mooseError("Bin user object with name '" + b +
-                 "' not found in problem.\nThe user objects "
+                 "' not found in problem. The user objects "
                  "in 'bins' must be listed before the '" +
                  name() + "' user object.");
 

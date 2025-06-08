@@ -3,7 +3,7 @@
     type = RunException
     input = nek.i
     required_objects = 'NekRSProblem'
-    expect_err = "Moving mesh problems require displacements in the \[Mesh\] block!"
+    expect_err = "Moving mesh problems require 'displacements' in the \[Mesh\] block!"
     requirement = "The system shall error if NekRSMesh is not paired with displacements for moving mesh problems."
   []
   [volume_for_user_solver]
@@ -13,14 +13,5 @@
     required_objects = 'NekRSProblem'
     expect_err ="'user.par' has 'solver = user' in the"
     requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror."
-  []
-  [separate_domain]
-    type = RunException
-    input = nek.i
-    cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSSeparateDomainProblem' Problem/coupling_type='inlet' Problem/inlet_boundary='1' Problem/outlet_boundary='2'"
-    required_objects = 'NekRSProblem'
-    expect_err = "NekRSSeparateDomainProblem currently does not transfer mesh displacements"
-    requirement = "The system shall error if the nekRS .par file has a moving mesh solver"
-                  "but the problem type in Cardinal is NekRSSeprateDomainProblem."
   []
 []

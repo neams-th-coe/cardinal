@@ -12,6 +12,17 @@
   synchronization_interval = parent_app
 
   [FieldTransfers]
+    [heat_source]
+      type = NekVolumetricSource
+      direction = to_nek
+      usrwrk_slot = 0
+      postprocessor_to_conserve = source_integral
+    []
+    [disp]
+      type = NekMeshDeformation
+      usrwrk_slot = '1 2 3'
+      direction = to_nek
+    []
     [temp]
       type = NekFieldVariable
       field = temperature
@@ -59,6 +70,6 @@
   execute_on = 'final'
 
   # uncomment the temp_ansol to see that the solution matches very well
-  hide = 'source_integral transfer_in heat_source temp_ansol'
+  hide = 'heat_source transfer_in source_integral temp_ansol'
 []
 

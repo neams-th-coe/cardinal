@@ -131,9 +131,6 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   {
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
-
-    if (!_app.actionWarehouse().displacedMesh())
-      mooseError("Moving mesh problems require 'displacements' in the [Mesh] block! The names of the 'displacements' variables must match the variables created by a NekMeshDeformation object.");
   }
 
   _moose_Nq = _nek_mesh->order() + 2;
@@ -323,8 +320,8 @@ NekRSProblem::initialSetup()
         has_deformation = true;
     }
 
-    if (!has_deformation)
-      mooseError("When the NekRS model has a moving mesh, you must add a NekMeshDeformation field transfer in the [Problem/FieldTransfers] block.");
+    if (has_deformation && !_app.actionWarehouse().displacedMesh())
+      mooseError("Moving mesh problems require 'displacements' in the [Mesh] block! The names of the 'displacements' variables must match the variables created by a NekMeshDeformation object.");
   }
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
@@ -337,10 +334,10 @@ NekRSProblem::initialSetup()
   // fill a set with all of the slots managed by Cardinal, coming from either field transfers
   // or userobjects
   auto field_usrwrk_map = FieldTransferBase::usrwrkMap();
-  for (const auto & uo : _scalar_transfers)
-    _usrwrk_slots.insert(uo->usrwrkSlot());
   for (const auto & field : field_usrwrk_map)
     _usrwrk_slots.insert(field.first);
+  for (const auto & uo : _scalar_transfers)
+    _usrwrk_slots.insert(uo->usrwrkSlot());
 
   // fill out table, being careful to only write information if owned by a field transfer,
   // a user object, or neither

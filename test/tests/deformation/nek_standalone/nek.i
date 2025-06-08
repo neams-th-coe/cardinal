@@ -4,7 +4,7 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'mv_cyl'
 []
 
