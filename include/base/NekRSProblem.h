@@ -401,7 +401,7 @@ protected:
   std::vector<FieldTransferBase *> _field_transfers;
 
   /// All of the ScalarTransfer objecst which pass data in/out of NekRS
-  std::vector<NekScalarValue *> _scalar_transfers;
+  std::vector<ScalarTransferBase *> _scalar_transfers;
 
   /// Usrwrk slots managed by Cardinal
   std::set<unsigned int> _usrwrk_slots;
