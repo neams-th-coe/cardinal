@@ -1,6 +1,19 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+
+  [ScalarTransfers]
+    [scalar1]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [scalar2]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+  []
 []
 
 [Mesh]
@@ -16,27 +29,16 @@
   []
 []
 
-[UserObjects]
-  [scalar1]
-    type = NekScalarValue
-    usrwrk_slot = 0
-  []
-  [scalar2]
-    type = NekScalarValue
-    usrwrk_slot = 0
-  []
-[]
-
 [Controls]
   [func_control]
     type = RealFunctionControl
-    parameter = 'UserObjects/scalar1/value'
+    parameter = 'Problem/ScalarTransfers/scalar1/value'
     function = 'val'
     execute_on = 'timestep_begin'
   []
   [func_control2]
     type = RealFunctionControl
-    parameter = 'UserObjects/scalar2/value'
+    parameter = 'Problem/ScalarTransfers/scalar2/value'
     function = 'val2'
     execute_on = 'timestep_begin'
   []
