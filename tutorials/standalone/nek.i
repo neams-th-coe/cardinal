@@ -5,9 +5,32 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'turbPipe'
-  output = 'pressure velocity'
+
+  # normally, Cardinal will allocate the usrwrk space for you; but in this
+  # standalone case, we decided to allocate nrs->usrwrk ourselves already in the
+  # udf file
+  n_usrwrk_slots = 0
+
+  [FieldTransfers]
+    [pressure]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_x]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_y]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_z]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Postprocessors]
