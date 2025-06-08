@@ -59,7 +59,7 @@ protected:
    */
   void addExternalVariable(const unsigned int slot, const std::string name);
 
-  /// Variable name to create in MOOSE to facilitate data passing
+  /// Variable name (or prefix of names) to create in MOOSE to facilitate data passing
   std::string _variable;
 
   /// Slot in usrwrk array to use for writing data, if 'direction = to_nek'

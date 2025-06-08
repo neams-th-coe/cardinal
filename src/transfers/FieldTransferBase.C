@@ -85,7 +85,7 @@ FieldTransferBase::addExternalVariable(const std::string name)
 
   _nek_problem.checkDuplicateVariableName(name);
   _nek_problem.addAuxVariable("MooseVariable", name, var_params);
-  _variable_number.insert(std::pair<std::string, unsigned int>(name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, _variable).number()));
+  _variable_number.insert(std::pair<std::string, unsigned int>(name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number()));
 }
 
 void
