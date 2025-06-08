@@ -68,4 +68,18 @@
     requirement = "The system shall error when the usrwrk slot request does not match the needed number of slots for a source transfer"
     required_objects = 'NekRSProblem'
   []
+  [problem_field]
+    type = RunException
+    input = wrong_problem.i
+    expect_err = "The \[FieldTransfers\] block can only be used with wrapped Nek cases! You need to change the \[Problem\] block to 'NekRSProblem'."
+    requirement = "The system shall error if trying to use field transfer syntax only relevant for NekRS wrapped cases with a non-Nek case."
+    required_objects = 'NekRSProblem'
+  []
+  [problem_scalar]
+    type = RunException
+    input = wrong_problem_s.i
+    expect_err = "The \[ScalarTransfers\] block can only be used with wrapped Nek cases! You need to change the \[Problem\] block to 'NekRSProblem'."
+    requirement = "The system shall error if trying to use scalar transfer syntax only relevant for NekRS wrapped cases with a non-Nek case."
+    required_objects = 'NekRSProblem'
+  []
 []
