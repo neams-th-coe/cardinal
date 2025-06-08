@@ -9,8 +9,7 @@
   [ordering_error]
     type = RunException
     input = order_error.i
-    expect_err = "Bin user object with name 'subchannel_binning' not found in problem.\n"
-                 "The user objects in 'bins' must be listed before the 'vol_avg' user object."
+    expect_err = "Bin user object with name 'subchannel_binning' not found in problem. The user objects in 'bins' must be listed before the 'vol_avg' user object."
     requirement = "The system shall error if the userobjects aren't listed in the correct order in the input file."
     required_objects = 'NekRSProblem'
   []
