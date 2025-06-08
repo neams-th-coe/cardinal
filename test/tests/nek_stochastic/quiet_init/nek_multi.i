@@ -4,9 +4,18 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'ethier'
   n_usrwrk_slots = 2
+
+  [ScalarTransfers]
+    [scalar1]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = 0
+      output_postprocessor = s1
+    []
+  []
 
   [FieldTransfers]
     [scalar02]
@@ -24,12 +33,6 @@
   []
 []
 
-[UserObjects]
-  [scalar1]
-    type = NekScalarValue
-  []
-[]
-
 [Controls]
   [stochastic]
     type = SamplerReceiver
@@ -38,8 +41,7 @@
 
 [Postprocessors]
   [s1]
-    type = NekScalarValuePostprocessor
-    userobject = scalar1
+    type = Receiver
   []
 
   # we use the stochastic value to set the scalar (in the .udf files). Here,

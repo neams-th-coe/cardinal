@@ -32,7 +32,7 @@
     type = SamplerParameterTransfer
     to_multi_app = nek
     sampler = sample
-    parameters = 'UserObjects/scalar1/value'
+    parameters = 'Problem/ScalarTransfers/scalar1/value'
   []
   [results]
     type = SamplerReporterTransfer

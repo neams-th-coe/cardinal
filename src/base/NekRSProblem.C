@@ -122,8 +122,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   _nek_mesh = dynamic_cast<NekRSMesh *>(&mesh());
 
   if (!_nek_mesh)
-    mooseError("Mesh for '" + type() + "' must be of type 'NekRSMesh', but you have specified a '" +
-               mesh().type() + "'!");
+    mooseError("The mesh for NekRSProblem must be of type 'NekRSMesh', but you have specified a '" + mesh().type() + "'!");
 
   // The mesh movement error checks are triggered based on whether the NekRS input files
   // have a moving mesh. From there, we impose the necessary checks on the [Mesh] block
@@ -285,9 +284,7 @@ NekRSProblem::initialSetup()
   // NekRS only supports transient simulations - therefore, it does not make
   // sense to use anything except a Transient-derived executioner
   if (!_transient_executioner)
-    mooseError("A 'Transient' executioner must be used with '" + type() +
-               "', but "
-               "you have specified the '" +
+    mooseError("A 'Transient' executioner must be used with NekRSProblem, but you have specified the '" +
                executioner->type() + "' executioner!");
 
   // To get the correct time stepping information on the MOOSE side, we also
@@ -295,9 +292,7 @@ NekRSProblem::initialSetup()
   TimeStepper * stepper = _transient_executioner->getTimeStepper();
   _timestepper = dynamic_cast<NekTimeStepper *>(stepper);
   if (!_timestepper)
-    mooseError("The 'NekTimeStepper' stepper must be used with '" + type() +
-               "', "
-               "but you have specified the '" +
+    mooseError("The 'NekTimeStepper' stepper must be used with NekRSProblem, but you have specified the '" +
                stepper->type() + "' time stepper!");
 
   // Set the NekRS start time to whatever is set on Executioner/start_time; print
@@ -313,22 +308,9 @@ NekRSProblem::initialSetup()
   TheWarehouse::Query query = theWarehouse().query().condition<AttribSystem>("FieldTransfer");
   query.queryInto(_field_transfers);
 
-  // Find all of the NekScalarValue user objects
-  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
-  std::vector<UserObject *> userobjs;
-  uo_query.queryInto(userobjs);
-
-  int scratch_counter = 0;
-  for (const auto & u : userobjs)
-  {
-    NekScalarValue * c = dynamic_cast<NekScalarValue *>(u);
-    if (c)
-    {
-      c->setCounter(scratch_counter);
-      _nek_uos.push_back(c);
-      scratch_counter++;
-    }
-  }
+  // Find all of the scalar data transfer objects
+  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("ScalarTransfer");
+  uo_query.queryInto(_scalar_transfers);
 
   // We require a NekMeshDeformation object to exist if the NekRS model has a moving mesh
   if (nekrs::hasMovingMesh())
@@ -355,7 +337,7 @@ NekRSProblem::initialSetup()
   // fill a set with all of the slots managed by Cardinal, coming from either field transfers
   // or userobjects
   auto field_usrwrk_map = FieldTransferBase::usrwrkMap();
-  for (const auto & uo : _nek_uos)
+  for (const auto & uo : _scalar_transfers)
     _usrwrk_slots.insert(uo->usrwrkSlot());
   for (const auto & field : field_usrwrk_map)
     _usrwrk_slots.insert(field.first);
@@ -376,19 +358,17 @@ NekRSProblem::initialSetup()
     {
       // a user object might own it, or it could be unused
       bool owned_by_uo = false;
-      for (const auto & uo : _nek_uos)
+      for (const auto & uo : _scalar_transfers)
       {
         if (uo->usrwrkSlot() == i)
         {
           owned_by_uo = true;
-          auto slot = uo->usrwrkSlot();
-          auto count = uo->counter();
-          vt.addRow(slot,
+          auto slot = std::to_string(uo->usrwrkSlot());
+          auto count = std::to_string(uo->offset());
+          vt.addRow(i,
                     uo->name(),
-                    "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " +
-                        std::to_string(count) + "]",
-                    "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
-                        std::to_string(count) + "]");
+                    "bc->usrwrk[" + slot + " * bc->fieldOffset + " + count + "]",
+                    "nrs->usrwrk[" + slot + " * nrs->fieldOffset + " + count + "]");
         }
       }
 
@@ -560,22 +540,6 @@ NekRSProblem::isDataTransferHappening(ExternalProblem::Direction direction)
 }
 
 void
-NekRSProblem::sendScalarValuesToNek()
-{
-  if (_nek_uos.size() == 0)
-    return;
-
-  for (const auto & uo : _nek_uos)
-    uo->setValue();
-
-  if (udf.properties)
-  {
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
-    evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
-  }
-}
-
-void
 NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
@@ -595,12 +559,21 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       solution.localize(*_serialized_solution);
 
-      // execute all incoming transfers
+      // execute all incoming field transfers
       for (const auto & t : _field_transfers)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
 
-      sendScalarValuesToNek();
+      // execute all incoming scalar transfers
+      for (const auto & t : _scalar_transfers)
+        if (t->direction() == "to_nek")
+          t->sendDataToNek();
+
+      if (udf.properties)
+      {
+        nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+        evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
+      }
 
       copyScratchToDevice();
 
@@ -610,10 +583,15 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      // execute all outgoing transfers
+      // execute all outgoing field transfers
       for (const auto & t : _field_transfers)
         if (t->direction() == "from_nek")
           t->readDataFromNek();
+
+      // execute all outgoing scalar transfers
+      for (const auto & t : _scalar_transfers)
+        if (t->direction() == "from_nek")
+          t->sendDataToNek();
 
       break;
     }
@@ -719,6 +697,8 @@ NekRSProblem::addExternalVariables()
   {
     auto pp_params = _factory.getValidParams("Receiver");
     pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
+
+    // we do not need to check for duplicate names because MOOSE already handles it
     addPostprocessor("Receiver", "transfer_in", pp_params);
   }
 }

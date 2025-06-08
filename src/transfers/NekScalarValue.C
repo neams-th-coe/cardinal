@@ -18,35 +18,42 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekBase.h"
+#include "NekScalarValue.h"
+
+registerMooseObject("CardinalApp", NekScalarValue);
 
 InputParameters
-NekBase::validParams()
+NekScalarValue::validParams()
 {
-  InputParameters params = emptyInputParameters();
+  auto params = ScalarTransferBase::validParams();
+  params.addParam<Real>("value", 0.0, "Scalar value to pass into NekRS");
+  params.addParam<PostprocessorName>("output_postprocessor", "Name of the postprocessor to output the value sent into NekRS");
+  params.declareControllable("value");
+
+  params.addClassDescription("Transfers a scalar value into NekRS");
+  params.registerBase("ScalarTransfer");
+  params.registerSystemAttributeName("ScalarTransfer");
   return params;
 }
 
-NekBase::NekBase(const MooseObject * moose_object, const InputParameters & parameters)
-  : _nek_problem(dynamic_cast<NekRSProblem *>(&moose_object->getMooseApp().feProblem()))
+NekScalarValue::NekScalarValue(const InputParameters & parameters)
+  : ScalarTransferBase(parameters),
+    _value(getParam<Real>("value")),
+    _postprocessor(isParamValid("output_postprocessor") ? &getParam<PostprocessorName>("output_postprocessor") : nullptr)
 {
-  if (!_nek_problem)
-  {
-    std::string extra_help =
-        moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
-    mooseError(moose_object->type() +
-               " can only be used with NekRS-wrapped cases! You need to change the problem type from '" +
-               moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
-               " to NekRSProblem.");
-  }
+}
 
-  // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
-  // this pointer isn't NULL
-  _nek_mesh = dynamic_cast<const NekRSMesh *>(&moose_object->getMooseApp().feProblem().mesh());
+void
+NekScalarValue::sendDataToNek()
+{
+  Real value_to_set = _value * _scaling;
+  _console << "Sending scalar value (" << Moose::stringify(value_to_set) << ") to NekRS..." << std::endl;
 
-  if (moose_object->isParamSetByUser("use_displaced_mesh"))
-    mooseWarning("'use_displaced_mesh' is unused, because this postprocessor acts directly\n"
-                 "on the NekRS internal mesh");
+  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
+
+  if (_postprocessor)
+    _nek_problem.setPostprocessorValueByName(*_postprocessor, value_to_set);
 }
 
 #endif

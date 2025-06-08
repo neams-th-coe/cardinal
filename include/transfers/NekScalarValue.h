@@ -16,34 +16,24 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#pragma once
 
-#include "NekScalarValuePostprocessor.h"
+#include "ScalarTransferBase.h"
 
-registerMooseObject("CardinalApp", NekScalarValuePostprocessor);
-
-InputParameters
-NekScalarValuePostprocessor::validParams()
+/// Pass scalar values (single numbers) between NekRS and MOOSE
+class NekScalarValue : public ScalarTransferBase
 {
-  InputParameters params = GeneralPostprocessor::validParams();
-  params += NekBase::validParams();
-  params.addRequiredParam<UserObjectName>("userobject",
-                                          "NekScalarValue userobject to report value for");
-  params.addClassDescription("Current value held by a NekScalarValue userobject");
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-NekScalarValuePostprocessor::NekScalarValuePostprocessor(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters),
-    NekBase(this, parameters),
-    _uo(getUserObject<NekScalarValue>("userobject"))
-{
-}
+  NekScalarValue(const InputParameters & parameters);
 
-Real
-NekScalarValuePostprocessor::getValue() const
-{
-  return _uo.getValue();
-}
+  virtual void sendDataToNek() override;
 
-#endif
+protected:
+  /// The value to pass into NekRS, possibly multiplied by 'scaling'
+  const Real & _value;
+
+  /// Name of postprocessor to output the value sent into NekRS, for diagnostics
+  const PostprocessorName * _postprocessor;
+};

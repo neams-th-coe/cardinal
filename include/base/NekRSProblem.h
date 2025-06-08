@@ -71,9 +71,6 @@ public:
    */
   void copyIndividualScratchSlot(const unsigned int & slot) const;
 
-  /// Send values from NekScalarValue userobjects to NekRS
-  void sendScalarValuesToNek();
-
   /**
    * Write NekRS solution field file
    * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
@@ -397,14 +394,14 @@ protected:
    */
   synchronization::SynchronizationEnum _sync_interval;
 
-  /// Userobjects containing stochastic input data
-  std::vector<NekScalarValue *> _nek_uos;
-
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
 
   /// All of the FieldTransfer objects which pass data in/out of NekRS
   std::vector<FieldTransferBase *> _field_transfers;
+
+  /// All of the ScalarTransfer objecst which pass data in/out of NekRS
+  std::vector<NekScalarValue *> _scalar_transfers;
 
   /// Usrwrk slots managed by Cardinal
   std::set<unsigned int> _usrwrk_slots;
