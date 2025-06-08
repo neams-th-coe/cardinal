@@ -9,6 +9,9 @@
   writeControl = steps
   writeInterval = 1
 
+[MESH]
+  file = "../../nek_mesh/first_order/pyramid.re2"
+
 [VELOCITY]
   viscosity = 1.0
   density = 1.0

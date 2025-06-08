@@ -4,7 +4,7 @@ void velocityDirichletConditions(bcData *bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->u = bc->usrwrk[bc->idM];
+  bc->u = bc->usrwrk[0 + 0 * bc->fieldOffset];
   bc->v = 0.0;
   bc->w = 0.0;
 }
@@ -15,5 +15,5 @@ void scalarDirichletConditions(bcData *bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  if (bc->scalarId == 0) bc->s = bc->usrwrk[bc->idM + bc->fieldOffset];
+  if (bc->scalarId == 0) bc->s = bc->usrwrk[0 + 1 * bc->fieldOffset];
 }

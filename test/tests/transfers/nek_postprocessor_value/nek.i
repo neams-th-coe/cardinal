@@ -1,10 +1,19 @@
 [Problem]
-  type = NekRSSeparateDomainProblem
-
-  inlet_boundary  = '1'
-  outlet_boundary = '2'
-
+  type = NekRSProblem
   casename = 'pyramid'
+
+  [ScalarTransfers]
+    [inlet_V]
+      type = NekPostprocessorValue
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [inlet_T]
+      type = NekPostprocessorValue
+      direction = to_nek
+      usrwrk_slot = 1
+    []
+  []
 []
 
 [Mesh]
@@ -33,18 +42,6 @@
     field = velocity
     value_type = min
   []
-  [outlet_V_max]
-    type = NekSideExtremeValue
-    boundary = '2'
-    field = velocity
-    value_type = max
-  []
-  [outlet_V_min]
-    type = NekSideExtremeValue
-    boundary = '2'
-    field = velocity
-    value_type = min
-  []
   [inlet_T_max]
     type = NekSideExtremeValue
     boundary = '1'
@@ -57,25 +54,7 @@
     field = temperature
     value_type = min
   []
-  [outlet_T_max]
-    type = NekSideExtremeValue
-    boundary = '2'
-    field = temperature
-    value_type = max
-  []
-  [outlet_T_min]
-    type = NekSideExtremeValue
-    boundary = '2'
-    field = temperature
-    value_type = min
-  []
-  [P_check]
-    type = ParsedPostprocessor
-    function = 'inlet_P - outlet_P - dP'
-    pp_names = 'inlet_P outlet_P dP'
-  []
 []
-
 
 [MultiApps]
   [sub]

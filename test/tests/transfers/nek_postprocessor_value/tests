@@ -1,0 +1,9 @@
+[Tests]
+  [nek]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall be able to transfer postprocessors to NekRS; we check this by passing postprocessors into the usrwrk array, and then using them as boundary conditions and looking at the field solution values on those boundaries."
+    required_objects = 'NekRSProblem'
+  []
+[]
