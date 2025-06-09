@@ -544,10 +544,9 @@ The bulk of the NekRS wrapping occurs in the `[Problem]` block
 with [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
-scales that were used to non-dimensionalize the NekRS input. In order to simplify the input
-file, we know a priori that OpenMC will not be sending a heat source *to NekRS*, so
-we set `has_heat_source = false` so that we don't need to add a dummy heat
-source kernel to the `ranstube.oudf` file. Finally, we indicate that we will
+scales that were used to non-dimensionalize the NekRS input. We add the [NekBoundaryFlux](NekBoundaryFlux.md) and [NekFieldVariable](NekFieldVariable.md) transfers in order
+to write heat flux and read temperature from NekRS.
+Finally, we indicate that we will
 be minimizing the data transfers in/out of NekRS unless new data is actually available
 from the MOOSE heat transfer module with the `synchronization_interval = parent_app` parameter.
 

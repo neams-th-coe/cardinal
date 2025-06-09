@@ -21,7 +21,6 @@ unit_cell_height = 1.6                   # unit cell height - arbitrarily select
 [Problem]
   type = NekRSProblem
   casename = 'ranstube'
-  has_heat_source = false
   n_usrwrk_slots = 2
 
   [Dimensionalize]
@@ -31,6 +30,18 @@ unit_cell_height = 1.6                   # unit cell height - arbitrarily select
     L = ${channel_diameter}
     rho = ${fluid_density}
     Cp = ${fluid_Cp}
+  []
+
+  [FieldTransfers]
+    [flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
   []
 
   synchronization_interval = parent_app
