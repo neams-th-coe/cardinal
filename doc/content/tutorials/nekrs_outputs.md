@@ -11,10 +11,6 @@ and used in the preceding NekRS tutorials. The purpose of this dedicated tutoria
 is to explain more specific use cases or complex combinations of postprocessing/extraction
 features. We will use a variety of input cases, and will not focus too much
 on the physics setup - just the postprocessing and data extraction features.
-For simplicity, many of the examples shown here just deal with thin wrappings
-of NekRS via [NekRSStandaloneProblem](NekRSStandaloneProblem.md) -
-however, all features shown here can also be used in a coupled sense via
-[NekRSProblem](NekRSProblem.md).
 
 ## Viewing the NekRS Mesh
 
@@ -60,9 +56,9 @@ use the following Cardinal input file:
 
 !listing /tutorials/load_from_exodus/nek.i
 
-We incidate that we want to output the NekRS temperature onto a volume mesh mirror
-of second order and output to Exodus format. Then, we simply use a
-[NekRSStandaloneProblem](NekRSStandaloneProblem.md)
+We incidate that we want to output the NekRS temperature onto the mesh
+by using a [NekFieldVariable](NekFieldVariable.md). Then, we simply use a
+[NekRSProblem](NekRSProblem.md)
 and [NekTimeStepper](NekTimeStepper.md) to run the NekRS CFD
 calculation through the Cardinal wrapper. You can run this example with
 
@@ -99,7 +95,7 @@ solution into an [AuxVariable](AuxVariables/index.md)
 appropriate for transferring to another application or using in other MOOSE objects,
 we simply convert the user object to an auxiliary variable using a
 [SolutionAux](SolutionAux.md).
-This will load the `temp` variable from the [SolutionUserObject](SolutionUserObject.md)
+This will load the `temperature` variable from the [SolutionUserObject](SolutionUserObject.md)
 and place it into the new variable we have named `nek_temp`.
 
 !listing /tutorials/load_from_exodus/load_nek.i
@@ -113,7 +109,7 @@ NekRS with a time step of 1e-3 seconds, but only want to couple NekRS's temperat
 solid mechanics solve on a resolution of 1e-2 seconds, then simply set the time step size
 in this file to `dt = 1e-2`. Finally, we specify a Exodus output in this file, which you can
 use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp` in
-`load_nek_out.e` matches `temp` in `nek_out.e`).
+`load_nek_out.e` matches `temperature` in `nek_out.e`).
 
 !listing /tutorials/load_from_exodus/load_nek.i
   start=Executioner
