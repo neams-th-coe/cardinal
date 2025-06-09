@@ -11,9 +11,20 @@ rho = 4147.3                            # kg/m3
 [Problem]
   type = NekRSProblem
   casename = 'msfr'
-  output = 'temperature'
 
   synchronization_interval = parent_app
+
+  [FieldTransfers]
+    [source]
+      type = NekVolumetricSource
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 
   [Dimensionalize]
     L = 1.0
