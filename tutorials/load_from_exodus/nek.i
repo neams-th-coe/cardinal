@@ -5,9 +5,15 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'ethier'
-  output = 'temperature'
+
+  [FieldTransfers]
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]
