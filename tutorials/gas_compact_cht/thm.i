@@ -14,7 +14,7 @@ mdot_single_channel = ${fparse 117.3 / 12 / 108}        # individual coolant cha
 
 [Closures]
   [none]
-    type = Closures1PhaseNone
+    type = WallTemperature1PhaseClosures
   []
 []
 
