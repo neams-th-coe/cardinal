@@ -71,7 +71,6 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   if (isParamValid("upper_right"))
     _upper_right = getParam<Point>("upper_right");
 }
-
 openmc::Position
 OpenMCVolumeCalculation::position(const Point & pt) const
 {

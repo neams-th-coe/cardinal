@@ -340,6 +340,9 @@ protected:
 
   /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'.
   std::vector<std::string> _output_name;
+  
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
 
   /// Whether the skinned mesh should be generated from a displaced mesh
   const bool & _use_displaced;
@@ -352,4 +355,7 @@ protected:
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
+
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
 };

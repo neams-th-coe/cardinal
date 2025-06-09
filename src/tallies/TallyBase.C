@@ -292,6 +292,17 @@ TallyBase::TallyBase(const InputParameters & parameters)
   _previous_tally.resize(_tally_score.size());
 }
 
+MooseMesh &
+TallyBase::getMooseMesh()
+{
+  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
+    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
+               "set use_displaced_mesh = False");
+  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
+              ? _openmc_problem.getDisplacedProblem()->mesh()
+              : _openmc_problem.mesh());
+}
+
 void
 TallyBase::initializeTally()
 {
@@ -505,7 +516,11 @@ TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
   // loop over all the elements and set the specified variable to the specified value
   for (const auto & e : elem_ids)
   {
+<<<<<<< HEAD
     auto elem_ptr = _openmc_problem.getMooseMesh().queryElemPtr(e);
+=======
+    auto elem_ptr = getMooseMesh().queryElemPtr(e);
+>>>>>>> e2bb504b (rebsing my branch)
 
     if (!_openmc_problem.isLocalElem(elem_ptr))
       continue;
