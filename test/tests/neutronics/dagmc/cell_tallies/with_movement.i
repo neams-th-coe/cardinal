@@ -88,7 +88,7 @@ scale = 100.0
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '0 1'
+      block = '0 1'
     []
   []
 []
@@ -122,7 +122,6 @@ scale = 100.0
     execute_on = timestep_end
   []
 []
-
 
 [Transfers]
   [dispx]
