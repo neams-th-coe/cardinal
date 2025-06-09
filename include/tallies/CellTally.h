@@ -99,5 +99,4 @@ protected:
 
   /// Absolute tolerance for checking equal tally mapped volumes
   const Real & _equal_tally_volume_abs_tol;
-
 };

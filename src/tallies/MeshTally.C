@@ -189,8 +189,7 @@ MeshTally::spatialFilter()
     }
     else
       openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(
-        _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
-
+          _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
   }
   else
     openmc::model::meshes.emplace_back(

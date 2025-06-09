@@ -415,7 +415,7 @@ public:
 
   /// Get a modifyable reference to the Moose mesh
   virtual MooseMesh & getMooseMesh();
-  
+
   virtual const MooseMesh & getMooseMesh() const;
 
 protected:
