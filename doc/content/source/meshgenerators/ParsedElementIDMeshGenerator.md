@@ -8,16 +8,10 @@ more extra element integer id (eeid) to the mesh, where each eeids corresponds t
 Clustering for mesh tally amalgamation, can benefit from it by using these eeid to lebel the cluster 
 based on different heuristics.
 
-Each additional eeid is:
-- Named by an entry in the `extra_element_integer_names` list.
-- Populated with values from a corresponding user provided values. 
-- Skipped if a field with the same name already exists, 
-in which case a warning is printed and the original values are preserved.
-
-## Behavior
-* Takes ownership of an input mesh (required).
-* Adds named element integer fields to the mesh.
-* Emits a warning if any requested field already exists and does not overwrite it.
+## Input Parameters:
+- `extra_element_integer_names` list of the eeid names.
+- `values` values for the eeid_names.
+- `input` the mesh where we want to add the eeids.
 
 ## Warning
 
