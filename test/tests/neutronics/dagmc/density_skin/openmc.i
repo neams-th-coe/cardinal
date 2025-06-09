@@ -70,7 +70,7 @@ drho = 50.0
   [Tallies]
     [Mesh]
       type = CellTally
-      blocks = '1 2'
+      block = '1 2'
     []
   []
 []

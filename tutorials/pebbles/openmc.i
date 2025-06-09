@@ -38,7 +38,7 @@
   [Tallies]
     [heat_source]
       type = CellTally
-      blocks = '0'
+      block = '0'
       name = heat_source
     []
   []

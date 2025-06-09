@@ -2,6 +2,7 @@ $(MOAB_BUILDDIR)/Makefile: $(MOAB_DIR)/CMakeLists.txt
 	mkdir -p $(MOAB_BUILDDIR)
 	cd $(MOAB_BUILDDIR) && \
 	cmake -L \
+	-DENABLE_MPI=ON \
 	-DENABLE_HDF5=ON \
 	-DENABLE_TESTING=OFF \
 	-DENABLE_BLASLAPACK=OFF \

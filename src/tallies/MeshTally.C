@@ -38,9 +38,11 @@ MeshTally::validParams()
                          "Coordinate to which this mesh should be "
                          "translated. Units must match those used to define the [Mesh].");
   params.addParam<std::vector<SubdomainName>>(
-      "blocks",
+      "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, this mesh "
       "tally will be applied over the entire mesh.");
+  params.addParam<std::vector<SubdomainName>>("blocks",
+                                              "This parameter is deprecated, use 'block' instead!");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -53,8 +55,11 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation")
                                                        : Point(0.0, 0.0, 0.0)),
     _instance(getParam<unsigned int>("instance")),
-    _use_dof_map(_is_adaptive || isParamValid("blocks"))
+    _use_dof_map(_is_adaptive || isParamValid("block"))
 {
+  if (isParamSetByUser("blocks"))
+    mooseError("This parameter is deprecated, use 'block' instead!");
+
   bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
@@ -80,8 +85,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
       paramError("mesh_template",
                  "Adaptivity is not supported when loading a mesh from 'mesh_template'!");
 
-    if (isParamValid("blocks"))
-      paramError("blocks",
+    if (isParamValid("block"))
+      paramError("block",
                  "Block restriction is currently not supported for mesh tallies which load a "
                  "mesh from a file!");
 
@@ -109,11 +114,11 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "provided in the [Mesh] block!");
 
     // Fetch subdomain IDs for block restrictions.
-    if (isParamValid("blocks"))
+    if (isParamValid("block"))
     {
-      auto block_names = getParam<std::vector<SubdomainName>>("blocks");
+      auto block_names = getParam<std::vector<SubdomainName>>("block");
       if (block_names.empty())
-        paramError("blocks", "Subdomain names must be provided if using 'blocks'!");
+        paramError("block", "Subdomain names must be provided if using 'block'!");
 
       auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
       std::copy(
@@ -123,8 +128,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
       const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
       for (std::size_t b = 0; b < block_names.size(); ++b)
         if (subdomains.find(block_ids[b]) == subdomains.end())
-          paramError("blocks",
-                     "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
+          paramError("block",
+                     "Block '" + block_names[b] + "' specified in 'block' not found in mesh!");
     }
   }
 

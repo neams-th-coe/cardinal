@@ -49,7 +49,7 @@
       type = CellTally
       score = 'kappa_fission heating'
       name = 'heat_source heating'
-      blocks = '0'
+      block = '0'
     []
   []
 []

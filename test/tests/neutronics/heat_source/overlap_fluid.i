@@ -53,7 +53,7 @@
       # that we are neglecting some of the global kappa-fission distribution; so here
       # the power is the total power of the OpenMC problem, and only a fraction of this
       # will be computed in the fluid
-      blocks = '200'
+      block = '200'
     []
   []
 []
