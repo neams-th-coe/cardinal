@@ -73,6 +73,9 @@ endif
 ifeq ($(STOCHASTIC_TOOLS), yes)
   $(info $(SPACE) STOCHASTIC_TOOLS)
 endif
+ifeq ($(SUBCHANNEL), yes)
+  $(info $(SPACE) SUBCHANNEL)
+endif
 ifeq ($(TENSOR_MECHANICS), yes)
   $(info $(SPACE) TENSOR_MECHANICS)
 endif
