@@ -143,7 +143,7 @@ pin_power = 10e3                              # bundle power (kW)
   []
   [nek_wall_temp] # grabs the Nek wall temperature and stores it in nek_wall_temp
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = temp
+    source_variable = temperature
     from_multi_app = nek
     variable = nek_wall_temp
     to_boundaries = '5 10'
@@ -155,16 +155,16 @@ pin_power = 10e3                              # bundle power (kW)
     variable = h
     to_boundaries = '5'
   []
-  [avg_flux] # sends heat flux in avg_flux to nekRS
+  [flux] # sends heat flux in flux to nekRS
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = avg_flux
+    source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = heat_flux
     from_boundaries = '5 10'
   []
   [flux_integral_to_nek] # sends the heat flux integral (for normalization) to nekRS
     type = MultiAppPostprocessorTransfer
-    to_postprocessor = flux_integral
+    to_postprocessor = heat_flux_integral
     from_postprocessor = flux_integral
     to_multi_app = nek
   []
@@ -186,7 +186,7 @@ pin_power = 10e3                              # bundle power (kW)
   [h]
     initial_condition = 1000
   []
-  [avg_flux]
+  [flux]
     family = MONOMIAL
     order = CONSTANT
     block = '1 10'
@@ -194,12 +194,12 @@ pin_power = 10e3                              # bundle power (kW)
 []
 
 [AuxKernels]
-  [avg_flux]
+  [flux]
     type = DiffusionFluxAux
     diffusion_variable = T
     component = normal
     diffusivity = thermal_conductivity
-    variable = avg_flux
+    variable = flux
     boundary = '5 10'
   []
 []

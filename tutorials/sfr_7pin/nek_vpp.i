@@ -6,8 +6,20 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_7pin'
-  conserve_flux_by_sideset = true
   synchronization_interval = parent_app
+
+  [FieldTransfers]
+    [heat_flux]
+      type = NekBoundaryFlux
+      usrwrk_slot = 0
+      direction = to_nek
+      conserve_flux_by_sideset = true
+    []
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]
