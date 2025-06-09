@@ -59,4 +59,20 @@
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'
   []
+  [move_mesh]
+    type = RunApp
+    input = move.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall generate the tally mesh."
+  []
+  [with_movement]
+    type = Exodiff
+    input = with_movement.i
+    exodiff = with_movement_out.e
+    prereq = move_mesh
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall give identical Monte Carlo solution (direct mesh tallies and k) when the mesh is moving."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
 []

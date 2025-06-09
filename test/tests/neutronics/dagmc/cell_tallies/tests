@@ -56,4 +56,14 @@
     requirement = "The system shall warn the user when there is a mismatch between the mesh mirror and the initial OpenMC DAGMC geometry."
     required_objects = 'MoabSkinner'
   []
+  [with_movement]
+    type = Exodiff
+    input = with_movement.i
+    exodiff = with_movement_out.e
+    prereq = with_scaling
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when the mesh is moving."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
 []

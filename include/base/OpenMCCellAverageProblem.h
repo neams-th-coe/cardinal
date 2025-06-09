@@ -414,6 +414,8 @@ public:
   static constexpr int DIMENSION{3};
 
   /// Get a modifyable reference to the Moose mesh
+  virtual MooseMesh & getMooseMesh();
+  
   virtual const MooseMesh & getMooseMesh() const;
 
 protected:
