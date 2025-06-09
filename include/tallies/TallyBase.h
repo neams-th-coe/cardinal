@@ -344,9 +344,6 @@ protected:
   /// Whether the skinned mesh should be generated from a displaced mesh
   const bool & _use_displaced;
 
-  /// Whether the skinned mesh should be generated from a displaced mesh
-  const bool & _use_displaced;
-
   /// Whether the problem uses adaptive mesh refinement or not.
   const bool _is_adaptive;
 
