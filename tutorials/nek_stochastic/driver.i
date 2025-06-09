@@ -34,7 +34,7 @@
     sampler = sample
 
     # you can send data down to arbitrarily-nested sub-apps
-    parameters = 'nek:UserObjects/k/value'
+    parameters = 'nek:Problem/ScalarTransfers/k/value'
   []
   [results]
     type = SamplerReporterTransfer

@@ -103,7 +103,7 @@
 [Transfers]
   [temperature]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = temp
+    source_variable = temperature
     from_multi_app = nek
     variable = nek_temp
   []
@@ -111,7 +111,7 @@
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = flux
     from_boundaries = 'right'
   []
   [flux_integral]
