@@ -81,9 +81,6 @@ protected:
   /// Upper right of the box within which to compute OpenMC volumes
   Point _upper_right;
 
-  /// Get a modifyable reference to the Moose mesh
-  MooseMesh & getMooseMesh();
-
   /// Volume calculation object
   std::unique_ptr<openmc::VolumeCalculation> _volume_calc;
 

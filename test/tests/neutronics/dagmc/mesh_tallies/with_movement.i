@@ -24,12 +24,6 @@ scale = 100.0
     type = ElementsToTetrahedronsConverter
     input = block_1
   []
-  [pin]
-    type = ExtraNodesetGenerator
-    input = convert
-    new_boundary = pin
-    coord = '-0.125 -0.125 -0.125'
-  []
 []
 
 [GlobalParams]
@@ -90,7 +84,7 @@ scale = 100.0
 
   skinner = moab
   fixed_mesh = false
-
+  volume_calculation = vol
   [Tallies]
     [Mesh]
       type = MeshTally
@@ -100,6 +94,10 @@ scale = 100.0
 []
 
 [UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 10000
+  []
   [moab]
     type = MoabSkinner
     temperature_min = 300.0

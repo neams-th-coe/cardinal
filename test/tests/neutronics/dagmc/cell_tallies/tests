@@ -62,7 +62,8 @@
     exodiff = with_movement_out.e
     prereq = with_scaling
     cli_args = 'Outputs/hide="cell_instance"'
-    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when the mesh is moving."
+    requirement = "The OpenMC solution (mesh tallies and k-effective) shall remain within statistical uncertainty when the mesh is displaced,"
+                  "confirming that OpenMC cells are consistently tracked under mesh deformation."
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'
   []

@@ -84,7 +84,7 @@ scale = 100.0
 
   skinner = moab
   fixed_mesh = false
-
+  volume_calculation = vol
   [Tallies]
     [Cell]
       type = CellTally
@@ -94,6 +94,10 @@ scale = 100.0
 []
 
 [UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 10000
+  []
   [moab]
     type = MoabSkinner
     temperature_min = 300.0

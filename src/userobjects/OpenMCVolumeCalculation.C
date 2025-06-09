@@ -78,13 +78,6 @@ OpenMCVolumeCalculation::position(const Point & pt) const
   return p;
 }
 
-MooseMesh &
-OpenMCVolumeCalculation::getMooseMesh()
-{
-  return ((_fe_problem.getDisplacedProblem()) ? _fe_problem.getDisplacedProblem()->mesh()
-                                              : _fe_problem.mesh());
-}
-
 void
 OpenMCVolumeCalculation::resetVolumeCalculation()
 {
@@ -96,7 +89,7 @@ void
 OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
 
-  BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
+  BoundingBox box = MeshTools::create_bounding_box(_openmc_problem->getMooseMesh().getMesh());
   if (_fe_problem.getDisplacedProblem() != nullptr)
     _fe_problem.getDisplacedProblem()->updateMesh();
 

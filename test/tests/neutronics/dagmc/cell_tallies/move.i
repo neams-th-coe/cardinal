@@ -24,12 +24,6 @@ scale = 100.0
     type = ElementsToTetrahedronsConverter
     input = block_1
   []
-  [pin]
-    type = ExtraNodesetGenerator
-    input = convert
-    new_boundary = pin
-    coord = '-0.125 -0.125 -0.125'
-  []
 []
 
 [GlobalParams]
@@ -38,6 +32,7 @@ scale = 100.0
 []
 
 [Problem]
+  type=FEProblem
   solve=false
 []
 
