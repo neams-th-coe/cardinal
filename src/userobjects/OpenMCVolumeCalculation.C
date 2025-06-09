@@ -310,7 +310,7 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
                ", ",
                _lower_left(2),
                ")!");
-    
+
   _volume_calc.reset(new openmc::VolumeCalculation());
   _volume_calc->domain_type_ = openmc::VolumeCalculation::TallyDomain::CELL;
   _volume_calc->lower_left_ = position(_lower_left * _scaling);
