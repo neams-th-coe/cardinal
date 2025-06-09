@@ -23,7 +23,7 @@ We will control the `value` in each of these parameters using a
 a MOOSE object that lets us define a scalar value using a function. Here, we will use a simple
 constant value function, which changes value partway through the simulation.
 
-!listing test/tests/userobjects/nek_scalar_value/nek.i
+!listing test/tests/transfers/nek_scalar_value/nek.i
   start=Controls
   end=Postprocessors
 
@@ -47,7 +47,7 @@ When running the input file, you will then see a table like the following print:
 Suppose we want to use these two scalar values to set a Dirichlet temperature boundary
 condition in NekRS. We would simply follow the instructions for the `.oudf`, and do:
 
-!listing test/tests/userobjects/nek_scalar_value/pyramid.oudf language=cpp
+!listing test/tests/transfers/nek_scalar_value/pyramid.oudf language=cpp
 
 !syntax parameters /Problem/ScalarTransfers/NekScalarValue
 

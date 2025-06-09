@@ -37,7 +37,7 @@ Suppose we want to use these two scalar values to set a Dirichlet temperature
 and velocity boundary condition in NekRS. We would simply use those quantities in the
 `.oudf` column in the table above.
 
-!listing test/tests/userobjects/nek_postprocessor_value/pyramid.oudf language=cpp
+!listing test/tests/transfers/nek_postprocessor_value/pyramid.oudf language=cpp
 
 !syntax parameters /Problem/ScalarTransfers/NekPostprocessorValue
 

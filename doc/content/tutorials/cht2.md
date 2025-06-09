@@ -314,7 +314,7 @@ postprocessor named `transfer_in`, as if the following were added to the input f
 The `transfer_in` postprocessor simply receives
 the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
-in the solid input file. We also add two [FieldTransfers](FieldTransferAction.md).
+in the solid input file. We also add two [FieldTransfers](AddFieldTransferAction.md).
 The [NekBoundaryFlux](NekBoundaryFlux.md) willtread from an auxiliary variable named `heat_flux` (automatically created by Cardinal) and normalize
 according to a postprocessor named `heat_flux_integral` (also automatically created by Cardinal).
 The [NekFieldVariable](NekFieldVariable.md) will then read from the field
