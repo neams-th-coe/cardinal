@@ -386,7 +386,7 @@ run in place of MOOSE.
 To allow conversion between a non-dimensional NekRS solve and a dimensional MOOSE coupled
 heat conduction application, the characteristic scales used to establish the non-dimensional
 problem are provided. The wall heat flux will be written into NekRS using a
-[NekBoundaryValue](NekBoundaryValue.md) object; this automatically creates an auxiliary
+[NekBoundaryFlux](NekBoundaryFlux.md) object; this automatically creates an auxiliary
 variable named `avg_flux` and a [Receiver](Receiver.md) postprocessor named `flux_integral`. A [NekFieldVariable](NekFieldVariable.md) is used to read out temperature into
 an auxiliary variable (created automatically) named `temp`.
 
