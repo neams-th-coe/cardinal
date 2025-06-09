@@ -90,7 +90,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
       // create zero initial values
       std::vector<std::vector<Real>> dummy_vals(1, std::vector<Real>(_boundary->size()));
       vpp_params.set<std::vector<std::vector<Real>>>("value") = dummy_vals;
-      _nek_problem.addVectorPostprocessor("ConstantVectorPostprocessor", "flux_integral", vpp_params);
+      _nek_problem.addVectorPostprocessor("ConstantVectorPostprocessor", _postprocessor_name, vpp_params);
     }
     else
       addExternalPostprocessor(_postprocessor_name, _initial_flux_integral);
