@@ -1,3 +1,22 @@
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
+
+
 #include "ParsedElementIDMeshGenerator.h"
 
 registerMooseObject("CardinalApp", ParsedElementIDMeshGenerator);
@@ -27,6 +46,7 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
                                          getParam<std::vector<int>>("values") :
                                          std::vector<int>(_extra_element_id_names.size(), -1))
 {
+  //check if value for every extra element integer is provided
   if (_eeiid_values.size() != _extra_element_id_names.size())
     mooseError("Number of values must match number of extra element integer names");
 }
@@ -40,8 +60,13 @@ ParsedElementIDMeshGenerator::generate()
 
   for (int i = 0; i < _extra_element_id_names.size(); i++)
   {
+    //check if the extra element integer alreadys exists in the mesh and only add the
+    //if it doesn't. If it exits already then throw a mooseWarning.
     if (!mesh->has_elem_integer(_extra_element_id_names[i]))
       mesh->add_elem_integer(_extra_element_id_names[i], _eeiid_values[i]);
+    else
+      mooseWarning("The element integer id named ", _extra_element_id_names[i], " already exists in the mesh. The existing values will be retained, and the provided values will be ignored.");
+
   }
 
   return mesh;
