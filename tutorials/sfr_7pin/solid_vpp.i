@@ -226,5 +226,4 @@ pin_power = 10e3                              # bundle power (kW)
 
 [Outputs]
   exodus = true
-  execute_on = 'final'
 []
