@@ -16,7 +16,7 @@ num_layers_for_THM = 50                                 # number of elements in 
 
 [Closures]
   [none]
-    type = Closures1PhaseNone
+    type = WallTemperature1PhaseClosures
   []
 []
 

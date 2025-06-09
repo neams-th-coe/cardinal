@@ -2,7 +2,7 @@
 
 ## Description
 
-The `NekVolumetricSource` class sends a volumetric source between NekRS and MOOSE. For instance,
+`NekVolumetricSource` is a [FieldTransfer](AddFieldTransferAction.md) that sends a volumetric source between NekRS and MOOSE. For instance,
 in the context of conservation of energy a volumetric source is the power density (units of
 energy/volume). First, this object
 creates an [AuxVariable](AuxVariable.md) using the name of the object; this variable will hold

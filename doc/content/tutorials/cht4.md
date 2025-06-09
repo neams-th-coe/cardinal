@@ -58,7 +58,7 @@ The solid mesh is shown in [pebble_solid_mesh]; the outer surface of the pebbles
 !media pebble_solid_mesh.png
   id=pebble_solid_mesh
   caption=Mesh for the solid heat conduction model
-  style=width:40%;margin-left:auto;margin-right:auto
+  style=width:30%;margin-left:auto;margin-right:auto
 
 This mesh is generated using MOOSE mesh generators by building a mesh for a single
 sphere and repeating it 67 times, translated to the position of each pebble. The pebble
@@ -97,7 +97,7 @@ elements. This mesh is generated using a Voronoi cell approach [!cite](lan).
 !media pebble_fluid_mesh.png
   id=pebble_fluid_mesh
   caption=Mesh for the NekRS CFD model; [!ac](GLL) points are not shown
-  style=width:60%;margin-left:auto;margin-right:auto
+  style=width:50%;margin-left:auto;margin-right:auto
 
 Next, the `.par` file contains problem setup information. This input solves in
 non-dimensional form, at a Reynolds number of 1460 and a Peclet number of 1036.
@@ -253,7 +253,9 @@ Next, we define additional parameters to describe how NekRS interacts with MOOSE
 with the [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in nondimensional form, so we must indicate all the characteristic
 scales so that data transfers with a dimensional MOOSE application are performed
-correctly.
+correctly. Then, we add the necessary [FieldTransfers](AddFieldTransferAction.md)
+to write heat flux into NekRS and to read out the temperature and components of
+velocity.
 
 !listing /tutorials/pebble_67/nek.i
   block=Problem
@@ -279,7 +281,6 @@ mpiexec -np 500 cardinal-opt -i moose.i
 ```
 
 This will run with 500 [!ac](MPI) processes.
-
 When the simulation has finished, you will have created a number of different
 output files:
 

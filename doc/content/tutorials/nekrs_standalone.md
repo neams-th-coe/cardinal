@@ -242,3 +242,29 @@ which exactly represents the 12 radial averaging bins.
   id=avg2
   caption=Representation of the `volume_averages` binned exactly as computed by user object
   style=width:65%;margin-left:auto;margin-right:auto;halign:center
+
+A few examples of other postprocessors that may be of use to NekRS
+simulations include:
+
+- [ElementL2Error](ElementL2Error.md),
+  which computes the L$^2$ norm of a variable relative to a provided
+  function, useful for solution verification
+- [FindValueOnLine](FindValueOnLine.md),
+  which finds the point at which a specified value of a variable occurs,
+  which might be used for evaluating a boundary layer thickness
+- [LinearCombinationPostprocessor](LinearCombinationPostprocessor.md),
+  which can be used to combine postprocessors together in a
+  general expression $a_0p_0+a_1p_1+\cdots+b$, where $a_i$ are coefficients,
+  $p_i$ are postprocessors, and $b$ is a constant additive factor. This can be used
+  to compute the temperature *rise* in a domain by subtracting a postprocessor
+  that computes the inlet temperature from a postprocessor that computes the
+  outlet temperature.
+- [PercentChangePostprocessor](PercentChangePostprocessor.md) which computes the percent
+  change between two successive time steps for assessing convergence.
+- [TimeExtremeValue](TimeExtremeValue.md),
+  which provides the maximum/minimum value of a variable over the course of
+  an entire simulation, such as for evaluating peak stress in an
+  oscillating system
+
+Please consult the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html)
+for a full list of available postprocessors.

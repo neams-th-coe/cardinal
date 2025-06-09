@@ -19,7 +19,7 @@ coupling NekRS to any of these other MOOSE thermal-fluid codes.
 !media cardinal_cht.png
   id=cardinal_cht
   caption=NekRS integrates with *any* MOOSE application that can compute a heat flux
-  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 Five examples are provided; the "Pin Bundle Flow" example illustrates how to use both
 the flux-temperature and flux-flux transfers, for easy comparison.

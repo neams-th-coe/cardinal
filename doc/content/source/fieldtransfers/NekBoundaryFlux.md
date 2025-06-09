@@ -2,7 +2,7 @@
 
 ## Description
 
-The `NekBoundaryFlux` class sends a boundary flux between NekRS and MOOSE. First, this object
+`NekBoundaryFlux` is a [FieldTransfer](AddFieldTransferAction.md) that sends a boundary flux between NekRS and MOOSE. First, this object
 creates an [AuxVariable](AuxVariable.md) using the name of the object; this variable will hold
 the flux which NekRS reads (for `direction = to_nek`) or will be written by NekRS (for
 `direction = from_nek`).
