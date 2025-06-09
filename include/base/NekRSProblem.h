@@ -33,7 +33,7 @@ class FieldTransferBase;
  * This object controls all of the execution of and data transfers to/from nekRS.
  * Any number of data transfers can be added using the [FieldTransfers] block.
  */
- class NekRSProblem : public CardinalProblem
+class NekRSProblem : public CardinalProblem
 {
 public:
   NekRSProblem(const InputParameters & params);
@@ -73,7 +73,8 @@ public:
 
   /**
    * Write NekRS solution field file
-   * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
+   * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be
+   * non-dimensional)
    * @param[in] step time step index
    */
   void writeFieldFile(const Real & time, const int & step) const;
@@ -128,10 +129,10 @@ public:
   unsigned int nUsrWrkSlots() const { return _n_usrwrk_slots; }
 
   /**
-   * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms of a
-   * displacement, we need to add the displacement to the initial mesh coordinates. For
-   * this, the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order,
-   * i.e. the re2 order) to add.
+   * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms
+   * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,
+   * the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order, i.e. the re2
+   * order) to add.
    * @param[in] elem_id element ID
    * @param[in] field field to write
    * @param[in] T solution values to write for the field for the given element
@@ -143,8 +144,8 @@ public:
                            const std::vector<double> * add = nullptr);
 
   /**
-   * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in terms of a
-   * displacement, we need to add the displacement to the initial mesh coordinates.
+   * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in
+   * terms of a displacement, we need to add the displacement to the initial mesh coordinates.
    * @param[in] elem_id element ID
    * @param[in] field field to write
    * @param[in] T solution values to write for the field for the given element
@@ -178,8 +179,10 @@ public:
    * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
-  void mapFaceDataToNekFace(const unsigned int & e, const unsigned int & var_num,
-    const Real & multiplier, double ** outgoing_data);
+  void mapFaceDataToNekFace(const unsigned int & e,
+                            const unsigned int & var_num,
+                            const Real & multiplier,
+                            double ** outgoing_data);
 
   /**
    * Map nodal points on a MOOSE volume element to the GLL points on a Nek volume element.
@@ -188,8 +191,10 @@ public:
    * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
-  void mapVolumeDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
-    const Real & multiplier, double ** outgoing_data);
+  void mapVolumeDataToNekVolume(const unsigned int & e,
+                                const unsigned int & var_num,
+                                const Real & multiplier,
+                                double ** outgoing_data);
 
   /**
    * \brief Map nodal points on a MOOSE face element to the GLL points on a Nek volume element.
@@ -207,8 +212,10 @@ public:
    * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
-  void mapFaceDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
-    const Real & multiplier, double ** outgoing_data);
+  void mapFaceDataToNekVolume(const unsigned int & e,
+                              const unsigned int & var_num,
+                              const Real & multiplier,
+                              double ** outgoing_data);
 
 protected:
   /// Copy the data sent from MOOSE->Nek from host to device.
@@ -219,8 +226,7 @@ protected:
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS boundary mesh
    */
-  void interpolateBoundarySolutionToNek(double * incoming_moose_value,
-                                        double * outgoing_nek_value);
+  void interpolateBoundarySolutionToNek(double * incoming_moose_value, double * outgoing_nek_value);
 
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS volume mesh (mirror -> re2)
@@ -228,7 +234,8 @@ protected:
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS volume mesh
    */
-  void interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
+  void interpolateVolumeSolutionToNek(const int elem_id,
+                                      double * incoming_moose_value,
                                       double * outgoing_nek_value);
 
   /// Initialize interpolation matrices for transfers in/out of nekRS

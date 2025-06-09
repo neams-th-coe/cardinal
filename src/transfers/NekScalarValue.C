@@ -27,7 +27,8 @@ NekScalarValue::validParams()
 {
   auto params = ScalarTransferBase::validParams();
   params.addParam<Real>("value", 0.0, "Scalar value to pass into NekRS");
-  params.addParam<PostprocessorName>("output_postprocessor", "Name of the postprocessor to output the value sent into NekRS");
+  params.addParam<PostprocessorName>(
+      "output_postprocessor", "Name of the postprocessor to output the value sent into NekRS");
   params.declareControllable("value");
 
   params.addClassDescription("Transfers a scalar value into NekRS");
@@ -39,7 +40,9 @@ NekScalarValue::validParams()
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
   : ScalarTransferBase(parameters),
     _value(getParam<Real>("value")),
-    _postprocessor(isParamValid("output_postprocessor") ? &getParam<PostprocessorName>("output_postprocessor") : nullptr)
+    _postprocessor(isParamValid("output_postprocessor")
+                       ? &getParam<PostprocessorName>("output_postprocessor")
+                       : nullptr)
 {
 }
 
@@ -47,9 +50,10 @@ void
 NekScalarValue::sendDataToNek()
 {
   Real value_to_set = _value * _scaling;
-  _console << "Sending scalar value (" << Moose::stringify(value_to_set) << ") to NekRS..." << std::endl;
+  _console << "Sending scalar value (" << Moose::stringify(value_to_set) << ") to NekRS..."
+           << std::endl;
 
-  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
 
   if (_postprocessor)

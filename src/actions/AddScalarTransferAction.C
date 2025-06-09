@@ -28,11 +28,13 @@ InputParameters
 AddScalarTransferAction::validParams()
 {
   auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a scalar transfer (a single number) for coupling NeKRS to MOOSE");
+  params.addClassDescription(
+      "Adds a scalar transfer (a single number) for coupling NeKRS to MOOSE");
   return params;
 }
 
-AddScalarTransferAction::AddScalarTransferAction(const InputParameters & parameters) : MooseObjectAction(parameters)
+AddScalarTransferAction::AddScalarTransferAction(const InputParameters & parameters)
+  : MooseObjectAction(parameters)
 {
 }
 
@@ -50,7 +52,8 @@ AddScalarTransferAction::act()
     if (_type == "NekScalarValue" || _type == "NekPostprocessorValue")
     {
       _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-      auto transfer = nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
+      auto transfer =
+          nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
     }
   }
 }

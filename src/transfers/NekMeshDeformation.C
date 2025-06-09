@@ -57,23 +57,27 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
     // being applied. Because the mesh deformation is not a widely used feature yet,
     // we ignore this annoyance. If someone wants to fix in future with a redesign
     // they are welcome to.
-    //checkUnusedParam(parameters, "usrwrk_slot", "not using the blending mesh solver");
+    // checkUnusedParam(parameters, "usrwrk_slot", "not using the blending mesh solver");
   }
 
   if (_direction == "from_nek")
-    paramError("direction", "The NekMeshDeformation currently only supports transfers 'to_nek'; contact the Cardinal developer team if you require reading of NekRS mesh coordinates.");
+    paramError("direction",
+               "The NekMeshDeformation currently only supports transfers 'to_nek'; contact the "
+               "Cardinal developer team if you require reading of NekRS mesh coordinates.");
 
   if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
-      mooseWarning("Your NekRSMesh has 'displacements', but '" + _nek_problem.casename() + ".par' does not have a\n"
+    mooseWarning(
+        "Your NekRSMesh has 'displacements', but '" + _nek_problem.casename() +
+        ".par' does not have a\n"
         "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
 
   if (nekrs::hasMovingMesh() && _nek_mesh->exactMirror())
     mooseError("An exact mesh mirror is not yet implemented for the boundary mesh solver.");
 
-  int n_per_surf = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _nek_mesh->numVerticesPerSurface();
-  int n_per_vol = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _nek_mesh->numVerticesPerVolume();
+  int n_per_surf = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0)
+                                            : _nek_mesh->numVerticesPerSurface();
+  int n_per_vol = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0)
+                                           : _nek_mesh->numVerticesPerVolume();
 
   if (nekrs::hasMovingMesh())
   {
@@ -114,12 +118,15 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
   }
 
   if (!_nek_mesh->volume() && nekrs::hasUserMeshSolver())
-    mooseError("'" + _nek_problem.casename() + ".par' has 'solver = user' in the [MESH] block. With this solver,\n"
-               "displacement values are sent to every GLL point in NekRS's volume. If you only are building\n"
-               "a boundary mesh mirror, it's possible that some displacement values could result\n"
-               "in negative Jacobians if a sideset moves beyond the bounds of an undeformed element.\n"
-               "To eliminate this possibility, please enable 'volume = true' for NekRSMesh and send a\n"
-               "whole-domain displacement to NekRS.");
+    mooseError(
+        "'" + _nek_problem.casename() +
+        ".par' has 'solver = user' in the [MESH] block. With this solver,\n"
+        "displacement values are sent to every GLL point in NekRS's volume. If you only are "
+        "building\n"
+        "a boundary mesh mirror, it's possible that some displacement values could result\n"
+        "in negative Jacobians if a sideset moves beyond the bounds of an undeformed element.\n"
+        "To eliminate this possibility, please enable 'volume = true' for NekRSMesh and send a\n"
+        "whole-domain displacement to NekRS.");
 
   if (nekrs::hasBlendingSolver())
     _nek_mesh->initializePreviousDisplacements();
@@ -160,39 +167,49 @@ NekMeshDeformation::sendVolumeDeformationToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable + "_x"], 1.0 / nekrs::referenceLength(), &_displacement_x);
-    _nek_problem.writeVolumeSolution(e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_x"], 1.0 / nekrs::referenceLength(), &_displacement_x);
+    _nek_problem.writeVolumeSolution(
+        e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable + "_y"], 1.0 / nekrs::referenceLength(), &_displacement_y);
-    _nek_problem.writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_y"], 1.0 / nekrs::referenceLength(), &_displacement_y);
+    _nek_problem.writeVolumeSolution(
+        e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable + "_z"], 1.0 / nekrs::referenceLength(), &_displacement_z);
-    _nek_problem.writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_z"], 1.0 / nekrs::referenceLength(), &_displacement_z);
+    _nek_problem.writeVolumeSolution(
+        e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
 }
 
 void
 NekMeshDeformation::sendBoundaryDeformationToNek()
 {
-  _console << "Sending boundary deformation to NekRS..." <<std::endl;
+  _console << "Sending boundary deformation to NekRS..." << std::endl;
 
   if (!_nek_mesh->volume())
   {
     for (unsigned int e = 0; e < _nek_mesh->numSurfaceElems(); e++)
     {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
+      // We can only write into the nekRS scratch space if that face is "owned" by the current
+      // process
       if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_x"], 1.0, &_displacement_x);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_x"], 1.0, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_y"], 1.0, &_displacement_y);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_y"], 1.0, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_z"], 1.0, &_displacement_z);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_z"], 1.0, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
@@ -201,19 +218,23 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
   {
     for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); ++e)
     {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
+      // We can only write into the nekRS scratch space if that face is "owned" by the current
+      // process
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_x"], 1.0, &_displacement_x);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_x"], 1.0, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_y"], 1.0, &_displacement_y);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_y"], 1.0, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_z"], 1.0, &_displacement_z);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_z"], 1.0, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
@@ -223,11 +244,12 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
 void
 NekMeshDeformation::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
 {
-  int len = _nek_mesh->volume() ? _nek_mesh->numVerticesPerVolume() : _nek_mesh->numVerticesPerSurface();
+  int len =
+      _nek_mesh->volume() ? _nek_mesh->numVerticesPerVolume() : _nek_mesh->numVerticesPerSurface();
 
   double dt = _nek_problem.transientExecutioner()->getTimeStepper()->getCurrentDT();
 
-  double * displacement = nullptr, *prev_disp = nullptr;
+  double *displacement = nullptr, *prev_disp = nullptr;
   field::NekWriteEnum disp_field;
 
   switch (field)
@@ -251,12 +273,11 @@ NekMeshDeformation::calculateMeshVelocity(int e, const field::NekWriteEnum & fie
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
 
-  for (int i=0; i <len; i++)
+  for (int i = 0; i < len; i++)
     _mesh_velocity_elem[i] =
         (displacement[i] - prev_disp[(e * len) + i]) / dt / nekrs::referenceVelocity();
 
   _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
-
 
 #endif

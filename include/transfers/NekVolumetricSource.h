@@ -55,7 +55,7 @@ protected:
   /// Initial value to use for the total volumetric source for ensuring conservation
   const Real & _initial_source_integral;
 
-   /// Total volume-integrated volumetric source coming from the coupled MOOSE app.
+  /// Total volume-integrated volumetric source coming from the coupled MOOSE app.
   const PostprocessorValue * _source_integral = nullptr;
 
   /// MOOSE source interpolated onto the data transfer mesh

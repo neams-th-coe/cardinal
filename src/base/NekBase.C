@@ -34,10 +34,10 @@ NekBase::NekBase(const MooseObject * moose_object, const InputParameters & param
   {
     std::string extra_help =
         moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
-    mooseError(moose_object->type() +
-               " can only be used with NekRS-wrapped cases! You need to change the problem type from '" +
-               moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
-               " to NekRSProblem.");
+    mooseError(
+        moose_object->type() +
+        " can only be used with NekRS-wrapped cases! You need to change the problem type from '" +
+        moose_object->getMooseApp().feProblem().type() + "'" + extra_help + " to NekRSProblem.");
   }
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that

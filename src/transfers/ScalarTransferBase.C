@@ -26,15 +26,17 @@ InputParameters
 ScalarTransferBase::validParams()
 {
   auto params = NekTransferBase::validParams();
-  params.addParam<unsigned int>("usrwrk_slot", "When 'direction = to_nek', the slot in the usrwrk array to write the incoming data");
+  params.addParam<unsigned int>(
+      "usrwrk_slot",
+      "When 'direction = to_nek', the slot in the usrwrk array to write the incoming data");
   params.addParam<Real>("scaling", 1.0, "Multiplier on the value passed into NekRS");
-  params.addClassDescription("Base class for defining input parameters for passing single values (scalars) into NekRS");
+  params.addClassDescription(
+      "Base class for defining input parameters for passing single values (scalars) into NekRS");
   return params;
 }
 
 ScalarTransferBase::ScalarTransferBase(const InputParameters & parameters)
-  : NekTransferBase(parameters),
-    _scaling(getParam<Real>("scaling"))
+  : NekTransferBase(parameters), _scaling(getParam<Real>("scaling"))
 {
   if (_direction == "to_nek")
   {
@@ -52,7 +54,11 @@ ScalarTransferBase::ScalarTransferBase(const InputParameters & parameters)
       for (const auto & f : field_usrwrk_map)
         unavailable_slots += Moose::stringify(f.first) + " ";
 
-      paramError("usrwrk_slot", "The usrwrk slot " + Moose::stringify(_usrwrk_slot) + " is already used by the FieldTransfers for writing field data into NekRS. You cannot set 'usrwrk_slot' to any of: " + unavailable_slots);
+      paramError("usrwrk_slot",
+                 "The usrwrk slot " + Moose::stringify(_usrwrk_slot) +
+                     " is already used by the FieldTransfers for writing field data into NekRS. "
+                     "You cannot set 'usrwrk_slot' to any of: " +
+                     unavailable_slots);
     }
 
     // we do allow duplicates now within the scalar transfers; we simply shift
@@ -67,7 +73,10 @@ ScalarTransferBase::ScalarTransferBase(const InputParameters & parameters)
   }
 
   if (_direction == "from_nek")
-    paramError("direction", "Reading scalar values from NekRS can be performed using the Postprocessing system. Alternatively, if you want to pull out individual scalars from nrs->usrwrk, contact the Cardinal developer team to request this feature.");
+    paramError("direction",
+               "Reading scalar values from NekRS can be performed using the Postprocessing system. "
+               "Alternatively, if you want to pull out individual scalars from nrs->usrwrk, "
+               "contact the Cardinal developer team to request this feature.");
 }
 
 #endif

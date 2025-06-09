@@ -26,13 +26,23 @@ ConservativeFieldTransfer::validParams()
 {
   auto params = FieldTransferBase::validParams();
 
-  params.addRangeCheckedParam<Real>("normalization_abs_tol", 1e-8, "normalization_abs_tol > 0",
-    "Absolute tolerance for checking if conservation is maintained during transfer");
-  params.addRangeCheckedParam<Real>("normalization_rel_tol", 1e-5, "normalization_rel_tol > 0",
-    "Relative tolerance for checking if conservation is maintained during transfer");
-  params.addParam<std::string>("postprocessor_to_conserve", "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure conservation; defaults to the name of the object plus '_integral'");
+  params.addRangeCheckedParam<Real>(
+      "normalization_abs_tol",
+      1e-8,
+      "normalization_abs_tol > 0",
+      "Absolute tolerance for checking if conservation is maintained during transfer");
+  params.addRangeCheckedParam<Real>(
+      "normalization_rel_tol",
+      1e-5,
+      "normalization_rel_tol > 0",
+      "Relative tolerance for checking if conservation is maintained during transfer");
+  params.addParam<std::string>(
+      "postprocessor_to_conserve",
+      "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure "
+      "conservation; defaults to the name of the object plus '_integral'");
 
-  params.addClassDescription("Base class for defining input parameters shared by conservative transfers between NekRS and MOOSE");
+  params.addClassDescription("Base class for defining input parameters shared by conservative "
+                             "transfers between NekRS and MOOSE");
   return params;
 }
 

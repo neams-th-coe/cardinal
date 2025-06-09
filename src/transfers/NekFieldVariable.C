@@ -26,7 +26,10 @@ InputParameters
 NekFieldVariable::validParams()
 {
   auto params = FieldTransferBase::validParams();
-  params.addParam<MooseEnum>("field", getNekOutputEnum(), "NekRS field variable to read/write; defaults to the name of the object");
+  params.addParam<MooseEnum>(
+      "field",
+      getNekOutputEnum(),
+      "NekRS field variable to read/write; defaults to the name of the object");
   params.addClassDescription("Reads/writes volumetric field data between NekRS and MOOSE.");
   return params;
 }
@@ -38,7 +41,9 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     addExternalVariable(_variable);
 
   if (_direction == "to_nek")
-    paramError("direction", "The NekFieldVariable currently only supports transfers 'from_nek'; contact the Cardinal developer team if you require writing of NekRS field variables.");
+    paramError("direction",
+               "The NekFieldVariable currently only supports transfers 'from_nek'; contact the "
+               "Cardinal developer team if you require writing of NekRS field variables.");
 
   if (isParamValid("field"))
     _field = convertToFieldEnum(getParam<MooseEnum>("field"));
@@ -52,16 +57,16 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     if (found_name)
       _field = convertToFieldEnum(obj_name);
     else
-      paramError("field", "We tried to choose a default 'field' as '" + name() + "', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter.");
+      paramError("field",
+                 "We tried to choose a default 'field' as '" + name() +
+                     "', but this value is not an option in the 'field' enumeration. Please "
+                     "provide the 'field' parameter.");
   }
 
   _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
 
-NekFieldVariable::~NekFieldVariable()
-{
-  freePointer(_external_data);
-}
+NekFieldVariable::~NekFieldVariable() { freePointer(_external_data); }
 
 field::NekFieldEnum
 NekFieldVariable::convertToFieldEnum(const std::string name) const

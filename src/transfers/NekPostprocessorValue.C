@@ -42,9 +42,10 @@ NekPostprocessorValue::NekPostprocessorValue(const InputParameters & parameters)
 void
 NekPostprocessorValue::sendDataToNek()
 {
-  _console << "Sending postprocessor " << name() << " (" << Moose::stringify(*_postprocessor * _scaling) << ") to NekRS..." << std::endl;
+  _console << "Sending postprocessor " << name() << " ("
+           << Moose::stringify(*_postprocessor * _scaling) << ") to NekRS..." << std::endl;
 
-  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = *_postprocessor * _scaling;
 }
 

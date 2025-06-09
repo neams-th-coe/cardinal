@@ -215,7 +215,8 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   addTaskDependency("add_external_aux_variables", "add_field_transfers");
 
   // Add the [Problem/ScalarTransfers] block, which will be executed after the field transfers
-  registerSyntaxTask("AddScalarTransferAction", "Problem/ScalarTransfers/*", "add_scalar_transfers");
+  registerSyntaxTask(
+      "AddScalarTransferAction", "Problem/ScalarTransfers/*", "add_scalar_transfers");
   registerMooseObjectTask("add_scalar_transfers", ScalarTransfer, false);
   addTaskDependency("add_scalar_transfers", "add_field_transfers");
 #endif

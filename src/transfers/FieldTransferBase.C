@@ -28,7 +28,10 @@ InputParameters
 FieldTransferBase::validParams()
 {
   auto params = NekTransferBase::validParams();
-  params.addParam<std::vector<unsigned int>>("usrwrk_slot", "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data; provide one entry for each quantity being passed");
+  params.addParam<std::vector<unsigned int>>(
+      "usrwrk_slot",
+      "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data; "
+      "provide one entry for each quantity being passed");
   params.addClassDescription("Base class for transferring field data between NekRS and MOOSE.");
   params.registerBase("FieldTransfer");
   params.registerSystemAttributeName("FieldTransfer");
@@ -36,8 +39,7 @@ FieldTransferBase::validParams()
 }
 
 FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
-  : NekTransferBase(parameters),
-    _variable(name())
+  : NekTransferBase(parameters), _variable(name())
 {
   if (_direction == "to_nek")
   {
@@ -51,7 +53,13 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
       std::string slots;
       for (const auto & u : _usrwrk_slot)
         slots += Moose::stringify(u) + " ";
-      paramError("usrwrk_slot", "There are duplicate entries in 'usrwrk_slot': " + slots + "; duplicate entries are not allowed because the field transfer will overwrite itself. Cardinal has allocated " + Moose::stringify(_nek_problem.nUsrWrkSlots()) + " usrwrk slots; if you need more, set 'n_usrwrk_slots' in the [Problem] block.");
+      paramError(
+          "usrwrk_slot",
+          "There are duplicate entries in 'usrwrk_slot': " + slots +
+              "; duplicate entries are not allowed because the field transfer will overwrite "
+              "itself. Cardinal has allocated " +
+              Moose::stringify(_nek_problem.nUsrWrkSlots()) +
+              " usrwrk slots; if you need more, set 'n_usrwrk_slots' in the [Problem] block.");
     }
 
     // each slot should not be greater than the amount allocated
@@ -59,10 +67,10 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
       checkAllocatedUsrwrkSlot(u);
   }
 
-  _n_per_surf = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _nek_mesh->numVerticesPerSurface();
-  _n_per_vol = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _nek_mesh->numVerticesPerVolume();
+  _n_per_surf = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0)
+                                         : _nek_mesh->numVerticesPerSurface();
+  _n_per_vol = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0)
+                                        : _nek_mesh->numVerticesPerVolume();
 }
 
 void
@@ -85,7 +93,8 @@ FieldTransferBase::addExternalVariable(const std::string name)
 
   _nek_problem.checkDuplicateVariableName(name);
   _nek_problem.addAuxVariable("MooseVariable", name, var_params);
-  _variable_number.insert(std::pair<std::string, unsigned int>(name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number()));
+  _variable_number.insert(std::pair<std::string, unsigned int>(
+      name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number()));
 }
 
 void
@@ -98,7 +107,11 @@ FieldTransferBase::addExternalVariable(const unsigned int slot, const std::strin
   // after the field transfers
   bool duplicate_field = _field_usrwrk_map.find(slot) != _field_usrwrk_map.end();
   if (duplicate_field)
-    paramError("usrwrk_slot", "A duplicate slot, " + Moose::stringify(slot) + ", is being used by another FieldTransfer. Duplicate slots are not allowed for field transfers because these transfers will overwrite all data in that slot. If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
+    paramError("usrwrk_slot",
+               "A duplicate slot, " + Moose::stringify(slot) +
+                   ", is being used by another FieldTransfer. Duplicate slots are not allowed for "
+                   "field transfers because these transfers will overwrite all data in that slot. "
+                   "If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
 
   _field_usrwrk_map.insert({slot, name});
 }
@@ -133,7 +146,9 @@ FieldTransferBase::fillAuxVariable(const unsigned int var_number, const double *
         if (node_ptr->processor_id() == pid)
         {
           int node_index = _nek_mesh->nodeIndex(n);
-          auto node_offset = (e * _nek_mesh->nMoosePerNek() + build) * _nek_mesh->numVerticesPerElem() + node_index;
+          auto node_offset =
+              (e * _nek_mesh->nMoosePerNek() + build) * _nek_mesh->numVerticesPerElem() +
+              node_index;
 
           // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary
           // system
