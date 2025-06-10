@@ -1,4 +1,4 @@
-# Optional environment variables:
+# Optional environment variables: fdjsk
 #
 # To control where various third-party dependencies are.
 # NOTE: If you change any of these partway through a build, you will need to
