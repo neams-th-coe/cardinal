@@ -104,7 +104,7 @@ ClusteringUserObject::findCluster()
       libMesh::Elem * current_elem = neighbor_stack.top();
       neighbor_stack.pop();
 
-      //Iterating through the side as, two elements to be clusted together they must share one side or face.
+      //Iterating through the side as, two elements to be clustered together they must share one side or face.
       for (unsigned int s = 0; s < current_elem->n_sides(); s++)
       {
         libMesh::Elem * neighbor_elem = current_elem->neighbor_ptr(s);
