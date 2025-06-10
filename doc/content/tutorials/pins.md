@@ -2,7 +2,7 @@
 
 The solid pins in fast reactors are cylinders spaced in hexagonal lattices.
 We have developed a script
-to mesh this geometry, with control of the
+to mesh a bare version of this geometry, with control of the
 mesh settings (numbers of elements, etc.)
 and geometry (pin diameter, etc.)
 by directly editing the script parameters.

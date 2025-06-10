@@ -82,7 +82,7 @@ NekMeshGenerator::validParams()
                                     "size of the polygon (measured as distance from center to a "
                                     "corner) to use for identifying corners");
   params.addRangeCheckedParam<Real>("corner_radius",
-                                    "corner_radius > 0.0",
+                                    "corner_radius >= 0.0",
                                     "If 'geometry_type = cylinder' and when curving corners, the "
                                     "radius of curvature of the corners");
   params.addParam<unsigned int>("polygon_layers",
