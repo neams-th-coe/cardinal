@@ -453,7 +453,7 @@ OpenMCCellAverageProblem::getMooseMesh() const
 {
   if (_use_displaced && !_displaced_problem && !_first_transfer)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
-                 "Regular mesh will be returned");
+                 "Un-displaced mesh will be returned");
 
   const MooseMesh & m =
       ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
@@ -466,7 +466,7 @@ OpenMCCellAverageProblem::getMooseMesh()
 {
   if (_use_displaced && !_displaced_problem && !_first_transfer)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
-                 "Regular mesh will be returned");
+                 "Un-displaced mesh will be returned");
 
   MooseMesh & m =
       ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
@@ -2630,9 +2630,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
         if (_use_displaced)
-        {
           _displaced_problem->updateMesh();
-        }
         resetTallies();
         setupProblem();
       }
