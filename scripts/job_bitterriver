@@ -1,5 +1,6 @@
 #!/bin/bash
-# Run this script with sbatch job_windriver
+# This is a job script which will work on either Windriver or Bitterroot (as the machines are the same).
+# - Run this script with sbatch job_bitterriver
 
 #SBATCH --job-name=cardinal
 #SBATCH --output=cardinal_%j.log
@@ -13,7 +14,7 @@
 #SBATCH --mail-type=all
 
 module purge
-module load use.moose moose-tools openmpi
+module load use.moose moose-tools/2024.06.17 openmpi/moose_5.0.5_gcc13.3.0
 
 let tasks=${SLURM_NNODES}*${SLURM_NTASKS_PER_NODE}
 

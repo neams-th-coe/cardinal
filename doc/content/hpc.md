@@ -338,18 +338,28 @@ if [ -f  ~/.bashrc_local ]; then
        . ~/.bashrc_local
 fi
 
-module purge
-module load use.moose
-module load moose-tools
-module load openmpi/4.1.7-gcc-13.3.0-xpfl
-module load cmake/3.30.1-gcc-13.3.0-6mtw
-# Revise for your repository location
-export NEKRS_HOME=$HOME/cardinal/install
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+# Bitterroot modules
+if [ "$SHORTHOST" = "bitterroot1" ] || [ "$SHORTHOST" = "bitterroot2" ]; then
+  echo "Loading Bitterroot modules..."
+  module purge
+  module load use.moose moose-tools/2024.06.17 openmpi/moose_5.0.5_gcc13.3.0 cmake/3.30.1-gcc-13.3.0-6mtw
+fi
+
+# Revise for your Cardinal location
+export NEKRS_HOME=${HOME}/cardinal/install
+
+# Revise for your cross section location
+export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 
 !listing-end!
 
-!listing scripts/job_bitterroot language=bash caption=Sample job script with the `moose` project code id=bt2
+This submission script is not optimized for any particular problem run with Cardinal:
+
+!listing scripts/job_bitterriver language=bash caption=Sample job script with the `moose` project code id=wnd2
+
+This submission script optimizes performance for OpenMC on Bitterroot using shared memory parallelism and NUMBA bindings on a compute node:
+
+!listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
 
 ## Windriver
 
@@ -373,28 +383,28 @@ if [ -f  ~/.bashrc_local ]; then
        . ~/.bashrc_local
 fi
 
-# Load Windriver modules if we're SSH'ing into one of the Windriver login nodes.
+# Windriver modules
 if [ "$SHORTHOST" = "windriver1" ] || [ "$SHORTHOST" = "windriver2" ]; then
   echo "Loading Windriver modules..."
   module purge
-  module load use.moose moose-tools cmake openmpi
+  module load use.moose moose-tools/2024.06.17 openmpi/moose_5.0.5_gcc13.3.0 cmake/3.30.1-gcc-13.3.0-6mtw
 fi
 
-# Revise for your Cardinal installation location.
+# Revise for your Cardinal location
 export NEKRS_HOME=${HOME}/cardinal/install
 
-# Revise for your cross section location.
+# Revise for your cross section location
 export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 
 !listing-end!
 
 This submission script is not optimized for any particular problem run with Cardinal:
 
-!listing scripts/job_windriver language=bash caption=Sample job script with the `moose` project code id=wnd2
+!listing scripts/job_bitterriver language=bash caption=Sample job script with the `moose` project code id=wnd2
 
 This submission script optimizes performance for OpenMC on Windriver using shared memory parallelism and NUMBA bindings on a compute node:
 
-!listing scripts/job_windriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
+!listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
 
 ## Summit
 
