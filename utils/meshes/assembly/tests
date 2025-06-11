@@ -13,11 +13,21 @@
     mesh_mode = 'replicated'
     prereq = specs
   []
-  [convert]
-    type = RunApp
+  [convert_with_curves]
+    type = CSVDiff
     input = mesh_info.i
-    cli_args = "convert.i --mesh-only"
-    requirement = 'The system shall create a mesh of a hex pin bundle suitable for Nek.'
+    csvdiff = convert_in.csv
+    cli_args = "convert.i Outputs/file_base=convert_in"
+    requirement = 'The system shall create a mesh of a hex pin bundle suitable for Nek with the hexagon corners curved.'
+    mesh_mode = 'replicated'
+    prereq = bundle_mesh
+  []
+  [convert_without_curves]
+    type = CSVDiff
+    input = mesh_info.i
+    csvdiff = convert_nocurves_in.csv
+    cli_args = "convert.i Mesh/to_hex20/curve_corners=false Outputs/file_base=convert_nocurves_in"
+    requirement = 'The system shall create a mesh of a hex pin bundle suitable for Nek without the hexagon corners curved.'
     mesh_mode = 'replicated'
     prereq = bundle_mesh
   []

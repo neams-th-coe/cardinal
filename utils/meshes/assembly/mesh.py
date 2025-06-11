@@ -250,6 +250,7 @@ with open('mesh_info.i', 'w') as f:
   f.write("pattern=" + str(pattern) + "\n")
   f.write("pin_centers=" + str(pin_centers) + "\n")
   f.write("corner_smoothing='" + corner_smoothing + "'\n")
+  f.write("corners=" + str(corner_radius > 0) + "\n")
 
 if (args.generate):
   home = os.getenv('HOME')

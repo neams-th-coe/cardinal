@@ -14,7 +14,8 @@
     origins = '${pin_centers}'
     layers = '${e_per_bl}'
 
-    curve_corners = true
+    # parameters related to applying radius of curvature to duct corners
+    curve_corners = ${corners}
     polygon_sides = 6
     polygon_size = ${fparse flat_to_flat / sqrt(3.0)}
     corner_radius = ${duct_corner_radius_of_curvature}
@@ -35,4 +36,39 @@
     transform = rotate
     vector_value = '30.0 0.0 0.0'
   []
+[]
+
+# The following content is adding postprocessor(s) to check sideset areas
+# to have a regression test.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_pin] # should be slightly less than 1717.9180263134044 (when curving corners)
+    type = AreaPostprocessor
+    boundary = '1'
+  []
+  [area_bot] # should be slightly less than 16.09466649575005 (when curving corners)
+    type = AreaPostprocessor
+    boundary = '2'
+  []
+  [area_top] # should be slightly less than 16.09466649575005 (when curving corners)
+    type = AreaPostprocessor
+    boundary = '3'
+  []
+  [area_duct] # should be slightly less than 992.5486865696435 (when curving corners)
+    type = AreaPostprocessor
+    boundary = '4'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
+  exodus = true
 []
