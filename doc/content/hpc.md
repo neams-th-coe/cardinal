@@ -355,11 +355,11 @@ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_secti
 
 This submission script is not optimized for any particular problem run with Cardinal:
 
-!listing scripts/job_bitterriver language=bash caption=Sample job script with the `moose` project code id=wnd2
+!listing scripts/job_bitterriver language=bash caption=Sample job script with the `moose` project code id=bt2
 
 This submission script optimizes performance for OpenMC on Bitterroot using shared memory parallelism and NUMBA bindings on a compute node:
 
-!listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
+!listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=bt3
 
 ## Windriver
 
