@@ -59,7 +59,7 @@ thermal_conductivity = 2.0
 [Outputs]
   csv = true
   exodus = true
-  hide = 'flux_integral'
+  hide = 'flux_integral flux_nodal'
 []
 
 [MultiApps]
@@ -80,7 +80,7 @@ thermal_conductivity = 2.0
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = flux
+    source_variable = flux_nodal
     to_multi_app = nek
     variable = flux
     search_value_conflicts = false
@@ -100,6 +100,8 @@ thermal_conductivity = 2.0
     family = MONOMIAL
     order = CONSTANT
   []
+  [flux_nodal]
+  []
 []
 
 [AuxKernels]
@@ -110,6 +112,11 @@ thermal_conductivity = 2.0
     diffusivity = thermal_conductivity
     variable = flux
     boundary = '0'
+  []
+  [flux_nodal]
+    type = ProjectionAux
+    variable = flux_nodal
+    v = flux
   []
 []
 
