@@ -243,25 +243,11 @@ NekBoundaryFlux::sendDataToNek()
         normalized_nek_flux,
         " MOOSE integrated flux: ",
         total_moose_flux,
-        ".\n\n",
-        "There are a few reason this might happen:\n\n"
-        "- You forgot to add a transfer in the parent application to write into the " +
-            name() +
-            "variable, in which case no matter what you try to normalize by, the flux in NekRS is "
-            "always zero.\n\n"
-            "- You forgot to add a transfer in the parent application to write into the " +
-            name() +
-            "_integral postprocessor, in which case the value of the postprocessor will always be "
-            "zero.\n\n"
-            "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the "
-            "meshes in Paraview by running your input files with the --mesh-only flag.\n\n"
-            "- Your tolerances for comparing the re-normalized NekRS flux with the incoming MOOSE "
-            "flux are too tight. If the NekRS flux is acceptably close to the MOOSE flux, you can "
-            "try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters\n\n"
-            "- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries "
-            "(like on corners between sidesets), you will end up renormalizing those shared nodes "
-            "once per sideset that they lie on. There is no guarantee that the total imposed flux "
-            "would be preserved.");
+        normalizationHint(),
+        "\n\n- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries "
+        "(like on corners between sidesets), you will end up renormalizing those shared nodes "
+        "once per sideset that they lie on. There is no guarantee that the total imposed flux "
+        "would be preserved.");
 }
 
 void

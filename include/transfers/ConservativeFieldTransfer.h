@@ -28,6 +28,12 @@ public:
   ConservativeFieldTransfer(const InputParameters & parameters);
 
 protected:
+  /**
+   * Return a string to print in error messages upon failed normalizations
+   * @return debugging hint
+   */
+  std::string normalizationHint() const;
+
   /// Absolute tolerance for checking conservation
   const Real & _abs_tol;
 

@@ -171,26 +171,12 @@ NekVolumetricSource::sendDataToNek()
 
   if (!successful_normalization)
     mooseError(
-        "Volumetric source normalization process failed! NekRS integrated source: ",
-        normalized_nek_source,
-        " MOOSE integrated source: ",
-        moose_source,
-        ".\n\n",
-        "There are a few reason this might happen:\n\n"
-        "- You forgot to add a transfer in the parent application to write into the " +
-            name() +
-            "variable, in which case no matter what you try to normalize by, the source in NekRS "
-            "is always zero.\n\n"
-            "- You forgot to add a transfer in the parent application to write into the " +
-            name() +
-            "_integral postprocessor, in which case the value of the postprocessor will always be "
-            "zero.\n\n"
-            "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the "
-            "meshes in Paraview by running your input files with the --mesh-only flag.\n\n"
-            "- Your tolerances for comparing the re-normalized NekRS volumetric source with the "
-            "incoming MOOSE volumetric source are too tight. If the NekRS volumetric source is "
-            "acceptably close to the MOOSE volumetric source, you can try relaxing the "
-            "'normalization_abs_tol' and/or 'normalization_rel_tol' parameters.");
+      "Volumetric source normalization process failed! NekRS integrated source: ",
+      normalized_nek_source,
+      " MOOSE integrated source: ",
+      moose_source,
+      ".\n\n",
+      normalizationHint());
 }
 
 #endif

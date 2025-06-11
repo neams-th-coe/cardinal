@@ -60,4 +60,20 @@ ConservativeFieldTransfer::ConservativeFieldTransfer(const InputParameters & par
     _postprocessor_name = name() + "_integral";
 }
 
+std::string
+ConservativeFieldTransfer::normalizationHint() const
+{
+  std::string s;
+  s += "There are a few reason this might happen:\n\n"
+       "- You forgot to add a transfer from another app to write into the " +
+       _variable +
+       "\n\n- You forgot to add a transfer from another app to write into the " +
+       _postprocessor_name +
+       "postprocessor, in which case the value of the postprocessor will always be zero.\n\n" +
+       "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the "
+       "meshes in Paraview by running your input files with the --mesh-only flag.\n\n" +
+       "- Your tolerances for comparing the re-normalized value with the incoming data are too tight. If the NekRS integrated value is close enough to the MOOSE integrated value, you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters";
+  return s;
+}
+
 #endif
