@@ -27,9 +27,12 @@ CellTally::validParams()
   auto params = TallyBase::validParams();
   params.addClassDescription("A class which implements distributed cell tallies.");
   params.addParam<std::vector<SubdomainName>>(
-      "blocks",
+      "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, cell "
       "tallies will be applied over the entire mesh.");
+  params.addParam<std::vector<SubdomainName>>("blocks",
+                                              "This parameter is deprecated, use 'block' instead!");
+
   params.addParam<bool>(
       "check_equal_mapped_tally_volumes",
       false,
@@ -50,11 +53,14 @@ CellTally::CellTally(const InputParameters & parameters)
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
 {
-  if (isParamValid("blocks"))
+  if (isParamSetByUser("blocks"))
+    mooseError("This parameter is deprecated, use 'block' instead!");
+
+  if (isParamValid("block"))
   {
-    auto block_names = getParam<std::vector<SubdomainName>>("blocks");
+    auto block_names = getParam<std::vector<SubdomainName>>("block");
     if (block_names.empty())
-      paramError("blocks", "Subdomain names must be provided if using 'blocks'!");
+      paramError("block", "Subdomain names must be provided if using 'block'!");
 
     auto block_ids = _mesh.getSubdomainIDs(block_names);
     std::copy(
@@ -64,8 +70,8 @@ CellTally::CellTally(const InputParameters & parameters)
     const auto & subdomains = _mesh.meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
-        paramError("blocks",
-                   "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
+        paramError("block",
+                   "Block '" + block_names[b] + "' specified in 'block' not found in mesh!");
   }
   else
   {
@@ -174,7 +180,7 @@ CellTally::checkCellMappedSubdomains()
                  " maps to blocks with different tally settings!\n"
                  "Block " +
                  Moose::stringify(block_in_tallies) +
-                 " is in 'blocks', but "
+                 " is in 'block', but "
                  "block " +
                  Moose::stringify(block_not_in_tallies) + " is not.");
 

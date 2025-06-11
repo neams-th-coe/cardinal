@@ -46,7 +46,7 @@
     [Cell]
       type = CellTally
       score = 'flux'
-      blocks = '100 200'
+      block = '100 200'
       output = 'unrelaxed_tally'
     []
   []

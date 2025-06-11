@@ -23,7 +23,7 @@
       score = 'kappa_fission'
       name = 'heat_source'
       output = 'unrelaxed_tally_std_dev'
-      blocks = 'uo2_center uo2'
+      block = 'uo2_center uo2'
     []
   []
 []

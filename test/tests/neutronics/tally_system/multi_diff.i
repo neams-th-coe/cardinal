@@ -37,7 +37,7 @@
     [Cell]
       type = CellTally
       score = 'kappa_fission'
-      blocks = '100'
+      block = '100'
     []
     [Mesh]
       type = MeshTally

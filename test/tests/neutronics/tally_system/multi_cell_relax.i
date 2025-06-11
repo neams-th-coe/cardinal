@@ -63,12 +63,12 @@
     [Cell_1]
       type = CellTally
       score = kappa_fission
-      blocks = '100 200'
+      block = '100 200'
     []
     [Cell_2]
       type = CellTally
       score = flux
-      blocks = '100 200'
+      block = '100 200'
     []
   []
 []

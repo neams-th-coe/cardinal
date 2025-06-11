@@ -141,7 +141,7 @@ Then Cardinal is instead building the following automatically for you:
   [density] # added for all density_blocks
     family = MONOMIAL
     order = CONSTANT
-    blocks = 'water helium'
+    block = 'water helium'
   []
   [heating] # the first tally we added (score is 'heating')
     family = MONOMIAL

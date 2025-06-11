@@ -50,18 +50,18 @@
     [Cell_KF]
       type = CellTally
       score = 'kappa_fission'
-      blocks = '100'
+      block = '100'
     []
     [Cell_Total_Flux]
       type = CellTally
       score = 'total flux'
-      blocks = '100'
+      block = '100'
       filters = 'Energy'
     []
     [Cell_Scatter]
       type = CellTally
       score = 'nu_scatter'
-      blocks = '100'
+      block = '100'
       filters = 'Energy EnergyOut Legendre'
       estimator = 'analog'
     []

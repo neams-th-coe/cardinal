@@ -339,13 +339,13 @@ with OpenMC particle transport calculations, the
   block=Problem
 
 For this example, we first start by specifying that we wish to add a
-[CellTally](CellTally.md) in `[Tallies]`. The `blocks` are
+[CellTally](CellTally.md) in `[Tallies]`. The `block` are
 then used to indicate which OpenMC cells to add tallies to
 (as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
 we add tallies to all OpenMC cells. But for this problem, we already know that the
 cladding doesn't have any fissile material, so we can save some effort with the
 tallies by skipping tallies in those regions by setting
-`blocks` to blocks 2 and 3.
+`block` to blocks 2 and 3.
 [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will then
 take the information provided in the `[Tallies]` block and add the necessary OpenMC tally.
 
@@ -578,9 +578,8 @@ is desired.
 ## Adding Mesh Tallies
 
 Next, we will replace the cell
-tallies with unstructured mesh tallies. That is, instead of setting
-`tally_blocks` and
-providing the MOOSE blocks to which the corresponding OpenMC cells should have tallies added,
+tallies with unstructured mesh tallies. That is, instead of adding a [CellTally](CellTally.md), setting
+`block` and providing the MOOSE blocks to which the corresponding OpenMC cells should have tallies added,
 we will tally on an unstructured mesh. The inputs for this problem are largely the
 same as in [#coupling]; the files are now `solid_um.i` and `openmc_um.i`.
 For the solid, we simply need to swap out the sub-application to
