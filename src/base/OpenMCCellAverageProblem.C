@@ -228,7 +228,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   {
     auto has_displaced =
         act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
-    _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
+    _need_to_reinit_coupling |= (has_displaced && _use_displaced);
   }
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
