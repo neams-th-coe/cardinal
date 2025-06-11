@@ -30,6 +30,10 @@ if not os.path.exists(MOOSE_DIR):
     raise Exception('Failed to locate MOOSE, specify the MOOSE_DIR environment variable.')
 os.environ['MOOSE_DIR'] = MOOSE_DIR
 
+large_media = os.path.abspath(os.path.join(MOOSE_DIR, "large_media"))
+if (not os.path.exists(large_media) or len(os.listdir(large_media)) == 0):
+  raise Exception("To build Cardinal's documentation, MOOSE's large_media submodule must be checked out. Try the following first:\n\ncd cardinal/contrib/moose\ngit submodule update --init large_media")
+
 # Append MOOSE python directory
 MOOSE_PYTHON_DIR = os.path.join(MOOSE_DIR, 'python')
 if MOOSE_PYTHON_DIR not in sys.path:
