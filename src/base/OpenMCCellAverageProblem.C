@@ -228,8 +228,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   {
     auto has_displaced =
         act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
-    _need_to_reinit_coupling |= has_displaced;
-    // Switch the above with: _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
+    _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
   }
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
@@ -253,8 +252,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
-  // We need to clear and re-initialize the OpenMC tallies if
-  // fixed_mesh is false, which indicates at least one of the following:
+  // We need to clear and re-initialize OpenMC problem in the cases of:
   //   - the [Mesh] is being adaptively refined
   //   - the [Mesh] is deforming in space
   //

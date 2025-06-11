@@ -413,7 +413,7 @@ public:
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION{3};
 
-  /// Get a modifyable reference to the Moose mesh
+  /// Get a modifyable non-const reference to the Moose mesh
   virtual MooseMesh & getMooseMesh();
 
   /// Get a modifyable const reference to the Moose mesh
