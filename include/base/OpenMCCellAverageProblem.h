@@ -416,7 +416,11 @@ public:
   /// Get a modifyable reference to the Moose mesh
   virtual MooseMesh & getMooseMesh();
 
+  /// Get a modifyable const reference to the Moose mesh
   virtual const MooseMesh & getMooseMesh() const;
+
+  /// Whether OpenMCCellAverageProblem should use the displaced mesh
+  const bool & _use_displaced;
 
 protected:
   /**
@@ -949,9 +953,6 @@ protected:
    * the tally sum
    */
   const bool _needs_global_tally;
-
-  /// Whether OpenMCCellAverageProblem should use the displaced mesh
-  const bool & _use_displaced;
 
   /**
    * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is

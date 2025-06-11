@@ -56,6 +56,9 @@ InputParameters
 OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether OpenMCCellAverageProblem should use the displaced mesh ");
   params.addParam<bool>("output_cell_mapping",
                         true,
                         "Whether to automatically output the mapping from OpenMC cells to the "
@@ -164,10 +167,6 @@ OpenMCCellAverageProblem::validParams()
                        "Number of particles to use for first iteration "
                        "when using Dufek-Gudowski relaxation");
 
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether OpenMCCellAverageProblem should use the displaced mesh ");
-
   params.addParam<UserObjectName>(
       "symmetry_mapper",
       "User object (of type SymmetryPointGenerator) "
@@ -189,6 +188,7 @@ OpenMCCellAverageProblem::validParams()
 
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & params)
   : OpenMCProblemBase(params),
+    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _serialized_solution(_aux->serializedSolution()),
     _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
@@ -214,7 +214,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _volume_calc(nullptr),
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())

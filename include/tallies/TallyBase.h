@@ -341,9 +341,6 @@ protected:
   /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'.
   std::vector<std::string> _output_name;
 
-  /// Whether the skinned mesh should be generated from a displaced mesh
-  const bool & _use_displaced;
-
   /// Whether the problem uses adaptive mesh refinement or not.
   const bool _is_adaptive;
 

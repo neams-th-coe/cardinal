@@ -81,9 +81,6 @@ TallyBase::validParams()
 
   params.registerBase("Tally");
   params.registerSystemAttributeName("Tally");
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }
@@ -97,7 +94,6 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output")),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
 {
   if (isParamValid("score"))
@@ -342,7 +338,7 @@ TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
                         unsigned int global_score,
                         const std::string & output_type)
 {
-  if (_use_displaced)
+  if (_openmc_problem._use_displaced)
   {
     _openmc_problem.getDisplacedProblem()->updateMesh();
   }

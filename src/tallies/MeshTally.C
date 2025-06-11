@@ -266,7 +266,7 @@ MeshTally::checkMeshTemplateAndTranslations()
   // copy transfer that necessitates the meshes to have the same elements in the same order). In
   // other words, you might have two meshes that represent the same geometry, the element ordering
   // could be different.
-  if (_use_displaced)
+  if (_openmc_problem._use_displaced)
   {
     _openmc_problem.getDisplacedProblem()->updateMesh();
   }
