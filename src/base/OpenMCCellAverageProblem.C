@@ -706,6 +706,7 @@ OpenMCCellAverageProblem::setupProblem()
   cacheContainedCells();
 
   // save the number of contained cells for printing in every transfer if verbose
+  _cell_to_n_contained.clear();
   for (const auto & c : _cell_to_elem)
   {
     const auto & cell_info = c.first;
@@ -783,8 +784,7 @@ OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
                                                  bool skip_func_exp)
 {
   std::vector<const MooseVariableFE<Real> *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -811,8 +811,7 @@ OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
                                                       bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -839,8 +838,7 @@ OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string 
                                                               bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -1113,6 +1111,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_mapping = false;
 
   std::vector<Real> cv;
+  _cell_phase.clear();
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -1372,6 +1371,8 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
 
   TIME_SECTION("subdomainsToMaterials", 3, "Mapping OpenMC Materials to Mesh", true);
 
+  _subdomain_to_material.clear();
+
   for (const auto & c : _cell_to_elem)
   {
     printTrisoHelp(time_start);
@@ -1433,6 +1434,7 @@ OpenMCCellAverageProblem::getMaterialFills()
 
   std::set<int32_t> materials_in_fluid;
   std::set<int32_t> other_materials;
+  _cell_to_material.clear();
 
   for (const auto & c : _cell_to_elem)
   {
@@ -1680,6 +1682,11 @@ OpenMCCellAverageProblem::cacheContainedCells()
   containedCells second_cell_cc;
   bool used_cache_shortcut = false;
 
+  _cell_to_contained_material_cells.clear();
+  _first_identical_cell_materials.clear();
+  _instance_offsets.clear();
+  _n_offset.clear();
+
   int n = -1;
   const auto time_start = std::chrono::high_resolution_clock::now();
   for (const auto & c : _cell_to_elem)
@@ -1891,7 +1898,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // reset data structures
   _elem_to_cell.clear();
   _cell_to_elem.clear();
-  _subdomain_to_material.clear();
   _flattened_ids.clear();
   _flattened_instances.clear();
 
@@ -2038,10 +2044,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // elements as opposed to the entire element hierarchy.
   _elem_to_cell.resize(getMooseMesh().nElem(), {UNMAPPED, UNMAPPED});
   for (const auto & c : _cell_to_elem)
-  {
     for (const auto & e : c.second)
       _elem_to_cell[e] = c.first;
-  }
 }
 
 void
@@ -2242,6 +2246,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   }
 
   // create the variable(s) that will be used to receive density
+  _subdomain_to_density_vars.clear();
   for (const auto & v : _density_vars_to_blocks)
   {
     auto number = addExternalVariable(v.first, &v.second);
@@ -2252,6 +2257,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   }
 
   // create the variable(s) that will be used to receive temperature
+  _subdomain_to_temp_vars.clear();
   for (const auto & v : _temp_vars_to_blocks)
   {
     auto number = addExternalVariable(v.first, &v.second);
@@ -2626,8 +2632,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
+
         if (_use_displaced)
           _displaced_problem->updateMesh();
+
         resetTallies();
         setupProblem();
       }
