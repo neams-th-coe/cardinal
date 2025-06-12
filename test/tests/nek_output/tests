@@ -14,7 +14,7 @@
     csvdiff = velocity_out.csv
     abs_zero = 1e-8
     requirement = "Nek-wrapped MOOSE cases shall be able to output any quantity in the field enumeration from NekRS onto the mesh mirror."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [too_high_slot]
     type = RunException
@@ -36,6 +36,6 @@
     input = bad_name.i
     expect_err = "We tried to choose a default 'field' as 'temp', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter."
     requirement = "The system shall error if the default choice for the field cannot be matched from the object name."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []
