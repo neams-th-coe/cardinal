@@ -64,7 +64,11 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   }
 
   if (_field == field::velocity_component)
-    paramError("field", "'velocity_component' is not yet supported; if you need velocity dotted with a specific direction, extract the three components of velocity and perform the postprocessing operation using a ParsedAux. If this is hindering your workflow, please contact the Cardinal developer team.");
+    paramError("field",
+               "'velocity_component' is not yet supported; if you need velocity dotted with a "
+               "specific direction, extract the three components of velocity and perform the "
+               "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
+               "please contact the Cardinal developer team.");
 
   _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
