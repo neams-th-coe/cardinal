@@ -1,6 +1,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]
@@ -79,5 +87,4 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'source_integral heat_source'
 []

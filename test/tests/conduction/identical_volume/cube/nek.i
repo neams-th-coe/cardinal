@@ -1,13 +1,21 @@
 [Problem]
   type = NekRSProblem
   casename = 'cube'
-
-  # we only technically need two scratch space slots for this problem,
-  # (the first is reserved for heat flux, but ultimately not used in this
-  # volume-only problem, while the second is reserved for the volumetric heat
-  # source, which is actually used),
-  # so we can skip allocating extra
   n_usrwrk_slots = 2
+
+  [FieldTransfers]
+    [heat_source]
+      type = NekVolumetricSource
+      direction = to_nek
+      postprocessor_to_conserve = source_integral
+      usrwrk_slot = 0
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

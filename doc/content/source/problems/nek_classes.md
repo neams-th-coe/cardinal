@@ -5,7 +5,7 @@ This class must be used in conjunction with two other classes in Cardinal:
    [Transfers](Transfers/index.md)
    understand how to send data into/out of NekRS. The settings on
    [NekRSMesh](NekRSMesh.md) also determine which
-   coupling type (listed above) is used.
+   coupling type (listed above) are available.
 2. [NekTimeStepper](NekTimeStepper.md), which allows NekRS to
    control its own time stepping.
 

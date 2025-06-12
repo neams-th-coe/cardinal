@@ -177,7 +177,10 @@ We start by building a mesh mirror of the NekRS mesh, as a
 [NekRSMesh](NekRSMesh.md). We will couple
 via conjugate heat transfer through boundary 5 in the NekRS domain. Next, we use
 [NekRSProblem](NekRSProblem.md)
-to specify that we will replace MOOSE solves with NekRS solves. The
+to specify that we will replace MOOSE solves with NekRS solves and to
+add the necessary [FieldTransfers](AddFieldTransferAction.md) to facilitate
+the conjugate heat transfer boundary conditions. We also add a [NekScalarValue](NekScalarValue.md) scalar transfer, which is how we will send single numbers into NekRS's backend
+(described shortly). The
 [NekTimeStepper](NekTimeStepper.md)
 finally will then allow NekRS to control its time stepping, aside from synchronization
 points imposed by the main app.
@@ -185,12 +188,11 @@ points imposed by the main app.
 !listing /tutorials/nek_stochastic/nek.i
   end=UserObjects
 
-Next, we add a [NekScalarValue](NekScalarValue.md)
-to be the receiving point for a stochastic number coming from "higher up" in the multiapp
-hierarchy (to be described soon). Then, we define a number of postprocessors. The `max_temp`
+Then, we define a number of postprocessors. The `max_temp`
 postprocessor will be our [!ac](QOI) evaluating $T_i$ which will get passed upwards in the multiapp
-hierarchy. The [NekScalarValuePostprocessor](NekScalarValuePostprocessor.md)
-is added for convenience to display the value held by the `NekScalarValue` userobject to the console
+hierarchy. The `k_from_stem` [Receiver](Receiver.md) postprocessor will be written by
+our [NekScalarValue](NekScalarValue.md) object for convenience
+to display the value held by the `NekScalarValue` transfer to the console
 so that we can easily see each random value for $k_n$ getting received. For sanity check, we also
 add `expect_max_T` to compute the analytic value for $T_i$ according to [analytic_ti].
 
@@ -289,24 +291,17 @@ When you first run this input file, you will see a table print at the beginning 
 solve which shows:
 
 ```
-  ===================>     MAPPING FROM MOOSE TO NEKRS      <===================
-
-           Slice:  entry in NekRS scratch space
-        Quantity:  physical meaning or name of data in this slice
-   How to Access:  C++ code to use in NekRS files; for the .udf instructions,
-                   'n' indicates a loop variable over GLL points
-
- ------------------------------------------------------------------------------------------------
- | Quantity |            How to Access (.oudf)          |         How to Access (.udf)          |
- ------------------------------------------------------------------------------------------------
- | flux     | bc->usrwrk[0 * bc->fieldOffset + bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
- | k        | bc->usrwrk[1 * bc->fieldOffset + 0]       | nrs->usrwrk[1 * nrs->fieldOffset + 0] |
- | unused   | bc->usrwrk[2 * bc->fieldOffset + bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[3 * bc->fieldOffset + bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[4 * bc->fieldOffset + bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[5 * bc->fieldOffset + bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
- | unused   | bc->usrwrk[6 * bc->fieldOffset + bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
- ------------------------------------------------------------------------------------------------
+ -----------------------------------------------------------------------------------------------------------
+ | Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
+ -----------------------------------------------------------------------------------------------------------
+ |    0 | flux           | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
+ |    1 | k              | bc->usrwrk[1 * bc->fieldOffset + 0]     | nrs->usrwrk[1 * nrs->fieldOffset + 0] |
+ |    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
+ |    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
+ |    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
+ |    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
+ |    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
+ -----------------------------------------------------------------------------------------------------------
 ```
 
 This table will show you how the [NekScalarValues](NekScalarValue.md)

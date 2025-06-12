@@ -240,7 +240,7 @@ the NekRS files is already 1 m, so we do not need to scale the mesh in any way.
 The bulk of the NekRS wrapping is specified with [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
-scales that were used to non-dimensionalize the NekRS input.
+scales that were used to non-dimensionalize the NekRS input. The [FieldTransfers](AddFieldTransferAction.md) block adds the transfer of volumetric heat source ([NekVolumetricSource](NekVolumetricSource.md)) and temperature ([NekFieldVariable](NekFieldVariable.md)).
 
 !listing /tutorials/msfr/nek.i
   block=Problem

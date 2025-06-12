@@ -25,7 +25,6 @@
 
 [Outputs]
   exodus = true
-  hide = 'flux_integral temp avg_flux'
 []
 
 # The points provided to these postprocessors are the centroids of the elements that

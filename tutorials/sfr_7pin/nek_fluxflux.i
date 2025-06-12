@@ -9,6 +9,18 @@ interval = 100
   type = NekRSProblem
   casename = 'sfr_7pin'
   synchronization_interval = parent_app
+
+  [FieldTransfers]
+    [heat_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

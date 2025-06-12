@@ -6,6 +6,28 @@
 [Problem]
   type = NekRSProblem
   casename = 'channel'
+
+  [FieldTransfers]
+    [flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temperature]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
+
+  [ScalarTransfers]
+    [k]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = 1
+      output_postprocessor = k_from_stm
+    []
+  []
 []
 
 [Executioner]
@@ -16,20 +38,13 @@
   []
 []
 
-[UserObjects]
-  [k]
-    type = NekScalarValue
-  []
-[]
-
 [Postprocessors]
   [max_temp]
     type = NekVolumeExtremeValue
     field = temperature
   []
   [k_from_stm] # this will just print to the screen the value of k received
-    type = NekScalarValuePostprocessor
-    userobject = k
+    type = Receiver
   []
   [expect_max_T]
     type = ParsedPostprocessor

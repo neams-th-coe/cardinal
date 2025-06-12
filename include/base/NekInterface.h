@@ -425,36 +425,6 @@ double usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEn
 void scaleUsrwrk(const unsigned int & slot, const dfloat & value);
 
 /**
- * Normalize the flux sent to nekRS to conserve the total flux
- * @param[in] nek_boundary_coupling data structure holding boundary coupling info
- * @param[in] boundary boundaries for which to normalize the flux
- * @param[in] moose_integral total integrated flux from MOOSE to conserve
- * @param[in] nek_integral total integrated flux in nekRS to adjust
- * @param[out] normalized_nek_integral final normalized nek flux integral
- * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
- */
-bool normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
-                   const std::vector<int> & boundary,
-                   const std::vector<double> & moose_integral,
-                   std::vector<double> & nek_integral,
-                   double & normalized_nek_integral);
-
-/**
- * Normalize the flux sent to nekRS to conserve the total flux
- * @param[in] nek_boundary_coupling data structure holding boundary coupling info
- * @param[in] boundary boundaries for which to normalize the flux
- * @param[in] moose_integral total integrated flux from MOOSE to conserve
- * @param[in] nek_integral total integrated flux in nekRS to adjust
- * @param[out] normalized_nek_integral final normalized nek flux integral
- * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
- */
-bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
-                   const std::vector<int> & boundary,
-                   const double moose_integral,
-                   double nek_integral,
-                   double & normalized_nek_integral);
-
-/**
  * Compute the area of a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
  * @param[in] pp_mesh which NekRS mesh to operate on
@@ -723,21 +693,6 @@ struct usrwrkIndices
 
   /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z = -1;
-
-  /// boundary velocity (for separate domain coupling)
-  int boundary_velocity = -1;
-
-  /// boundary temperature (for separate domain coupling)
-  int boundary_temperature = -1;
-
-  /// boundary scalar01 (for separate domain coupling)
-  int boundary_scalar01 = -1;
-
-  /// boundary scalar02 (for separate domain coupling)
-  int boundary_scalar02 = -1;
-
-  /// boundary scalar03 (for separate domain coupling)
-  int boundary_scalar03 = -1;
 };
 
 /**

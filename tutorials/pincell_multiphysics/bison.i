@@ -132,7 +132,7 @@ dT = ${fparse power / mdot / Cp}
 [Transfers]
   [temperature]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = temp
+    source_variable = temperature
     from_multi_app = nek
     variable = nek_temp
   []
@@ -140,7 +140,7 @@ dT = ${fparse power / mdot / Cp}
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = flux
     from_boundaries = '5'
   []
   [flux_integral]

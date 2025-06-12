@@ -4,12 +4,41 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'brick'
   n_usrwrk_slots = 3
 
-  output = 'scalar01 scalar02 scalar03'
-  first_reserved_usrwrk_slot = 1
+  [ScalarTransfers]
+    [s2]
+      type = NekScalarValue
+      direction = to_nek
+      value = 2.5
+      usrwrk_slot = 1
+      output_postprocessor = s2
+    []
+    [s3]
+      type = NekScalarValue
+      direction = to_nek
+      value = 3.5
+      usrwrk_slot = 1
+      output_postprocessor = s3
+    []
+  []
+
+  [FieldTransfers]
+    [scalar01]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar02]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [scalar03]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]
@@ -20,25 +49,12 @@
   []
 []
 
-[UserObjects]
-  [scalar2]
-    type = NekScalarValue
-    value = 2.5
-  []
-  [scalar3]
-    type = NekScalarValue
-    value = 3.5
-  []
-[]
-
 [Postprocessors]
   [s2]
-    type = NekScalarValuePostprocessor
-    userobject = scalar2
+    type = Receiver
   []
   [s3]
-    type = NekScalarValuePostprocessor
-    userobject = scalar3
+    type = Receiver
   []
 
   [max_scalar1]

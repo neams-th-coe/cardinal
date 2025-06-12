@@ -23,10 +23,6 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
   }
-
-  nrs->usrwrk = (double *)calloc(2 * nrs->cds->fieldOffset[0], sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(2 * nrs->cds->fieldOffset[0] * sizeof(double),
-                                          nrs->usrwrk);
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)

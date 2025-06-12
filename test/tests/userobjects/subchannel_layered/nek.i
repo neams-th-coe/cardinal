@@ -4,9 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
 []
 
 [AuxVariables]
@@ -140,5 +139,4 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp'
 []

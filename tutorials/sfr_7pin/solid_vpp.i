@@ -167,19 +167,19 @@ pin_power = 10e3                              # bundle power (kW)
 [Transfers]
   [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = temp
+    source_variable = temperature
     from_multi_app = nek
     variable = nek_temp
   []
-  [avg_flux] # sends heat flux in avg_flux to nekRS
+  [flux] # sends heat flux in flux to nekRS
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = avg_flux
+    source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = heat_flux
   []
   [flux_integral_to_nek] # sends the heat flux integral (for normalization) to nekRS
     type = MultiAppReporterTransfer
-    to_reporters = 'flux_integral/value'
+    to_reporters = 'heat_flux_integral/value'
     from_reporters = 'flux/flux'
     to_multi_app = nek
   []
@@ -195,7 +195,7 @@ pin_power = 10e3                              # bundle power (kW)
   [nek_temp]
     initial_condition = 500.0
   []
-  [avg_flux]
+  [flux]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -203,27 +203,27 @@ pin_power = 10e3                              # bundle power (kW)
 
 
 [AuxKernels]
-  [avg_flux]
+  [flux]
     type = DiffusionFluxAux
     diffusion_variable = T
     component = normal
     diffusivity = thermal_conductivity
-    variable = avg_flux
+    variable = flux
     boundary = '5 10'
   []
 []
 
 [Executioner]
   type = Transient
-  dt = 5e-3
-  num_steps = 10
+  dt = 5e-2
   nl_abs_tol = 1e-5
   nl_rel_tol = 1e-16
   petsc_options_value = 'hypre boomeramg'
   petsc_options_iname = '-pc_type -pc_hypre_type'
+  steady_state_detection = true
+  steady_state_tolerance = 1e-2
 []
 
 [Outputs]
   exodus = true
-  execute_on = 'final'
 []

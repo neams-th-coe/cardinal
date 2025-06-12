@@ -8,6 +8,14 @@
                   "passive scalars from the Nek solution onto the mesh mirror."
     required_objects = 'NekRSProblem'
   []
+  [other_output]
+    type = CSVDiff
+    input = velocity.i
+    csvdiff = velocity_out.csv
+    abs_zero = 1e-8
+    requirement = "Nek-wrapped MOOSE cases shall be able to output any quantity in the field enumeration from NekRS onto the mesh mirror."
+    required_objects = 'NekRSProblem'
+  []
   [too_high_slot]
     type = RunException
     input = nek_fld.i
@@ -21,6 +29,13 @@
     cli_args = 'Problem/usrwrk_output="0 1" Problem/usrwrk_output_prefix="abc"'
     expect_err = "The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!"
     requirement = "The system shall error if there is a mismatch between parameter lengths for writing usrwrk field files"
+    required_objects = 'NekRSProblem'
+  []
+  [bad_name]
+    type = RunException
+    input = bad_name.i
+    expect_err = "We tried to choose a default 'field' as 'temp', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter."
+    requirement = "The system shall error if the default choice for the field cannot be matched from the object name."
     required_objects = 'NekRSProblem'
   []
 []

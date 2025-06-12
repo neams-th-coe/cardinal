@@ -8,6 +8,7 @@
                   "when using a volume mesh mirror. We show that the volume and area on the NekRS side is "
                   "changing, whereas the volume/area in MOOSE will not change because we currently do not "
                   "send displacements from NekRS to MOOSE."
+    mesh_mode = 'replicated'
     required_objects = 'NekRSProblem'
   []
   [boundary]
@@ -19,6 +20,7 @@
                   "when using a boundary mesh mirror. We show that the volume and area on the NekRS side is "
                   "changing, whereas the volume/area in MOOSE will not change because we currently do not "
                   "send displacements from NekRS to MOOSE."
+    mesh_mode = 'replicated'
     required_objects = 'NekRSProblem'
   []
 []

@@ -1,6 +1,14 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+
+  [FieldTransfers]
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]
@@ -17,6 +25,8 @@
     family = MONOMIAL
   []
   [difference]
+  []
+  [avg_flux] # only here to avoid a re-gold; otherwise not necessary
   []
 []
 
@@ -79,5 +89,4 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'flux_integral'
 []

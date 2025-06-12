@@ -3,7 +3,9 @@
     type = CSVDiff
     input = solid.i
     csvdiff = solid_out.csv
-    cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Outputs/csv=true'
-    requirement = 'The system shall run heat conduction in a solid pebble.'
+    cli_args = 'Executioner/num_steps=2 Outputs/csv=true'
+    rel_err = 2e-4
+    requirement = 'The system shall couple NekRS and MOOSE for conjugate heat transfer.'
+    required_objects = 'NekRSProblem'
   []
 []

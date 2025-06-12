@@ -1,5 +1,5 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'pyramid'
 
   [Dimensionalize]
@@ -22,9 +22,7 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-  []
+  csv = true
 []
 
 [Postprocessors]

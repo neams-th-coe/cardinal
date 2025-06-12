@@ -2,7 +2,6 @@
   type = NekRSProblem
   casename = 'pyramid'
   n_usrwrk_slots = 4
-  has_heat_source = false
 
   [Dimensionalize]
     L = 2
@@ -35,10 +34,8 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-    execute_on = 'final'
-  []
+  csv = true
+  execute_on = 'final'
 []
 
 [Postprocessors]

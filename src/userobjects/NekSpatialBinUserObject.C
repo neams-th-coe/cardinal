@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekSpatialBinUserObject.h"
+#include "NekInterface.h"
 #include "CardinalUtils.h"
 
 InputParameters
@@ -67,7 +68,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_partial_values(nullptr),
     _bin_partial_counts(nullptr)
 {
-  _fixed_mesh = !(_nek_problem->hasMovingNekMesh());
+  _fixed_mesh = !nekrs::hasMovingMesh();
 
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
@@ -77,7 +78,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     // first check that the user object exists
     if (!hasUserObjectByName<UserObject>(b))
       mooseError("Bin user object with name '" + b +
-                 "' not found in problem.\nThe user objects "
+                 "' not found in problem. The user objects "
                  "in 'bins' must be listed before the '" +
                  name() + "' user object.");
 

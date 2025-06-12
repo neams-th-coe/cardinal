@@ -28,18 +28,16 @@ NekBase::validParams()
 }
 
 NekBase::NekBase(const MooseObject * moose_object, const InputParameters & parameters)
-  : _nek_problem(dynamic_cast<NekRSProblemBase *>(&moose_object->getMooseApp().feProblem()))
+  : _nek_problem(dynamic_cast<NekRSProblem *>(&moose_object->getMooseApp().feProblem()))
 {
   if (!_nek_problem)
   {
     std::string extra_help =
         moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
-    mooseError(moose_object->type() +
-               " can only be used with wrapped Nek cases!\n"
-               "You need to change the problem type from '" +
-               moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
-               " to a Nek-wrapped problem.\n\n"
-               "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
+    mooseError(
+        moose_object->type() +
+        " can only be used with NekRS-wrapped cases! You need to change the problem type from '" +
+        moose_object->getMooseApp().feProblem().type() + "'" + extra_help + " to NekRSProblem.");
   }
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
