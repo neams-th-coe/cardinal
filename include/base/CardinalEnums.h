@@ -25,7 +25,6 @@ MooseEnum getSynchronizationEnum();
 MooseEnum getNekOrderEnum();
 MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
-MooseEnum getNekOutputEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getTallyEstimatorEnum();

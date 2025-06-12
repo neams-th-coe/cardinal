@@ -8,6 +8,14 @@
                   "passive scalars from the Nek solution onto the mesh mirror."
     required_objects = 'NekRSProblem'
   []
+  [other_output]
+    type = CSVDiff
+    input = velocity.i
+    csvdiff = velocity_out.csv
+    abs_zero = 1e-8
+    requirement = "Nek-wrapped MOOSE cases shall be able to output any quantity in the field enumeration from NekRS onto the mesh mirror."
+    required_objects = 'NekRSProblem'
+  []
   [too_high_slot]
     type = RunException
     input = nek_fld.i

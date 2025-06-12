@@ -28,7 +28,7 @@ NekFieldVariable::validParams()
   auto params = FieldTransferBase::validParams();
   params.addParam<MooseEnum>(
       "field",
-      getNekOutputEnum(),
+      getNekFieldEnum(),
       "NekRS field variable to read/write; defaults to the name of the object");
   params.addClassDescription("Reads/writes volumetric field data between NekRS and MOOSE.");
   return params;
@@ -46,11 +46,11 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "Cardinal developer team if you require writing of NekRS field variables.");
 
   if (isParamValid("field"))
-    _field = convertToFieldEnum(getParam<MooseEnum>("field"));
+    _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
   else
   {
     // try a reasonable default by seeing if the object name matches a valid enumeration
-    auto enums = getNekOutputEnum().getNames();
+    auto enums = getNekFieldEnum().getNames();
     auto obj_name = name();
     std::transform(obj_name.begin(), obj_name.end(), obj_name.begin(), ::toupper);
     bool found_name = std::find(enums.begin(), enums.end(), obj_name) != enums.end();
@@ -62,6 +62,9 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "', but this value is not an option in the 'field' enumeration. Please "
                      "provide the 'field' parameter.");
   }
+
+  if (_field == field::velocity_component)
+    paramError("field", "'velocity_component' is not yet supported; if you need velocity dotted with a specific direction, extract the three components of velocity and perform the postprocessing operation using a ParsedAux. If this is hindering your workflow, please contact the Cardinal developer team.");
 
   _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
@@ -79,6 +82,16 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
     return field::velocity_y;
   if (lowercase == "velocity_z")
     return field::velocity_z;
+  if (lowercase == "velocity")
+    return field::velocity;
+  if (lowercase == "velocity_component")
+    return field::velocity_component;
+  if (lowercase == "velocity_x_squared")
+    return field::velocity_x_squared;
+  if (lowercase == "velocity_y_squared")
+    return field::velocity_y_squared;
+  if (lowercase == "velocity_z_squared")
+    return field::velocity_z_squared;
   if (lowercase == "temperature")
     return field::temperature;
   if (lowercase == "pressure")
@@ -89,6 +102,14 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
     return field::scalar02;
   if (lowercase == "scalar03")
     return field::scalar03;
+  if (lowercase == "unity")
+    return field::unity;
+  if (lowercase == "usrwrk00")
+    return field::usrwrk00;
+  if (lowercase == "usrwrk01")
+    return field::usrwrk01;
+  if (lowercase == "usrwrk02")
+    return field::usrwrk02;
 
   mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
 }
