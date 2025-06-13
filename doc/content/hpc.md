@@ -342,7 +342,7 @@ fi
 if [ "$SHORTHOST" = "bitterroot1" ] || [ "$SHORTHOST" = "bitterroot2" ]; then
   echo "Loading Bitterroot modules..."
   module purge
-  module load use.moose moose-tools/2024.06.17 openmpi/moose_5.0.5_gcc13.3.0 cmake/3.30.1-gcc-13.3.0-6mtw
+  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
 fi
 
 # Revise for your Cardinal location
@@ -387,7 +387,7 @@ fi
 if [ "$SHORTHOST" = "windriver1" ] || [ "$SHORTHOST" = "windriver2" ]; then
   echo "Loading Windriver modules..."
   module purge
-  module load use.moose moose-tools/2024.06.17 openmpi/moose_5.0.5_gcc13.3.0 cmake/3.30.1-gcc-13.3.0-6mtw
+  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
 fi
 
 # Revise for your Cardinal location
