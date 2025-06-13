@@ -17,11 +17,8 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-    hide = 'flux_integral'
-    execute_on = 'final'
-  []
+  csv = true
+  execute_on = 'final'
 []
 
 [Postprocessors]

@@ -8,15 +8,6 @@
     expect_err = "Your NekRSMesh has 'displacements', but 'nomesh_solver.par' does not have a"
     requirement = "The system shall error if Cardinal has displacements associated with NekRSMesh, but there is no mesh solver."
   []
-  [standalone]
-    type = RunException
-    input = nek.i
-    cli_args = "Mesh/volume=false Mesh/boundary='2' Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSStandaloneProblem'  --error"
-    required_objects = 'NekRSProblem'
-    max_parallel = 64
-    expect_err = "This class does not transfer mesh displacements from NekRS to Cardinal."
-    requirement = "The system shall error if Cardinal is using NekRSStandaloneProblem with NekRS's moving mesh problems."
-  []
   [missing_mv_boundary]
     type = RunException
     input = nek.i

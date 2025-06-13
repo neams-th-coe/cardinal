@@ -4,9 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
 []
 
 [UserObjects]
@@ -35,8 +34,4 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-[]
-
-[Outputs]
-  exodus = true
 []

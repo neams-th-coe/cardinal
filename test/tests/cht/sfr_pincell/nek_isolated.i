@@ -1,7 +1,21 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
-  initial_flux_integral = 10
+
+  [FieldTransfers]
+    [avg_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+      initial_flux_integral = 10
+      postprocessor_to_conserve = flux_integral
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

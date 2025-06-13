@@ -7,6 +7,9 @@
   dt = targetCFL=2.0 + initial=1e-4
   writeInterval = 500
 
+[MESH]
+  file = "../pebble_1/pebble.re2"
+
 [PRESSURE]
   residualTol = 1e-06
 

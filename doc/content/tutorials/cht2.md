@@ -175,7 +175,7 @@ The [Transfer](Transfers/index.md) system is used to communicate variables acros
 heat flux will be computed by MOOSE and applied as a boundary condition in NekRS. In the
 opposite direction, NekRS will compute a surface temperature that will be applied as a
 boundary condition in MOOSE. Therefore, we define auxiliary variables to hold the flux
-computed by MOOSE (`avg_flux`) and the surface temperature received from NekRS
+computed by MOOSE (`flux`) and the surface temperature received from NekRS
 (`nek_temp`).
 
 !listing tutorials/sfr_7pin/solid.i
@@ -254,12 +254,12 @@ Consider the case where the main application has a time step of 1,
 but NekRS has a time step of 0.2. After the solution of the main application, the heat flux
 transfer into NekRS consists of several steps:
 
-1. Transfer from `avg_flux` in the main application to the `avg_flux` receiver variable in
+1. Transfer from `flux` in the main application to the `heat_flux` receiver variable in
    the MOOSE-wrapped NekRS app.
    This is the transfer that happens in the `Transfers` block.
-2. Once the heat flux is available in the `avg_flux` variable in the `nek.i` input, transfer
+2. Once the heat flux is available in the `heat_flux` variable in the `nek.i` input, transfer
    that heat flux into NekRS on the host (i.e. the CPU) by interpolating from the
-   [NekRSMesh](NekRSMesh.md) to the [!ac](GLL) points.
+   [NekRSMesh](NekRSMesh.md) to the [!ac](GLL) points. Also normalize the heat flux using the `heat_flux_integral` postprocesor to ensure conservation.
 3. Once the heat flux has been normalized on the host, it is then copied from the host to the device (i.e. the parallel backend,
    which will be either a CPU or GPU).
 
@@ -314,13 +314,15 @@ postprocessor named `transfer_in`, as if the following were added to the input f
 The `transfer_in` postprocessor simply receives
 the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
-in the solid input file.
+in the solid input file. We also add two [FieldTransfers](AddFieldTransferAction.md).
+The [NekBoundaryFlux](NekBoundaryFlux.md) willtread from an auxiliary variable named `heat_flux` (automatically created by Cardinal) and normalize
+according to a postprocessor named `heat_flux_integral` (also automatically created by Cardinal).
+The [NekFieldVariable](NekFieldVariable.md) will then read from the field
+variable temperature internal to NekRS and write it into an auxiliary variable
+(automatically created by Cardinal) named `temperature`.
 
 We specify a number of other postprocessors in order to query the NekRS solution
-for each time step. Note that the
-`flux_integral` receiver postprocessor that the main application sends the flux
-integral to does not appear in the input - this postprocessor, like `temp` and
-`avg_flux` auxiliary variables, are added automatically by [NekRSProblem](NekRSProblem.md).
+for each time step.
 
 !listing tutorials/sfr_7pin/nek.i
   block=Postprocessors
@@ -399,7 +401,7 @@ temperature color scale is the same in both figures.
 
 ## Preserving Flux on Individual Sidesets
 
-By default, [NekRSProblem](NekRSProblem.md)
+By default, [NekBoundaryFlux](NekBoundaryFlux.md)
 will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
 For this example, this means that the pin outer surface flux will not *exactly*
 match the pin outer flux from MOOSE (and similarly for the duct inner surface flux),
@@ -425,7 +427,7 @@ with a [MultiAppReporterTransfer](MultiAppReporterTransfer.md).
 !listing tutorials/sfr_7pin/solid_vpp.i
   block=Transfers
 
-Finally, we just need to set `conserve_flux_by_sideset = true` in `NekRSProblem`
+Finally, we just need to set `conserve_flux_by_sideset = true` in [NekBoundaryFlux](NekBoundaryFlux.md)
 in the Nek input file.
 
 !listing tutorials/sfr_7pin/nek_vpp.i

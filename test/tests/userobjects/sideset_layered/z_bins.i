@@ -9,9 +9,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
 []
 
 [AuxVariables]
@@ -191,7 +190,4 @@
 [Outputs]
   execute_on = 'final'
   exodus = true
-
-  # removed from output to get a smaller gold file
-  hide = 'temp'
 []

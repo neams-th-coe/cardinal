@@ -12,7 +12,7 @@
   [load_nek_solution]
     type = SolutionUserObject
     mesh = nek_out.e
-    system_variables = 'temp'
+    system_variables = 'temperature'
   []
 []
 
@@ -26,7 +26,7 @@
     type = SolutionAux
     solution = load_nek_solution
     variable = nek_temp
-    from_variable = temp
+    from_variable = temperature
   []
 []
 

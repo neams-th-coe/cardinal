@@ -170,6 +170,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     to_boundaries = 'fluid_solid_interface'
     from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
+    search_value_conflicts = false
   []
   [source_to_bison]
     type = MultiAppGeneralFieldShapeEvaluationTransfer
@@ -178,6 +179,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     to_multi_app = bison
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
+    search_value_conflicts = false
   []
   [thm_temp_to_bison]
     type = MultiAppGeometricInterpolationTransfer

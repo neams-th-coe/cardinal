@@ -111,7 +111,8 @@ Follow the on-screen prompts. For this case, we have:
 - 0 periodic surface pairs (this is nonzero when applying periodic boundary conditions)
 - output file name is `pebble.re2` (you only need to provide `pebble` as the output name)
 
-This will create a mesh named `pebble.re2`.
+This will create a mesh named `pebble.re2`. Alternatively, you can use the `pebble.re2` file which is version-controlled in the repository.
+
 NekRS is a spectral element code, which means that the solution in each element is represented
 as an $N$-th order Lagrange polynomial (in each direction).
 An illustration for a 5th-order NekRS solution is shown in [gll_mesh] for a 2-D element. Each

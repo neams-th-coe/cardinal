@@ -10,7 +10,7 @@
   writeInterval = 2
 
 [MESH]
-  file = ../../nek_warnings/no_temp_solve/brick.re2
+  file = ../../common_inputs/brick2.re2
 
 [VELOCITY]
   solver = none

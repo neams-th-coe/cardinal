@@ -278,9 +278,7 @@ heat transfer module will also send heat flux to NekRS, which we compute as
 another [AuxVariable](AuxVariables/index.md)
 named `flux`, which we compute with a
 [DiffusionFluxAux](DiffusionFluxAux.md)
-auxiliary kernel. Finally, we define another auxiliary variable for the imposed power,
-which we will not receive from a coupled application, but instead set within the solid
-input file.
+auxiliary kernel. Finally, we define another auxiliary variable for the imposed power.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=AuxVariables
@@ -322,7 +320,7 @@ transfers to/from NekRS:
 - [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
   to send temperature from NekRS to MOOSE
 - [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
-  to normalize the heat flux sent to NekRS
+  to normalize the heat flux sent to NekRS (this is used internally by [NekBoundaryFlux](NekBoundaryFlux.md) in the NekRS-wrapped input file)
 - [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
   to send a dummy postprocessor named `synchronization_to_nek` that
   simply allows the NekRS sub-application to know when "new" coupling data is
@@ -382,7 +380,6 @@ between NekRS and MOOSE.
 
 Next, we define additional parameters to describe how NekRS interacts with MOOSE
 with the [NekRSProblem](NekRSProblem.md).
-
 To allow conversion between a non-dimensional NekRS solve and a dimensional MOOSE coupled
 heat conduction application, the characteristic scales used to establish the non-dimensional
 problem are provided. Definitions for these non-dimensional scales are
@@ -394,7 +391,10 @@ into the units that the coupled MOOSE application expects. *You* still need to p
 non-dimensionalize the NekRS input files (to be discussed later).
 
 We also indicate that we are going to restrict the data copies to/from
-GPU to only occur on the time steps that NekRS is coupled to MOOSE.
+GPU to only occur on the time steps that NekRS is coupled to MOOSE. Then,
+we add the field transfers to send heat flux into NekRS, by reading from an
+auxiliary variable named `flux` with [NekBoundaryFlux](NekBoundaryFlux.md).
+We fetch the temperature from NekRS using a [NekFieldVariable](NekFieldVariable.md).
 
 !listing /tutorials/gas_compact_cht/nek.i
   block=Problem

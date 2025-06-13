@@ -44,6 +44,7 @@ Requirements:
             - ${MOOSE_DIR}/modules/solid_mechanics/doc/content
             - ${MOOSE_DIR}/modules/solid_properties/doc/content
             - ${MOOSE_DIR}/modules/stochastic_tools/doc/content
+            - ${MOOSE_DIR}/modules/subchannel/doc/content
             - ${MOOSE_DIR}/modules/thermal_hydraulics/doc/content
         directories:
             - ${ROOT_DIR}/test

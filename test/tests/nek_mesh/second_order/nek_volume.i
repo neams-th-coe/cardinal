@@ -25,7 +25,6 @@
 
 [Outputs]
   exodus = true
-  hide = 'source_integral temp heat_source'
 []
 
 # The points provided to these postprocessors are the centroids of the elements that

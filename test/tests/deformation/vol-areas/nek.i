@@ -9,6 +9,25 @@
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
+
+  [FieldTransfers]
+    [heat_source]
+      type = NekVolumetricSource
+      direction = to_nek
+      usrwrk_slot = 0
+      postprocessor_to_conserve = source_integral
+    []
+    [disp]
+      type = NekMeshDeformation
+      usrwrk_slot = '1 2 3'
+      direction = to_nek
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]

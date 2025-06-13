@@ -1,0 +1,27 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1
+  dt = 1.0e-4
+  polynomialOrder = 2
+  writeControl = steps
+  writeInterval = 1
+
+[MESH]
+  file = "../../nek_mesh/first_order/pyramid.re2"
+
+[VELOCITY]
+  viscosity = 1.0
+  density = 1.0
+  residualTol = 1.0e-6
+  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
+
+[PRESSURE]
+
+[TEMPERATURE]
+  boundaryTypeMap = inlet, I, I, I, I, I, I, I
+  rhoCp = 1.0
+  conductivity = 1.0
+  residualTol = 1.0e-6

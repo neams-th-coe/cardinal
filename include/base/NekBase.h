@@ -20,7 +20,7 @@
 
 #include "MooseObject.h"
 
-#include "NekRSProblemBase.h"
+#include "NekRSProblem.h"
 
 class NekBase
 {
@@ -30,8 +30,8 @@ public:
   NekBase(const MooseObject * moose_object, const InputParameters & parameters);
 
 protected:
-  /// The NekRSProblemBase required by all objects which inherit from NekBase.
-  const NekRSProblemBase * _nek_problem;
+  /// The NekRSProblem required by all objects which inherit from NekBase.
+  const NekRSProblem * _nek_problem;
 
   /// Underlying NekRSMesh, if present
   const NekRSMesh * _nek_mesh;

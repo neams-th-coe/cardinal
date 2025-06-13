@@ -37,7 +37,7 @@ NekSpatialBinComponentAux::validParams()
 NekSpatialBinComponentAux::NekSpatialBinComponentAux(const InputParameters & parameters)
   : SpatialUserObjectAux(parameters), _component(getParam<unsigned int>("component"))
 {
-  // by requiring this userobject, we automatically ensure correct NekRSProblemBase-type problems
+  // by requiring this userobject, we automatically ensure correct NekRSProblem-type problems
   // because the NekUserObject checks for compatibility
   _bin_uo = dynamic_cast<const NekSpatialBinUserObject *>(&_user_object);
 

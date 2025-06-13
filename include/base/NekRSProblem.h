@@ -18,231 +18,398 @@
 
 #pragma once
 
-#include "NekRSProblemBase.h"
+#include "CardinalProblem.h"
+#include "NekInterface.h"
+#include "NekTimeStepper.h"
+#include "NekScalarValue.h"
+#include "NekRSMesh.h"
+#include "Transient.h"
+
+class FieldTransferBase;
 
 /**
  * \brief Solve nekRS wrapped as a MOOSE app.
  *
- * This object controls all of the execution of and data transfers to/from nekRS,
- * fully abstracted from the Nek5000 backend.
- *
- * The nekRS temperature solution is interpolated onto the NekRSMesh by multiplying the
- * nekRS temperature by an interpolation matrix. In the opposite direction, the flux
- * from MOOSE is interpolated onto the nekRS mesh by a similar interpolation matrix.
- * This interpolation matrix expresses the
- * nekRS/MOOSE solutions in terms of interpolating Legendre polynomials, and is equal to
- * \f$V_{moose}V_{nek}^{-1}\f$, where \f$V_{moose}\f$ is the Vandermonde matrix of the
- * MOOSE mesh's node points and \f$V_{nek}\f$ is the Vandermonde matrix of the nekRS
- * mesh's 1-D quadrature points. If the interpolation matrix is unity, this means that
- * the libMesh node points exactly coincide with the nekRS quadrature point locations, and
- * hence no interpolation is actually needed.
+ * This object controls all of the execution of and data transfers to/from nekRS.
+ * Any number of data transfers can be added using the [FieldTransfers] block.
  */
-class NekRSProblem : public NekRSProblemBase
+class NekRSProblem : public CardinalProblem
 {
 public:
   NekRSProblem(const InputParameters & params);
 
   static InputParameters validParams();
 
-  /**
-   * \brief Write nekRS's solution at the last output step
-   *
-   * If Nek is not the master app, the number of time steps it takes is
-   * controlled by the master app. Depending on the settings in the `.par` file,
-   * it becomes possible that nekRS may not write an output file on the simulation's
-   * actual last time step, because Nek may not know when that last time step is.
-   * Therefore, here we can force nekRS to write its output.
-   **/
   ~NekRSProblem();
 
   /**
-   * \brief Perform some sanity checks on the problem setup
-   *
-   * This function performs checks like making sure that a transient executioner is
-   * used to wrap nekRS, that no time shift has been requested to the start of nekRS,
-   * that the correct NekTimeStepper is used, etc.
+   * The number of points (DOFs) on the mesh mirror for this rank; this is used to define the
+   * size of various allocated terms
+   * @return number of points on this rank
    */
-  virtual void initialSetup() override;
-
-  /// Send boundary heat flux to nekRS
-  void sendBoundaryHeatFluxToNek();
-
-  /// Send boundary deformation to nekRS
-  void sendBoundaryDeformationToNek();
-
-  /// Send volume mesh deformation flux to nekRS
-  void sendVolumeDeformationToNek();
-
-  /// Send volume heat source to nekRS
-  void sendVolumeHeatSourceToNek();
-
-  /// Get boundary temperature from nekRS
-  void getBoundaryTemperatureFromNek();
-
-  /// Get volume temperature from nekRS
-  void getVolumeTemperatureFromNek();
+  int nPoints() const { return _n_points; }
 
   /**
-   * Adjust the NekRS solution by introducing max/min temperature clipping
-   * to help with underresolved flow
+   * Whether a data transfer to/from Nek is occurring
+   * @param[in] direction direction of data transfer
+   * @return whether a data transfer to Nek is about to occur
    */
-  virtual void adjustNekSolution() override;
+  bool isDataTransferHappening(ExternalProblem::Direction direction);
 
-  virtual void syncSolutions(ExternalProblem::Direction direction) override;
+  Transient * transientExecutioner() const { return _transient_executioner; }
+
+  /**
+   * Whether a given slot space is reserved for coupling
+   * @param[in] slot slot in usrwrk array
+   * @return whether a usrwrk slot space is reserved by Cardinal
+   */
+  bool isUsrWrkSlotReservedForCoupling(const unsigned int & slot) const;
+
+  /**
+   * Copy an individual slice in the usrwrk array from host to device
+   * @param[in] slot slot in usrwrk array
+   */
+  void copyIndividualScratchSlot(const unsigned int & slot) const;
+
+  /**
+   * Write NekRS solution field file
+   * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be
+   * non-dimensional)
+   * @param[in] step time step index
+   */
+  void writeFieldFile(const Real & time, const int & step) const;
+
+  /**
+   * \brief Whether nekRS should write an output file for the current time step
+   *
+   * A nekRS output file (suffix .f000xx) is written if the time step is an integer
+   * multiple of the output writing interval or if the time step is the last time step.
+   * \return whether to write a nekRS output file
+   **/
+  virtual bool isOutputStep() const;
+
+  virtual void initialSetup() override;
+
+  virtual void externalSolve() override;
+
+  virtual bool converged(unsigned int) override { return true; }
 
   virtual void addExternalVariables() override;
 
-  /**
-   * Determine the maximum interpolated temperature on the NekRSMesh for diagnostic info
-   * \return maximum interpolated surface temperature
-   */
-  virtual double maxInterpolatedTemperature() const;
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   /**
-   * Determine the minimum interpolated temperature on the NekRSMesh for diagnostic info
-   * \return minimum interpolated surface temperature
+   * Whether the solve is in nondimensional form
+   * @return whether solve is in nondimensional form
    */
-  virtual double minInterpolatedTemperature() const;
+  virtual bool nondimensional() const { return _nondimensional; }
 
   /**
   * Whether the mesh is moving
   * @return whether the mesh is moving
   */
-  virtual const bool hasMovingNekMesh() const override { return nekrs::hasMovingMesh(); }
+  virtual const bool hasMovingNekMesh() const { return false; }
+
+  /**
+   * Whether data should be synchronized in to nekRS
+   * \return whether inward data synchronization should occur
+   */
+  virtual bool synchronizeIn();
+
+  /**
+   * Whether data should be synchronized out of nekRS
+   * \return whether outward data synchronization should occur
+   */
+  virtual bool synchronizeOut();
+
+  /**
+   * Get the number of usrwrk slots allocated
+   * @return number of allocated usrwrk slots
+   */
+  unsigned int nUsrWrkSlots() const { return _n_usrwrk_slots; }
+
+  /**
+   * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms
+   * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,
+   * the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order, i.e. the re2
+   * order) to add.
+   * @param[in] elem_id element ID
+   * @param[in] field field to write
+   * @param[in] T solution values to write for the field for the given element
+   * @param[in] add optional vector of values to add to each value set on the NekRS end
+   */
+  void writeVolumeSolution(const int elem_id,
+                           const field::NekWriteEnum & field,
+                           double * T,
+                           const std::vector<double> * add = nullptr);
+
+  /**
+   * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in
+   * terms of a displacement, we need to add the displacement to the initial mesh coordinates.
+   * @param[in] elem_id element ID
+   * @param[in] field field to write
+   * @param[in] T solution values to write for the field for the given element
+   */
+  void writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field, double * T);
+
+  /**
+   * The casename (prefix) of the NekRS files
+   * @return casename
+   */
+  std::string casename() const { return _casename; }
+
+  /**
+   * Interpolate the NekRS volume solution onto the volume MOOSE mesh mirror (re2 -> mirror)
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated volume value
+   */
+  void volumeSolution(const field::NekFieldEnum & f, double * T);
+
+  /**
+   * Interpolate the NekRS boundary solution onto the boundary MOOSE mesh mirror (re2 -> mirror)
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated boundary value
+   */
+  void boundarySolution(const field::NekFieldEnum & f, double * T);
+
+  /**
+   * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapFaceDataToNekFace(const unsigned int & e,
+                            const unsigned int & var_num,
+                            const Real & multiplier,
+                            double ** outgoing_data);
+
+  /**
+   * Map nodal points on a MOOSE volume element to the GLL points on a Nek volume element.
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapVolumeDataToNekVolume(const unsigned int & e,
+                                const unsigned int & var_num,
+                                const Real & multiplier,
+                                double ** outgoing_data);
+
+  /**
+   * \brief Map nodal points on a MOOSE face element to the GLL points on a Nek volume element.
+   *
+   * This function is to be used when MOOSE variables are defined over the entire volume
+   * (maybe the MOOSE transfer only sent meaningful values to the coupling boundaries), so we
+   * need to do a volume interpolation of the incoming MOOSE data into nrs->usrwrk, rather
+   * than a face interpolation. This could be optimized in the future to truly only just write
+   * the boundary values into the nekRS scratch space rather than the volume values, but it
+   * looks right now that our biggest expense occurs in the MOOSE transfer system, not these
+   * transfers internally to nekRS.
+   *
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapFaceDataToNekVolume(const unsigned int & e,
+                              const unsigned int & var_num,
+                              const Real & multiplier,
+                              double ** outgoing_data);
 
 protected:
+  /// Copy the data sent from MOOSE->Nek from host to device.
+  void copyScratchToDevice();
+
   /**
-   * Normalize the volumetric heat source sent to NekRS
-   * @param[in] moose_integral total integrated value from MOOSE to conserve
-   * @param[in] nek_integral total integrated value in nekRS to adjust
-   * @param[out] normalized_nek_integral final normalized value
-   * @return whether normalization was successful, i.e. normalized_nek_integral equals
-   * moose_integral
+   * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)
+   * @param[in] incoming_moose_value MOOSE face values
+   * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS boundary mesh
    */
-  bool normalizeHeatSource(const double moose_integral,
-                           const double nek_integral,
-                           double & normalized_nek_integral);
+  void interpolateBoundarySolutionToNek(double * incoming_moose_value, double * outgoing_nek_value);
 
   /**
-   * Print a warning to the user if the initial fluxes (before normalization) differ
-   * significantly, since this can indicate an error with model setup.
-   * @param[in] nek_flux flux to be received by Nek
-   * @param[in] moose_flux flux sent by MOOSE
+   * Interpolate the MOOSE mesh mirror solution onto the NekRS volume mesh (mirror -> re2)
+   * @param[in] elem_id element ID
+   * @param[in] incoming_moose_value MOOSE face values
+   * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS volume mesh
    */
-  void checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const;
+  void interpolateVolumeSolutionToNek(const int elem_id,
+                                      double * incoming_moose_value,
+                                      double * outgoing_nek_value);
 
-  virtual void addTemperatureVariable() override { return; }
+  /// Initialize interpolation matrices for transfers in/out of nekRS
+  void initializeInterpolationMatrices();
+
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
-   * Calculate mesh velocity for NekRS's blending solver using current and previous displacement
-   * values and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
-   * @param[in] e Boundary element that the displacement values belong to
-   * @param[in] field NekWriteEnum mesh_velocity_x/y/z field
+   * Get a three-character prefix for use in writing output files for repeated
+   * Nek sibling apps.
+   * @param[in] number multi-app number
    */
-  void calculateMeshVelocity(int e, const field::NekWriteEnum & field);
+  std::string fieldFilePrefix(const int & number) const;
 
-  /// Whether a heat source will be applied to NekRS from MOOSE
-  const bool & _has_heat_source;
+  /// NekRS casename
+  const std::string & _casename;
 
   /**
-   * Whether to conserve heat flux received in NekRS by individually re-normalizing
-   * with integrals over individual sideset. This approach is technically more accurate,
-   * but places limitations on how the sidesets are defined (they should NOT share any
-   * nodes with one another) and more effort with vector postprocessors, so it is not
-   * the default.
+   * Whether to disable output file writing by NekRS and replace it by output
+   * file writing in Cardinal. Suppose the case name is 'channel'. If this parameter
+   * is false, then NekRS will write output files as usual, with names like
+   * channel0.f00001 for write step 1, channel0.f00002 for write step 2, and so on.
+   * If true, then NekRS itself does not output any files like this, and instead
+   * output files are written with names a01channel0.f00001, a01channel0.f00002 (for
+   * first Nek app), a02channel0.f00001, a02channel0.f00002 (for second Nek app),
+   * and so on. This feature should only be used when running repeated Nek sub
+   * apps so that the output from each app is retained. Otherwise, if running N
+   * repeated Nek sub apps, only a single output file is obtained because each app
+   * overwrites the output files of the other apps in the order that the apps
+   * reach the nekrs::outfld function.
    */
-  const bool & _conserve_flux_by_sideset;
+  const bool & _write_fld_files;
 
-  /// Absolute tolerance for checking flux/heat source normalizations
-  const Real & _abs_tol;
+  /// Whether to turn off all field file writing
+  const bool & _disable_fld_file_output;
 
-  /// Relative tolerance for checking flux/heat source normalizations
-  const Real & _rel_tol;
-
-  /// Initial value to use for the total boundary power for ensuring power conservation
-  const Real & _initial_flux_integral;
-
-  /// Initial value to use for the total volumetric power for ensuring power conservation
-  const Real & _initial_source_integral;
+  /// Whether a dimensionalization action has been added
+  bool _nondimensional;
 
   /**
-   * \brief Total surface-integrated flux coming from the coupled MOOSE app.
+   * Number of slices/slots to allocate in nrs->usrwrk to hold fields
+   * for coupling (i.e. data going into NekRS, written by Cardinal), or
+   * used for custom user actions, but not for coupling. By default, we just
+   * allocate 7 slots (no inherent reason, just a fairly big amount). For
+   * memory-limited cases, you can reduce this number to just the bare
+   * minimum necessary for your use case.
+   */
+  unsigned int _n_usrwrk_slots;
+
+  /// For constant synchronization intervals, the desired frequency (in units of Nek time steps)
+  const unsigned int & _constant_interval;
+
+  /// Whether to skip writing a field file on NekRS's last time steo
+  const bool & _skip_final_field_file;
+
+  /// Number of surface elements in the data transfer mesh, across all processes
+  int _n_surface_elems;
+
+  /// Number of vertices per surface element of the transfer mesh
+  int _n_vertices_per_surface;
+
+  /// Number of volume elements in the data transfer mesh, across all processes
+  int _n_volume_elems;
+
+  /// Number of vertices per volume element of the transfer mesh
+  int _n_vertices_per_volume;
+
+  /// Start time of the simulation based on NekRS's .par file
+  double _start_time;
+
+  /// Whether the most recent time step was an output file writing step
+  bool _is_output_step;
+
+  /**
+   * Underlying mesh object on which NekRS exchanges fields with MOOSE
+   * or extracts NekRS's solution for I/O features
+   */
+  NekRSMesh * _nek_mesh;
+
+  /// The time stepper used for selection of time step size
+  NekTimeStepper * _timestepper = nullptr;
+
+  /// Underlying executioner
+  Transient * _transient_executioner = nullptr;
+
+  /**
+   * Whether an interpolation needs to be performed on the nekRS temperature solution, or
+   * if we can just grab the solution at specified points
+   */
+  bool _needs_interpolation;
+
+  /// Number of points for interpolated fields on the MOOSE mesh
+  int _n_points;
+
+  /// Postprocessor containing the signal of when a synchronization has occurred
+  const PostprocessorValue * _transfer_in = nullptr;
+
+  /// Vandermonde interpolation matrix (for outgoing transfers)
+  double * _interpolation_outgoing = nullptr;
+
+  /// Vandermonde interpolation matrix (for incoming transfers)
+  double * _interpolation_incoming = nullptr;
+
+  /// For the MOOSE mesh, the number of quadrature points in each coordinate direction
+  int _moose_Nq;
+
+  /// Slots in the nrs->o_usrwrk array to write to a field file
+  const std::vector<unsigned int> * _usrwrk_output = nullptr;
+
+  /// Filename prefix to use for naming the field files containing the nrs->o_usrwrk array slots
+  const std::vector<std::string> * _usrwrk_output_prefix = nullptr;
+
+  /// Sum of the elapsed time in NekRS solves
+  double _elapsedStepSum;
+
+  /// Sum of the total elapsed time in NekRS solves
+  double _elapsedTime;
+
+  /// Minimum step solve time
+  double _tSolveStepMin;
+
+  /// Maximum step solve time
+  double _tSolveStepMax;
+
+  /**
+   * \brief When to synchronize the NekRS solution with the mesh mirror
    *
-   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
-   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
-   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
-   * conservation of energy, we send the total flux integral to nekRS for internal
-   * normalization of the heat flux applied on the nekRS mesh.
-   */
-  const PostprocessorValue * _flux_integral = nullptr;
-
-  /**
-   * \brief Sideset-wise surface-integrated flux coming from the coupled MOOSE app.
+   * This parameter determines when to synchronize the NekRS solution with the mesh
+   * mirror - this entails:
    *
-   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
-   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
-   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
-   * conservation of energy, we send the flux integrals for each sideset to nekRS for internal
-   * normalization of the heat flux applied on the nekRS mesh.
-   */
-  const VectorPostprocessorValue * _flux_integral_vpp = nullptr;
-
-  /**
-   * \brief Total volume-integrated heat source coming from the coupled MOOSE app.
+   *  - Mapping from the NekRS spectral element mesh to the finite element mesh mirror,
+   *    to extract information from NekRS and make it available to MOOSE
+   *  - Mapping from the finite element mesh mirror into the NekRS spectral element mesh,
+   *    to send information from MOOSE into NekRS
    *
-   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
-   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
-   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
-   * conservation of energy, we send the total source integral to nekRS for internal
-   * normalization of the heat source applied on the nekRS mesh.
+   * Several options are available:
+   *  - 'constant' will simply keep the NekRS solution and the mesh mirror entirely
+   *    consistent with one another on a given constant frequency of time steps. By
+   *    default, the 'constant_interval' is 1, so that NekRS and MOOSE communicate
+   *    with each other on every single time step
+   *
+   *  - 'parent_app' will only send data between NekRS and a parent application
+   *    when (1) the main application has just sent "new" information to NekRS, and
+   *    when (2) the main application is just about to run a new time step (with
+   *    updated BCs/source terms from NekRS).
+   *
+   *    nekRS is often subcycled relative to the application controlling it -
+   *    that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
+   *    If 'interpolate_transfers = false'
+   *    in the master application, then the data going into nekRS is fixed for each
+   *    of the subcycled time steps it takes, so these extra data transfers are
+   *    completely unnecssary. This flag indicates that the information sent from MOOSE
+   *    to NekRS should only be updated if the data from MOOSE is "new", and likewise
+   *    whether the NekRS solution should only be interpolated to the mesh mirror once
+   *    MOOSE is actually "ready" to solve a time step using it.
+   *
+   *    NOTE: if 'interpolate_transfers = true' in the master application, then the data
+   *    coming into nekRS is _unique_ on each subcycled time step, so setting this to
+   *    true will in effect override `interpolate_transfers` to be false. For the best
+   *    performance, you should set `interpolate_transfers` to false so that you don't
+   *    even bother computing the interpolated data, since it's not used if this parameter
+   *    is set to true.
    */
-  const PostprocessorValue * _source_integral = nullptr;
+  synchronization::SynchronizationEnum _sync_interval;
 
-  /// Postprocessor to limit the minimum temperature
-  const PostprocessorValue * _min_T = nullptr;
+  /// flag to indicate whether this is the first pass to serialize the solution
+  static bool _first;
 
-  /// Postprocessor to limit the maximum temperature
-  const PostprocessorValue * _max_T = nullptr;
+  /// All of the FieldTransfer objects which pass data in/out of NekRS
+  std::vector<FieldTransferBase *> _field_transfers;
 
-  /// nekRS temperature interpolated onto the data transfer mesh
-  double * _T = nullptr;
+  /// All of the ScalarTransfer objecst which pass data in/out of NekRS
+  std::vector<ScalarTransferBase *> _scalar_transfers;
 
-  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
-  double * _flux_face = nullptr;
-
-  /// MOOSE flux interpolated onto the (volume) data transfer mesh
-  double * _flux_elem = nullptr;
-
-  /// MOOSE heat source interpolated onto the data transfer mesh
-  double * _source_elem = nullptr;
-
-  /// displacement in x for all nodes from MOOSE, for moving mesh problems
-  double * _displacement_x = nullptr;
-
-  /// displacement in y for all nodes from MOOSE, for moving mesh problems
-  double * _displacement_y = nullptr;
-
-  /// displacement in z for all nodes from MOOSE, for moving mesh problems
-  double * _displacement_z = nullptr;
-
-  /// mesh velocity for a given element, used internally for calculating mesh velocity over one element
-  double * _mesh_velocity_elem = nullptr;
-
-  /// temperature transfer variable written to be nekRS
-  unsigned int _temp_var;
-
-  /// flux transfer variable read from by nekRS
-  unsigned int _avg_flux_var;
-
-  /// x-displacment transfer variable read for moving mesh problems
-  unsigned int _disp_x_var;
-
-  /// y-displacment transfer variable read for moving mesh problems
-  unsigned int _disp_y_var;
-
-  /// z-displacment transfer variable read for moving mesh problems
-  unsigned int _disp_z_var;
-
-  /// volumetric heat source variable read from by nekRS
-  unsigned int _heat_source_var;
+  /// Usrwrk slots managed by Cardinal
+  std::set<unsigned int> _usrwrk_slots;
 };

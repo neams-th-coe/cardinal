@@ -9,8 +9,20 @@
 
 [Problem]
   type = NekRSProblem
-  has_heat_source = false
   casename = 'pipe'
+
+  [FieldTransfers]
+    [disp]
+      type = NekMeshDeformation
+      direction = to_nek
+      usrwrk_slot = '1 2 3'
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Executioner]
@@ -62,5 +74,5 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-  hide = 'flux_integral nek_area_initial nek_area moose_area_initial moose_area'
+  hide = 'nek_area_initial nek_area moose_area_initial moose_area'
 []

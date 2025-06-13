@@ -10,7 +10,7 @@
     type = RunApp
     input = nek.i
     cli_args = 'Problem/n_usrwrk_slots=0'
-    requirement = "The system shall allow zero scratch space allocation for NekRSStandaloneProblem."
+    requirement = "The system shall allow zero scratch space allocation."
     required_objects = 'NekRSProblem'
   []
 []

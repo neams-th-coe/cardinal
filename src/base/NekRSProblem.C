@@ -19,637 +19,551 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSProblem.h"
-#include "DisplacedProblem.h"
-
-#include "nekInterface/nekInterfaceAdapter.hpp"
+#include "CardinalUtils.h"
+#include "DimensionalizeAction.h"
+#include "FieldTransferBase.h"
+#include "NekMeshDeformation.h"
 
 registerMooseObject("CardinalApp", NekRSProblem);
 
-extern nekrs::usrwrkIndices indices;
+bool NekRSProblem::_first = true;
 
 InputParameters
 NekRSProblem::validParams()
 {
-  InputParameters params = NekRSProblemBase::validParams();
-  params.addParam<Real>(
-      "initial_flux_integral",
-      0,
-      "Initial value to use for the 'flux_integral' postprocessor, to ensure power conservation; "
-      "this initial value will be overridden once the coupled app executes its transfer of the "
-      "boundary power into the 'flux_integral' postprocessor. You may want to use this parameter "
-      "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
-      "heat flux boundary condition via Cardinal. Remember that this parameter is only used to "
-      "normalize the 'avg_flux' variable, so you will need to populate an initial shape (magnitude "
-      "is unimportant because it will be normalized by this parameter).");
-  params.addParam<Real>(
-      "initial_source_integral",
-      0,
-      "Initial value to use for the 'source_integral' postprocessor, to ensure power conservation; "
-      "this initial value will be overridden once the coupled app executes its transfer of the "
-      "volumetric power into the 'source_integral' postprocessor. You may want to use this "
-      "parameter "
-      "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
-      "power density via Cardinal. Remember that this parameter is only used to "
-      "normalize the 'heat_source' variable, so you will need to populate an initial shape "
-      "(magnitude "
-      "is unimportant because it will be normalized by this parameter).");
+  InputParameters params = CardinalProblem::validParams();
+  params.addRequiredParam<std::string>(
+      "casename",
+      "Case name for the NekRS input files; "
+      "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
-  params.addParam<bool>("has_heat_source",
-                        true,
-                        "Whether a heat source will be applied to the NekRS domain. "
-                        "We allow this to be turned off so that we don't need to add an OCCA "
-                        "source kernel if we know the heat source in the NekRS domain is zero.");
+  params.addParam<unsigned int>(
+      "n_usrwrk_slots",
+      7,
+      "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+      "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
+      "calculation (which will be populated by the user from the case files)");
 
-  params.addRangeCheckedParam<Real>("normalization_abs_tol", 1e-8, "normalization_abs_tol > 0",
-    "Absolute tolerance for checking if the boundary heat flux and volumetric heat sources "
-    "sent from MOOSE to NekRS are re-normalized correctly");
+  params.addParam<std::vector<unsigned int>>(
+      "usrwrk_output",
+      "Usrwrk slot(s) to output to NekRS field files; this can be used for viewing the quantities "
+      "passed from MOOSE to NekRS after interpolation to the CFD mesh. Can also be used for any "
+      "slots "
+      "in usrwrk that are written by the user, but unused for coupling.");
+  params.addParam<std::vector<std::string>>(
+      "usrwrk_output_prefix",
+      "String prefix to use for naming the field file(s); "
+      "only the first three characters are used in the name based on limitations in NekRS");
 
-  params.addRangeCheckedParam<Real>("normalization_rel_tol", 1e-5, "normalization_rel_tol > 0",
-    "Absolute tolerance for checking if the boundary heat flux and volumetric heat sources "
-    "sent from MOOSE to NekRS are re-normalized correctly");
+  params.addParam<bool>(
+      "write_fld_files",
+      false,
+      "Whether to write NekRS field file output "
+      "from Cardinal. If true, this will disable any output writing by NekRS itself, and "
+      "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
+  params.addParam<bool>(
+      "disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing");
 
-  params.addParam<PostprocessorName>("min_T",
-                                     "If provided, postprocessor used to limit the minimum "
-                                     "temperature (in dimensional form) in the nekRS problem");
-  params.addParam<PostprocessorName>("max_T",
-                                     "If provided, postprocessor used to limit the maximum "
-                                     "temperature (in dimensional form) in the nekRS problem");
+  params.addParam<bool>("skip_final_field_file",
+                        false,
+                        "By default, we write a NekRS field file "
+                        "on the last time step; set this to true to disable");
 
-  params.addParam<bool>("conserve_flux_by_sideset", false,
-    "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
-    "together). Setting this option to true requires syntax changes in the input file to use "
-    "vector postprocessors, and places restrictions on how the sidesets are set up.");
-  params.addClassDescription("Couple NekRS to MOOSE through 3-D boundary or volume data transfers "
-                             "for temperature, heat flux, and geometry");
+  params.addParam<MooseEnum>(
+      "synchronization_interval",
+      getSynchronizationEnum(),
+      "When to synchronize the NekRS solution with the mesh mirror. By default, the NekRS solution "
+      "is mapped to/receives data from the mesh mirror for every time step.");
+  params.addParam<unsigned int>("constant_interval",
+                                1,
+                                "Constant interval (in units of number of time steps) with which "
+                                "to synchronize the NekRS solution");
   return params;
 }
 
 NekRSProblem::NekRSProblem(const InputParameters & params)
-  : NekRSProblemBase(params),
-    _has_heat_source(getParam<bool>("has_heat_source")),
-    _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
-    _abs_tol(getParam<Real>("normalization_abs_tol")),
-    _rel_tol(getParam<Real>("normalization_rel_tol")),
-    _initial_flux_integral(getParam<Real>("initial_flux_integral")),
-    _initial_source_integral(getParam<Real>("initial_source_integral"))
+  : CardinalProblem(params),
+    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _casename(getParam<std::string>("casename")),
+    _write_fld_files(getParam<bool>("write_fld_files")),
+    _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
+    _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
+    _constant_interval(getParam<unsigned int>("constant_interval")),
+    _skip_final_field_file(getParam<bool>("skip_final_field_file")),
+    _start_time(nekrs::startTime()),
+    _elapsedStepSum(0.0),
+    _elapsedTime(nekrs::getNekSetupTime()),
+    _tSolveStepMin(std::numeric_limits<double>::max()),
+    _tSolveStepMax(std::numeric_limits<double>::min())
 {
-  nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
-  nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
+  const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
+  _nondimensional = actions.size();
+  nekrs::nondimensional(_nondimensional);
 
-  if (!_boundary)
+  _sync_interval = getParam<MooseEnum>("synchronization_interval")
+                       .getEnum<synchronization::SynchronizationEnum>();
+  if (_sync_interval == synchronization::parent_app)
   {
-    checkUnusedParam(params, "conserve_flux_by_sideset", "'boundary' is empty");
-    checkUnusedParam(params, "initial_flux_integral", "'boundary' is empty");
+    // the way the data transfers are detected depend on nekRS being a sub-application,
+    // so these settings are not invalid if nekRS is the master app (though you could
+    // relax this in the future by reversing the synchronization step identification
+    // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
+    if (_app.isUltimateMaster())
+    {
+      mooseWarning("The 'synchronization_interval = parent_app' capability "
+                   "requires that nekRS is receiving and sending data to a parent application, but "
+                   "in your case nekRS is the main application.\n\n"
+                   "We are reverting synchronization_interval to 'constant'.");
+      _sync_interval = synchronization::constant;
+    }
+
+    checkUnusedParam(params, "constant_interval", "synchronizing based on the 'parent_app'");
   }
 
-  if (!_volume && !_has_heat_source)
-    checkUnusedParam(params, "initial_source_integral", "'volume' is false");
+  if (_disable_fld_file_output && _write_fld_files)
+    mooseError("Cannot both disable all field file output and write custom field files! "
+               "'write_fld_files' and 'disable_fld_file_output' cannot both be true!");
 
-  // Determine the usrwrk indexing; the ordering will always be as
-  // follows (except that unused terms will be deleted if not needed for coupling)
-  //   flux              (if _boundary is true)
-  //   heat_source       (if _volume is true and _has_heat_source is true)
-  //   mesh_velocity_x   (if nekrs::hasBlendingSolver() is true)
-  //   mesh_velocity_y   (if nekrs::hasBlendingSolver() is true)
-  //   mesh_velocity_z   (if nekrs::hasBlendingSolver() is true)
-  int start = _usrwrk_indices.size();
-  if (_boundary)
-  {
-    indices.flux = start++ * nekrs::fieldOffset();
-    _usrwrk_indices.push_back("heat flux");
-  }
+  if (_app.isUltimateMaster() && _write_fld_files)
+    mooseError("The 'write_fld_files' setting should only be true when multiple Nek simulations "
+               "are run as sub-apps on a master app. Your input has Nek as the master app.");
 
-  if (_volume && _has_heat_source)
-  {
-    indices.heat_source = start++ * nekrs::fieldOffset();
-    _usrwrk_indices.push_back("heat source");
-  }
+  _nek_mesh = dynamic_cast<NekRSMesh *>(&mesh());
 
-  if (nekrs::hasBlendingSolver())
-  {
-    indices.mesh_velocity_x = start++ * nekrs::fieldOffset();
-    indices.mesh_velocity_y = start++ * nekrs::fieldOffset();
-    indices.mesh_velocity_z = start++ * nekrs::fieldOffset();
-    _usrwrk_indices.push_back("mesh velocity x");
-    _usrwrk_indices.push_back("mesh velocity y");
-    _usrwrk_indices.push_back("mesh velocity z");
-  }
+  if (!_nek_mesh)
+    mooseError("The mesh for NekRSProblem must be of type 'NekRSMesh', but you have specified a '" +
+               mesh().type() + "'!");
 
-  _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
-
+  // The mesh movement error checks are triggered based on whether the NekRS input files
+  // have a moving mesh. From there, we impose the necessary checks on the [Mesh] block
+  // and the existence of the NekMeshDeformation object.
   if (nekrs::hasMovingMesh())
   {
-    // will be implemented soon
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
-
-    if (!_app.actionWarehouse().displacedMesh())
-      mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
 
-  if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
-      mooseWarning("Your NekRSMesh has 'displacements', but '" + _casename + ".par' does not have a\n"
-        "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
+  _moose_Nq = _nek_mesh->order() + 2;
 
-  if (nekrs::hasMovingMesh() && _nek_mesh->exactMirror())
-    mooseError("An exact mesh mirror is not yet implemented for the boundary mesh solver.");
+  // the Problem constructor is called right after building the mesh. In order
+  // to have pretty screen output without conflicting with the timed print messages,
+  // print diagnostic info related to the mesh here. If running in JIT mode, this
+  // diagnostic info was never set, so the numbers that would be printed are garbage.
+  if (!nekrs::buildOnly())
+    _nek_mesh->printMeshInfo();
 
-  int n_per_surf = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _n_vertices_per_surface;
-  int n_per_vol = _nek_mesh->exactMirror() ?
-    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
+  // boundary-specific data
+  _n_surface_elems = _nek_mesh->numSurfaceElems();
+  _n_vertices_per_surface = _nek_mesh->numVerticesPerSurface();
 
-  // Depending on the type of coupling, initialize various problem parameters
-  if (_boundary && !_volume) // only boundary coupling
-    _flux_face = (double *)calloc(n_per_surf, sizeof(double));
-  else if (_volume && !_boundary) // only volume coupling
-    _source_elem = (double *)calloc(n_per_vol, sizeof(double));
-  else // both volume and boundary coupling
+  // volume-specific data
+  _n_vertices_per_volume = _nek_mesh->numVerticesPerVolume();
+
+  if (_nek_mesh->volume())
+    _n_points =
+        _nek_mesh->numVolumeElems() * _n_vertices_per_volume * _nek_mesh->nBuildPerVolumeElem();
+  else
+    _n_points = _n_surface_elems * _n_vertices_per_surface * _nek_mesh->nBuildPerSurfaceElem();
+
+  initializeInterpolationMatrices();
+
+  // we can save some effort for the low-order situations where the interpolation
+  // matrix is the identity matrix (i.e. for which equi-spaced libMesh nodes are an
+  // exact subset of the nekRS GLL points). This will happen for any first-order mesh,
+  // and if a second-order mesh is used with a polynomial order of 2 in nekRS. Because
+  // we pretty much always use a polynomial order greater than 2 in nekRS, let's just
+  // check the first case because this will simplify our code in the nekrs::boundarySolution
+  // function. If you change this line, you MUST change the innermost if/else statement
+  // in nekrs::boundarySolution!
+  _needs_interpolation = _nek_mesh->numQuadraturePoints1D() > 2;
+
+  checkJointParams(
+      params, {"usrwrk_output", "usrwrk_output_prefix"}, "outputting usrwrk slots to field files");
+
+  if (isParamValid("usrwrk_output"))
   {
-    _flux_elem = (double *)calloc(n_per_vol, sizeof(double));
-    _source_elem = (double *)calloc(n_per_vol, sizeof(double));
+    _usrwrk_output = &getParam<std::vector<unsigned int>>("usrwrk_output");
+    _usrwrk_output_prefix = &getParam<std::vector<std::string>>("usrwrk_output_prefix");
+
+    for (const auto & s : *_usrwrk_output)
+      if (s >= _n_usrwrk_slots)
+        mooseError("Cannot write field file for usrwrk slot greater than the total number of "
+                   "allocated slots: ",
+                   _n_usrwrk_slots,
+                   "!");
+
+    if (_usrwrk_output->size() != _usrwrk_output_prefix->size())
+      mooseError("The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!");
   }
-
-  if (nekrs::hasMovingMesh())
-  {
-    int n_entries = _volume ? n_per_vol : n_per_surf;
-    _displacement_x = (double *)calloc(n_entries, sizeof(double));
-    _displacement_y = (double *)calloc(n_entries, sizeof(double));
-    _displacement_z = (double *)calloc(n_entries, sizeof(double));
-
-    if (nekrs::hasBlendingSolver())
-      _mesh_velocity_elem = (double *)calloc(n_entries, sizeof(double));
-  }
-
-  // regardless of the boundary/volume coupling, we will always exchange temperature
-  _T = (double *)calloc(_n_points, sizeof(double));
 }
 
 NekRSProblem::~NekRSProblem()
 {
+  // write nekRS solution to output if not already written for this step; nekRS does this
+  // behavior, so we duplicate it
+  if (!_is_output_step && !_skip_final_field_file)
+  {
+    if (_write_fld_files)
+      mooseWarning(
+          "When 'write_fld_files' is enabled, we skip Nek field file writing on end time!\n"
+          "Depending on how many ranks you used, MOOSE may use the same object to run multiple\n"
+          "sub-applications. By the time we get to the last time step, we've collapsed back to\n"
+          "this singular state and don't have access to the individual Nek solves, so we cannot\n"
+          "write the last time step solution to field files.\n\n"
+          "To hide this warning, set 'skip_final_field_file = true'.");
+    else
+      writeFieldFile(_time, _t_step);
+  }
+
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq())
+      nekrs::printRuntimeStatistics(_t_step);
+
+  freePointer(_interpolation_outgoing);
+  freePointer(_interpolation_incoming);
   nekrs::freeScratch();
 
-  freePointer(_T);
-  freePointer(_flux_face);
-  freePointer(_source_elem);
-  freePointer(_flux_elem);
+  nekrs::finalize();
+}
 
-  freePointer(_displacement_x);
-  freePointer(_displacement_y);
-  freePointer(_displacement_z);
-  freePointer(_mesh_velocity_elem);
+void
+NekRSProblem::writeFieldFile(const Real & step_end_time, const int & step) const
+{
+  if (_disable_fld_file_output)
+    return;
+
+  Real t = _timestepper->nondimensionalDT(step_end_time);
+
+  if (_write_fld_files)
+  {
+    // this is the app number, but a single app may run Nek multiple times
+    auto app_number = std::to_string(_app.multiAppNumber());
+
+    // apps may also have numbers in their names, so we first need to get the actual raw app name;
+    // we strip out the app_number from the end of the app name
+    if (!stringHasEnding(_app.name(), app_number))
+      mooseError("Internal error: app name '" + _app.name() +
+                 "' does not end with app number: " + app_number);
+
+    auto name = _app.name().substr(0, _app.name().size() - app_number.size());
+    auto full_path = _app.getOutputFileBase();
+    std::string last_element(full_path.substr(full_path.rfind(name) + name.size()));
+
+    auto prefix = fieldFilePrefix(std::stoi(last_element));
+
+    nekrs::write_field_file(prefix, t, step);
+  }
+  else
+    nekrs::outfld(t, step);
+}
+
+void
+NekRSProblem::initializeInterpolationMatrices()
+{
+  mesh_t * mesh = nekrs::entireMesh();
+
+  // determine the interpolation matrix for the outgoing transfer
+  int starting_points = mesh->Nq;
+  int ending_points = _nek_mesh->numQuadraturePoints1D();
+  _interpolation_outgoing = (double *)calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_outgoing, starting_points, ending_points);
+
+  // determine the interpolation matrix for the incoming transfer
+  std::swap(starting_points, ending_points);
+  _interpolation_incoming = (double *)calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_incoming, starting_points, ending_points);
+}
+
+std::string
+NekRSProblem::fieldFilePrefix(const int & number) const
+{
+  const std::string alphabet = "abcdefghijklmnopqrstuvwxyz";
+  int letter = number / 26;
+  int remainder = number % 100;
+  std::string s = remainder < 10 ? "0" : "";
+
+  return alphabet[letter] + s + std::to_string(remainder);
 }
 
 void
 NekRSProblem::initialSetup()
 {
-  if (nekrs::buildOnly())
-    return;
+  CardinalProblem::initialSetup();
 
-  NekRSProblemBase::initialSetup();
+  auto executioner = _app.getExecutioner();
+  _transient_executioner = dynamic_cast<Transient *>(executioner);
 
-  // While we don't require nekRS to actually _solve_ for the temperature, we should
-  // print a warning if there is no temperature solve. For instance, the check in
-  // Nek makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
-  // might still toggle the solver off by setting 'solver = none'. Warn the user if
-  // the solve is turned off because this is really only a testing feature.
-  bool has_temperature_solve = nekrs::hasTemperatureSolve();
-  if (!has_temperature_solve)
-    mooseWarning("By setting 'solver = none' for temperature in '" + _casename +
-                 ".par', nekRS will not solve for temperature.\n\nThe fluid wall temperature "
-                 "transferred to MOOSE will remain fixed at its initial condition, and the heat "
-                 "flux and power transferred to nekRS will be unused.");
+  // NekRS only supports transient simulations - therefore, it does not make
+  // sense to use anything except a Transient-derived executioner
+  if (!_transient_executioner)
+    mooseError(
+        "A 'Transient' executioner must be used with NekRSProblem, but you have specified the '" +
+        executioner->type() + "' executioner!");
 
-  // For boundary-based coupling, we should check that the correct flux boundary
-  // condition is set on all of nekRS's boundaries. To avoid throwing this
-  // error for test cases where we have a [TEMPERATURE] block but set its solve
-  // to 'none', we also check whether we're actually computing for the temperature.
-  auto boundary = _nek_mesh->boundary();
-  if (boundary && has_temperature_solve)
+  // To get the correct time stepping information on the MOOSE side, we also
+  // must use the NekTimeStepper
+  TimeStepper * stepper = _transient_executioner->getTimeStepper();
+  _timestepper = dynamic_cast<NekTimeStepper *>(stepper);
+  if (!_timestepper)
+    mooseError("The 'NekTimeStepper' stepper must be used with NekRSProblem, but you have "
+               "specified the '" +
+               stepper->type() + "' time stepper!");
+
+  // Set the NekRS start time to whatever is set on Executioner/start_time; print
+  // a message if those times don't match the .par file
+  const auto moose_start_time = _transient_executioner->getStartTime();
+  nekrs::setStartTime(_timestepper->nondimensionalDT(moose_start_time));
+  _start_time = moose_start_time;
+
+  if (_sync_interval == synchronization::parent_app)
+    _transfer_in = &getPostprocessorValueByName("transfer_in");
+
+  // Find all of the data transfer objects
+  TheWarehouse::Query query = theWarehouse().query().condition<AttribSystem>("FieldTransfer");
+  query.queryInto(_field_transfers);
+
+  // Find all of the scalar data transfer objects
+  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("ScalarTransfer");
+  uo_query.queryInto(_scalar_transfers);
+
+  // We require a NekMeshDeformation object to exist if the NekRS model has a moving mesh
+  if (nekrs::hasMovingMesh())
   {
-    for (const auto & b : *boundary)
-      if (!nekrs::isHeatFluxBoundary(b))
-      {
-        const std::string type = nekrs::temperatureBoundaryType(b);
-        mooseError("In order to send a boundary heat flux to nekRS, you must have a flux condition "
-                   "for each 'boundary' set in 'NekRSMesh'!\nBoundary " +
-                   std::to_string(b) + " is of type '" + type + "' instead of 'fixedGradient'.");
-      }
-  }
-
-  if (!boundary && nekrs::hasBlendingSolver())
-    mooseError("'" + _casename +
-               ".par' has a solver in the [MESH] block. This solver uses\n"
-               "boundary displacement values from MOOSE to move the NekRS mesh. Please indicate\n"
-               "the 'boundary' for which mesh motion is coupled from MOOSE to NekRS.");
-
-  if (nekrs::hasBlendingSolver())
-  {
-    bool has_one_mv_bc = false;
-    for (const auto & b : *boundary)
+    bool has_deformation = false;
+    for (const auto & t : _field_transfers)
     {
-      if (nekrs::isMovingMeshBoundary(b))
-      {
-        has_one_mv_bc = true;
-        break;
-      }
+      NekMeshDeformation * deform = dynamic_cast<NekMeshDeformation *>(t);
+      if (deform)
+        has_deformation = true;
     }
 
-    if (!has_one_mv_bc)
-      mooseError("For boundary-coupled moving mesh problems, you need at least one "
-                 "boundary in '" +
-                 _casename +
-                 ".par'\nto be of the type 'codedFixedValue'"
-                 " in the [MESH] block.");
-  }
-
-  // For volume-based coupling, we should check that there is a udf function providing
-  // the source for the passive scalar equations (this is the analogue of the boundary
-  // condition check for boundary-based coupling). NOTE: This check is imperfect, because
-  // even if there is a source kernel, we cannot tell _which_ passive scalar equation that
-  // it is applied to (we have source kernels for the RANS passive scalar equations, for instance).
-  if (_nek_mesh->volume() && _has_heat_source)
-    if (has_temperature_solve && !nekrs::hasHeatSourceKernel())
-      mooseError(
-          "In order to send a heat source to nekRS, you must have an OCCA kernel "
-          "for the source\nin the passive scalar equations! If you don't have an energy source\n"
-          "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
-
-  if (!_volume && nekrs::hasUserMeshSolver())
-    mooseError("'" + _casename + ".par' has 'solver = user' in the [MESH] block. With this solver,\n"
-               "displacement values are sent to every GLL point in NekRS's volume. If you only are building\n"
-               "a boundary mesh mirror, it's possible that some displacement values could result\n"
-               "in negative Jacobians if a sideset moves beyond the bounds of an undeformed element.\n"
-               "To eliminate this possibility, please enable 'volume = true' for NekRSMesh and send a\n"
-               "whole-domain displacement to NekRS.");
-
-  if (_boundary)
-  {
-    if (_conserve_flux_by_sideset)
-      _flux_integral_vpp = &getVectorPostprocessorValueByName("flux_integral", "value");
-    else
-      _flux_integral = &getPostprocessorValueByName("flux_integral");
-  }
-
-  if (_volume && _has_heat_source)
-    _source_integral = &getPostprocessorValueByName("source_integral");
-
-  if (isParamValid("min_T"))
-  {
-    auto name = getParam<PostprocessorName>("min_T");
-    _min_T = &getPostprocessorValueByName(name);
-  }
-
-  if (isParamValid("max_T"))
-  {
-    auto name = getParam<PostprocessorName>("max_T");
-    _max_T = &getPostprocessorValueByName(name);
+    if (has_deformation && !_app.actionWarehouse().displacedMesh())
+      mooseError("Moving mesh problems require 'displacements' in the [Mesh] block! The names of "
+                 "the 'displacements' variables must match the variables created by a "
+                 "NekMeshDeformation object.");
   }
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
   if (nekrs::hasMovingMesh() && !_disable_fld_file_output)
     nekrs::outfld(_timestepper->nondimensionalDT(_time), _t_step);
 
-  if (nekrs::hasBlendingSolver())
-    _nek_mesh->initializePreviousDisplacements();
+  VariadicTable<int, std::string, std::string, std::string> vt(
+      {"Slot", "MOOSE quantity", "How to Access (.oudf)", "How to Access (.udf)"});
 
-  if (nekrs::hasUserMeshSolver())
-    _nek_mesh->saveInitialVolMesh();
-}
+  // fill a set with all of the slots managed by Cardinal, coming from either field transfers
+  // or userobjects
+  auto field_usrwrk_map = FieldTransferBase::usrwrkMap();
+  for (const auto & field : field_usrwrk_map)
+    _usrwrk_slots.insert(field.first);
+  for (const auto & uo : _scalar_transfers)
+    _usrwrk_slots.insert(uo->usrwrkSlot());
 
-void
-NekRSProblem::adjustNekSolution()
-{
-  // limit the temperature based on user settings
-  bool limit_temperature = _min_T || _max_T;
-  std::string msg;
-  if (_min_T && !_max_T)
-    msg = "Limiting nekRS temperature to above minimum temperature of " + Moose::stringify(*_min_T);
-  if (_max_T && !_min_T)
-    msg = "Limiting nekRS temperature to below maximum temperature of " + Moose::stringify(*_max_T);
-  if (_max_T && _min_T)
-    msg = "Limiting nekRS temperature to within the range [" + Moose::stringify(*_min_T) + ", " +
-          Moose::stringify(*_max_T) + "]";
-
-  if (limit_temperature)
+  // fill out table, being careful to only write information if owned by a field transfer,
+  // a user object, or neither
+  for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    _console << msg << std::endl;
-    nekrs::limitTemperature(_min_T, _max_T);
-  }
-}
+    std::string oudf = "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset+bc->idM]";
+    std::string udf = "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]";
 
-void
-NekRSProblem::sendBoundaryDeformationToNek()
-{
-  _console << "Sending boundary deformation to NekRS..." <<std::endl;
-
-  if (!_volume)
-  {
-    for (unsigned int e = 0; e < _n_surface_elems; e++)
+    if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
     {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
-      if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
-        continue;
-
-      mapFaceDataToNekFace(e, _disp_x_var, 1.0, &_displacement_x);
-      calculateMeshVelocity(e, field::mesh_velocity_x);
-      writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
-
-      mapFaceDataToNekFace(e, _disp_y_var, 1.0, &_displacement_y);
-      calculateMeshVelocity(e, field::mesh_velocity_y);
-      writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
-
-      mapFaceDataToNekFace(e, _disp_z_var, 1.0, &_displacement_z);
-      calculateMeshVelocity(e, field::mesh_velocity_z);
-      writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
+      // a field transfer owns it
+      vt.addRow(i, field_usrwrk_map[i], oudf, udf);
     }
+    else
+    {
+      // a user object might own it, or it could be unused
+      bool owned_by_uo = false;
+      for (const auto & uo : _scalar_transfers)
+      {
+        if (uo->usrwrkSlot() == i)
+        {
+          owned_by_uo = true;
+          auto slot = std::to_string(uo->usrwrkSlot());
+          auto count = std::to_string(uo->offset());
+          vt.addRow(i,
+                    uo->name(),
+                    "bc->usrwrk[" + slot + " * bc->fieldOffset + " + count + "]",
+                    "nrs->usrwrk[" + slot + " * nrs->fieldOffset + " + count + "]");
+        }
+      }
+
+      if (!owned_by_uo)
+        vt.addRow(i, "unused", oudf, udf);
+    }
+  }
+
+  if (_n_usrwrk_slots == 0)
+  {
+    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n"
+             << std::endl;
   }
   else
   {
-    for (unsigned int e = 0; e < _n_volume_elems; ++e)
-    {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
-      if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-        continue;
-
-      mapFaceDataToNekVolume(e, _disp_x_var, 1.0, &_displacement_x);
-      calculateMeshVelocity(e, field::mesh_velocity_x);
-      writeVolumeSolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
-
-      mapFaceDataToNekVolume(e, _disp_y_var, 1.0, &_displacement_y);
-      calculateMeshVelocity(e, field::mesh_velocity_y);
-      writeVolumeSolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
-
-      mapFaceDataToNekVolume(e, _disp_z_var, 1.0, &_displacement_z);
-      calculateMeshVelocity(e, field::mesh_velocity_z);
-      writeVolumeSolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
-    }
+    _console
+        << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
+        << std::endl;
+    _console << "           Slot:  slice in scratch space holding the data" << std::endl;
+    _console << " MOOSE quantity:  name of the AuxVariable or Postprocessor that gets written into"
+             << std::endl;
+    _console << "                  this slot. If 'unused', this means that the space has been"
+             << std::endl;
+    _console << "                  allocated, but Cardinal is not otherwise using it for coupling"
+             << std::endl;
+    _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
+             << std::endl;
+    _console << "                  'n' indicates a loop variable over GLL points\n" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
   }
 
-  _displaced_problem->updateMesh();
+  // nekRS calls UDF_ExecuteStep once before the time stepping begins; the isLastStep stuff is
+  // copy-pasta from NekRS main(), except that if Nek is a sub-app, we give full control of
+  // time stepping to the main app
+  bool isLastStep = false;
+  if (_app.isUltimateMaster())
+    isLastStep = !((nekrs::endTime() > nekrs::startTime() || nekrs::numSteps() > _t_step));
+  nekrs::lastStep(isLastStep);
+
+  nekrs::udfExecuteStep(
+      _timestepper->nondimensionalDT(_start_time), _t_step, false /* not an output step */);
+  nekrs::resetTimer("udfExecuteStep");
 }
 
 void
-NekRSProblem::sendBoundaryHeatFluxToNek()
+NekRSProblem::externalSolve()
 {
-  _console << "Sending heat flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
-           << std::endl;
+  if (nekrs::buildOnly())
+    return;
 
-  if (!_volume)
+  const double timeStartStep = MPI_Wtime();
+
+  // _dt reflects the time step that MOOSE wants Nek to
+  // take. For instance, if Nek is controlled by a master app and subcycling is used,
+  // Nek must advance to the time interval taken by the master app. If the time step
+  // that MOOSE wants nekRS to take (i.e. _dt) is smaller than we'd like nekRS to take, error.
+  if (_dt < _timestepper->minDT())
+    mooseError("Requested time step of " + std::to_string(_dt) +
+               " is smaller than the minimum "
+               "time step of " +
+               Moose::stringify(_timestepper->minDT()) +
+               " allowed in NekRS!\n\n"
+               "You can control this behavior with the 'min_dt' parameter on 'NekTimeStepper'.");
+
+  // _time represents the time that we're simulating _to_, but we need to pass sometimes slightly
+  // different times into the nekRS routines, which assume that the "time" passed into their
+  // routines is sometimes a different interpretation.
+  double step_start_time = _time - _dt;
+  double step_end_time = _time;
+
+  _is_output_step = isOutputStep();
+
+  // tell NekRS what the value of nrs->isOutputStep should be
+  nekrs::outputStep(_is_output_step);
+
+  // NekRS prints out verbose info for the first 1000 time steps
+  if (_t_step <= 1000)
+    nekrs::verboseInfo(true);
+
+  // Tell NekRS what the time step size is
+  nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
+                  _timestepper->nondimensionalDT(_dt),
+                  _t_step);
+
+  // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
+  // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
+  int corrector = 1;
+  bool converged = false;
+  do
   {
-    for (unsigned int e = 0; e < _n_surface_elems; e++)
-    {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
-      if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
-        continue;
+    converged = nekrs::runStep(corrector++);
+  } while (!converged);
 
-      mapFaceDataToNekFace(e, _avg_flux_var, 1.0 / nekrs::referenceFlux(), &_flux_face);
-      writeBoundarySolution(e, field::flux, _flux_face);
+  // TODO: time is somehow corrected here
+  nekrs::finishStep();
+
+  // copy-pasta from Nek's main() for calling timers and printing
+  if (nekrs::updateFileCheckFreq())
+    if (_t_step % nekrs::updateFileCheckFreq())
+      nekrs::processUpdFile();
+
+  // Note: here, we copy to both the nrs solution arrays and to the Nek5000 backend arrays,
+  // because it is possible that users may interact using the legacy usr-file approach.
+  // If we move away from the Nek5000 backend entirely, we could replace this line with
+  // direct OCCA memcpy calls. But we do definitely need some type of copy here for _every_
+  // time step, even if we're not technically passing data to another app, because we have
+  // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
+  // by the user.
+  nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
+
+  if (nekrs::printInfoFreq())
+    if (_t_step % nekrs::printInfoFreq() == 0)
+      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
+
+  if (_is_output_step)
+  {
+    writeFieldFile(step_end_time, _t_step);
+
+    // TODO: I could not figure out why this can't be called from the destructor, to
+    // add another field file on Cardinal's last time step. Revisit in the future.
+    if (_usrwrk_output)
+    {
+      static std::vector<bool> first_fld(_usrwrk_output->size(), true);
+
+      for (unsigned int i = 0; i < _usrwrk_output->size(); ++i)
+      {
+        bool write_coords = first_fld[i] ? true : false;
+
+        nekrs::write_usrwrk_field_file((*_usrwrk_output)[i],
+                                       (*_usrwrk_output_prefix)[i],
+                                       _timestepper->nondimensionalDT(step_end_time),
+                                       _t_step,
+                                       write_coords);
+
+        first_fld[i] = false;
+      }
     }
   }
-  else
-  {
-    for (unsigned int e = 0; e < _n_volume_elems; ++e)
-    {
-      // We can only write into the nekRS scratch space if that face is "owned" by the current process
-      if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-        continue;
 
-      mapFaceDataToNekVolume(e, _avg_flux_var, 1.0 / nekrs::referenceFlux(), &_flux_elem);
-      writeVolumeSolution(e, field::flux, _flux_elem);
-    }
-  }
+  MPI_Barrier(comm().get());
+  const double elapsedStep = MPI_Wtime() - timeStartStep;
+  _tSolveStepMin = std::min(elapsedStep, _tSolveStepMin);
+  _tSolveStepMax = std::max(elapsedStep, _tSolveStepMax);
+  nekrs::updateTimer("minSolveStep", _tSolveStepMin);
+  nekrs::updateTimer("maxSolveStep", _tSolveStepMax);
 
-  // Because the NekRSMesh may be quite different from that used in the app solving for
-  // the heat flux, we will need to normalize the flux on the nekRS side by the
-  // flux computed by the coupled MOOSE app. For this and the next check of the
-  // flux integral, we need to scale the integral back up again to the dimensional form
-  // for the sake of comparison.
-  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::referenceFlux();
+  _elapsedStepSum += elapsedStep;
+  _elapsedTime += elapsedStep;
+  nekrs::updateTimer("elapsedStep", elapsedStep);
+  nekrs::updateTimer("elapsedStepSum", _elapsedStepSum);
+  nekrs::updateTimer("elapsed", _elapsedTime);
 
-  // integrate the flux over each individual boundary
-  std::vector<double> nek_flux_sidesets =
-      nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  if (nekrs::printInfoFreq())
+    if (_t_step % nekrs::printInfoFreq() == 0)
+      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, true, false);
 
-  bool successful_normalization;
-  double normalized_nek_flux = 0.0;
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq() == 0)
+      nekrs::printRuntimeStatistics(_t_step);
 
-  double total_moose_flux;
-
-  if (_conserve_flux_by_sideset)
-  {
-    auto moose_flux = *_flux_integral_vpp;
-    if (moose_flux.size() != _boundary->size())
-      mooseError("The sideset flux reporter transferred to NekRS must have a length equal to the number\n"
-        "of entries in 'boundary'! Please check the values written to the 'flux_integral' vector postprocessor.\n\n"
-        "Length of reporter: ", moose_flux.size(), "\n",
-        "Length of 'boundary': ", _boundary->size());
-
-    for (std::size_t b = 0; b < _boundary->size(); ++b)
-    {
-      _console << "[boundary " << Moose::stringify((*_boundary)[b]) << "]: Normalizing NekRS flux of "
-               << Moose::stringify(nek_flux_sidesets[b] * nek_flux_print_mult)
-               << " to the conserved MOOSE value of " << Moose::stringify(moose_flux[b]) << std::endl;
-
-      checkInitialFluxValues(nek_flux_sidesets[b], moose_flux[b]);
-    }
-
-    total_moose_flux = std::accumulate(moose_flux.begin(), moose_flux.end(), 0.0);
-
-    // For the sake of printing diagnostics to the screen regarding the flux normalization,
-    // we first scale the nek flux by any unit changes and then by the reference flux.
-    successful_normalization = nekrs::normalizeFluxBySideset(
-        _nek_mesh->boundaryCoupling(), *_boundary, moose_flux, nek_flux_sidesets, normalized_nek_flux);
-  }
-  else
-  {
-    auto moose_flux = *_flux_integral;
-    const double nek_flux = std::accumulate(nek_flux_sidesets.begin(), nek_flux_sidesets.end(), 0.0);
-
-    _console << "[boundary " << Moose::stringify(*_boundary)
-             << "]: Normalizing total NekRS flux of "
-             << Moose::stringify(nek_flux * nek_flux_print_mult)
-             << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
-
-    checkInitialFluxValues(nek_flux, moose_flux);
-
-    total_moose_flux = moose_flux;
-
-    // For the sake of printing diagnostics to the screen regarding the flux normalization,
-    successful_normalization = nekrs::normalizeFlux(
-        _nek_mesh->boundaryCoupling(), *_boundary, moose_flux, nek_flux, normalized_nek_flux);
-  }
-
-  if (!successful_normalization)
-    mooseError("Flux normalization process failed! NekRS integrated flux: ",
-               normalized_nek_flux,
-               " MOOSE integrated flux: ",
-               total_moose_flux, ".\n",
-               "There are a few reason this might happen:\n\n"
-               "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the\n"
-               "  meshes in Paraview by running your input files with the --mesh-only flag.\n\n"
-               "- Your tolerances for comparing the re-normalized NekRS flux with the incoming MOOSE\n"
-               "  flux are too tight. If the NekRS flux is acceptably close to the MOOSE flux, you can\n"
-               "  try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters\n\n"
-               "- You forgot to send a flux VARIABLE to NekRS, in which case no matter what you try to\n"
-               "  normalize by, the flux in NekRS is always zero.\n\n"
-               "- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries\n"
-               "  (like on corners between sidesets), you will end up renormalizing those shared nodes\n"
-               "  once per sideset that they lie on. There is no guarantee that the total imposed flux\n"
-               "  would be preserved.");
-}
-
-void
-NekRSProblem::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
-{
-  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::referenceFlux();
-
-  // If before normalization, there is a large difference between the nekRS imposed flux
-  // and the MOOSE flux, this could mean that there is a poor match between the domains,
-  // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
-  // units of centimeters, but you're coupling to an app based in meters, the fluxes will
-  // be very different from one another.
-  if (moose_flux && (std::abs(nek_flux * nek_flux_print_mult - moose_flux) / moose_flux) > 0.25)
-    mooseDoOnce(mooseWarning("NekRS flux differs from MOOSE flux by more than 25\%! This might indicate that your\n"
-                             "geometries don't line up properly or something else is wrong with the flux transfer."));
-}
-
-void
-NekRSProblem::sendVolumeDeformationToNek()
-{
-  _console << "Sending volume deformation to NekRS" << std::endl;
-
-  for (unsigned int e = 0; e < _n_volume_elems; e++)
-  {
-    // We can only write into the nekRS scratch space if that face is "owned" by the current process
-    if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-      continue;
-
-    mapVolumeDataToNekVolume(e, _disp_x_var, 1.0 / nekrs::referenceLength(), &_displacement_x);
-    writeVolumeSolution(e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
-
-    mapVolumeDataToNekVolume(e, _disp_y_var, 1.0 / nekrs::referenceLength(), &_displacement_y);
-    writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
-
-    mapVolumeDataToNekVolume(e, _disp_z_var, 1.0 / nekrs::referenceLength(), &_displacement_z);
-    writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
-  }
-
-  _displaced_problem->updateMesh();
+  _time += _dt;
 }
 
 bool
-NekRSProblem::normalizeHeatSource(const double moose, double nek, double & normalized_nek)
+NekRSProblem::isDataTransferHappening(ExternalProblem::Direction direction)
 {
-  auto dimension_multiplier = nekrs::referenceVolume() * nekrs::referenceSource();
+  if (nekrs::buildOnly())
+    return false;
 
-  // scale the nek source to dimensional form for the sake of normalizing against
-  // a dimensional MOOSE source
-  nek *= dimension_multiplier;
-
-  // avoid divide-by-zero
-  if (std::abs(nek) < _abs_tol)
-    return true;
-
-  nekrs::scaleUsrwrk(indices.heat_source, moose / nek);
-
-  // check that the normalization worked properly
-  normalized_nek =
-      nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all) * dimension_multiplier;
-  bool low_rel_err = std::abs(normalized_nek - moose) / moose < _rel_tol;
-  bool low_abs_err = std::abs(normalized_nek - moose) < _abs_tol;
-
-  return low_rel_err && low_abs_err;
-}
-
-void
-NekRSProblem::sendVolumeHeatSourceToNek()
-{
-  _console << "Sending volumetric heat source to NekRS..." << std::endl;
-
-  for (unsigned int e = 0; e < _n_volume_elems; e++)
+  switch (direction)
   {
-    // We can only write into the nekRS scratch space if that face is "owned" by the current process
-    if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-      continue;
-
-    mapVolumeDataToNekVolume(e, _heat_source_var, 1.0 / nekrs::referenceSource(), &_source_elem);
-    writeVolumeSolution(e, field::heat_source, _source_elem);
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+      return synchronizeIn();
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+      return synchronizeOut();
+    default:
+      mooseError("Unhandled DirectionEnum in NekRSProblem!");
   }
-
-  // Because the NekRSMesh may be quite different from that used in the app solving for
-  // the heat source, we will need to normalize the total source on the nekRS side by the
-  // total source computed by the coupled MOOSE app.
-  const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_source = nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all);
-  const double moose_source = *_source_integral;
-
-  // For the sake of printing diagnostics to the screen regarding source normalization,
-  // we first scale the nek source by any unit changes and then by the reference source
-  const double nek_source_print_mult = scale_cubed * nekrs::referenceSource();
-  double normalized_nek_source = 0.0;
-  bool successful_normalization;
-
-  _console << "[volume]: Normalizing total NekRS heat source of "
-           << Moose::stringify(nek_source * nek_source_print_mult)
-           << " to the conserved MOOSE value of " + Moose::stringify(moose_source) << std::endl;
-
-  // Any unit changes (for DIMENSIONAL nekRS runs) are automatically accounted for
-  // here because moose_source is an integral on the MOOSE mesh, while nek_source is
-  // an integral on the nek mesh
-  successful_normalization = normalizeHeatSource(moose_source, nek_source, normalized_nek_source);
-
-  // If before normalization, there is a large difference between the nekRS imposed source
-  // and the MOOSE source, this could mean that there is a poor match between the domains,
-  // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
-  // units of centimeters, but you're coupling to an app based in meters, the sources will
-  // be very different from one another.
-  if (moose_source &&
-      (std::abs(nek_source * nek_source_print_mult - moose_source) / moose_source) > 0.25)
-    mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 25\%! "
-                             "This could indicate that your geometries do not line up properly "
-                             "or there is some other mistake in the data transfer (check the "
-                             "exodus output files to see if the transferred data looks sensible)."));
-
-  if (!successful_normalization)
-    mooseError("Heat source normalization process failed! nekRS integrated heat source: ",
-               normalized_nek_source,
-               " MOOSE integrated heat source: ",
-               moose_source,
-               ".\n\nThis may happen if the nekRS mesh "
-               "is very different from that used in the App sending heat source to nekRS and the "
-               "nearest node transfer is only picking up zero values in the coupled App."
-               "OR, this error could indicate that your tolerances for comparing the re-normalized "
-               "Nek heat source with the incoming MOOSE heat source are too tight. If the NekRS heat source (",
-               normalized_nek_source, ") is acceptably close to the MOOSE heat source (", moose_source, "), "
-               "then you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' "
-               "parameters");
-}
-
-void
-NekRSProblem::getBoundaryTemperatureFromNek()
-{
-  _console << "Extracting NekRS temperature from boundary " << Moose::stringify(*_boundary)
-           << std::endl;
-
-  // Get the temperature solution from nekRS. Note that nekRS performs a global communication
-  // here such that each nekRS process has all the boundary temperature information. That is,
-  // every process knows the full boundary temperature solution
-  boundarySolution(field::temperature, _T);
-}
-
-void
-NekRSProblem::getVolumeTemperatureFromNek()
-{
-  _console << "Extracting NekRS temperature from volume" << std::endl;
-
-  // Get the temperature solution from nekRS. Note that nekRS performs a global communication
-  // here such that each nekRS process has all the volume temperature information. In
-  // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
-  // every process knows the temperature in the volume.
-  volumeSolution(field::temperature, _T);
 }
 
 void
@@ -672,190 +586,531 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       solution.localize(*_serialized_solution);
 
-      if (_boundary)
-        sendBoundaryHeatFluxToNek();
+      // execute all incoming field transfers
+      for (const auto & t : _field_transfers)
+        if (t->direction() == "to_nek")
+          t->sendDataToNek();
 
-      if (_volume && _has_heat_source)
-        sendVolumeHeatSourceToNek();
+      // execute all incoming scalar transfers
+      for (const auto & t : _scalar_transfers)
+        if (t->direction() == "to_nek")
+          t->sendDataToNek();
 
-      if (nekrs::hasUserMeshSolver())
-        sendVolumeDeformationToNek();
-      else if (nekrs::hasBlendingSolver())
-        sendBoundaryDeformationToNek();
-
-      sendScalarValuesToNek();
+      if (udf.properties)
+      {
+        nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+        evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
+      }
 
       copyScratchToDevice();
 
       break;
-    }
 
+      return;
+    }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      if (!_volume)
-        getBoundaryTemperatureFromNek();
+      // execute all outgoing field transfers
+      for (const auto & t : _field_transfers)
+        if (t->direction() == "from_nek")
+          t->readDataFromNek();
 
-      if (_volume)
-        getVolumeTemperatureFromNek();
-
-      // for boundary-only coupling, this fills a variable on a boundary mesh; otherwise,
-      // this fills a variable on a volume mesh (because we will want a volume temperature for
-      // neutronics feedback, and we can still get a temperature boundary condition from a volume
-      // set)
-      fillAuxVariable(_temp_var, _T);
-
-      _console << " Interpolated temperature min/max values: " << minInterpolatedTemperature()
-               << ", " << maxInterpolatedTemperature() << std::endl;
-
-      // extract all outputs (except temperature, which we did separately here). We could
-      // have simply called the base class NekRSProblemBase::syncSolutions to do this, but
-      // putting this here lets us use a consistent setting for the minimize transfers feature,
-      // if used (otherwise, the 'temp' variable could be extracted on a different frequency
-      // than other specifications, such as pressure or mu_t.
-      extractOutputs();
+      // execute all outgoing scalar transfers
+      for (const auto & t : _scalar_transfers)
+        if (t->direction() == "from_nek")
+          t->sendDataToNek();
 
       break;
     }
     default:
-      mooseError("Unhandled 'Transfer::DIRECTION' enum!");
+      mooseError("Unhandled Transfer::DIRECTION enum!");
   }
 
   solution.close();
   _aux->system().update();
 }
 
-double
-NekRSProblem::maxInterpolatedTemperature() const
+bool
+NekRSProblem::synchronizeIn()
 {
-  double maximum = std::numeric_limits<double>::min();
+  bool synchronize = true;
 
-  for (int i = 0; i < _n_points; ++i)
-    maximum = std::max(maximum, _T[i]);
+  switch (_sync_interval)
+  {
+    case synchronization::parent_app:
+    {
+      // For the minimized incoming synchronization to work correctly, the value
+      // of the incoming postprocessor must not be zero. We only need to check this for the very
+      // first time we evaluate this function. This ensures that you don't accidentally set a
+      // zero value as a default in the master application's postprocessor.
+      if (_first && *_transfer_in == false)
+        mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
+                   "must not be false! Make sure that the master application's "
+                   "postprocessor is not zero.");
 
-  return maximum;
+      if (*_transfer_in == false)
+        synchronize = false;
+      else
+        setPostprocessorValueByName("transfer_in", false, 0);
+
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblem!");
+  }
+
+  return synchronize;
 }
 
-double
-NekRSProblem::minInterpolatedTemperature() const
+bool
+NekRSProblem::synchronizeOut()
 {
-  double minimum = std::numeric_limits<double>::max();
+  bool synchronize = true;
 
-  for (int i = 0; i < _n_points; ++i)
-    minimum = std::min(minimum, _T[i]);
+  switch (_sync_interval)
+  {
+    case synchronization::parent_app:
+    {
+      if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) >
+          _transient_executioner->timestepTol())
+        synchronize = false;
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblem!");
+  }
 
-  return minimum;
+  return synchronize;
+}
+
+bool
+NekRSProblem::isOutputStep() const
+{
+  if (_app.isUltimateMaster())
+  {
+    bool last_step = nekrs::lastStep(
+        _timestepper->nondimensionalDT(_time), _t_step, 0.0 /* dummy elapsed time */);
+
+    // if Nek is controlled by a master application, then the last time step
+    // is controlled by that master application, in which case we don't want to
+    // write at what nekRS thinks is the last step (since it may or may not be
+    // the actual end step), especially because we already ensure that we write on the
+    // last time step from MOOSE's perspective in NekRSProblem's destructor.
+    if (last_step)
+      return true;
+  }
+
+  // this routine does not check if we are on the last step - just whether we have
+  // met the requested runtime or time step interval
+  return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void
 NekRSProblem::addExternalVariables()
 {
-  NekRSProblemBase::addExternalVariables();
-  auto var_params = getExternalVariableParameters();
+  // Creation of variables for data transfers is handled by the FieldTransferBase objects
 
-  checkDuplicateVariableName("temp");
-  addAuxVariable("MooseVariable", "temp", var_params);
-  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
-
-  if (_boundary)
+  if (_sync_interval == synchronization::parent_app)
   {
-    // Likewise, because this flux represents the reconstruction of the flux variable
-    // that becomes a boundary condition in the nekRS model, we set the order to match
-    // the desired order of the surface. Note that this does _not_ imply anything
-    // about the order of the surface flux in the MOOSE app (such as BISON) coupled
-    // to nekRS. This is just the variable that nekRS reads from - MOOSE's transfer
-    // classes handle any additional interpolations needed from the flux on the
-    // sending app (such as BISON) into 'avg_flux'.
-    checkDuplicateVariableName("avg_flux");
-    addAuxVariable("MooseVariable", "avg_flux", var_params);
-    _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
-
-    // add the postprocessor that receives the flux integral for normalization
-    if (_conserve_flux_by_sideset)
-    {
-      if (isParamSetByUser("initial_flux_integral"))
-        mooseWarning("The 'initial_flux_integral' capability is not yet supported when "
-                     "'conserve_flux_by_sideset' is enabled. Please contact a Cardinal developer "
-                     "if this is hindering your use case.");
-
-      auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
-
-      // create zero initial values
-      std::vector<std::vector<Real>> dummy_vals(1, std::vector<Real>(_boundary->size()));
-      vpp_params.set<std::vector<std::vector<Real>>>("value") = dummy_vals;
-      addVectorPostprocessor("ConstantVectorPostprocessor", "flux_integral", vpp_params);
-    }
-    else
-    {
-      auto pp_params = _factory.getValidParams("Receiver");
-      pp_params.set<Real>("default") = _initial_flux_integral;
-      addPostprocessor("Receiver", "flux_integral", pp_params);
-    }
-  }
-
-  if (_volume && _has_heat_source)
-  {
-    checkDuplicateVariableName("heat_source");
-    addAuxVariable("MooseVariable", "heat_source", var_params);
-    _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
-
-    // add the postprocessor that receives the source integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
-    pp_params.set<Real>("default") = _initial_source_integral;
-    addPostprocessor("Receiver", "source_integral", pp_params);
-  }
+    pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
 
-  // add the displacement aux variables from the solid mechanics solver; these will
-  // be needed regardless of whether the displacement is boundary- or volume-based
-  if (nekrs::hasMovingMesh())
-  {
-    checkDuplicateVariableName("disp_x");
-    addAuxVariable("MooseVariable", "disp_x", var_params);
-    _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
-
-    checkDuplicateVariableName("disp_y");
-    addAuxVariable("MooseVariable", "disp_y", var_params);
-    _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
-
-    checkDuplicateVariableName("disp_z");
-    addAuxVariable("MooseVariable", "disp_z", var_params);
-    _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
+    // we do not need to check for duplicate names because MOOSE already handles it
+    addPostprocessor("Receiver", "transfer_in", pp_params);
   }
 }
 
 void
-NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
+NekRSProblem::volumeSolution(const field::NekFieldEnum & field, double * T)
 {
-  int len = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
-  double dt = _timestepper->getCurrentDT();
+  mesh_t * mesh = nekrs::entireMesh();
+  auto vc = _nek_mesh->volumeCoupling();
 
-  double * displacement = nullptr, *prev_disp = nullptr;
-  field::NekWriteEnum disp_field;
+  double (*f)(int);
+  f = nekrs::solutionPointer(field);
 
-  switch (field)
+  int start_1d = mesh->Nq;
+  int end_1d = _moose_Nq;
+  int start_3d = start_1d * start_1d * start_1d;
+  int end_3d = end_1d * end_1d * end_1d;
+
+  int n_to_write = vc.n_elems * end_3d * _nek_mesh->nBuildPerVolumeElem();
+
+  // allocate temporary space:
+  // - Ttmp: results of the search for each process
+  // - Telem: scratch space for volume interpolation to avoid reallocating a bunch (only used if
+  // interpolating)
+  double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
+  double * Telem = (double *)calloc(start_3d, sizeof(double));
+
+  auto indices = _nek_mesh->cornerIndices();
+
+  int c = 0;
+  for (int k = 0; k < mesh->Nelements; ++k)
   {
-    case field::mesh_velocity_x:
-      displacement = _displacement_x;
-      prev_disp = _nek_mesh->prev_disp_x().data();
-      disp_field = field::x_displacement;
-      break;
-    case field::mesh_velocity_y:
-      displacement = _displacement_y;
-      prev_disp = _nek_mesh->prev_disp_y().data();
-      disp_field = field::y_displacement;
-      break;
-    case field::mesh_velocity_z:
-      displacement = _displacement_z;
-      prev_disp = _nek_mesh->prev_disp_z().data();
-      disp_field = field::z_displacement;
-      break;
-    default:
-      mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
+    int offset = k * start_3d;
+
+    for (int build = 0; build < _nek_mesh->nBuildPerVolumeElem(); ++build)
+    {
+      if (_needs_interpolation)
+      {
+        // get the solution on the element
+        for (int v = 0; v < start_3d; ++v)
+          Telem[v] = f(offset + v);
+
+        // and then interpolate it
+        nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+        c += end_3d;
+      }
+      else
+      {
+        // get the solution on the element - no need to interpolate
+        for (int v = 0; v < end_3d; ++v, ++c)
+          Ttmp[c] = f(offset + indices[build][v]);
+      }
+    }
   }
 
-  for (int i=0; i <len; i++)
-    _mesh_velocity_elem[i] =
-        (displacement[i] - prev_disp[(e * len) + i]) / dt / nekrs::referenceVelocity();
+  // dimensionalize the solution if needed
+  for (int v = 0; v < n_to_write; ++v)
+  {
+    nekrs::dimensionalize(field, Ttmp[v]);
+    Ttmp[v] += nekrs::referenceAdditiveScale(field);
+  }
 
-  _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  nekrs::allgatherv(vc.mirror_counts, Ttmp, T, end_3d);
+
+  freePointer(Ttmp);
+  freePointer(Telem);
 }
+
+void
+NekRSProblem::boundarySolution(const field::NekFieldEnum & field, double * T)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+  auto bc = _nek_mesh->boundaryCoupling();
+
+  double (*f)(int);
+  f = nekrs::solutionPointer(field);
+
+  int start_1d = mesh->Nq;
+  int end_1d = _moose_Nq;
+  int start_2d = start_1d * start_1d;
+  int end_2d = end_1d * end_1d;
+
+  int n_to_write = bc.n_faces * end_2d * _nek_mesh->nBuildPerSurfaceElem();
+
+  // allocate temporary space:
+  // - Ttmp: results of the search for each process
+  // - Tface: scratch space for face solution to avoid reallocating a bunch (only used if
+  // interpolating)
+  // - scratch: scratch for the interpolatino process to avoid reallocating a bunch (only used if
+  // interpolating0
+  double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
+  double * Tface = (double *)calloc(start_2d, sizeof(double));
+  double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
+
+  auto indices = _nek_mesh->cornerIndices();
+
+  int c = 0;
+  for (int k = 0; k < bc.total_n_faces; ++k)
+  {
+    if (bc.process[k] == nekrs::commRank())
+    {
+      int i = bc.element[k];
+      int j = bc.face[k];
+      int offset = i * mesh->Nfaces * start_2d + j * start_2d;
+
+      for (int build = 0; build < _nek_mesh->nBuildPerSurfaceElem(); ++build)
+      {
+        if (_needs_interpolation)
+        {
+          // get the solution on the face
+          for (int v = 0; v < start_2d; ++v)
+          {
+            int id = mesh->vmapM[offset + v];
+            Tface[v] = f(id);
+          }
+
+          // and then interpolate it
+          nekrs::interpolateSurfaceFaceHex3D(
+              scratch, _interpolation_outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
+          c += end_2d;
+        }
+        else
+        {
+          // get the solution on the face - no need to interpolate
+          for (int v = 0; v < end_2d; ++v, ++c)
+          {
+            int id = mesh->vmapM[offset + indices[build][v]];
+            Ttmp[c] = f(id);
+          }
+        }
+      }
+    }
+  }
+
+  // dimensionalize the solution if needed
+  for (int v = 0; v < n_to_write; ++v)
+  {
+    nekrs::dimensionalize(field, Ttmp[v]);
+    Ttmp[v] += nekrs::referenceAdditiveScale(field);
+  }
+
+  nekrs::allgatherv(bc.mirror_counts, Ttmp, T, end_2d);
+
+  freePointer(Ttmp);
+  freePointer(Tface);
+  freePointer(scratch);
+}
+
+void
+NekRSProblem::writeVolumeSolution(const int elem_id,
+                                  const field::NekWriteEnum & field,
+                                  double * T,
+                                  const std::vector<double> * add)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+  void (*write_solution)(int, dfloat);
+  write_solution = nekrs::solutionPointer(field);
+
+  auto vc = _nek_mesh->volumeCoupling();
+  int id = vc.element[elem_id] * mesh->Np;
+
+  if (_nek_mesh->exactMirror())
+  {
+    // can write directly into the NekRS solution
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      write_solution(id + v, T[v] + extra);
+    }
+  }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeSolutionToNek(elem_id, T, tmp);
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      write_solution(id + v, tmp[v] + extra);
+    }
+
+    freePointer(tmp);
+  }
+}
+
+void
+NekRSProblem::writeBoundarySolution(const int elem_id,
+                                    const field::NekWriteEnum & field,
+                                    double * T)
+{
+  mesh_t * mesh = nekrs::temperatureMesh();
+  void (*write_solution)(int, dfloat);
+  write_solution = nekrs::solutionPointer(field);
+
+  const auto & bc = _nek_mesh->boundaryCoupling();
+  int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
+
+  if (_nek_mesh->exactMirror())
+  {
+    // can write directly into the NekRS solution
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], T[i]);
+  }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(T, tmp);
+
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], tmp[i]);
+
+    freePointer(tmp);
+  }
+}
+
+void
+NekRSProblem::interpolateVolumeSolutionToNek(const int elem_id,
+                                             double * incoming_moose_value,
+                                             double * outgoing_nek_value)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+
+  nekrs::interpolateVolumeHex3D(
+      _interpolation_incoming, incoming_moose_value, _moose_Nq, outgoing_nek_value, mesh->Nq);
+}
+
+void
+NekRSProblem::interpolateBoundarySolutionToNek(double * incoming_moose_value,
+                                               double * outgoing_nek_value)
+{
+  mesh_t * mesh = nekrs::temperatureMesh();
+
+  double * scratch = (double *)calloc(_moose_Nq * mesh->Nq, sizeof(double));
+
+  nekrs::interpolateSurfaceFaceHex3D(scratch,
+                                     _interpolation_incoming,
+                                     incoming_moose_value,
+                                     _moose_Nq,
+                                     outgoing_nek_value,
+                                     mesh->Nq);
+
+  freePointer(scratch);
+}
+
+void
+NekRSProblem::copyScratchToDevice()
+{
+  for (const auto & slot : _usrwrk_slots)
+    copyIndividualScratchSlot(slot);
+
+  if (nekrs::hasMovingMesh())
+    nekrs::copyDeformationToDevice();
+}
+
+bool
+NekRSProblem::isUsrWrkSlotReservedForCoupling(const unsigned int & slot) const
+{
+  return std::find(_usrwrk_slots.begin(), _usrwrk_slots.end(), slot) != _usrwrk_slots.end();
+}
+
+void
+NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
+{
+  auto n = nekrs::fieldOffset();
+  auto nbytes = n * sizeof(dfloat);
+
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs->o_usrwrk.copyFrom(nrs->usrwrk + slot * n, nbytes, slot * nbytes);
+}
+
+void
+NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
+                                   const unsigned int & var_num,
+                                   const Real & multiplier,
+                                   double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
+
+    for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // convert libMesh node index into the ordering used by NekRS
+      int node_index = _nek_mesh->exactMirror() ? indices[build][_nek_mesh->boundaryNodeIndex(n)]
+                                                : _nek_mesh->boundaryNodeIndex(n);
+
+      auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+    }
+  }
+}
+
+void
+NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
+                                     const unsigned int & var_num,
+                                     const Real & multiplier,
+                                     double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
+
+    // the only meaningful values are on the coupling boundaries, so we can skip this
+    // interpolation if this volume element isn't on a coupling boundary
+    if (n_faces_on_boundary > 0)
+    {
+      auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
+
+      for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // convert libMesh node index into the ordering used by NekRS
+        int node_index = _nek_mesh->exactMirror() ? indices[build][_nek_mesh->volumeNodeIndex(n)]
+                                                  : _nek_mesh->volumeNodeIndex(n);
+
+        auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+        (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+      }
+    }
+  }
+}
+
+void
+NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
+                                       const unsigned int & var_num,
+                                       const Real & multiplier,
+                                       double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
+    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // convert libMesh node index into the ordering used by NekRS
+      int node_index = _nek_mesh->exactMirror() ? indices[build][_nek_mesh->volumeNodeIndex(n)]
+                                                : _nek_mesh->volumeNodeIndex(n);
+
+      auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+    }
+  }
+}
+
 #endif

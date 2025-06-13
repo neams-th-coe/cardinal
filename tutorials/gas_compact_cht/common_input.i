@@ -55,7 +55,7 @@ outlet_P = 7.1e6                         # fluid outlet pressure (Pa)
 n_bundles = 12                           # number of bundles in the full core
 n_coolant_channels_per_block = 108       # number of coolant channels per assembly
 n_fuel_compacts_per_block = 210          # number of fuel compacts per assembly
-unit_cell_height = 1.6                   # unit cell height - arbitrarily selected
+unit_cell_height = 1.6                   # unit cell height - arbitrarily selected to be shorter, just for a faster-running case
 
 # other settings for generating plots
 

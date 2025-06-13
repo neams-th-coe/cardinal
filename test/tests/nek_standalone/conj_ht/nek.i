@@ -4,9 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'conj_ht'
-  output = 'temperature'
 []
 
 [Executioner]

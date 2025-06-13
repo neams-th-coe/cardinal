@@ -4,11 +4,11 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'turbPipe'
 
-  # We omit the non-dimensional settings here in order to just extract the
-  # non-dimensional solution as-is, without dimensionalizing it.
+  # we handle allocating from the udf
+  n_usrwrk_slots = 0
 []
 
 [Executioner]

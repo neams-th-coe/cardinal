@@ -16,8 +16,3 @@
     type = NekTimeStepper
   []
 []
-
-[Outputs]
-  exodus = true
-  execute_on = 'final'
-[]

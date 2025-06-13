@@ -1,8 +1,40 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
-  output = 'pressure velocity'
-  has_heat_source = false
+
+  [FieldTransfers]
+    [avg_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+      postprocessor_to_conserve = flux_integral
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+    [P]
+      type = NekFieldVariable
+      direction = from_nek
+      field = pressure
+    []
+    [vel_x]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_x
+    []
+    [vel_y]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_y
+    []
+    [vel_z]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_z
+    []
+  []
 []
 
 [Mesh]

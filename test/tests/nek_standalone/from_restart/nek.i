@@ -1,5 +1,5 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'pyramid'
 []
 
@@ -17,10 +17,8 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-    execute_on = 'final'
-  []
+  csv = true
+  execute_on = 'final'
 []
 
 [Postprocessors]

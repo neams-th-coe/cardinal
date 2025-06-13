@@ -1,12 +1,19 @@
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'brick'
-  output = 'pressure'
 
   [Dimensionalize]
     L = 0.5
     U = 0.9
     rho = 0.8
+  []
+
+  [FieldTransfers]
+    [P]
+      type = NekFieldVariable
+      field = pressure
+      direction = from_nek
+    []
   []
 []
 

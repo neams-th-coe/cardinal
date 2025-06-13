@@ -126,6 +126,22 @@ enum NekWriteEnum
 };
 } // namespace field
 
+namespace output
+{
+/// Enumeration of possible fields to read from NekRS
+enum NekOutputEnum
+{
+  velocity_x,
+  velocity_y,
+  velocity_z,
+  temperature,
+  pressure,
+  scalar01,
+  scalar02,
+  scalar03
+};
+} // namespace output
+
 namespace operation
 {
 /// Enumeration of possible operations to perform in global postprocessors

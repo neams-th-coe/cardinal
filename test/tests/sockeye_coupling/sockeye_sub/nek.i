@@ -26,7 +26,3 @@
     execute_on = timestep_end
   []
 []
-
-[Outputs]
-  hide = 'flux_integral'
-[]

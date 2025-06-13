@@ -79,7 +79,7 @@
 [Transfers]
   [nek_temp]
     type = MultiAppNearestNodeTransfer
-    source_variable = temp
+    source_variable = temperature
     from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
@@ -88,7 +88,7 @@
     type = MultiAppNearestNodeTransfer
     source_variable = flux
     to_multi_app = nek
-    variable = avg_flux
+    variable = flux
     fixed_meshes = true
   []
   [flux_integral_to_nek]

@@ -19,7 +19,7 @@ num_layers_for_THM = 150
 
 [Closures]
   [none]
-    type = Closures1PhaseNone
+    type = WallTemperature1PhaseClosures
   []
 []
 

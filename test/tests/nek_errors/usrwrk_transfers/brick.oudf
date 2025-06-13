@@ -1,0 +1,26 @@
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u = 0.1;
+  bc->v = 0.0;
+  bc->w = 0.0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  bc->s = 573.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  bc->flux = 0.0;
+}
+
+@kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = source[offset + id];
+    }
+  }
+}

@@ -4,10 +4,18 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'pyramid'
   n_usrwrk_slots = 1
-  output = 'temperature'
+
+  [ScalarTransfers]
+    [scalar1]
+      type = NekScalarValue
+      direction = to_nek
+      usrwrk_slot = 0
+      output_postprocessor = s1
+    []
+  []
 []
 
 [Executioner]
@@ -15,12 +23,6 @@
 
   [TimeStepper]
     type = NekTimeStepper
-  []
-[]
-
-[UserObjects]
-  [scalar1]
-    type = NekScalarValue
   []
 []
 
@@ -32,8 +34,7 @@
 
 [Postprocessors]
   [s1]
-    type = NekScalarValuePostprocessor
-    userobject = scalar1
+    type = Receiver
   []
 
   # we use the stochastic value to set the boundary condition on temperature on sideset 1;

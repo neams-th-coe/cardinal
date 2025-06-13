@@ -4,9 +4,28 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
+  type = NekRSProblem
   casename = 'sfr_7pin'
-  output = 'temperature velocity'
+
+  [FieldTransfers]
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_x]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_y]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+    [velocity_z]
+      type = NekFieldVariable
+      direction = from_nek
+      field = velocity_z
+    []
+  []
 []
 
 [UserObjects]

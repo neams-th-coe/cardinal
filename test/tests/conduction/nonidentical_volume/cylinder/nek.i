@@ -1,6 +1,20 @@
 [Problem]
   type = NekRSProblem
   casename = 'cylinder'
+
+  [FieldTransfers]
+    [heat_source]
+      type = NekVolumetricSource
+      usrwrk_slot = 0
+      direction = to_nek
+      postprocessor_to_conserve = source_integral
+    []
+    [temp]
+      type = NekFieldVariable
+      field = temperature
+      direction = from_nek
+    []
+  []
 []
 
 [Mesh]

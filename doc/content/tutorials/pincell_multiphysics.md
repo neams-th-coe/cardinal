@@ -365,11 +365,7 @@ The bulk of the NekRS wrapping is specified with
 [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
-scales that were used to non-dimensionalize the NekRS input. In order to simplify the input
-file, we know a priori that OpenMC will not be sending a heat source *to NekRS*, so
-we set `has_heat_source = false` so that we don't need to add a dummy heat
-source kernel to the `fluid.oudf` file. If we had volumetric heating in the *fluid*,
-then we would instead send a heating term into NekRS, but this is neglected for this example.
+scales that were used to non-dimensionalize the NekRS input. We add a [NekBoundaryFlux](NekBoundaryFlux.md) to pass heat flux into NekRS, and a [NekFieldVariable](NekFieldVariable.md) to read temperature out.
 
 !listing /tutorials/pincell_multiphysics/nek.i
   block=Problem

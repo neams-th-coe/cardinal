@@ -5,7 +5,7 @@
   [executioner]
     type = RunException
     input = executioner.i
-    expect_err = "A 'Transient' executioner must be used with 'NekRSProblem', but you have specified the 'Steady' executioner!"
+    expect_err = "A 'Transient' executioner must be used with NekRSProblem, but you have specified the 'Steady' executioner!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct executioner."
     max_parallel = 12
     required_objects = 'NekRSProblem'
@@ -21,7 +21,7 @@
   [mesh]
     type = RunException
     input = mesh.i
-    expect_err = "Mesh for 'NekRSProblem' must be of type 'NekRSMesh', but you have specified a 'GeneratedMesh'!"
+    expect_err = "The mesh for NekRSProblem must be of type 'NekRSMesh', but you have specified a 'GeneratedMesh'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
     max_parallel = 12
     required_objects = 'NekRSProblem'
@@ -29,7 +29,7 @@
   [problem_base]
     type = RunException
     input = problem_base.i
-    expect_err = "NekBinnedVolumeAverage can only be used with wrapped Nek cases!"
+    expect_err = "NekBinnedVolumeAverage can only be used with NekRS-wrapped cases!"
     requirement = "The system shall error if a Nek object is not paired with the correct problem."
     max_parallel = 12
     required_objects = 'NekRSProblem'
@@ -46,7 +46,7 @@
   [timestepper]
     type = RunException
     input = timestepper.i
-    expect_err = "The 'NekTimeStepper' stepper must be used with 'NekRSProblem', "
+    expect_err = "The 'NekTimeStepper' stepper must be used with NekRSProblem, "
                  "but you have specified the 'ConstantDT' time stepper!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
     max_parallel = 12
@@ -55,9 +55,7 @@
   [missing_flux_bc]
     type = RunException
     input = nek_bc.i
-    expect_err = "In order to send a boundary heat flux to nekRS, you must have a flux condition "
-                 "for each 'boundary' set in 'NekRSMesh'!\nBoundary 2 is of type 'zeroGradient' "
-                 "instead of 'fixedGradient'."
+    expect_err = "In order to send a boundary heat flux to NekRS, you must have a heat flux condition for each 'boundary' set in 'NekRSMesh'! Boundary 2 is of type 'zeroGradient' instead of 'fixedGradient'."
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
     max_parallel = 12
@@ -71,16 +69,6 @@
                  "Did you enter a valid 'boundary'?"
     requirement = "MOOSE shall throw an error if an invalid boundary is specified for the construction "
                   "of nekRS's mesh as a MooseMesh."
-    max_parallel = 12
-    required_objects = 'NekRSProblem'
-  []
-  [separate_boundary]
-    type = RunException
-    input = separate_boundary.i
-    expect_err = "In order to initialize the separate domain coupling, 'boundary' "
-                 "should contain,\nat a minimum, all boundaries listed in 'inlet_boundary'"
-    requirement = "MOOSE shall throw an error if 'boundary' is empty for separate domain coupling, "
-                  "because the correct internal arrays would not be initialized"
     max_parallel = 12
     required_objects = 'NekRSProblem'
   []

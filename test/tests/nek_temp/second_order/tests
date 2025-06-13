@@ -6,7 +6,7 @@
     abs_zero = 1e-5
     rel_err = 5e-5
     requirement = "The nekRS temperature solution shall be accurately reconstructed on "
-                  "the nekRSMesh with a second-order surface transfer. By setting an intial condition "
+                  "with a second-order surface transfer. By setting an intial condition "
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."
@@ -17,7 +17,7 @@
     input = nek_volume.i
     exodiff = nek_volume_out.e
     requirement = "The nekRS temperature solution shall be accurately reconstructed on "
-                  "the nekRSMesh with a second-order volume transfer. By setting an intial condition "
+                  "with a second-order volume transfer. By setting an intial condition "
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."

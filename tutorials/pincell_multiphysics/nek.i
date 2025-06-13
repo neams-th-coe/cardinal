@@ -37,7 +37,18 @@ dT = ${fparse power / mdot / Cp}
     Cp = ${Cp}
   []
 
-  has_heat_source = false
+  [FieldTransfers]
+    [flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+    []
+    [temperature]
+      type = NekFieldVariable
+      direction = from_nek
+    []
+  []
+
   synchronization_interval = parent_app
 []
 
