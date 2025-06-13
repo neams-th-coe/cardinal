@@ -5,7 +5,7 @@
     requirement = "The system shall be able to create checkpoint files for a coupled Nek-MOOSE simulation"
     min_parallel = 2
     max_parallel = 2
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [read_from_checkpoints]
     type = RunApp
@@ -14,6 +14,6 @@
     min_parallel = 2
     max_parallel = 2
     prereq = 'create_checkpoints'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

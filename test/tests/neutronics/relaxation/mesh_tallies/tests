@@ -6,7 +6,7 @@
     cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0 Problem/output_cell_mapping=false"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalized mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [global_without_alignment_relax]
     type = Exodiff
@@ -17,7 +17,7 @@
                   "mesh tallies. This test is verified by comparing the heat source computed via "
                   "relaxation with the un-relaxed iterations from the openmc.i run (without any "
                   "additional command line parameters)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [none_fixed_mesh]
     type = Exodiff
@@ -26,7 +26,7 @@
     cli_args = "Problem/relaxation=none Problem/fixed_mesh=false Problem/output_cell_mapping=false"
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 
   [local_without_alignment_unity_relax]
@@ -36,7 +36,7 @@
     cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=1.0 Outputs/file_base=out Problem/output_cell_mapping=false"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalized mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [local_without_alignment_relax]
     type = Exodiff
@@ -47,7 +47,7 @@
                   "mesh tallies. This test is verified by comparing the heat source computed via "
                   "relaxation with the un-relaxed iterations from the openmc.i run with "
                   "normalize_by_global_tally=false."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [output_fission_tally_mesh]
     type = Exodiff
@@ -55,6 +55,6 @@
     exodiff = output_fission_tally_out.e
     cli_args = 'Problem/output_cell_mapping=false'
     requirement = "The wrapping shall allow output of the unrelaxed heat source for mesh tallies"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

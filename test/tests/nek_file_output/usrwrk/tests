@@ -4,6 +4,6 @@
     input = nek.i
     check_files = 'aaabrick0.f00001 aaabrick0.f00002 aaabrick0.f00003 cccbrick0.f00001 cccbrick0.f00002 cccbrick0.f00003'
     requirement = "The system shall allow the user to write the user scratch space slots to field files."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -4,7 +4,7 @@
     input = nonexistent_block.i
     expect_err = "Block 'who' specified in 'block' not found in mesh!"
     requirement = "The system shall error if the user specifies a block for coupling that does not exist."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [empty_block]
     type = RunException
@@ -12,14 +12,14 @@
     cli_args = 'Problem/temperature_blocks=""'
     expect_err = "'temperature_blocks' cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_overlap]
     type = RunException
     input = no_overlap.i
     expect_err = "Did not find any overlap between MOOSE elements and OpenMC cells for the specified blocks!"
     requirement = "The system shall error if the MOOSE blocks and OpenMC cells don't overlap"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [skipping_moose_feedback]
     type = RunException
@@ -27,7 +27,7 @@
     cli_args = '--error'
     expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
     requirement = "The system shall print a warning if some MOOSE elements are unmapped"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_phases]
     type = RunException
@@ -38,21 +38,21 @@
                  "  3486  elements with both temperature and density feedback\n"
                  "     0  uncoupled elements"
     requirement = "The system shall error if one OpenMC cell maps to more than one type of feedback"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tally_settings]
     type = RunException
     input = multiple_tally_settings.i
     expect_err = "cell id 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'block', but block 200 is not."
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [absent_solid_block]
     type = RunException
     input = absent_solid_block.i
     expect_err = "Feedback was specified using 'temperature_blocks' and/or 'density_blocks', but no MOOSE elements mapped to OpenMC cells!"
     requirement = "The system shall error if the user sets feedback blocks, but none of the elements map to OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [unequal_volumes]
     type = RunException
@@ -61,6 +61,6 @@
                  " cell id 1, instance 0 \(of 1\) maps to a volume of 13.2213 \(cm3\)\n"
                  " cell id 2, instance 0 \(of 1\) maps to a volume of 10.6346 \(cm3\)."
     requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

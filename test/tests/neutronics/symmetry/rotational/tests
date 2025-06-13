@@ -4,7 +4,7 @@
     input = solid_mesh.i
     cli_args = '--mesh-only'
     requirement = "The system shall create the mesh mirror for later steps of these tests"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [symmetry_sector]
     type = CSVDiff
@@ -12,6 +12,6 @@
     csvdiff = openmc_out.csv
     prereq = generate_mesh
     requirement = "The system shall correctly reflect points about a partial symmetry sector"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -7,7 +7,7 @@
     input = cell.i
     exodiff = cell_out.e
     requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [adaptive_mesh]
     type = Exodiff
@@ -15,7 +15,7 @@
     exodiff = mesh_out.e
     mesh_mode = 'replicated'
     requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [adaptive_mesh_template]
     type = RunException
@@ -25,7 +25,7 @@
     expect_err = "Adaptivity is not supported when loading a mesh from 'mesh_template'!"
     requirement = "The system shall error if adaptivity is active and tallying on a mesh template instead of the"
                    " mesh block."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [adaptive_relaxation]
     type = RunException
@@ -34,7 +34,7 @@
     expect_err = "When adaptivity is requested or a displaced problem is used, the mapping from the "
                  "OpenMC model to the \[Mesh\] may vary in time."
     requirement = "The system shall error if adaptivity is active and a relaxation scheme is requested."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []
 
@@ -48,7 +48,7 @@
     exodiff = unchanged_mesh_out.e
     mesh_mode = 'replicated'
     requirement = "The system shall skip running OpenMC when the mesh is unchanged by adaptivity."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [skip_openmc_unchanged_picard]
     type = Exodiff
@@ -57,6 +57,6 @@
     requirement = "The system shall run OpenMC on the first Picard iteration regardless of the mesh being previously"
                   "unchanged by adaptivity. This test relies on noise in the solution; if OpenMC runs more than once"
                   "per Picard iteration the PRNG seed changes and so the tally results will be different."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -6,6 +6,6 @@
     requirement = "The system shall error if the specified coordinate level for a phase is within the "
                   "maximum coordinate levels across the OpenMC domain, but invalid for the particular "
                   "region of the geometry."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

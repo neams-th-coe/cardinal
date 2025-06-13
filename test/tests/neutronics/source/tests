@@ -11,6 +11,6 @@
     prereq = mesh
     check_files = 'initial_source_0.h5 initial_source_1.h5 initial_source_2.h5'
     requirement = "The correct source files shall be created when re-using the source between iterations"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

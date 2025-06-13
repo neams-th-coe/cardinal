@@ -5,7 +5,7 @@
     csvdiff = no_coupling_out.csv
     requirement = "The system shall allow a mesh tally for coupling OpenMC, without any physics feedback."
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [one_mesh]
     type = Exodiff
@@ -17,7 +17,7 @@
     max_parallel = 32
     requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
                   "a local tally when a single mesh is used."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [one_mesh_no_input_file]
     type = Exodiff
@@ -30,7 +30,7 @@
     requirement = "This test is nearly identical to one_mesh. The difference lies in having no mesh_template "
                   "in the input file. Without one, the system should be able to directly tally on a moose "
                   "mesh instead of a file "
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [moose_mesh_tally_distributed]
     type = RunException
@@ -40,7 +40,7 @@
                  "for distributed meshes!"
     requirement = "The system shall error if attempting to directly tally on a MOOSE mesh that is "
                   "distributed, since all meshes are always replicated in OpenMC."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [scaling]
     type = RunException
@@ -48,7 +48,7 @@
     cli_args = 'Problem/scaling=2.0'
     expect_err = "Directly tallying on the \[Mesh\] is only supported for 'scaling' of unity."
     requirement = "The system shall error if attempting to directly tally on a MOOSE mesh that has a scaling not equal to 1.0."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [one_mesh_global]
     type = Exodiff
@@ -61,7 +61,7 @@
                   "a global tally when a single mesh is used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [block_restrict]
     type = Exodiff
@@ -71,7 +71,7 @@
     # on a particular process
     max_parallel = 32
     requirement = "Mesh tallies shall allow for block restrictions to be applied."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_meshes]
     type = Exodiff
@@ -82,7 +82,7 @@
     max_parallel = 32
     requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
                   "a local tally when multiple identical meshes are used."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_meshes_global]
     type = Exodiff
@@ -95,7 +95,7 @@
                   "a global tally when multiple identical meshes are used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [different_units]
     type = Exodiff
@@ -106,7 +106,7 @@
     max_parallel = 32
     requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
                   "when the tally mesh template is in units of centimeters."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [different_units_and_translations]
     type = Exodiff
@@ -119,7 +119,7 @@
                   "when the tally mesh template and translations are in units of centimeters. "
                   "The output was compared against the multiple_meshes case, which used an input "
                   "entirely specified in terms of centimeters."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [fission_tally_std_dev]
     type = CSVDiff
@@ -130,7 +130,7 @@
     max_parallel = 32
     requirement = "The fission tally standard deviation shall be output correctly for unstructured "
                   "mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [disable_renumbering]
     type = RunException
@@ -138,7 +138,7 @@
     cli_args = 'Mesh/allow_renumbering=true --distributed-mesh'
     expect_err = "Mesh tallies currently require 'allow_renumbering = false' to be set in the \[Mesh\]!"
     requirement = "Mesh tallies shall temporarily require disabled renumbering until capability is available"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [file_mesh_block_restrict]
     type = RunException
@@ -146,7 +146,7 @@
     cli_args = 'Problem/Tallies/Mesh/block=100'
     expect_err = "Block restriction is currently not supported for mesh tallies which load a mesh from a file!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction when using a mesh template."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [block_restrict_no_blocks]
     type = RunException
@@ -154,6 +154,6 @@
     cli_args = "Problem/Tallies/Mesh/block='' Mesh/parallel_type=replicated"
     expect_err = "Subdomain names must be provided if using 'block'!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

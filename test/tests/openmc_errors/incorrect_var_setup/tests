@@ -5,6 +5,6 @@
     expect_err = "This auxkernel can only be used with elemental variables!"
     requirement = "The system shall error if a auxkernel that queries OpenMC data structures is not used "
                   "with the correct variable type."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

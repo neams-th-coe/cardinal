@@ -5,6 +5,6 @@
     expect_err = "TallyRelativeError can only be used with problems of type 'OpenMCCellAverageProblem'!"
     requirement = "The system shall error if an OpenMC object is used without the correct "
                   "OpenMC wrapped problem."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

@@ -41,7 +41,7 @@
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way. This test runs OpenMC and heat conduction for one step."
     prereq = 'solid_mesh fluid_mesh_to_hex20'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [nek]
     type = RunApp
@@ -52,6 +52,6 @@
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way. This test runs heat conduction and NekRS for one step."
     prereq = 'solid_mesh'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

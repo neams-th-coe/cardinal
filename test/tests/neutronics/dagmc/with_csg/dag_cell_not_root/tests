@@ -7,6 +7,6 @@
     requirement = "The system shall error if the cell containing the DAGMC universe is not contained in the "
                   "root universe. If so, we cannot guarantee that the DAGMC geometry is not replicated and "
                   "the skinner may produce an incorrect skin."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

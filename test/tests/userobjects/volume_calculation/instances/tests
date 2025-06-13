@@ -5,14 +5,14 @@
     cli_args = '--error'
     expect_err = "OpenMC's stochastic volume calculation cannot individually measure volumes of cell INSTANCES."
     requirement = "The system shall warn the user if encountering volume calculations needing instance-level granularity, since this is not available yet in OpenMC itself."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [instances]
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall map from a stochastic volume calculation to MOOSE for repeated cell instances"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [rel_err_trigger]
     type = CSVDiff
@@ -20,6 +20,6 @@
     csvdiff = rel_err_out.csv
     cli_args = 'UserObjects/vol/trigger=rel_err UserObjects/vol/trigger_threshold=1e-2 Outputs/file_base=rel_err_out'
     requirement = "The system shall terminate the stochastic volume calculation using a relative error metric."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

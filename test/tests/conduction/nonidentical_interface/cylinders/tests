@@ -19,7 +19,7 @@
                   "used in this test, the errors in temperature are less than 0.5%."
                   "As the BISON mesh is refined, the error continually decreases until the temperatures "
                   "are very close to those predicted by the standalone MOOSE case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [cylinder_conduction_subcycle]
     type = CSVDiff
@@ -34,7 +34,7 @@
                   "1e-3 different from those for the cylinder_conduction case, so the simulation process "
                   "is equivalent. We don't use exactly the same CSV gold file because the number of time steps "
                   "differs, and would trigger a failure."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [cylinder_conduction_reversed]
     type = CSVDiff
@@ -46,7 +46,7 @@
                   "against those for the cylinder_conduction case, which match wo within 1e-5. We don't use "
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [cylinder_conduction_mini]
     type = CSVDiff
@@ -58,7 +58,7 @@
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [cylinder_conduction_exact]
     type = CSVDiff
@@ -67,6 +67,6 @@
     min_parallel = 8
     requirement = "The system shall support an exact NekRS mesh mirror. The solution is compared against "
                   "the cylinder_conduction case and nearly identical solutions are obtained."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

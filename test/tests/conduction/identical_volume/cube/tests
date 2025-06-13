@@ -19,6 +19,6 @@
                   "side- and volume-averaged temperature, as well as maximum temperature, match the "
                   "MOOSE standalone case to within 0.1%. To keep the gold files small here, this test "
                   "is only performed on a 10x10x10 nekRS mesh."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -5,7 +5,7 @@
     csvdiff = k_std_dev_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "k standard deviation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [k_std_dev_cutoff]
     type = CSVDiff
@@ -14,7 +14,7 @@
     csvdiff = k_std_dev_cutoff_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k standard deviation unless first reaching a maximum number of batches."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [k_variance]
     type = CSVDiff
@@ -23,7 +23,7 @@
     csvdiff = k_variance_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k variance."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [k_rel_err]
     type = CSVDiff
@@ -32,7 +32,7 @@
     csvdiff = k_rel_err_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k relative error."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [tally_rel_err]
     type = CSVDiff
@@ -40,7 +40,7 @@
     csvdiff = tally_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error with cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [tally_rel_err_collision]
     type = CSVDiff
@@ -48,7 +48,7 @@
     cli_args = "Outputs/file_base=collision_out Problem/Tallies/Cell/estimator=collision"
     csvdiff = collision_out.csv
     requirement = "The system shall allow the user to customize the tally estimator for cell tallies"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [mesh_tally_rel_err]
     type = CSVDiff
@@ -56,7 +56,7 @@
     csvdiff = mesh_tally_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error with mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_rel_err]
     type = CSVDiff
@@ -64,7 +64,7 @@
     csvdiff = multi_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error when applying the same trigger to multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [length_trigger]
     type = RunException
@@ -72,7 +72,7 @@
     cli_args = 'Problem/Tallies/Cell/trigger="rel_err"'
     requirement = "The system shall enforce correct trigger length"
     expect_err = "'trigger' \(size 1\) must have the same length as 'score' \(size 2\)"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [length_threshold]
     type = RunException
@@ -80,7 +80,7 @@
     cli_args = 'Problem/Tallies/Cell/trigger_threshold="1e-2"'
     requirement = "The system shall enforce correct trigger threshold length"
     expect_err = "'trigger_threshold' \(size 1\) must have the same length as 'score' \(size 2\)"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_diff_rel_err]
     type = CSVDiff
@@ -89,7 +89,7 @@
     cli_args = 'Outputs/file_base=diff_out Problem/Tallies/Cell/trigger_threshold="1e-2 5e-2"'
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error when applying a different trigger to multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_diff_rel_err_b]
     type = CSVDiff
@@ -98,6 +98,6 @@
     cli_args = 'Outputs/file_base=diffb_out Problem/Tallies/Cell/trigger_threshold="5e-2 1e-2"'
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error when applying a different trigger to multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

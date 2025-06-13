@@ -48,6 +48,10 @@
     source_variable = u
     variable = u_mesh_function
     to_multi_app = sub
+
+    # uses extrapolation to set the local value at any points which are missed due to the
+    # geometries not overlapping in some regions
+    error_on_miss = false
   []
   [nearest_node]
     type = MultiAppGeneralFieldNearestLocationTransfer

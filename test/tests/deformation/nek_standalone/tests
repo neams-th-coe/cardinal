@@ -9,7 +9,7 @@
                   "changing, whereas the volume/area in MOOSE will not change because we currently do not "
                   "send displacements from NekRS to MOOSE."
     mesh_mode = 'replicated'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [boundary]
     type = CSVDiff
@@ -21,6 +21,6 @@
                   "changing, whereas the volume/area in MOOSE will not change because we currently do not "
                   "send displacements from NekRS to MOOSE."
     mesh_mode = 'replicated'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

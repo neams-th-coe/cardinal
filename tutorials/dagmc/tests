@@ -10,7 +10,7 @@
     input = openmc.i
     cli_args = 'Problem/batches=100 Problem/inactive_batches=50 Executioner/num_steps=1 Problem/particles=500'
     requirement = "The system shall run DAGMC on a pincell."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [coupled]
     type = CSVDiff
@@ -18,6 +18,6 @@
     csvdiff = solid_out_openmc0.csv
     prereq = mesh
     requirement = 'The system shall couple DAGMC OpenMC models to MOOSE.'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

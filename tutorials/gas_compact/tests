@@ -18,7 +18,7 @@
     cli_args = 'Problem/particles=100 Problem/inactive_batches=10 Problem/batches=20 Executioner/num_steps=2 Outputs/file_base=without_opt/openmc_out'
     min_parallel = 2
     requirement = 'The system shall couple OpenMC to a solid heat conduction model for a TRISO compact. This run creates an output file without the identical-cell-fills optimization, for later user in the gas_compact test.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [gas_compact]
     type = CSVDiff
@@ -31,6 +31,6 @@
     requirement = 'The system shall couple OpenMC to a solid heat conduction model for a TRISO compact. The gold '
                   'files were created for an input that did not leverage the TRISO optimization, so here we also '
                   'prove that the identical_cell_fills option works properly.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

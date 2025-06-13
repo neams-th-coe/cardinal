@@ -7,7 +7,7 @@
     requirement = "The system shall allow the Nek user objects to only evaluate on a fixed interval "
                   "of time steps. The gold files were created by setting interval = 1 to ensure that "
                   "the output files are exactly identical at the specified interval steps."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [interval_synchronization]
     type = CSVDiff
@@ -16,6 +16,6 @@
     requirement = "The system shall allow the Nek to mesh-mirror interpolation to only occur on a fixed interval "
                   "of time steps. The gold files were created by setting interval = 1 to ensure that "
                   "the output files are exactly identical at the specified interval steps."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

@@ -13,6 +13,6 @@
 
     requirement = "A coupled MOOSE-nekRS pebble flow problem shall predict physically realistic "
                   "conjugate heat transfer."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

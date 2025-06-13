@@ -5,6 +5,6 @@
     check_files = 'avgturbPipe0.f00001 rm2turbPipe0.f00001 rmsturbPipe0.f00001 avgturbPipe0.f00002 rm2turbPipe0.f00002 rmsturbPipe0.f00002'
     min_parallel = 4
     requirement = "The correct output file writing sequence shall occur when relying on nrs->isOutputStep"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

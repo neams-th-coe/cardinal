@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall allow the number of particles run by OpenMC to be extracted as a postprocessor"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

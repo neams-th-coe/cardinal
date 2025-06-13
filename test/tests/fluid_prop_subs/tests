@@ -3,36 +3,36 @@
     type = RunApp
     input = sodium.i
     requirement = "Cardinal shall be able to use fluid properties from the sodium submodule (in a master app)."
-    required_applications = 'SodiumApp'
+    capabilities = 'sodiumapp'
   [../]
   [./potassium]
     type = RunApp
     input = potassium.i
     requirement = "Cardinal shall be able to use fluid properties from the potassium submodule (in a master app)."
-    required_applications = 'PotassiumApp'
+    capabilities = 'potassiumapp'
   [../]
   [./iapws95]
     type = RunApp
     input = iapws95.i
     requirement = "Cardinal shall be able to use fluid properties from the IAPWS95 submodule (in a master app)."
-    required_applications = 'IAPWS95App'
+    capabilities = 'iapws95app'
   [../]
   [./sodium_sub]
     type = RunApp
     input = sodium_master.i
     requirement = "Cardinal shall be able to use fluid properties from the sodium submodule (in a sub app)."
-    required_applications = 'SodiumApp'
+    capabilities = 'sodiumapp'
   [../]
   [./potassium_sub]
     type = RunApp
     input = potassium_master.i
     requirement = "Cardinal shall be able to use fluid properties from the potassium submodule (in a sub app)."
-    required_applications = 'PotassiumApp'
+    capabilities = 'potassiumapp'
   [../]
   [./iapws95_sub]
     type = RunApp
     input = iapws95_master.i
     requirement = "Cardinal shall be able to use fluid properties from the IAPWS95 submodule (in a sub app)."
-    required_applications = 'IAPWS95App'
+    capabilities = 'iapws95app'
   [../]
 []

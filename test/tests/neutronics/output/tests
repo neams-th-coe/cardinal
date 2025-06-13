@@ -5,7 +5,7 @@
     csvdiff = cell_rel_error_out.csv
     cli_args = 'Problem/Tallies/Cell/output=unrelaxed_tally_rel_error Postprocessors/total_flux/variable=flux_rel_error Outputs/file_base=cell_rel_error_out'
     requirement = "The system shall allow for the output of the unrelaxed tally relative error for cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [unrelaxed_tally_rel_error_mesh]
     type = CSVDiff
@@ -14,6 +14,6 @@
     cli_args = 'Problem/Tallies/Mesh/output=unrelaxed_tally_rel_error Postprocessors/total_flux/variable=flux_rel_error Outputs/file_base=mesh_rel_error_out'
     mesh_mode = 'replicated'
     requirement = "The system shall allow for the output of the unrelaxed tally relative error for mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

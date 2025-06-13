@@ -5,7 +5,7 @@
     exodiff = nek_out.e
     requirement = "Multiple 1-D layered bins shall be combined to give a multi-dimensional binning "
                   "and demonstrate correct results for volume integrals and averages."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [conflicting_bins]
     type = RunException
@@ -13,7 +13,7 @@
     expect_err = "Cannot combine multiple distributions in the same coordinate direction!\n"
                  "Bin 'x_bins2' conflicts with bin 'x_bins'"
     requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [1d_output]
     type = CSVDiff
@@ -21,14 +21,14 @@
     csvdiff = '1d_out_from_uo_0002.csv 1d_out_from_uo_gap_0002.csv'
     requirement = "The output points shall be automatically output for a 1-D Cartesian volume distribution "
                   "and a 1-D Cartesian surface distribution."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [3d_output]
     type = CSVDiff
     input = 3d.i
     csvdiff = 3d_out_from_uo_0002.csv
     requirement = "The output points shall be automatically output for a 3-D Cartesian distribution."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [bins_too_fine]
     type = RunException
@@ -36,6 +36,6 @@
     cli_args = 'UserObjects/z_bins/num_layers=1000'
     expect_err = 'Failed to map any element centroids to bin 0!'
     requirement = 'System shall error if no points map to a spatial bin'
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

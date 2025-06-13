@@ -5,7 +5,7 @@
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     requirement = "Temperatures, densities, and a heat source shall be coupled between OpenMC "
                   "and MOOSE and a solid pincell model."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [pincell_null_fixed_mesh]
     type = Exodiff
@@ -14,6 +14,6 @@
     cli_args = 'MultiApps/openmc/cli_args="Problem/fixed_mesh=false"'
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

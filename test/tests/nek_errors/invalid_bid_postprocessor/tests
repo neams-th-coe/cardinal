@@ -12,6 +12,6 @@
                  "Did you enter a valid 'boundary' in 'nek.i'?"
     requirement = "MOOSE shall throw an error if an invalid boundary is specified for the construction "
                   "of nekRS's mesh as a MooseMesh."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

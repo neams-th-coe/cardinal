@@ -4,6 +4,6 @@
     input = cardinal_master.i
     requirement = "Cardinal shall be able to run Sockeye as a sub-application without any data transfers. "
                   "This test just ensures correct setup of Sockeye as a submodule with app registration."
-    required_applications = 'SockeyeApp'
+    capabilities = 'sockeyeapp'
   []
 []

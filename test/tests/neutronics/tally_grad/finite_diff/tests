@@ -8,7 +8,7 @@
     exodiff = 'openmc_out.e'
     requirement = 'The system shall allow for the approximation of tally gradients using finite differences.'
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [not_const_mon]
     type = RunException
@@ -17,7 +17,7 @@
     requirement = 'The system shall error if the variable provided to FDTallyGradAux is not of type CONSTANT MONOMIAL_VEC.'
     expect_err = 'FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions.'
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_score]
     type = RunException
@@ -26,7 +26,7 @@
     requirement = 'The system shall error if a score is requested, but not available in a tally.'
     expect_err = 'The problem does not contain any score named fission!'
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [invalid_bin_index]
     type = RunException
@@ -35,6 +35,6 @@
     requirement = 'The system shall error if the external filter bin provided by the user is out of bounds for the filters applied to the given score.'
     expect_err = 'The external filter bin provided is invalid'
     mesh_mode = 'replicated'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

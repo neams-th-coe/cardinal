@@ -3,14 +3,14 @@
     type = RunApp
     input = graveyard.i
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [convert_to_gmsh]
     type = RunCommand
     prereq = graveyard
     command = '../../../../../install/bin/mbconvert moab_skins_0.h5m skins.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
     installation_type = in_tree
     use_shell = True
   []

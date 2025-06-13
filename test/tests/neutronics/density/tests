@@ -4,7 +4,7 @@
     input = openmc.i
     exodiff = openmc_out.e
     requirement = "The system shall allow arbitrary combination of density-only, temperature-only, both, or no coupling. The file was compared against a standalone OpenMC run and gave identical values for k."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [warn_T_rho]
     type = RunException
@@ -12,7 +12,7 @@
     cli_args = 'Mesh/scale/vector_value="50.0 0.0 0.0" --error'
     expect_err = "The \[Mesh\] has 86 elements providing temperature and density feedback \(the elements in the intersection of 'temperature_blocks' and 'density_blocks'\), but only 0 got mapped to OpenMC cells."
     requirement = "The system shall give a warning when T+rho feedback is specified, but not all specified elements mapped into OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [warn_T]
     type = RunException
@@ -20,7 +20,7 @@
     cli_args = 'Mesh/scale/vector_value="-50.0 0.0 0.0" --error'
     expect_err = "The \[Mesh\] has 94 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 0 got mapped to OpenMC cells."
     requirement = "The system shall give a warning when T feedback is specified, but not all specified elements mapped into OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [warn_rho]
     type = RunException
@@ -28,6 +28,6 @@
     cli_args = 'Mesh/scale/vector_value="0.0 -25.0 0.0" --error'
     expect_err = "The \[Mesh\] has 102 elements providing density feedback \(the elements in 'density_blocks'\), but only 0 got mapped to OpenMC cells."
     requirement = "The system shall give a warning when rho feedback is specified, but not all specified elements mapped into OpenMC"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

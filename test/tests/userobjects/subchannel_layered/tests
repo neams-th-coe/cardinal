@@ -4,14 +4,14 @@
     input = type_error.i
     expect_err = "Bin user object with name 'dummy' must inherit from SpatialBinUserObject."
     requirement = "The system shall error if the userobjects aren't derived from the correct base class."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [ordering_error]
     type = RunException
     input = order_error.i
     expect_err = "Bin user object with name 'subchannel_binning' not found in problem. The user objects in 'bins' must be listed before the 'vol_avg' user object."
     requirement = "The system shall error if the userobjects aren't listed in the correct order in the input file."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [subchannel_layered]
     type = Exodiff
@@ -19,7 +19,7 @@
     exodiff = 'nek_out.e nek_out_subchannel0.e'
     requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for volume integrals and averages."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [conflicting_bins]
     type = RunException
@@ -27,21 +27,21 @@
     expect_err = "Cannot combine multiple distributions in the same coordinate direction!\n"
                  "Bin 'x_bins' conflicts with bin 'subchannel_binning'"
     requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [1d_output]
     type = CSVDiff
     input = 1d.i
     csvdiff = 1d_out_from_uo_0002.csv
     requirement = "The output points shall be automatically output for a single-axis subchannel binning"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [wrong_type]
     type = RunException
     input = wrong_type.i
     expect_err = "This user object requires all bins to be volume distributions"
     requirement = "System shall error if a side user object is provided to a volume binning user object."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_component]
     type = RunException
@@ -49,7 +49,7 @@
     cli_args = "UserObjects/vol_avg/field=velocity_component UserObjects/vol_avg/velocity_component=normal"
     expect_err = "Setting 'velocity_component = normal' is not supported"
     requirement = "System shall error if attempting to use a normal velocity component with a user object that does not have normals defined"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [user_component]
     type = Exodiff
@@ -58,13 +58,13 @@
     requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for volume averages of velocity projected "
                   "along a constant direction."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [pin_1d]
     type = CSVDiff
     input = pin_1d.i
     csvdiff = pin_1d_out_from_uo_0002.csv
     requirement = "A pin-centered subchannel bin shall give correct results for side averages of temperature."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []
