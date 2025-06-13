@@ -12,6 +12,6 @@
                   "sidesets being 4.0. The areas across the main and sub-app should match"
                   "exactly, provided we are using Gauss Lobatto quadrature for MOOSE's area"
                   "post-processors, in order to match NekRS's GLL quadrature."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

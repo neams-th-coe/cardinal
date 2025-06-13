@@ -4,13 +4,13 @@
     input = reflection.i
     exodiff = reflection_out.e
     requirement = "The OpenMC wrapping shall allow visualization of point reflection transformations"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [rotation]
     type = Exodiff
     input = rotation.i
     exodiff = rotation_out.e
     requirement = "The OpenMC wrapping shall allow visualization of rotation transformations"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

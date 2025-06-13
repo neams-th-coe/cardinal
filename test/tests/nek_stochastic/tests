@@ -9,7 +9,7 @@
                   "The values of the random variables are used to fill SCALAR02 with a constant value, which we "
                   "then measure by outputting the scalar and applying postprocessors to it. This confirms that "
                   "the random data we send to NekRS does correctly make it to device"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [driver_multi_fld]
     type = CheckFiles
@@ -25,7 +25,7 @@
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique "
                   "NekRS field files for each. By limiting this test to fewer MPI ranks than Apps, we "
                   "also check that we still get the correct naming scheme"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [read0]
     type = CSVDiff
@@ -38,7 +38,7 @@
                   "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
                   "and read2 tests) tests as initial conditions "
                   "and check that the values of the loaded fields match the stochastic values sent there."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [read1]
     type = CSVDiff
@@ -52,7 +52,7 @@
                   "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
                   "and read2 tests) tests as initial conditions "
                   "and check that the values of the loaded fields match the stochastic values sent there."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [read2]
     type = CSVDiff
@@ -66,6 +66,6 @@
                   "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
                   "and read2 tests) tests as initial conditions "
                   "and check that the values of the loaded fields match the stochastic values sent there."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

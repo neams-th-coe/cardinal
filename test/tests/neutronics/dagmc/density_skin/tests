@@ -7,7 +7,7 @@
                   "by density as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [disjoint_bins]
     type = Exodiff
@@ -17,7 +17,7 @@
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory. For this case, a bin is split across disjoint elements."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [cannot_skin_solid]
     type = RunException
@@ -25,6 +25,6 @@
     expect_err = "Detected inconsistent settings for density skinning and 'density_blocks'"
     requirement = "The system shall error if attempting to apply density skinning without any fluid blocks ready to receive variable density."
     mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

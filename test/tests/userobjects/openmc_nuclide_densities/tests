@@ -6,7 +6,7 @@
     expect_err = 'In attempting to get the material index for material with ID 3, OpenMC reported:\n\n'
                  'No material exists with ID=3.'
     requirement = 'The system shall error if trying to change nuclide densities for a non-existing material ID.'
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [nonexistent_nuclide]
     type = RunException
@@ -15,7 +15,7 @@
     expect_err = "In attempting to set nuclide densities in the 'mat1' UserObject, OpenMC reported:\n\n"
                  "Nuclide 'fake' is not present in library."
     requirement = "The system shall error if trying to add a nuclide not accessible in the cross section library."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_change]
     type = CSVDiff
@@ -23,7 +23,7 @@
     csvdiff = no_change_out.csv
     requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide compositions "
                   "are modified, but are still set to their initial values."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_composition_change]
     type = CSVDiff
@@ -31,21 +31,21 @@
     csvdiff = only_density_out.csv
     requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities "
                   "are modified, but there are no nuclides added or removed."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [thermal_density]
     type = CSVDiff
     input = thermal_density.i
     csvdiff = thermal_density_out.csv
     requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities and nuclides are modified, after which the total density is modified due to thermal effects."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [nuclide_and_density]
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities and nuclides are modified."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [different_length]
     type = RunException
@@ -53,6 +53,6 @@
     cli_args = 'UserObjects/mat1/names="a b" UserObjects/mat1/densities="1.0"'
     expect_err = "'names' and 'densities' must be the same length!"
     requirement = "The system shall error if inconsistent lengths for names and densities are provided."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

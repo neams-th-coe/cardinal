@@ -14,6 +14,6 @@
                   "the 'visnek' script needs to be run to get the nekRS output results into the "
                   "exodus format. A heat conduction simulation performed with MOOSE over the combined nekRS-MOOSE "
                   "domain in the 'moose.i' input file also matches the coupled results very well."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

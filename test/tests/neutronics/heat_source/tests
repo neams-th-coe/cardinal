@@ -9,7 +9,7 @@
     max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [from_postprocessor]
     type = Exodiff
@@ -24,7 +24,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The power shall be provided by a postprocessor"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [overlap_solid]
     type = CSVDiff
@@ -36,7 +36,7 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the solid phase."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [custom_name]
     type = CSVDiff
@@ -47,7 +47,7 @@
     max_parallel = 8
     requirement = "The system shall allow the user to specify a custom tally variable name. This test is "
                   "identical to the overlap_solid test, but with a different name for the auxiliary variable."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [overlap_fluid]
     type = CSVDiff
@@ -59,7 +59,7 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the fluid phase."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [partial_overlap_openmc_union]
     type = CSVDiff
@@ -71,7 +71,7 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all MOOSE "
                   "elements map to OpenMC cells, but some OpenMC cells are not mapped."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [partial_overlap_moose_union_msg]
     type = RunException
@@ -80,7 +80,7 @@
     expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
     requirement = "A warning shall be printed if any portion of the MOOSE solid blocks did not "
                   "get mapped to OpenMC cells."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [partial_overlap_moose_union]
     type = CSVDiff
@@ -92,7 +92,7 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all OpenMC "
                   "cells map to MOOSE elements, but some MOOSE elements are not mapped."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [default_tally_blocks]
     type = Exodiff
@@ -105,7 +105,7 @@
     requirement = "For single-level geometries, tallies shall be added to all MOOSE blocks "
                   "if tally blocks are not specified. The gold file for this test is simply "
                   "a copy of overlap_all_out.e."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [cell_volumes]
     type = Exodiff
@@ -116,7 +116,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The mapped cell volumes shall be correctly computed by the wrapping."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally]
     type = CSVDiff
@@ -126,7 +126,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally_local]
     type = CSVDiff
@@ -136,7 +136,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally_local_assume_separate]
     type = CSVDiff
@@ -147,7 +147,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally with the spatial separate assumption."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally_global]
     type = CSVDiff
@@ -158,7 +158,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally_global_mesh]
     type = CSVDiff
@@ -168,7 +168,7 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally for mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally_local_mesh]
     type = CSVDiff
@@ -179,6 +179,6 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally for mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

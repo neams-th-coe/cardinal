@@ -4,7 +4,7 @@
     input = nek.i
     csvdiff = nek_out.csv
     requirement = "The system shall correctly compute the Reynolds and Peclet numbers for a dimensional NekRS case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [ranks]
     type = CSVDiff
@@ -12,6 +12,6 @@
     csvdiff = ranks_out.csv
     min_parallel = 3
     requirement = "The system shall correctly output the number of NekRS MPI ranks"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

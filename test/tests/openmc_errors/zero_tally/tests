@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall allow a global tally to be zero."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

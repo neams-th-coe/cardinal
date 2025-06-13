@@ -5,6 +5,6 @@
     expect_err = "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal"
     requirement = "MOOSE shall throw an error if the user attempts to allocate the scratch space "
                   "arrays in NekRS, since they are automatically allocated by Cardinal."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

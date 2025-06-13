@@ -7,21 +7,21 @@
     input = all_mgxs_cell.i
     csvdiff = all_mgxs_cell_out.csv
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using mapped distributed cell tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [l0_scatter_no_tc]
     type = CSVDiff
     input = all_mgxs_cell_l0.i
     csvdiff = all_mgxs_cell_l0_out.csv
     requirement = "The system shall be capable of generating L = 0 scattering cross sections without a transport correction."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [l1_scatter]
     type = CSVDiff
     input = all_mgxs_cell_l1.i
     csvdiff = all_mgxs_cell_l1_out.csv
     requirement = "The system shall be capable of generating L > 0 scattering MGXS generation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [collision]
     type = CSVDiff
@@ -29,7 +29,7 @@
     cli_args = "Problem/MGXS/estimator='collision' Outputs/file_base='collision_out'"
     csvdiff = collision_out.csv
     requirement = "The system shall be capable of generating certain multi-group cross sections with a collision estimator."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [tracklength]
     type = CSVDiff
@@ -37,7 +37,7 @@
     cli_args = "Problem/MGXS/estimator='tracklength' Outputs/file_base='tracklength_out'"
     csvdiff = tracklength_out.csv
     requirement = "The system shall be capable of generating certain multi-group cross sections with a tracklength estimator."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [all_mesh]
     type = CSVDiff
@@ -45,14 +45,14 @@
     csvdiff = all_mgxs_mesh_out.csv
     mesh_mode = 'replicated'
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types using unstructured mesh tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [hide_tally_vars]
     type = Exodiff
     input = hide_tally_vars.i
     exodiff = hide_tally_vars_out.e
     requirement = "The system shall be hide tally variables added for MGXS generation unless requested by the user."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [electron]
     type = RunException
@@ -60,7 +60,7 @@
     cli_args = "Problem/MGXS/particle='electron'"
     expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
     requirement = "The system shall error if the user requests electron cross sections."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [positron]
     type = RunException
@@ -68,7 +68,7 @@
     cli_args = "Problem/MGXS/particle='positron'"
     expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
     requirement = "The system shall error if the user requests positron cross sections."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [photon_fission_xs]
     type = RunException
@@ -76,7 +76,7 @@
     cli_args = "Problem/MGXS/particle='photon' Problem/MGXS/add_fission_heating='false'"
     expect_err = "Multi-group fission cross sections"
     requirement = "The system shall error if the user requests photon cross sections and includes fission."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [photon_fission_heating]
     type = RunException
@@ -84,7 +84,7 @@
     cli_args = "Problem/MGXS/particle='photon' Problem/MGXS/add_fission='false'"
     expect_err = "Multi-group fission heating"
     requirement = "The system shall error if the user requests photon cross sections and includes fission."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [l1_scatter_with_transport_corr]
     type = RunException
@@ -92,7 +92,7 @@
     cli_args = "--error Problem/MGXS/transport_correction=true"
     expect_err = "Transport-corrected scattering cross sections can only be used with isotropic scattering"
     requirement = "The system shall warn the user if they request transport corrected scattering cross sections with L > 0."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [error_mesh_with_tracklength]
     type = RunException
@@ -100,7 +100,7 @@
     cli_args = "--error Problem/MGXS/estimator='tracklength'"
     expect_err = "You've selected an unstructured mesh tally discretization"
     requirement = "The system shall warn the user if they select a mesh tally and request a tracklength estimator."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [error_non_analog]
     type = RunException
@@ -109,6 +109,6 @@
     expect_err = "You've requested the generation of scattering"
     requirement = "The system shall warn the user if they wish to generate scattering / fission / diffusion group properties"
                   " without an analog estimator."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

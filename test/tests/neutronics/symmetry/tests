@@ -4,7 +4,7 @@
     input = solid_mesh.i
     cli_args = '--mesh-only'
     requirement = "The system shall create the mesh mirror for later steps of these tests"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [symmetry_plane]
     type = CSVDiff
@@ -12,7 +12,7 @@
     csvdiff = openmc_out.csv
     prereq = generate_mesh
     requirement = "The system shall correctly reflect points about a symmetry plane"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [wrong_uo]
     type = RunException
@@ -20,6 +20,6 @@
     prereq = generate_mesh
     expect_err = "The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!"
     requirement = "The system shall error if the symmetry mapper is not of the correct type"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

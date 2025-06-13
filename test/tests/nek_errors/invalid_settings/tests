@@ -8,7 +8,7 @@
     expect_err = "A 'Transient' executioner must be used with NekRSProblem, but you have specified the 'Steady' executioner!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct executioner."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [dimensionalize]
     type = RunException
@@ -16,7 +16,7 @@
     expect_err = "The \[Dimensionalize\] block can only be used with wrapped Nek cases!"
     requirement = "The system shall error if the Dimensionalize action is not paired with the correct problem."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [mesh]
     type = RunException
@@ -24,7 +24,7 @@
     expect_err = "The mesh for NekRSProblem must be of type 'NekRSMesh', but you have specified a 'GeneratedMesh'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [problem_base]
     type = RunException
@@ -32,7 +32,7 @@
     expect_err = "NekBinnedVolumeAverage can only be used with NekRS-wrapped cases!"
     requirement = "The system shall error if a Nek object is not paired with the correct problem."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [problem_mesh]
     type = RunException
@@ -41,7 +41,7 @@
     requirement = "The system shall error if a NekRSMesh is used without a corresponding Nek-wrapped"
                   "problem."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [timestepper]
     type = RunException
@@ -50,7 +50,7 @@
                  "but you have specified the 'ConstantDT' time stepper!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [missing_flux_bc]
     type = RunException
@@ -59,7 +59,7 @@
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [boundary_id]
     type = RunException
@@ -70,7 +70,7 @@
     requirement = "MOOSE shall throw an error if an invalid boundary is specified for the construction "
                   "of nekRS's mesh as a MooseMesh."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [scaling_mismatch]
     type = RunException
@@ -78,6 +78,6 @@
     expect_err = "If solving NekRS in nondimensional form, you must choose reference dimensional scales in the same units as expected by MOOSE,"
     requirement = "The system shall error if there is a mismatch between the scaling of the mesh and NekRS problem."
     max_parallel = 12
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

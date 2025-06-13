@@ -4,6 +4,6 @@
     input = cardinal_master.i
     requirement = "Cardinal shall be able to run SAM as a sub-application without any data transfers. "
                   "This test just ensures correct setup of SAM as a submodule with app registration."
-    required_applications = 'SamApp'
+    capabilities = 'samapp'
   []
 []

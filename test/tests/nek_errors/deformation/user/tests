@@ -2,15 +2,15 @@
   [displacements]
     type = RunException
     input = nek.i
-    required_objects = 'NekRSProblem'
     expect_err = "Moving mesh problems require 'displacements' in the \[Mesh\] block!"
+    capabilities = 'nekrs'
     requirement = "The system shall error if NekRSMesh is not paired with displacements for moving mesh problems."
   []
   [volume_for_user_solver]
     type = RunException
     input = nek.i
     cli_args = "Mesh/volume=false Mesh/displacements='disp_x disp_y disp_z'"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     expect_err ="'user.par' has 'solver = user' in the"
     requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror."
   []

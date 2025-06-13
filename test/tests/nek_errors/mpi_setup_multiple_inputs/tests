@@ -12,6 +12,6 @@
 
     expect_err = "NekRS does not currently support setting up multiple cases with the same MPI communicator."
     requirement = "The system shall error if the same MPI communicator is used to set up more than one Nek case."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

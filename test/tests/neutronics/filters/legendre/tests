@@ -7,7 +7,7 @@
     input = cell.i
     csvdiff = cell_out.csv
     requirement = "The system shall support Legendre filters in the scattering angle."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [l0_in_l1_vs_no_legendre]
     type = CSVDiff
@@ -16,7 +16,7 @@
     requirement = "The L0 Legendre moment in a L>0 Legendre expansion shall match the scattering reaction rate computed "
                   "without a Legendre filter. This ensures that the L>0 Legendre moments are skipped during normalization."
                   "The gold file for this test was generated without a Legendre filter."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [force_analog]
     type = RunException
@@ -24,6 +24,6 @@
     cli_args = 'Problem/Tallies/Scattering/estimator=collision'
     expect_err = "The filter Legendre requires an analog estimator!"
     requirement = "The system shall error if the user attempts to use a non-analog estimator with an AngularLegendreFilter."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

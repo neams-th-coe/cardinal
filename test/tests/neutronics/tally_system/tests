@@ -5,14 +5,14 @@
     csvdiff = cell_with_unmapped_out.csv
     requirement = "The system shall correctly label elements in blocks which don't contain temperature feedback, density feedback, "
                   "or a cell tally as unmapped."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_global_estimator]
     type = CSVDiff
     input = multi_estimator.i
     csvdiff = multi_estimator_out.csv
     requirement = "The system shall correctly normalize local tallies with different estimators using multiple global tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_cell]
     type = CSVDiff
@@ -20,7 +20,7 @@
     csvdiff = multi_cell_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_mesh]
     type = Exodiff
@@ -28,7 +28,7 @@
     exodiff = multi_mesh_out.e
     requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores. "
                   "The gold file was generated using an input that had a single MeshTally with multiple scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_cell_triggers]
     type = CSVDiff
@@ -36,7 +36,7 @@
     csvdiff = multi_cell_triggers_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores and triggers. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores and triggers."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_mesh_triggers]
     type = Exodiff
@@ -44,7 +44,7 @@
     exodiff = multi_mesh_triggers_out.e
     requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores and triggers. "
                   "The gold file was generated using an input that had a single MeshTally with multiple scores and triggers."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_cell_relax]
     type = CSVDiff
@@ -52,7 +52,7 @@
     csvdiff = multi_cell_relax_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores when using relaxation. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores when using relaxation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_tallies_mesh_relax]
     type = Exodiff
@@ -60,7 +60,7 @@
     exodiff = multi_mesh_relax_out.e
     requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores when using relaxation. "
                   "The gold file was generated using an input that had a single MeshTally with multiple scores when using relaxation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [duplicate_scores]
     type = RunException
@@ -68,7 +68,7 @@
     cli_args = 'Problem/Tallies/Cell_2/score="flux kappa_fission"'
     expect_err = "You have added 2 tallies which score kappa-fission!"
     requirement = "The system shall error if the user provides multiple tallies with overlapping scores."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_no_norm]
     type = RunException
@@ -77,14 +77,14 @@
     expect_err = "The local tallies added in the \[Tallies\] block do not contain the requested heating score"
     requirement = "The system shall error if more than one tally is provided and the requested heating score is in "
                   "none of the tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_different_tallies]
     type = Exodiff
     input = multi_diff.i
     exodiff = multi_diff_out.e
     requirement = "The system shall allow calculations with multiple different tallies."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multiple_different_outputs]
     type = Exodiff
@@ -92,6 +92,6 @@
     exodiff = multi_diff_outputs.e
     cli_args = 'Problem/Tallies/Cell/output="unrelaxed_tally_std_dev unrelaxed_tally" Problem/Tallies/Mesh/output="unrelaxed_tally_std_dev" Outputs/file_base=multi_diff_outputs'
     requirement = "The system shall allow calculations with multiple different tally outputs."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

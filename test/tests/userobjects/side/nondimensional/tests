@@ -3,7 +3,7 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre sfr_7pin 1'
     requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     use_shell = True
   []
   [nondim]
@@ -14,7 +14,7 @@
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."
     prereq = precompile
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
     skip = 'Need to resolve precompile issues'
   []
 []

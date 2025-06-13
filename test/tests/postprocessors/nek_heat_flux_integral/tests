@@ -13,6 +13,6 @@
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close. A fairly fine mesh "
                   "is used in MOOSE to get closer to the higher-polynomial-order integration in nekRS."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

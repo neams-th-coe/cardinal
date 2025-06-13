@@ -4,7 +4,7 @@
     input = nek.i
     csvdiff = nek_out.csv
     requirement = "The system shall allow total viscous drag to be computed in dimensional form. This test compares drag as computed via Nek with by-hand calculations using combinations of native MOOSE postprocessors using the analytic expression for velocity."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [invalid_mesh]
     type = RunException
@@ -12,6 +12,6 @@
     cli_args = 'Postprocessors/viscous_1/mesh=all'
     expect_err = "The 'NekViscousSurfaceForce' postprocessor can only be applied to"
     requirement = "The system shall error if trying to compute viscous drag on non-fluid NekRS boundaries"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

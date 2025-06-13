@@ -7,6 +7,6 @@
                   "a simulation. Here, we compare several postprocessors from a case restarted "
                   "from a field file against the identical case where variables are instead "
                   "initialized in the .udf from functions."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

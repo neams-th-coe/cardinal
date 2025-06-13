@@ -7,6 +7,6 @@
     input = cell.i
     csvdiff = cell_out.csv
     requirement = "The system shall be capable of adding a ParticleFilter for all particle types supported in OpenMC."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

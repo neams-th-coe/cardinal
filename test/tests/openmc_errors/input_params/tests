@@ -5,7 +5,7 @@
     expect_err = "In attempting to set the number of batches, OpenMC reported:\n\n"
                  "Number of active batches must be greater than zero."
     requirement = "The system shall error if attempting to set a negative number of active batches"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [invalid_max_batches]
     type = RunException
@@ -13,27 +13,27 @@
     expect_err = "In attempting to set the maximum number of batches, OpenMC reported:\n\n"
                  "Number of active batches must be greater than zero."
     requirement = "The system shall error if attempting to set a negative number of active batches"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_properties]
     type = RunException
     input = missing_properties.i
     expect_err = "In attempting to load temperature and density from a properties.h5 file, OpenMC reported:"
     requirement = "The system shall error if a properties file is loaded but does not exist"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_dag]
     type = RunException
     input = no_dag.i
     expect_err = "When the OpenMC model does not contain any DagMC universes, the 'skinner' parameter is unused!"
     requirement = "The system shall error if using a skinner without a DagMC geometry"
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
   [duplicate_levels]
     type = RunException
     input = levels.i
     expect_err = "Either 'cell_level' or 'lowest_cell_level' must be specified. You have given either both or none."
     requirement = "The system shall error if both or none of the cell level options have been prescribed."
-    required_objects = 'MoabSkinner'
+    capabilities = 'dagmc'
   []
 []

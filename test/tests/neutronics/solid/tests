@@ -13,7 +13,7 @@
                   "simulation of the same problem with zero heat source. The gold file was "
                   "created with the zero_power.i input file, which does not have OpenMC as "
                   "a sub-app."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [missing_pebble]
     type = RunException
@@ -23,6 +23,6 @@
     expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the heating tallies are missing power from other parts "
                   "of the problem."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

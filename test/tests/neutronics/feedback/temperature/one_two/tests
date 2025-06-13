@@ -4,6 +4,6 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall exactly predict eigenvalue when sending temperatures which map from one subdomain to multiple cells. We compare against a standalone OpenMC case to exactly match k."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

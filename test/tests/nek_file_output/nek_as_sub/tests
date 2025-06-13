@@ -5,6 +5,6 @@
     check_files = 'pyramid0.f00001 pyramid0.f00002 pyramid0.f00003 pyramid0.f00004'
     requirement = "The correct output file writing sequence shall occur based on master executioner settings "
                   "when NekRS is the sub application and when an uneven time step division occurs."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

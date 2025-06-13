@@ -6,7 +6,7 @@
     cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [global_with_alignment_relax]
     type = CSVDiff
@@ -17,7 +17,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [global_with_alignment_rm_relax]
     type = CSVDiff
@@ -28,7 +28,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [global_with_alignment_dg_relax]
     type = CSVDiff
@@ -39,7 +39,7 @@
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "same input file, but with the relaxation part commented out in the source code (so that we can compare "
                   "directly against runs that only differ by changing the number of particles."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 
   [local_with_alignment_unity_relax]
@@ -49,7 +49,7 @@
     cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [local_with_alignment_relax]
     type = CSVDiff
@@ -60,7 +60,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i case with normalize_by_global_tally=false."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 
   [global_without_alignment_unity_relax]
@@ -71,7 +71,7 @@
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the "
                   "mesh mirror."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [global_without_alignment_relax]
     type = CSVDiff
@@ -82,7 +82,7 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case (without additional command line parameters)"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 
   [local_without_alignment_unity_relax]
@@ -93,7 +93,7 @@
     min_parallel = 2
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the mesh mirror"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [local_without_alignment_relax]
     type = CSVDiff
@@ -105,7 +105,7 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [none_fixed_mesh]
     type = CSVDiff
@@ -115,7 +115,7 @@
     min_parallel = 2
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [output_fission_tally_cell]
     type = Exodiff
@@ -123,20 +123,20 @@
     exodiff = output_fission_tally_out.e
     cli_args = 'Problem/output_cell_mapping=false'
     requirement = "The wrapping shall allow output of the unrelaxed heat source for cell tallies"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [multi_tally]
     type = CSVDiff
     input = multi_tally.i
     csvdiff = multi_tally_out.csv
     requirement = "The wrapping shall allow output of multiple tally scores, with relaxation applied independently to each score"
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [no_relax_with_fixed_mesh]
     type = RunException
     input = openmc_adapt.i
     expect_err = "When adaptivity is requested or a displaced problem is used, the mapping from the OpenMC model to the \[Mesh\] may vary in time."
     requirement = "The system shall correctly error if trying to use relaxation with a time-varying mesh."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

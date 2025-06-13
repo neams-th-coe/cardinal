@@ -9,7 +9,7 @@
     expect_err = "By setting 'solver = none' for temperature in 'brick.par', NekRS will not solve for temperature. The heat flux sent by this object will be unused."
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar solve in NekRS when passing heat flux"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [source]
     type = RunException
@@ -21,6 +21,6 @@
     expect_err = "By setting 'solver = none' for temperature in 'brick.par', NekRS will not solve for temperature. The volumetric heat source sent by this object will be unused."
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar solve in NekRS when passing heat flux"
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

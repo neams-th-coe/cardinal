@@ -4,7 +4,7 @@
     input = type_error.i
     expect_err = "This user object requires exactly one bin distribution to be a side distribution; you have specified: 0"
     requirement = "The system shall error if the userobjects aren't derived from the correct base class."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [gap_layered]
     type = Exodiff
@@ -13,7 +13,7 @@
     rel_err = 5e-5
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [gap_horizontal_layered]
     type = Exodiff
@@ -21,7 +21,7 @@
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "A layered gap and 2-D hexagonal subchannel bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [bins_too_fine]
     type = RunException
@@ -29,7 +29,7 @@
     cli_args = "UserObjects/axial_binning/num_layers=1000"
     expect_err = "Failed to map any GLL points to bin 1!"
     requirement = "The system shall error if there are zero contributions to a gap bin."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
   [user_component]
     type = Exodiff
@@ -38,6 +38,6 @@
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side averages of velocity along a "
                   "user-specified direction."
-    required_objects = 'NekRSProblem'
+    capabilities = 'nekrs'
   []
 []

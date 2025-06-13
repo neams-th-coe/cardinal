@@ -7,6 +7,6 @@
     input = mgxs_photon.i
     csvdiff = mgxs_photon_out.csv
     requirement = "The system shall be capable of setting up MGXS generation for all relevant cross section types for photon."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

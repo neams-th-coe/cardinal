@@ -5,7 +5,7 @@
     csvdiff = solid_out_openmc0.csv
     cli_args = "openmc:Problem/particles=1000 openmc:Problem/batches=10 openmc:Problem/inactive_batches=5"
     requirement = "The system shall be able to run the pebble tutorial."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
   [mesh]
     type = RunApp
@@ -20,6 +20,6 @@
     prereq = mesh
     cli_args = "Mesh/pebble/nr=2 openmc:Problem/particles=1000 openmc:Problem/batches=4 openmc:Problem/inactive_batches=0"
     requirement = "The system shall be able to run the pebble tutorial."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
   []
 []

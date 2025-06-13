@@ -4,7 +4,7 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall allow tallying of absorption/fission/scattering/total reaction rates in fixed source mode."
-    required_objects = 'OpenMCCellAverageProblem'
+    capabilities = 'openmc'
     issues = '#912'
     design = 'AddTallyAction.md'
   []
@@ -19,13 +19,13 @@
       input = openmc_mgxs_rxn.i
       detail = "The system shall compute nu-scatter, nu-fission, and inverse-velocity scores fixed source mode."
       csvdiff = openmc_mgxs_rxn_out.csv
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
     []
     [nu_scatter_analog]
       type = RunException
       input = openmc_mgxs_rxn.i
       detail = "The system shall error if the user attempts to specify a nu-scatter score without an analog estimator."
-      required_objects = 'OpenMCCellAverageProblem'
+      capabilities = 'openmc'
       cli_args = 'Problem/Tallies/Cell/estimator=tracklength'
       expect_err = 'Non-analog estimators are not supported for nu_scatter scores!'
     []
