@@ -295,7 +295,7 @@ When building the PETSc dependency using the script, you'll also need to pass an
 
 ## Sawtooth
 
-[Sawtooth](https://nsuf.inl.gov/Page/computing_resources)
+[Sawtooth](https://hpcweb.hpcondemand.inl.gov/hardware/sawtooth/)
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores (48 cores per node).
  The max number of cores a job can run is 80,000, resulting in a max number of
  nodes of 1666. Every job should use `ncpus=48` to maximize the power of each
@@ -326,7 +326,7 @@ export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_section
 
 ## Bitterroot
 
-[Bitterroot](https://inl.gov/hpc/about/)
+[Bitterroot](https://hpcweb.hpcondemand.inl.gov/hardware/bitterroot/)
  is an [!ac](HPC) system at [!ac](INL). It has over 2 Petaflops of performance and has over 43,000 cores. It is a 43008-core Dell Commodity Technology Systems-2 (CTS-2) with 384 total nodes. Bitterroot has 90 TB of total memory.
 
 !listing! language=bash caption=Sample `~/.bashrc` for Bitterroot id=bt1
@@ -339,7 +339,7 @@ if [ -f  ~/.bashrc_local ]; then
 fi
 
 # Bitterroot modules
-if [ "$SHORTHOST" = "bitterroot1" ] || [ "$SHORTHOST" = "bitterroot2" ]; then
+if [[ "$SHORTHOST" ~= br[0-9]+ ]] || [[ "$SHORTHOST" =~ bitterroot* ]]
   echo "Loading Bitterroot modules..."
   module purge
   module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
@@ -361,13 +361,13 @@ This submission script optimizes performance for OpenMC on Bitterroot using shar
 
 !listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=bt3
 
-## Windriver
+## WindRiver
 
-[Windriver](https://inl.gov/hpc/about/) is an [!ac](HPC) system at [!ac](INL). It has 843 compute nodes, each with
+[WindRiver](https://hpcweb.hpcondemand.inl.gov/hardware/windriver/) is an [!ac](HPC) system at [!ac](INL). It has 843 compute nodes, each with
 2 Intel Xeon Platinum 8480+ CPUs which results in 112 cores per node. The `.bashrc` and submission script are similar
 to that of Bitterroot as the machines utilize the same compute hardware and modules.
 
-!listing! language=bash caption=Sample `~/.bashrc` for Windriver id=wnd1
+!listing! language=bash caption=Sample `~/.bashrc` for WindRiver id=wnd1
 # .bashrc template for users
 # then source a bashrc_local file in home dir...
 
@@ -383,9 +383,9 @@ if [ -f  ~/.bashrc_local ]; then
        . ~/.bashrc_local
 fi
 
-# Windriver modules
-if [ "$SHORTHOST" = "windriver1" ] || [ "$SHORTHOST" = "windriver2" ]; then
-  echo "Loading Windriver modules..."
+# WindRiver modules
+if [[ "$SHORTHOST" ~=wr[0-9]+n[0-9]+ ]] || [[ "$SHORTHOST" =~ windriver* ]]
+  echo "Loading WindRiver modules..."
   module purge
   module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
 fi
@@ -402,7 +402,7 @@ This submission script is not optimized for any particular problem run with Card
 
 !listing scripts/job_bitterriver language=bash caption=Sample job script with the `moose` project code id=wnd2
 
-This submission script optimizes performance for OpenMC on Windriver using shared memory parallelism and NUMBA bindings on a compute node:
+This submission script optimizes performance for OpenMC on WindRiver using shared memory parallelism and NUMBA bindings on a compute node:
 
 !listing scripts/job_bitterriver_openmc language=bash caption=Sample OpenMC job script with the `moose` project code id=wnd3
 
