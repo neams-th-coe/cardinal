@@ -21,3 +21,12 @@ This capability is off by default, but to build with [!ac](DAGMC) support, set:
 ```
 export ENABLE_DAGMC=yes
 ```
+
+If you chose to enable DAGMC, we also provide support for [Double-Down](https://double-down.readthedocs.io/en/latest/) -
+a mixed-precision interface to the ray-tracing library [Embree](https://www.embree.org/). Embree support is enabled by
+default in Cardinal due to the large improvements to threaded scalability and per-thread performance it provides over
+MOAB's native raytracing. If you do *not* want to use DAGMC with Embree, set:
+
+```
+export ENABLE_DOUBLE_DOWN=no
+```

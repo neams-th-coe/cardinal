@@ -2154,7 +2154,9 @@ bool
 OpenMCCellAverageProblem::findCell(const Point & point)
 {
   _particle.clear();
-  _particle.u() = {0., 0., 1.};
+  // Use a random direction to minimize "lost" virtual particles.
+  _particle.u() = {0.6339976, -0.538536, 0.555026};
+  _particle.u() /= _particle.u().norm();
 
   Point pt = transformPointToOpenMC(point);
 
