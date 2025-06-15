@@ -322,7 +322,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
   ifeq ($(ENABLE_DAGMC), ON)
-    ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd
+    ADDITIONAL_LIBS += -ldagmc -lMOAB
 		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
 			ADDITIONAL_LIBS += -lembree4 -ldd
 		endif

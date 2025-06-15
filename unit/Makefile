@@ -44,8 +44,8 @@ ENABLE_OPENMC       ?= yes
 # Whether you want to build OpenMC with DAGMC support
 ENABLE_DAGMC        ?= no
 
-# Whether we want to use the double-precision interface to Embree for ray tracing instead of MOAB.
-# This is disabled by default as some DAGMC tests fail when using Embree.
+# Whether we want to use the double-precision interface to Embree for DAGMC
+# ray tracing instead of MOAB.
 ENABLE_DOUBLE_DOWN  ?= yes
 
 # What GPU backends to enable for Nek (if any)
@@ -315,7 +315,7 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
   ifeq ($(ENABLE_DAGMC), ON)
-    ADDITIONAL_LIBS += -ldagmc -lMOAB -lembree4 -ldd
+    ADDITIONAL_LIBS += -ldagmc -lMOAB
 		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
 			ADDITIONAL_LIBS += -lembree4 -ldd
 		endif
