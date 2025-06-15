@@ -56,9 +56,6 @@ InputParameters
 OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether OpenMCCellAverageProblem should use the displaced mesh ");
   params.addParam<bool>("output_cell_mapping",
                         true,
                         "Whether to automatically output the mapping from OpenMC cells to the "
@@ -188,7 +185,6 @@ OpenMCCellAverageProblem::validParams()
 
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & params)
   : OpenMCProblemBase(params),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _serialized_solution(_aux->serializedSolution()),
     _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
@@ -218,17 +214,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
-  // Check to see if a displaced problem is being initialized.
-  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
-  // actually use the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more
-  // information.
+  // Check to see if a displaced problem is being initialized
   const auto & dis_actions =
       getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
   for (const auto & act : dis_actions)
   {
-    auto has_displaced =
-        act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
-    _need_to_reinit_coupling |= (has_displaced && _use_displaced);
+    auto displacements = act->isParamValid("displacements");
+    auto use = act->getParam<bool>("use_displaced_mesh");
+    _use_displaced = displacements && use;
+
+    // print a warning if the user added displacements, but are not using them
+    if (!use && displacements)
+      mooseWarning("When 'use_displaced_mesh' is false, the 'displacements' are unused!");
+
+    if (act->isParamSetByUser("use_displaced_mesh") && use && !displacements)
+      mooseWarning("When 'use_displaced_mesh' is true, but no 'displacements' are provided, then the displaced mesh will not be used.");
+
+    _need_to_reinit_coupling |= _use_displaced;
   }
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
@@ -448,12 +450,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 const MooseMesh &
 OpenMCCellAverageProblem::getMooseMesh() const
 {
-  if (_use_displaced && !_displaced_problem && !_first_transfer)
+  if (_use_displaced && !_displaced_problem)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Un-displaced mesh will be returned");
 
   const MooseMesh & m =
-      ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
+      ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh()
                                                                   : mesh());
   return m;
 }
@@ -461,12 +463,12 @@ OpenMCCellAverageProblem::getMooseMesh() const
 MooseMesh &
 OpenMCCellAverageProblem::getMooseMesh()
 {
-  if (_use_displaced && !_displaced_problem && !_first_transfer)
+  if (_use_displaced && !_displaced_problem)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Un-displaced mesh will be returned");
 
   MooseMesh & m =
-      ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
+      ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh()
                                                                   : mesh());
   return m;
 }

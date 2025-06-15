@@ -1,6 +1,6 @@
 [GlobalParams]
   use_displaced_mesh = true
-  displacements = 'd_x d_y d_z'
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Mesh]
@@ -21,11 +21,11 @@
 []
 
 [AuxVariables]
-  [d_x]
+  [disp_x]
   []
-  [d_y]
+  [disp_y]
   []
-  [d_z]
+  [disp_z]
   []
 
   [mapped_vol]
@@ -47,10 +47,10 @@
 []
 
 [AuxKernels]
-  [d_x]
+  [disp_x] # this executes after the [Problem]
     type = FunctionAux
-    variable = d_x
-    function = d_x
+    variable = disp_x
+    function = disp_x
   []
   [mapped_vol]
     type = CellVolumeAux
@@ -65,7 +65,7 @@
 []
 
 [Functions]
-  [d_x]
+  [disp_x]
     type = ParsedFunction
     expression = 'exp((x+0.05))-1'
   []
@@ -125,4 +125,5 @@
 
 [Outputs]
   csv = true
+  exodus = true
 []
