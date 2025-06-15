@@ -4,8 +4,8 @@
 
   [cell_volumes]
     type = CSVDiff
-    input = openmc.i
-    csvdiff = openmc_out.csv
+    input = volumes.i
+    csvdiff = volumes_out.csv
     requirement = 'The system shall correctly reinitialize the OpenMC geometry and mapped volumes when the mesh is moving. This is tested by comparing volume postprocessors on a moving MOOSE mesh with mapped and actual cell volumes in OpenMC. The actual OpenMC cell volumes agree within statistics to the mapped and MOOSE postprocessor volumes.'
     required_object = 'OpenMCCellAverageProblem
   []
