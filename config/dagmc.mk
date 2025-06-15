@@ -1,4 +1,4 @@
-$(DAGMC_BUILDDIR)/Makefile: build_moab | $(DAGMC_DIR)/CMakeLists.txt
+$(DAGMC_BUILDDIR)/Makefile: build_doubledown | $(DAGMC_DIR)/CMakeLists.txt
 	mkdir -p $(DAGMC_BUILDDIR)
 	cd $(DAGMC_BUILDDIR) && \
 	cmake -L \
@@ -9,6 +9,8 @@ $(DAGMC_BUILDDIR)/Makefile: build_moab | $(DAGMC_DIR)/CMakeLists.txt
 	-DBUILD_STATIC_EXE=OFF \
 	-DBUILD_UWUW=OFF \
   -DENABLE_NETCDF=ON \
+	-DDOUBLE_DOWN=$(ENABLE_DOUBLE_DOWN) \
+	-DDOUBLE_DOWN_DIR=$(DOUBLEDOWN_INSTALL_DIR) \
 	-DEigen3_DIR=$(EIGEN3_DIR) \
 	-DMOAB_DIR=$(MOAB_INSTALL_DIR) \
 	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \

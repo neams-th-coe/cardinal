@@ -2154,7 +2154,9 @@ bool
 OpenMCCellAverageProblem::findCell(const Point & point)
 {
   _particle.clear();
-  _particle.u() = {0., 0., 1.};
+  // Use a random direction to minimize "lost" virtual particles.
+  _particle.u() = {0.6339976, -0.538536, 0.555026};
+  _particle.u() /= _particle.u().norm();
 
   Point pt = transformPointToOpenMC(point);
 
@@ -2581,18 +2583,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         reloadDAGMC();
       }
 #endif
-      /*
-       * We run the skinner on the first transfer as OpenMC may be a sub-application
-       * of a solid or fluids multiapp. If this is the case, then those other applications
-       * may execute ahead of OpenMC and provide updated temperatures/densities on the first
-       * transfer which the skinner can use to update the OpenMC geometry. This also holds for
-       * initial conditions provided by the user.
-       *
-       * If the problem doesn't use a skinner, then we can avoid reinitializing it on the first
-       * timestep as nothing will have changed from when the problem was initialized in
-       * initialSetup().
-       */
-      if ((!_first_transfer || _using_skinner) && _need_to_reinit_coupling)
+      if (_need_to_reinit_coupling)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
