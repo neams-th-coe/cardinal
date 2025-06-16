@@ -38,7 +38,7 @@ protected:
   std::unique_ptr<MeshBase>& _input;
 
   ///Names of the extra element ids used
-  std::vector<ExtraElementIDName> _extra_element_id_names;
+  const std::vector<ExtraElementIDName> & _extra_element_id_names;
 
   ///values of the extra element ids used
   std::vector<int> _eeiid_values;
