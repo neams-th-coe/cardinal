@@ -8,15 +8,11 @@ more extra element integer id (eeid) to the mesh, where each eeids corresponds t
 Clustering for mesh tally amalgamation, can benefit from it by using these eeid to label the cluster 
 based on different heuristics.
 
-## Input Parameters:
-- `extra_element_integer_names` list of the eeid names.
-- `values` values for the eeid_names.
-- `input` the mesh where we want to add the eeids.
-
-## Warning
-
-If an `extra_element_integer_names` entry already exists in the mesh, the generator **does not override** the values.
-It will show a warning message and skip that field. This ensures existing mesh annotations are preserved.
+!alert! warning
+>If an `extra_element_integer_names` entry already exists in the mesh, the generator **will not override** the values.
+>It will show a warning message and skip that field.
+>This ensures existing mesh annotations are preserved.
+!alert-end!
 
 ## Example Input File
 This example reads a mesh file (in this case mesh_in.e) by using [FileMeshGenerator](FileMeshGenerator.md)
