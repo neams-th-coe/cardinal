@@ -14,7 +14,7 @@
     type = Exodiff
     input = cell_tally.i
     exodiff = cell_tally_out.e
-    requirement = 'The system shall correctly reinitialize cell tallies when the mesh is moving. This is tested by translating the mesh over a stationary OpenMC model. The two cell tallies in the tallies.out file match the expected power density (accounting for the actual fractions of the cell which map to the moving mesh)"
+    requirement = 'The system shall correctly reinitialize cell tallies when the mesh is moving. This is tested by translating the mesh over a stationary OpenMC model. The two cell tallies in the tallies.out file match the expected power density (accounting for the actual fractions of the cell which map to the moving mesh). This test also checks the cell IDs and instances as the mesh translates."
     required_object = 'OpenMCCellAverageProblem'
   []
   [mesh_tally]
@@ -36,6 +36,13 @@
     prereq = make_mesh
     expect_err = "Tallying on a file-based mesh is not supported for moving-mesh cases"
     requirement = 'The system shall error if tallying on a file mesh for moving mesh cases, because there will be a disagreement between the mesh elements and the [Mesh]."
+    required_object = 'OpenMCCellAverageProblem'
+  []
+  [temperature]
+    type = Exodiff
+    input = temperature.i
+    exodiff = temperature_out.e
+    requirement = 'The system shall correctly reinitialize temperature mapping and output of cell temperatures to a moving mesh. This is tested by applying temperatures based on the moving mesh.'
     required_object = 'OpenMCCellAverageProblem'
   []
 []
