@@ -90,6 +90,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "Block restriction is currently not supported for mesh tallies which load a "
                  "mesh from a file!");
 
+    if (_openmc_problem.useDisplaced())
+      paramError("mesh_template", "Tallying on a file-based mesh is not supported for moving-mesh cases as there is not a mechanism to update the mesh geometry. You can use a mesh tally for moving mesh cases by instead tallying directly on the [Mesh]. Simply do not provide the 'mesh_template' parameter.");
+
     _mesh_template_filename = &getParam<std::string>("mesh_template");
   }
   else

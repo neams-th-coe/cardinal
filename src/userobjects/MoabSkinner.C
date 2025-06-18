@@ -280,15 +280,11 @@ void
 MoabSkinner::update()
 {
   _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
-           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... ";
+           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... " << std::endl;
 
   // Clear MOAB mesh data from last timestep
   reset();
 
-  if (_use_displaced)
-  {
-    _fe_problem.getDisplacedProblem()->updateMesh();
-  }
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
 
@@ -300,8 +296,6 @@ MoabSkinner::update()
 
   // Find the surfaces of local temperature regions
   findSurfaces();
-
-  _console << "done" << std::endl;
 }
 
 void
@@ -598,11 +592,13 @@ MoabSkinner::sortElemsByResults()
 
     _console << "\nMapping of Elements to Temperature Bins:" << std::endl;
     vtt.print(_console);
+    _console << std::endl;
 
     if (_bin_by_density)
     {
       _console << "\n\nMapping of Elements to Density Bins:" << std::endl;
       vtd.print(_console);
+      _console << std::endl;
     }
   }
 }
@@ -757,9 +753,6 @@ MoabSkinner::write()
       _console << "Writing MOAB skins to " << filename << "...";
 
     check(_moab->write_mesh(filename.c_str(), surfs.data(), surfs.size()));
-
-    if (_verbose)
-      _console << "done" << std::endl;
   }
 
   if (_output_full)
@@ -770,9 +763,6 @@ MoabSkinner::write()
       _console << "Writing MOAB mesh to " << filename << std::endl;
 
     check(_moab->write_mesh(filename.c_str()));
-
-    if (_verbose)
-      _console << "done" << std::endl;
   }
 
   _n_write++;

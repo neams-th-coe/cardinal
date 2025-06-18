@@ -540,8 +540,10 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // throw a special error if the cell is void, because the OpenMC error isn't very
   // clear what the mistake is
   if (material_index == MATERIAL_VOID)
-    mooseError("Cannot set density for cell " + printCell(cell_info) +
-               " because this cell is void (vacuum)!");
+  {
+    mooseWarning("Skipping setting density for cell " + printCell(cell_info) + " because this cell is void (vacuum)");
+    return;
+  }
 
   // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
   // auxvariable as well as the MOOSE fluid properties module) to g/cm3
@@ -887,20 +889,18 @@ void
 OpenMCProblemBase::executeFilterEditors()
 {
   executeControls(EXEC_FILTER_EDITORS);
-  _console << "Executing filter editors...";
+  _console << "Executing filter editors..." << std::endl;
   for (const auto & fe : _filter_editor_uos)
     fe->execute();
-  _console << "done" << std::endl;
 }
 
 void
 OpenMCProblemBase::executeTallyEditors()
 {
   executeControls(EXEC_TALLY_EDITORS);
-  _console << "Executing tally editors...";
+  _console << "Executing tally editors..." << std::endl;
   for (const auto & te : _tally_editor_uos)
     te->execute();
-  _console << "done" << std::endl;
 }
 
 void
@@ -922,7 +922,6 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)
     uo->setValue();
-  _console << "done" << std::endl;
 }
 
 #endif

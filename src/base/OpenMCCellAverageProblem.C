@@ -233,6 +233,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _need_to_reinit_coupling |= _use_displaced;
   }
 
+  if (_use_displaced && !_skinner)
+    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The [Mesh] will move, but the underlying OpenMC geometry will remain unchanged. Unexpected behavior may occur.");
+
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
   const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
@@ -1478,7 +1481,7 @@ OpenMCCellAverageProblem::getMaterialFills()
   {
     _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
     _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
-    _console <<   "       Material:  OpenMC material ID in this cell\n" << std::endl;
+    _console <<   "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
     vt.print(_console);
   }
 
@@ -2350,7 +2353,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   if (!_specified_temperature_feedback)
     return;
 
-  _console << "Sending temperature to OpenMC cells... " << printNewline();
+  _console << "Sending temperature to OpenMC cells... " << std::endl;
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
@@ -2408,8 +2411,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   }
 
   if (!_verbose)
-    _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
-  _console << std::endl;
+    _console << " Sent cell-averaged min/max (K): " << minimum << ", " << maximum << std::endl;
 }
 
 OpenMCCellAverageProblem::cellInfo
@@ -2427,7 +2429,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   if (!_specified_density_feedback)
     return;
 
-  _console << "Sending density to OpenMC cells... " << printNewline();
+  _console << "Sending density to OpenMC cells... " << std::endl;
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
@@ -2485,8 +2487,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   }
 
   if (!_verbose)
-    _console << "done. Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum;
-  _console << std::endl;
+    _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
 }
 
 Real
@@ -2605,6 +2606,14 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      // update the [Mesh] internally, so that if we have the skinner we then propagate those changes
+      // to the OpenMC geometry
+      if (_use_displaced)
+      {
+        _console << "Updating the displaced mesh..." << std::endl;
+        _displaced_problem->updateMesh();
+      }
+
 #ifdef ENABLE_DAGMC
       if (_skinner)
       {
@@ -2619,24 +2628,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         reloadDAGMC();
       }
 #endif
-      /*
-       * We run the skinner on the first transfer as OpenMC may be a sub-application
-       * of a solid or fluids multiapp. If this is the case, then those other applications
-       * may execute ahead of OpenMC and provide updated temperatures/densities on the first
-       * transfer which the skinner can use to update the OpenMC geometry. This also holds for
-       * initial conditions provided by the user.
-       *
-       * If the problem doesn't use a skinner, then we can avoid reinitializing it on the first
-       * timestep as nothing will have changed from when the problem was initialized in
-       * initialSetup().
-       */
-      if ((!_first_transfer || _using_skinner) && _need_to_reinit_coupling)
+      if (_need_to_reinit_coupling)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
-
-        if (_use_displaced)
-          _displaced_problem->updateMesh();
 
         resetTallies();
         setupProblem();
@@ -2695,7 +2690,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      _console << "Extracting OpenMC tallies...";
+      _console << "Extracting OpenMC tallies..." << std::endl;
 
       if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
         break;
@@ -2781,8 +2776,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // Check the normalization.
       for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
         checkNormalization(sums[global_score], global_score);
-
-      _console << " done" << std::endl;
 
       break;
     }
@@ -2919,7 +2912,7 @@ OpenMCCellAverageProblem::reloadDAGMC()
     openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ =
         _dagmc_universe_id;
 
-  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... ";
+  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... " << std::endl;
 
   // Add cells to universes
   openmc::populate_universes();
@@ -2941,8 +2934,6 @@ OpenMCCellAverageProblem::reloadDAGMC()
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
   openmc::settings::verbosity = initial_verbosity;
-
-  _console << "done" << std::endl;
 #endif
 }
 

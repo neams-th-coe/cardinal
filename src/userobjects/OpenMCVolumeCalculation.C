@@ -90,8 +90,6 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
 
   BoundingBox box = MeshTools::create_bounding_box(_openmc_problem->getMooseMesh().getMesh());
-  if (_fe_problem.getDisplacedProblem() != nullptr)
-    _fe_problem.getDisplacedProblem()->updateMesh();
 
   if (!isParamValid("lower_left"))
     _lower_left = box.min();
@@ -153,7 +151,6 @@ OpenMCVolumeCalculation::computeVolumes()
 {
   _console << "Running stochastic volume calculation... ";
   _results = _volume_calc->execute();
-  _console << "done" << std::endl;
 }
 
 void
