@@ -13,8 +13,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   scaling = 100.0
-  cell_level = 0
   temperature_blocks = 'left right'
+  cell_level = 0
   skinner = skin
   volume_calculation = vol
   verbose = true
@@ -76,9 +76,9 @@
     type = MoabSkinner
     temperature = temp
     n_temperature_bins = 1
-    build_graveyard = true
     temperature_min = 0
     temperature_max = 2000
+    build_graveyard = true
     verbose = True
   []
   [vol]
@@ -125,5 +125,4 @@
 
 [Outputs]
   csv = true
-  exodus = true
 []
