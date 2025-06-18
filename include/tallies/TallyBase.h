@@ -20,7 +20,6 @@
 
 #include "MooseObject.h"
 #include "CardinalEnums.h"
-#include "MooseMesh.h"
 
 #include "openmc/tallies/tally.h"
 #include "xtensor/xview.hpp"
