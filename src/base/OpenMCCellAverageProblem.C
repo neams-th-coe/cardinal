@@ -233,7 +233,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _need_to_reinit_coupling |= _use_displaced;
   }
 
-  if (_use_displaced && !_skinner)
+  if (_use_displaced && !_using_skinner)
     mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The [Mesh] will move, but the underlying OpenMC geometry will remain unchanged. Unexpected behavior may occur.");
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
