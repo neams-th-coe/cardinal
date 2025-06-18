@@ -1136,7 +1136,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
 
     std::ostringstream map;
-    map << std::setprecision(2) << std::scientific << _cell_to_elem_volume[cell_info];
+    map << std::setprecision(3) << std::scientific << _cell_to_elem_volume[cell_info];
 
     // okay to print vol.str() here because only rank 0 is printing (which is the only one
     // with meaningful volume data from OpenMC)

@@ -419,8 +419,11 @@ public:
   /// Get a modifyable const reference to the Moose mesh
   virtual const MooseMesh & getMooseMesh() const;
 
-  /// Whether OpenMCCellAverageProblem should use the displaced mesh
-  const bool & _use_displaced;
+  /**
+   * Whether a moving mesh is used
+   * @return whether the [Mesh] is moving
+   */
+  const bool & useDisplaced() const { return _use_displaced; }
 
 protected:
   /**
@@ -1197,6 +1200,9 @@ private:
 
   /// Materials in the first identical-fill cell
   std::vector<int32_t> _first_identical_cell_materials;
+
+  /// Whether OpenMCCellAverageProblem should use the displaced mesh
+  bool _use_displaced;
 
   /// Mapping from subdomain IDs to which aux variable to read temperature (K) from
   std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_temp_vars;

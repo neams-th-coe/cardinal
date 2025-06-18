@@ -338,10 +338,6 @@ TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
                         unsigned int global_score,
                         const std::string & output_type)
 {
-  if (_openmc_problem._use_displaced)
-  {
-    _openmc_problem.getDisplacedProblem()->updateMesh();
-  }
   Real total = 0.0;
 
   if (output_type == "relaxed")

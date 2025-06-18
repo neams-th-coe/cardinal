@@ -269,10 +269,6 @@ MeshTally::checkMeshTemplateAndTranslations()
   // copy transfer that necessitates the meshes to have the same elements in the same order). In
   // other words, you might have two meshes that represent the same geometry, the element ordering
   // could be different.
-  if (_openmc_problem._use_displaced)
-  {
-    _openmc_problem.getDisplacedProblem()->updateMesh();
-  }
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {

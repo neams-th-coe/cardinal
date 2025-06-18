@@ -10,7 +10,8 @@
   [void_density]
     type = RunException
     input = void_density.i
-    expect_err = "Cannot set density for cell id 2, instance 0 \(of 1\) because this cell is void \(vacuum\)!"
+    cli_args = '--error'
+    expect_err = "Skipping setting density for cell id 2, instance 0 \(of 1\) because this cell is void \(vacuum\)"
     requirement = "The system shall error if we attempt to set a density in a void OpenMC cell"
     required_objects = 'OpenMCCellAverageProblem'
   []

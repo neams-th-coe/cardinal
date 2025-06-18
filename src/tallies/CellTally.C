@@ -192,8 +192,6 @@ CellTally::checkCellMappedSubdomains()
 std::vector<OpenMCCellAverageProblem::cellInfo>
 CellTally::getTallyCells() const
 {
-  if (_openmc_problem._use_displaced)
-    _openmc_problem.getDisplacedProblem()->updateMesh();
   bool is_first_tally_cell = true;
   OpenMCCellAverageProblem::cellInfo first_tally_cell;
   Real mapped_tally_volume;
