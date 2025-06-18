@@ -644,6 +644,7 @@ OpenMCCellAverageProblem::initialSetup()
     _skinner->setScaling(_scaling);
     _skinner->setVerbosity(_verbose);
     _skinner->makeDependentOnExternalAction();
+    _skinner->setUseDisplacedMesh(_use_displaced);
 
     // the skinner expects that there is one OpenMC material per subdomain (otherwise this
     // indicates that our [Mesh] doesn't match the .h5m model, because DAGMC itself imposes

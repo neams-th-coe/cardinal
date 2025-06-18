@@ -80,6 +80,9 @@ MoabSkinner::validParams()
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether the skinned mesh should be generated from a displaced mesh ");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
   return params;
@@ -101,12 +104,12 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _graveyard_scale_outer(getParam<double>("graveyard_scale_outer")),
     _output_skins(getParam<bool>("output_skins")),
     _output_full(getParam<bool>("output_full")),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _scaling(1.0),
     _n_write(0),
     _standalone(true)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
+  _use_displaced = getParam<bool>("use_displaced_mesh");
 
   // we can probably support this in the future, it's just not implemented yet
   if (!getMooseMesh().getMesh().is_serial())
@@ -277,11 +280,27 @@ MoabSkinner::execute()
 }
 
 void
+MoabSkinner::setUseDisplacedMesh(const bool & use)
+{
+  if ((use != _use_displaced) && isParamSetByUser("use_displaced_mesh"))
+    mooseWarning("Overriding 'use_displaced_mesh' to " + std::to_string(use) + " to match the displaced problem action.");
+  _use_displaced = use;
+}
+
+void
 MoabSkinner::update()
 {
   _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
            << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... "
            << std::endl;
+
+
+  if (_use_displaced && _standalone)
+  {
+    // we are responsible for updating the mesh if running in standalone mode; otherwise, the
+    // OpenMCCellAverageProblem class does it
+    _fe_problem.getDisplacedProblem()->updateMesh();
+  }
 
   // Clear MOAB mesh data from last timestep
   reset();
