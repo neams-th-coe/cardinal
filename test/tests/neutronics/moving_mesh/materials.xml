@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="left" temperature="500">
+    <density units="g/cc" value="19.3"/>
+    <nuclide ao="1.0" name="U235"/>
+  </material>
+  <material depletable="true" id="2" name="right" temperature="600">
+    <density units="g/cc" value="10.0"/>
+    <nuclide ao="1.0" name="U235"/>
+  </material>
+</materials>
