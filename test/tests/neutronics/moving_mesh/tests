@@ -17,4 +17,11 @@
     requirement = 'The system shall correctly reinitialize cell tallies when the mesh is moving. This is tested by translating the mesh over a stationary OpenMC model. The two cell tallies in the tallies.out file match the expected power density (accounting for the actual fractions of the cell which map to the moving mesh)"
     required_object = 'OpenMCCellAverageProblem'
   []
+  [mesh_tally]
+    type = Exodiff
+    input = mesh_tally.i
+    exodiff = mesh_tally_out.e
+    requirement = 'The system shall correctly use a mesh tally on a moving MOOSE mesh. This is tested by translating the mesh over a stationary OpenMC model. The mesh translation exposes 20 percent of the left subdomain, which from a non-moving case we record 8 percent of the total power deposition in this region. For the moving mesh case, the total power deposited in the mesh tally is 92 percent.'
+    required_object = 'OpenMCCellAverageProblem'
+  []
 []
