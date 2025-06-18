@@ -24,4 +24,18 @@
     requirement = 'The system shall correctly use a mesh tally on a moving MOOSE mesh. This is tested by translating the mesh over a stationary OpenMC model. The mesh translation exposes 20 percent of the left subdomain, which from a non-moving case we record 8 percent of the total power deposition in this region. For the moving mesh case, the total power deposited in the mesh tally is 92 percent.'
     required_object = 'OpenMCCellAverageProblem'
   []
+  [make_mesh]
+    type = RunApp
+    input = mesh_tally.i
+    cli_args = '--mesh-only]
+    requirement = 'The system shall generate a file for mesh tallies.'
+  []
+  [file_mesh]
+    type = RunException
+    input = mesh_tally_file.i
+    prereq = make_mesh
+    expect_err = "Tallying on a file-based mesh is not supported for moving-mesh cases"
+    requirement = 'The system shall error if tallying on a file mesh for moving mesh cases, because there will be a disagreement between the mesh elements and the [Mesh]."
+    required_object = 'OpenMCCellAverageProblem'
+  []
 []
