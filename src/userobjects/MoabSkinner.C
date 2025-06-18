@@ -283,7 +283,8 @@ void
 MoabSkinner::setUseDisplacedMesh(const bool & use)
 {
   if ((use != _use_displaced) && isParamSetByUser("use_displaced_mesh"))
-    mooseWarning("Overriding 'use_displaced_mesh' to " + std::to_string(use) + " to match the displaced problem action.");
+    mooseWarning("Overriding 'use_displaced_mesh' to " + std::to_string(use) +
+                 " to match the displaced problem action.");
   _use_displaced = use;
 }
 
@@ -293,7 +294,6 @@ MoabSkinner::update()
   _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
            << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... "
            << std::endl;
-
 
   if (_use_displaced && _standalone)
   {
