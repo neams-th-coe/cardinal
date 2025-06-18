@@ -5,8 +5,32 @@
 
 [Mesh]
   [f]
-    type = FileMeshGenerator
-    file = volume.e
+    type = GeneratedMeshGenerator
+    dim = 3
+    xmin = -0.05
+    xmax = 0.15
+    ymin = -0.05
+    ymax = 0.05
+    zmin = -0.05
+    zmax = 0.05
+    nx = 20
+    ny = 2
+    nz = 2
+  []
+  [subdomains]
+    type = ParsedSubdomainIDsGenerator
+    input = f
+    expression = 'if (x < 0.05, 1, 2)'
+  []
+  [name]
+    type = RenameBlockGenerator
+    input = subdomains
+    old_block = '1 2'
+    new_block = 'left right'
+  []
+  [tets]
+    type = ElementsToTetrahedronsConverter
+    input = name
   []
 []
 

@@ -29,12 +29,6 @@ cubit.cmd("volume all scheme tetmesh")
 cubit.cmd("volume all size auto factor 5")
 cubit.cmd("mesh volume all")
 
-# export a volume mesh for the heat transfer solver and for mapping data in Cardinal.
-# convert into meters before doing so, then back into centimeters (what DAGMC needs)
-cubit.cmd("body all scale 0.01")
-cubit.cmd("export Genesis '" + directory + "/volume.e' dimension 3 overwrite")
-cubit.cmd("body all scale 100.0")
-
 # create a graveyard enclosing the domain to apply the vacuum boundary condition
 cubit.cmd("brick x 30 y 20 z 20")
 cubit.cmd("brick x 40 y 30 z 30")
