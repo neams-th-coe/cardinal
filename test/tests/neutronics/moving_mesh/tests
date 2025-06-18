@@ -45,4 +45,11 @@
     requirement = 'The system shall correctly reinitialize temperature mapping and output of cell temperatures to a moving mesh. This is tested by applying temperatures based on the moving mesh.'
     required_object = 'OpenMCCellAverageProblem'
   []
+  [density]
+    type = Exodiff
+    input = density.i
+    exodiff = density_out.e
+    requirement = 'The system shall correctly reinitialize density mapping and output of cell densities and material fills to a moving mesh. This is tested by applying densities based on the moving mesh.'
+    required_object = 'OpenMCCellAverageProblem'
+  []
 []
