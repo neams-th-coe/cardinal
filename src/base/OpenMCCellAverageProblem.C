@@ -453,22 +453,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 const MooseMesh &
 OpenMCCellAverageProblem::getMooseMesh() const
 {
-  if (_use_displaced && !_displaced_problem)
-    mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
-                 "Un-displaced mesh will be returned");
-
-  const MooseMesh & m =
-      ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh()
-                                                                  : mesh());
-  return m;
+  return mesh(_use_displaced);
 }
 
 MooseMesh &
 OpenMCCellAverageProblem::getMooseMesh()
 {
+  // TODO: this could go into MOOSE framework directly
   if (_use_displaced && !_displaced_problem)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
-                 "Un-displaced mesh will be returned");
+                 "Regular mesh will be returned");
 
   MooseMesh & m =
       ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh()
@@ -874,7 +868,10 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     auto names = getParam<std::vector<SubdomainName>>(name);
     checkEmptyVector(names, "'" + name + "'");
 
-    auto b_ids = getMooseMesh().getSubdomainIDs(names);
+    // here, we do not use the displaced mesh because we need to call this during initial
+    // setup when the displaced problem does not yet exist. However, displacing the mesh
+    // should not influence the subdomain IDs anyways
+    auto b_ids = mesh().getSubdomainIDs(names);
     std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
     checkBlocksInMesh(name, b_ids, names);
   }
@@ -885,7 +882,10 @@ OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name,
                                             const std::vector<SubdomainID> & ids,
                                             const std::vector<SubdomainName> & names) const
 {
-  const auto & subdomains = getMooseMesh().meshSubdomains();
+  // here, we do not use the displaced mesh because we need to call this during initial
+  // setup when the displaced problem does not yet exist. However, displacing the mesh
+  // should not influence the subdomain IDs anyways
+  const auto & subdomains = mesh().meshSubdomains();
   for (std::size_t b = 0; b < names.size(); ++b)
     if (subdomains.find(ids[b]) == subdomains.end())
       mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
@@ -913,7 +913,10 @@ OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
       for (const auto & i : slice)
         flattened_names.push_back(i);
 
-    flattened_ids = getMooseMesh().getSubdomainIDs(flattened_names);
+    // here, we do not use the displaced mesh because we need to call this during initial
+    // setup when the displaced problem does not yet exist. However, displacing the mesh
+    // should not influence the subdomain IDs anyways
+    flattened_ids = mesh().getSubdomainIDs(flattened_names);
     checkBlocksInMesh(name, flattened_ids, flattened_names);
 
     // should not be any duplicate blocks
