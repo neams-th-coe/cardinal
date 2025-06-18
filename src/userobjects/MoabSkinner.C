@@ -280,7 +280,8 @@ void
 MoabSkinner::update()
 {
   _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
-           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... " << std::endl;
+           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... "
+           << std::endl;
 
   // Clear MOAB mesh data from last timestep
   reset();

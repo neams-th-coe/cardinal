@@ -21,7 +21,6 @@
 #include "OpenMCVolumeCalculation.h"
 #include "OpenMCCellAverageProblem.h"
 #include "UserErrorChecking.h"
-#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 

@@ -18,7 +18,6 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 #include "TallyBase.h"
-#include "DisplacedProblem.h"
 
 #include "OpenMCCellAverageProblem.h"
 #include "UserErrorChecking.h"

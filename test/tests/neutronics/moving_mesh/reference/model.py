@@ -1,9 +1,6 @@
 import openmc
 import math
 
-# define OpenMC materials; the names should match the names assigned to the blocks
-# in the "block <n> material <name>" lines in the journal file
-
 model = openmc.Model()
 
 left = openmc.Material(name="left", temperature=1000)

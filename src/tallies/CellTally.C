@@ -18,7 +18,6 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 #include "CellTally.h"
-#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", CellTally);
 

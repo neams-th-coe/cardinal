@@ -541,7 +541,8 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // clear what the mistake is
   if (material_index == MATERIAL_VOID)
   {
-    mooseWarning("Skipping setting density for cell " + printCell(cell_info) + " because this cell is void (vacuum)");
+    mooseWarning("Skipping setting density for cell " + printCell(cell_info) +
+                 " because this cell is void (vacuum)");
     return;
   }
 

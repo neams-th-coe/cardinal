@@ -228,13 +228,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       mooseWarning("When 'use_displaced_mesh' is false, the 'displacements' are unused!");
 
     if (act->isParamSetByUser("use_displaced_mesh") && use && !displacements)
-      mooseWarning("When 'use_displaced_mesh' is true, but no 'displacements' are provided, then the displaced mesh will not be used.");
+      mooseWarning("When 'use_displaced_mesh' is true, but no 'displacements' are provided, then "
+                   "the displaced mesh will not be used.");
 
     _need_to_reinit_coupling |= _use_displaced;
   }
 
   if (_use_displaced && !_using_skinner)
-    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The [Mesh] will move, but the underlying OpenMC geometry will remain unchanged. Unexpected behavior may occur.");
+    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The "
+                 "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
+                 "Unexpected behavior may occur.");
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
@@ -464,9 +467,7 @@ OpenMCCellAverageProblem::getMooseMesh()
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Regular mesh will be returned");
 
-  MooseMesh & m =
-      ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh()
-                                                                  : mesh());
+  MooseMesh & m = ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh() : mesh());
   return m;
 }
 
@@ -1484,7 +1485,7 @@ OpenMCCellAverageProblem::getMaterialFills()
   {
     _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
     _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
-    _console <<   "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
+    _console << "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
     vt.print(_console);
   }
 
@@ -2609,8 +2610,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      // update the [Mesh] internally, so that if we have the skinner we then propagate those changes
-      // to the OpenMC geometry
+      // update the [Mesh] internally, so that if we have the skinner we then propagate those
+      // changes to the OpenMC geometry
       if (_use_displaced)
       {
         _console << "Updating the displaced mesh..." << std::endl;
@@ -2915,7 +2916,8 @@ OpenMCCellAverageProblem::reloadDAGMC()
     openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ =
         _dagmc_universe_id;
 
-  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... " << std::endl;
+  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... "
+           << std::endl;
 
   // Add cells to universes
   openmc::populate_universes();
