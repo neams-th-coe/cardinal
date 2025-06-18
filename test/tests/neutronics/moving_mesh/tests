@@ -57,13 +57,13 @@
     input = volumes.i
     csvdiff = volumes_out.csv
     requirement = 'The system shall correctly reinitialize volume calculations for a moving mesh. This is tested by comparing the OpenMC stochastic volume calculation against postprocessors for changing volumes.'
-    capabilities = 'openmc'
+    capabilities = 'openmc dagmc'
   []
   [scale]
     type = CSVDiff
     input = scale.i
     csvdiff = scale_out.csv
     requirement = 'The system shall change the OpenMC mesh geometry on-the-fly. This is tested by running this case with a very high number of particles and batches, to compare against the CSG case in the reference folder. The reference case is a CSG model created at the deformed state. We cannot match these cases perfectly because we cannot control the seed of the second Picard iteration. The reference case gives k = 0.88782 plus or minus 5 pcm, and our Cardinal case gives 0.88786 plus of minus 5 pcm; these agree within 1 sigma.'
-    capabilities = 'openmc'
+    capabilities = 'openmc dagmc'
   []
 []
