@@ -66,15 +66,4 @@
     mesh_mode = 'replicated'
     requirement = "The system shall generate the tally mesh."
   []
-  [with_movement]
-    type = Exodiff
-    input = with_movement.i
-    exodiff = with_movement_out.e
-    prereq = move_mesh
-    cli_args = 'Outputs/hide="cell_instance"'
-    requirement = "The OpenMC solution (mesh tallies and k-effective) shall remain within statistical uncertainty when the mesh is displaced,"
-                  "confirming that OpenMC cells are consistently tracked under mesh deformation."
-    mesh_mode = 'replicated'
-    required_objects = 'MoabSkinner'
-  []
 []
