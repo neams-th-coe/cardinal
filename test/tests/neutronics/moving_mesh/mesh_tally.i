@@ -34,6 +34,8 @@
     transform = scale
     vector_value = '100.0 100.0 100.0'
   []
+
+  allow_renumbering = false
 []
 
 [Problem]
