@@ -46,12 +46,16 @@ CellDensityAux::computeValue()
   OpenMCCellAverageProblem::cellInfo cell_info =
       _openmc_problem->elemToCellInfo(_current_elem->id());
 
-  // we only extract the material information for fluid cells, because otherwise we don't
-  // need to know the material info. So, set a value of -1 for non-fluid cells.
+  // we only extract the material information for density feedback cells, because otherwise we don't
+  // need to know the material info. So, set a value of -1 for non-density feedback cells.
   if (!_openmc_problem->hasDensityFeedback(cell_info))
     return OpenMCCellAverageProblem::UNMAPPED;
 
   int32_t index = _openmc_problem->cellToMaterialIndex(cell_info);
+
+  // if the material is void, return -1
+  if (_openmc_problem->materialID(index) == -1)
+    return OpenMCCellAverageProblem::UNMAPPED;
 
   double density;
   int err = openmc_material_get_density(index, &density);

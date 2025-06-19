@@ -496,7 +496,7 @@ TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
   // loop over all the elements and set the specified variable to the specified value
   for (const auto & e : elem_ids)
   {
-    auto elem_ptr = _mesh.queryElemPtr(e);
+    auto elem_ptr = _openmc_problem.getMooseMesh().queryElemPtr(e);
 
     if (!_openmc_problem.isLocalElem(elem_ptr))
       continue;

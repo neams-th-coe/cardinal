@@ -1,6 +1,8 @@
 # Contact
 
-For questions, please contact the current Cardinal development team.
+For questions, please contact the current Cardinal development team. We have a monthly
+Cardinal users meeting where anyone using/developing Cardinal can share recent activities
+and get help with their models. To get added to this invite, please email April Novak.
 
 - April Novak (UIUC, ANL): ajnovak2@illinois.edu
 - Elia Merzari (PSU, ANL)

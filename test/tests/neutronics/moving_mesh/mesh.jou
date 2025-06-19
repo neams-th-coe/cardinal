@@ -1,0 +1,53 @@
+#!python
+
+# Path to the tutorials directory on your computer, if you want to run this script
+directory = '/home/ajnovak2/cardinal/test/tests/neutronics/moving_mesh'
+
+cubit.cmd("brick x 10 y 10 z 10")
+cubit.cmd("brick x 10 y 10 z 10")
+cubit.cmd("move volume 2 x 10 include_merged")
+
+cubit.cmd("imprint volume all")
+cubit.cmd("merge volume all")
+cubit.cmd("compress all")
+
+# create material tags that we will use to assign to the volumes
+cubit.cmd("create material 'left' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("create material 'right' property_group 'CUBIT-ABAQUS'")
+
+# add the volumes to blocks and give them names
+cubit.cmd("block 1 add volume 1")
+cubit.cmd("block 1 name 'left'")
+cubit.cmd("block 2 add volume 2")
+cubit.cmd("block 2 name 'right'")
+
+# assign the material tags to the corresponding blocks
+cubit.cmd("block 1 material 'left'")
+cubit.cmd("block 2 material 'right'")
+
+cubit.cmd("volume all scheme tetmesh")
+cubit.cmd("volume all size auto factor 5")
+cubit.cmd("mesh volume all")
+
+# create a graveyard enclosing the domain to apply the vacuum boundary condition
+cubit.cmd("brick x 30 y 20 z 20")
+cubit.cmd("brick x 40 y 30 z 30")
+cubit.cmd("move volume 3 x 5")
+cubit.cmd("move volume 4 x 5")
+cubit.cmd("subtract body 3 from body 4")
+
+cubit.cmd("imprint volume all")
+cubit.cmd("merge volume all")
+cubit.cmd("compress all")
+
+cubit.cmd("block 3 add volume 3")
+cubit.cmd("block 3 name 'graveyard'")
+cubit.cmd("create material 'graveyard' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("block 3 material 'graveyard'")
+
+# mesh the enclosing volumes using surface meshes
+cubit.cmd("set trimesher coarse on ratio 100 angle 5")
+cubit.cmd("surface all scheme trimesh")
+cubit.cmd("volume 3 scheme tetmesh")
+cubit.cmd("volume 3 size auto factor 10")
+cubit.cmd("mesh volume 3")

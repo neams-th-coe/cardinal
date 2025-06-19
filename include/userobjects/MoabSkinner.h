@@ -81,6 +81,12 @@ public:
   }
 
   /**
+   * Override the user parameter for use_displaced
+   * @param[in] use whether to use the displaced mesh
+   */
+  void setUseDisplacedMesh(const bool & use);
+
+  /**
    * Set the length multiplier to get from [Mesh] units into centimeters
    * @param[in] scale multiplier
    */
@@ -208,7 +214,7 @@ protected:
   bool _build_graveyard;
 
   /// Whether the skinned mesh should be generated from a displaced mesh
-  const bool & _use_displaced;
+  bool _use_displaced;
 
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
   Real _scaling;

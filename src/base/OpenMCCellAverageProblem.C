@@ -21,6 +21,7 @@
 #include "OpenMCCellAverageProblem.h"
 
 #include "DelimitedFileReader.h"
+#include "DisplacedProblem.h"
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
@@ -213,19 +214,30 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
-  // Check to see if a displaced problem is being initialized.
-  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
-  // actually use the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more
-  // information.
+  // Check to see if a displaced problem is being initialized
   const auto & dis_actions =
       getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
   for (const auto & act : dis_actions)
   {
-    auto has_displaced =
-        act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
-    _need_to_reinit_coupling |= has_displaced;
-    // Switch the above with: _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
+    auto displacements = act->isParamValid("displacements");
+    auto use = act->getParam<bool>("use_displaced_mesh");
+    _use_displaced = displacements && use;
+
+    // print a warning if the user added displacements, but are not using them
+    if (!use && displacements)
+      mooseWarning("When 'use_displaced_mesh' is false, the 'displacements' are unused!");
+
+    if (act->isParamSetByUser("use_displaced_mesh") && use && !displacements)
+      mooseWarning("When 'use_displaced_mesh' is true, but no 'displacements' are provided, then "
+                   "the displaced mesh will not be used.");
+
+    _need_to_reinit_coupling |= _use_displaced;
   }
+
+  if (_use_displaced && !_using_skinner)
+    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The "
+                 "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
+                 "Unexpected behavior may occur.");
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
@@ -248,8 +260,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
-  // We need to clear and re-initialize the OpenMC tallies if
-  // fixed_mesh is false, which indicates at least one of the following:
+  // We need to clear and re-initialize OpenMC problem in the cases of:
   //   - the [Mesh] is being adaptively refined
   //   - the [Mesh] is deforming in space
   //
@@ -442,6 +453,24 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   }
 }
 
+const MooseMesh &
+OpenMCCellAverageProblem::getMooseMesh() const
+{
+  return mesh(_use_displaced);
+}
+
+MooseMesh &
+OpenMCCellAverageProblem::getMooseMesh()
+{
+  // TODO: this could go into MOOSE framework directly
+  if (_use_displaced && !_displaced_problem)
+    mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
+                 "Regular mesh will be returned");
+
+  MooseMesh & m = ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh() : mesh());
+  return m;
+}
+
 void
 OpenMCCellAverageProblem::readBlockVariables(
     const std::string & param,
@@ -541,12 +570,12 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
-    if (t != _mesh.meshSubdomains())
+    if (t != getMooseMesh().meshSubdomains())
       paramError("temperature_blocks",
                  "The 'skinner' requires temperature feedback to be applied over the entire mesh. "
                  "Please update `temperature_blocks` to include all blocks.");
 
-    if (d != _mesh.meshSubdomains() && _specified_density_feedback)
+    if (d != getMooseMesh().meshSubdomains() && _specified_density_feedback)
       paramError("density_blocks",
                  "The 'skinner' requires density feedback to be applied over the entire mesh. "
                  "Please update `density_blocks` to include all blocks.");
@@ -615,6 +644,7 @@ OpenMCCellAverageProblem::initialSetup()
     _skinner->setScaling(_scaling);
     _skinner->setVerbosity(_verbose);
     _skinner->makeDependentOnExternalAction();
+    _skinner->setUseDisplacedMesh(_use_displaced);
 
     // the skinner expects that there is one OpenMC material per subdomain (otherwise this
     // indicates that our [Mesh] doesn't match the .h5m model, because DAGMC itself imposes
@@ -657,9 +687,9 @@ OpenMCCellAverageProblem::setupProblem()
 {
   // establish the local -> global element mapping for convenience
   _local_to_global_elem.clear();
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
   {
-    const auto * elem = _mesh.queryElemPtr(e);
+    const auto * elem = getMooseMesh().queryElemPtr(e);
     if (!isLocalElem(elem) || !elem->active())
       continue;
 
@@ -677,6 +707,7 @@ OpenMCCellAverageProblem::setupProblem()
   cacheContainedCells();
 
   // save the number of contained cells for printing in every transfer if verbose
+  _cell_to_n_contained.clear();
   for (const auto & c : _cell_to_elem)
   {
     const auto & cell_info = c.first;
@@ -754,8 +785,7 @@ OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
                                                  bool skip_func_exp)
 {
   std::vector<const MooseVariableFE<Real> *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -782,8 +812,7 @@ OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
                                                       bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -810,8 +839,7 @@ OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string 
                                                               bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
-  const auto & tallies = _local_tallies;
-  for (const auto & t : tallies)
+  for (const auto & t : _local_tallies)
   {
     if (t->hasScore(score))
     {
@@ -842,7 +870,10 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     auto names = getParam<std::vector<SubdomainName>>(name);
     checkEmptyVector(names, "'" + name + "'");
 
-    auto b_ids = _mesh.getSubdomainIDs(names);
+    // here, we do not use the displaced mesh because we need to call this during initial
+    // setup when the displaced problem does not yet exist. However, displacing the mesh
+    // should not influence the subdomain IDs anyways
+    auto b_ids = mesh().getSubdomainIDs(names);
     std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
     checkBlocksInMesh(name, b_ids, names);
   }
@@ -853,7 +884,10 @@ OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name,
                                             const std::vector<SubdomainID> & ids,
                                             const std::vector<SubdomainName> & names) const
 {
-  const auto & subdomains = _mesh.meshSubdomains();
+  // here, we do not use the displaced mesh because we need to call this during initial
+  // setup when the displaced problem does not yet exist. However, displacing the mesh
+  // should not influence the subdomain IDs anyways
+  const auto & subdomains = mesh().meshSubdomains();
   for (std::size_t b = 0; b < names.size(); ++b)
     if (subdomains.find(ids[b]) == subdomains.end())
       mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
@@ -881,7 +915,10 @@ OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
       for (const auto & i : slice)
         flattened_names.push_back(i);
 
-    flattened_ids = _mesh.getSubdomainIDs(flattened_names);
+    // here, we do not use the displaced mesh because we need to call this during initial
+    // setup when the displaced problem does not yet exist. However, displacing the mesh
+    // should not influence the subdomain IDs anyways
+    flattened_ids = mesh().getSubdomainIDs(flattened_names);
     checkBlocksInMesh(name, flattened_ids, flattened_names);
 
     // should not be any duplicate blocks
@@ -951,7 +988,7 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & s : excl_density_blocks)
     _n_moose_density_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems = _mesh.getMesh().n_active_elem() - _n_moose_temp_density_elems -
+  _n_moose_none_elems = getMooseMesh().getMesh().n_active_elem() - _n_moose_temp_density_elems -
                         _n_moose_temp_elems - _n_moose_density_elems;
 }
 
@@ -966,7 +1003,7 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
     for (const auto & e : c.second)
     {
       // we are looping over local elements, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       vol += elem->volume();
     }
 
@@ -1046,7 +1083,7 @@ OpenMCCellAverageProblem::getCellMappedPhase()
 
     // we are looping over local elements, so no need to check for nullptr
     for (const auto & e : c.second)
-      f[elemFeedback(_mesh.queryElemPtr(globalElemID(e)))]++;
+      f[elemFeedback(getMooseMesh().queryElemPtr(globalElemID(e)))]++;
 
     cells_n_temp.push_back(f[coupling::temperature]);
     cells_n_temp_rho.push_back(f[coupling::density_and_temperature]);
@@ -1084,6 +1121,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_mapping = false;
 
   std::vector<Real> cv;
+  _cell_phase.clear();
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -1207,7 +1245,7 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     VariadicTable<std::string, std::string, std::string> aux(
         {"Subdomain", "Temperature", "Density"});
 
-    for (const auto & s : _mesh.meshSubdomains())
+    for (const auto & s : getMooseMesh().meshSubdomains())
     {
       std::string temp = _subdomain_to_temp_vars.count(s) ? _subdomain_to_temp_vars[s].second : "";
       std::string rho =
@@ -1267,7 +1305,7 @@ OpenMCCellAverageProblem::getCellMappedSubdomains()
     for (const auto & e : c.second)
     {
       // we are looping over local elements, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       elem_ids.push_back(elem->subdomain_id());
     }
   }
@@ -1343,6 +1381,8 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
 
   TIME_SECTION("subdomainsToMaterials", 3, "Mapping OpenMC Materials to Mesh", true);
 
+  _subdomain_to_material.clear();
+
   for (const auto & c : _cell_to_elem)
   {
     printTrisoHelp(time_start);
@@ -1404,6 +1444,7 @@ OpenMCCellAverageProblem::getMaterialFills()
 
   std::set<int32_t> materials_in_fluid;
   std::set<int32_t> other_materials;
+  _cell_to_material.clear();
 
   for (const auto & c : _cell_to_elem)
   {
@@ -1445,7 +1486,7 @@ OpenMCCellAverageProblem::getMaterialFills()
   {
     _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
     _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
-    _console <<   "       Material:  OpenMC material ID in this cell\n" << std::endl;
+    _console << "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
     vt.print(_console);
   }
 
@@ -1536,7 +1577,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  _console << "\nMapping between " + Moose::stringify(_mesh.getMesh().n_active_elem()) +
+  _console << "\nMapping between " + Moose::stringify(getMooseMesh().getMesh().n_active_elem()) +
                   " MOOSE elements and " + Moose::stringify(_n_openmc_cells) +
                   " OpenMC cells (on " + Moose::stringify(openmc::model::n_coord_levels) +
                   " coordinate levels):"
@@ -1650,6 +1691,11 @@ OpenMCCellAverageProblem::cacheContainedCells()
   containedCells first_cell_cc;
   containedCells second_cell_cc;
   bool used_cache_shortcut = false;
+
+  _cell_to_contained_material_cells.clear();
+  _first_identical_cell_materials.clear();
+  _instance_offsets.clear();
+  _n_offset.clear();
 
   int n = -1;
   const auto time_start = std::chrono::high_resolution_clock::now();
@@ -1866,9 +1912,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
   _flattened_instances.clear();
 
   int local_elem = -1;
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
   {
-    const auto * elem = _mesh.queryElemPtr(e);
+    const auto * elem = getMooseMesh().queryElemPtr(e);
 
     if (!isLocalElem(elem) || !elem->active())
       continue;
@@ -2006,12 +2052,10 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // fill out the elem_to_cell structure
   // TODO: figure out how to shrink this so we only store the mapping for active
   // elements as opposed to the entire element hierarchy.
-  _elem_to_cell.resize(_mesh.nElem(), {UNMAPPED, UNMAPPED});
+  _elem_to_cell.resize(getMooseMesh().nElem(), {UNMAPPED, UNMAPPED});
   for (const auto & c : _cell_to_elem)
-  {
     for (const auto & e : c.second)
       _elem_to_cell[e] = c.first;
-  }
 }
 
 void
@@ -2023,7 +2067,7 @@ OpenMCCellAverageProblem::getPointInCell()
   for (const auto & c : _local_cell_to_elem)
   {
     // we are only dealing with local elements here, no need to check for nullptr
-    const Elem * elem = _mesh.queryElemPtr(globalElemID(c.second[0]));
+    const Elem * elem = getMooseMesh().queryElemPtr(globalElemID(c.second[0]));
     const Point & p = elem->vertex_average();
 
     x.push_back(p(0));
@@ -2214,21 +2258,23 @@ OpenMCCellAverageProblem::addExternalVariables()
   }
 
   // create the variable(s) that will be used to receive density
+  _subdomain_to_density_vars.clear();
   for (const auto & v : _density_vars_to_blocks)
   {
     auto number = addExternalVariable(v.first, &v.second);
 
-    auto ids = _mesh.getSubdomainIDs(v.second);
+    auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
       _subdomain_to_density_vars[s] = {number, v.first};
   }
 
   // create the variable(s) that will be used to receive temperature
+  _subdomain_to_temp_vars.clear();
   for (const auto & v : _temp_vars_to_blocks)
   {
     auto number = addExternalVariable(v.first, &v.second);
 
-    auto ids = _mesh.getSubdomainIDs(v.second);
+    auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
       _subdomain_to_temp_vars[s] = {number, v.first};
   }
@@ -2293,7 +2339,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
     for (const auto & e : c.second)
     {
       // we are only accessing local elements here, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       auto v = var_num.at(elem->subdomain_id()).first;
       auto dof_idx = elem->dof_number(sys_number, v, 0);
       product += _serialized_solution(dof_idx) * elem->volume();
@@ -2314,7 +2360,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   if (!_specified_temperature_feedback)
     return;
 
-  _console << "Sending temperature to OpenMC cells... " << printNewline();
+  _console << "Sending temperature to OpenMC cells... " << std::endl;
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
@@ -2372,8 +2418,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   }
 
   if (!_verbose)
-    _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
-  _console << std::endl;
+    _console << " Sent cell-averaged min/max (K): " << minimum << ", " << maximum << std::endl;
 }
 
 OpenMCCellAverageProblem::cellInfo
@@ -2391,7 +2436,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   if (!_specified_density_feedback)
     return;
 
-  _console << "Sending density to OpenMC cells... " << printNewline();
+  _console << "Sending density to OpenMC cells... " << std::endl;
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
@@ -2449,8 +2494,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   }
 
   if (!_verbose)
-    _console << "done. Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum;
-  _console << std::endl;
+    _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
 }
 
 Real
@@ -2569,6 +2613,14 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      // update the [Mesh] internally, so that if we have the skinner we then propagate those
+      // changes to the OpenMC geometry
+      if (_use_displaced)
+      {
+        _console << "Updating the displaced mesh..." << std::endl;
+        _displaced_problem->updateMesh();
+      }
+
 #ifdef ENABLE_DAGMC
       if (_skinner)
       {
@@ -2645,7 +2697,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      _console << "Extracting OpenMC tallies...";
+      _console << "Extracting OpenMC tallies..." << std::endl;
 
       if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
         break;
@@ -2731,8 +2783,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // Check the normalization.
       for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
         checkNormalization(sums[global_score], global_score);
-
-      _console << " done" << std::endl;
 
       break;
     }
@@ -2869,7 +2919,8 @@ OpenMCCellAverageProblem::reloadDAGMC()
     openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ =
         _dagmc_universe_id;
 
-  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... ";
+  _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... "
+           << std::endl;
 
   // Add cells to universes
   openmc::populate_universes();
@@ -2891,8 +2942,6 @@ OpenMCCellAverageProblem::reloadDAGMC()
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
   openmc::settings::verbosity = initial_verbosity;
-
-  _console << "done" << std::endl;
 #endif
 }
 
