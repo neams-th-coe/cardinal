@@ -54,7 +54,7 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
   //just keeping this comment for future reference that I will have to add a test to capture
   //this error.
   if (_eeiid_values.size() != _extra_element_id_names.size())
-    paramError("values", "Number of entries in 'values' (" + std::to_string(_eeid_values.size()) +
+    paramError("values", "Number of entries in 'values' (" + std::to_string(_eeiid_values.size()) +
                              ") must match the number of entries in 'extra_element_integer_names'"
                              " (" + std::to_string(_extra_element_id_names.size()) + ")");
 }
