@@ -8,6 +8,8 @@
     type = FileMeshGenerator
     file = mesh_tally_in.e
   []
+
+  allow_renumbering = false
 []
 
 [Problem]
@@ -53,23 +55,6 @@
   []
 []
 
-[Postprocessors]
-  [power]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-  []
-  [power_left]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = 'left'
-  []
-[]
-
 [Executioner]
   type = Transient
-  num_steps = 2
-[]
-
-[Outputs]
-  exodus = true
 []

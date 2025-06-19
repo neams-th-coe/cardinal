@@ -22,6 +22,7 @@
     input = mesh_tally.i
     exodiff = mesh_tally_out.e
     requirement = 'The system shall correctly use a mesh tally on a moving MOOSE mesh. This is tested by translating the mesh over a stationary OpenMC model. The mesh translation exposes 20 percent of the left subdomain, which from a non-moving case we record 8 percent of the total power deposition in this region. For the moving mesh case, the total power deposited in the mesh tally is 92 percent.'
+    mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
   [make_mesh]
@@ -37,6 +38,7 @@
     prereq = make_mesh
     expect_err = "Tallying on a file-based mesh is not supported for moving-mesh cases"
     requirement = 'The system shall error if tallying on a file mesh for moving mesh cases, because there will be a disagreement between the mesh elements and the [Mesh].'
+    mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
   [temperature]
