@@ -59,11 +59,4 @@
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'
   []
-  [move_mesh]
-    type = RunApp
-    input = move.i
-    cli_args = '--mesh-only'
-    mesh_mode = 'replicated'
-    requirement = "The system shall generate the tally mesh."
-  []
 []

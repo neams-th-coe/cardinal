@@ -29,6 +29,7 @@
     input = mesh_tally.i
     cli_args = '--mesh-only'
     requirement = 'The system shall generate a file for mesh tallies.'
+    capabilities = 'dagmc'
   []
   [file_mesh]
     type = RunException
