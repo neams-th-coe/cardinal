@@ -27,7 +27,7 @@ set +ex
 
 if [[ -z "${OPENMC_CROSS_SECTIONS}" ]]; then
   echo ""
-  echo -e "\e[31mYou must now set:\e[0m"
+  echo -e "\033[31mYou must now set:\033[0m"
   echo ""
   echo "export OPENMC_CROSS_SECTIONS=${XS_DIR}/cross_sections.xml"
   echo ""
