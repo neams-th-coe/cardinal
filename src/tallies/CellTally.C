@@ -62,12 +62,12 @@ CellTally::CellTally(const InputParameters & parameters)
     if (block_names.empty())
       paramError("block", "Subdomain names must be provided if using 'block'!");
 
-    auto block_ids = _mesh.getSubdomainIDs(block_names);
+    auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
     std::copy(
         block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
 
     // Check to make sure all of the blocks are in the mesh.
-    const auto & subdomains = _mesh.meshSubdomains();
+    const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
         paramError("block",
@@ -76,7 +76,7 @@ CellTally::CellTally(const InputParameters & parameters)
   else
   {
     // Tally over all mesh blocks if no blocks are provided.
-    for (const auto & s : _mesh.meshSubdomains())
+    for (const auto & s : _openmc_problem.getMooseMesh().meshSubdomains())
       _tally_blocks.insert(s);
   }
 }

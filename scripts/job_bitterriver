@@ -1,0 +1,21 @@
+#!/bin/bash
+# This is a job script which will work on either WindRiver or Bitterroot (as the machines are the same).
+# - Run this script with sbatch job_bitterriver
+
+#SBATCH --job-name=cardinal
+#SBATCH --output=cardinal_%j.log
+#SBATCH --error=cardinal_%j.err
+#SBATCH --wckey=moose
+#SBATCH --ntasks-per-node=112
+#SBATCH --nodes=1 # Number of compute nodes you're requesting.
+#SBATCH --time=1:00:00
+
+#SBATCH --mail-user=<YOUR_EMAIL_HERE>
+#SBATCH --mail-type=all
+
+module purge
+module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
+
+let tasks=${SLURM_NNODES}*${SLURM_NTASKS_PER_NODE}
+
+mpiexec -n ${tasks} $HOME/cardinal/cardinal-opt -i ./openmc.i > ./logfile.txt

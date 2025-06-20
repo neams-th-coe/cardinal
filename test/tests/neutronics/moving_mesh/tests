@@ -1,0 +1,74 @@
+[Tests]
+  design = 'OpenMCVolumeCalculation.md OpenMCCellAverageProblem.md MoabSkinner.md'
+  issues = '#899'
+
+  [inconsistency]
+    type = RunException
+    input = cell_tally.i
+    cli_args = '--error'
+    expect_err = "Your problem has a moving mesh, but you have not provided a 'skinner'"
+    requirement = 'The system shall warn the user if there is an inconsistency between a moving mesh and the underlying OpenMC geometry.'
+    capabilities = 'dagmc'
+  []
+  [cell_tally]
+    type = Exodiff
+    input = cell_tally.i
+    exodiff = cell_tally_out.e
+    requirement = 'The system shall correctly reinitialize cell tallies when the mesh is moving. This is tested by translating the mesh over a stationary OpenMC model. The two cell tallies in the tallies.out file match the expected power density (accounting for the actual fractions of the cell which map to the moving mesh). This test also checks the cell IDs and instances as the mesh translates.'
+    capabilities = 'dagmc'
+  []
+  [mesh_tally]
+    type = Exodiff
+    input = mesh_tally.i
+    exodiff = mesh_tally_out.e
+    requirement = 'The system shall correctly use a mesh tally on a moving MOOSE mesh. This is tested by translating the mesh over a stationary OpenMC model. The mesh translation exposes 20 percent of the left subdomain, which from a non-moving case we record 8 percent of the total power deposition in this region. For the moving mesh case, the total power deposited in the mesh tally is 92 percent.'
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [make_mesh]
+    type = RunApp
+    input = mesh_tally.i
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a file for mesh tallies.'
+    capabilities = 'dagmc'
+  []
+  [file_mesh]
+    type = RunException
+    input = mesh_tally_file.i
+    prereq = make_mesh
+    expect_err = "Tallying on a file-based mesh is not supported for moving-mesh cases"
+    requirement = 'The system shall error if tallying on a file mesh for moving mesh cases, because there will be a disagreement between the mesh elements and the [Mesh].'
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [temperature]
+    type = Exodiff
+    input = temperature.i
+    exodiff = temperature_out.e
+    requirement = 'The system shall correctly reinitialize temperature mapping and output of cell temperatures to a moving mesh. This is tested by applying temperatures based on the moving mesh.'
+    capabilities = 'dagmc'
+  []
+  [density]
+    type = Exodiff
+    input = density.i
+    exodiff = density_out.e
+    requirement = 'The system shall correctly reinitialize density mapping and output of cell densities and material fills to a moving mesh. This is tested by applying densities based on the moving mesh.'
+    capabilities = 'dagmc'
+  []
+  [volumes]
+    type = CSVDiff
+    input = volumes.i
+    csvdiff = volumes_out.csv
+    requirement = 'The system shall correctly reinitialize volume calculations for a moving mesh. This is tested by comparing the OpenMC stochastic volume calculation against postprocessors for changing volumes.'
+    mesh_mode = 'replicated' # tet converter is restricted to replicated meshes
+    capabilities = 'dagmc'
+  []
+  [scale]
+    type = CSVDiff
+    input = scale.i
+    csvdiff = scale_out.csv
+    requirement = 'The system shall change the OpenMC mesh geometry on-the-fly. This is tested by running this case with a very high number of particles and batches, to compare against the CSG case in the reference folder. The reference case is a CSG model created at the deformed state. We cannot match these cases perfectly because we cannot control the seed of the second Picard iteration. The reference case gives k = 0.88782 plus or minus 5 pcm, and our Cardinal case gives 0.88786 plus of minus 5 pcm; these agree within 1 sigma.'
+    mesh_mode = 'replicated' # tet converter is restricted to replicated meshes
+    capabilities = 'dagmc'
+  []
+[]
