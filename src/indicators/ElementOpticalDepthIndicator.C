@@ -49,7 +49,9 @@ ElementOpticalDepthIndicator::validParams()
 }
 
 ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters & parameters)
-  : OpenMCIndicator(parameters), _h_type(getParam<MooseEnum>("h_type").getEnum<HType>()), _invert(getParam<bool>("invert"))
+  : OpenMCIndicator(parameters),
+    _h_type(getParam<MooseEnum>("h_type").getEnum<HType>()),
+    _invert(getParam<bool>("invert"))
 {
   std::string score = getParam<MooseEnum>("rxn_rate");
   std::replace(score.begin(), score.end(), '_', '-');
@@ -123,7 +125,7 @@ ElementOpticalDepthIndicator::computeIndicator()
   if (_invert && scalar_flux > libMesh::TOLERANCE * libMesh::TOLERANCE)
     _field_var.setNodalValue(1.0 / od);
   else
-  _field_var.setNodalValue(od);
+    _field_var.setNodalValue(od);
 }
 
 #endif

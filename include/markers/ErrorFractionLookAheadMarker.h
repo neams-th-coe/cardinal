@@ -20,16 +20,13 @@
 
 #include "ErrorFractionMarker.h"
 
-#include "OpenMCBase.h"
-
 /**
  * A class which estimates the relative error of a tally score post-refinement.
  * Elements are only marked for refinement if the predicted error is less than
  * a threshold specified by the user and ErrorFractionMarker would mark the element
  * for refinement.
  */
-class ErrorFractionLookAheadMarker : public ErrorFractionMarker,
-                                     public OpenMCBase
+class ErrorFractionLookAheadMarker : public ErrorFractionMarker
 {
 public:
   static InputParameters validParams();

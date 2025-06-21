@@ -200,14 +200,16 @@ public:
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score,
-                                                                         THREAD_ID tid,
-                                                                         const std::string & output = "",
-                                                                         bool skip_func_exp = false);
+  std::vector<const VariableValue *>
+  getTallyScoreNeighborVariableValues(const std::string & score,
+                                      THREAD_ID tid,
+                                      const std::string & output = "",
+                                      bool skip_func_exp = false);
 
   /**
    * Whether a tally contains a specified output or not.
-   * @param[in] output the additional output (unrelaxed standard deviation, relative error, or tally)
+   * @param[in] output the additional output (unrelaxed standard deviation, relative error, or
+   * tally)
    * @return whether an added tally has the output or not
    */
   bool hasOutput(const std::string & score, const std::string & output) const;

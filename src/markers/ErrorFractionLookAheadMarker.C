@@ -26,22 +26,23 @@ InputParameters
 ErrorFractionLookAheadMarker::validParams()
 {
   InputParameters params = ErrorFractionMarker::validParams();
-  params.addClassDescription("Marks elements for refinement or coarsening based on the fraction of "
-                             "the min/max error from the supplied indicator and the relative error of a tally value.");
-  params.addRequiredRangeCheckedParam<Real>("rel_error_refine", "0 <= rel_error_refine <= 1", "The relative error refinement threshold.");
-  params.addRequiredParam<IndicatorName>("stat_error_indicator", "The name of the statistical relative error Indicator that this Marker uses.");
+  params.addClassDescription(
+      "Marks elements for refinement or coarsening based on the fraction of "
+      "the min/max error from the supplied indicator and the relative error of a tally value.");
+  params.addRequiredRangeCheckedParam<Real>(
+      "rel_error_refine", "0 <= rel_error_refine <= 1", "The relative error refinement threshold.");
+  params.addRequiredParam<IndicatorName>(
+      "stat_error_indicator",
+      "The name of the statistical relative error Indicator that this Marker uses.");
 
   return params;
 }
 
 ErrorFractionLookAheadMarker::ErrorFractionLookAheadMarker(const InputParameters & parameters)
   : ErrorFractionMarker(parameters),
-    OpenMCBase(this, parameters),
     _rel_error_limit(getParam<Real>("rel_error_refine")),
     _rel_error_vec(getErrorVector(parameters.get<IndicatorName>("stat_error_indicator")))
 {
-  if (_rel_error_vec.size() != _error_vector.size())
-    mooseError("The statistical relative error indicator and the spatial error indicator must act on the same subset of the mesh!");
 }
 
 void
@@ -56,6 +57,8 @@ ErrorFractionLookAheadMarker::markerSetup()
   // First find the max and min error
   for (unsigned int i = 0; i < _rel_error_vec.size(); ++i)
   {
+    // Initial pruning step: elements only contribute to the min/max spatial
+    // error if their relative errors are sufficiently low.
     if (_rel_error_vec[i] < _rel_error_limit)
     {
       _min = std::min(_min, static_cast<Real>(_error_vector[i]));
@@ -71,15 +74,18 @@ ErrorFractionLookAheadMarker::markerSetup()
 Marker::MarkerValue
 ErrorFractionLookAheadMarker::computeElementMarker()
 {
+  // Lookahead statistical error in an element.
   Real m = std::sqrt(_current_elem->n_children());
+  Real stat_error = _rel_error_vec[_current_elem->id()];
 
-  Real max_rel_error = _rel_error_vec[_current_elem->id()] * m;
+  // Spatial error in an element.
   Real error = _error_vector[_current_elem->id()];
 
-  if (error > _refine_cutoff && max_rel_error <= _rel_error_limit)
+  if (error > _refine_cutoff && (stat_error * m) <= _rel_error_limit)
     return REFINE;
-  else if (error < _coarsen_cutoff || max_rel_error > _rel_error_limit)
+  else if (error < _coarsen_cutoff || stat_error > _rel_error_limit)
     return COARSEN;
 
+  // Goldilocks zone, do nothing.
   return DO_NOTHING;
 }
