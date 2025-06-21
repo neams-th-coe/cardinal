@@ -20,40 +20,20 @@
 
 #include "OpenMCIndicator.h"
 
-/**
- * An Indicator which returns an estimate of the optical depth experienced by photons/neutrons which
- * traverse the element.
- */
-class ElementOpticalDepthIndicator : public OpenMCIndicator
+/// An Indicator which returns the statistical error of a tally score in an element.
+class StatRelErrorIndicator : public OpenMCIndicator
 {
 public:
   static InputParameters validParams();
 
-  ElementOpticalDepthIndicator(const InputParameters & parameters);
+  StatRelErrorIndicator(const InputParameters & parameters);
 
   virtual void computeIndicator() override;
 
 protected:
-  /// The type of element length to use for estimating the optical depth.
-  enum class HType
-  {
-    Min = 0,
-    Max = 1,
-    CubeRoot = 2
-  } _h_type;
+  /// The external filter bin index for the score.
+  const unsigned int _bin_index;
 
-  /**
-   * The variables containing the reaction rate. This needs to be a vector because the reaction rate
-   * score may have filters applied, and so we need to sum the reaction rate over all filter bins.
-   */
-  std::vector<const VariableValue *> _rxn_rates;
-
-  /**
-   * The variables containing the scalar flux. This needs to be a vector because the scalar flux
-   * score may have filters applied, and so we need to sum the scalar fluxes over all filter bins.
-   */
-  std::vector<const VariableValue *> _scalar_fluxes;
-
-  /// Whether or not the optical depth should be inverted or not.
-  const bool _invert;
+  /// The variables containing the tally score relative errors.
+  const VariableValue * _tally_rel_error;
 };

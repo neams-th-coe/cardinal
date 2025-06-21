@@ -1,0 +1,13 @@
+[Tests]
+  issues = '#1146'
+  design = 'ErrorFractionLookAheadMarker.md'
+
+  [mark]
+    type = Exodiff
+    input = 'openmc.i'
+    exodiff = 'openmc_out.e'
+    requirement = 'The system shall allow the use of a look ahead marker to mitigate cyclic refinement.'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+[]
