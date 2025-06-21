@@ -18,7 +18,7 @@ the chord length through the element traversed by neutrons/photons. There are th
 
 The listing below shows sample usage of the `ElementOpticalDepthIndicator` to compute per-element optical depths for different `h_type`s.
 
-!listing /tests/neutronics/indicators/openmc.i
+!listing /tests/neutronics/indicators/od/openmc.i
   block=Indicators
 
 !syntax parameters /Adaptivity/Indicators/ElementOpticalDepthIndicator
