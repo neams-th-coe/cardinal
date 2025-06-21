@@ -31,6 +31,9 @@ public:
   virtual void computeIndicator() override;
 
 protected:
+  /// The external filter bin index for the score.
+  const unsigned int _bin_index;
+
   /// The variables containing the tally score relative errors.
-  std::vector<const VariableValue *> _tally_rel_error;
+  const VariableValue * _tally_rel_error;
 };
