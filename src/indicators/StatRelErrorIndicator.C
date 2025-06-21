@@ -29,7 +29,7 @@ InputParameters
 StatRelErrorIndicator::validParams()
 {
   InputParameters params = OpenMCIndicator::validParams();
-  params.addClassDescription("An Indicator which reports returns the maximum relative error of a tally score");
+  params.addClassDescription("An Indicator which reports the maximum relative error of all bins associated with a tally variable.");
   params.addRequiredParam<MooseEnum>("tally_score", getSingleTallyScoreEnum(), "The tally score used for the relative error.");
 
   return params;
@@ -59,7 +59,7 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
 
   if (!const_mon)
     paramError("tally_score",
-               "ElementOpticalDepthIndicator only supports CONSTANT MONOMIAL field variables. "
+               "StatRelErrorIndicator only supports CONSTANT MONOMIAL field variables. "
                "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
 
   // Grab the relative error from the [Tallies].

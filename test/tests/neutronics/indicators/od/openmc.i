@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../../meshes/sphere.e
   []
   [solid1]
     type = SubdomainIDGenerator
