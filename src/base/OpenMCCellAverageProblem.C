@@ -824,7 +824,8 @@ OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
         if (skip_func_exp && t->extBinSkipped(ext_bin))
           continue;
         score_vars.emplace_back(
-            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin] + output))->sln()));
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, vars[ext_bin] + output))
+                  ->sln()));
       }
     }
   }
@@ -868,8 +869,9 @@ bool
 OpenMCCellAverageProblem::hasOutput(const std::string & score, const std::string & output) const
 {
   for (const auto & t : _local_tallies)
-    if (std::find(t->getOutputs().begin(), t->getOutputs().end(), output) != t->getOutputs().end()
-        && t->hasScore(score))
+    if (std::find(t->getOutputs().begin(), t->getOutputs().end(), output) !=
+            t->getOutputs().end() &&
+        t->hasScore(score))
       return true;
   return false;
 }

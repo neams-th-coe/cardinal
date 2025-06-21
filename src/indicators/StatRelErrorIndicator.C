@@ -29,8 +29,10 @@ InputParameters
 StatRelErrorIndicator::validParams()
 {
   InputParameters params = OpenMCIndicator::validParams();
-  params.addClassDescription("An Indicator which reports the maximum relative error of all bins associated with a tally variable.");
-  params.addRequiredParam<MooseEnum>("score", getSingleTallyScoreEnum(), "The tally score used for the relative error.");
+  params.addClassDescription("An Indicator which reports the maximum relative error of all bins "
+                             "associated with a tally variable.");
+  params.addRequiredParam<MooseEnum>(
+      "score", getSingleTallyScoreEnum(), "The tally score used for the relative error.");
   params.addParam<unsigned int>(
       "ext_filter_bin",
       0,
@@ -40,8 +42,7 @@ StatRelErrorIndicator::validParams()
 }
 
 StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
-  : OpenMCIndicator(parameters),
-    _bin_index(getParam<unsigned int>("ext_filter_bin"))
+  : OpenMCIndicator(parameters), _bin_index(getParam<unsigned int>("ext_filter_bin"))
 {
   std::string score = getParam<MooseEnum>("score");
   std::replace(score.begin(), score.end(), '_', '-');
@@ -49,13 +50,14 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
   if (!_openmc_problem->hasScore(score))
     paramError("score",
                "The problem does not contain any score named " +
-               std::string(getParam<MooseEnum>("score")) +
-               "! Please "
-               "ensure that one of your [Tallies] is scoring the requested reaction rate.");
+                   std::string(getParam<MooseEnum>("score")) +
+                   "! Please "
+                   "ensure that one of your [Tallies] is scoring the requested reaction rate.");
 
   if (!_openmc_problem->hasOutput(score, "rel_error"))
-    mooseError("The problem does not contain any tallies that output the relative error for the score "
-               + std::string(getParam<MooseEnum>("score")) + "!");
+    mooseError(
+        "The problem does not contain any tallies that output the relative error for the score " +
+        std::string(getParam<MooseEnum>("score")) + "!");
 
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;
@@ -71,12 +73,12 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
   const auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid, "_rel_error");
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",
-      "The external filter bin provided is invalid for the number of "
-      "external filter bins (" +
-          std::to_string(score_bins.size()) +
-          ") "
-          "applied to " +
-          std::string(getParam<MooseEnum>("score")) + "!");
+               "The external filter bin provided is invalid for the number of "
+               "external filter bins (" +
+                   std::to_string(score_bins.size()) +
+                   ") "
+                   "applied to " +
+                   std::string(getParam<MooseEnum>("score")) + "!");
 
   _tally_rel_error = score_bins[_bin_index];
 }

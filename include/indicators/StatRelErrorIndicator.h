@@ -20,7 +20,7 @@
 
 #include "OpenMCIndicator.h"
 
-// An Indicator which returns the maximum statistical error of a tally score in an element.
+/// An Indicator which returns the statistical error of a tally score in an element.
 class StatRelErrorIndicator : public OpenMCIndicator
 {
 public:
