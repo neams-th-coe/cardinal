@@ -3,7 +3,7 @@
 ## Description
 
 `ErrorFractionLookAheadMarker` extends the [ErrorFractionMarker](ErrorFractionMarker.md) from MOOSE
-to include the statistical elative error from fields in stochastic solvers (i.e OpenMC). If the
+to include the statistical relative error from fields in stochastic solvers (i.e OpenMC). If the
 spatial error from `indicator` is within the error fraction provided in `refine` and the
 post-refinement statistical relative error is below the threshold provided in `rel_error_refine`, the
 element is marked for refinement.  If the spatial error is within the
