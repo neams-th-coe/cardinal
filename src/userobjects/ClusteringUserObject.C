@@ -80,7 +80,7 @@ void
 ClusteringUserObject::applyNoClusteringInitialCondition()
 {
   for (auto & elem : _mesh.active_element_ptr_range())
-    elem->set_extra_integer(_extra_integer_index, not_visited);
+    elem->set_extra_integer(_extra_integer_index, NOT_VISITED);
 }
 
 void
