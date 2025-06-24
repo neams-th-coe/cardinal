@@ -36,7 +36,10 @@ StatRelErrorIndicator::validParams()
   params.addParam<unsigned int>(
       "ext_filter_bin",
       0,
-      "The non-spatial filter bin for the tally score (with bin indices starting at 0).");
+      "The filter bin for the case where any filters are added to this "
+      "tally with [Filters] (bin indices start at 0). This parameter "
+      "should be specified if you wish to extract the relative error "
+      "of a different non-spatial tally bin.");
 
   return params;
 }
@@ -57,7 +60,8 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
   if (!_openmc_problem->hasOutput(score, "rel_error"))
     mooseError(
         "The problem does not contain any tallies that output the relative error for the score " +
-        std::string(getParam<MooseEnum>("score")) + "!");
+        std::string(getParam<MooseEnum>("score")) + "! Please ensure that your problem "
+        "includes 'output = unrelaxed_tally_rel_err'");
 
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;

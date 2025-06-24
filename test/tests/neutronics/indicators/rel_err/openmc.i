@@ -22,8 +22,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  temperature_blocks = '100'
-  initial_properties = xml
   verbose = true
   cell_level = 0
   normalize_by_global_tally = false
@@ -47,5 +45,5 @@
 [Outputs]
   execute_on = final
   exodus = true
-  hide = 'temp cell_instance cell_id kappa_fission kappa_fission_rel_error'
+  hide = 'kappa_fission kappa_fission_rel_error'
 []

@@ -43,7 +43,11 @@ ElementOpticalDepthIndicator::validParams()
       "the "
       "minimum vertex separation (min), the maximum vertex separation (max), and the cube root of "
       "the element volume (cube_root).");
-  params.addParam<bool>("invert", false, "Whether the optical depth is stored as 1 / OD or OD.");
+  params.addParam<bool>(
+      "invert",
+      false,
+      "Whether the optical depth is computed as the optical depth (false) or the inverse of the "
+      "optical depth (true).");
 
   return params;
 }
@@ -104,7 +108,7 @@ ElementOpticalDepthIndicator::computeIndicator()
   for (const auto & var : _scalar_fluxes)
     scalar_flux += (*var)[0];
 
-  auto od = scalar_flux < (libMesh::TOLERANCE * libMesh::TOLERANCE) ? 0.0 : rxn_rate / scalar_flux;
+  auto od = scalar_flux < libMesh::TOLERANCE ? 0.0 : rxn_rate / scalar_flux;
 
   switch (_h_type)
   {
@@ -122,7 +126,7 @@ ElementOpticalDepthIndicator::computeIndicator()
       break;
   }
 
-  if (_invert && scalar_flux > libMesh::TOLERANCE * libMesh::TOLERANCE)
+  if (_invert && od > libMesh::TOLERANCE)
     _field_var.setNodalValue(1.0 / od);
   else
     _field_var.setNodalValue(od);

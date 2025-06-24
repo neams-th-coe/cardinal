@@ -32,7 +32,7 @@
     type = RunException
     input = 'openmc.i'
     cli_args = 'Adaptivity/Indicators/stat_err/ext_filter_bin=1'
-    requirement = 'The system shall error if the provided tally external filter bin is greater than the total number of external filter bins..'
+    requirement = 'The system shall error if the provided tally external filter bin is greater than the total number of external filter bins.'
     expect_err = 'The external filter bin provided is invalid for the number of external filter bins'
     mesh_mode = 'replicated'
     capabilities = 'openmc'
