@@ -73,9 +73,9 @@ ClusteringUserObject::findCluster()
 
   for (auto & elem : _mesh.active_element_ptr_range())
   {
+    //if elem->get_extra_integer(_extra_integer_index) != NOT_VISITED that means we have already touched that element.
+    // No need to visit it again.
     if (elem->get_extra_integer(_extra_integer_index) != NOT_VISITED)
-      //if elem->get_extra_integer(_extra_integer_index) != NOT_VISITED that means we have
-      //already touched that element. No need to visit it again.
       continue;
 
     int cluster_id = elem->id();
