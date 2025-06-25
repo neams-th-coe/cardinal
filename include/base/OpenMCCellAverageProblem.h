@@ -170,34 +170,53 @@ public:
    * Get the variable(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const MooseVariableFE<Real> *>
-  getTallyScoreVariables(const std::string & score, THREAD_ID tid, bool skip_func_exp = false);
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
+                                                                    THREAD_ID tid,
+                                                                    const std::string & output = "",
+                                                                    bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
+   * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
+   * fetching variable values
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
+                                                                 THREAD_ID tid,
+                                                                 const std::string & output = "",
+                                                                 bool skip_func_exp = false);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
    * @return a vector of variable values associated with score
    */
   std::vector<const VariableValue *>
-  getTallyScoreVariableValues(const std::string & score, THREAD_ID tid, bool skip_func_exp = false);
+  getTallyScoreNeighborVariableValues(const std::string & score,
+                                      THREAD_ID tid,
+                                      const std::string & output = "",
+                                      bool skip_func_exp = false);
 
   /**
-   * Get the variable value(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @param[in] tid the thread ID associated with the current MOOSE object
-   * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
-   * fetching variable values
-   * @return a vector of variable values associated with score
+   * Whether a tally contains a specified output or not.
+   * @param[in] score the tally score to check
+   * @param[in] output the additional output (unrelaxed standard deviation, relative error, or
+   * tally)
+   * @return whether an added tally has the output or not
    */
-  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(
-      const std::string & score, THREAD_ID tid, bool skip_func_exp = false);
+  bool hasOutput(const std::string & score, const std::string & output) const;
 
   /**
    * Apply transformations to point

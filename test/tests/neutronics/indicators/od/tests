@@ -10,6 +10,15 @@
     mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
+  [invert_all_h]
+    type = Exodiff
+    input = 'openmc.i'
+    exodiff = 'openmc_inv_out.e'
+    cli_args = 'Adaptivity/Indicators/optical_depth_hmin/invert=true Adaptivity/Indicators/optical_depth_hmax/invert=true Adaptivity/Indicators/optical_depth_cuberoot/invert=true Outputs/file_base="openmc_inv_out"'
+    requirement = 'The system shall allow for the calculation of the inverse optical depth using the min/max vertex separation or the cube root of the element volume.'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
   [not_rxn_rate]
     type = RunException
     input = 'openmc.i'
