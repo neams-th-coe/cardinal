@@ -35,10 +35,12 @@ FDTallyGradAux::validParams()
       "score",
       getSingleTallyScoreEnum(),
       "The tally score this auxkernel should approximate the gradient of.");
-  params.addParam<unsigned int>(
-      "ext_filter_bin",
-      0,
-      "The non-spatial filter bin for the tally score (with bin indices starting at 0).");
+  params.addParam<unsigned int>("ext_filter_bin",
+                                0,
+                                "The filter bin for the case where any filters are added to this "
+                                "tally with [Filters] (bin indices start at 0). This parameter "
+                                "should be specified if you wish to extract the relative error "
+                                "of a different non-spatial tally bin.");
 
   params.addRelationshipManager("ElementSideNeighborLayers",
                                 Moose::RelationshipManagerType::ALGEBRAIC |

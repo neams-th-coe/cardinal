@@ -1,0 +1,40 @@
+[Tests]
+  issues = '#1146'
+  design = 'StatRelErrorIndicator.md'
+
+  [rel_err]
+    type = Exodiff
+    input = 'openmc.i'
+    exodiff = 'openmc_out.e'
+    requirement = 'The system shall allow for the use of the statistical relative error of a tally score as an indicator.'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [no_score]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Adaptivity/Indicators/stat_err/score=flux'
+    requirement = 'The system shall error if the provided score does not exist in StatRelErrorIndicator.'
+    expect_err = 'The problem does not contain any score named flux!'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [no_rel_err]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Problem/Tallies/Mesh/output=""'
+    requirement = 'The system shall error if no tallies are storing the relative error of the provided score.'
+    expect_err = 'The problem does not contain any tallies that output the relative error for the score kappa_fission!'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [invalid_bin]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Adaptivity/Indicators/stat_err/ext_filter_bin=1'
+    requirement = 'The system shall error if the provided tally external filter bin is greater than the total number of external filter bins.'
+    expect_err = 'The external filter bin provided is invalid for the number of external filter bins'
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+[]

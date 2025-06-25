@@ -18,42 +18,32 @@
 
 #pragma once
 
-#include "OpenMCIndicator.h"
+#include "ErrorFractionMarker.h"
 
 /**
- * An Indicator which returns an estimate of the optical depth experienced by photons/neutrons which
- * traverse the element.
+ * A class which estimates the relative error of a tally score post-refinement.
+ * Elements are only marked for refinement if the predicted error is less than
+ * a threshold specified by the user and ErrorFractionMarker would mark the element
+ * for refinement.
  */
-class ElementOpticalDepthIndicator : public OpenMCIndicator
+class ErrorFractionLookAheadMarker : public ErrorFractionMarker
 {
 public:
   static InputParameters validParams();
 
-  ElementOpticalDepthIndicator(const InputParameters & parameters);
+  ErrorFractionLookAheadMarker(const InputParameters & parameters);
 
-  virtual void computeIndicator() override;
+  virtual void markerSetup() override;
 
 protected:
-  /// The type of element length to use for estimating the optical depth.
-  enum class HType
-  {
-    Min = 0,
-    Max = 1,
-    CubeRoot = 2
-  } _h_type;
+  virtual MarkerValue computeElementMarker() override;
 
   /**
-   * The variables containing the reaction rate. This needs to be a vector because the reaction rate
-   * score may have filters applied, and so we need to sum the reaction rate over all filter bins.
+   * Upper relative error limit for refinement. If the "lookahead" for an element exceeds this
+   * limit, don't refine. Otherwise, mark for refinement.
    */
-  std::vector<const VariableValue *> _rxn_rates;
+  const Real & _rel_error_limit;
 
-  /**
-   * The variables containing the scalar flux. This needs to be a vector because the scalar flux
-   * score may have filters applied, and so we need to sum the scalar fluxes over all filter bins.
-   */
-  std::vector<const VariableValue *> _scalar_fluxes;
-
-  /// Whether or not the optical depth should be inverted or not.
-  const bool _invert;
+  /// The relative error reported by an indicator.
+  ErrorVector & _rel_error_vec;
 };
