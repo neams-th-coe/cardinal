@@ -10,14 +10,14 @@ $(info $nCardinal is compiled with the following MOOSE modules)
 ifeq ($(CHEMICAL_REACTIONS), yes)
   $(info $(SPACE) CHEMICAL_REACTIONS)
 endif
-ifeq ($(COMBINED), yes)
-  $(info $(SPACE) COMBINED)
-endif
 ifeq ($(CONTACT), yes)
   $(info $(SPACE) CONTACT)
 endif
 ifeq ($(ELECTROMAGNETICS), yes)
   $(info $(SPACE) ELECTROMAGNETICS)
+endif
+ifeq ($(EXTERNAL_PETSC_SOLVER), yes)
+  $(info $(SPACE) EXTERNAL_PETSC_SOLVER)
 endif
 ifeq ($(FLUID_PROPERTIES), yes)
   $(info $(SPACE) FLUID_PROPERTIES)
@@ -66,6 +66,9 @@ ifeq ($(RDG), yes)
 endif
 ifeq ($(RICHARDS), yes)
   $(info $(SPACE) RICHARDS)
+endif
+ifeq ($(SCALAR_TRANSPORT), yes)
+  $(info $(SPACE) SCALAR_TRANSPORT)
 endif
 ifeq ($(SOLID_MECHANICS), yes)
   $(info $(SPACE) SOLID_MECHANICS)
