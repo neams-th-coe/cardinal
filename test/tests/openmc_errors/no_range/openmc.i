@@ -14,6 +14,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
+  temperature_blocks = '0'
 []
 
 [Executioner]
