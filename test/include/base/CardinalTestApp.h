@@ -23,7 +23,7 @@
 class CardinalTestApp : public MooseApp
 {
 public:
-  CardinalTestApp(InputParameters parameters);
+  CardinalTestApp(const InputParameters & parameters);
   static InputParameters validParams();
 
   virtual ~CardinalTestApp();

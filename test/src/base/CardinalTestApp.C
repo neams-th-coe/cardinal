@@ -30,7 +30,7 @@ CardinalTestApp::validParams()
   return params;
 }
 
-CardinalTestApp::CardinalTestApp(InputParameters parameters) : MooseApp(parameters)
+CardinalTestApp::CardinalTestApp(const InputParameters & parameters) : MooseApp(parameters)
 {
   CardinalTestApp::registerAll(
       _factory, _action_factory, _syntax, getParam<bool>("allow_test_objects"));
