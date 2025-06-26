@@ -26,4 +26,4 @@ CardinalUnitApp::validParams()
   return params;
 }
 
-CardinalUnitApp::CardinalUnitApp(InputParameters parameters) : CardinalApp(parameters) {}
+CardinalUnitApp::CardinalUnitApp(const InputParameters & parameters) : CardinalApp(parameters) {}

@@ -23,7 +23,7 @@
 class CardinalUnitApp : public CardinalApp
 {
 public:
-  CardinalUnitApp(InputParameters parameters);
+  CardinalUnitApp(const InputParameters & parameters);
 
   static InputParameters validParams();
 };

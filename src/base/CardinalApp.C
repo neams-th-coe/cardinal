@@ -85,7 +85,7 @@ CardinalApp::validParams()
   return params;
 }
 
-CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
+CardinalApp::CardinalApp(const InputParameters & parameters) : MooseApp(parameters)
 {
   CardinalApp::registerAll(_factory, _action_factory, _syntax);
 }
