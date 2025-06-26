@@ -1713,6 +1713,28 @@ nondimensionalAdditive(const field::NekFieldEnum & field)
 }
 
 Real
+nondimensionalDivisor(const field::NekWriteEnum & field)
+{
+  switch (field)
+  {
+    case field::flux:
+      return scales.flux_ref;
+    case field::heat_source:
+      return scales.source_ref;
+    case field::x_displacement:
+    case field::y_displacement:
+    case field::z_displacement:
+      return scales.L_ref;
+    case field::mesh_velocity_x:
+    case field::mesh_velocity_y:
+    case field::mesh_velocity_z:
+      return scales.U_ref;
+    default:
+      mooseError("Unhandled NekWriteEnum in nondimensionalDivisor!");
+  }
+}
+
+Real
 nondimensionalDivisor(const field::NekFieldEnum & field)
 {
   switch (field)

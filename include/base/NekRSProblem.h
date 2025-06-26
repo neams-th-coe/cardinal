@@ -176,24 +176,24 @@ public:
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
-   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize it)
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
   void mapFaceDataToNekFace(const unsigned int & e,
                             const unsigned int & var_num,
-                            const Real & multiplier,
+                            const Real & divisor,
                             double ** outgoing_data);
 
   /**
    * Map nodal points on a MOOSE volume element to the GLL points on a Nek volume element.
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
-   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize it)
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
   void mapVolumeDataToNekVolume(const unsigned int & e,
                                 const unsigned int & var_num,
-                                const Real & multiplier,
+                                const Real & divisor,
                                 double ** outgoing_data);
 
   /**
