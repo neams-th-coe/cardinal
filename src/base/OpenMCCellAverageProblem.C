@@ -214,6 +214,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
+  if (_specified_temperature_feedback && openmc::settings::temperature_range[1] == 0.0)
+    mooseWarning("For multiphysics simulations, we recommend setting the 'temperature_range' in OpenMC's settings.xml file. This will pre-load nuclear data over a range of temperatures, instead of only the temperatures defined in the XML file.\n\nFor efficiency purposes, OpenMC only checks that cell temperatures are within the global min/max of loaded data, which can be different from data loaded for each nuclide. Run may abort suddenly if requested nuclear data is not available.");
+
   // Check to see if a displaced problem is being initialized
   const auto & dis_actions =
       getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
