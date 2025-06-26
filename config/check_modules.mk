@@ -79,9 +79,6 @@ endif
 ifeq ($(SUBCHANNEL), yes)
   $(info $(SPACE) SUBCHANNEL)
 endif
-ifeq ($(TENSOR_MECHANICS), yes)
-  $(info $(SPACE) TENSOR_MECHANICS)
-endif
 ifeq ($(THERMAL_HYDRAULICS), yes)
   $(info $(SPACE) THERMAL_HYDRAULICS)
 endif
