@@ -10,6 +10,9 @@ $(info $nCardinal is compiled with the following MOOSE modules)
 ifeq ($(CHEMICAL_REACTIONS), yes)
   $(info $(SPACE) CHEMICAL_REACTIONS)
 endif
+ifeq ($(INCLUDE_COMBINED), yes)
+  $(info $(SPACE) INCLUDE_COMBINED)
+endif
 ifeq ($(CONTACT), yes)
   $(info $(SPACE) CONTACT)
 endif
