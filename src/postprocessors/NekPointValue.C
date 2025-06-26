@@ -172,7 +172,7 @@ NekPointValue::execute()
       mooseError("Unhandled NekFieldEnum in NekPointValue!");
   }
 
-  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::referenceAdditiveScale(_field);
+  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field);
 }
 
 Real

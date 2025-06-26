@@ -783,7 +783,7 @@ NekRSProblem::volumeSolution(const field::NekFieldEnum & field, double * T)
 
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
-    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::referenceAdditiveScale(field);
+    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
   nekrs::allgatherv(vc.mirror_counts, Ttmp, T, end_3d);
 
@@ -859,7 +859,7 @@ NekRSProblem::boundarySolution(const field::NekFieldEnum & field, double * T)
 
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
-    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::referenceAdditiveScale(field);
+    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
   nekrs::allgatherv(bc.mirror_counts, Ttmp, T, end_2d);
 
