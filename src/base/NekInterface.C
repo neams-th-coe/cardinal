@@ -611,7 +611,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  reduced_value = reduced_value * nondimensionalDivisor(field) + referenceAdditiveScale(field);
+  reduced_value = reduced_value * nondimensionalDivisor(field) + nondimensionalAdditive(field);
 
   return reduced_value;
 }
@@ -663,7 +663,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  reduced_value = reduced_value * nondimensionalDivisor(field) + referenceAdditiveScale(field);
+  reduced_value = reduced_value * nondimensionalDivisor(field) + nondimensionalAdditive(field);
 
   return reduced_value;
 }
@@ -788,7 +788,7 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
 
   // for quantities with a relative scaling, we need to add back the reference
   // contribution to the volume integral
-  integral += referenceAdditiveScale(integrand) * volume;
+  integral += nondimensionalAdditive(integrand) * volume;
 }
 
 void
@@ -804,7 +804,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 
   // for quantities with a relative scaling, we need to add back the reference
   // contribution to the side integral
-  integral += referenceAdditiveScale(integrand) * area;
+  integral += nondimensionalAdditive(integrand) * area;
 }
 
 void
@@ -821,7 +821,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 
   // for quantities with a relative scaling, we need to add back the reference
   // contribution to the side integral; we need this form here to avoid a recursive loop
-  auto add = referenceAdditiveScale(integrand);
+  auto add = nondimensionalAdditive(integrand);
   if (std::abs(add) > 1e-8)
     integral += add * area(boundary_id, pp_mesh);
 }
@@ -1026,7 +1026,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   // for quantities with a relative scaling, we need to add back the reference
   // contribution to the mass flux integral; we need this form here to avoid an infinite
   // recursive loop
-  auto add = referenceAdditiveScale(integrand);
+  auto add = nondimensionalAdditive(integrand);
   if (std::abs(add) > 1e-8)
     total_integral += add * massFlowrate(boundary_id, pp_mesh);
 
@@ -1695,7 +1695,7 @@ referenceVolume()
 }
 
 Real
-referenceAdditiveScale(const field::NekFieldEnum & field)
+nondimensionalAdditive(const field::NekFieldEnum & field)
 {
   switch (field)
   {

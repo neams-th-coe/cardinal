@@ -90,13 +90,6 @@ void nondimensional(const bool n);
 void setRelativeTol(double tol);
 
 /**
- * Get the reference additive scale for dimensionalizing a quantity
- * @param[in] field field to fetch scale for
- * @return additive scale
- */
-Real referenceAdditiveScale(const field::NekFieldEnum & field);
-
-/**
  * Nek's runtime statistics are formed by collecting a timer of both the initialization
  * and accumulated run time. We unfortunately have to split this across multiple classes,
  * so if we want correct times we need to have NekInitAction save the value of the time
@@ -919,9 +912,22 @@ void initializeDimensionalScales(const double U,
  * (df) and the additive scale (f_ref).
  *
  * @param[in] field physical interpretation of value
- * @param[out] value nondimensional divisor scale
+ * @param[out] value nondimensional divisor scale (df)
  */
 Real nondimensionalDivisor(const field::NekFieldEnum & field);
+
+/**
+ * All fields in NekRS are assumed non-dimensionalized according to the general form
+ * f (non-dimensional) = (f - f_ref) / df
+ *
+ * so that to define a nondimensionalization requires two scales: the divisor scale
+ * (df) and the additive scale (f_ref).
+ *
+ * @param[in] field physical interpretation of value
+ * @param[out] value nondimensional additive scale (f_ref)
+ *
+ */
+Real nondimensionalAdditive(const field::NekFieldEnum & field);
 
 /**
  * Get the reference heat flux scale, \f$\rho C_pU\Delta T\f$
