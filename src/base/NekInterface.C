@@ -1647,39 +1647,15 @@ initializeDimensionalScales(const double U,
 }
 
 double
-referenceFlux()
-{
-  return scales.flux_ref;
-}
-
-double
-referenceSource()
-{
-  return scales.source_ref;
-}
-
-double
 referenceLength()
 {
   return scales.L_ref;
 }
 
 double
-referencePressure()
-{
-  return scales.P_ref;
-}
-
-double
 referenceTime()
 {
   return scales.t_ref;
-}
-
-double
-referenceVelocity()
-{
-  return scales.U_ref;
 }
 
 double

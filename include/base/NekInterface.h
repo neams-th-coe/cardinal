@@ -931,40 +931,16 @@ Real nondimensionalDivisor(const field::NekWriteEnum & field);
 Real nondimensionalAdditive(const field::NekFieldEnum & field);
 
 /**
- * Get the reference heat flux scale, \f$\rho C_pU\Delta T\f$
- * @return reference heat flux scale
- */
-double referenceFlux();
-
-/**
- * Get the reference heat source scale, \f$\rho C_pU\Delta T/L\f$
- * @return reference heat source scale
- */
-double referenceSource();
-
-/**
  * Get the reference length scale
  * @return reference length scale
  */
 double referenceLength();
 
 /**
- * Get the reference pressure scale
- * @return reference pressure scale
- */
-double referencePressure();
-
-/**
  * Get the reference time scale
  * @return reference time scale
  */
 double referenceTime();
-
-/**
- * Get the reference velocity scale
- * @return reference velocity scale
- */
-double referenceVelocity();
 
 /**
  * Get the reference area scale

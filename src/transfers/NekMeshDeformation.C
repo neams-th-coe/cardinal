@@ -168,17 +168,17 @@ NekMeshDeformation::sendVolumeDeformationToNek()
       continue;
 
     _nek_problem.mapVolumeDataToNekVolume(
-        e, _variable_number[_variable + "_x"], 1.0 / nekrs::referenceLength(), &_displacement_x);
+        e, _variable_number[_variable + "_x"], nekrs::nondimensionalDivisor(field::displacement_x), &_displacement_x);
     _nek_problem.writeVolumeSolution(
         e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
 
     _nek_problem.mapVolumeDataToNekVolume(
-        e, _variable_number[_variable + "_y"], 1.0 / nekrs::referenceLength(), &_displacement_y);
+        e, _variable_number[_variable + "_y"], nekrs::nondimensionalDivisor(field::displacement_y), &_displacement_y);
     _nek_problem.writeVolumeSolution(
         e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
 
     _nek_problem.mapVolumeDataToNekVolume(
-        e, _variable_number[_variable + "_z"], 1.0 / nekrs::referenceLength(), &_displacement_z);
+        e, _variable_number[_variable + "_z"], nekrs::nondimensionalDivisor(field::displacement_z), &_displacement_z);
     _nek_problem.writeVolumeSolution(
         e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
@@ -273,9 +273,10 @@ NekMeshDeformation::calculateMeshVelocity(int e, const field::NekWriteEnum & fie
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
 
+  auto reference_v = nekrs::nondimensionalDivisor(field::velocity);
   for (int i = 0; i < len; i++)
     _mesh_velocity_elem[i] =
-        (displacement[i] - prev_disp[(e * len) + i]) / dt / nekrs::referenceVelocity();
+        (displacement[i] - prev_disp[(e * len) + i]) / dt / reference_v;
 
   _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
