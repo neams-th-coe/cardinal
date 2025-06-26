@@ -611,8 +611,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  dimensionalize(field, reduced_value);
-  reduced_value += referenceAdditiveScale(field);
+  reduced_value = reduced_value * nondimensionalDivisor(field) + referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -664,8 +663,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  dimensionalize(field, reduced_value);
-  reduced_value += referenceAdditiveScale(field);
+  reduced_value = reduced_value * nondimensionalDivisor(field) + referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -783,7 +781,7 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
                              double & integral)
 {
   // dimensionalize the field if needed
-  dimensionalize(integrand, integral);
+  integral *= nondimensionalDivisor(integrand);
 
   // scale the volume integral
   integral *= scales.V_ref;
@@ -799,7 +797,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
                            double & integral)
 {
   // dimensionalize the field if needed
-  dimensionalize(integrand, integral);
+  integral *= nondimensionalDivisor(integrand);
 
   // scale the boundary integral
   integral *= scales.A_ref;
@@ -816,7 +814,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 			                     const nek_mesh::NekMeshEnum pp_mesh)
 {
   // dimensionalize the field if needed
-  dimensionalize(integrand, integral);
+  integral *= nondimensionalDivisor(integrand);
 
   // scale the boundary integral
   integral *= scales.A_ref;
@@ -1020,7 +1018,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  dimensionalize(integrand, total_integral);
+  total_integral *= nondimensionalDivisor(integrand);
 
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
@@ -1714,8 +1712,8 @@ referenceAdditiveScale(const field::NekFieldEnum & field)
   }
 }
 
-void
-dimensionalize(const field::NekFieldEnum & field, double & value)
+Real
+nondimensionalDivisor(const field::NekFieldEnum & field)
 {
   switch (field)
   {
@@ -1724,41 +1722,30 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::velocity_z:
     case field::velocity:
     case field::velocity_component:
-      value *= scales.U_ref;
-      break;
+      return scales.U_ref;
     case field::velocity_x_squared:
     case field::velocity_y_squared:
     case field::velocity_z_squared:
-      value *= scales.U_ref * scales.U_ref;
-      break;
+      return scales.U_ref * scales.U_ref;
     case field::temperature:
-      value *= scales.dT_ref;
-      break;
+      return scales.dT_ref;
     case field::pressure:
-      value *= scales.P_ref;
-      break;
+      return scales.P_ref;
     case field::scalar01:
-      value *= scales.ds01_ref;
-      break;
+      return scales.ds01_ref;
     case field::scalar02:
-      value *= scales.ds02_ref;
-      break;
+      return scales.ds02_ref;
     case field::scalar03:
-      value *= scales.ds03_ref;
-      break;
+      return scales.ds03_ref;
     case field::unity:
       // no dimensionalization needed
-      break;
-
+      return 1.0;
     case field::usrwrk00:
-      value *= scratchUnits(0);
-      break;
+      return scratchUnits(0);
     case field::usrwrk01:
-      value *= scratchUnits(1);
-      break;
+      return scratchUnits(1);
     case field::usrwrk02:
-      value *= scratchUnits(2);
-      break;
+      return scratchUnits(2);
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }

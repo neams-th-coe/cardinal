@@ -910,19 +910,18 @@ void initializeDimensionalScales(const double U,
                                  const double ds03);
 
 /**
- * \brief Dimensionalize a field by multiplying the nondimensional form by the reference
+ * \brief Return the reference divisor scale that defines the non-dimensional field
  *
- * This routine dimensionalizes a nondimensional term by multiplying the non-dimensional form
- * by a scalar, i.e. \f$f^\dagger=\frac{f}{f_ref}\f$, where \f$f^\dagger\f$ is the nondimensional
- * form and \f$f_{ref}\f$ is a reference scale with form particular to the interpretation of the
- * field. Note that for temperature in particular, there are still additional steps to
- * dimensionalize, because we do not define a nondimensional temperature simply as
- * \f$T^\dagger=\frac{T}{\Delta T_{ref}}\f$. But, this function just treats the characteristic scale
- * that would appear in the denominator.
- * @param[in] field physical interpretation of value to dimensionalize
- * @param[out] value value to dimensionalize
+ * All fields in NekRS are assumed non-dimensionalized according to the general form
+ * f (non-dimensional) = (f - f_ref) / df
+ *
+ * so that to define a nondimensionalization requires two scales: the divisor scale
+ * (df) and the additive scale (f_ref).
+ *
+ * @param[in] field physical interpretation of value
+ * @param[out] value nondimensional divisor scale
  */
-void dimensionalize(const field::NekFieldEnum & field, double & value);
+Real nondimensionalDivisor(const field::NekFieldEnum & field);
 
 /**
  * Get the reference heat flux scale, \f$\rho C_pU\Delta T\f$
