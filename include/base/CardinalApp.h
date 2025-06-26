@@ -26,7 +26,7 @@
 class CardinalApp : public MooseApp
 {
 public:
-  CardinalApp(InputParameters parameters);
+  CardinalApp(const InputParameters & parameters);
 
   static InputParameters validParams();
 
