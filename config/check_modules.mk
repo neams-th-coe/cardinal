@@ -28,7 +28,7 @@ endif
 ifeq ($(FUNCTIONAL_EXPANSION_TOOLS), yes)
   $(info $(SPACE) FUNCTIONAL_EXPANSION_TOOLS)
 endif
-ifeq ($(GEOMCHEMISTRY), yes)
+ifeq ($(GEOCHEMISTRY), yes)
   $(info $(SPACE) GEOCHEMISTRY)
 endif
 ifeq ($(HEAT_TRANSFER), yes)
@@ -66,6 +66,9 @@ ifeq ($(RDG), yes)
 endif
 ifeq ($(RICHARDS), yes)
   $(info $(SPACE) RICHARDS)
+endif
+ifeq ($(SOLID_MECHANICS), yes)
+  $(info $(SPACE) SOLID_MECHANICS)
 endif
 ifeq ($(SOLID_PROPERTIES), yes)
   $(info $(SPACE) SOLID_PROPERTIES)
