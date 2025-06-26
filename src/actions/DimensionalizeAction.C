@@ -121,13 +121,13 @@ DimensionalizeAction::act()
     vt.addRow("Position", "x / " + compress(_L));
     vt.addRow("Time", "t / " + compress(nekrs::referenceTime()));
     vt.addRow("Velocity", "u / " + compress(_U));
-    vt.addRow("Pressure", "P / " + compress(nekrs::referencePressure()));
+    vt.addRow("Pressure", "P / " + compress(nekrs::nondimensionalDivisor(field::pressure)));
 
     if (nekrs::hasScalarVariable(0))
     {
       vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
-      vt.addRow("Heat flux", "q'' / " + compress(nekrs::referenceFlux()));
-      vt.addRow("Power density", "q / " + compress(nekrs::referenceSource()));
+      vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::flux)));
+      vt.addRow("Power density", "q / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
     }
 
     // TODO: when we add coupling for scalars, we will need to add internal variables

@@ -95,7 +95,7 @@ NekVolumetricSource::normalizeVolumetricSource(const double moose,
                                                double nek,
                                                double & normalized_nek)
 {
-  auto dimension_multiplier = nekrs::referenceVolume() * nekrs::referenceSource();
+  auto dimension_multiplier = nekrs::referenceVolume() * nekrs::nondimensionalDivisor(field::heat_source);
 
   // scale the nek source to dimensional form for the sake of normalizing against
   // a dimensional MOOSE source
@@ -128,7 +128,7 @@ NekVolumetricSource::sendDataToNek()
       continue;
 
     _nek_problem.mapVolumeDataToNekVolume(
-        e, _variable_number[_variable], 1.0 / nekrs::referenceSource(), &_source_elem);
+        e, _variable_number[_variable], nekrs::nondimensionalDivisor(field::heat_source), &_source_elem);
     _nek_problem.writeVolumeSolution(e, field::heat_source, _source_elem);
   }
 
@@ -141,7 +141,7 @@ NekVolumetricSource::sendDataToNek()
 
   // For the sake of printing diagnostics to the screen regarding source normalization,
   // we first scale the nek source by any unit changes and then by the reference source
-  const double nek_source_print_mult = scale_cubed * nekrs::referenceSource();
+  const double nek_source_print_mult = scale_cubed * nekrs::nondimensionalDivisor(field::heat_source);
   double normalized_nek_source = 0.0;
   bool successful_normalization;
 
