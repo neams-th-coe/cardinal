@@ -915,6 +915,7 @@ void initializeDimensionalScales(const double U,
  * @param[out] value nondimensional divisor scale (df)
  */
 Real nondimensionalDivisor(const field::NekFieldEnum & field);
+Real nondimensionalDivisor(const field::NekWriteEnum & field);
 
 /**
  * All fields in NekRS are assumed non-dimensionalized according to the general form
