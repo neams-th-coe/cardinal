@@ -121,14 +121,15 @@ NekVolumetricSource::sendDataToNek()
 {
   _console << "Sending volumetric source to NekRS..." << std::endl;
 
+  auto d = nekrs::nondimensionalDivisor(field::heat_source);
+  auto a = nekrs::nondimensionalAdditive(field::heat_source);
   for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
   {
     // We can only write into the nekRS scratch space if that face is "owned" by the current process
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(
-        e, _variable_number[_variable], nekrs::nondimensionalDivisor(field::heat_source), &_source_elem);
+    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_source_elem);
     _nek_problem.writeVolumeSolution(e, field::heat_source, _source_elem);
   }
 
