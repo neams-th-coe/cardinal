@@ -127,7 +127,8 @@ DimensionalizeAction::act()
     {
       vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
       vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::flux)));
-      vt.addRow("Power density", "q / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
+      vt.addRow("Power density",
+                "q / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
     }
 
     // TODO: when we add coupling for scalars, we will need to add internal variables

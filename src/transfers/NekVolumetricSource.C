@@ -95,7 +95,8 @@ NekVolumetricSource::normalizeVolumetricSource(const double moose,
                                                double nek,
                                                double & normalized_nek)
 {
-  auto dimension_multiplier = nekrs::referenceVolume() * nekrs::nondimensionalDivisor(field::heat_source);
+  auto dimension_multiplier =
+      nekrs::referenceVolume() * nekrs::nondimensionalDivisor(field::heat_source);
 
   // scale the nek source to dimensional form for the sake of normalizing against
   // a dimensional MOOSE source
@@ -142,7 +143,8 @@ NekVolumetricSource::sendDataToNek()
 
   // For the sake of printing diagnostics to the screen regarding source normalization,
   // we first scale the nek source by any unit changes and then by the reference source
-  const double nek_source_print_mult = scale_cubed * nekrs::nondimensionalDivisor(field::heat_source);
+  const double nek_source_print_mult =
+      scale_cubed * nekrs::nondimensionalDivisor(field::heat_source);
   double normalized_nek_source = 0.0;
   bool successful_normalization;
 

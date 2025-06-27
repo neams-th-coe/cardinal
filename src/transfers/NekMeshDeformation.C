@@ -169,11 +169,13 @@ NekMeshDeformation::sendVolumeDeformationToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
     _nek_problem.writeVolumeSolution(
         e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
     _nek_problem.writeVolumeSolution(
         e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
 
@@ -200,15 +202,18 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
       if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
+      _nek_problem.mapFaceDataToNekFace(
+          e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
       _nek_problem.writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
@@ -222,15 +227,18 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
+      _nek_problem.mapFaceDataToNekVolume(
+          e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
       _nek_problem.writeVolumeSolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
@@ -271,8 +279,7 @@ NekMeshDeformation::calculateMeshVelocity(int e, const field::NekWriteEnum & fie
 
   auto reference_v = nekrs::nondimensionalDivisor(field::velocity);
   for (int i = 0; i < len; i++)
-    _mesh_velocity_elem[i] =
-        (displacement[i] - prev_disp[(e * len) + i]) / dt / reference_v;
+    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / reference_v;
 
   _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
