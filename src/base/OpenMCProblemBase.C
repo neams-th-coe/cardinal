@@ -177,15 +177,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   openmc::settings::libmesh_comm = &_mesh.comm();
 
-  if (openmc::settings::temperature_range[1] == 0.0)
-    mooseWarning(
-        "For multiphysics simulations, we recommend setting the 'temperature_range' in OpenMC's "
-        "settings.xml file. This will pre-load nuclear data over a range of temperatures, instead "
-        "of only the temperatures defined in the XML file.\n\n"
-        "For efficiency purposes, OpenMC only checks that cell temperatures are within the global "
-        "min/max of loaded data, which can be different from data loaded for each nuclide. Run may "
-        "abort suddenly if requested nuclear data is not available.");
-
   if (isParamValid("openmc_verbosity"))
     openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
 
