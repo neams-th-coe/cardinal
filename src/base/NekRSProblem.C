@@ -997,6 +997,7 @@ void
 NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
                                    const unsigned int & var_num,
                                    const Real & divisor_scale,
+                                   const Real & additive_scale,
                                    double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1024,7 +1025,7 @@ NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
                                                 : _nek_mesh->boundaryNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) / divisor_scale;
+      (*outgoing_data)[node_index] = ((*_serialized_solution)(dof_idx) - additive_scale) / divisor_scale;
     }
   }
 }
@@ -1033,6 +1034,7 @@ void
 NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
                                      const unsigned int & var_num,
                                      const Real & divisor_scale,
+                                     const Real & additive_scale,
                                      double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1066,7 +1068,7 @@ NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
                                                   : _nek_mesh->volumeNodeIndex(n);
 
         auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-        (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) / divisor_scale;
+        (*outgoing_data)[node_index] = ((*_serialized_solution)(dof_idx) - additive_scale) / divisor_scale;
       }
     }
   }
@@ -1076,6 +1078,7 @@ void
 NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                        const unsigned int & var_num,
                                        const Real & divisor,
+                                       const Real & additive,
                                        double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1102,7 +1105,7 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                                 : _nek_mesh->volumeNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) / divisor;
+      (*outgoing_data)[node_index] = ((*_serialized_solution)(dof_idx) - additive) / divisor;
     }
   }
 }

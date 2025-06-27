@@ -139,6 +139,8 @@ NekBoundaryFlux::sendDataToNek()
 {
   _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
            << std::endl;
+  auto d = nekrs::nondimensionalDivisor(field::flux);
+  auto a = nekrs::nondimensionalAdditive(field::flux);
 
   if (!_nek_mesh->volume())
   {
@@ -149,8 +151,7 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekFace(
-          e, _variable_number[_variable], nekrs::nondimensionalDivisor(field::flux), &_flux_face);
+      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_flux_face);
       _nek_problem.writeBoundarySolution(e, field::flux, _flux_face);
     }
   }
@@ -163,8 +164,7 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(
-          e, _variable_number[_variable], nekrs::nondimensionalDivisor(field::flux), &_flux_elem);
+      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_flux_elem);
       _nek_problem.writeVolumeSolution(e, field::flux, _flux_elem);
     }
   }
