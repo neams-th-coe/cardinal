@@ -176,8 +176,10 @@ public:
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
-   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize it)
-   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending to Nek (to non-dimensionalize)
+   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize
+   * it)
+   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending
+   * to Nek (to non-dimensionalize)
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
   void mapFaceDataToNekFace(const unsigned int & e,
@@ -190,8 +192,10 @@ public:
    * Map nodal points on a MOOSE volume element to the GLL points on a Nek volume element.
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
-   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize it)
-   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending to Nek (to non-dimensionalize)
+   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize
+   * it)
+   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending
+   * to Nek (to non-dimensionalize)
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
   void mapVolumeDataToNekVolume(const unsigned int & e,
@@ -213,8 +217,10 @@ public:
    *
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
-   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize it)
-   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending to Nek (to non-dimensionalize)
+   * @param[in] divisor number to divide MOOSE data by before sending to Nek (to non-dimensionalize
+   * it)
+   * @param[in] additive number to subtract from MOOSE data, before dividing by divisor and sending
+   * to Nek (to non-dimensionalize)
    * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
    */
   void mapFaceDataToNekVolume(const unsigned int & e,
