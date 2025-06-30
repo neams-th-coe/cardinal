@@ -54,7 +54,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _boundary(_nek_mesh->boundary()),
-    _reference_flux_integral(nekrs::referenceArea() * nekrs::referenceFlux())
+    _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(field::flux))
 {
   if (_direction == "to_nek")
   {
@@ -139,6 +139,8 @@ NekBoundaryFlux::sendDataToNek()
 {
   _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
            << std::endl;
+  auto d = nekrs::nondimensionalDivisor(field::flux);
+  auto a = nekrs::nondimensionalAdditive(field::flux);
 
   if (!_nek_mesh->volume())
   {
@@ -149,8 +151,7 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekFace(
-          e, _variable_number[_variable], 1.0 / nekrs::referenceFlux(), &_flux_face);
+      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_flux_face);
       _nek_problem.writeBoundarySolution(e, field::flux, _flux_face);
     }
   }
@@ -163,8 +164,7 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(
-          e, _variable_number[_variable], 1.0 / nekrs::referenceFlux(), &_flux_elem);
+      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_flux_elem);
       _nek_problem.writeVolumeSolution(e, field::flux, _flux_elem);
     }
   }
@@ -175,7 +175,7 @@ NekBoundaryFlux::sendDataToNek()
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::referenceFlux();
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::flux);
 
   // integrate the flux over each individual boundary
   std::vector<double> nek_flux_sidesets =
@@ -254,7 +254,7 @@ void
 NekBoundaryFlux::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
 {
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::referenceFlux();
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::flux);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,

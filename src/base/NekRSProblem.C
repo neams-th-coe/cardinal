@@ -783,10 +783,7 @@ NekRSProblem::volumeSolution(const field::NekFieldEnum & field, double * T)
 
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
-  {
-    nekrs::dimensionalize(field, Ttmp[v]);
-    Ttmp[v] += nekrs::referenceAdditiveScale(field);
-  }
+    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
   nekrs::allgatherv(vc.mirror_counts, Ttmp, T, end_3d);
 
@@ -862,10 +859,7 @@ NekRSProblem::boundarySolution(const field::NekFieldEnum & field, double * T)
 
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
-  {
-    nekrs::dimensionalize(field, Ttmp[v]);
-    Ttmp[v] += nekrs::referenceAdditiveScale(field);
-  }
+    Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
   nekrs::allgatherv(bc.mirror_counts, Ttmp, T, end_2d);
 
@@ -1002,7 +996,8 @@ NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
 void
 NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
                                    const unsigned int & var_num,
-                                   const Real & multiplier,
+                                   const Real & divisor_scale,
+                                   const Real & additive_scale,
                                    double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1030,7 +1025,8 @@ NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
                                                 : _nek_mesh->boundaryNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+      (*outgoing_data)[node_index] =
+          ((*_serialized_solution)(dof_idx)-additive_scale) / divisor_scale;
     }
   }
 }
@@ -1038,7 +1034,8 @@ NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
 void
 NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
                                      const unsigned int & var_num,
-                                     const Real & multiplier,
+                                     const Real & divisor_scale,
+                                     const Real & additive_scale,
                                      double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1072,7 +1069,8 @@ NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
                                                   : _nek_mesh->volumeNodeIndex(n);
 
         auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-        (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+        (*outgoing_data)[node_index] =
+            ((*_serialized_solution)(dof_idx)-additive_scale) / divisor_scale;
       }
     }
   }
@@ -1081,7 +1079,8 @@ NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
 void
 NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                        const unsigned int & var_num,
-                                       const Real & multiplier,
+                                       const Real & divisor,
+                                       const Real & additive,
                                        double ** outgoing_data)
 {
   auto sys_number = _aux->number();
@@ -1108,7 +1107,7 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                                 : _nek_mesh->volumeNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx)*multiplier;
+      (*outgoing_data)[node_index] = ((*_serialized_solution)(dof_idx)-additive) / divisor;
     }
   }
 }
