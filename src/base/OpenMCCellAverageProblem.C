@@ -2181,7 +2181,7 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const
          "on the 'universes' attribute of lattice objects. "
       << "If you want to obtain feedback or cell tallies here, you "
          "will need to widen your lattice to have universes covering all of the space you "
-         "want feedback or cell tallies.\n\nFor more information, see: "
+         "want feedback or cell tallies.\n\nIn other words, re-build your OpenMC model but replace lattice.outer by simply creating extra rings/rows in your lattice to cover all the space needed. For more information, see: "
          "https://github.com/openmc-dev/openmc/issues/551.";
   mooseError(msg.str());
 }
