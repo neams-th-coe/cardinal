@@ -929,6 +929,7 @@ Real nondimensionalDivisor(const field::NekWriteEnum & field);
  *
  */
 Real nondimensionalAdditive(const field::NekFieldEnum & field);
+Real nondimensionalAdditive(const field::NekWriteEnum & field);
 
 /**
  * Get the reference length scale
