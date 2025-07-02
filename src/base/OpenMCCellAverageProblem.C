@@ -1909,9 +1909,18 @@ OpenMCCellAverageProblem::getCellLevel(const Point & c) const
     if (isParamValid("lowest_cell_level"))
       level = _particle.n_coord() - 1;
     else
-      mooseError("Requested coordinate level of " + Moose::stringify(_cell_level) +
+    {
+      std::string l = Moose::stringify(_cell_level);
+      mooseError("Requested coordinate level of " + l +
                  " exceeds number of nested coordinate levels at " + printPoint(c) + ": " +
-                 Moose::stringify(_particle.n_coord()));
+                 Moose::stringify(_particle.n_coord()) +
+                 ".\n\nYou can either change how the OpenMC model is built by nesting universes "
+                 "into deeper levels, or you can try setting 'lowest_cell_level = " +
+                 l +
+                 "', which will couple on the lowest level found in the geometry at any given x, "
+                 "y, z point, up to and including level " +
+                 l + ".");
+    }
   }
 
   return level;
@@ -2181,7 +2190,9 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const
          "on the 'universes' attribute of lattice objects. "
       << "If you want to obtain feedback or cell tallies here, you "
          "will need to widen your lattice to have universes covering all of the space you "
-         "want feedback or cell tallies.\n\nFor more information, see: "
+         "want feedback or cell tallies.\n\nIn other words, re-build your OpenMC model but replace "
+         "lattice.outer by simply creating extra rings/rows in your lattice to cover all the space "
+         "needed. For more information, see: "
          "https://github.com/openmc-dev/openmc/issues/551.";
   mooseError(msg.str());
 }
