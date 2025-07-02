@@ -78,7 +78,10 @@ OpenMCProblemBase::validParams()
       false,
       "Whether to skip writing any statepoint files from OpenMC; this is a performance "
       "optimization for scenarios where you may not want the statepoint files anyways");
-  params.addParam<bool>("reset_seed", false, "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
+  params.addParam<bool>(
+      "reset_seed",
+      false,
+      "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
 
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
