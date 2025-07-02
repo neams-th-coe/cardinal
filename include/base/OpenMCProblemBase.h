@@ -510,7 +510,7 @@ protected:
   /// Whether to reset the seed each time a new OpenMC calculation runs
   const bool & _reset_seed;
 
-  /// The initial OpenMC sett
+  /// The initial OpenMC seed
   const int64_t _initial_seed;
 
   /// The index of a global tally to accumulate the scores required for kinetics parameters.
