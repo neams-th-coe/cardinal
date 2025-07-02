@@ -48,4 +48,13 @@
     requirement = 'The system shall allow skipping of statepoint output files'
     capabilities = 'openmc'
   []
+  [reset_seed]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    issues = '#1164'
+    cli_args = 'Problem/reset_seed=true Executioner/num_steps=3'
+    requirement = "The system shall allow resetting the OpenMC seed just before each execution. This is tested by confirming that tallies are identical in back-to-back OpenMC runs."
+    capabilities = 'openmc'
+  []
 []

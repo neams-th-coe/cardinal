@@ -372,7 +372,10 @@ OpenMCProblemBase::externalSolve()
   executeEditors();
 
   if (_reset_seed)
+  {
+    openmc_hard_reset();
     openmc_set_seed(_initial_seed);
+  }
 
   int err = openmc_run();
   if (err)
