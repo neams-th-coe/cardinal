@@ -6,7 +6,7 @@
     [temperature]
       type = NekFieldVariable
       direction = to_nek
-      usrwrk_slot = 0
+      usrwrk_slot = 1
     []
     [nek_temp]
       type = NekFieldVariable

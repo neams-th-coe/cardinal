@@ -4,5 +4,5 @@ void scalarDirichletConditions(bcData * bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->s = bc->usrwrk[bc->idM];
+  bc->s = bc->usrwrk[bc->idM + 1 * bc->fieldOffset];
 }

@@ -40,7 +40,15 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   if (_direction == "from_nek")
     addExternalVariable(_variable);
   else
+  {
+    if (_usrwrk_slot.size() > 1)
+    paramError("usrwrk_slot",
+               "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
+               "a vector of length " +
+                   Moose::stringify(_usrwrk_slot.size()));
+
     addExternalVariable(_usrwrk_slot[0], _variable);
+  }
 
   if (isParamValid("field"))
     _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
@@ -65,7 +73,7 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     switch (_field)
     {
       case field::temperature:
-        indices.temperature = _usrwrk_slot[0];
+        indices.temperature = _usrwrk_slot[0] * nekrs::fieldOffset();
         break;
       default:
         paramError("field",
