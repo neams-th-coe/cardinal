@@ -135,22 +135,81 @@ public:
    * order) to add.
    * @param[in] elem_id element ID
    * @param[in] field field to write
-   * @param[in] T solution values to write for the field for the given element
+   * @param[in] s solution values to write for the field for the given element
    * @param[in] add optional vector of values to add to each value set on the NekRS end
    */
+  template <typename T>
   void writeVolumeSolution(const int elem_id,
-                           const field::NekWriteEnum & field,
-                           double * T,
-                           const std::vector<double> * add = nullptr);
+                           const T & field,
+                           double * s,
+                           const std::vector<double> * add = nullptr) {
+    mesh_t * mesh = nekrs::entireMesh();
+    void (*write_solution)(int, dfloat);
+    write_solution = nekrs::solutionWritePointer(field);
+
+    auto vc = _nek_mesh->volumeCoupling();
+    int id = vc.element[elem_id] * mesh->Np;
+
+    if (_nek_mesh->exactMirror())
+    {
+      // can write directly into the NekRS solution
+      for (int v = 0; v < mesh->Np; ++v)
+      {
+        double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+        write_solution(id + v, s[v] + extra);
+      }
+    }
+    else
+    {
+      // need to interpolate onto the higher-order Nek mesh
+      double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+
+      interpolateVolumeSolutionToNek(elem_id, s, tmp);
+
+      for (int v = 0; v < mesh->Np; ++v)
+      {
+        double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+        write_solution(id + v, tmp[v] + extra);
+      }
+
+      freePointer(tmp);
+    }
+  }
 
   /**
    * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in
    * terms of a displacement, we need to add the displacement to the initial mesh coordinates.
    * @param[in] elem_id element ID
    * @param[in] field field to write
-   * @param[in] T solution values to write for the field for the given element
+   * @param[in] s solution values to write for the field for the given element
    */
-  void writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field, double * T);
+  template <typename T>
+  void writeBoundarySolution(const int elem_id, const T & field, double * s) {
+    mesh_t * mesh = nekrs::temperatureMesh();
+    void (*write_solution)(int, dfloat);
+    write_solution = nekrs::solutionWritePointer(field);
+
+    const auto & bc = _nek_mesh->boundaryCoupling();
+    int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
+
+    if (_nek_mesh->exactMirror())
+    {
+      // can write directly into the NekRS solution
+      for (int i = 0; i < mesh->Nfp; ++i)
+        write_solution(mesh->vmapM[offset + i], s[i]);
+    }
+    else
+    {
+      // need to interpolate onto the higher-order Nek mesh
+      double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+      interpolateBoundarySolutionToNek(s, tmp);
+
+      for (int i = 0; i < mesh->Nfp; ++i)
+        write_solution(mesh->vmapM[offset + i], tmp[i]);
+
+      freePointer(tmp);
+    }
+  }
 
   /**
    * The casename (prefix) of the NekRS files

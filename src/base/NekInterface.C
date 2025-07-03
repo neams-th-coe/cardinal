@@ -1397,6 +1397,13 @@ velocity_z_squared(const int id)
 }
 
 void
+temperature(const int id, const dfloat value)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  nrs->usrwrk[indices.temperature + id] = value;
+}
+
+void
 flux(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1573,7 +1580,7 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
   return f;
 }
 
-void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
+void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat)
 {
   void (*f)(int, dfloat);
 
@@ -1605,6 +1612,22 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
       break;
     default:
       throw std::runtime_error("Unhandled NekWriteEnum!");
+  }
+
+  return f;
+}
+
+void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat)
+{
+  void (*f)(int, dfloat);
+
+  switch (field)
+  {
+    case field::temperature:
+      f = &temperature;
+      break;
+    default:
+      throw std::runtime_error("Unhandled NekFieldEnum in solutionWritePointer! Other write fields have not been added to this interface yet.");
   }
 
   return f;

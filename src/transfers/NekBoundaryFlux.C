@@ -123,15 +123,6 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
         &_nek_problem.getVectorPostprocessorValueByName(_postprocessor_name, "value");
   else
     _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
-
-  _flux_face = (double *)calloc(_n_per_surf, sizeof(double));
-  _flux_elem = (double *)calloc(_n_per_vol, sizeof(double));
-}
-
-NekBoundaryFlux::~NekBoundaryFlux()
-{
-  freePointer(_flux_face);
-  freePointer(_flux_elem);
 }
 
 void
@@ -151,8 +142,8 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_flux_face);
-      _nek_problem.writeBoundarySolution(e, field::flux, _flux_face);
+      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_v_face);
+      _nek_problem.writeBoundarySolution(e, field::flux, _v_face);
     }
   }
   else
@@ -164,8 +155,8 @@ NekBoundaryFlux::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_flux_elem);
-      _nek_problem.writeVolumeSolution(e, field::flux, _flux_elem);
+      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
+      _nek_problem.writeVolumeSolution(e, field::flux, _v_elem);
     }
   }
 
