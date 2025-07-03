@@ -32,6 +32,8 @@ public:
 
   virtual void readDataFromNek() override;
 
+  virtual void sendDataToNek() override;
+
 protected:
   /**
    * Convert from the field string into the enumeration used internally

@@ -690,6 +690,9 @@ struct usrwrkIndices
 
   /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z = -1;
+
+  /// temperature (for reverse-direction conjugate heat transfer coupling)
+  int temperature = -1;
 };
 
 /**
@@ -729,7 +732,8 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int);
  * Write various solution functions based on enumeration
  * @param[in] field field to write
  */
-void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
+void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat);
+void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat);
 
 /**
  * Get the scalar01 solution at given GLL index
@@ -842,6 +846,13 @@ double velocity_y_squared(const int id);
  * @return square of z-velocity at index
  */
 double velocity_z_squared(const int id);
+
+/**
+ * Write a value into the user scratch space that holds the temperature
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void temperature(const int id, const dfloat value);
 
 /**
  * Write a value into the user scratch space that holds the flux
