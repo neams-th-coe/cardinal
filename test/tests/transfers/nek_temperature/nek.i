@@ -1,3 +1,6 @@
+dTv = 10
+Tv = 5
+
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
@@ -13,6 +16,11 @@
       direction = from_nek
       field = temperature
     []
+  []
+
+  [Dimensionalize]
+    dT = ${dTv}
+    T = ${Tv}
   []
 []
 
@@ -30,7 +38,7 @@
 []
 
 [Functions]
-  [tv]
+  [tv] # temperature, dimensional
     type = ParsedFunction
     expression = 'sin(x)'
   []
@@ -72,4 +80,5 @@
 
 [Outputs]
   csv = true
+  exodus = true
 []
