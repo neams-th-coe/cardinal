@@ -1,0 +1,8 @@
+void scalarDirichletConditions(bcData * bc)
+{
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
+  bc->s = bc->usrwrk[bc->idM];
+}
