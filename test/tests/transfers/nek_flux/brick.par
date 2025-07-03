@@ -1,0 +1,22 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1
+  dt = 5.0e-4
+  polynomialOrder = 7
+  writeControl = steps
+  writeInterval = 2
+
+[MESH]
+  file = ../../common_inputs/brick2.re2
+
+[VELOCITY]
+  solver = none
+
+[PRESSURE]
+
+[TEMPERATURE]
+  conductivity = 2
+  solver = none
