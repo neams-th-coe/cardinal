@@ -39,11 +39,8 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
 {
   if (_direction == "from_nek")
     addExternalVariable(_variable);
-
-  if (_direction == "to_nek")
-    if (_field != field::temperature)
-      paramError("direction",
-                 "The NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. Please contact the Cardinal developer team if you require writing of other NekRS field variables.");
+  else
+    addExternalVariable(_usrwrk_slot[0], _variable);
 
   if (isParamValid("field"))
     _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
@@ -61,6 +58,19 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                  "We tried to choose a default 'field' as '" + name() +
                      "', but this value is not an option in the 'field' enumeration. Please "
                      "provide the 'field' parameter.");
+  }
+
+  if (_direction == "to_nek")
+  {
+    switch (_field)
+    {
+      case field::temperature:
+        indices.temperature = _usrwrk_slot[0];
+        break;
+      default:
+        paramError("field",
+                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. Please contact the Cardinal developer team if you require writing of other NekRS field variables.");
+    }
   }
 
   if (_field == field::velocity_component)

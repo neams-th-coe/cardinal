@@ -184,7 +184,8 @@ public:
    * @param[in] s solution values to write for the field for the given element
    */
   template <typename T>
-  void writeBoundarySolution(const int elem_id, const T & field, double * s) {
+  void writeBoundarySolution(const int elem_id, const T & field, double * s)
+  {
     mesh_t * mesh = nekrs::temperatureMesh();
     void (*write_solution)(int, dfloat);
     write_solution = nekrs::solutionWritePointer(field);
