@@ -28,6 +28,8 @@
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
 
+#include "openmc/random_lcg.h"
+
 InputParameters
 OpenMCProblemBase::validParams()
 {
@@ -76,6 +78,10 @@ OpenMCProblemBase::validParams()
       false,
       "Whether to skip writing any statepoint files from OpenMC; this is a performance "
       "optimization for scenarios where you may not want the statepoint files anyways");
+  params.addParam<bool>(
+      "reset_seed",
+      false,
+      "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
 
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
@@ -102,7 +108,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _total_n_particles(0),
     _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
     _run_on_adaptivity_cycle(true),
-    _calc_kinetics_params(getParam<bool>("calc_kinetics_params"))
+    _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
+    _reset_seed(getParam<bool>("reset_seed")),
+    _initial_seed(openmc::openmc_get_seed())
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
@@ -365,6 +373,12 @@ OpenMCProblemBase::externalSolve()
 
   // update tallies as needed before starting the OpenMC run
   executeEditors();
+
+  if (_reset_seed)
+  {
+    openmc_hard_reset();
+    openmc_set_seed(_initial_seed);
+  }
 
   int err = openmc_run();
   if (err)

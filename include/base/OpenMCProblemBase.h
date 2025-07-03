@@ -507,6 +507,12 @@ protected:
   /// A flag to indicate if OpenMC is calculating kinetics parameters.
   const bool _calc_kinetics_params;
 
+  /// Whether to reset the seed each time a new OpenMC calculation runs
+  const bool & _reset_seed;
+
+  /// The initial OpenMC seed
+  const int64_t _initial_seed;
+
   /// The index of a global tally to accumulate the scores required for kinetics parameters.
   int _ifp_tally_index = -1;
 
