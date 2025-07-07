@@ -42,12 +42,15 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   else
   {
     if (_usrwrk_slot.size() > 1)
-    paramError("usrwrk_slot",
-               "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
-               "a vector of length " +
-                   Moose::stringify(_usrwrk_slot.size()));
+      paramError("usrwrk_slot",
+                 "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
+                 "a vector of length " + Moose::stringify(_usrwrk_slot.size()));
 
     addExternalVariable(_usrwrk_slot[0], _variable);
+
+    // we don't impose any requirements on boundary conditions on the NekRS side, because this data
+    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used in
+    // a source term, for instance.
   }
 
   if (isParamValid("field"))
@@ -64,8 +67,8 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     else
       paramError("field",
                  "We tried to choose a default 'field' as '" + name() +
-                     "', but this value is not an option in the 'field' enumeration. Please "
-                     "provide the 'field' parameter.");
+                 "', but this value is not an option in the 'field' enumeration. Please "
+                 "provide the 'field' parameter.");
   }
 
   if (_direction == "to_nek")
@@ -172,7 +175,7 @@ NekFieldVariable::sendDataToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
+      _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
       _nek_problem.writeVolumeSolution(e, _field, _v_elem);
     }
   }
