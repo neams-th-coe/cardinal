@@ -582,7 +582,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
-  double (*f)(int);
+  double (*f)(int, int);
   f = solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i)
@@ -597,9 +597,9 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
         for (int v = 0; v < mesh->Nfp; ++v)
         {
           if (max)
-            value = std::max(value, f(mesh->vmapM[offset + v]));
+            value = std::max(value, f(mesh->vmapM[offset + v], 0 /* unused */));
           else
-            value = std::min(value, f(mesh->vmapM[offset + v]));
+            value = std::min(value, f(mesh->vmapM[offset + v], 0 /* unused */));
         }
       }
     }
@@ -621,7 +621,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
-  double (*f)(int);
+  double (*f)(int, int);
   f = solutionPointer(field);
 
   mesh_t * mesh;
@@ -651,9 +651,9 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
     for (int j = 0; j < mesh->Np; ++j)
     {
       if (max)
-        value = std::max(value, f(i * mesh->Np + j));
+        value = std::max(value, f(i * mesh->Np + j, 0 /* unused */));
       else
-        value = std::min(value, f(i * mesh->Np + j));
+        value = std::min(value, f(i * mesh->Np + j, 0 /* unused */));
     }
   }
 
@@ -834,7 +834,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 
   double integral = 0.0;
 
-  double (*f)(int);
+  double (*f)(int, int);
   f = solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -842,7 +842,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
@@ -895,7 +895,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
 
   double integral = 0.0;
 
-  double (*f)(int);
+  double (*f)(int, int);
   f = solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i)
@@ -909,7 +909,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          integral += f(mesh->vmapM[offset + v]) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral += f(mesh->vmapM[offset + v], 0 /* unused */) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }
@@ -987,7 +987,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 
   double integral = 0.0;
 
-  double (*f)(int);
+  double (*f)(int, int);
   f = solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i)
@@ -1007,7 +1007,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
               nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
               nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
               nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
-          integral += f(vol_id) * rho * normal_velocity * sgeo[surf_offset + WSJID];
+          integral += f(vol_id, 0 /* unused */) * rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1272,90 +1272,111 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 }
 
 double
-scalar01(const int id)
+get_scalar01(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->cds->S[id + 1 * scalarFieldOffset()];
 }
 
 double
-scalar02(const int id)
+get_scalar02(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->cds->S[id + 2 * scalarFieldOffset()];
 }
 
 double
-scalar03(const int id)
+get_scalar03(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->cds->S[id + 3 * scalarFieldOffset()];
 }
 
 double
-usrwrk00(const int id)
+get_usrwrk00(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->usrwrk[id];
 }
 
 double
-usrwrk01(const int id)
+get_usrwrk01(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->usrwrk[id + nrs->fieldOffset];
 }
 
 double
-usrwrk02(const int id)
+get_usrwrk02(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->usrwrk[id + 2 * nrs->fieldOffset];
 }
 
 double
-temperature(const int id)
+get_temperature(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->cds->S[id];
 }
 
 double
-pressure(const int id)
+get_flux(const int id, const int surf_offset)
+{
+  // TODO: VERY inefficient
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  double * grad_T = (double *)calloc(3 * scalarFieldOffset(), sizeof(double));
+  gradient(scalarFieldOffset(), nrs->cds->S, grad_T, nek_mesh::all);
+
+  // TODO: This function only works correctly if the conductivity is constant, because
+  // otherwise we need to copy the conductivity from device to host
+  double k;
+  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
+
+  double normal_grad_T =
+    grad_T[id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
+    grad_T[id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
+    grad_T[id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
+
+  return -k * normal_grad_T;
+}
+
+double
+get_pressure(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->P[id];
 }
 
 double
-unity(const int /* id */)
+get_unity(const int /* id */, const int surf_offset)
 {
   return 1.0;
 }
 
 double
-velocity_x(const int id)
+get_velocity_x(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->U[id + 0 * nrs->fieldOffset];
 }
 
 double
-velocity_y(const int id)
+get_velocity_y(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->U[id + 1 * nrs->fieldOffset];
 }
 
 double
-velocity_z(const int id)
+get_velocity_z(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->U[id + 2 * nrs->fieldOffset];
 }
 
 double
-velocity(const int id)
+get_velocity(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   int offset = nrs->fieldOffset;
@@ -1366,81 +1387,81 @@ velocity(const int id)
 }
 
 double
-velocity_x_squared(const int id)
+get_velocity_x_squared(const int id, const int surf_offset)
 {
-  return std::pow(velocity_x(id), 2);
+  return std::pow(get_velocity_x(id, surf_offset), 2);
 }
 
 double
-velocity_y_squared(const int id)
+get_velocity_y_squared(const int id, const int surf_offset)
 {
-  return std::pow(velocity_y(id), 2);
+  return std::pow(get_velocity_y(id, surf_offset), 2);
 }
 
 double
-velocity_z_squared(const int id)
+get_velocity_z_squared(const int id, const int surf_offset)
 {
-  return std::pow(velocity_z(id), 2);
+  return std::pow(get_velocity_z(id, surf_offset), 2);
 }
 
 void
-temperature(const int id, const dfloat value)
+set_temperature(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.temperature + id] = value;
 }
 
 void
-flux(const int id, const dfloat value)
+set_flux(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.flux + id] = value;
 }
 
 void
-heat_source(const int id, const dfloat value)
+set_heat_source(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.heat_source + id] = value;
 }
 
 void
-x_displacement(const int id, const dfloat value)
+set_x_displacement(const int id, const dfloat value)
 {
   mesh_t * mesh = entireMesh();
   mesh->x[id] = value;
 }
 
 void
-y_displacement(const int id, const dfloat value)
+set_y_displacement(const int id, const dfloat value)
 {
   mesh_t * mesh = entireMesh();
   mesh->y[id] = value;
 }
 
 void
-z_displacement(const int id, const dfloat value)
+set_z_displacement(const int id, const dfloat value)
 {
   mesh_t * mesh = entireMesh();
   mesh->z[id] = value;
 }
 
 void
-mesh_velocity_x(const int id, const dfloat value)
+set_mesh_velocity_x(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.mesh_velocity_x + id] = value;
 }
 
 void
-mesh_velocity_y(const int id, const dfloat value)
+set_mesh_velocity_y(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.mesh_velocity_y + id] = value;
 }
 
 void
-mesh_velocity_z(const int id, const dfloat value)
+set_mesh_velocity_z(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   nrs->usrwrk[indices.mesh_velocity_z + id] = value;
@@ -1498,67 +1519,85 @@ checkFieldValidity(const field::NekFieldEnum & field)
   }
 }
 
-double (*solutionPointer(const field::NekFieldEnum & field))(int)
+double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
+{
+  double (*f)(int, int);
+
+  // TODO: add some kind of check validity for these other fields
+
+  switch (field)
+  {
+    case field::flux:
+      f = &get_flux;
+      break;
+    default:
+      mooseError("Unhandled NekWriteEnum in solutionPointer!");
+  }
+
+  return f;
+}
+
+double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
 {
   // we include this here as well, in addition to within the NekFieldInterface, because
   // the NekRSProblem accesses these methods without inheriting from NekFieldInterface
   checkFieldValidity(field);
 
-  double (*f)(int);
+  double (*f)(int, int);
 
   switch (field)
   {
     case field::velocity_x:
-      f = &velocity_x;
+      f = &get_velocity_x;
       break;
     case field::velocity_y:
-      f = &velocity_y;
+      f = &get_velocity_y;
       break;
     case field::velocity_z:
-      f = &velocity_z;
+      f = &get_velocity_z;
       break;
     case field::velocity:
-      f = &velocity;
+      f = &get_velocity;
       break;
     case field::velocity_component:
       mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
                  "interface!");
       break;
     case field::velocity_x_squared:
-      f = &velocity_x_squared;
+      f = &get_velocity_x_squared;
       break;
     case field::velocity_y_squared:
-      f = &velocity_y_squared;
+      f = &get_velocity_y_squared;
       break;
     case field::velocity_z_squared:
-      f = &velocity_z_squared;
+      f = &get_velocity_z_squared;
       break;
     case field::temperature:
-      f = &temperature;
+      f = &get_temperature;
       break;
     case field::pressure:
-      f = &pressure;
+      f = &get_pressure;
       break;
     case field::scalar01:
-      f = &scalar01;
+      f = &get_scalar01;
       break;
     case field::scalar02:
-      f = &scalar02;
+      f = &get_scalar02;
       break;
     case field::scalar03:
-      f = &scalar03;
+      f = &get_scalar03;
       break;
     case field::unity:
-      f = &unity;
+      f = &get_unity;
       break;
     case field::usrwrk00:
-      f = &usrwrk00;
+      f = &get_usrwrk00;
       break;
     case field::usrwrk01:
-      f = &usrwrk01;
+      f = &get_usrwrk01;
       break;
     case field::usrwrk02:
-      f = &usrwrk02;
+      f = &get_usrwrk02;
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
@@ -1574,28 +1613,28 @@ void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat)
   switch (field)
   {
     case field::flux:
-      f = &flux;
+      f = &set_flux;
       break;
     case field::heat_source:
-      f = &heat_source;
+      f = &set_heat_source;
       break;
     case field::x_displacement:
-      f = &x_displacement;
+      f = &set_x_displacement;
       break;
     case field::y_displacement:
-      f = &y_displacement;
+      f = &set_y_displacement;
       break;
     case field::z_displacement:
-      f = &z_displacement;
+      f = &set_z_displacement;
       break;
     case field::mesh_velocity_x:
-      f = &mesh_velocity_x;
+      f = &set_mesh_velocity_x;
       break;
     case field::mesh_velocity_y:
-      f = &mesh_velocity_y;
+      f = &set_mesh_velocity_y;
       break;
     case field::mesh_velocity_z:
-      f = &mesh_velocity_z;
+      f = &set_mesh_velocity_z;
       break;
     default:
       throw std::runtime_error("Unhandled NekWriteEnum!");
@@ -1611,7 +1650,7 @@ void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat)
   switch (field)
   {
     case field::temperature:
-      f = &temperature;
+      f = &set_temperature;
       break;
     default:
       throw std::runtime_error("Unhandled NekFieldEnum in solutionWritePointer! Other write fields have not been added to this interface yet.");

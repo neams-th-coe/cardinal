@@ -73,12 +73,14 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
                                         : _nek_mesh->numVerticesPerVolume();
   _v_face = (double *)calloc(_n_per_surf, sizeof(double));
   _v_elem = (double *)calloc(_n_per_vol, sizeof(double));
+  _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
 
 FieldTransferBase::~FieldTransferBase()
 {
   freePointer(_v_face);
   freePointer(_v_elem);
+  freePointer(_external_data);
 }
 
 void

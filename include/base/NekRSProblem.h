@@ -129,6 +129,154 @@ public:
   unsigned int nUsrWrkSlots() const { return _n_usrwrk_slots; }
 
   /**
+   * Interpolate the NekRS volume solution onto the volume MOOSE mesh mirror (re2 -> mirror)
+   * @param[in] f field to interpolate
+   * @param[out] s interpolated volume value
+   */
+  template <typename T>
+  void
+  volumeSolution(const T & field, double * s)
+  {
+    mesh_t * mesh = nekrs::entireMesh();
+    auto vc = _nek_mesh->volumeCoupling();
+
+    double (*f)(int, int);
+    f = nekrs::solutionPointer(field);
+
+    int start_1d = mesh->Nq;
+    int end_1d = _moose_Nq;
+    int start_3d = start_1d * start_1d * start_1d;
+    int end_3d = end_1d * end_1d * end_1d;
+    int n_to_write = vc.n_elems * end_3d * _nek_mesh->nBuildPerVolumeElem();
+
+    // allocate temporary space:
+    // - Ttmp: results of the search for each process
+    // - Telem: scratch space for volume interpolation to avoid reallocating a bunch (only used if
+    // interpolating)
+    double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
+    double * Telem = (double *)calloc(start_3d, sizeof(double));
+    auto indices = _nek_mesh->cornerIndices();
+
+    int c = 0;
+    for (int k = 0; k < mesh->Nelements; ++k)
+    {
+      int offset = k * start_3d;
+
+      for (int build = 0; build < _nek_mesh->nBuildPerVolumeElem(); ++build)
+      {
+        if (_needs_interpolation)
+        {
+          // get the solution on the element
+          for (int v = 0; v < start_3d; ++v)
+            Telem[v] = f(offset + v, 0 /* unused for volumes */);
+
+          // and then interpolate it
+          nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+          c += end_3d;
+        }
+        else
+        {
+          // get the solution on the element - no need to interpolate
+          for (int v = 0; v < end_3d; ++v, ++c)
+            Ttmp[c] = f(offset + indices[build][v], 0 /* unused for volumes */);
+        }
+      }
+    }
+
+    // dimensionalize the solution if needed
+    for (int v = 0; v < n_to_write; ++v)
+      Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
+
+    nekrs::allgatherv(vc.mirror_counts, Ttmp, s, end_3d);
+
+    freePointer(Ttmp);
+    freePointer(Telem);
+  }
+
+  /**
+   * Interpolate the NekRS boundary solution onto the boundary MOOSE mesh mirror (re2 -> mirror)
+   * @param[in] f field to interpolate
+   * @param[out] s interpolated boundary value
+   */
+  template <typename T>
+  void
+  boundarySolution(const T & field, double * s)
+  {
+    mesh_t * mesh = nekrs::entireMesh();
+    auto bc = _nek_mesh->boundaryCoupling();
+
+    double (*f)(int, int);
+    f = nekrs::solutionPointer(field);
+
+    int start_1d = mesh->Nq;
+    int end_1d = _moose_Nq;
+    int start_2d = start_1d * start_1d;
+    int end_2d = end_1d * end_1d;
+
+    int n_to_write = bc.n_faces * end_2d * _nek_mesh->nBuildPerSurfaceElem();
+
+    // allocate temporary space:
+    // - Ttmp: results of the search for each process
+    // - Tface: scratch space for face solution to avoid reallocating a bunch (only used if
+    // interpolating)
+    // - scratch: scratch for the interpolatino process to avoid reallocating a bunch (only used if
+    // interpolating0
+    double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
+    double * Tface = (double *)calloc(start_2d, sizeof(double));
+    double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
+
+    auto indices = _nek_mesh->cornerIndices();
+
+    int c = 0;
+    for (int k = 0; k < bc.total_n_faces; ++k)
+    {
+      if (bc.process[k] == nekrs::commRank())
+      {
+        int i = bc.element[k];
+        int j = bc.face[k];
+        int offset = i * mesh->Nfaces * start_2d + j * start_2d;
+
+        for (int build = 0; build < _nek_mesh->nBuildPerSurfaceElem(); ++build)
+        {
+          if (_needs_interpolation)
+          {
+            // get the solution on the face
+            for (int v = 0; v < start_2d; ++v)
+            {
+              int id = mesh->vmapM[offset + v];
+              Tface[v] = f(id, mesh->Nsgeo * (offset + v));
+            }
+
+            // and then interpolate it
+            nekrs::interpolateSurfaceFaceHex3D(
+                scratch, _interpolation_outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
+            c += end_2d;
+          }
+          else
+          {
+            // get the solution on the face - no need to interpolate
+            for (int v = 0; v < end_2d; ++v, ++c)
+            {
+              int id = mesh->vmapM[offset + indices[build][v]];
+              Ttmp[c] = f(id, mesh->Nsgeo * (offset + v));
+            }
+          }
+        }
+      }
+    }
+
+    // dimensionalize the solution if needed
+    for (int v = 0; v < n_to_write; ++v)
+      Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
+
+    nekrs::allgatherv(bc.mirror_counts, Ttmp, s, end_2d);
+
+    freePointer(Ttmp);
+    freePointer(Tface);
+    freePointer(scratch);
+  }
+
+  /**
    * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms
    * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,
    * the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order, i.e. the re2
@@ -217,20 +365,6 @@ public:
    * @return casename
    */
   std::string casename() const { return _casename; }
-
-  /**
-   * Interpolate the NekRS volume solution onto the volume MOOSE mesh mirror (re2 -> mirror)
-   * @param[in] f field to interpolate
-   * @param[out] T interpolated volume value
-   */
-  void volumeSolution(const field::NekFieldEnum & f, double * T);
-
-  /**
-   * Interpolate the NekRS boundary solution onto the boundary MOOSE mesh mirror (re2 -> mirror)
-   * @param[in] f field to interpolate
-   * @param[out] T interpolated boundary value
-   */
-  void boundarySolution(const field::NekFieldEnum & f, double * T);
 
   /**
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
