@@ -89,7 +89,7 @@ NekBinnedPlaneIntegral::binnedPlaneIntegral(const field::NekFieldEnum & integran
   resetPartialStorage();
 
   mesh_t * mesh = nekrs::entireMesh();
-  double (*f)(int) = nekrs::solutionPointer(integrand);
+  double (*f)(int, int) = nekrs::solutionPointer(integrand);
   const auto & vgeo = nekrs::getVgeo();
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -106,7 +106,7 @@ NekBinnedPlaneIntegral::binnedPlaneIntegral(const field::NekFieldEnum & integran
       if (distance < _gap_thickness / 2.0)
       {
         unsigned int b = bin(p);
-        _bin_partial_values[b] += f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+        _bin_partial_values[b] += f(offset + v, 0) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
       }
     }
   }

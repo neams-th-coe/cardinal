@@ -87,11 +87,7 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
-
-  _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
-
-NekFieldVariable::~NekFieldVariable() { freePointer(_external_data); }
 
 field::NekFieldEnum
 NekFieldVariable::convertToFieldEnum(const std::string name) const

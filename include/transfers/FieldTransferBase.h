@@ -87,4 +87,7 @@ protected:
 
   /// MOOSE data interpolated onto the (volume) data transfer mesh
   double * _v_elem = nullptr;
+
+  /// Scratch space to place external NekRS fields before writing into auxiliary variables
+  double * _external_data = nullptr;
 };
