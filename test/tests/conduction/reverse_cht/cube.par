@@ -9,6 +9,9 @@
   writeControl = steps
   writeInterval = 10
 
+[MESH]
+  file=../identical_interface/cube/cube.re2
+
 [VELOCITY]
   solver = none
 
