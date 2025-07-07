@@ -84,11 +84,7 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
 
   addExternalPostprocessor(_postprocessor_name, _initial_source_integral);
   _source_integral = &getPostprocessorValueByName(_postprocessor_name);
-
-  _source_elem = (double *)calloc(_n_per_vol, sizeof(double));
 }
-
-NekVolumetricSource::~NekVolumetricSource() { freePointer(_source_elem); }
 
 bool
 NekVolumetricSource::normalizeVolumetricSource(const double moose,
@@ -130,8 +126,8 @@ NekVolumetricSource::sendDataToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_source_elem);
-    _nek_problem.writeVolumeSolution(e, field::heat_source, _source_elem);
+    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
+    _nek_problem.writeVolumeSolution(e, field::heat_source, _v_elem);
   }
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
