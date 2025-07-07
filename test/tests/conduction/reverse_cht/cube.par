@@ -1,0 +1,21 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 10
+  dt = 0.02
+  polynomialOrder = 1
+  writeControl = steps
+  writeInterval = 10
+
+[VELOCITY]
+  solver = none
+
+[PRESSURE]
+
+[TEMPERATURE]
+  conductivity = 1.5
+  rhoCp = 1.0
+  residualTol = 1.0e-10
+  boundaryTypeMap = I, I, I, t, I, t

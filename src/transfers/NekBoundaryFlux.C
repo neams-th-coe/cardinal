@@ -29,14 +29,14 @@ NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
   params.addParam<Real>(
-      "initial_flux_integral",
-      0,
-      "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
-      "overridden once the coupled app executes its transfer of the boundary flux term integral "
-      "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
-      "first, or if you are running NekRS in isolation but still want to apply a boundary flux "
-      "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
-      "will need to populate an initial shape if you want to see this parameter take effect.");
+    "initial_flux_integral",
+    0,
+    "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
+    "overridden once the coupled app executes its transfer of the boundary flux term integral "
+    "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
+    "first, or if you are running NekRS in isolation but still want to apply a boundary flux "
+    "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
+    "will need to populate an initial shape if you want to see this parameter take effect.");
 
   params.addParam<bool>(
       "conserve_flux_by_sideset",
@@ -56,7 +56,32 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _boundary(_nek_mesh->boundary()),
     _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(field::flux))
 {
-  if (_direction == "to_nek")
+  if (!_boundary)
+    mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
+               "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
+
+  if (!nekrs::hasTemperatureVariable())
+    mooseError("In order to read or write NekRS's boundary heat flux, your case files must have a "
+               "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
+               _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
+
+  // add the variables for the coupling and perform checks on problem setup
+  if (_direction == "from_nek")
+  {
+    if (_conserve_flux_by_sideset)
+      paramError("conserve_flux_by_sideset", "When 'direction = from_nek', the 'conserve_flux_by_sideset' option is not yet supported. Contact the Cardinal developer team if you need this feature.");
+
+    checkUnusedParam(parameters, "initial_flux_integral", "'direction = from_nek'");
+    addExternalVariable(_variable);
+
+    // right now, all of our systems used for transferring data assume that if we have a volume
+    // mesh mirror, that we will be writing data to that entire mesh mirror. But this is not the
+    // case if we want to write a heat flux - since the notion of a unit outward normal is s
+    // surface quantity. For now, just prevent users from doing this.
+    if (_nek_mesh->volume())
+      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary when the Mesh has 'volume = true.' Please contact the Cardinal developer team if you require this feature.");
+  }
+  else
   {
     if (_usrwrk_slot.size() > 1)
       paramError("usrwrk_slot",
@@ -66,63 +91,77 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 
     addExternalVariable(_usrwrk_slot[0], _variable);
     indices.flux = _usrwrk_slot[0] * nekrs::fieldOffset();
+
+    // Check that the correct flux boundary condition is set on all of nekRS's
+    // boundaries. To avoid throwing this error for test cases where we have a
+    // [TEMPERATURE] block but set its solve to 'none', we screen by whether the
+    // temperature solve is enabled
+    if (_boundary && nekrs::hasTemperatureSolve())
+      for (const auto & b : *_boundary)
+        if (!nekrs::isHeatFluxBoundary(b))
+          mooseError("In order to send a boundary heat flux to NekRS, you must have a heat flux "
+                     "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
+                     std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
+                     "' instead of 'fixedGradient'.");
+
+    if (!nekrs::hasTemperatureSolve())
+      mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
+                   ".par', NekRS will not solve for temperature. The heat flux sent by this object "
+                   "will be unused.");
   }
 
-  if (!_boundary)
-    mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
-               "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
-
-  if (_direction == "from_nek")
-    paramError("direction",
-               "The NekBoundaryFlux currently only supports transfers 'to_nek'; contact the "
-               "Cardinal developer team if you require reading of NekRS boundary flux terms.");
-
-  // Check that the correct flux boundary condition is set on all of nekRS's
-  // boundaries. To avoid throwing this error for test cases where we have a
-  // [TEMPERATURE] block but set its solve to 'none', we screen by whether the
-  // temperature solve is enabled
-  if (_boundary && nekrs::hasTemperatureSolve())
-    for (const auto & b : *_boundary)
-      if (!nekrs::isHeatFluxBoundary(b))
-        mooseError("In order to send a boundary heat flux to NekRS, you must have a heat flux "
-                   "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
-                   std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
-                   "' instead of 'fixedGradient'.");
-
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("In order to send a boundary heat flux to NekRS, your case files must have a "
-               "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
-               _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
-
-  if (!nekrs::hasTemperatureSolve())
-    mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
-                 ".par', NekRS will not solve for temperature. The heat flux sent by this object "
-                 "will be unused.");
-
-  // add the postprocessor that receives the flux integral for normalization
-  if (_conserve_flux_by_sideset)
+  // add postprocessors to hold integrated heat flux
+  if (_direction == "to_nek")
   {
-    if (isParamSetByUser("initial_flux_integral"))
-      mooseWarning("The 'initial_flux_integral' capability is not yet supported when "
-                   "'conserve_flux_by_sideset' is enabled. Please contact a Cardinal developer "
-                   "if this is hindering your use case.");
+    // add the postprocessor that receives the flux integral for normalization
+    if (_conserve_flux_by_sideset)
+    {
+      if (isParamSetByUser("initial_flux_integral"))
+        mooseWarning("The 'initial_flux_integral' capability is not yet supported when "
+                     "'conserve_flux_by_sideset' is enabled. Please contact a Cardinal developer "
+                     "if this is hindering your use case.");
 
-    auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
+      auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
 
-    // create zero initial values
-    std::vector<std::vector<Real>> dummy_vals(1, std::vector<Real>(_boundary->size()));
-    vpp_params.set<std::vector<std::vector<Real>>>("value") = dummy_vals;
-    _nek_problem.addVectorPostprocessor(
-        "ConstantVectorPostprocessor", _postprocessor_name, vpp_params);
+      // create zero initial values
+      std::vector<std::vector<Real>> dummy_vals(1, std::vector<Real>(_boundary->size()));
+      vpp_params.set<std::vector<std::vector<Real>>>("value") = dummy_vals;
+      _nek_problem.addVectorPostprocessor(
+          "ConstantVectorPostprocessor", _postprocessor_name, vpp_params);
+    }
+    else
+      addExternalPostprocessor(_postprocessor_name, _initial_flux_integral);
+
+    if (_conserve_flux_by_sideset)
+      _flux_integral_vpp =
+          &_nek_problem.getVectorPostprocessorValueByName(_postprocessor_name, "value");
+    else
+      _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
   }
   else
-    addExternalPostprocessor(_postprocessor_name, _initial_flux_integral);
+  {
+    // create a NekHeatFluxIntegral postprocessor to compute the heat flux
+    auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
+    pp_params.set<std::vector<int>>("boundary") = *_boundary;
 
-  if (_conserve_flux_by_sideset)
-    _flux_integral_vpp =
-        &_nek_problem.getVectorPostprocessorValueByName(_postprocessor_name, "value");
-  else
+    // we do not need to check for duplicate names, because MOOSE already handles
+    // this error checking
+    _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
     _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
+  }
+}
+
+void
+NekBoundaryFlux::readDataFromNek()
+{
+  if (!_nek_mesh->volume())
+    _nek_problem.boundarySolution(field::flux, _external_data);
+  else
+    _nek_problem.volumeSolution(field::flux, _external_data);
+
+  fillAuxVariable(_variable_number[_variable], _external_data);
+
+  // the postprocessor is automatically populated because its execution controls its writing
 }
 
 void
