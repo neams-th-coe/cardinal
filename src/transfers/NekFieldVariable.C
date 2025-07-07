@@ -44,13 +44,14 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     if (_usrwrk_slot.size() > 1)
       paramError("usrwrk_slot",
                  "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
-                 "a vector of length " + Moose::stringify(_usrwrk_slot.size()));
+                 "a vector of length " +
+                     Moose::stringify(_usrwrk_slot.size()));
 
     addExternalVariable(_usrwrk_slot[0], _variable);
 
     // we don't impose any requirements on boundary conditions on the NekRS side, because this data
-    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used in
-    // a source term, for instance.
+    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used
+    // in a source term, for instance.
   }
 
   if (isParamValid("field"))
@@ -67,8 +68,8 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     else
       paramError("field",
                  "We tried to choose a default 'field' as '" + name() +
-                 "', but this value is not an option in the 'field' enumeration. Please "
-                 "provide the 'field' parameter.");
+                     "', but this value is not an option in the 'field' enumeration. Please "
+                     "provide the 'field' parameter.");
   }
 
   if (_direction == "to_nek")
@@ -80,7 +81,9 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
         break;
       default:
         paramError("field",
-                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. Please contact the Cardinal developer team if you require writing of other NekRS field variables.");
+                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
+                   "Please contact the Cardinal developer team if you require writing of other "
+                   "NekRS field variables.");
     }
   }
 

@@ -134,8 +134,7 @@ public:
    * @param[out] s interpolated volume value
    */
   template <typename T>
-  void
-  volumeSolution(const T & field, double * s)
+  void volumeSolution(const T & field, double * s)
   {
     mesh_t * mesh = nekrs::entireMesh();
     auto vc = _nek_mesh->volumeCoupling();
@@ -171,7 +170,8 @@ public:
             Telem[v] = f(offset + v, 0 /* unused for volumes */);
 
           // and then interpolate it
-          nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+          nekrs::interpolateVolumeHex3D(
+              _interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
           c += end_3d;
         }
         else
@@ -185,7 +185,8 @@ public:
 
     // dimensionalize the solution if needed
     for (int v = 0; v < n_to_write; ++v)
-      Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
+      Ttmp[v] =
+          Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
     nekrs::allgatherv(vc.mirror_counts, Ttmp, s, end_3d);
 
@@ -199,8 +200,7 @@ public:
    * @param[out] s interpolated boundary value
    */
   template <typename T>
-  void
-  boundarySolution(const T & field, double * s)
+  void boundarySolution(const T & field, double * s)
   {
     mesh_t * mesh = nekrs::entireMesh();
     auto bc = _nek_mesh->boundaryCoupling();
@@ -267,7 +267,8 @@ public:
 
     // dimensionalize the solution if needed
     for (int v = 0; v < n_to_write; ++v)
-      Ttmp[v] = Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
+      Ttmp[v] =
+          Ttmp[v] * nekrs::nondimensionalDivisor(field) + nekrs::nondimensionalAdditive(field);
 
     nekrs::allgatherv(bc.mirror_counts, Ttmp, s, end_2d);
 
@@ -290,7 +291,8 @@ public:
   void writeVolumeSolution(const int elem_id,
                            const T & field,
                            double * s,
-                           const std::vector<double> * add = nullptr) {
+                           const std::vector<double> * add = nullptr)
+  {
     mesh_t * mesh = nekrs::entireMesh();
     void (*write_solution)(int, dfloat);
     write_solution = nekrs::solutionWritePointer(field);

@@ -29,14 +29,14 @@ NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
   params.addParam<Real>(
-    "initial_flux_integral",
-    0,
-    "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
-    "overridden once the coupled app executes its transfer of the boundary flux term integral "
-    "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
-    "first, or if you are running NekRS in isolation but still want to apply a boundary flux "
-    "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
-    "will need to populate an initial shape if you want to see this parameter take effect.");
+      "initial_flux_integral",
+      0,
+      "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
+      "overridden once the coupled app executes its transfer of the boundary flux term integral "
+      "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
+      "first, or if you are running NekRS in isolation but still want to apply a boundary flux "
+      "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
+      "will need to populate an initial shape if you want to see this parameter take effect.");
 
   params.addParam<bool>(
       "conserve_flux_by_sideset",
@@ -69,7 +69,9 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   if (_direction == "from_nek")
   {
     if (_conserve_flux_by_sideset)
-      paramError("conserve_flux_by_sideset", "When 'direction = from_nek', the 'conserve_flux_by_sideset' option is not yet supported. Contact the Cardinal developer team if you need this feature.");
+      paramError("conserve_flux_by_sideset",
+                 "When 'direction = from_nek', the 'conserve_flux_by_sideset' option is not yet "
+                 "supported. Contact the Cardinal developer team if you need this feature.");
 
     checkUnusedParam(parameters, "initial_flux_integral", "'direction = from_nek'");
     addExternalVariable(_variable);
@@ -79,7 +81,9 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     // case if we want to write a heat flux - since the notion of a unit outward normal is s
     // surface quantity. For now, just prevent users from doing this.
     if (_nek_mesh->volume())
-      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary when the Mesh has 'volume = true.' Please contact the Cardinal developer team if you require this feature.");
+      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary "
+                 "when the Mesh has 'volume = true.' Please contact the Cardinal developer team if "
+                 "you require this feature.");
   }
   else
   {

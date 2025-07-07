@@ -909,7 +909,8 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          integral += f(mesh->vmapM[offset + v], 0 /* unused */) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral +=
+              f(mesh->vmapM[offset + v], 0 /* unused */) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }
@@ -1333,10 +1334,9 @@ get_flux(const int id, const int surf_offset)
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
-  double normal_grad_T =
-    grad_T[id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
-    grad_T[id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
-    grad_T[id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
+  double normal_grad_T = grad_T[id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
+                         grad_T[id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
+                         grad_T[id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
 
   return -k * normal_grad_T;
 }
@@ -1653,7 +1653,8 @@ void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat)
       f = &set_temperature;
       break;
     default:
-      throw std::runtime_error("Unhandled NekFieldEnum in solutionWritePointer! Other write fields have not been added to this interface yet.");
+      throw std::runtime_error("Unhandled NekFieldEnum in solutionWritePointer! Other write fields "
+                               "have not been added to this interface yet.");
   }
 
   return f;
