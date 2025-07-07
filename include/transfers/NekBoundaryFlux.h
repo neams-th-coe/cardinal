@@ -38,6 +38,8 @@ public:
 
   virtual void sendDataToNek() override;
 
+  virtual void readDataFromNek() override;
+
 protected:
   /**
    * Print a warning to the user if the initial fluxes (before normalization) differ
