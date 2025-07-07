@@ -9,4 +9,13 @@
     issues = '#1166'
     capabilities = 'nekrs'
   []
+  [volume]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/volume=true'
+    expect_err = "The NekBoundaryFlux does not currently support writing heat flux on a boundary when the Mesh has 'volume = true.'"
+    requirement = "The system shall error if trying to write heat flux on a boundary when the mesh mirror is a volume mesh."
+    issues = '#1166'
+    capabilities = 'nekrs'
+  []
 []

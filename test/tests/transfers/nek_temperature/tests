@@ -1,5 +1,5 @@
 [Tests]
-  design = NekFieldVariable.md
+  design = 'NekFieldVariable.md'
 
   [temperature_input]
     type = CSVDiff
