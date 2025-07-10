@@ -116,6 +116,10 @@ M. Eltawila, A.J. Novak,
 
 # Molten Salt Reactors
 
+M. Dalinger, E. Merzari, S. Lee, and C. Emler,
+["High-Fidelity Modelling of the Molten Salt Fast Reactor"](https://www.researchgate.net/publication/393478397_High-Fidelity_Modelling_of_the_Molten_Salt_Fast_Reactor)
+*Proceedings of NURETH* (2025)
+
 A.J. Novak, H. Brooks, P. Shriwise, and A. Davis,
 ["Monte Carlo Multiphysics Simulation on Adaptive Unstructured Mesh Geometry"](https://www.sciencedirect.com/science/article/pii/S0029549324006897)
 429 (113589)
