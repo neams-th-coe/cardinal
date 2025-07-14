@@ -71,8 +71,7 @@
     from_multi_app = nek
     variable = nek_flux
     search_value_conflicts = false
-    source_boundary = 'right'
-    from_postprocessors_to_preserved = flux_integral
+    from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
   []
   [temp]
@@ -80,7 +79,6 @@
     source_variable = temperature
     to_multi_app = nek
     variable = temperature
-    source_boundary = 'right'
     search_value_conflicts = false
   []
 []
@@ -110,6 +108,7 @@
     type = SideIntegralVariablePostprocessor
     variable = nek_flux
     boundary = 'right'
+    execute_on = transfer
   []
 
   # Because the boundary conditions in the y- and z-directions are insulated, we

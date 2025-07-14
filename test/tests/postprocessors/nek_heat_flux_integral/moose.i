@@ -4,6 +4,11 @@
   uniform_refine = 2
 []
 
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
 [AuxVariables]
   [temp_test]
     order = SECOND
@@ -18,33 +23,11 @@
   []
 []
 
-[Variables]
-  [dummy]
-  []
-[]
-
-[Kernels]
-  [dummy]
-    type = HeatConduction
-    variable = dummy
-    diffusion_coefficient = k
-  []
-[]
-
 [Materials]
   [k]
     type = GenericConstantMaterial
     prop_names = 'k'
     prop_values = '25'
-  []
-[]
-
-[BCs]
-  [fixed]
-    type = DirichletBC
-    variable = dummy
-    value = 1.0
-    boundary = '1'
   []
 []
 

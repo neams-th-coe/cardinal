@@ -1324,19 +1324,27 @@ get_temperature(const int id, const int surf_offset)
 double
 get_flux(const int id, const int surf_offset)
 {
-  // TODO: VERY inefficient
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  double * grad_T = (double *)calloc(3 * scalarFieldOffset(), sizeof(double));
-  gradient(scalarFieldOffset(), nrs->cds->S, grad_T, nek_mesh::all);
-
-  // TODO: This function only works correctly if the conductivity is constant, because
-  // otherwise we need to copy the conductivity from device to host
+  // TODO: this function does not support non-constant thermal conductivity
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
-  double normal_grad_T = grad_T[id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
-                         grad_T[id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
-                         grad_T[id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
+  // provided to the postprocessors which have the option to operate only on part of the mesh
+  auto mesh = getMesh(nek_mesh::all);
+  int elem_id = id / mesh->Np;
+  int vertex_id = id % mesh->Np;
+
+  // This function is slightly inefficient, because we compute grad(T) for all nodes in
+  // an element even though we only call this function for one node at a time
+  double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
+  gradient(mesh->Np, elem_id, nrs->cds->S, grad_T, nek_mesh::all);
+
+  double normal_grad_T = grad_T[vertex_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
+                         grad_T[vertex_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
+                         grad_T[vertex_id + 2 * mesh->Np] * sgeo[surf_offset + NZID];
+  freePointer(grad_T);
 
   return -k * normal_grad_T;
 }
