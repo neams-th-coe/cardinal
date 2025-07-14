@@ -1086,9 +1086,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
   double integral = 0.0;
-
-  double * grad_T = (double *)calloc(3 * scalarFieldOffset(), sizeof(double));
-  gradient(scalarFieldOffset(), nrs->cds->S, grad_T, pp_mesh);
+  double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1098,16 +1096,21 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
 
       if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
       {
+        // some inefficiency if an element has more than one face on the sideset of interest,
+        // because we will recompute the gradient in the element more than one time - but this
+        // is of little practical interest because this will be a minority of cases.
+        gradient(mesh->Np, i, nrs->cds->S, grad_T, pp_mesh);
+
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          int vol_id = mesh->vmapM[offset + v];
+          int vol_id = mesh->vmapM[offset + v] - i * mesh->Np;
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_grad_T =
-              grad_T[vol_id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
-              grad_T[vol_id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
-              grad_T[vol_id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
+              grad_T[vol_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
+              grad_T[vol_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
+              grad_T[vol_id + 2 * mesh->Np] * sgeo[surf_offset + NZID];
 
           integral += -k * normal_grad_T * sgeo[surf_offset + WSJID];
         }
@@ -1128,64 +1131,45 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
 }
 
 void
-gradient(const int offset, const double * f, double * grad_f, const nek_mesh::NekMeshEnum pp_mesh)
+gradient(const int offset, const int e, const double * f, double * grad_f, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
-  std::vector<std::vector<std::vector<double>>> s_P(
-      mesh->Nq, std::vector<std::vector<double>>(mesh->Nq, std::vector<double>(mesh->Nq, 0)));
-  std::vector<std::vector<double>> s_D(mesh->Nq, std::vector<double>(mesh->Nq, 0));
-
-  for (int e = 0; e < mesh->Nelements; ++e)
+  for (int k = 0; k < mesh->Nq; ++k)
   {
-    for (int k = 0; k < mesh->Nq; ++k)
-      for (int j = 0; j < mesh->Nq; ++j)
-        for (int i = 0; i < mesh->Nq; ++i)
-        {
-          const int id = e * mesh->Np + k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
-
-          s_P[k][j][i] = f[id];
-
-          if (k == 0)
-            s_D[j][i] = mesh->D[j * mesh->Nq + i];
-        }
-
-    for (int k = 0; k < mesh->Nq; ++k)
+    for (int j = 0; j < mesh->Nq; ++j)
     {
-      for (int j = 0; j < mesh->Nq; ++j)
+      for (int i = 0; i < mesh->Nq; ++i)
       {
-        for (int i = 0; i < mesh->Nq; ++i)
+        const int gid = e * mesh->Np * mesh->Nvgeo + k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
+        const double drdx = vgeo[gid + RXID * mesh->Np];
+        const double drdy = vgeo[gid + RYID * mesh->Np];
+        const double drdz = vgeo[gid + RZID * mesh->Np];
+        const double dsdx = vgeo[gid + SXID * mesh->Np];
+        const double dsdy = vgeo[gid + SYID * mesh->Np];
+        const double dsdz = vgeo[gid + SZID * mesh->Np];
+        const double dtdx = vgeo[gid + TXID * mesh->Np];
+        const double dtdy = vgeo[gid + TYID * mesh->Np];
+        const double dtdz = vgeo[gid + TZID * mesh->Np];
+
+        // compute 'r' and 's' derivatives of (q_m) at node n
+        double dpdr = 0.f, dpds = 0.f, dpdt = 0.f;
+
+        for (int n = 0; n < mesh->Nq; ++n)
         {
-          const int gid = e * mesh->Np * mesh->Nvgeo + k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
-          const double drdx = vgeo[gid + RXID * mesh->Np];
-          const double drdy = vgeo[gid + RYID * mesh->Np];
-          const double drdz = vgeo[gid + RZID * mesh->Np];
-          const double dsdx = vgeo[gid + SXID * mesh->Np];
-          const double dsdy = vgeo[gid + SYID * mesh->Np];
-          const double dsdz = vgeo[gid + SZID * mesh->Np];
-          const double dtdx = vgeo[gid + TXID * mesh->Np];
-          const double dtdy = vgeo[gid + TYID * mesh->Np];
-          const double dtdz = vgeo[gid + TZID * mesh->Np];
+          const double Dr = mesh->D[i * mesh->Nq + n];
+          const double Ds = mesh->D[j * mesh->Nq + n];
+          const double Dt = mesh->D[k * mesh->Nq + n];
 
-          // compute 'r' and 's' derivatives of (q_m) at node n
-          double dpdr = 0.f, dpds = 0.f, dpdt = 0.f;
-
-          for (int n = 0; n < mesh->Nq; ++n)
-          {
-            const double Dr = s_D[i][n];
-            const double Ds = s_D[j][n];
-            const double Dt = s_D[k][n];
-
-            dpdr += Dr * s_P[k][j][n];
-            dpds += Ds * s_P[k][n][i];
-            dpdt += Dt * s_P[n][j][i];
-          }
-
-          const int id = e * mesh->Np + k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
-          grad_f[id + 0 * offset] = drdx * dpdr + dsdx * dpds + dtdx * dpdt;
-          grad_f[id + 1 * offset] = drdy * dpdr + dsdy * dpds + dtdy * dpdt;
-          grad_f[id + 2 * offset] = drdz * dpdr + dsdz * dpds + dtdz * dpdt;
+          dpdr += Dr * f[e * mesh->Np + k * mesh->Nq * mesh->Nq + j * mesh->Nq + n];
+          dpds += Ds * f[e * mesh->Np + k * mesh->Nq * mesh->Nq + n * mesh->Nq + i];
+          dpdt += Dt * f[e * mesh->Np + n * mesh->Nq * mesh->Nq + j * mesh->Nq + i];
         }
+
+        const int id = k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
+        grad_f[id + 0 * offset] = drdx * dpdr + dsdx * dpds + dtdx * dpdt;
+        grad_f[id + 1 * offset] = drdy * dpdr + dsdy * dpds + dtdy * dpdt;
+        grad_f[id + 2 * offset] = drdz * dpdr + dsdz * dpds + dtdz * dpdt;
       }
     }
   }
