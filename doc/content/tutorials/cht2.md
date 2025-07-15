@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Couple NekRS with MOOSE for [!ac](CHT) in a 7-pin bundle
-- Use either the "flux-temperature" or "flux-flux" coupling modes
+- Use different [!ac](CHT) boundary conditions
 - Control how flux normalization is performed in NekRS (by either lumping all sidesets together, or preserving for each sideset individually)
 - Reduce the amount of copy to/from commands between host and device for NekRS
   (an advanced user feature)
