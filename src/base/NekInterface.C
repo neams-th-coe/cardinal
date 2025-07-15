@@ -1107,10 +1107,9 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
           int vol_id = mesh->vmapM[offset + v] - i * mesh->Np;
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double normal_grad_T =
-              grad_T[vol_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
-              grad_T[vol_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
-              grad_T[vol_id + 2 * mesh->Np] * sgeo[surf_offset + NZID];
+          double normal_grad_T = grad_T[vol_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
+                                 grad_T[vol_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
+                                 grad_T[vol_id + 2 * mesh->Np] * sgeo[surf_offset + NZID];
 
           integral += -k * normal_grad_T * sgeo[surf_offset + WSJID];
         }
@@ -1131,7 +1130,11 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
 }
 
 void
-gradient(const int offset, const int e, const double * f, double * grad_f, const nek_mesh::NekMeshEnum pp_mesh)
+gradient(const int offset,
+         const int e,
+         const double * f,
+         double * grad_f,
+         const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 

@@ -552,7 +552,10 @@ void limitTemperature(const double * min_T, const double * max_T);
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @param[out] grad_f gradient of field
  */
-void gradient(const int offset, const int e, const double * f, double * grad_f,
+void gradient(const int offset,
+              const int e,
+              const double * f,
+              double * grad_f,
               const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
