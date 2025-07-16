@@ -35,8 +35,6 @@ public:
 
   NekVolumetricSource(const InputParameters & parameters);
 
-  ~NekVolumetricSource();
-
   virtual void sendDataToNek() override;
 
 protected:
@@ -57,7 +55,4 @@ protected:
 
   /// Total volume-integrated volumetric source coming from the coupled MOOSE app.
   const PostprocessorValue * _source_integral = nullptr;
-
-  /// MOOSE source interpolated onto the data transfer mesh
-  double * _source_elem = nullptr;
 };

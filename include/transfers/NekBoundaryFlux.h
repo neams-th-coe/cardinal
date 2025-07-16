@@ -36,9 +36,9 @@ public:
 
   NekBoundaryFlux(const InputParameters & parameters);
 
-  ~NekBoundaryFlux();
-
   virtual void sendDataToNek() override;
+
+  virtual void readDataFromNek() override;
 
 protected:
   /**
@@ -95,10 +95,4 @@ protected:
 
   /// Sideset-wise surface-integrated flux coming from the coupled MOOSE app.
   const VectorPostprocessorValue * _flux_integral_vpp = nullptr;
-
-  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
-  double * _flux_face = nullptr;
-
-  /// MOOSE flux interpolated onto the (volume) data transfer mesh
-  double * _flux_elem = nullptr;
 };

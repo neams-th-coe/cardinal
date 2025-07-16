@@ -1,0 +1,21 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 3
+  dt = 5.0e-4
+  polynomialOrder = 1
+  writeControl = steps
+  writeInterval = 1
+
+[MESH]
+  file=../../../nek_output/pyramid.re2
+
+[VELOCITY]
+  solver = none
+
+[PRESSURE]
+
+[TEMPERATURE]
+  solver = none

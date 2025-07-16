@@ -1,0 +1,12 @@
+[Tests]
+  design = 'NekFieldVariable.md'
+
+  [temperature_input]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall be able to write into the scratch space a temperature which NekRS can use in its case files. This is tested by passing in a temperature field in the volume and applying this field to the temperature instead of solving it."
+    issues = '#1166'
+    capabilities = 'nekrs'
+  []
+[]

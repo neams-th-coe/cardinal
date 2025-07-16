@@ -39,11 +39,20 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
 {
   if (_direction == "from_nek")
     addExternalVariable(_variable);
+  else
+  {
+    if (_usrwrk_slot.size() > 1)
+      paramError("usrwrk_slot",
+                 "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
+                 "a vector of length " +
+                     Moose::stringify(_usrwrk_slot.size()));
 
-  if (_direction == "to_nek")
-    paramError("direction",
-               "The NekFieldVariable currently only supports transfers 'from_nek'; contact the "
-               "Cardinal developer team if you require writing of NekRS field variables.");
+    addExternalVariable(_usrwrk_slot[0], _variable);
+
+    // we don't impose any requirements on boundary conditions on the NekRS side, because this data
+    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used
+    // in a source term, for instance.
+  }
 
   if (isParamValid("field"))
     _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
@@ -63,17 +72,28 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "provide the 'field' parameter.");
   }
 
+  if (_direction == "to_nek")
+  {
+    switch (_field)
+    {
+      case field::temperature:
+        indices.temperature = _usrwrk_slot[0] * nekrs::fieldOffset();
+        break;
+      default:
+        paramError("field",
+                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
+                   "Please contact the Cardinal developer team if you require writing of other "
+                   "NekRS field variables.");
+    }
+  }
+
   if (_field == field::velocity_component)
     paramError("field",
                "'velocity_component' is not yet supported; if you need velocity dotted with a "
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
-
-  _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
 }
-
-NekFieldVariable::~NekFieldVariable() { freePointer(_external_data); }
 
 field::NekFieldEnum
 NekFieldVariable::convertToFieldEnum(const std::string name) const
@@ -127,6 +147,41 @@ NekFieldVariable::readDataFromNek()
     _nek_problem.volumeSolution(_field, _external_data);
 
   fillAuxVariable(_variable_number[_variable], _external_data);
+}
+
+void
+NekFieldVariable::sendDataToNek()
+{
+  _console << "Sending " << _variable << " to NekRS..." << std::endl;
+  auto d = nekrs::nondimensionalDivisor(_field);
+  auto a = nekrs::nondimensionalAdditive(_field);
+
+  if (!_nek_mesh->volume())
+  {
+    for (unsigned int e = 0; e < _nek_mesh->numSurfaceElems(); e++)
+    {
+      // We can only write into the nekRS scratch space if that face is "owned" by the current
+      // process
+      if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
+        continue;
+
+      _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_v_face);
+      _nek_problem.writeBoundarySolution(e, _field, _v_face);
+    }
+  }
+  else
+  {
+    for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); ++e)
+    {
+      // We can only write into the nekRS scratch space if that face is "owned" by the current
+      // process
+      if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
+        continue;
+
+      _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
+      _nek_problem.writeVolumeSolution(e, _field, _v_elem);
+    }
+  }
 }
 
 #endif
