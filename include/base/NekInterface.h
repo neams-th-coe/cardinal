@@ -547,11 +547,15 @@ void limitTemperature(const double * min_T, const double * max_T);
 /**
  * Compute the gradient of a volume field
  * @param[in] offset in the gradient field for each component (grad_x, grad_y, or grad_z)
+ * @param[in] e element ID to compute gradient
  * @param[in] f field to compute the gradient of
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @param[out] grad_f gradient of field
  */
-void gradient(const int offset, const double * f, double * grad_f,
+void gradient(const int offset,
+              const int e,
+              const double * f,
+              double * grad_f,
               const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
