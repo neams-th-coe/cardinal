@@ -21,7 +21,7 @@ protected:
   Real getMetricData(const libMesh::Elem * elem) const;
 
   /**
-   * A purely virtual fucntion which must be overrided in derived classes.
+   * A purely virtual function which must be overrided in derived classes.
    * It applies the clustering logic for two elements in the derived class
    */
   virtual bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
