@@ -72,13 +72,12 @@ where $r_2>r_1$ are the outer and inner radii
 of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
 thermal conductivity of the annulus material.
 
-In this tutorial, we will demonstrate three different [!ac](CHT)
+In this tutorial, we will demonstrate two different [!ac](CHT)
 coupling options for the boundary condition on the fuel pin surfaces and the duct inner boundary (the
 boundaries in contact with a modeled fluid):
 
 - "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to the solid is wall temperature
 - "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to the solid is wall convective flux
-- "Temperature - Cond. Flux" in [#tempcond]: boundary condition applied to the solid is wall conductive flux
 
 The "Cond. Flux - Temperature" option will be described first, and then sections towards the end
 will describe the modifications necessary to use alternate [!ac](CHT) boundary conditions.
@@ -94,9 +93,8 @@ the energy conservation equation. On all solid-fluid interfaces, the velocity is
 to the no-slip condition. The boundary conditions on the pin outer surface and the
 duct inner surface depends on the [!ac](CHT) boundary conditions:
 
-- "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to NekRs is wall conductive flux
+- "Cond. Flux - Temperature" in [#condtemp]: boundary condition applied to NekRs is wall conductive flux
 - "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to NekRS is wall conductive flux
-- "Temperature - Cond. Flux" in [#tempcond]: boundary condition applied to NekRS is wall temperature
 
 The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
@@ -404,14 +402,12 @@ heat flux and extracting temperatures from NekRS.
 
 After converting the NekRS output files to a format viewable in Paraview
 (see instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files)),
-the simulation results can be displayed. The fluid temperature is shown in [temperature]
-along with the mesh lines of the solid phase, while the solid temperature is
-shown in [temperature2] along with the lines connecting
-[!ac](GLL) points for the fluid phase. The
-temperature color scale is the same in both figures.
+the simulation results can be displayed. [temperature2] shows the fluid temperature
+along with the solid mesh; and the solid temperature along with the
+fluid mesh. The temperature color scale is the same in both figures.
 
 !media sfr_temperature1.png
-  id=temperature
+  id=temperature2
   caption=Left: Fluid temperature computed by NekRS for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with solid mesh lines shown in blue. Right: Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
@@ -519,6 +515,9 @@ Then, we use these user objects to compute a heat transfer coefficient using
 coefficient will get passed to the solid input file, along the the bulk
 temperature, for use in the convective flux boundary condition.
 
+Because the boundary condition applied to NekRS is still a conductive heat flux
+as in [#condtemp], the case files do not need to be modified.
+
 ### Solid Input Files
 
 The solid input files are mostly the same as the case with temperature-flux coupling,
@@ -557,3 +556,4 @@ heat transfer coefficient).
   id=flux_temp
   caption=Solid temperature predicted when solving conjugate heat transfer with NekRS using two different [!ac](CHT) boundary conditions.
   style=halign:center
+

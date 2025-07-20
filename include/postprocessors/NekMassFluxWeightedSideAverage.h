@@ -23,8 +23,7 @@
 /**
  * Compute the average of a specified quantity over the boundaries
  * in the nekRS mesh, weighted by the mass flux,
- * \f$\frac{\int_\Gamma \rho_f\vec{V}\cdot\hat{n}
- * fd\Gamma}{\int_\Gamma\rho_f\vec{V}\cdot\hat{n}d\Gamma}f$, where \f$f\f$ is the field to be
+ * \f$\frac{\int_\Gamma \rho_f\vec{V}\cdot\hat{n}d\Gamma}{\int_\Gamma\rho_f\vec{V}\cdot\hat{n}d\Gamma}\f$, where \f$f\f$ is the field to be
  * integrated, \f$\Gamma\f$ is the boundary, and \f$\rho_f\vec{V}\cdot\hat{n}\f$ is the mass flux.
  *
  * Note that this calculation is done directly on the mesh that nekRS solves on,
