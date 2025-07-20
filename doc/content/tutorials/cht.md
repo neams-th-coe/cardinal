@@ -31,13 +31,18 @@ to MOOSE and the wall temperature from MOOSE to NekRS. This is shown below as th
 Another [!ac](CHT) option passes the wall convective heat flux from NekRS to MOOSE
 and the wall conductive flux from MOOSE to NekRS. This is shown below as the
 `Cond. Flux - Conv. Flux` option. Note that in all of these options, our naming convention
-is to list the transfer *to* NekRS first, and the transfer *from* NekRS second. You might choose
-to use different boundary conditions in order to improve the stability of the coupling.
+is to list the transfer *to* NekRS first, and the transfer *from* NekRS second.
 
 !media cond_flux_conv_flux.png
   id=cond_flux_conv_flux
   caption=Illustration of [!ac](CHT) coupling with the "Cond. Flux - Conv. Flux" option
   style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+!alert tip
+You might choose
+to use different boundary conditions in order to improve the stability of the coupling;
+when Cardinal was first developed, only one option existed - the "Cond. Flux - Temperature"
+option, even though it is known that this option can be less stable than the others.
 
 Cardinal uses a general formulation that allows NekRS to couple via conjugate
 heat transfer to *any* MOOSE thermal-fluid application. This

@@ -76,6 +76,13 @@ pin_power = 10e3                              # bundle power (kW)
     T_infinity = nek_bulk_temp
     htc = h
   []
+  [outer]
+    type = ConvectiveHeatFluxBC
+    variable = T
+    T_infinity = 600
+    heat_transfer_coefficient = 1000
+    boundary = 'duct_outer'
+  []
 []
 
 [Materials]

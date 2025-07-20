@@ -7,10 +7,13 @@
   writeInterval = 1000
   polynomialOrder = 3
 
+[MESH]
+  file=fluid.re2
+
 [VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
-  boundaryTypeMap = W, W, v, O
+  boundaryTypeMap = W, v, O, W
   residualTol = 1.0e-6
 
 [PRESSURE]
@@ -19,5 +22,5 @@
 [TEMPERATURE]
   conductivity = 64.21
   rhoCp = 1024766.0
-  boundaryTypeMap = f, f, t, O
+  boundaryTypeMap = f, t, O, f
   residualTol = 1.0e-5

@@ -35,6 +35,7 @@ script_dir = os.path.dirname(__file__)
 sys.path.append(script_dir)
 import mesh_settings as ms
 
+nondimensional = ms.nondimensional
 pin_diameter = ms.pin_diameter
 pin_pitch = ms.pin_pitch
 flat_to_flat = ms.flat_to_flat
@@ -226,7 +227,11 @@ for i in range(e_per_bl):
 
 # calculate hydraulic diameter for a wire-wrap bundle (no curved corners)
 inlet_area = flow_area(n_rings, flat_to_flat, pin_diameter) - n_pins * math.pi * (wire_diameter ** 2) / 4.0
-hydraulic_d = hydraulic_diameter(n_rings, flat_to_flat, pin_diameter, wire_diameter, wire_pitch)
+
+if (nondimensional):
+  hydraulic_d = hydraulic_diameter(n_rings, flat_to_flat, pin_diameter, wire_diameter, wire_pitch)
+else:
+  hydraulic_d = 1.0
 
 # Write a file that contains all the essential meshing pre-processor definitions
 with open('mesh_info.i', 'w') as f:

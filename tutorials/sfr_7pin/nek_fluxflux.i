@@ -2,7 +2,7 @@ interval = 100
 
 [Mesh]
   type = NekRSMesh
-  boundary = '1 2'
+  boundary = '1 4'
 []
 
 [Problem]
@@ -102,7 +102,7 @@ interval = 100
   []
   [duct_flux_in_nek]
     type = NekHeatFluxIntegral
-    boundary = '2'
+    boundary = '4'
   []
   [max_nek_T]
     type = NekVolumeExtremeValue
