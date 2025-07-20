@@ -76,7 +76,7 @@ In this tutorial, we will demonstrate three different [!ac](CHT)
 coupling options for the boundary condition on the fuel pin surfaces and the duct inner boundary (the
 boundaries in contact with a modeled fluid):
 
-- "Cond. Flux - Temperature": boundary condition applied to the solid is wall temperature
+- "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to the solid is wall temperature
 - "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to the solid is wall convective flux
 - "Temperature - Cond. Flux" in [#tempcond]: boundary condition applied to the solid is wall conductive flux
 
@@ -94,7 +94,7 @@ the energy conservation equation. On all solid-fluid interfaces, the velocity is
 to the no-slip condition. The boundary conditions on the pin outer surface and the
 duct inner surface depends on the [!ac](CHT) boundary conditions:
 
-- "Cond. Flux - Temperature": boundary condition applied to NekRs is wall conductive flux
+- "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to NekRs is wall conductive flux
 - "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to NekRS is wall conductive flux
 - "Temperature - Cond. Flux" in [#tempcond]: boundary condition applied to NekRS is wall temperature
 
@@ -149,7 +149,7 @@ The `mesh_settings.py` file contains a set of configurable parameters to generat
 The settings used for this tutorial are shown below, which will generate a 7-pin mesh in
 dimensional units and with geometry choices consistent with [table1].
 
-!include mesh_settings.py
+!listing /tutorials/sfr_7pin/mesh_settings.py language=python
 
 You can then generate the mesh in exodus format (`fluid.exo`) and then convert it into
 NekRS's `.re2` format by running
@@ -173,7 +173,7 @@ using MOOSE's [Transfers](Transfers/index.md) handle any differences in the mesh
   style=halign:center
 
 ## Cond. Flux-Temperature CHT Coupling
-  id=fluxtemperature
+  id=condtemp
 
 In this section, NekRS and MOOSE are coupled for [!ac](CHT) using the "Cond. Flux - Temperature" coupling mode.
 
@@ -415,7 +415,7 @@ temperature color scale is the same in both figures.
   caption=Left: Fluid temperature computed by NekRS for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with solid mesh lines shown in blue. Right: Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
-## Preserving Flux on Individual Sidesets
+### Preserving Flux on Individual Sidesets
 
 By default, [NekBoundaryFlux](NekBoundaryFlux.md)
 will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
