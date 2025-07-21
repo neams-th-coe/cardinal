@@ -50,7 +50,9 @@ NekTransferBase::checkAllocatedUsrwrkSlot(const unsigned int & u) const
 {
   if (u >= _nek_problem.nUsrWrkSlots())
   {
-    std::string s = "Cannot write into usrwrk slot " + Moose::stringify(u) + " because only " + Moose::stringify(_nek_problem.nUsrWrkSlots()) + " have been allocated with 'n_usrwrk_slots'.";
+    std::string s = "Cannot write into usrwrk slot " + Moose::stringify(u) + " because only " +
+                    Moose::stringify(_nek_problem.nUsrWrkSlots()) +
+                    " have been allocated with 'n_usrwrk_slots'.";
 
     // can only give the hint about max slot if any slots have been allocated, otherwise we overflow
     // into max(int)
