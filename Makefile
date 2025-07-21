@@ -72,7 +72,7 @@ MOOSE_DIR           ?= $(CONTRIB_DIR)/moose
 
 PETSC_DIR           ?= $(MOOSE_DIR)/petsc
 PETSC_ARCH          ?= arch-moose
-LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed/
+LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
 # Check that NEKRS_HOME is set to the correct location
