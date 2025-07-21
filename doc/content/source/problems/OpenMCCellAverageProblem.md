@@ -394,8 +394,8 @@ used in OpenMC.
 
 Cardinal provides UserObjects for editing tallies and filters:
 
-  - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
-  - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
+- [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
+- [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
 
 These objects can be used to interact with tallies and/or filters that are
 present in a `tallies.xml` file for the problem being run (in other words,
