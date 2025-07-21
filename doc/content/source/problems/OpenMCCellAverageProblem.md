@@ -226,7 +226,7 @@ column (not just the volume of the mesh elements the cells map to in the "Mapped
 
 If you know that all the tallied OpenMC cells are actually
 the same volume, you can also use the `check_equal_mapped_tally_volumes`
-parameter to automatically check that the mapped volue for each tally bin is identical.
+parameter to automatically check that the mapped volume for each tally bin is identical.
 
 !alert-end!
 
