@@ -226,7 +226,7 @@ column (not just the volume of the mesh elements the cells map to in the "Mapped
 
 If you know that all the tallied OpenMC cells are actually
 the same volume, you can also use the `check_equal_mapped_tally_volumes`
-parameter to automatically check that the mapped volue for each tally bin is identical.
+parameter to automatically check that the mapped volume for each tally bin is identical.
 
 !alert-end!
 
@@ -394,8 +394,8 @@ used in OpenMC.
 
 Cardinal provides UserObjects for editing tallies and filters:
 
-  - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
-  - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
+- [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
+- [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
 
 These objects can be used to interact with tallies and/or filters that are
 present in a `tallies.xml` file for the problem being run (in other words,
