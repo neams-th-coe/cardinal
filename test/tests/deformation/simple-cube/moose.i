@@ -39,23 +39,23 @@
 [Functions]
   [temp_ansol]
     type = ParsedFunction
-    value = (sin(x)*sin(y)*sin(z))+5
+    expression = (sin(x)*sin(y)*sin(z))+5
   []
   [source_fn]
     type = ParsedFunction
-    value = 3*sin(x)*sin(y)*sin(z)
+    expression = 3*sin(x)*sin(y)*sin(z)
   []
   [fn_1]
     type = ParsedFunction
-    value = t*x*z*(2-z)*0.1
+    expression = t*x*z*(2-z)*0.1
   []
   [fn_2]
     type = ParsedFunction
-    value = t*x*z*(2-z)*0.05
+    expression = t*x*z*(2-z)*0.05
   []
   [fn_3]
     type = ParsedFunction
-    value = t*(y+1)*(y-1)*0.1
+    expression = t*(y+1)*(y-1)*0.1
   []
 []
 

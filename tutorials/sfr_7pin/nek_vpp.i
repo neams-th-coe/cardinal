@@ -7,6 +7,7 @@
   type = NekRSProblem
   casename = 'sfr_7pin'
   synchronization_interval = parent_app
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [heat_flux]

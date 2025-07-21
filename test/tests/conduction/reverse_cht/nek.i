@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'cube'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [flux]

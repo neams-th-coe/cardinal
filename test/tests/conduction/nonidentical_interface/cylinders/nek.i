@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'cylinder'
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

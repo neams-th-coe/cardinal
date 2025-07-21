@@ -3,6 +3,7 @@
   casename = 'cylinder_low'
   usrwrk_output = '1'
   usrwrk_output_prefix = 'src'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [heat_source]

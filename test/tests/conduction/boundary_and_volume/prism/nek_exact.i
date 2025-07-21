@@ -3,6 +3,7 @@
   casename = 'pyramid_low'
   usrwrk_output = '0 1'
   usrwrk_output_prefix = 'flx src'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [avg_flux]

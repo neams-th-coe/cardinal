@@ -2,6 +2,7 @@
   type = NekRSProblem
   casename = 'cylinder'
   synchronization_interval = parent_app
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

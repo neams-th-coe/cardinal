@@ -9,6 +9,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
+  n_usrwrk_slots = 4
 
   [FieldTransfers]
     [heat_source]

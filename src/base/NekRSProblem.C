@@ -39,7 +39,7 @@ NekRSProblem::validParams()
 
   params.addParam<unsigned int>(
       "n_usrwrk_slots",
-      7,
+      0,
       "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
       "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
       "calculation (which will be populated by the user from the case files)");
@@ -190,7 +190,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
         mooseError("Cannot write field file for usrwrk slot greater than the total number of "
                    "allocated slots: ",
                    _n_usrwrk_slots,
-                   "!");
+                   "! Please increase 'n_usrwrk_slots'.");
 
     if (_usrwrk_output->size() != _usrwrk_output_prefix->size())
       mooseError("The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!");

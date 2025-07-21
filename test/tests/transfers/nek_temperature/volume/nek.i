@@ -4,6 +4,7 @@ Tv = 5
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [temperature]

@@ -8,6 +8,7 @@
   type = NekRSProblem
   casename = 'pin'
   write_fld_files = true
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

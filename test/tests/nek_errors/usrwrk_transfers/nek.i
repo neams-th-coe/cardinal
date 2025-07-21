@@ -6,6 +6,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'brick'
+  n_usrwrk_slots = 7
 
   [FieldTransfers]
     [flux]
