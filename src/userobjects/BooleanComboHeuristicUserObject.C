@@ -5,81 +5,171 @@ registerMooseObject("CardinalApp", BooleanComboHeuristicUserObject);
 InputParameters
 BooleanComboHeuristicUserObject::validParams()
 {
-
-  static InputParameters params = ClusteringUserObject::validParams();
-  params.addRequiredParam<std::vector<ExtraElementIDName>>(
-      "extra_ids", " extra integer ids of the other heuristics");
-  params.addRequiredParam<std::vector<std::string>>(
-      "boolean_logic", " order of the boolean logic applied to the user objects");
-  params.addClassDescription("Takes various heuristic user objects and"
-                               " applies a user defined boolean logic operation on them.");
+  InputParameters params = GeneralUserObject::validParams();
+  params.addRequiredParam<ExtraElementIDName>("id_name", "extra_element_integer_id name");
+  params.addRequiredParam<std::vector<std::string>>("expression","boolean logic operation expression");
+  params.addClassDescription("Takes various heuristic user objects and applies a user defined boolean logic operation on them.");
   return params;
 }
 
-BooleanComboHeuristicUserObject::BooleanComboHeuristicUserObject(const InputParameters & params)
-  : ClusteringUserObject(params),
-    _parsed_user_object_extra_element_id_names(
-        getParam<std::vector<ExtraElementIDName>>("extra_ids")),
-    _boolean_logic(getParam<std::vector<std::string>>("boolean_logic"))
+BooleanComboHeuristicUserObject::BooleanComboHeuristicUserObject(const InputParameters & parameters)
+  : GeneralUserObject(parameters),
+    _id_name(getParam<ExtraElementIDName>("id_name")),
+    _mesh(_fe_problem.mesh().getMesh())
 {
-  /* Need to ensure that the number of boolean logic is always
-   * equals to == number of user object -1
-   */
-  for (auto id_name : _parsed_user_object_extra_element_id_names)
+  if (!_mesh.has_elem_integer(_id_name))
   {
-    if (!_mesh.has_elem_integer(_id_name))
-    {
-      mooseError("Mesh does not have an extra element integer named ",
-                 id_name,
-                 "."
-                 " Ensure your mesh generator defines it with extra_element_integers.");
+    mooseWarning("Mesh does not have an extra element integer named ",
+                 _id_name,
+                 ". so adding the ",
+                 _id_name,
+                 " generator defines it with extra_element_integers.");
+    _mesh.add_elem_integer(_id_name);
+  }
+  _extra_integer_index = _mesh.get_elem_integer_index(_id_name);
+  reversePolishNotation(getParam<std::vector<std::string>>("expression"));
+  initializeUserObjects();
+}
+
+void
+BooleanComboHeuristicUserObject::initializeUserObjects()
+{
+  _clustering_user_objects.clear();
+  for (const auto & token : _output_stack)
+  {
+    if (_precedence.find(token))
+      //seperate the user object names. If true that means name is an operator
+      continue;
+    const auto & uo = getUserObjectByName<ClusteringUserObject>(token);
+    _clustering_user_objects.insert(std::make_pair(token,&uo));
+  }
+}
+
+bool
+BooleanComboHeuristicUserObject::belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem)
+{
+  //follow the reverse polish notation
+  std::stack<bool> result_stack;
+
+  for (const auto token :_output_stack){
+    //if token is an operator
+    if (token == "and" || token == "&&") {
+      bool rhs = result_stack.top();
+      result_stack.pop();
+      bool lhs = result_stack.top();
+      result_stack.pop();
+      result_stack.push(lhs && rhs);
     }
-    _extra_integer_indexs.push_back(_mesh.get_elem_integer_index(id_name));
+    else if (token == "or" || token == "||") {
+      bool rhs = result_stack.top();
+      result_stack.pop();
+      bool lhs = result_stack.top();
+      result_stack.pop();
+      result_stack.push(lhs || rhs);
+    }
+    else if (token == "not" || token == "!") {
+      bool val = result_stack.top(); result_stack.pop();
+      result_stack.push(!val);
+    }
+    else{
+      result_stack.push(_clustering_user_objects[token]->belongsToCluster(base_element,neighbor_elem));
+    }
   }
+  return result_stack.top();
+}
 
-  if (size(_parsed_user_object_extra_element_id_names) - 1 != size(_boolean_logic))
+
+void
+BooleanComboHeuristicUserObject::findCluster()
+{
+  std::stack<libMesh::Elem *> neighbor_stack;
+
+  for (auto & elem : _mesh.active_element_ptr_range())
   {
-      mooseError("The number of boolean logic operators is insconsistant:\n "
-                 "expected = " + std::to_string(size(_parsed_user_object_extra_element_id_names) - 1) +"\n"+
-                 "but  got = " + std::to_string(size(_boolean_logic)) + ".");
-  }
-  if (size(_parsed_user_object_extra_element_id_names) == 1 && size(_boolean_logic) == 0)
-  {
-    mooseWarning("No logic to apply ");
+    if (elem->get_extra_integer(_extra_integer_index) != NOT_VISITED)
+      continue;
+
+    int cluster_id = elem->id();
+    neighbor_stack.push(elem);
+
+    while (!neighbor_stack.empty())
+    {
+      libMesh::Elem * current_elem = neighbor_stack.top();
+      neighbor_stack.pop();
+
+      for (unsigned int s = 0; s < current_elem->n_sides(); s++)
+      {
+        libMesh::Elem * neighbor_elem = current_elem->neighbor_ptr(s);
+        if (neighbor_elem && neighbor_elem->active() &&
+            neighbor_elem->get_extra_integer(_extra_integer_index) == NOT_VISITED)
+        {
+          if (belongsToCluster(current_elem, neighbor_elem))
+          {
+            elem->set_extra_integer(_extra_integer_index, cluster_id);
+            neighbor_elem->set_extra_integer(_extra_integer_index, cluster_id);
+            neighbor_stack.push(neighbor_elem);
+          }
+        }
+      }
+    }
   }
 }
 
-bool
-BooleanComboHeuristicUserObject::passesTheComboLogic(libMesh::Elem * element)
+void
+BooleanComboHeuristicUserObject::applyNoClusteringInitialCondition()
 {
-
-  std::vector<bool> logic_stack;
-  for (auto extra_id : _extra_integer_indexs)
-  {
-    if (element->get_extra_integer(extra_id) != -1)
-      logic_stack.push_back(true);
-    else
-      logic_stack.push_back(false);
-  }
-  
-  std::vector<std::string> boolean_logic = _boolean_logic;
-  bool decision;
-  while (logic_stack.size() > 1)
-  {
-
-    if (boolean_logic[0] == "and")
-      decision = logic_stack[0] and logic_stack[1];
-    else
-      decision = logic_stack[0] or logic_stack[1];
-    logic_stack.erase(logic_stack.begin());
-    boolean_logic.erase(boolean_logic.begin());
-  }
-  return decision;
+  for (auto & elem : _mesh.active_element_ptr_range())
+    elem->set_extra_integer(_extra_integer_index, NOT_VISITED);
 }
 
-bool
-BooleanComboHeuristicUserObject::belongsToCluster(libMesh::Elem * base_element,
-                                                  libMesh::Elem * neighbor_elem)
+void
+BooleanComboHeuristicUserObject::execute()
 {
-  return passesTheComboLogic(base_element) and passesTheComboLogic(neighbor_elem);
+  applyNoClusteringInitialCondition();
+  findCluster();
+}
+
+int
+BooleanComboHeuristicUserObject::getExtraIntegerScore(libMesh::Elem * elem) const
+{
+  return elem->get_extra_integer(_extra_integer_index);
+}
+
+void
+BooleanComboHeuristicUserObject::reversePolishNotation(const std::vector<std::string>& expression) {
+  std::stack<std::string> op_stack;
+
+  for (const auto& token : expression) {
+    if (token == _left_parenthesis) {
+      op_stack.push(token);
+    }
+    else if (token == _right_parenthesis ) {
+      while (!op_stack.empty() && op_stack.top() != _left_parenthesis) {
+        _output_stack.push_back(op_stack.top());
+        op_stack.pop();
+      }
+      if (!op_stack.empty() && op_stack.top() == _left_parenthesis ) {
+        op_stack.pop();
+      }
+    }
+    // operator handling based on _precedence
+    else if (_precedence.find(token) != _precedence.end()) {
+      // if operation hasn't the least precedence
+      // push back to the output stack
+      while (!op_stack.empty() &&
+             _precedence.find(op_stack.top()) != _precedence.end() &&
+             _precedence[op_stack.top()] >= _precedence[token]) {
+        _output_stack.push_back(op_stack.top());
+        op_stack.pop();
+      }
+      op_stack.push(token);
+    }
+    else {
+      _output_stack.push_back(token);
+    }
+  }
+  while (!op_stack.empty()) {
+    _output_stack.push_back(op_stack.top());
+    op_stack.pop();
+  }
 }

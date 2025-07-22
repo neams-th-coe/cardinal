@@ -15,7 +15,7 @@ ThresholdHeuristicsUserObject::validParams()
                              "based heuristics on the element pairs. It clusters elements if their score "
                              "is more (default) or less than tolerance percentage of the value provided in the input files. "
                              "The operation will be flipped if the input argument cluster_if_above_threshold is false. "
-                             );
+  );
 
   return params;
 }
@@ -28,7 +28,7 @@ ThresholdHeuristicsUserObject::ThresholdHeuristicsUserObject(const InputParamete
 }
 
 bool
-ThresholdHeuristicsUserObject::belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem)
+ThresholdHeuristicsUserObject::belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const
 {
 
   return _cluster_if_above_threshold

@@ -10,9 +10,13 @@ public:
   ThresholdHeuristicsUserObject(const InputParameters & parameters);
 
 protected:
-  virtual bool belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) override;
+  /// method for evaluting if element should be clusterd or not
+  virtual bool belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const override;
 
 private:
-  double _threshold;
+  //threshold limit for clustering
+  const double _threshold;
+
+  /// determines if we should cluster whether above of below the threshold limit
   bool _cluster_if_above_threshold;
 };
