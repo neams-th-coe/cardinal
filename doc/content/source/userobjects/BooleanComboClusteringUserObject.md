@@ -1,8 +1,8 @@
-# BooleanComboHeuristicUserObject
+# BooleanComboClusteringUserObject
 
 ## Description
 
-`BooleanComboHeuristicUserObject` implements the over all mesh walking and clustering
+`BooleanComboClusteringUserObject` implements the over all mesh walking and clustering
 process. It takes an expression as a logical function of different heuristic
 based user objects. It evalutes the expression between two adjacent elements which shares at least 
 one common side. 
@@ -14,5 +14,5 @@ set same as the element id of the first element in that cluster.
 !listing tutorials/clustering/threshold_heuristic/example_input.i
 block=UserObjects/boolean_combo
 
-!syntax parameters /UserObject/BooleanComboHeuristicUserObject
-!syntax inputs /UserObject/BooleanComboHeuristicUserObject
+!syntax parameters /UserObject/BooleanComboClusteringUserObject
+!syntax inputs /UserObject/BooleanComboClusteringUserObject
