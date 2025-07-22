@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ClusteringUserObject.h"
+#include "ClusteringHeuristicUserObjectBase.h"
 
-class ThresholdHeuristicsUserObject : public ClusteringUserObject
+class ThresholdHeuristicsUserObject : public ClusteringHeuristicUserObjectBase
 {
 
 public:
@@ -11,7 +11,7 @@ public:
 
 protected:
   /// method for evaluting if element should be clusterd or not
-  virtual bool belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const override;
+  virtual bool evaluate(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const override;
 
 private:
   //threshold limit for clustering

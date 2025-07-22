@@ -1,9 +1,9 @@
-#include "BooleanComboHeuristicUserObject.h"
+#include "BooleanComboClusteringUserObject.h"
 
-registerMooseObject("CardinalApp", BooleanComboHeuristicUserObject);
+registerMooseObject("CardinalApp", BooleanComboClusteringUserObject);
 
 InputParameters
-BooleanComboHeuristicUserObject::validParams()
+BooleanComboClusteringUserObject::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<ExtraElementIDName>("id_name", "extra_element_integer_id name");
@@ -12,7 +12,7 @@ BooleanComboHeuristicUserObject::validParams()
   return params;
 }
 
-BooleanComboHeuristicUserObject::BooleanComboHeuristicUserObject(const InputParameters & parameters)
+BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _id_name(getParam<ExtraElementIDName>("id_name")),
     _mesh(_fe_problem.mesh().getMesh())
@@ -32,7 +32,7 @@ BooleanComboHeuristicUserObject::BooleanComboHeuristicUserObject(const InputPara
 }
 
 void
-BooleanComboHeuristicUserObject::initializeUserObjects()
+BooleanComboClusteringUserObject::initializeUserObjects()
 {
   _clustering_user_objects.clear();
   for (const auto & token : _output_stack)
@@ -40,13 +40,13 @@ BooleanComboHeuristicUserObject::initializeUserObjects()
     if (_precedence.find(token))
       //seperate the user object names. If true that means name is an operator
       continue;
-    const auto & uo = getUserObjectByName<ClusteringUserObject>(token);
+    const auto & uo = getUserObjectByName<ClusteringHeuristicUserObjectBase>(token);
     _clustering_user_objects.insert(std::make_pair(token,&uo));
   }
 }
 
 bool
-BooleanComboHeuristicUserObject::belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem)
+BooleanComboClusteringUserObject::belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem)
 {
   //follow the reverse polish notation
   std::stack<bool> result_stack;
@@ -72,7 +72,7 @@ BooleanComboHeuristicUserObject::belongsToCluster(libMesh::Elem * base_element, 
       result_stack.push(!val);
     }
     else{
-      result_stack.push(_clustering_user_objects[token]->belongsToCluster(base_element,neighbor_elem));
+      result_stack.push(_clustering_user_objects[token]->evaluate(base_element,neighbor_elem));
     }
   }
   return result_stack.top();
@@ -80,7 +80,7 @@ BooleanComboHeuristicUserObject::belongsToCluster(libMesh::Elem * base_element, 
 
 
 void
-BooleanComboHeuristicUserObject::findCluster()
+BooleanComboClusteringUserObject::findCluster()
 {
   std::stack<libMesh::Elem *> neighbor_stack;
 
@@ -116,27 +116,27 @@ BooleanComboHeuristicUserObject::findCluster()
 }
 
 void
-BooleanComboHeuristicUserObject::applyNoClusteringInitialCondition()
+BooleanComboClusteringUserObject::resetExtraInteger()
 {
   for (auto & elem : _mesh.active_element_ptr_range())
     elem->set_extra_integer(_extra_integer_index, NOT_VISITED);
 }
 
 void
-BooleanComboHeuristicUserObject::execute()
+BooleanComboClusteringUserObject::execute()
 {
   applyNoClusteringInitialCondition();
   findCluster();
 }
 
 int
-BooleanComboHeuristicUserObject::getExtraIntegerScore(libMesh::Elem * elem) const
+BooleanComboClusteringUserObject::getExtraIntegerScore(libMesh::Elem * elem) const
 {
   return elem->get_extra_integer(_extra_integer_index);
 }
 
 void
-BooleanComboHeuristicUserObject::reversePolishNotation(const std::vector<std::string>& expression) {
+BooleanComboClusteringUserObject::reversePolishNotation(const std::vector<std::string>& expression) {
   std::stack<std::string> op_stack;
 
   for (const auto& token : expression) {

@@ -6,7 +6,7 @@ InputParameters
 ThresholdHeuristicsUserObject::validParams()
 {
 
-  InputParameters params = ClusteringUserObject::validParams();
+  InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
   params.addRequiredParam<double>("threshold",
                                   " The value against which the clustering process is compared.");
   params.addParam<bool>(
@@ -21,14 +21,14 @@ ThresholdHeuristicsUserObject::validParams()
 }
 
 ThresholdHeuristicsUserObject::ThresholdHeuristicsUserObject(const InputParameters & parameters)
-  : ClusteringUserObject(parameters),
+  : ClusteringHeuristicUserObjectBase(parameters),
     _threshold(getParam<double>("threshold")),
     _cluster_if_above_threshold(getParam<bool>("cluster_if_above_threshold"))
 {
 }
 
 bool
-ThresholdHeuristicsUserObject::belongsToCluster(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const
+ThresholdHeuristicsUserObject::evaluate(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const
 {
 
   return _cluster_if_above_threshold

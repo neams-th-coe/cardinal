@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ClusteringUserObject.h"
+#include "ClusteringHeuristicUserObjectBase.h"
 #include <unordered_map>
 
-class BooleanComboHeuristicUserObject : public GeneralUserObject
+class BooleanComboClusteringUserObject : public GeneralUserObject
 {
 public:
   static InputParameters validParams();
-  BooleanComboHeuristicUserObject(const InputParameters & parameters);
+  BooleanComboClusteringUserObject(const InputParameters & parameters);
 
   virtual void execute() override;
   virtual void initialize() override {};
@@ -31,7 +31,7 @@ protected:
   void findCluster();
 
   /// sets the extra element integer to -1 for every active elemnet
-  void applyNoClusteringInitialCondition();
+  void resetExtraInteger();
 
   /// sets the ref to heuristic based user objects from the expression
   void initializeUserObjects();
@@ -46,13 +46,13 @@ protected:
   unsigned int _extra_integer_index;
 
   /// hash map for clustering user object.
-  std::unordered_map< std::string, const ClusteringUserObject* > _clustering_user_objects;
+  std::unordered_map< std::string, const ClusteringHeuristicUserObjectBase* > _clustering_user_objects;
 
   /// hold the final rpn expression
   std::vector<std::string> _output_stack;
 
   /// operator predecence
-  std::unordered_map<std::string, int> _precedence { {"not", 3}, {"!", 3}, {"and", 2}, {"&&", 2}, {"or", 1}, {"||", 1} };
+  static const std::unordered_map<std::string, int> _precedence { {"not", 3}, {"!", 3}, {"and", 2}, {"&&", 2}, {"or", 1}, {"||", 1} };
 
   static constexpr int NOT_VISITED = -1;
   static constexpr std::string _left_parenthesis = "(";
