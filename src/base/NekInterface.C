@@ -1476,6 +1476,33 @@ set_mesh_velocity_z(const int id, const dfloat value)
 }
 
 void
+checkFieldValidity(const field::NekWriteEnum & field)
+{
+  switch (field)
+  {
+    case field::flux:
+      if (!hasTemperatureVariable())
+        mooseError("Cannot get NekRS heat flux "
+                   "because your Nek case files do not have a temperature variable!");
+      break;
+    case field::heat_source:
+      if (!hasTemperatureVariable())
+        mooseError("Cannot get NekRS heat source "
+                   "because your Nek case files do not have a temperature variable!");
+      break;
+    case field::x_displacement:
+    case field::y_displacement:
+    case field::z_displacement:
+    case field::mesh_velocity_x:
+    case field::mesh_velocity_y:
+    case field::mesh_velocity_z:
+      break;
+    default:
+      mooseError("Unhandled NekWriteEnum in checkFieldValidity!");
+  }
+}
+
+void
 checkFieldValidity(const field::NekFieldEnum & field)
 {
   // by placing this check here, as opposed to inside the NekFieldInterface,
@@ -1531,7 +1558,7 @@ double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
 {
   double (*f)(int, int);
 
-  // TODO: add some kind of check validity for these other fields
+  checkFieldValidity(field);
 
   switch (field)
   {

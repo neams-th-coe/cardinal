@@ -62,6 +62,7 @@ dfloat * getVgeo();
  * @param[in] field field to check
  */
 void checkFieldValidity(const field::NekFieldEnum & field);
+void checkFieldValidity(const field::NekWriteEnum & field);
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek

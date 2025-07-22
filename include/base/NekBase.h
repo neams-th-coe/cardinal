@@ -31,7 +31,7 @@ public:
 
 protected:
   /// The NekRSProblem required by all objects which inherit from NekBase.
-  NekRSProblem * _nek_problem;
+  const NekRSProblem * _nek_problem;
 
   /// Underlying NekRSMesh, if present
   const NekRSMesh * _nek_mesh;

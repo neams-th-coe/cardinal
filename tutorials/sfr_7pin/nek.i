@@ -3,7 +3,6 @@ interval = 100
 [Mesh]
   type = NekRSMesh
   boundary = '1 4'
-  volume = true
 []
 
 [Problem]
