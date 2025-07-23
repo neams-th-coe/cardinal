@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [avg_flux]

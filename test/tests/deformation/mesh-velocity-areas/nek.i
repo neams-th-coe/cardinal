@@ -10,6 +10,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pipe'
+  n_usrwrk_slots = 4
 
   [FieldTransfers]
     [disp]

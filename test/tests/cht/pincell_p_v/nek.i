@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

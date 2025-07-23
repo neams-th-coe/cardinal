@@ -2,7 +2,7 @@
   [flux]
     type = RunException
     input = nek.i
-    expect_err = "In order to send a boundary heat flux to NekRS, your case files must have a \[TEMPERATURE\] block. Note that you can set 'solver = none' in 'brick.par' if you don't want to solve for temperature."
+    expect_err = "In order to read or write NekRS's boundary heat flux, your case files must have a \[TEMPERATURE\] block. Note that you can set 'solver = none' in 'brick.par' if you don't want to solve for temperature."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for flux coupling."
     capabilities = 'nekrs'

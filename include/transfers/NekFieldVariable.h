@@ -28,9 +28,9 @@ public:
 
   NekFieldVariable(const InputParameters & parameters);
 
-  ~NekFieldVariable();
-
   virtual void readDataFromNek() override;
+
+  virtual void sendDataToNek() override;
 
 protected:
   /**
@@ -43,7 +43,4 @@ protected:
 
   /// NekRS field to read/write
   field::NekFieldEnum _field;
-
-  /// Scratch space to place external NekRS fields before writing into auxiliary variables
-  double * _external_data = nullptr;
 };

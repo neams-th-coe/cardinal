@@ -1,17 +1,13 @@
 void velocityDirichletConditions(bcData * bc)
 {
-  if (bc->id == 3)
-  {
-    bc->u = 0.0; // x-velocity
-    bc->v = 0.0; // y-velocity
-    bc->w = Vz;  // z-velocity
-  }
+  bc->u = 0.0; // x-velocity
+  bc->v = 0.0; // y-velocity
+  bc->w = Vz;  // z-velocity
 }
 
 void scalarDirichletConditions(bcData * bc)
 {
-  if (bc->id == 3)
-    bc->s = inlet_T;
+  bc->s = inlet_T;
 }
 
 void scalarNeumannConditions(bcData * bc)
@@ -20,6 +16,5 @@ void scalarNeumannConditions(bcData * bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  if (bc->id == 1 || bc->id == 2)
-    bc->flux = bc->usrwrk[bc->idM];
+  bc->flux = bc->usrwrk[bc->idM];
 }

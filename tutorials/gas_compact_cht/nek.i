@@ -10,6 +10,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'ranstube'
+  n_usrwrk_slots = 1
 
   [Dimensionalize]
     U = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}

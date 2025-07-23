@@ -49,13 +49,18 @@ void
 NekTransferBase::checkAllocatedUsrwrkSlot(const unsigned int & u) const
 {
   if (u >= _nek_problem.nUsrWrkSlots())
-    paramError("usrwrk_slot",
-               "Cannot write into usrwrk slot " + Moose::stringify(u) + " because only " +
-                   Moose::stringify(_nek_problem.nUsrWrkSlots()) +
-                   " have been allocated with 'n_usrwrk_slots'. Slots are zero-indexed, so the "
-                   "maximum acceptable value in 'usrwrk_slot' is " +
-                   Moose::stringify(_nek_problem.nUsrWrkSlots() - 1) +
-                   ". If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
+  {
+    std::string s = "Cannot write into usrwrk slot " + Moose::stringify(u) + " because only " +
+                    Moose::stringify(_nek_problem.nUsrWrkSlots()) +
+                    " have been allocated with 'n_usrwrk_slots'.";
+
+    // can only give the hint about max slot if any slots have been allocated, otherwise we overflow
+    // into max(int)
+    if (_nek_problem.nUsrWrkSlots() > 0)
+      s += " Slots are zero-indexed, so the maximum acceptable value in 'usrwrk_slot' is " +
+           Moose::stringify(_nek_problem.nUsrWrkSlots() - 1) + ".";
+    paramError("usrwrk_slot", s + " You must increase 'n_usrwrk_slots' in the [Problem] block.");
+  }
 }
 
 void

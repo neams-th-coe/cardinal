@@ -7,6 +7,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'onepebble2'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [flux]
