@@ -184,6 +184,11 @@ This mesh can now be exported for use in multiphysics copuling.
 Cubit> export mesh "/Users/pshriwise/krusty.e"
 ```
 
+A different OpenMC model is needed to apply the DAGMC model generated, this is
+already present in the tutorial directory and will be used by Cardinal as it is
+set to the default filename expected by OpenMC ("model.xml"). This hybrid
+CSG/CAD model can also be produced by running the `make_hybrid_model.py` script.
+
 ## Multiphysics Coupling
 
 We have built a hybrid [!ac](CAD) and [!ac](CSG) model of the KRUSTY reactor in OpenMC,
