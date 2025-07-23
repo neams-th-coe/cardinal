@@ -1,8 +1,8 @@
-#include "ClusteringUserObject.h"
+#include "ClusteringHeuristicUserObjectBase.h"
 #include "AuxiliarySystem.h"
 
 InputParameters
-ClusteringUserObject::validParams()
+ClusteringHeuristicUserObjectBase::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<AuxVariableName>(
@@ -11,7 +11,7 @@ ClusteringUserObject::validParams()
   return params;
 }
 
-ClusteringUserObject::ClusteringUserObject(const InputParameters & parameters)
+ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _mesh(_fe_problem.mesh().getMesh()),
     _metric_variable_name(getParam<AuxVariableName>("metric_variable_name")),
@@ -27,7 +27,7 @@ ClusteringUserObject::ClusteringUserObject(const InputParameters & parameters)
 
 
 Real
-ClusteringUserObject::getMetricData(const libMesh::Elem * elem) const
+ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) const
 {
 
   std::vector<libMesh::dof_id_type> dof_indices;
