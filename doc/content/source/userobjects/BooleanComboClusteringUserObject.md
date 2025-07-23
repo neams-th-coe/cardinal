@@ -2,7 +2,7 @@
 
 ## Description
 
-`BooleanComboClusteringUserObject` implements the over all mesh walking and clustering
+`BooleanComboClusteringUserObject` implements the overall mesh walking and clustering
 process. It takes an expression as a logical function of different heuristic
 based user objects. It evalutes the expression between two adjacent elements which shares at least 
 one common side. 

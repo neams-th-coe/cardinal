@@ -13,16 +13,15 @@ public:
   virtual void initialize() override {};
   virtual void finalize() override {};
 
+
+private:
   ///getter function for extra element integer
   int getExtraIntegerScore(libMesh::Elem * elem) const;
 
-private:
   /*function for converting the expression input to rpn
    * it follows the  shunting yard algorithm
    */
   void reversePolishNotation(const std::vector<std::string>& expression);
-
-protected:
 
   /// method for evaluting if element should be clusterd or not
   bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem);

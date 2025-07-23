@@ -5,12 +5,12 @@
 class AuxiliarySystem;
 
 /* Base class for clustering in cardinal. */
-class ClusteringUserObject : public GeneralUserObject
+class ClusteringHeuristicUserObjectBase : public GeneralUserObject
 {
 
 public:
   static InputParameters validParams();
-  ClusteringUserObject(const InputParameters & parameters);
+  ClusteringHeuristicUserObjectBase(const InputParameters & parameters);
 
   virtual void execute() override {};
   virtual void initialize() override {};
@@ -24,7 +24,7 @@ protected:
    * A purely virtual function which must be overrided in derived classes.
    * It applies the clustering logic for two elements in the derived class
    */
-  virtual bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
+  virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
 
   ///Mesh reference
   libMesh::MeshBase & _mesh;
