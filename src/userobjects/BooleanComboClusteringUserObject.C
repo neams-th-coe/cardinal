@@ -125,7 +125,7 @@ BooleanComboClusteringUserObject::resetExtraInteger()
 void
 BooleanComboClusteringUserObject::execute()
 {
-  applyNoClusteringInitialCondition();
+  resetExtraInteger();
   findCluster();
 }
 
