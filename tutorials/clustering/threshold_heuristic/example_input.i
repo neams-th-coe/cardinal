@@ -57,6 +57,7 @@ Dim = 2
     type = ThresholdHeuristicsUserObject
     metric_variable_name = 'metric_var'
     threshold = 1.4
+    cluster_if_above_threshold = false
   []
 
   [boolean_combo]
