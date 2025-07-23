@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Couple NekRS with MOOSE for [!ac](CHT) in a 7-pin bundle
-- Use either the "flux-temperature" or "flux-flux" coupling modes
+- Use different [!ac](CHT) boundary conditions
 - Control how flux normalization is performed in NekRS (by either lumping all sidesets together, or preserving for each sideset individually)
 - Reduce the amount of copy to/from commands between host and device for NekRS
   (an advanced user feature)
@@ -14,7 +14,7 @@ To access this tutorial,
 cd cardinal/tutorials/sfr_7pin
 ```
 
-This tutorial also requires you to download some mesh files from Box.
+This tutorial also requires you to download a mesh file from Box.
 Please download the files from the `sfr_7pin` folder
 [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure in
@@ -43,18 +43,12 @@ Relevant dimensions are summarized in
 ### Heat Conduction Model
 
 The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
-The outer surface of the duct and the tops and bottoms of the
-pins and ducts are insulated. In this tutorial, we will demonstrate two different
-coupling options with NekRS -- for NekRS to send a convective heat flux to the solid
-(the "flux-flux" coupling option) or for NekRS to send a wall temperature to
-the solid (the "flux-temperature" coupling option). We will first describe the
-"flux-temperature" option, and only show the input file modifications needed to
-achieve the "flux-flux" coupling towards the end in [#fluxflux].
+The tops and bottoms of the pins and ducts are insulated. The outer boundary condition on the duct is a
+convective cooling boundary condition.
 
 The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
 thermal contact model is applied based on the sum of thermal conduction and thermal radiation
-(across a transparent medium).
-For a paired set of boundaries,
+(across a transparent medium). For a paired set of boundaries,
 each quadrature point on boundary $A$ is paired with the nearest quadrature point on boundary B.
 Then, the sum of the radiation and conduction heat fluxes imposed between pairs of
 quadrature points is
@@ -78,19 +72,29 @@ where $r_2>r_1$ are the outer and inner radii
 of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
 thermal conductivity of the annulus material.
 
-Both the solid temperature and the surface temperature boundary condition (that will
-be provided by NekRS) are set to an initial condition of 500 K.
+In this tutorial, we will demonstrate two different [!ac](CHT)
+coupling options for the boundary condition on the fuel pin surfaces and the duct inner boundary (the
+boundaries in contact with a modeled fluid):
+
+- "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to the solid is wall temperature
+- "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to the solid is wall convective flux
+
+The "Cond. Flux - Temperature" option will be described first, and then sections towards the end
+will describe the modifications necessary to use alternate [!ac](CHT) boundary conditions.
 
 ### NekRS Model
 
 NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md).
 The inlet velocity
 is selected such that the mass flowrate is 0.1 kg/s, which is low enough that the flow is
-laminar and a turbulence model is not required for this example.
+laminar and a turbulence model is not required.
 At the outlet, a zero (gage) pressure is imposed and an outflow condition is applied for
 the energy conservation equation. On all solid-fluid interfaces, the velocity is set
-to the no-slip condition and a heat flux is imposed in the energy conservation equation
-(computed by MOOSE).
+to the no-slip condition. The boundary conditions on the pin outer surface and the
+duct inner surface depends on the [!ac](CHT) boundary conditions:
+
+- "Cond. Flux - Temperature" in [#condtemp]: boundary condition applied to NekRs is wall conductive flux
+- "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to NekRS is wall conductive flux
 
 The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
@@ -136,8 +140,24 @@ the "do-nothing" boundary condition in the finite element method is a zero-flux 
 
 ### Fluid Mesh
 
-The complete fluid mesh is shown in [fluid_mesh]; this is first created using meshing
-software, and then converted into a NekRS mesh (`.re2` format).
+The fluid mesh is shown in [fluid_mesh]. You can [download this mesh from Box](https://anl.app.box.com/folder/141527707499), or you can generate it yourself using the [meshing scripts](https://cardinal.cels.anl.gov/tutorials/meshing.html) in Cardinal.
+
+To generate the mesh yourself, navigate to the `cardinal/utils/meshing/assembly` directory.
+The `mesh_settings.py` file contains a set of configurable parameters to generate this mesh.
+The settings used for this tutorial are shown below, which will generate a 7-pin mesh in
+dimensional units and with geometry choices consistent with [table1].
+
+!listing /tutorials/sfr_7pin/mesh_settings.py language=python
+
+You can then generate the mesh in exodus format (`fluid.exo`) and then convert it into
+NekRS's `.re2` format by running
+
+```
+python mesh.py -g
+~/Nek5000/bin/exo2nek
+```
+
+The complete fluid mesh is shown in [fluid_mesh].
 The boundary names are illustrated
 by showing the highlighted surface to which each corresponds.
 Note that the meshes in [solid_mesh] and [fluid_mesh]
@@ -150,10 +170,10 @@ using MOOSE's [Transfers](Transfers/index.md) handle any differences in the mesh
   caption=Mesh for the fluid portions of the 7-pin bare [!ac](SFR) bundle
   style=halign:center
 
-## Flux-Temperature CHT Coupling
-  id=fluxtemperature
+## Cond. Flux-Temperature CHT Coupling
+  id=condtemp
 
-In this section, NekRS and MOOSE are coupled for [!ac](CHT) using the "flux-temperature" coupling mode.
+In this section, NekRS and MOOSE are coupled for [!ac](CHT) using the "Cond. Flux - Temperature" coupling mode.
 
 ### Solid Input Files
 
@@ -197,23 +217,22 @@ and the duct inner surface), we use a [DiffusionFluxAux](DiffusionFluxAux.md).
 !listing tutorials/sfr_7pin/solid.i
   block=AuxKernels
 
-The [HeatConductionMaterial](HeatConductionMaterial.md)
-is then used to specify functional-forms for the thermal conductivity
-of the pellet, clad, and duct. For the [HeatConductionMaterial](HeatConductionMaterial.md), you can use `t` in [ParsedFunctions](MooseParsedFunction.md)
-to represent temperature.
+The [GenericConstantMaterial](GenericConstantMaterial.md)
+is then used to specify constant values for the thermal conductivity
+of the pellet, clad, and duct.
 
 !listing tutorials/sfr_7pin/solid.i
-  start=Functions
-  end=Postprocessors
+  block=Materials
 
 Next, we define boundary conditions for the solid. Between the pellet surface
 and the clad inner surface, we impose a thermal contact model as described in
 [eq:1]. On fluid-solid interfaces, the solid temperature is set equal to
-the surface temperature computed by NekRS.
+the surface temperature computed by NekRS. The convective cooling boundary condition
+is applied to the duct outer surface.
 
 !listing tutorials/sfr_7pin/solid.i
   start=ThermalContact
-  end=Functions
+  end=Materials
 
 Next, the [MultiApps](MultiApps/index.md) and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal
@@ -248,7 +267,7 @@ of interest.
 To understand the purpose of this (optional) transfer, we need to describe in more
 detail the data transfers that occur when sub-cycling. Please note that this is an
 advanced feature added for very large runs to squeeze out as much performance as possible -
-understanding this feature is not necessary for beginner users.
+this feature is not necessary for beginner users.
 
 Consider the case where the main application has a time step of 1,
 but NekRS has a time step of 0.2. After the solution of the main application, the heat flux
@@ -287,7 +306,7 @@ Finally, we specify an executioner and an exodus output for the solid solution.
 The fluid phase is solved with NekRS, and is specified
 in the `nek.i` file. For [!ac](CHT) coupling, first we construct a mirror of NekRS's
 mesh on the boundaries of interest - the IDs associated with the fluid-solid interfaces
-(as known to NekRS) are boundaries 1 and 2.
+(as known to NekRS) are boundaries 1 and 4.
 
 !listing tutorials/sfr_7pin/nek.i
   block=Mesh
@@ -315,7 +334,7 @@ The `transfer_in` postprocessor simply receives
 the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
 in the solid input file. We also add two [FieldTransfers](AddFieldTransferAction.md).
-The [NekBoundaryFlux](NekBoundaryFlux.md) willtread from an auxiliary variable named `heat_flux` (automatically created by Cardinal) and normalize
+The [NekBoundaryFlux](NekBoundaryFlux.md) will read from an auxiliary variable named `heat_flux` (automatically created by Cardinal) and normalize
 according to a postprocessor named `heat_flux_integral` (also automatically created by Cardinal).
 The [NekFieldVariable](NekFieldVariable.md) will then read from the field
 variable temperature internal to NekRS and write it into an auxiliary variable
@@ -349,11 +368,11 @@ Begin with the `sfr_7pin.par` file.
 
 !listing /tutorials/sfr_7pin/sfr_7pin.par
 
-Boundaries 1 and 2 will receive heat flux from MOOSE, so these two boundaries are set to
+Boundaries 1 and 4 will receive heat flux from MOOSE, so these two boundaries are set to
 flux boundaries, or `f` for the `[TEMPERATURE]` block. Other settings are largely the same.
 
 The assignment of boundary condition values is performed in the
-`sfr_7pin.oudf` file, shown below. Note that for boundaries 1 and 2, where we want to receive
+`sfr_7pin.oudf` file, shown below. Note that for boundaries 1 and 4, where we want to receive
 heat flux from MOOSE, we set the value of the flux equal to `bc->usrwrk[bc->idM]`, or
 the scratch array that is written by [NekRSProblem](NekRSProblem.md).
 
@@ -383,23 +402,16 @@ heat flux and extracting temperatures from NekRS.
 
 After converting the NekRS output files to a format viewable in Paraview
 (see instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files)),
-the simulation results can be displayed. The fluid temperature is shown in [temperature]
-along with the mesh lines of the solid phase, while the solid temperature is
-shown in [temperature2] along with the lines connecting
-[!ac](GLL) points for the fluid phase. The
-temperature color scale is the same in both figures.
+the simulation results can be displayed. [temperature2] shows the fluid temperature
+along with the solid mesh; and the solid temperature along with the
+fluid mesh. The temperature color scale is the same in both figures.
 
 !media sfr_temperature1.png
-  id=temperature
-  caption=Fluid temperature computed by NekRS for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with solid mesh lines shown in blue.
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
-
-!media sfr_temperature2.png
   id=temperature2
-  caption=Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
+  caption=Left: Fluid temperature computed by NekRS for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with solid mesh lines shown in blue. Right: Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
-## Preserving Flux on Individual Sidesets
+### Preserving Flux on Individual Sidesets
 
 By default, [NekBoundaryFlux](NekBoundaryFlux.md)
 will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
@@ -439,12 +451,18 @@ To run the model,
 mpirun -np 4 cardinal-opt -i solid_vpp.i
 ```
 
-The physics predictions are nearly identical to those displayed earlier.
+The physics predictions are nearly identical to those displayed earlier. You will note that when running, Cardinal will print out the heat flux being applied to each individual sideset, instead of lumping them together.
 
-## Flux-Flux Coupling Option
+```
+nek0: [boundary 1]: Normalizing NekRS flux of 80710.2 to the conserved MOOSE value of 80336.1
+nek0: [boundary 4]: Normalizing NekRS flux of 1995.4 to the conserved MOOSE value of 2006.27
+copying solution to nek
+```
+
+## Cond. Flux-Conv. Flux Coupling Option
   id=fluxflux
 
-In this section, we modify the flux-temperature coupling from [#fluxtemperature]
+In this section, we modify the [!ac](CHT) boundary conditions
 to instead compute a convective heat flux with NekRS to apply to MOOSE as a Robin-type
 boundary condition,
 
@@ -455,8 +473,7 @@ q''=h(T_w-T_\infty)
 
 where $q''$ is the heat flux that will be imposed on the solid boundaries, $h$
 is the convective heat transfer coefficient, $T_w$ is NekRS's wall temperature,
-and $T_\infty$ is NekRS's bulk temperature. To use this flux-flux coupling option,
-we don't need any changes to Cardinal's source code -- instead, we simply need to
+and $T_\infty$ is NekRS's bulk temperature. To use this "Cond. Flux - Conv. Flux" coupling option, we simply need to
 add user objects to the fluid input files to comput $h$ and $T_\infty$.
 A [previous tutorial](cht5.md) showed how to compute a heat transfer coefficient
 with NekRS; we will use this same foundation now to compute $h$ and then apply this
@@ -477,7 +494,13 @@ We will add a [HexagonalSubchannelBin](HexagonalSubchannelBin.md) to define
 the volumetric regions of space in the $x-y$ plane and a
 [LayeredBin](LayeredBin.md) to define the volumetric regions of space in the
 axial direction. Together, these binnings are combined to chunk 3-D space.
-Then, we simply add additional user objects to compute the necessary terms
+
+!alert note
+There are an infinite number of ways that you can "chunk" space to compute
+$h$, $T_\infty$, and $T_\text{wall}$. Our choice in this tutorial simply uses
+a conventional subchannel-type discretization.
+
+Then, we add additional user objects to compute the necessary terms
 in Eq. \eqref{eq:hf}:
 
 - [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average heat flux on the pin surfaces (one unique calculation for each axial layer and for each subchannel). The heat flux from MOOSE is written into the zeroth slot in the `nrs->usrwrk` array, which we indicate as the field we want to average by setting `field = usrwrk00`.
@@ -491,6 +514,9 @@ Then, we use these user objects to compute a heat transfer coefficient using
 [HeatTransferCoefficientAux](HeatTransferCoefficientAux.md). This heat transfer
 coefficient will get passed to the solid input file, along the the bulk
 temperature, for use in the convective flux boundary condition.
+
+Because the boundary condition applied to NekRS is still a conductive heat flux
+as in [#condtemp], the case files do not need to be modified.
 
 ### Solid Input Files
 
@@ -522,11 +548,12 @@ mpiexec -np 4 cardinal-opt -i solid_fluxflux.i
 
 The results are very similar (though not identical) to the flux-temperature coupling
 case, because we have to chunk up space in order to compute a heat transfer
-coefficient. This discretization can be faintly seen in the flux-flux results
+coefficient. This discretization can be faintly seen in [flux_temp]
 (though can be diminished by simply using a finer spatial chunking for the
 heat transfer coefficient).
 
 !media flux_temp.png
   id=flux_temp
-  caption=Solid temperature predicted when solving conjugate heat transfer with NekRS using (i) flux-temperature coupling from the earlier part of this tutorial or (ii) flux-flux coupling.
+  caption=Solid temperature predicted when solving conjugate heat transfer with NekRS using two different [!ac](CHT) boundary conditions.
   style=halign:center
+

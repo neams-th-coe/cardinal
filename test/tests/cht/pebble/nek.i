@@ -11,6 +11,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'onepebble2'
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

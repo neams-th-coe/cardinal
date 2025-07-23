@@ -27,6 +27,7 @@ dT = ${fparse power / mdot / Cp}
 [Problem]
   type = NekRSProblem
   casename = 'fluid'
+  n_usrwrk_slots = 1
 
   [Dimensionalize]
     L = ${hydraulic_diameter}

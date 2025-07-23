@@ -9,6 +9,7 @@ fluid_solid_interface = '1 2 7'
 [Problem]
   type = NekRSProblem
   casename = 'fluid'
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

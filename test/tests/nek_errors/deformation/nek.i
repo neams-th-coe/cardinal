@@ -8,6 +8,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'elast_nomv'
+  n_usrwrk_slots = 4
 
   [FieldTransfers]
     [disp]

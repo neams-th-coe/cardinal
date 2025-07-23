@@ -2,7 +2,7 @@
   [invalid_slot]
     type = RunException
     input = nek.i
-    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 7"
+    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 0"
     requirement = "The system shall error if the requested usrwrk slot to integrate exceeds the number allocated"
     capabilities = 'nekrs'
   []

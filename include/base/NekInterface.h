@@ -62,6 +62,7 @@ dfloat * getVgeo();
  * @param[in] field field to check
  */
 void checkFieldValidity(const field::NekFieldEnum & field);
+void checkFieldValidity(const field::NekWriteEnum & field);
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -690,6 +691,9 @@ struct usrwrkIndices
 
   /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z = -1;
+
+  /// temperature (for reverse-direction conjugate heat transfer coupling)
+  int temperature = -1;
 };
 
 /**
@@ -723,160 +727,169 @@ struct characteristicScales
  * @param[in] field field to return a pointer to
  * @return function pointer to method that returns said field as a function of GLL index
  */
-double (*solutionPointer(const field::NekFieldEnum & field))(int);
+double (*solutionPointer(const field::NekFieldEnum & field))(int, int);
+double (*solutionPointer(const field::NekWriteEnum & field))(int, int);
 
 /**
  * Write various solution functions based on enumeration
  * @param[in] field field to write
  */
-void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
+void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat);
+void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat);
 
 /**
  * Get the scalar01 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar01 value at index
  */
-double scalar01(const int id);
+double get_scalar01(const int id, const int surf_offset);
 
 /**
  * Get the scalar02 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar02 value at index
  */
-double scalar02(const int id);
+double get_scalar02(const int id, const int surf_offset);
 
 /**
  * Get the scalar03 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar03 value at index
  */
-double scalar03(const int id);
+double get_scalar03(const int id, const int surf_offset);
 
 /**
  * Get the usrwrk zeroth slice at given GLL index
  * @param[in] id GLL index
  * @return zeroth slice of usrwrk value at index
  */
-double usrwrk00(const int id);
+double get_usrwrk00(const int id, const int surf_offset);
 
 /**
  * Get the usrwrk first slice at given GLL index
  * @param[in] id GLL index
  * @return first slice of usrwrk value at index
  */
-double usrwrk01(const int id);
+double get_usrwrk01(const int id, const int surf_offset);
 
 /**
  * Get the usrwrk second slice at given GLL index
  * @param[in] id GLL index
  * @return second slice of usrwrk value at index
  */
-double usrwrk02(const int id);
+double get_usrwrk02(const int id, const int surf_offset);
 
 /**
  * Get the temperature solution at given GLL index
  * @param[in] id GLL index
  * @return temperature value at index
  */
-double temperature(const int id);
+double get_temperature(const int id, const int surf_offset);
 
 /**
  * Get the pressure solution at given GLL index
  * @param[in] id GLL index
  * @return pressure value at index
  */
-double pressure(const int id);
+double get_pressure(const int id, const int surf_offset);
 
 /**
  * Return unity, for cases where the integrand or operator we are generalizing acts on 1
  * @param[in] id GLL index
  * @return unity
  */
-double unity(const int id);
+double get_unity(const int id, const int surf_offset);
 
 /**
  * Get the x-velocity at given GLL index
  * @param[in] id GLL index
  * @return x-velocity at index
  */
-double velocity_x(const int id);
+double get_velocity_x(const int id, const int surf_offset);
 
 /**
  * Get the y-velocity at given GLL index
  * @param[in] id GLL index
  * @return y-velocity at index
  */
-double velocity_y(const int id);
+double get_velocity_y(const int id, const int surf_offset);
 
 /**
  * Get the z-velocity at given GLL index
  * @param[in] id GLL index
  * @return z-velocity at index
  */
-double velocity_z(const int id);
+double get_velocity_z(const int id, const int surf_offset);
 
 /**
  * Get the magnitude of the velocity solution at given GLL index
  * @param[in] id GLL index
  * @return velocity magnitude at index
  */
-double velocity(const int id);
+double get_velocity(const int id, const int surf_offset);
 
 /**
  * Get the x-velocity squared at given GLL index
  * @param[in] id GLL index
  * @return square of x-velocity at index
  */
-double velocity_x_squared(const int id);
+double get_velocity_x_squared(const int id, const int surf_offset);
 
 /**
  * Get the y-velocity squared at given GLL index
  * @param[in] id GLL index
  * @return square of y-velocity at index
  */
-double velocity_y_squared(const int id);
+double get_velocity_y_squared(const int id, const int surf_offset);
 
 /**
  * Get the z-velocity squared at given GLL index
  * @param[in] id GLL index
  * @return square of z-velocity at index
  */
-double velocity_z_squared(const int id);
+double get_velocity_z_squared(const int id, const int surf_offset);
+
+/**
+ * Write a value into the user scratch space that holds the temperature
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void set_temperature(const int id, const dfloat value);
 
 /**
  * Write a value into the user scratch space that holds the flux
  * @param[in] id index
  * @param[in] value value to write
  */
-void flux(const int id, const dfloat value);
+void set_flux(const int id, const dfloat value);
 
 /**
  * Write a value into the user scratch space that holds the volumetric heat source
  * @param[in] id index
  * @param[in] value value to write
  */
-void heat_source(const int id, const dfloat value);
+void set_heat_source(const int id, const dfloat value);
 
 /**
  * Write a value into the x-displacement
  * @param[in] id index
  * @param[in] value value to write
  */
-void x_displacement(const int id, const dfloat value);
+void set_x_displacement(const int id, const dfloat value);
 
 /**
  * Write a value into the y-displacement
  * @param[in] id index
  * @param[in] value value to write
  */
-void y_displacement(const int id, const dfloat value);
+void set_y_displacement(const int id, const dfloat value);
 
 /**
  * Write a value into the z-displacement
  * @param[in] id index
  * @param[in] value value to write
  */
-void z_displacement(const int id, const dfloat value);
+void set_z_displacement(const int id, const dfloat value);
 
 /**
  * Initialize the characteristic scales for a nondimesional solution

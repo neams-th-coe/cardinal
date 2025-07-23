@@ -8,6 +8,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'user'
+  n_usrwrk_slots = 3
 
   [FieldTransfers]
     [disp]

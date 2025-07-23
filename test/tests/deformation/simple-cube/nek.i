@@ -10,6 +10,7 @@
   type = NekRSProblem
   casename = 'nekbox'
   synchronization_interval = parent_app
+  n_usrwrk_slots = 4
 
   [FieldTransfers]
     [heat_source]

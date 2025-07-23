@@ -8,11 +8,6 @@
   type = NekRSProblem
   casename = 'turbPipe'
 
-  # normally, Cardinal will allocate the usrwrk space for you; but in this
-  # standalone case, we decided to allocate nrs->usrwrk ourselves already in the
-  # udf file
-  n_usrwrk_slots = 0
-
   [FieldTransfers]
     [pressure]
       type = NekFieldVariable

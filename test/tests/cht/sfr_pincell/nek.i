@@ -2,9 +2,6 @@
   type = NekRSProblem
   casename = 'sfr_pin'
   synchronization_interval = parent_app
-
-  # we only technically need one scratch space slot for this problem,
-  # so we can skip allocating extra
   n_usrwrk_slots = 1
 
   [FieldTransfers]

@@ -6,6 +6,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'channel'
+  n_usrwrk_slots = 2
 
   [FieldTransfers]
     [flux]

@@ -1,0 +1,10 @@
+[Tests]
+  [reverse_cht]
+    type = CSVDiff
+    input = main.i
+    csvdiff = main_out.csv
+    min_parallel = 6
+    requirement = "The system shall allow MOOSE and NekRS to be coupled via conjugate heat transfer, where MOOSE sends NekRS a wall temperature and NekRS sends MOOSE a wall heat flux. This is tested by building a two-region slab, where the left half is solved by MOOSE and the right-half is solved by NekRS. The analytic solution for temperature is compared against the coupled CHT solution."
+    capabilities = 'nekrs'
+  []
+[]

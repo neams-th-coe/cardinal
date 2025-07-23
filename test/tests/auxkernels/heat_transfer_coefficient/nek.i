@@ -3,6 +3,7 @@
   casename = 'sfr_pin'
   synchronization_interval = constant
   constant_interval = 100
+  n_usrwrk_slots = 1
 
   [FieldTransfers]
     [avg_flux]

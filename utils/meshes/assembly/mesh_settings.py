@@ -1,3 +1,4 @@
+nondimensional = True         # whether to generate the mesh in non-dimensional form
 pin_diameter = 9.54236e-3     # pin diameter
 pin_pitch = 11.2769e-3        # pin pitch
 flat_to_flat = 0.035          # duct inner flat-to-flat

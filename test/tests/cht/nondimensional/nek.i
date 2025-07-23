@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
+  n_usrwrk_slots = 1
 
   # This input is run in nondimensional form to verify that all the postprocessors
   # and data transfers in/out of nekRS are properly dimensionalized.
