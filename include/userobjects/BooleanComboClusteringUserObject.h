@@ -1,7 +1,9 @@
 #pragma once
 
-#include "ClusteringHeuristicUserObjectBase.h"
+#include "GeneralUserObject.h"
 #include <unordered_map>
+
+class ClusteringHeuristicUserObjectBase;
 
 class BooleanComboClusteringUserObject : public GeneralUserObject
 {

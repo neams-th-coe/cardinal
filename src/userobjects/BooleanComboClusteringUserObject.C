@@ -1,4 +1,5 @@
 #include "BooleanComboClusteringUserObject.h"
+#include "ClusteringHeuristicUserObjectBase.h"
 
 registerMooseObject("CardinalApp", BooleanComboClusteringUserObject);
 
