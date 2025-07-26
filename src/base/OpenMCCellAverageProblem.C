@@ -648,7 +648,13 @@ OpenMCCellAverageProblem::initialSetup()
         "HDF5 files because there is no guarantee that the geometry (which is adaptively changing) matches "
         "that used to write the HDF5 file.");
 
-    _skinner->setGraveyard(true);
+    // If the DAGMC universe is the root universe the geometry contains no CSG cells. We need
+    // to force the skinner to add a graveyard as the problem will contain no boundary contitions
+    // after skinning is performed. If there are CSG cells in the geometry, this is not the case
+    // as the DAGMC universe is embedded in a cell (which applies boundary conditions).
+    if (_dagmc_root_universe)
+      _skinner->setGraveyard(true);
+
     _skinner->setScaling(_scaling);
     _skinner->setVerbosity(_verbose);
     _skinner->makeDependentOnExternalAction();
