@@ -3,9 +3,9 @@
   <cell id="24" fill="2" region="20 -21 22 -23 24 -25" universe="1" />
   <surface boundary="reflective" coeffs="-12.5" id="20" type="x-plane" />
   <surface boundary="reflective" coeffs="87.5" id="21" type="x-plane" />
-  <surface boundary="reflective" coeffs="-12.5" id="22" type="y-plane" />
-  <surface boundary="reflective" coeffs="37.5" id="23" type="y-plane" />
-  <surface boundary="reflective" coeffs="-12.5" id="24" type="z-plane" />
-  <surface boundary="reflective" coeffs="12.5" id="25" type="z-plane" />
+  <surface boundary="vacuum" coeffs="-12.5" id="22" type="y-plane" />
+  <surface boundary="vacuum" coeffs="37.5" id="23" type="y-plane" />
+  <surface boundary="vacuum" coeffs="-12.5" id="24" type="z-plane" />
+  <surface boundary="vacuum" coeffs="12.5" id="25" type="z-plane" />
   <dagmc_universe filename="../mesh_tallies/slab.h5m" id="2"/>
 </geometry>
