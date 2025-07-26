@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1176 #1177'
+  design = 'MOABSkinner.md OpenMCCellAverageProblem.md'
+
   [allows_csg_with_skinner]
     type = CSVDiff
     input = openmc.i
@@ -6,6 +9,5 @@
     requirement = "The system shall allow for the use of CSG and DAGMC geometry when using the MOABSkinner."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    skip = 'Non-deterministic!'
   []
 []
