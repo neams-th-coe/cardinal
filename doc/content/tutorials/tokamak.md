@@ -14,7 +14,7 @@ cd cardinal/tutorials/tokamak
 
 This tutorial also requires you to download
 some mesh files from Box. Please download the files
-from the `tokamak` folder [here](https://anl.app.box.com/folder/276545912801)
+from the `tokamak` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within `tutorials/tokamak`.
 
 !alert! note title=DAGMC build

@@ -140,7 +140,7 @@ the "do-nothing" boundary condition in the finite element method is a zero-flux 
 
 ### Fluid Mesh
 
-The fluid mesh is shown in [fluid_mesh]. You can [download this mesh from Box](https://anl.app.box.com/folder/141527707499), or you can generate it yourself using the [meshing scripts](https://cardinal.cels.anl.gov/tutorials/meshing.html) in Cardinal.
+The fluid mesh is shown in [fluid_mesh]. You can download this mesh from `sfr_7pin` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89), or you can generate it yourself using the [meshing scripts](https://cardinal.cels.anl.gov/tutorials/meshing.html) in Cardinal.
 
 To generate the mesh yourself, navigate to the `cardinal/utils/meshing/assembly` directory.
 The `mesh_settings.py` file contains a set of configurable parameters to generate this mesh.
