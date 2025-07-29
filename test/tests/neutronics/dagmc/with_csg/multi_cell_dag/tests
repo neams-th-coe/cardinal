@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1177'
+  design = 'MOABSkinner.md OpenMCCellAverageProblem.md'
+
   [multi_dag_uni_cells]
     type = RunException
     input = openmc.i

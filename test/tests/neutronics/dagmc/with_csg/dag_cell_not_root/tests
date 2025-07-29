@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1177'
+  design = 'MOABSkinner.md OpenMCCellAverageProblem.md'
+
   [dag_cell_not_root]
     type = RunException
     input = openmc.i
