@@ -59,7 +59,7 @@
     temperature_max = 1000.0
     n_temperature_bins = 1
     temperature = temp
-    build_graveyard = true
+    build_graveyard = false
   []
 []
 
