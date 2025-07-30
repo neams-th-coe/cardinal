@@ -50,7 +50,6 @@
     to_multi_app = nek
     variable = avg_flux
     from_boundaries = '1'
-    search_value_conflicts = false
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer

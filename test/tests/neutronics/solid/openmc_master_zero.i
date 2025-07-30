@@ -144,6 +144,5 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
     to_multi_app = openmc
     source_variable = temp
     variable = temp
-    search_value_conflicts = false
   []
 []

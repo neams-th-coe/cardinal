@@ -109,21 +109,18 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     to_multi_app = subchannel
     source_variable = uo_x
     variable = uo_x
-    search_value_conflicts = false
   []
   [uoy_to_sub]
     type = MultiAppGeneralFieldNearestLocationTransfer
     to_multi_app = subchannel
     source_variable = uo_y
     variable = uo_y
-    search_value_conflicts = false
   []
   [uoz_to_sub]
     type = MultiAppGeneralFieldNearestLocationTransfer
     to_multi_app = subchannel
     source_variable = uo_z
     variable = uo_z
-    search_value_conflicts = false
   []
 []
 

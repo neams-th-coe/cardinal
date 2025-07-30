@@ -70,7 +70,6 @@
     source_variable = flux
     from_multi_app = nek
     variable = nek_flux
-    search_value_conflicts = false
     from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
   []
@@ -79,7 +78,6 @@
     source_variable = temperature
     to_multi_app = nek
     variable = temperature
-    search_value_conflicts = false
   []
 []
 

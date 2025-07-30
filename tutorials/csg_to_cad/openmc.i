@@ -54,14 +54,12 @@ power = 3000
     variable = power
     from_postprocessors_to_be_preserved = tally_integral
     to_postprocessors_to_be_preserved = tally_integral
-    search_value_conflicts = false
   []
   [temp_to_openmc]
     type = MultiAppGeneralFieldShapeEvaluationTransfer
     from_multi_app = conduction
     variable = temp
     source_variable = T
-    search_value_conflicts = false
   []
 []
 

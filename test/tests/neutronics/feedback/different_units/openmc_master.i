@@ -99,14 +99,12 @@
     to_multi_app = openmc
     variable = temp
     source_variable = temp
-    search_value_conflicts = false
   []
   [density_to_openmc]
     type = MultiAppGeneralFieldNearestLocationTransfer
     to_multi_app = openmc
     variable = density
     source_variable = density
-    search_value_conflicts = false
   []
 []
 
