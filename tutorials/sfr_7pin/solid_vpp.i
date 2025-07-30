@@ -8,10 +8,6 @@ pin_power = 10e3                              # bundle power (kW)
 
 !include mesh.i
 
-[GlobalParams]
-  search_value_conflicts = false
-[]
-
 [Variables]
   [T]
     initial_condition = 500.0

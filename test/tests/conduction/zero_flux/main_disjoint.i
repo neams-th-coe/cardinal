@@ -44,7 +44,6 @@
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux
-    search_value_conflicts = false
   []
   [flux_integral]
     type = MultiAppReporterTransfer

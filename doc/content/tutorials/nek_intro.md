@@ -196,6 +196,7 @@ For temperature/passive scalars, some common boundary condition strings are show
 | `t` | Dirichlet value | `scalarDirichletConditions` |
 | `f` | Neumann flux | `scalarNeumannConditions` |
 | `I` | insulated (zero flux) | --- |
+| `o` | Outflow thermal energy | --- |
 
 When you populate `boundaryTypeMap` in the input file, you simply list the
 character string for your desired boundary condition in the same order as the sidesets

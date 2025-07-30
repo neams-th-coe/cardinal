@@ -271,8 +271,7 @@ Next, we specify how to pass data between OpenMC and the finite element heat
 conduction solver in the `fuel.i` input file. We will run the heat conduction solver
 as a sub-application. On every time step, we will pass temperature (into OpenMC)
 and the heating tally (out of OpenMC) as listed in the transfers block. The
-other details listed in this section are optimizations for faster transfers
-(`search_value_conflicts = false`) and details on the source/receiver variable
+other details listed in this section are details on the source/receiver variable
 names in each file and which postprocessors to use to ensure power conservation.
 
 !listing /tutorials/csg_to_cad/openmc.i
