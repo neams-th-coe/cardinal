@@ -119,14 +119,12 @@
     source_variable = disp_y
     variable = disp_y
     to_multi_app = sub
-    search_value_conflicts = false
   []
   [dispz]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = disp_z
     variable = disp_z
     to_multi_app = sub
-    search_value_conflicts = false
   []
 []
 

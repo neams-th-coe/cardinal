@@ -107,7 +107,6 @@ c = 450
     from_multi_app = sub
     variable = sub_temp
     target_boundary = 'left_pin right_pin'
-    search_value_conflicts = false
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
@@ -117,7 +116,6 @@ c = 450
     from_postprocessors_to_be_preserved = 'flux_pin_left flux_pin_right'
     to_postprocessors_to_be_preserved = flux_integral
     target_boundary = 'surface'
-    search_value_conflicts = false
   []
 []
 

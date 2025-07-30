@@ -129,14 +129,12 @@
     source_variable = heating_local
     from_postprocessors_to_be_preserved = heating
     to_postprocessors_to_be_preserved = source_integral
-    search_value_conflicts = false
   []
   [temp_to_openmc]
     type = MultiAppGeneralFieldShapeEvaluationTransfer
     to_multi_app = openmc
     variable = temp
     source_variable = temp
-    search_value_conflicts = false
   []
 []
 
