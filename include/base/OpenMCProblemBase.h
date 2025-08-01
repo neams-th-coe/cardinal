@@ -45,6 +45,7 @@
 class OpenMCNuclideDensities;
 class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
+class CriticalitySearchBase;
 
 /**
  * Base class for all MOOSE wrappings of OpenMC
@@ -57,6 +58,8 @@ public:
   static InputParameters validParams();
 
   virtual ~OpenMCProblemBase() override;
+
+  virtual void initialSetup() override;
 
   /**
    * Get the subdomain name for a given ID. If not named, we return the ID
@@ -561,4 +564,8 @@ protected:
 
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID{-1};
+
+  CriticalitySearchBase * _criticality_search;
+
+  //std::function<Real(Real)> criticalitySearch;
 };

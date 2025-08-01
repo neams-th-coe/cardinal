@@ -219,6 +219,12 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
 
+  // Add the [Problem/CriticalitySearch] block
+  registerSyntax("AddCriticalitySearchAction", "Problem/CriticalitySearch");
+  registerMooseObjectTask("add_criticality_search", CriticalitySearch, false);
+  registerTask("add_criticality_search", false /* is required */);
+  addTaskDependency("add_criticality_search", "init_mesh");
+
   // Register a modify outputs task to enable variable hiding in the MGXS action.
   registerTask("modify_outputs", true /* is required */);
   addTaskDependency("modify_outputs", "common_output");
