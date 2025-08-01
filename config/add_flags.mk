@@ -12,8 +12,10 @@ ifeq ($(ENABLE_DAGMC), yes)
   libmesh_CXXFLAGS    += -DENABLE_DAGMC
 
   # this flag is used in OpenMC
-  libmesh_CXXFLAGS    += -DDAGMC
+  libmesh_CXXFLAGS    += -DOPENMC_DAGMC_ENABLED
 endif
+
+libmesh_CXXFLAGS += -DOPENMC_LIBMESH_ENABLED
 
 ifneq ($(GRIFFIN_CONTENT),)
  libmesh_CXXFLAGS    += -DENABLE_GRIFFIN_COUPLING
