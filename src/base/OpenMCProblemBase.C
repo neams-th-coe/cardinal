@@ -27,6 +27,9 @@
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
+#include "CriticalitySearchBase.h"
+
+//#include "BrentsMethod.h"
 
 #include "openmc/random_lcg.h"
 
@@ -366,9 +369,15 @@ OpenMCProblemBase::externalSolve()
     openmc_set_seed(_initial_seed);
   }
 
-  int err = openmc_run();
-  if (err)
-    mooseError(openmc_err_msg);
+  int err;
+  if (_criticality_search)
+   _criticality_search->searchForCriticality();
+  else
+  {
+    err = openmc_run();
+    if (err)
+      mooseError(openmc_err_msg);
+  }
 
   _total_n_particles += nParticles();
 
@@ -386,7 +395,7 @@ OpenMCProblemBase::externalSolve()
 void
 OpenMCProblemBase::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  CardinalProblem::initialSetup();
 
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
@@ -396,6 +405,17 @@ OpenMCProblemBase::initialSetup()
     _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
     _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
   }
+
+  // Find a criticality search object
+  TheWarehouse::Query query = theWarehouse().query().condition<AttribSystem>("CriticalitySearch");
+  std::vector<CriticalitySearchBase *> objs;
+  query.queryInto(objs);
+
+  if (objs.size() > 1)
+    mooseError("Cannot have more than one CriticalitySearch object");
+
+  if (objs.size())
+    _criticality_search = objs[0];
 }
 
 void
