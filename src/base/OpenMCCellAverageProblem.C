@@ -2028,7 +2028,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
         mooseError("Unhandled CouplingFields enum!");
     }
 
-    auto cell_index = _particle.coord(level).cell;
+    auto cell_index = _particle.coord(level).cell();
 
     // Error if the user is attempting to use a skinner when mapping both CSG cells and DAGMC
     // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
@@ -2187,7 +2187,7 @@ OpenMCCellAverageProblem::initializeTallies()
 void
 OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const
 {
-  const auto & cell = openmc::model::cells[_particle.coord(level).cell];
+  const auto & cell = openmc::model::cells[_particle.coord(level).cell()];
   std::stringstream msg;
   msg << "The point " << c << " mapped to cell " << cell->id_
       << " in the OpenMC model is inside a universe "
@@ -2211,21 +2211,21 @@ OpenMCCellAverageProblem::latticeOuterCheck(const Point & c, int level) const
     const auto & coord = _particle.coord(i);
 
     // if there is no lattice at this level, move on
-    if (coord.lattice == openmc::C_NONE)
+    if (coord.lattice() == openmc::C_NONE)
       continue;
 
-    const auto & lat = openmc::model::lattices[coord.lattice];
+    const auto & lat = openmc::model::lattices[coord.lattice()];
 
     // if the lattice's outer universe isn't set, move on
     if (lat->outer_ == openmc::NO_OUTER_UNIVERSE)
       continue;
 
-    if (coord.universe != lat->outer_)
+    if (coord.universe() != lat->outer_)
       continue;
 
     // move on if the lattice indices are valid (position is in the set of explicitly defined
     // universes)
-    if (lat->are_valid_indices(coord.lattice_i))
+    if (lat->are_valid_indices(coord.lattice_index()))
       continue;
 
     // if we get here, the mapping is occurring in a universe that is not explicitly defined in the
