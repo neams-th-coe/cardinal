@@ -462,7 +462,7 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
 bool
 OpenMCProblemBase::cellHasZeroInstances(const cellInfo & cell_info) const
 {
-  auto n = openmc::model::cells.at(cell_info.first)->n_instances_;
+  auto n = openmc::model::cells.at(cell_info.first)->n_instances();
   return !n;
 }
 
@@ -585,7 +585,7 @@ OpenMCProblemBase::printCell(const cellInfo & cell_info, const bool brief) const
   msg << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
       << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
       << std::setw(_n_cell_digits)
-      << Moose::stringify(openmc::model::cells.at(cell_info.first)->n_instances_) << ")";
+      << Moose::stringify(openmc::model::cells.at(cell_info.first)->n_instances()) << ")";
 
   return msg.str();
 }
@@ -774,7 +774,7 @@ OpenMCProblemBase::numCells() const
 {
   long unsigned int n_openmc_cells = 0;
   for (const auto & c : openmc::model::cells)
-    n_openmc_cells += c->n_instances_;
+    n_openmc_cells += c->n_instances();
 
   return n_openmc_cells;
 }
