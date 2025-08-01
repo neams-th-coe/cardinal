@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCNuclideDensities.h"
+#include "UserErrorChecking.h"
 #include "openmc/material.h"
 
 registerMooseObject("CardinalApp", OpenMCNuclideDensities);
@@ -45,9 +46,9 @@ OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameter
     _names(getParam<std::vector<std::string>>("names")),
     _densities(getParam<std::vector<double>>("densities"))
 {
-  _openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
-                                    "get the material index for material with ID " +
-                                        std::to_string(_material_id));
+  catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
+                   "get the material index for material with ID " +
+                   std::to_string(_material_id));
 }
 
 void

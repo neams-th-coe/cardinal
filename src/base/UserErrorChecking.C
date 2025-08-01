@@ -89,3 +89,11 @@ checkJointParams(const InputParameters & p,
                "be specified or ALL omitted; you have only provided a subset of parameters!");
   }
 }
+
+void
+catchOpenMCError(const int & err, const std::string descriptor)
+{
+  if (err)
+    mooseError("In attempting to ", descriptor, ", OpenMC reported:\n\n",
+      std::string(openmc_err_msg));
+}
