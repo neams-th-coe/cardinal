@@ -255,15 +255,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
 
-void
-OpenMCProblemBase::catchOpenMCError(const int & err, const std::string descriptor) const
-{
-  if (err)
-    mooseError(
-        "In attempting to ", descriptor, ", OpenMC reported:\n\n", std::string(openmc_err_msg));
-}
-
-void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
                                             const std::vector<unsigned int> & elem_ids,
                                             const Real & value)

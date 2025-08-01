@@ -75,3 +75,10 @@ void checkRequiredParam(const InputParameters & p,
 void checkJointParams(const InputParameters & p,
                       const std::vector<std::string> & name,
                       const std::string & explanation);
+
+/**
+ * Print a full error message when catching errors from OpenMC
+ * @param[in] err OpenMC error code
+ * @param[in] descriptor descriptive message for error
+ */
+void catchOpenMCError(const int & err, const std::string descriptor);

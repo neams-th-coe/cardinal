@@ -66,13 +66,6 @@ public:
   std::string subdomainName(const SubdomainID & id) const;
 
   /**
-   * Print a full error message when catching errors from OpenMC
-   * @param[in] err OpenMC error code
-   * @param[in] descriptor descriptive message for error
-   */
-  void catchOpenMCError(const int & err, const std::string descriptor) const;
-
-  /**
    * Whether the score is a reaction rate score
    * @return whether the tally from OpenMC has units of 1/src
    */
