@@ -1,11 +1,18 @@
 [Tests]
   design = 'AddCriticalitySearchAction.md'
   issues = '#1158'
+  [wrong_problem]
+    type = RunException
+    input = wrong_problem.i
+    expect_err = "The \[CriticalitySearch\] block can only be used with wrapped OpenMC cases! You need to change the \[Problem\] block to 'OpenMCCellAverageProblem'."
+    requirement = 'The system shall error if a criticality search is not paired with the correct problem class.'
+    capabilities = 'openmc'
+  []
   [min_max]
     type = RunException
     input = openmc.i
     cli_args = 'Problem/CriticalitySearch/minimum=1.0 Problem/CriticalitySearch/maximum=-2.0'
-    expect_err = "The 'minimum' value \(1.0\) must be less than the 'maximum' value \(-2.0\)."
+    expect_err = "The 'minimum' value \(1.000000\) must be less than the 'maximum' value \(-2.000000\)."
     requirement = 'The system shall error if invalid values are provided for the range of values to consider for the criticality search.'
     capabilities = 'openmc'
   []
