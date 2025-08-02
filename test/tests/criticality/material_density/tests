@@ -1,0 +1,35 @@
+[Tests]
+  design = 'AddCriticalitySearchAction.md'
+  issues = '#1158'
+  [min_max]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=1.0 Problem/CriticalitySearch/maximum=-2.0'
+    expect_err = "The 'minimum' value \(1.0\) must be less than the 'maximum' value \(-2.0\)."
+    requirement = 'The system shall error if invalid values are provided for the range of values to consider for the criticality search.'
+    capabilities = 'openmc'
+  []
+  [too_tight_tolerance]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/tolerance=1e-6 --error'
+    expect_err = "The 'tolerance' for the criticality search \(0.000001\) is smaller than 3-sigma standard deviation in k \(0.003294\); you may have to run a lot of criticality search points to converge to this tolerance."
+    requirement = 'The system shall warn if the selected tolerance might cause failure to converge due to high statistical noise.'
+    capabilities = 'openmc'
+  []
+  [fail_converge]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/tolerance=1e-6'
+    expect_err = "Failed to converge criticality search!"
+    requirement = 'The system shall error if the criticality search does not converge.'
+    capabilities = 'openmc'
+  []
+  [search]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = 'The system shall conduct a criticality search based on material density.'
+    capabilities = 'openmc'
+  []
+[]
