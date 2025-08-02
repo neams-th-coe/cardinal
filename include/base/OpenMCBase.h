@@ -44,6 +44,20 @@ protected:
    */
   Real stdev(const double & mean, const double & sum_sq, unsigned int realizations) const;
 
+  /**
+   * A function which computes the mean value of \f$k_{eff}\f$.
+   * @param[in] estimator type of estimator
+   * @return the mean value of the k-eigenvalue
+   */
+  Real kMean(const eigenvalue::EigenvalueEnum estimator) const;
+
+  /**
+   * A function which computes the standard deviation of \f$k_{eff}\f$.
+   * @param[in] estimator type of estimator
+   * @return the standard deviation of the k-eigenvalue
+   */
+  Real kStandardDeviation(const eigenvalue::EigenvalueEnum estimator) const;
+
   /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
   OpenMCCellAverageProblem * _openmc_problem;
 };
