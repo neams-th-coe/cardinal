@@ -18,36 +18,24 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "OpenMCMaterialDensity.h"
+#include "OpenMCMaterialSearch.h"
 #include "UserErrorChecking.h"
 #include "openmc/capi.h"
 
-registerMooseObject("CardinalApp", OpenMCMaterialDensity);
-
 InputParameters
-OpenMCMaterialDensity::validParams()
+OpenMCMaterialSearch::validParams()
 {
-  auto params = OpenMCMaterialSearch::validParams();
-  params.addClassDescription("Searches for criticality using material density in units of kg/m3");
+  auto params = CriticalitySearchBase::validParams();
+  params.addRequiredParam<int32_t>("material_id", "Material ID to modify");
+  params.addClassDescription("Base class for criticality searches using the properties of a material");
   return params;
 }
 
-OpenMCMaterialDensity::OpenMCMaterialDensity(const InputParameters & parameters)
-  : OpenMCMaterialSearch(parameters)
+OpenMCMaterialSearch::OpenMCMaterialSearch(const InputParameters & parameters)
+  : CriticalitySearchBase(parameters), _material_id(getParam<int32_t>("material_id"))
 {
-  // a material in OpenMC must always have some nuclides in it or macroscopic data,
-  // so we don't need to have any checks on whether the material is void
-}
-
-void
-OpenMCMaterialDensity::updateOpenMCModel(const Real & density)
-{
-  _console << "Searching for density = " << density << " [kg/m3] ..." << std::endl;
-
-  const char * units = "g/cc";
-  int err = openmc_material_set_density(
-      _material_index, density * _openmc_problem->densityConversionFactor(), units);
-  catchOpenMCError(err, "set material density to " + std::to_string(density));
+  int err = openmc_get_material_index(_material_id, &_material_index);
+  catchOpenMCError(err, "get index for material with ID " + std::to_string(_material_id));
 }
 
 #endif

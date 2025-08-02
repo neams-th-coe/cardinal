@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "CriticalitySearchBase.h"
+#include "OpenMCMaterialSearch.h"
 
 /**
  * Perform a criticality search based on a material total density
  */
-class OpenMCMaterialDensity : public CriticalitySearchBase
+class OpenMCMaterialDensity : public OpenMCMaterialSearch
 {
 public:
   static InputParameters validParams();
@@ -39,10 +39,4 @@ protected:
   }
 
   virtual std::string units() const override { return "[kg/m3]"; }
-
-  /// Material ID for which to change the density
-  const int32_t & _material_id;
-
-  /// Material index corresponding to the ID
-  int32_t _material_index;
 };
