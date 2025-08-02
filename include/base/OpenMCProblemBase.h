@@ -45,6 +45,7 @@
 class OpenMCNuclideDensities;
 class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
+class CriticalitySearchBase;
 
 /**
  * Base class for all MOOSE wrappings of OpenMC
@@ -58,19 +59,14 @@ public:
 
   virtual ~OpenMCProblemBase() override;
 
+  virtual void initialSetup() override;
+
   /**
    * Get the subdomain name for a given ID. If not named, we return the ID
    * @param[in] id subdomain ID
    * @return name
    */
   std::string subdomainName(const SubdomainID & id) const;
-
-  /**
-   * Print a full error message when catching errors from OpenMC
-   * @param[in] err OpenMC error code
-   * @param[in] descriptor descriptive message for error
-   */
-  void catchOpenMCError(const int & err, const std::string descriptor) const;
 
   /**
    * Whether the score is a reaction rate score
@@ -524,4 +520,7 @@ protected:
 
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID{-1};
+
+  /// Object to use for a criticality search
+  CriticalitySearchBase * _criticality_search = nullptr;
 };

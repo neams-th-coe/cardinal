@@ -18,46 +18,31 @@
 
 #pragma once
 
-#include "MooseObject.h"
+#include "CriticalitySearchBase.h"
 
-#include "OpenMCCellAverageProblem.h"
-
-namespace libMesh
-{
-class Elem;
-}
-
-class OpenMCBase
+/**
+ * Perform a criticality search based on a material total density
+ */
+class OpenMCMaterialDensity : public CriticalitySearchBase
 {
 public:
   static InputParameters validParams();
 
-  OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters);
+  OpenMCMaterialDensity(const InputParameters & parameters);
+
+  virtual void updateOpenMCModel(const Real & input) override;
 
 protected:
-  /**
-   * Compute standard deviation of a variable
-   * @param[in] mean mean
-   * @param[in] sum_sq sum squared
-   * @param[in] realizations the number of realizations of the variable
-   * @return standard deviation
-   */
-  Real stdev(const double & mean, const double & sum_sq, unsigned int realizations) const;
+  virtual std::string quantity() const override
+  {
+    return "material " + std::to_string(_material_id) + " density";
+  }
 
-  /**
-   * A function which computes the mean value of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the mean value of the k-eigenvalue
-   */
-  Real kMean(const eigenvalue::EigenvalueEnum estimator) const;
+  virtual std::string units() const override { return "[kg/m3]"; }
 
-  /**
-   * A function which computes the standard deviation of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the standard deviation of the k-eigenvalue
-   */
-  Real kStandardDeviation(const eigenvalue::EigenvalueEnum estimator) const;
+  /// Material ID for which to change the density
+  const int32_t & _material_id;
 
-  /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
-  OpenMCCellAverageProblem * _openmc_problem;
+  /// Material index corresponding to the ID
+  int32_t _material_index;
 };

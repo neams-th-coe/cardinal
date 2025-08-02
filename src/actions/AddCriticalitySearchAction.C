@@ -16,48 +16,44 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_OPENMC_COUPLING
 
-#include "MooseObject.h"
-
+#include "AddCriticalitySearchAction.h"
 #include "OpenMCCellAverageProblem.h"
+#include "CriticalitySearchBase.h"
 
-namespace libMesh
+registerMooseAction("CardinalApp", AddCriticalitySearchAction, "add_criticality_search");
+
+InputParameters
+AddCriticalitySearchAction::validParams()
 {
-class Elem;
+  auto params = MooseObjectAction::validParams();
+  params.addClassDescription("Adds a criticality search for OpenMC");
+  return params;
 }
 
-class OpenMCBase
+AddCriticalitySearchAction::AddCriticalitySearchAction(const InputParameters & parameters)
+  : MooseObjectAction(parameters)
 {
-public:
-  static InputParameters validParams();
+}
 
-  OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters);
+void
+AddCriticalitySearchAction::act()
+{
+  if (_current_task == "add_criticality_search")
+  {
+    auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
 
-protected:
-  /**
-   * Compute standard deviation of a variable
-   * @param[in] mean mean
-   * @param[in] sum_sq sum squared
-   * @param[in] realizations the number of realizations of the variable
-   * @return standard deviation
-   */
-  Real stdev(const double & mean, const double & sum_sq, unsigned int realizations) const;
+    if (!openmc_problem)
+      mooseError("The [CriticalitySearch] block can only be used with wrapped OpenMC cases! "
+                 "You need to change the [Problem] block to 'OpenMCCellAverageProblem'.");
 
-  /**
-   * A function which computes the mean value of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the mean value of the k-eigenvalue
-   */
-  Real kMean(const eigenvalue::EigenvalueEnum estimator) const;
-
-  /**
-   * A function which computes the standard deviation of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the standard deviation of the k-eigenvalue
-   */
-  Real kStandardDeviation(const eigenvalue::EigenvalueEnum estimator) const;
-
-  /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
-  OpenMCCellAverageProblem * _openmc_problem;
-};
+    if (_type == "OpenMCMaterialDensity")
+    {
+      _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
+      auto search = openmc_problem->addObject<CriticalitySearchBase>(
+          _type, _name, _moose_object_pars, false)[0];
+    }
+  }
+}
+#endif
