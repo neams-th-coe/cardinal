@@ -47,8 +47,7 @@ OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameter
     _densities(getParam<std::vector<double>>("densities"))
 {
   catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
-                   "get the material index for material with ID " +
-                   std::to_string(_material_id));
+                   "get the material index for material with ID " + std::to_string(_material_id));
 }
 
 void

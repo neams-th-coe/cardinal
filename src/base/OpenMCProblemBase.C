@@ -29,8 +29,6 @@
 #include "OpenMCTallyEditor.h"
 #include "CriticalitySearchBase.h"
 
-//#include "BrentsMethod.h"
-
 #include "openmc/random_lcg.h"
 
 InputParameters
@@ -377,7 +375,7 @@ OpenMCProblemBase::externalSolve()
 
   int err;
   if (_criticality_search)
-   _criticality_search->searchForCriticality();
+    _criticality_search->searchForCriticality();
   else
   {
     err = openmc_run();
