@@ -3164,7 +3164,6 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   // skin the mesh geometry according to contours in temperature, density, and subdomain
   _skinner->update();
 
-  openmc::model::universe_cell_counts.clear();
   openmc::model::universe_level_counts.clear();
 
   // Clear nuclides and elements, these will get reset in read_ce_cross_sections

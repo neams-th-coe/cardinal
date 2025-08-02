@@ -156,7 +156,7 @@ void
 OpenMCVolumeCalculation::cellVolume(const unsigned int & index, Real & volume, Real & std_dev) const
 {
   auto calc_index = _index_to_calc_index.at(index);
-  auto n_instances = openmc::model::cells[index]->n_instances_;
+  auto n_instances = openmc::model::cells[index]->n_instances();
   if (n_instances > 1)
     mooseDoOnce(mooseWarning(
         "OpenMC's stochastic volume calculation cannot individually measure volumes of cell "
