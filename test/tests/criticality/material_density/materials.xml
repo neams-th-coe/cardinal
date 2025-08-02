@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1">
+    <density units="g/cc" value="10.0"/>
+    <nuclide ao="1.0" name="Pu239"/>
+  </material>
+</materials>
