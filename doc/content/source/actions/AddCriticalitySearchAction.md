@@ -8,6 +8,9 @@ criticality search include:
 
 - [OpenMCMaterialDensity](OpenMCMaterialDensity.md), to change a material's total density
 
+The converged value of the criticality search will automatically be populated into
+a postprocessor named `critical_value`.
+
 !alert warning
 If the convergence `tolerance` is too small (on the order of or smaller than the statistical standard deviation),
 convergence may not be possible. If the search fails to converge, use a looser `tolerance` or

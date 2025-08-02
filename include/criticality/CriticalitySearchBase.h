@@ -69,4 +69,7 @@ protected:
 
   /// Standard deviation values obtained in search
   std::vector<Real> _k_std_dev_values;
+
+  /// Postprocessor that holds the result of the criticality search
+  const std::string _pp_name = "critical_value";
 };
