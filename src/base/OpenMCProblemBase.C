@@ -905,6 +905,10 @@ void
 OpenMCProblemBase::executeFilterEditors()
 {
   executeControls(EXEC_FILTER_EDITORS);
+
+  if (!_filter_editor_uos.size())
+    return;
+
   _console << "Executing filter editors..." << std::endl;
   for (const auto & fe : _filter_editor_uos)
     fe->execute();
@@ -914,6 +918,10 @@ void
 OpenMCProblemBase::executeTallyEditors()
 {
   executeControls(EXEC_TALLY_EDITORS);
+
+  if (!_tally_editor_uos.size())
+    return;
+
   _console << "Executing tally editors..." << std::endl;
   for (const auto & te : _tally_editor_uos)
     te->execute();
