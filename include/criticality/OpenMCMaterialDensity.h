@@ -30,7 +30,10 @@ public:
   virtual void updateOpenMCModel(const Real & input) override;
 
 protected:
-  virtual std::string quantity() const override { return "material " + std::to_string(_material_id) + " density"; }
+  virtual std::string quantity() const override
+  {
+    return "material " + std::to_string(_material_id) + " density";
+  }
 
   virtual std::string units() const override { return "[kg/m3]"; }
 

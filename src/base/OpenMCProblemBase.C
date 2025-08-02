@@ -29,8 +29,6 @@
 #include "OpenMCTallyEditor.h"
 #include "CriticalitySearchBase.h"
 
-//#include "BrentsMethod.h"
-
 #include "openmc/random_lcg.h"
 // For filtering \beta_eff by DNP group.
 #include "openmc/tallies/filter_delayedgroup.h"
@@ -384,7 +382,7 @@ OpenMCProblemBase::externalSolve()
 
   int err;
   if (_criticality_search)
-   _criticality_search->searchForCriticality();
+    _criticality_search->searchForCriticality();
   else
   {
     err = openmc_run();

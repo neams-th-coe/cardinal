@@ -565,7 +565,6 @@ protected:
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID{-1};
 
+  /// Object to use for a criticality search
   CriticalitySearchBase * _criticality_search;
-
-  //std::function<Real(Real)> criticalitySearch;
 };

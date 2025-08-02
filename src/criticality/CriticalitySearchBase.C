@@ -27,13 +27,22 @@ CriticalitySearchBase::validParams()
 {
   auto params = MooseObject::validParams();
   params += OpenMCBase::validParams();
-  params.addRequiredParam<Real>("minimum", "Minimum for values to search over; the root must occur at a value greater than the minimum");
-  params.addRequiredParam<Real>("maximum", "Maximum for values to search over; the root must occur at a value smaller than the maximum");
-  params.addRangeCheckedParam<Real>("tolerance", 1e-3, "tolerance > 0", "Absolute tolerance to converge multiplication factor; be aware that if too few particles are used, statistical noise may require many criticality calculations to converge.");
-  params.addParam<MooseEnum>("estimator",
-                             getEigenvalueEnum(),
-                             "Type of eigenvalue estimator to use");
-  params.addClassDescription("Base class for defining parameters used in a criticality search in OpenMC.");
+  params.addRequiredParam<Real>(
+      "minimum",
+      "Minimum for values to search over; the root must occur at a value greater than the minimum");
+  params.addRequiredParam<Real>(
+      "maximum",
+      "Maximum for values to search over; the root must occur at a value smaller than the maximum");
+  params.addRangeCheckedParam<Real>(
+      "tolerance",
+      1e-3,
+      "tolerance > 0",
+      "Absolute tolerance to converge multiplication factor; be aware that if too few particles "
+      "are used, statistical noise may require many criticality calculations to converge.");
+  params.addParam<MooseEnum>(
+      "estimator", getEigenvalueEnum(), "Type of eigenvalue estimator to use");
+  params.addClassDescription(
+      "Base class for defining parameters used in a criticality search in OpenMC.");
   params.registerBase("CriticalitySearch");
   params.registerSystemAttributeName("CriticalitySearch");
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
@@ -49,17 +58,21 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>())
 {
   if (_minimum >= _maximum)
-    paramError("minimum", "The 'minimum' value (" + std::to_string(_minimum) + ") must be less than the 'maximum' value (" + std::to_string(_maximum) + ").");
+    paramError("minimum",
+               "The 'minimum' value (" + std::to_string(_minimum) +
+                   ") must be less than the 'maximum' value (" + std::to_string(_maximum) + ").");
 }
 
 void
 CriticalitySearchBase::searchForCriticality()
 {
-  _console << "Running criticality search in OpenMC for " << quantity() << " in range " << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " [" << units() << "]" << std::endl;
+  _console << "Running criticality search in OpenMC for " << quantity() << " in range "
+           << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " [" << units()
+           << "]" << std::endl;
 
-  std::function <Real(Real)> func;
-  func = [&](Real x) {
-
+  std::function<Real(Real)> func;
+  func = [&](Real x)
+  {
     // update the OpenMC model with a new parameter
     updateOpenMCModel(x);
     _inputs.push_back(x);
@@ -69,27 +82,36 @@ CriticalitySearchBase::searchForCriticality()
     if (err)
       mooseError(openmc_err_msg);
 
-     // fetch k and return the residual, k-1
-     Real k = kMean(_estimator);
-     Real k_std_dev = kStandardDeviation(_estimator);
-     _k_values.push_back(k);
-     _k_std_dev_values.push_back(k_std_dev);
+    // fetch k and return the residual, k-1
+    Real k = kMean(_estimator);
+    Real k_std_dev = kStandardDeviation(_estimator);
+    _k_values.push_back(k);
+    _k_std_dev_values.push_back(k_std_dev);
 
-     if (_tolerance < 3 * k_std_dev)
-       mooseDoOnce(mooseWarning("The 'tolerance' for the criticality search (" + std::to_string(_tolerance) + ") is smaller than 3-sigma standard deviation in k (" + std::to_string(3 * k_std_dev) + "); you may have to run a lot of criticality search points to converge to this tolerance. You may want to loosen 'tolerance' or increase the number of particles."));
+    if (_tolerance < 3 * k_std_dev)
+      mooseDoOnce(mooseWarning(
+          "The 'tolerance' for the criticality search (" + std::to_string(_tolerance) +
+          ") is smaller than 3-sigma standard deviation in k (" + std::to_string(3 * k_std_dev) +
+          "); you may have to run a lot of criticality search points to converge to this "
+          "tolerance. You may want to loosen 'tolerance' or increase the number of particles."));
 
-     return k - 1.0;
+    return k - 1.0;
   };
 
   BrentsMethod::root(func, _minimum, _maximum, _tolerance);
 
   // check if the method converged
   if (abs(kMean(_estimator) - 1.0) >= _tolerance)
-    mooseError("Failed to converge criticality search! This may happen if your tolerance is too tight given the statistical error in the computation of k.");
+    mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
+               "tight given the statistical error in the computation of k.");
   else
   {
-    VariadicTable<int, Real, Real, Real> vt({"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
-    vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC, VariadicTableColumnFormat::SCIENTIFIC, VariadicTableColumnFormat::SCIENTIFIC});
+    VariadicTable<int, Real, Real, Real> vt(
+        {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
+    vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::SCIENTIFIC,
+                        VariadicTableColumnFormat::SCIENTIFIC,
+                        VariadicTableColumnFormat::SCIENTIFIC});
     for (int i = 0; i < _inputs.size(); ++i)
       vt.addRow(i, _inputs[i], _k_values[i], _k_std_dev_values[i]);
     vt.print(_console);
