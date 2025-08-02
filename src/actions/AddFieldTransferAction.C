@@ -48,13 +48,9 @@ AddFieldTransferAction::act()
       mooseError("The [FieldTransfers] block can only be used with wrapped Nek cases! "
                  "You need to change the [Problem] block to 'NekRSProblem'.");
 
-    if (_type == "NekFieldVariable" || _type == "NekVolumetricSource" ||
-        _type == "NekBoundaryFlux" || _type == "NekMeshDeformation")
-    {
-      _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-      auto transfer =
-          nek_problem->addObject<FieldTransferBase>(_type, _name, _moose_object_pars, false)[0];
-    }
+    _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
+    auto transfer =
+        nek_problem->addObject<FieldTransferBase>(_type, _name, _moose_object_pars, false)[0];
   }
 }
 #endif
