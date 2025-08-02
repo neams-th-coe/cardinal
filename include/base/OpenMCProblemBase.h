@@ -566,5 +566,5 @@ protected:
   static constexpr int MATERIAL_VOID{-1};
 
   /// Object to use for a criticality search
-  CriticalitySearchBase * _criticality_search;
+  CriticalitySearchBase * _criticality_search = nullptr;
 };
