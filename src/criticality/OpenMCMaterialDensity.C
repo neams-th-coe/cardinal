@@ -29,13 +29,13 @@ OpenMCMaterialDensity::validParams()
 {
   auto params = CriticalitySearchBase::validParams();
   params.addRequiredParam<int32_t>("material_id", "Material ID for which to modify density");
-  params.addClassDescription("Searches for criticality using material density; units for the density range are assumed to be kg/m3");
+  params.addClassDescription("Searches for criticality using material density; units for the "
+                             "density range are assumed to be kg/m3");
   return params;
 }
 
 OpenMCMaterialDensity::OpenMCMaterialDensity(const InputParameters & parameters)
-  : CriticalitySearchBase(parameters),
-    _material_id(getParam<int32_t>("material_id"))
+  : CriticalitySearchBase(parameters), _material_id(getParam<int32_t>("material_id"))
 {
   int err = openmc_get_material_index(_material_id, &_material_index);
   catchOpenMCError(err, "get index for material with ID " + std::to_string(_material_id));
@@ -47,7 +47,8 @@ OpenMCMaterialDensity::updateOpenMCModel(const Real & density)
   _console << "Searching for density = " << density << " [kg/m3] ..." << std::endl;
 
   const char * units = "g/cc";
-  int err = openmc_material_set_density(_material_index, density * _openmc_problem->densityConversionFactor(), units);
+  int err = openmc_material_set_density(
+      _material_index, density * _openmc_problem->densityConversionFactor(), units);
   catchOpenMCError(err, "set material density to " + std::to_string(density));
 }
 

@@ -94,6 +94,6 @@ void
 catchOpenMCError(const int & err, const std::string descriptor)
 {
   if (err)
-    mooseError("In attempting to ", descriptor, ", OpenMC reported:\n\n",
-      std::string(openmc_err_msg));
+    mooseError(
+        "In attempting to ", descriptor, ", OpenMC reported:\n\n", std::string(openmc_err_msg));
 }
