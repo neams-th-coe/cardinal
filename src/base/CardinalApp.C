@@ -223,7 +223,7 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerSyntax("AddCriticalitySearchAction", "Problem/CriticalitySearch");
   registerMooseObjectTask("add_criticality_search", CriticalitySearch, false);
   registerTask("add_criticality_search", false /* is required */);
-  addTaskDependency("add_criticality_search", "init_mesh");
+  addTaskDependency("add_criticality_search", "init_problem");
 
   // Register a modify outputs task to enable variable hiding in the MGXS action.
   registerTask("modify_outputs", true /* is required */);

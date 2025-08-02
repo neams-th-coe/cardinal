@@ -44,10 +44,10 @@ OpenMCMaterialDensity::OpenMCMaterialDensity(const InputParameters & parameters)
 void
 OpenMCMaterialDensity::updateOpenMCModel(const Real & density)
 {
-  _console << "Running criticality search for density = " << density << " [kg/m3]" << std::endl;
+  _console << "Searching for density = " << density << " [kg/m3] ..." << std::endl;
+
   const char * units = "g/cc";
-  int err = openmc_material_set_density(_material_index, density * _openmc_problem.densityConversionFactor(), units);
-  std::cout << density * _openmc_problem.densityConversionFactor() << std::endl;
+  int err = openmc_material_set_density(_material_index, density * _openmc_problem->densityConversionFactor(), units);
   catchOpenMCError(err, "set material density to " + std::to_string(density));
 }
 
