@@ -49,12 +49,9 @@ AddScalarTransferAction::act()
       mooseError("The [ScalarTransfers] block can only be used with wrapped Nek cases! "
                  "You need to change the [Problem] block to 'NekRSProblem'.");
 
-    if (_type == "NekScalarValue" || _type == "NekPostprocessorValue")
-    {
-      _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-      auto transfer =
-          nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
-    }
+    _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
+    auto transfer =
+        nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
   }
 }
 #endif
