@@ -61,6 +61,9 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     paramError("minimum",
                "The 'minimum' value (" + std::to_string(_minimum) +
                    ") must be less than the 'maximum' value (" + std::to_string(_maximum) + ").");
+
+  auto pp_params = _factory.getValidParams("Receiver");
+  _openmc_problem->addPostprocessor("Receiver", _pp_name, pp_params);
 }
 
 void
@@ -104,18 +107,19 @@ CriticalitySearchBase::searchForCriticality()
   if (abs(kMean(_estimator) - 1.0) >= _tolerance)
     mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
                "tight given the statistical error in the computation of k.");
-  else
-  {
-    VariadicTable<int, Real, Real, Real> vt(
-        {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
-    vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
-                        VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC});
-    for (int i = 0; i < _inputs.size(); ++i)
-      vt.addRow(i, _inputs[i], _k_values[i], _k_std_dev_values[i]);
-    vt.print(_console);
-  }
+
+  VariadicTable<int, Real, Real, Real> vt(
+      {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
+  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                      VariadicTableColumnFormat::SCIENTIFIC,
+                      VariadicTableColumnFormat::SCIENTIFIC,
+                      VariadicTableColumnFormat::SCIENTIFIC});
+  for (int i = 0; i < _inputs.size(); ++i)
+    vt.addRow(i, _inputs[i], _k_values[i], _k_std_dev_values[i]);
+  vt.print(_console);
+
+  // fill the converged value into a postprocessor
+  _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());
 }
 
 #endif
