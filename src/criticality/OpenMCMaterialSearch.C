@@ -27,7 +27,8 @@ OpenMCMaterialSearch::validParams()
 {
   auto params = CriticalitySearchBase::validParams();
   params.addRequiredParam<int32_t>("material_id", "Material ID to modify");
-  params.addClassDescription("Base class for criticality searches using the properties of a material");
+  params.addClassDescription(
+      "Base class for criticality searches using the properties of a material");
   return params;
 }
 
