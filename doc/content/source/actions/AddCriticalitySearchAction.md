@@ -7,6 +7,7 @@ search during the OpenMC solve. Examples of parameters which can be used for the
 criticality search include:
 
 - [OpenMCMaterialDensity](OpenMCMaterialDensity.md), to change a material's total density
+- [BoratedWater](BoratedWater.md), to change the boron weight ppm in water
 
 The converged value of the criticality search will automatically be populated into
 a postprocessor named `critical_value`.
