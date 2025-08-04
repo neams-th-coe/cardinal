@@ -90,6 +90,7 @@ checkJointParams(const InputParameters & p,
   }
 }
 
+#ifdef ENABLE_OPENMC_COUPLING
 void
 catchOpenMCError(const int & err, const std::string descriptor)
 {
@@ -97,3 +98,4 @@ catchOpenMCError(const int & err, const std::string descriptor)
     mooseError(
         "In attempting to ", descriptor, ", OpenMC reported:\n\n", std::string(openmc_err_msg));
 }
+#endif
