@@ -30,19 +30,30 @@ InputParameters
 BoratedWater::validParams()
 {
   auto params = OpenMCMaterialSearch::validParams();
-  params.addParam<std::vector<std::string>>("absent_nuclides", "Natural nuclides of hydrogen, oxygen, or boron which are missing from your cross section library; some cross section libraries do not have entries for O17 and O18. If your library does not have these nuclides you will get an error from this object trying to add them. For these missing nuclides, specify them here and their abundance will be applied to the main isotope of each element.");
-  params.addClassDescription("Searches for criticality using natural boron ppm in water in units of weight ppm");
+  params.addParam<std::vector<std::string>>(
+      "absent_nuclides",
+      "Natural nuclides of hydrogen, oxygen, or boron which are missing from your cross section "
+      "library; some cross section libraries do not have entries for O17 and O18. If your library "
+      "does not have these nuclides you will get an error from this object trying to add them. For "
+      "these missing nuclides, specify them here and their abundance will be applied to the main "
+      "isotope of each element.");
+  params.addClassDescription(
+      "Searches for criticality using natural boron ppm in water in units of weight ppm");
   return params;
 }
 
-BoratedWater::BoratedWater(const InputParameters & parameters)
-  : OpenMCMaterialSearch(parameters)
+BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialSearch(parameters)
 {
   // apply additional checks on the minimum and maximum
   if (_minimum < 0)
-    paramError("minimum", "The 'minimum' boron ppm (" + std::to_string(_minimum) + ") must be positive!");
+    paramError("minimum",
+               "The 'minimum' boron ppm (" + std::to_string(_minimum) + ") must be positive!");
   if (_maximum > 50000)
-    paramError("maximum", "The borated water composition is computed using a dilute species approximation. Results will not be accurate if the boron species is no longer dilute, which we take as 5\% weight concentration or higher. Please decrease 'maximum' (" + std::to_string(_maximum) + ") to an upper limit which is in the dilute regime.");
+    paramError("maximum",
+               "The borated water composition is computed using a dilute species approximation. "
+               "Results will not be accurate if the boron species is no longer dilute, which we "
+               "take as 5\% weight concentration or higher. Please decrease 'maximum' (" +
+                   std::to_string(_maximum) + ") to an upper limit which is in the dilute regime.");
 
   // We take the provided material, retaining its density, but then overwriting
   // any nuclides there to be H2O + boron weight ppm and add the S(a,b) tables
@@ -80,7 +91,10 @@ BoratedWater::BoratedWater(const InputParameters & parameters)
     {
       // only missing nuclides for H, O, B are meaningful
       if (std::find(allowable.begin(), allowable.end(), a) == allowable.end())
-        paramWarning("absent_nuclides", "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust natural abundances. The entry '" + a + "' will be unused.");
+        paramWarning("absent_nuclides",
+                     "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust "
+                     "natural abundances. The entry '" +
+                         a + "' will be unused.");
 
       // adjust the natural abundances if nuclides are missing from the cross section library
       // TODO: implement in a general fashion, this only works for O18 which is also the only
@@ -111,7 +125,10 @@ BoratedWater::BoratedWater(const InputParameters & parameters)
         _oxygen_natural.erase(_oxygen_natural.begin() + idx18);
       }
       else
-        paramError("absent_nuclides", "Cardinal currently only assumes that O18 may be missing from your cross section library; please contact the Cardinal developer team to generalize this capability");
+        paramError(
+            "absent_nuclides",
+            "Cardinal currently only assumes that O18 may be missing from your cross section "
+            "library; please contact the Cardinal developer team to generalize this capability");
     }
   }
 
@@ -128,9 +145,17 @@ BoratedWater::BoratedWater(const InputParameters & parameters)
   if (!full_names.compare(""))
   {
     std::ostringstream msg;
-    msg << "The criticality search will clear out all nuclides in material " << std::to_string(_material_id) << " and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material will be deleted." << std::endl;
-    msg << "\nThe material you provided contains nuclides which are not the natural isotopes of H, B, and O: " << full_names.substr(0, full_names.length() - 1) << ". These will be deleted from material " << std::to_string(_material_id) << " when the boron concentration is changed." << std::endl;
-    msg << "\nFor general criticality searches based on material composition, please contact the Cardinal developer team.";
+    msg << "The criticality search will clear out all nuclides in material "
+        << std::to_string(_material_id)
+        << " and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. "
+           "Any other nuclides which existed in the material will be deleted."
+        << std::endl;
+    msg << "\nThe material you provided contains nuclides which are not the natural isotopes of H, "
+           "B, and O: "
+        << full_names.substr(0, full_names.length() - 1) << ". These will be deleted from material "
+        << std::to_string(_material_id) << " when the boron concentration is changed." << std::endl;
+    msg << "\nFor general criticality searches based on material composition, please contact the "
+           "Cardinal developer team.";
     mooseWarning(msg.str());
   }
 

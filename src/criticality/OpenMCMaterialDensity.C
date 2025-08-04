@@ -42,7 +42,8 @@ OpenMCMaterialDensity::OpenMCMaterialDensity(const InputParameters & parameters)
   // we don't need to check for negative 'maximum' because we already require maximum > minimum
   // and if we enforce non-negative minimum this will require maximum to also be non-negative.
   if (_minimum < 0.0)
-    paramError("minimum", "The 'minimum' density (" + std::to_string(_minimum) + ") must be positive!");
+    paramError("minimum",
+               "The 'minimum' density (" + std::to_string(_minimum) + ") must be positive!");
 }
 
 void
