@@ -37,6 +37,12 @@ OpenMCMaterialDensity::OpenMCMaterialDensity(const InputParameters & parameters)
 {
   // a material in OpenMC must always have some nuclides in it or macroscopic data,
   // so we don't need to have any checks on whether the material is void
+
+  // apply additional checks on the minimum and maximum values - both must be positive.
+  // we don't need to check for negative 'maximum' because we already require maximum > minimum
+  // and if we enforce non-negative minimum this will require maximum to also be non-negative.
+  if (_minimum < 0.0)
+    paramError("minimum", "The 'minimum' density (" + std::to_string(_minimum) + ") must be positive!");
 }
 
 void
