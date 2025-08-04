@@ -16,7 +16,7 @@
 
   [CriticalitySearch]
     type = BoratedWater
-    material_id = 1
+    material_id = 2
     minimum = 100
     maximum = 3000
     tolerance = 1e-2
@@ -25,4 +25,14 @@
 
 [Executioner]
   type = Steady
+[]
+
+[Postprocessors]
+  [k]
+    type = KEigenvalue
+  []
+[]
+
+[Outputs]
+  csv = true
 []

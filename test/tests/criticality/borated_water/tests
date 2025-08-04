@@ -1,0 +1,28 @@
+[Tests]
+  design = 'BoratedWater.md'
+  issues = '#1158'
+  [negative_min]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=-1'
+    expect_err = "The 'minimum' boron ppm \(-1.000000\) must be positive!"
+    requirement = 'The system shall error if an invalid minimum boron ppm is provided.'
+    capabilities = 'openmc'
+  []
+  [non_dilute]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/maximum=53000'
+    expect_err = "The borated water composition is computed using a dilute species approximation. Results will not be accurate if the boron species is no longer dilute, which we take as 5\% weight concentration or higher. Please decrease 'maximum' \(53000.000000\) to an upper limit which is in the dilute regime."
+    requirement = 'The system shall error if an invalid minimum boron ppm is provided.'
+    capabilities = 'openmc'
+  []
+  [warn_nuclides]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/material_id=2 --error'
+    expect_err = "The criticality search will clear out all nuclides in material 2 and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material will be deleted.\n\nThe material you provided contains nuclides which are not the natural isotopes of H, B, and O: U234 U235 U238 H3. These will be deleted from material 2 when the boron concentration is changed."
+    requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search. This test covers both non-H,B,O elements as well as non-natural isotopes of these elements."
+    capabilities = 'openmc'
+  []
+[]
