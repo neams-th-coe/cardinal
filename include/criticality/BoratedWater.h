@@ -33,10 +33,28 @@ public:
   virtual void updateOpenMCModel(const Real & input) override;
 
 protected:
+  std::vector<std::pair<std::string, Real>> getAbundances(const std::string & element_name);
+  Real getAtomicMass(const std::string & nuclide_name);
+
   virtual std::string quantity() const override
   {
     return "material " + std::to_string(_material_id) + " boron";
   }
 
   virtual std::string units() const override { return "[ppm]"; }
+
+  /// Natural isotopes of hydrogen with their abundances
+  std::vector<std::pair<std::string, Real>> _hydrogen_natural;
+
+  /// Natural isotopes of boron with their abundances
+  std::vector<std::pair<std::string, Real>> _boron_natural;
+
+  /// Natural isotopes of oxygen with their abundances
+  std::vector<std::pair<std::string, Real>> _oxygen_natural;
+
+  /// Molar mass of water
+  Real _M_H2O;
+
+  /// Molar mass of boron
+  Real _M_B;
 };

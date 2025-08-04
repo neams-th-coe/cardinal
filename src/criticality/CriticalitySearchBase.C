@@ -70,8 +70,8 @@ void
 CriticalitySearchBase::searchForCriticality()
 {
   _console << "Running criticality search in OpenMC for " << quantity() << " in range "
-           << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " [" << units()
-           << "]" << std::endl;
+           << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " " << units()
+           << " " << std::endl;
 
   std::function<Real(Real)> func;
   func = [&](Real x)
