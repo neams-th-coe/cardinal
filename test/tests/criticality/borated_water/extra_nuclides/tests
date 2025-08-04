@@ -1,0 +1,12 @@
+[Tests]
+  design = 'BoratedWater.md'
+  issues = '#1158'
+  [warn_nuclides]
+    type = RunException
+    input = openmc.i
+    cli_args = '--error'
+    expect_err = "The criticality search will clear out all nuclides in material 1 and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material, such as corrosion products or chemical species for redox control will be deleted! The material you provided contains non-H, O, or B nuclides: U234 U235 U238"
+    requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search."
+    capabilities = 'openmc'
+  []
+[]
