@@ -1,20 +1,20 @@
 <?xml version='1.0' encoding='utf-8'?>
 <materials>
   <material depletable="true" id="1">
-    <density units="g/cc" value="10.0"/>
-    <nuclide ao="5.4e-05" name="U234"/>
-    <nuclide ao="0.007204" name="U235"/>
-    <nuclide ao="0.992742" name="U238"/>
-    <nuclide ao="1.0" name="H3"/>
+    <density units="g/cc" value="22.0"/>
+    <nuclide ao="0.001" name="U234"/>
+    <nuclide ao="0.1" name="U235"/>
+    <nuclide ao="1.0" name="U238"/>
+    <nuclide ao="0.0001" name="H3"/>
   </material>
   <material id="2">
-    <density units="g/cc" value="0.8008008008008008"/>
-    <nuclide ao="0.11091333831419083" name="H1"/>
-    <nuclide ao="1.7276333925297602e-05" name="H2"/>
-    <nuclide ao="0.05544428597258224" name="O16"/>
-    <nuclide ao="2.1021351475818005e-05" name="O17"/>
-    <nuclide ao="1.8331780303872705e-05" name="B10"/>
-    <nuclide ao="7.415954312636294e-05" name="B11"/>
+    <density units="g/cc" value="0.802407221664995"/>
+    <nuclide ao="0.11069128958883709" name="H1"/>
+    <nuclide ao="1.7241746670191903e-05" name="H2"/>
+    <nuclide ao="0.05533328640106556" name="O16"/>
+    <nuclide ao="2.0979266688078627e-05" name="O17"/>
+    <nuclide ao="5.499534091161812e-05" name="B10"/>
+    <nuclide ao="0.00022247862937908882" name="B11"/>
     <sab name="c_H_in_H2O"/>
   </material>
 </materials>
