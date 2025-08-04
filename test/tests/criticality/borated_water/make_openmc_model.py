@@ -53,4 +53,8 @@ lower_left = (0, 0, 0)
 upper_right = (R, R, R)
 uniform_dist = openmc.stats.Box(lower_left, upper_right)
 model.settings.source = openmc.source.IndependentSource(space=uniform_dist)
+model.settings.temperature = {'default': 600.0,
+                        'method': 'nearest',
+                        'range': (294.0, 1600.0)}
+
 model.export_to_xml()
