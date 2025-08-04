@@ -5,6 +5,7 @@
     <nuclide ao="5.4e-05" name="U234"/>
     <nuclide ao="0.007204" name="U235"/>
     <nuclide ao="0.992742" name="U238"/>
+    <nuclide ao="1.0" name="H3"/>
   </material>
   <material id="2">
     <density units="g/cc" value="0.8008008008008008"/>

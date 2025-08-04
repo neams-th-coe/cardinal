@@ -5,8 +5,8 @@
     type = RunException
     input = openmc.i
     cli_args = '--error'
-    expect_err = "The criticality search will clear out all nuclides in material 1 and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material, such as corrosion products or chemical species for redox control will be deleted! The material you provided contains non-H, O, or B nuclides: U234 U235 U238"
-    requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search."
+    expect_err = "The criticality search will clear out all nuclides in material 1 and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material will be deleted.\n\nThe material you provided contains nuclides which are not the natural isotopes of H, B, and O: U234 U235 U238 H3. These will be deleted from material 1 when the boron concentration is changed."
+    requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search. This test covers both non-H/B/O elements as well as non-natural isotopes of these elements."
     capabilities = 'openmc'
   []
 []

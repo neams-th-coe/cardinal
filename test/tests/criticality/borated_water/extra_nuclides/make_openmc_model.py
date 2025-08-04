@@ -23,6 +23,7 @@ model = openmc.Model()
 u = openmc.Material()
 u.set_density('g/cc', 10.0)
 u.add_element('U', 1.0)
+u.add_nuclide('H3', 1.0)
 
 bw = openmc.model.borated_water(boron_ppm=1000, density=0.8)
 
