@@ -25,4 +25,21 @@
     requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search. This test covers both non-H,B,O elements as well as non-natural isotopes of these elements."
     capabilities = 'openmc'
   []
+  [absent_nuclides]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/absent_nuclides="W182" --error'
+    expect_err = "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust natural abundances. The entry 'W182' will be unused."
+    requirement = "The system shall warn the user if they are omitting a nuclide from their cross section library which is irrelevant for boric acid control."
+    capabilities = 'openmc'
+  []
+  [borated_water]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall perform a criticality search based on boron weight ppm in water. This test changes the water density and then searches for a criticality point; the resulting ppm is compared to a standalone OpenMC model (the comparison is done when running with many more particles for both scenarios). The multiplication factors agree within statistics."
+    # the relative nuclide concentrations are also printed to the screen and shown to match against
+    # those added by OpenMC's borated_water function
+    capabilities = 'openmc'
+  []
 []
