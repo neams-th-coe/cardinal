@@ -43,7 +43,7 @@
     type = RunException
     input = openmc.i
     cli_args = 'Problem/CriticalitySearch/minimum=-1'
-    expect_err = 'The 'minimum' density \(-1.000000\) must be positive!'
+    expect_err = "The 'minimum' density \(-1.000000\) must be positive!"
     requirement = 'The system shall error if an invalid minimum density is provided.'
     capabilities = 'openmc'
   []

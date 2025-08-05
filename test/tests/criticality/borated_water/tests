@@ -14,7 +14,7 @@
     input = openmc.i
     cli_args = 'Problem/CriticalitySearch/maximum=53000'
     expect_err = "The borated water composition is computed using a dilute species approximation. Results will not be accurate if the boron species is no longer dilute, which we take as 5\% weight concentration or higher. Please decrease 'maximum' \(53000.000000\) to an upper limit which is in the dilute regime."
-    requirement = 'The system shall error if an invalid minimum boron ppm is provided.'
+    requirement = 'The system shall error if an invalid maximum boron ppm is provided.'
     capabilities = 'openmc'
   []
   [warn_nuclides]
