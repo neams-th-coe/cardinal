@@ -2,7 +2,7 @@
   [g]
     type = GeneratedMeshGenerator
     dim = 3
-    xmin = 0
+    xmin = 10
     xmax = 20
     ymin = 0
     ymax = 10
@@ -11,12 +11,6 @@
     nx = 10
     ny = 1
     nz = 1
-  []
-  [split_in_half]
-    type = ParsedSubdomainMeshGenerator
-    input = g
-    combinatorial_geometry = 'x > 10'
-    block_id = '2'
   []
 []
 
@@ -30,7 +24,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  density_blocks = '2'
+  density_blocks = '0'
   cell_level = 0
   verbose = true
 
