@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCMaterialDensity.h"
-#include "UserErrorChecking.h"
 #include "openmc/capi.h"
 
 registerMooseObject("CardinalApp", OpenMCMaterialDensity);

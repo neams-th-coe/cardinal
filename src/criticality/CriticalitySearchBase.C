@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "CriticalitySearchBase.h"
+#include "UserErrorChecking.h"
 #include "VariadicTable.h"
 #include "BrentsMethod.h"
 
