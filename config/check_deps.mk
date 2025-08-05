@@ -6,6 +6,7 @@ endef
 # Set default values for all third party dependencies
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+NUCLEARDATA_DIR     ?= $(CONTRIB_DIR)/nuclear_data
 DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
 DOUBLEDOWN_DIR      ?= $(CONTRIB_DIR)/double-down
 EMBREE_DIR          ?= $(CONTRIB_DIR)/embree
@@ -23,6 +24,7 @@ IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 MOOSE_CONTENT      := $(shell ls $(MOOSE_DIR) 2> /dev/null)
 NEKRS_CONTENT      := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT     := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+NUCLEARDATA_CONTENT:= $(shell ls $(NUCLEARDATA_DIR) 2> /dev/null)
 DAGMC_CONTENT      := $(shell ls $(DAGMC_DIR) 2> /dev/null)
 DOUBLEDOWN_CONTENT := $(shell ls $(DOUBLEDOWN_DIR) 2> /dev/null)
 EMBREE_CONTENT     := $(shell ls $(EMBREE_DIR) 2> /dev/null)
@@ -88,6 +90,12 @@ ifeq ($(ENABLE_OPENMC), yes)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   else
     $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
+  endif
+
+  ifeq ($(NUCLEARDATA_CONTENT),)
+    $(error $n"nuclear_data does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the nuclear_data submodule, use ./scripts/get-dependencies.sh")
+  else
+    # we dont print out anything about where nuclear_data is coming from because it's a minor dependency and we don't expect anyone to be using different versions of it (and we don't want to confuse them on the cross section library data)
   endif
 
   openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
