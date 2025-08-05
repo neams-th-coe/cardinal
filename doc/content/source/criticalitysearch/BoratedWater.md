@@ -22,7 +22,7 @@ are missing from your material with `absent_nuclides`.
 The following input will perform a criticality search for each OpenMC solve
 by searching via the boron ppm of material 2.
 
-!listing test/tests/criticality/borated_water
+!listing test/tests/criticality/borated_water/openmc.i
   block=Problem
 
 !syntax parameters /Problem/CriticalitySearch/BoratedWater
