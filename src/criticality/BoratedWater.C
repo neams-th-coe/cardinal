@@ -18,6 +18,8 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
+#define NUCLEAR_DATA_IMPLEMENTATION
+
 #include "BoratedWater.h"
 #include "UserErrorChecking.h"
 #include "NuclearData.h"
