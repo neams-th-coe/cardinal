@@ -50,7 +50,7 @@ AddScalarTransferAction::act()
                  "You need to change the [Problem] block to 'NekRSProblem'.");
 
     _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-        nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
+    nek_problem->addObject<ScalarTransferBase>(_type, _name, _moose_object_pars, false)[0];
   }
 }
 #endif

@@ -48,8 +48,7 @@ AddCriticalitySearchAction::act()
       mooseError("The [CriticalitySearch] block can only be used with wrapped OpenMC cases! "
                  "You need to change the [Problem] block to 'OpenMCCellAverageProblem'.");
 
-    openmc_problem->addObject<CriticalitySearchBase>(
-        _type, _name, _moose_object_pars, false)[0];
+    openmc_problem->addObject<CriticalitySearchBase>(_type, _name, _moose_object_pars, false)[0];
   }
 }
 #endif
