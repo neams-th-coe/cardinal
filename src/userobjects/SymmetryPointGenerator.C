@@ -42,7 +42,7 @@ SymmetryPointGenerator::validParams()
 }
 
 SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
-  : ThreadedGeneralUserObject(params), _rotational_symmetry(isParamValid("rotation_axis"))
+  : GeneralUserObject(params), _rotational_symmetry(isParamValid("rotation_axis"))
 {
   checkJointParams(params, {"rotation_axis", "rotation_angle"}, "specifying rotational symmetry");
 
