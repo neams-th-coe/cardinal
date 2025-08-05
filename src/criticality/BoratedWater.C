@@ -145,7 +145,7 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
       full_names += name + " ";
   }
 
-  if (!full_names.compare(""))
+  if (!full_names.empty())
   {
     std::ostringstream msg;
     msg << "The criticality search will clear out all nuclides in material "
