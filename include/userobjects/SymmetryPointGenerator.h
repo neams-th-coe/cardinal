@@ -35,6 +35,7 @@ public:
   virtual void initialize() {}
   virtual void finalize() {}
   virtual void execute() {}
+  virtual void threadJoin(const UserObject & /* uo */) override {}
 
   /**
    * Whether point is on the positive side of a plane; points exactly on plane return false
