@@ -113,12 +113,6 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
         {
           if (o.first == "O16")
             idx16 = idx;
-          idx++;
-        }
-
-        idx = 0;
-        for (const auto & o : _oxygen_natural)
-        {
           if (o.first == "O18")
             idx18 = idx;
           idx++;
