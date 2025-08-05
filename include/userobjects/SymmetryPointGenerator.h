@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "ThreadedGeneralUserObject.h"
+#include "GeneralUserObject.h"
 
 /**
  * Class that maps from a point (x, y, z) to a new point that is
  * either rotationally symmetry or mirrored. The origin for reflection
  * and rotation is (0, 0, 0).
  */
-class SymmetryPointGenerator : public ThreadedGeneralUserObject
+class SymmetryPointGenerator : public GeneralUserObject
 {
 public:
   static InputParameters validParams();
