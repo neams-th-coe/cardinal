@@ -86,48 +86,7 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
   for (const auto & i : _oxygen_natural)
     allowable.push_back(i.first);
 
-  if (isParamValid("absent_nuclides"))
-  {
-    const auto & absent = getParam<std::vector<std::string>>("absent_nuclides");
-
-    for (const auto & a : absent)
-    {
-      // only missing nuclides for H, O, B are meaningful
-      if (std::find(allowable.begin(), allowable.end(), a) == allowable.end())
-        paramWarning("absent_nuclides",
-                     "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust "
-                     "natural abundances. The entry '" +
-                         a + "' will be unused.");
-
-      // adjust the natural abundances if nuclides are missing from the cross section library
-      // TODO: implement in a general fashion, this only works for O18 which is also the only
-      // absent nuclide we expect in practice
-      if (a == "O18")
-      {
-        // find which entry in _oxygen_natural has O16 and O18; this allows these isotopes
-        // to appear in any order
-        unsigned int idx16;
-        unsigned int idx18;
-        unsigned int idx = 0;
-        for (const auto & o : _oxygen_natural)
-        {
-          if (o.first == "O16")
-            idx16 = idx;
-          if (o.first == "O18")
-            idx18 = idx;
-          idx++;
-        }
-
-        _oxygen_natural[idx16].second += _oxygen_natural[idx18].second;
-        _oxygen_natural.erase(_oxygen_natural.begin() + idx18);
-      }
-      else
-        paramError(
-            "absent_nuclides",
-            "Cardinal currently only assumes that O18 may be missing from your cross section "
-            "library; please contact the Cardinal developer team to generalize this capability");
-    }
-  }
+  applyAbsentNuclides(allowable);
 
   // check if any nuclides already defined on the material do not intersect with
   // natural isotopes of H, O, B
@@ -207,11 +166,52 @@ BoratedWater::updateOpenMCModel(const Real & ppm)
   }
 
   openmc::model::materials[_material_index]->set_densities(names, densities /* atom/b-cm */);
+}
 
-  const int * nucl;
-  const double * dens;
-  int n;
-  err = openmc_material_get_densities(_material_index, &nucl, &dens, &n);
-  catchOpenMCError(err, "get nuclide densities from material " + std::to_string(_material_id));
+void
+BoratedWater::applyAbsentNuclides(const std::vector<std::string> & allowable)
+{
+  if (isParamValid("absent_nuclides"))
+  {
+    const auto & absent = getParam<std::vector<std::string>>("absent_nuclides");
+
+    for (const auto & a : absent)
+    {
+      // only missing nuclides for H, O, B are meaningful
+      if (std::find(allowable.begin(), allowable.end(), a) == allowable.end())
+        paramWarning("absent_nuclides",
+                     "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust "
+                     "natural abundances. The entry '" +
+                         a + "' will be unused.");
+
+      // adjust the natural abundances if nuclides are missing from the cross section library
+      // TODO: implement in a general fashion, this only works for O18 which is also the only
+      // absent nuclide we expect in practice
+      if (a == "O18")
+      {
+        // find which entry in _oxygen_natural has O16 and O18; this allows these isotopes
+        // to appear in any order
+        unsigned int idx16;
+        unsigned int idx18;
+        unsigned int idx = 0;
+        for (const auto & o : _oxygen_natural)
+        {
+          if (o.first == "O16")
+            idx16 = idx;
+          if (o.first == "O18")
+            idx18 = idx;
+          idx++;
+        }
+
+        _oxygen_natural[idx16].second += _oxygen_natural[idx18].second;
+        _oxygen_natural.erase(_oxygen_natural.begin() + idx18);
+      }
+      else
+        paramError(
+            "absent_nuclides",
+            "Cardinal currently only assumes that O18 may be missing from your cross section "
+            "library; please contact the Cardinal developer team to generalize this capability");
+    }
+  }
 }
 #endif

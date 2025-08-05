@@ -54,4 +54,11 @@ protected:
 
   /// Molar mass of boron
   Real _M_B;
+
+private:
+  /** Adjust the natural abundances used for the criticality search if nuclides
+   *  are missing from the cross section library.
+   *  @param[in] allowable possible natural isotopes that will exist in the borated water
+   */
+  void applyAbsentNuclides(const std::vector<std::string> & allowable);
 };
