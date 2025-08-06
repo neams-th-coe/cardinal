@@ -15,7 +15,7 @@ are present (some libraries do not include O18, for instance). OpenMC will
 throw an error if your library is missing a nuclide that `BoratedWater` is
 trying to add. To circumvent this, please explicitly note which of the natural
 nuclides from hydrogen (H1, H2), boron (B10, B11), and oxygen (O16, O17, O18)
-are missing from your material with `absent_nuclides`.
+are missing from your material with `absent_nuclides`. Currently, only O18 is supported.
 
 ## Example Input File Syntax
 
