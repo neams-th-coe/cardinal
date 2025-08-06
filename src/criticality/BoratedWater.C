@@ -39,7 +39,7 @@ BoratedWater::validParams()
       "library; some cross section libraries do not have entries for O17 and O18. If your library "
       "does not have these nuclides you will get an error from this object trying to add them. For "
       "these missing nuclides, specify them here and their abundance will be applied to the main "
-      "isotope of each element.");
+      "isotope of each element. Currently, only O18 is supported.");
   params.addClassDescription(
       "Searches for criticality using natural boron ppm in water in units of weight ppm");
   return params;
