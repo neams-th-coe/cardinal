@@ -150,8 +150,11 @@ public:
    */
   std::string estimatorToString(openmc::TallyEstimator estimator) const;
 
-  /// Run a k-eigenvalue OpenMC simulation
+  /// Run an OpenMC simulation
   void externalSolve() override;
+
+  /// Set up an OpenMC simulation.
+  virtual void initialSetup() override;
 
   /// Set the 'mesh changed' adaptivity flag.
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
