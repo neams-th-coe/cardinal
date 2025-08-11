@@ -60,7 +60,8 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
                                                0.0 /* wire diameter, unused */,
                                                1.0 /* wire pitch, unused */,
                                                _n_rings,
-                                               _axis));
+                                               _axis,
+                                               0. /*rotation_around_axis*/));
 
   if (_axis == 0) // x vertical axis
     _directions = {1, 2};
