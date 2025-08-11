@@ -356,21 +356,6 @@ OpenMCProblemBase::externalSolve()
         std::make_unique<openmc::FileSource>(sourceBankFileName()));
   }
 
-  // Reinitialize the IFP parameters tally.
-  if (_calc_kinetics_params)
-  {
-    if (_ifp_tally)
-    {
-      openmc::model::tallies.erase(openmc::model::tallies.begin() + _ifp_tally_index);
-      _ifp_tally = nullptr;
-    }
-
-    _ifp_tally_index = openmc::model::tallies.size();
-    _ifp_tally = openmc::Tally::create();
-    _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
-    _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
-  }
-
   // update tallies as needed before starting the OpenMC run
   executeEditors();
 
@@ -395,6 +380,21 @@ OpenMCProblemBase::externalSolve()
   // save the latest fission source for re-use in the next iteration
   if (_reuse_source)
     writeSourceBank(sourceBankFileName());
+}
+
+void
+OpenMCProblemBase::initialSetup()
+{
+  ExternalProblem::initialSetup();
+
+  // Initialize the IFP parameters tally.
+  if (_calc_kinetics_params)
+  {
+    _ifp_tally_index = openmc::model::tallies.size();
+    _ifp_tally = openmc::Tally::create();
+    _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
+    _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+  }
 }
 
 void
