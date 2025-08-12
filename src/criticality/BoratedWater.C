@@ -66,6 +66,7 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
   // to use a more general material modification object that allows full control
   // over additional nuclides (e.g., if their water includes corrosion products
   // that they do want to be there).
+  // TODO: add the S(a,b) tables
 
   const int * nuclides;
   const double * densities;
