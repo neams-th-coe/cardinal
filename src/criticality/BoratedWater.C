@@ -93,7 +93,8 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
   std::string full_names = "";
   for (int i = 0; i < n; ++i)
   {
-    std::string name = openmc::data::nuclides[i]->name_;
+    auto idx = nuclides[i];
+    std::string name = openmc::data::nuclides[idx]->name_;
     if (std::find(allowable.begin(), allowable.end(), name) == allowable.end())
       full_names += name + " ";
   }
