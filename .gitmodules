@@ -33,4 +33,5 @@
 	url = git@github.inl.gov:ncrc/bison.git
 [submodule "test/tests/nek_ci"]
 	path = test/tests/nek_ci
-	url = https://github.com/nandu90/nek_ci.git
+	url = https://github.com/maxidalinger/nek_ci_tests.git
+	branch = master
