@@ -17,6 +17,9 @@ trying to add. To circumvent this, please explicitly note which of the natural
 nuclides from hydrogen (H1, H2), boron (B10, B11), and oxygen (O16, O17, O18)
 are missing from your material with `absent_nuclides`. Currently, only O18 is supported.
 
+!alert warning
+This object does not currently add S(a,b) tables. To correctly account for thermal scattering in water, the starting material definition in OpenMC must include the correct thermal scattering library.
+
 ## Example Input File Syntax
 
 The following input will perform a criticality search for each OpenMC solve
