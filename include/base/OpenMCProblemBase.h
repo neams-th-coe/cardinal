@@ -59,8 +59,6 @@ public:
 
   virtual ~OpenMCProblemBase() override;
 
-  virtual void initialSetup() override;
-
   /**
    * Get the subdomain name for a given ID. If not named, we return the ID
    * @param[in] id subdomain ID
