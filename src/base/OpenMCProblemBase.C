@@ -361,7 +361,7 @@ OpenMCProblemBase::externalSolve()
     return;
   }
 
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+  _console << "Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())
