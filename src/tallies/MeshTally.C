@@ -37,12 +37,6 @@ MeshTally::validParams()
   params.addParam<Point>("mesh_translation",
                          "Coordinate to which this mesh should be "
                          "translated. Units must match those used to define the [Mesh].");
-  params.addParam<std::vector<SubdomainName>>(
-      "block",
-      "Subdomains for which to add tallies in OpenMC. If not provided, this mesh "
-      "tally will be applied over the entire mesh.");
-  params.addParam<std::vector<SubdomainName>>("blocks",
-                                              "This parameter is deprecated, use 'block' instead!");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -57,9 +51,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _instance(getParam<unsigned int>("instance")),
     _use_dof_map(_is_adaptive || isParamValid("block"))
 {
-  if (isParamSetByUser("blocks"))
-    mooseError("This parameter is deprecated, use 'block' instead!");
-
   bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
@@ -119,25 +110,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
       paramError("mesh_translation",
                  "The mesh filter cannot be translated if directly tallying on the mesh "
                  "provided in the [Mesh] block!");
-
-    // Fetch subdomain IDs for block restrictions.
-    if (isParamValid("block"))
-    {
-      auto block_names = getParam<std::vector<SubdomainName>>("block");
-      if (block_names.empty())
-        paramError("block", "Subdomain names must be provided if using 'block'!");
-
-      auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
-      std::copy(
-          block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
-
-      // Check to make sure all of the blocks are in the mesh.
-      const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
-      for (std::size_t b = 0; b < block_names.size(); ++b)
-        if (subdomains.find(block_ids[b]) == subdomains.end())
-          paramError("block",
-                     "Block '" + block_names[b] + "' specified in 'block' not found in mesh!");
-    }
   }
 
   /**
