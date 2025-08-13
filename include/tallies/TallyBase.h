@@ -212,6 +212,12 @@ public:
    */
   unsigned int numExtFilterBins() const { return _num_ext_filter_bins; }
 
+  /**
+   * A function to get the blocks associated with this CellTally.
+   * @return a set of blocks associated with this tally.
+   */
+  const std::set<SubdomainID> & getBlocks() const { return _tally_blocks; }
+
 protected:
   /**
    * A function which stores the results of this tally into the created
@@ -345,6 +351,9 @@ protected:
 
   /// External filter bins to skip while computing the tally sum and mean for normalization.
   std::vector<bool> _ext_bins_to_skip;
+
+  /// Blocks for which to add tallies.
+  std::set<SubdomainID> _tally_blocks;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
