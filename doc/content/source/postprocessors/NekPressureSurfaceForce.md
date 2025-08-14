@@ -9,11 +9,7 @@ stress tensor over a boundary, multiplied by negative 1 in order to compute
 the force that the fluid exerts ON the boundary,
 
 \begin{equation}
-\begin{aligned}
-r_i=&\ -\int_{\Gamma}-P\delta_{ij}n_j\ d\Gamma\\
-=&\ -\int_{\Gamma}-Pn_i\ d\Gamma\\
-=&\ \int_{\Gamma}Pn_i\ d\Gamma\\
-\end{aligned}
+r_i=-\int_{\Gamma}-Pn_i\ d\Gamma\rightarrow\int_{\Gamma}Pn_i\ d\Gamma
 \end{equation}
 
 where $\Gamma$ is the boundary of the NekRS mesh and
