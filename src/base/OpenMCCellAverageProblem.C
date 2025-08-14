@@ -2198,6 +2198,11 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     _tally_var_ids.emplace_back();
 
+    // Convert the subdomain ID map into a std::vector for addExternalVariable(...).
+    std::vector<SubdomainName> block_name_vec;
+    for (const auto b : _local_tallies[i]->getBlocks())
+      block_name_vec.emplace_back(mesh().getSubdomainName(b) != "" ? mesh().getSubdomainName(b) : std::to_string(b));
+
     // We use this to check if a sequence of added tallies corresponds to a single translated mesh.
     // If the number of names reported in getAuxVarNames is zero, the tally must store it's results
     // in the variables added by the first mesh tally in the sequence.
@@ -2216,7 +2221,7 @@ OpenMCCellAverageProblem::addExternalVariables()
         _tally_var_ids[i].push_back(
             _tally_var_ids[previous_valid_name_index][j]); // Use variables from first in sequence.
       else
-        _tally_var_ids[i].push_back(addExternalVariable(names[j]));
+        _tally_var_ids[i].push_back(addExternalVariable(names[j], &block_name_vec));
 
       if (_local_tallies[i]->hasOutputs())
       {
@@ -2229,7 +2234,7 @@ OpenMCCellAverageProblem::addExternalVariables()
                 _tally_ext_var_ids[previous_valid_name_index][k]
                                   [j]); // Use variables from first in sequence.
           else
-            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n));
+            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n, &block_name_vec));
         }
       }
     }
