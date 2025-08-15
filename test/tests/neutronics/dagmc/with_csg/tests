@@ -1,6 +1,6 @@
 [Tests]
   issues = '#1176 #1177'
-  design = 'MOABSkinner.md OpenMCCellAverageProblem.md'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
 
   [allows_csg_with_skinner]
     type = CSVDiff
