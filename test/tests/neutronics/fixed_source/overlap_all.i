@@ -56,6 +56,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
+    block = '100 200'
   []
   [heat_source_fluid]
     type = ElementIntegralVariablePostprocessor

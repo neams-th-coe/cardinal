@@ -217,6 +217,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
     execute_on = 'transfer initial timestep_end'
+    block = ${fuel_blocks}
   []
   [max_tally_err]
     type = TallyRelativeError

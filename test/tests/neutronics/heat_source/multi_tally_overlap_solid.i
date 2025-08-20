@@ -60,11 +60,7 @@
   [kappa_fission]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
-  []
-  [fluid_kappa_fission]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '200'
+    block = '100'
   []
   [solid_kappa_fission]
     type = ElementIntegralVariablePostprocessor
@@ -74,11 +70,7 @@
   [heating]
     type = ElementIntegralVariablePostprocessor
     variable = heating
-  []
-  [fluid_heating]
-    type = ElementIntegralVariablePostprocessor
-    variable = heating
-    block = '200'
+    block = '100'
   []
   [solid_heating]
     type = ElementIntegralVariablePostprocessor
