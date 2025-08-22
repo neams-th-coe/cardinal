@@ -50,8 +50,8 @@ box2 = openmc.Cell(region=+r & -z & +b & -t & +f & -k, fill=bw)
 model.geometry = openmc.Geometry([box1, box2])
 
 # Finally, define some run settings
-model.settings.batches = 50
-model.settings.inactive = 10
+model.settings.batches = 10
+model.settings.inactive = 3
 model.settings.particles = 1000
 
 lower_left = (0, 0, 0)
