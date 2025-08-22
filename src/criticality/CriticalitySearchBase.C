@@ -74,6 +74,13 @@ CriticalitySearchBase::searchForCriticality()
            << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " " << units() << " "
            << std::endl;
 
+  VariadicTable<int, Real, Real, Real> vt(
+      {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
+  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                      VariadicTableColumnFormat::SCIENTIFIC,
+                      VariadicTableColumnFormat::SCIENTIFIC,
+                      VariadicTableColumnFormat::SCIENTIFIC});
+
   std::function<Real(Real)> func;
   func = [&](Real x)
   {
@@ -92,6 +99,9 @@ CriticalitySearchBase::searchForCriticality()
     _k_values.push_back(k);
     _k_std_dev_values.push_back(k_std_dev);
 
+    vt.addRow(_k_values.size() - 1, x, k, k_std_dev);
+    vt.print(_console);
+
     if (_tolerance < 3 * k_std_dev)
       mooseDoOnce(mooseWarning(
           "The 'tolerance' for the criticality search (" + std::to_string(_tolerance) +
@@ -108,16 +118,6 @@ CriticalitySearchBase::searchForCriticality()
   if (abs(kMean(_estimator) - 1.0) >= _tolerance)
     mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
                "tight given the statistical error in the computation of k.");
-
-  VariadicTable<int, Real, Real, Real> vt(
-      {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
-  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::SCIENTIFIC,
-                      VariadicTableColumnFormat::SCIENTIFIC,
-                      VariadicTableColumnFormat::SCIENTIFIC});
-  for (int i = 0; i < _inputs.size(); ++i)
-    vt.addRow(i, _inputs[i], _k_values[i], _k_std_dev_values[i]);
-  vt.print(_console);
 
   // fill the converged value into a postprocessor
   _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());

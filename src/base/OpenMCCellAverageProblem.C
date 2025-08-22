@@ -1485,7 +1485,7 @@ OpenMCCellAverageProblem::getMaterialFills()
     if (!hasDensityFeedback(cell_info))
     {
       // TODO: this check should be extended for non-fluid cells which may contain
-      // lattices or  universes
+      // lattices or universes
       if (is_material_cell)
         other_materials.insert(material_index);
       continue;
