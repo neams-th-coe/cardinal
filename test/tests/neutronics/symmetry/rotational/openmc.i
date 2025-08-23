@@ -80,6 +80,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
+    block = '2'
   []
 
   # check a few of the pins to be sure that the reflected heat source matches

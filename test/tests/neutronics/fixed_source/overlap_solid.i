@@ -59,11 +59,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
-  []
-  [heat_source_fluid]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '200'
+    block = '100'
   []
   [heat_source_solid]
     type = ElementIntegralVariablePostprocessor
