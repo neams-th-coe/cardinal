@@ -562,11 +562,20 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
     return;
   }
 
-  // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
-  // auxvariable as well as the MOOSE fluid properties module) to g/cm3
-  const char * units = "g/cc";
-  int err =
-      openmc_material_set_density(material_index, density * _density_conversion_factor, units);
+  // Fetch the density of the material to compute the density multiplier.
+  double mat_density;
+  int err = openmc_material_get_density(material_index, &mat_density);
+  if (err)
+  {
+    mooseError("In attempting to get the material density for cell " + printCell(cell_info)
+               + ", OpenMC reported:\n\n", std::string(openmc_err_msg) + "\n\n");
+  }
+
+  // Compute the density multiplier. We multiply density by 0.001 to convert from kg/m3
+  // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
+  // properties module) to g/cm3
+  const double density_mult = (_density_conversion_factor * density) / mat_density;
+  err = openmc_cell_set_density_mult(cell_info.first, density_mult, &cell_info.second, true);
 
   if (err)
   {
@@ -576,11 +585,11 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
                  " with zero instances.");
 
     mooseError("In attempting to set cell " + printCell(cell_info) + " to density " +
-                   Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
+               Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
                std::string(openmc_err_msg) + "\n\n" +
-                   "If you are trying to debug a model setup, you can set 'initial_properties = "
-                   "xml' to use the initial temperature and density in the OpenMC XML files for "
-                   "OpenMC's first run.");
+               "If you are trying to debug a model setup, you can set 'initial_properties = "
+               "xml' to use the initial temperature and density in the OpenMC XML files for "
+               "OpenMC's first run.");
   }
 }
 
