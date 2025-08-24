@@ -1495,14 +1495,6 @@ OpenMCCellAverageProblem::getMaterialFills()
     // didnt set up the materials correctly (if mapping by cell)
     if (materials_in_fluid.find(material_index) == materials_in_fluid.end())
       materials_in_fluid.insert(material_index);
-    else if (_map_density_by_cell)
-      mooseError(printMaterial(material_index) +
-                 " is present in more than one density feedback cell.\n\nThis means that your "
-                 "model cannot independently change the density in cells filled with this "
-                 "material. You need to edit your OpenMC model to create additional materials "
-                 "unique to each density feedback cell.\n\n"
-                 "Or, if you want to apply feedback to a material spanning multiple "
-                 "cells, set 'map_density_by_cell' to false.");
 
     if (!is_material_cell)
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
