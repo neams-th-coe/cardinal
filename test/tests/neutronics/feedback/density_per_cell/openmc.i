@@ -59,8 +59,6 @@
 
   cell_level = 0
 
-  map_density_by_cell = false
-
   [Tallies]
     [Cell]
       type = CellTally
