@@ -510,12 +510,6 @@ protected:
   void updateOpenMCGeometry();
 
   /**
-   * Re-generate the OpenMC materials in-place, needed for skinning operation where
-   * we create new OpenMC materials on-the-fly in order to receive density feedback.
-   */
-  virtual void updateMaterials();
-
-  /**
    * Get a list of each material in the problem, sorted by subdomain. This function also checks
    * that there is just one OpenMC material in each subdomain, necessary for the DAGMC skinning.
    * @return material in each subdomain

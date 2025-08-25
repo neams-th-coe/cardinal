@@ -2616,9 +2616,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         // _skinner->update().
         updateOpenMCGeometry();
 
-        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
-        updateMaterials();
-
         // regenerate the DAGMC geometry
         reloadDAGMC();
       }
@@ -3212,53 +3209,6 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
     for (const auto & [id, index] : openmc::model::surface_map)
       if (openmc::model::surfaces[index]->id_ != id)
         mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
-  }
-#endif
-}
-
-void
-OpenMCCellAverageProblem::updateMaterials()
-{
-#ifdef ENABLE_DAGMC
-  // We currently only re-init the materials one time, because we create one new
-  // material for every density bin, even if that density bin doesn't actually
-  // appear in the problem. TODO: we could probably reduce memory usage
-  // if we only re-generated materials we strictly needed for the model.
-  if (!_first_transfer)
-    return;
-
-  // only need to create new materials if we have density skinning
-  if (_skinner->nDensityBins() == 1)
-    return;
-
-  // map from IDs to names (names used by the skinner, not necessarily any internal
-  // name in OpenMC, because you're not strictly required to add names for materials
-  // with the OpenMC input files)
-  std::map<int32_t, std::string> ids_to_names;
-  for (const auto & m : openmc::model::material_map)
-  {
-    auto id = m.first;
-    auto idx = m.second;
-    if (ids_to_names.count(id))
-      mooseError("Internal error: material_map has more than one material with the same ID");
-
-    ids_to_names[id] = materialName(idx);
-  }
-
-  // append _0 to all existing material names
-  for (const auto & mat : openmc::model::materials)
-    mat->set_name(ids_to_names[mat->id()] + "_0");
-
-  // Then, create the copies of each material
-  int n_mats = openmc::model::materials.size();
-  for (unsigned int n = 0; n < n_mats; ++n)
-  {
-    auto name = ids_to_names[openmc::model::materials[n]->id()];
-    for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
-    {
-      openmc::Material & new_mat = openmc::model::materials[n]->clone();
-      new_mat.set_name(name + "_" + std::to_string(j));
-    }
   }
 #endif
 }
