@@ -1,0 +1,13 @@
+[Tests]
+  issues = '#1197'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [pincell]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall allow density feedback in OpenMC models per cell without requiring unique cell materials. "
+                  "This model was compared against a model with unique materials per cell."
+    capabilities = 'openmc'
+  []
+[]
