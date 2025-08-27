@@ -1,14 +1,14 @@
 [Mesh]
   [generated_mesh]
-    type = GeneratedMeshGenerator
-    dim = 2
-    nx = 20
-    ny = 20
-    x_min = 0
-    x_max = 10
-    y_min = 0
-    y_max = 10
-    extra_element_integers = 'threshold_heuristic'
+  type = GeneratedMeshGenerator
+  dim = 2
+  nx = 20
+  ny = 20
+  x_min = 0
+  x_max = 10
+  y_min = 0
+  y_max = 10
+  extra_element_integers = 'equal_value'
   []
 []
 
@@ -32,29 +32,22 @@
   []
   [store_element_id]
     type=ExtraElementIDAux
-    extra_id_name ="threshold_heuristic"
+    extra_id_name ="equal_value"
     execute_on = 'TIMESTEP_BEGIN'
     variable=cluster_id_aux
   []
 []
 
 [UserObjects]
-  [threhsold_1]
-    type = ThresholdHeuristicsUserObject
+  [value_diff]
+    type = ValueDifferenceHeuristicUserObject
     metric_variable_name = 'metric_var'
-    threshold = 1.1
+    tolerance = 0.001
   []
-  [threhsold_2]
-    type = ThresholdHeuristicsUserObject
-    metric_variable_name = 'metric_var'
-    threshold = 1.4
-    cluster_if_above_threshold = false
-  []
-
   [boolean_combo]
     type = BooleanComboClusteringUserObject
-    expression = "( threhsold_1 and threhsold_2 )"
-    id_name = "threshold_heuristic"
+    expression = "value_diff"
+    id_name = "equal_value"
   []
 []
 

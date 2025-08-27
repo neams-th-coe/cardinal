@@ -2,6 +2,9 @@
 
 #include "ClusteringHeuristicUserObjectBase.h"
 
+/*A clustering heuristic user object which clusters two neighboring elements whose scores
+ * are more than a threshold.
+ * */
 class ThresholdHeuristicsUserObject : public ClusteringHeuristicUserObjectBase
 {
 
@@ -9,7 +12,6 @@ public:
   static InputParameters validParams();
   ThresholdHeuristicsUserObject(const InputParameters & parameters);
 
-protected:
   /// method for evaluting if element should be clusterd or not
   virtual bool evaluate(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const override;
 

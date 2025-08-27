@@ -16,15 +16,18 @@ public:
   virtual void initialize() override {};
   virtual void finalize() override {};
 
-protected:
-  ///Get the metric data from the auxiliary system for an element.
-  Real getMetricData(const libMesh::Elem * elem) const;
-
   /**
    * A purely virtual function which must be overrided in derived classes.
    * It applies the clustering logic for two elements in the derived class
+   * param[in] base_element the current element
+   * param[in] neighbor_elem the current neighbour of base_element
+   * return whether the two elements should be added to a cluster or not
    */
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
+
+protected:
+  ///Get the metric data from the auxiliary system for an element.
+  Real getMetricData(const libMesh::Elem * elem) const;
 
   ///Mesh reference
   libMesh::MeshBase & _mesh;

@@ -53,9 +53,9 @@ private:
   std::vector<std::string> _output_stack;
 
   /// operator predecence
-  static const std::unordered_map<std::string, int> _precedence { {"not", 3}, {"!", 3}, {"and", 2}, {"&&", 2}, {"or", 1}, {"||", 1} };
+  static std::unordered_map<std::string, int> _precedence;
 
   static constexpr int NOT_VISITED = -1;
-  static constexpr std::string _left_parenthesis = "(";
-  static constexpr std::string _right_parenthesis = ")";
+  static constexpr std::string_view _left_parenthesis = "(";
+  static constexpr std::string_view _right_parenthesis = ")";
 };

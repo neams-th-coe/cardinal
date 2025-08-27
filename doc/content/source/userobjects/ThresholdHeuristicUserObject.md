@@ -12,7 +12,7 @@ input argument `cluster_if_above_threshold` is false.
 !alert-end!
 
 The following input block declares a **ThresholdHeuristicUserObejct** which
-is then user by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
+is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
 !listing tutorials/clustering/threshold_heuristic/example_input.i

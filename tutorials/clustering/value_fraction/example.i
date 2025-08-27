@@ -1,3 +1,5 @@
+
+
 [Mesh]
   [generated_mesh]
     type = GeneratedMeshGenerator
@@ -8,7 +10,7 @@
     x_max = 10
     y_min = 0
     y_max = 10
-    extra_element_integers = 'threshold_heuristic'
+    extra_element_integers = 'extreme_value'
   []
 []
 
@@ -32,29 +34,23 @@
   []
   [store_element_id]
     type=ExtraElementIDAux
-    extra_id_name ="threshold_heuristic"
+    extra_id_name ="extreme_value"
     execute_on = 'TIMESTEP_BEGIN'
     variable=cluster_id_aux
   []
 []
 
 [UserObjects]
-  [threhsold_1]
-    type = ThresholdHeuristicsUserObject
+  [value_fraction]
+    type = ValueFractionHeuristicUserObject
     metric_variable_name = 'metric_var'
-    threshold = 1.1
+    upper_fraction = 0.2
+    lower_fraction = 0.1
   []
-  [threhsold_2]
-    type = ThresholdHeuristicsUserObject
-    metric_variable_name = 'metric_var'
-    threshold = 1.4
-    cluster_if_above_threshold = false
-  []
-
   [boolean_combo]
     type = BooleanComboClusteringUserObject
-    expression = "( threhsold_1 and threhsold_2 )"
-    id_name = "threshold_heuristic"
+    expression = "value_fraction"
+    id_name = "extreme_value"
   []
 []
 
