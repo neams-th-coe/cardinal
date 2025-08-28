@@ -14,8 +14,8 @@ public:
 
   /// method for evaluting if element should be clusterd or not
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const override;
-protected:
 
+protected:
   /// relative tolerance
   const Real _tolerance;
 };

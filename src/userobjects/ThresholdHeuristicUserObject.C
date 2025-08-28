@@ -1,9 +1,9 @@
-#include "ThresholdHeuristicsUserObject.h"
+#include "ThresholdHeuristicUserObject.h"
 
-registerMooseObject("CardinalApp", ThresholdHeuristicsUserObject);
+registerMooseObject("CardinalApp", ThresholdHeuristicUserObject);
 
 InputParameters
-ThresholdHeuristicsUserObject::validParams()
+ThresholdHeuristicUserObject::validParams()
 {
 
   InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
@@ -11,16 +11,17 @@ ThresholdHeuristicsUserObject::validParams()
                                   " The value against which the clustering process is compared.");
   params.addParam<bool>(
       "cluster_if_above_threshold", true, " Return true if the value is more than the threshold");
-  params.addClassDescription("A special type of ClusterUserObject that applies threshold"
-                             "based heuristics on the element pairs. It clusters elements if their score "
-                             "is more (default) or less than tolerance percentage of the value provided in the input files. "
-                             "The operation will be flipped if the input argument cluster_if_above_threshold is false. "
-  );
+  params.addClassDescription(
+      "A special type of ClusterUserObject that applies threshold"
+      "based heuristics on the element pairs. It clusters elements if their score "
+      "is more (default) or less than tolerance percentage of the value provided in the input "
+      "files. "
+      "The operation will be flipped if the input argument cluster_if_above_threshold is false. ");
 
   return params;
 }
 
-ThresholdHeuristicsUserObject::ThresholdHeuristicsUserObject(const InputParameters & parameters)
+ThresholdHeuristicUserObject::ThresholdHeuristicUserObject(const InputParameters & parameters)
   : ClusteringHeuristicUserObjectBase(parameters),
     _threshold(getParam<double>("threshold")),
     _cluster_if_above_threshold(getParam<bool>("cluster_if_above_threshold"))
@@ -28,7 +29,7 @@ ThresholdHeuristicsUserObject::ThresholdHeuristicsUserObject(const InputParamete
 }
 
 bool
-ThresholdHeuristicsUserObject::evaluate(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const
+ThresholdHeuristicUserObject::evaluate(libMesh::Elem * elem, libMesh::Elem * neighbor_elem) const
 {
 
   return _cluster_if_above_threshold

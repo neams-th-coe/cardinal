@@ -11,7 +11,8 @@ ClusteringHeuristicUserObjectBase::validParams()
   return params;
 }
 
-ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(const InputParameters & parameters)
+ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
+    const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _mesh(_fe_problem.mesh().getMesh()),
     _metric_variable_name(getParam<AuxVariableName>("metric_variable_name")),
@@ -20,11 +21,10 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(const Input
     _dof_map(_auxiliary_system.dofMap()),
     _metric_variable_index(_auxiliary_system.getVariable(_tid, _metric_variable_name).number())
 {
-  //check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
-  if (_metric_variable.feType()!=FEType(CONSTANT, MONOMIAL))
+  // check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
+  if (_metric_variable.feType() != FEType(CONSTANT, MONOMIAL))
     mooseError("Variable must be type of CONSTANT MONOMIAL");
 }
-
 
 Real
 ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) const

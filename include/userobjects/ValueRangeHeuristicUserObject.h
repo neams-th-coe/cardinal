@@ -17,7 +17,6 @@ public:
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const override;
 
 protected:
-
   Real _tolerance_percentage;
   Real _value;
   Real _upper_limit;

@@ -16,10 +16,10 @@ This ensures existing mesh annotations are preserved.
 
 ## Example Input File
 
-This example reads a mesh file (in this case mesh_in.e) by using a [FileMeshGenerator](FileMeshGenerator.md),
-then the `ParsedElementIDMeshGenerator` adds three eeid +(a, b, c)+ to the mesh. The values of eeid +(a, b, c)+ will be +(-1, 44, 20)+ throughout the whole mesh.
+This example reads a mesh (in this case generated_mesh) created by a [GeneratedMeshGenerator](GeneratedMeshGenerator.md),
+then the `ParsedElementIDMeshGenerator` adds one eeid `threshold_heuristic` to the mesh. The value of eeid `threshold_heuristic` will be `-1` throughout the whole mesh.
 
-!listing tutorials/mesh_tally_amalgamation/clustering/threshold_heuristic.i
+!listing /test/tests/userobjects/clustering/example_input.i
 block=Mesh
 
 

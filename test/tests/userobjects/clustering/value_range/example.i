@@ -1,6 +1,5 @@
 [Mesh]
   [generated_mesh]
-    type = GeneratedMeshGenerator
     dim = 2
     nx = 20
     ny = 20

@@ -15,7 +15,6 @@ public:
   virtual void initialize() override {};
   virtual void finalize() override {};
 
-
 private:
   ///getter function for extra element integer
   int getExtraIntegerScore(libMesh::Elem * elem) const;
@@ -23,7 +22,7 @@ private:
   /*function for converting the expression input to rpn
    * it follows the  shunting yard algorithm
    */
-  void reversePolishNotation(const std::vector<std::string>& expression);
+  void reversePolishNotation(const std::vector<std::string> & expression);
 
   /// method for evaluting if element should be clusterd or not
   bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem);
@@ -47,7 +46,8 @@ private:
   unsigned int _extra_integer_index;
 
   /// hash map for clustering user object.
-  std::unordered_map< std::string, const ClusteringHeuristicUserObjectBase* > _clustering_user_objects;
+  std::unordered_map<std::string, const ClusteringHeuristicUserObjectBase *>
+      _clustering_user_objects;
 
   /// hold the final rpn expression
   std::vector<std::string> _output_stack;
