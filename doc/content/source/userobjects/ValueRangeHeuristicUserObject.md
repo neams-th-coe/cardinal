@@ -21,7 +21,7 @@ The following input block declares a `ValueRangeHeuristicUserObejct` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
-!listing tutorials/clustering/value_range/example.i
+!listing /test/tests/userobjects/clustering/value_range/example.i
 block=UserObjects/value_range
 
 !syntax parameters /UserObject/ValueRangeHeuristicUserObejct

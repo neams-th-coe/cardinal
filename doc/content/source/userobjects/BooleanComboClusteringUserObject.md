@@ -11,7 +11,7 @@ If the expression is true for those two elements then the `extra_integer`
 for those two elements are changed. If an element belongs to a cluster, the `extra_integer` is 
 set same as the element id of the first element in that cluster.
 
-!listing tutorials/clustering/threshold_heuristic/example_input.i
+!listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
 block=UserObjects/boolean_combo
 
 !syntax parameters /UserObject/BooleanComboClusteringUserObject

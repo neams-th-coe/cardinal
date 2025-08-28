@@ -1,0 +1,8 @@
+[Tests]
+  [grid]
+    type = Exodiff
+    input = example.i
+    exodiff = example_out.e
+    requirement = "cluster_id_aux needs to be the same"
+  []
+[]

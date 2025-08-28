@@ -1,5 +1,3 @@
-
-
 [Mesh]
   [generated_mesh]
     type = GeneratedMeshGenerator
@@ -10,7 +8,7 @@
     x_max = 10
     y_min = 0
     y_max = 10
-    extra_element_integers = 'extreme_value'
+    extra_element_integers = 'boolean'
   []
 []
 
@@ -34,23 +32,29 @@
   []
   [store_element_id]
     type=ExtraElementIDAux
-    extra_id_name ="extreme_value"
+    extra_id_name ="boolean"
     execute_on = 'TIMESTEP_BEGIN'
     variable=cluster_id_aux
   []
 []
 
 [UserObjects]
-  [value_fraction]
-    type = ValueFractionHeuristicUserObject
+  [value_range_1]
+    type = ValueRangeHeuristicUserObject
     metric_variable_name = 'metric_var'
-    upper_fraction = 0.2
-    lower_fraction = 0.1
+    tolerance_percentage = 0.2
+    value = 1
+  []
+  [value_range_2]
+    type = ValueRangeHeuristicUserObject
+    metric_variable_name = 'metric_var'
+    tolerance_percentage = 0.4
+    value = 4
   []
   [boolean_combo]
     type = BooleanComboClusteringUserObject
-    expression = "value_fraction"
-    id_name = "extreme_value"
+    expression = "( value_range_2 or value_range_1 )"
+    id_name = "boolean"
   []
 []
 

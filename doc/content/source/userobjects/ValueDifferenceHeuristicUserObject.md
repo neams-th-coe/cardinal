@@ -15,7 +15,7 @@ The following input block declares a `ValueDifferenceHeuristicUserObejct` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
-!listing tutorials/clustering/value_difference/example.i
+!listing /test/tests/userobjects/clustering/value_difference/example.i
 block=UserObjects/value_diff
 
 !syntax parameters /UserObject/ValueDifferenceHeuristicUserObejct

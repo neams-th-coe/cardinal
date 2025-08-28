@@ -15,7 +15,7 @@ The following input block declares a **ThresholdHeuristicUserObejct** which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
-!listing tutorials/clustering/threshold_heuristic/example_input.i
+!listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
 block=UserObjects/threhsold
 
 !syntax parameters /UserObject/ThresholdHeuristicUserObject

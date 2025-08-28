@@ -22,7 +22,7 @@ The following input block declares a `ValueFractionHeuristicUserObejct` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
-!listing tutorials/clustering/value_range/example.i
+!listing /test/tests/userobjects/clustering/value_range/example.i
 block=UserObjects/value_fraction
 
 !syntax parameters /UserObject/ValueFractionHeuristicUserObejct
