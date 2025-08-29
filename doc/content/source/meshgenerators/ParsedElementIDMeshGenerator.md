@@ -19,7 +19,7 @@ This ensures existing mesh annotations are preserved.
 This example reads a mesh (in this case generated_mesh) created by a [GeneratedMeshGenerator](GeneratedMeshGenerator.md),
 then the `ParsedElementIDMeshGenerator` adds one eeid `threshold_heuristic` to the mesh. The value of eeid `threshold_heuristic` will be `-1` throughout the whole mesh.
 
-!listing /test/tests/userobjects/clustering/example_input.i
+!listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
 block=Mesh
 
 

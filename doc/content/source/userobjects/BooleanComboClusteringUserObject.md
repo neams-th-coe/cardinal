@@ -12,7 +12,7 @@ for those two elements are changed. If an element belongs to a cluster, the `ext
 set same as the element id of the first element in that cluster.
 
 !listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
-block=UserObjects/boolean_combo
+block=UserObjects
 
-!syntax parameters /UserObject/BooleanComboClusteringUserObject
-!syntax inputs /UserObject/BooleanComboClusteringUserObject
+!syntax parameters /UserObjects/BooleanComboClusteringUserObject
+!syntax inputs /UserObjects/BooleanComboClusteringUserObject

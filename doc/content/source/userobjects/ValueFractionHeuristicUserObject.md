@@ -1,8 +1,8 @@
-# ValueFractionHeuristicUserObejct
+# ValueFractionHeuristicUserObject
 
 ## Description
 
-`ValueFractionHeuristicUserObejct` inherits from the [ClusteringHeuristicUserObjectBase](ClusteringHeuristicUserObjectBase.md).
+`ValueFractionHeuristicUserObject` inherits from the `ClusteringHeuristicUserObjectBase`.
 It implements the clustering heuristic if the scores of two adjacent
 elements are both either more/less than a upper/lower cut off of the metric variable.
 The upper and lower cut off are calculated as,
@@ -14,16 +14,16 @@ where `upper_fraction` and `lower_fraction` are user defined input parameters an
 $S_{min}$ are maximum and minimum value of the `metric_variable`
 
 !alert! warning
-`ValueFractionHeuristicUserObejct` doesn't implement the clustering and mesh walking process. Mesh walking and the clustering process are implemented
+`ValueFractionHeuristicUserObject` doesn't implement the clustering and mesh walking process. Mesh walking and the clustering process are implemented
 by the [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 !alert-end!
 
-The following input block declares a `ValueFractionHeuristicUserObejct` which
+The following input block declares a `ValueFractionHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
 where the mesh walking and cluster process is implemented.
 
 !listing /test/tests/userobjects/clustering/value_range/example.i
-block=UserObjects/value_fraction
+block=UserObjects
 
-!syntax parameters /UserObject/ValueFractionHeuristicUserObejct
-!syntax inputs /UserObject/ValueFractionHeuristicUserObejct
+!syntax parameters /UserObjects/ValueFractionHeuristicUserObject
+!syntax inputs /UserObjects/ValueFractionHeuristicUserObject
