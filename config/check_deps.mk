@@ -71,53 +71,77 @@ ifneq (,$(findstring +,$(moose_status)))
 endif
 
 ifeq ($(ENABLE_NEK), yes)
-  ifeq ($(NEKRS_CONTENT),)
-    $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
-  else
-    $(info Cardinal is using NekRS from           $(NEKRS_DIR))
-  endif
+  ifeq ($(BUILD_NEKRS),yes)
+    ifeq ($(NEKRS_CONTENT),)
+      $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+    else
+      $(info Cardinal is using NekRS from           $(NEKRS_DIR))
+    endif
 
-  nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
-  ifneq (,$(findstring +,$(nek_status)))
-    $(warning $n"***WARNING***: Your NekRS submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+    nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
+    ifneq (,$(findstring +,$(nek_status)))
+      $(warning $n"***WARNING***: Your NekRS submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+    endif
+  else
+    $(info Cardinal is using pre-built NekRS from $(NEKRS_DIR))
   endif
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  ifeq ($(OPENMC_CONTENT),)
-    $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
-  else
-    $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
-  endif
+  ifeq ($(BUILD_OPENMC),yes)
+    ifeq ($(OPENMC_CONTENT),)
+      $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
+    else
+      $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
+    endif
 
-  openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
-  ifneq (,$(findstring +,$(openmc_status)))
-    $(warning $n"***WARNING***: Your OpenMC submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+    openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
+    ifneq (,$(findstring +,$(openmc_status)))
+      $(warning $n"***WARNING***: Your OpenMC submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+    endif
+  else
+    $(info Cardinal is using pre-built OpenMC from $(OPENMC_DIR))
   endif
 endif
 
 ifeq ($(ENABLE_DAGMC), yes)
-  ifeq ($(DAGMC_CONTENT),)
-    $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
+  ifeq ($(BUILD_DAGMC),yes)
+    ifeq ($(DAGMC_CONTENT),)
+      $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
+    else
+      $(info Cardinal is using DAGMC from           $(DAGMC_DIR))
+    endif
   else
-    $(info Cardinal is using DAGMC from           $(DAGMC_DIR))
+    $(info Cardinal is using pre-built DAGMC from $(DAGMC_DIR))
   endif
 	ifeq ($(ENABLE_DOUBLE_DOWN), yes)
-		ifeq ($(DOUBLEDOWN_CONTENT),)
-  	  $(error $n"Double-Down does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Double-Down submodule, use ./scripts/get-dependencies.sh")
-  	else
-  	  $(info Cardinal is using Double-Down from     $(DOUBLEDOWN_DIR))
-  	endif
-		ifeq ($(EMBREE_CONTENT),)
-  	  $(error $n"Embree does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Embree submodule, use ./scripts/get-dependencies.sh")
-  	else
-  	  $(info Cardinal is using Embree from          $(EMBREE_DIR))
-		endif
+    ifeq ($(BUILD_DOUBLEDOWN),yes)
+		  ifeq ($(DOUBLEDOWN_CONTENT),)
+  	    $(error $n"Double-Down does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Double-Down submodule, use ./scripts/get-dependencies.sh")
+  	  else
+  	    $(info Cardinal is using Double-Down from     $(DOUBLEDOWN_DIR))
+  	  endif
+    else
+      $(info Cardinal is using pre-built Double-Down from $(DOUBLEDOWN_DIR))
+    endif
+    ifeq ($(BUILD_EMBREE),yes)
+		  ifeq ($(EMBREE_CONTENT),)
+  	    $(error $n"Embree does not seem to be available, but ENABLE_DAGMC and ENABLE_DOUBLE_DOWN are enabled. Make sure that the submodule is checked out.$n$nTo fetch the Embree submodule, use ./scripts/get-dependencies.sh")
+  	  else
+  	    $(info Cardinal is using Embree from          $(EMBREE_DIR))
+		  endif
+    else
+      $(info Cardinal is using pre-built Embree from $(EMBREE_DIR))
+    endif
   endif
-  ifeq ($(MOAB_CONTENT),)
-    $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
+  ifeq ($(BUILD_MOAB),yes)
+    ifeq ($(MOAB_CONTENT),)
+      $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
+    else
+      $(info Cardinal is using Moab from            $(MOAB_DIR))
+    endif
   else
-    $(info Cardinal is using Moab from            $(MOAB_DIR))
+    $(info Cardinal is using pre-built Moab from $(MOAB_DIR))
   endif
 
   DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)

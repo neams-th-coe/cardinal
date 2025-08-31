@@ -1,3 +1,8 @@
+# By default, build doubledown
+BUILD_DOUBLEDOWN ?= yes
+
+ifeq ($(BUILD_DOUBLEDOWN),yes)
+
 $(DOUBLEDOWN_BUILDDIR)/Makefile: build_moab build_embree | $(DOUBLEDOWN_DIR)/CMakeLists.txt
 	mkdir -p $(DOUBLEDOWN_BUILDDIR)
 	cd $(DOUBLEDOWN_BUILDDIR) && \
@@ -22,6 +27,20 @@ cleanall_doubledown: | $(DOUBLEDOWN_BUILDDIR)/Makefile
 
 clobber_doubledown:
 	rm -rf $(DOUBLEDOWN_LIB) $(DOUBLEDOWN_BUILDDIR) $(DOUBLEDOWN_INSTALL_DIR)
+
+else # BUILD_DOUBLEDOWN=no
+
+DOUBLEDOWN_INSTALL_DIR = $(DOUBLEDOWN_DIR)
+build_doubledown:
+	@echo "Using pre-built doubledown from $(DOUBLEDOWN_INSTALL_DIR)"
+
+cleanall_doubledown:
+	@echo "Not cleaning pre-built doubledown"
+
+clobber_doubledown:
+	@echo "Not clobbering pre-built doubledown"
+
+endif # BUILD_DOUBLEDOWN
 
 cleanall: cleanall_doubledown
 

@@ -1,3 +1,8 @@
+# By default, build dagmc
+BUILD_DAGMC ?= yes
+
+ifeq ($(BUILD_DAGMC),yes)
+
 $(DAGMC_BUILDDIR)/Makefile: build_doubledown | $(DAGMC_DIR)/CMakeLists.txt
 	mkdir -p $(DAGMC_BUILDDIR)
 	cd $(DAGMC_BUILDDIR) && \
@@ -31,6 +36,20 @@ cleanall_dagmc: | $(DAGMC_BUILDDIR)/Makefile
 
 clobber_dagmc:
 	rm -rf $(DAGMC_LIB) $(DAGMC_BUILDDIR) $(DAGMC_INSTALL_DIR)
+
+else # BUILD_DAGMC=no
+
+DAGMC_INSTALL_DIR = $(DAGMC_DIR)
+build_dagmc:
+	@echo "Using pre-built dagmc from $(DAGMC_INSTALL_DIR)"
+
+cleanall_dagmc:
+	@echo "Not cleaning pre-built dagmc"
+
+clobber_dagmc:
+	@echo "Not clobbering pre-built dagmc"
+
+endif # BUILD_DAGMC
 
 cleanall: cleanall_dagmc
 

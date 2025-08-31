@@ -1,3 +1,9 @@
+# By default, build openmc
+
+BUILD_OPENMC ?= yes
+
+ifeq ($(BUILD_OPENMC),yes)
+
 $(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
 	cd $(OPENMC_BUILDDIR) && \
@@ -27,6 +33,20 @@ cleanall_openmc: | $(OPENMC_BUILDDIR)/Makefile
 
 clobber_openmc:
 	rm -rf $(OPENMC_LIB) $(OPENMC_BUILDDIR) $(OPENMC_INSTALL_DIR)
+
+else # BUILD_OPENMC=no
+
+OPENMC_INSTALL_DIR = $(OPENMC_DIR)
+build_openmc:
+	@echo "Using pre-built openmc from $(OPENMC_INSTALL_DIR)"
+
+cleanall_openmc:
+	@echo "Not cleaning pre-built openmc"
+
+clobber_openmc:
+	@echo "Not clobbering pre-built openmc"
+
+endif # BUILD_OPENMC
 
 cleanall: cleanall_openmc
 

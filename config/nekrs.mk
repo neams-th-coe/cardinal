@@ -1,7 +1,12 @@
+# By default, build nekrs
+BUILD_NEKRS ?= yes
+
+ifeq ($(BUILD_NEKRS),yes)
+
 # These have the same names and meanings as in makenrs
-NEKRS_CFLAGS :=
-NEKRS_CXXFLAGS :=
-NEKRS_FFLAGS :=
+NEKRS_CFLAGS := 
+NEKRS_CXXFLAGS := 
+NEKRS_FFLAGS := 
 NEKRS_NEK5000_PPLIST := PARRSB DPROCMAP
 NEKRS_LIBP_DEFINES := -DUSE_NULL_PROJECTION=1
 USE_OCCA_MEM_BYTE_ALIGN := 64
@@ -39,6 +44,20 @@ cleanall_nekrs: |  $(NEKRS_BUILDDIR)/Makefile
 
 clobber_nekrs:
 	rm -rf $(NEKRS_LIB) $(NEKRS_BUILDDIR) $(NEKRS_INSTALL_DIR)
+
+else # BUILD_NEKRS=no
+
+NEKRS_INSTALL_DIR = $(NEKRS_DIR)
+build_nekrs:
+	@echo "Using pre-built nekrs from $(NEKRS_INSTALL_DIR)"
+
+cleanall_nekrs:
+	@echo "Not cleaning pre-built nekrs"
+
+clobber_nekrs:
+	@echo "Not clobbering pre-built nekrs"
+
+endif # BUILD_NEKRS
 
 # cleanall and clobberall are from moose.mk
 cleanall: cleanall_nekrs
