@@ -4,5 +4,6 @@
     input = example_input.i
     exodiff = example_input_out.e
     requirement = "cluster_id_aux needs to be the same"
+    mesh_mode = 'replicated'
   []
 []

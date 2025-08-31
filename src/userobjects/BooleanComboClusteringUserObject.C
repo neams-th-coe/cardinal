@@ -33,6 +33,10 @@ BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(
                  " generator defines it with extra_element_integers.");
     _mesh.add_elem_integer(_id_name);
   }
+  // check if mesh is replicated. If not then throw a moose error.
+  if (!_mesh.is_replicated())
+    mooseError("Mesh must be replicated");
+
   _extra_integer_index = _mesh.get_elem_integer_index(_id_name);
   reversePolishNotation(getParam<std::vector<std::string>>("expression"));
   initializeUserObjects();
