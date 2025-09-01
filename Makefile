@@ -141,8 +141,6 @@ NEKRS_INCLUDES     := $(addprefix -I,$(NEKRS_INCLUDE_DIRS))
 
 NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
 NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
-# This needs to be exported
-export NEKRS_HOME=$(CARDINAL_DIR)
 
 OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
 OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
