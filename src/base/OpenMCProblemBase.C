@@ -565,8 +565,8 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // Compute the density. We multiply density by 0.001 to convert from kg/m3
   // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
   // properties module) to g/cm3
-  int err = openmc_cell_set_density(cell_info.first, _density_conversion_factor * density,
-                                    &cell_info.second, false);
+  int err = openmc_cell_set_density(
+      cell_info.first, _density_conversion_factor * density, &cell_info.second, false);
 
   if (err)
   {

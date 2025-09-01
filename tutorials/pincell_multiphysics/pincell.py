@@ -32,15 +32,10 @@ zircaloy.add_element('Cr', 0.001, 'wo')
 zircaloy.add_element('Zr', 0.98335, 'wo')
 all_materials.append(zircaloy)
 
-sodium_materials = []
-
-for i in range(N):
-  sodium = openmc.Material(name = 'sodium{:n}'.format(i))
-  sodium.set_density('g/cm3', 1.0)
-  sodium.add_element('Na', 1.0)
-
-  sodium_materials.append(sodium)
-  all_materials.append(sodium)
+sodium = openmc.Material(name = 'sodium')
+sodium.set_density('g/cm3', 1.0)
+sodium.add_element('Na', 1.0)
+all_materials.append(sodium)
 
 materials = openmc.Materials(all_materials)
 materials.export_to_xml()
@@ -64,10 +59,7 @@ for i in range(N):
 
   fuel_cells.append(openmc.Cell(fill = uo2, region = -pellet_surface & layer, name = 'Fuel{:n}'.format(i)))
   clad_cells.append(openmc.Cell(fill = zircaloy, region = +pellet_surface & -pincell_surface & layer, name = 'Clad{:n}'.format(i)))
-
-  # we need to get the correct sodium material that belongs to this layer
-  sodium_material = sodium_materials[i]
-  sodium_cells.append(openmc.Cell(fill = sodium_material, region = +pincell_surface & layer & -rectangular_prism, name = 'sodium{:n}'.format(i)))
+  sodium_cells.append(openmc.Cell(fill = sodium, region = +pincell_surface & layer & -rectangular_prism, name = 'sodium{:n}'.format(i)))
 
 root = openmc.Universe(name = 'root')
 root.add_cells(fuel_cells)
@@ -82,7 +74,7 @@ settings = openmc.Settings()
 # Create an initial uniform spatial source distribution over fissionable zones
 lower_left = (-pitch, -pitch, 0.0)
 upper_right = (pitch, pitch, height)
-uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable = True)
+uniform_dist = openmc.stats.Box(lower_left, upper_right)
 
 settings.source = openmc.IndependentSource(space=uniform_dist)
 
