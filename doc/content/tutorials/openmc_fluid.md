@@ -160,13 +160,8 @@ In each layer we set up the lattice
 structure by listing the universes in each "ring" of the lattice, with `ring0` being
 the centermost ring and `ring11` being the outermost ring.
 
-Recall that temperatures in OpenMC can be set directly on the cell, but that fluid densities
-can only be set on *materials*. For this reason, we need to create 108 unique coolant materials
-for each axial plane if we want to be able to set unique densities in each coolant channel
-region. Rather than creating 108 materials in a loop,
-we use the `clone()` feature in OpenMC to clone an existing coolant material 108 times per layer.
-This duplicates the material properties (densities and isotopic composition), but assigns
-a new ID that allows individual tracking of density. The Python script used to create the
+Recall that both temperatures and densities in OpenMC are constants per cell, which
+requires layering of the axial geometry. The Python script used to create the
 OpenMC model is shown below.
 
 !listing /tutorials/gas_assembly/assembly.py language=python
