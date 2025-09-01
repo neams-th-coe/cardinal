@@ -62,9 +62,8 @@ CellDensityAux::computeValue()
   int err = openmc_cell_get_density(cell_info.first, &cell_info.second, &density);
 
   if (err)
-    mooseError("In attempting to get the density for " +
-               _openmc_problem->printCell(cell_info) + ", OpenMC reported:\n\n" +
-               std::string(openmc_err_msg));
+    mooseError("In attempting to get the density for " + _openmc_problem->printCell(cell_info) +
+               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return density / _openmc_problem->densityConversionFactor();
 }
