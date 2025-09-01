@@ -114,11 +114,6 @@ include config/check_deps.mk
 # Report what MOOSE modules are being used
 include config/check_modules.mk
 
-# Check that NEKRS_HOME is set to the correct location
-ifeq ($(ENABLE_NEK), yes)
-  include $(CARDINAL_DIR)/config/check_nekrs.mk
-endif
-
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
 	BUILD_TYPE := Debug
