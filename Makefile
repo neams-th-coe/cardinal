@@ -75,11 +75,6 @@ PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
-# Check that NEKRS_HOME is set to the correct location
-ifeq ($(ENABLE_NEK), yes)
-  include $(CARDINAL_DIR)/config/check_nekrs.mk
-endif
-
 # This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
 # you don't need to set these variables, because conda sets them for you. The only
 # scenario where you might need to manually set these is if you're not using the
@@ -119,6 +114,11 @@ include config/check_deps.mk
 # Report what MOOSE modules are being used
 include config/check_modules.mk
 
+# Check that NEKRS_HOME is set to the correct location
+ifeq ($(ENABLE_NEK), yes)
+  include $(CARDINAL_DIR)/config/check_nekrs.mk
+endif
+
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
 	BUILD_TYPE := Debug
@@ -140,41 +140,10 @@ MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
 NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-NEKRS_INCLUDES := \
-	-I$(NEKRS_DIR)/src \
-	-I$(NEKRS_DIR)/src/bdry \
-	-I$(NEKRS_DIR)/src/bench/advsub \
-	-I$(NEKRS_DIR)/src/bench/axHelm \
-	-I$(NEKRS_DIR)/src/bench/core \
-	-I$(NEKRS_DIR)/src/bench/fdm \
-	-I$(NEKRS_DIR)/src/cds \
-	-I$(NEKRS_DIR)/src/core \
-	-I$(NEKRS_DIR)/src/findpts \
-	-I$(NEKRS_DIR)/src/io \
-	-I$(NEKRS_DIR)/src/lib \
-	-I$(NEKRS_DIR)/src/linAlg \
-	-I$(NEKRS_DIR)/src/mesh \
-	-I$(NEKRS_DIR)/src/navierStokes \
-	-I$(NEKRS_DIR)/src/nekInterface \
-	-I$(NEKRS_DIR)/src/neknek \
-	-I$(NEKRS_DIR)/src/plugins \
-	-I$(NEKRS_DIR)/src/pointInterpolation \
-	-I$(NEKRS_DIR)/src/pointInterpolation/findpts \
-	-I$(NEKRS_DIR)/src/postProcessing \
-	-I$(NEKRS_DIR)/src/regularization \
-	-I$(NEKRS_DIR)/src/setup \
-	-I$(NEKRS_DIR)/src/solvers/cvode \
-	-I$(NEKRS_DIR)/src/solvers/elliptic \
-	-I$(NEKRS_DIR)/src/solvers/elliptic/amgSolver \
-	-I$(NEKRS_DIR)/src/solvers/elliptic/linearSolver \
-	-I$(NEKRS_DIR)/src/solvers/elliptic/MG \
-	-I$(NEKRS_DIR)/src/udf \
-	-I$(NEKRS_DIR)/src/utils \
-	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
-	-I$(NEKRS_INSTALL_DIR)/include \
-	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
-	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
-	-I$(NEKRS_INSTALL_DIR)/include/linAlg
+
+NEKRS_INCLUDE_DIRS := $(shell find $(NEKRS_INSTALL_DIR)/include -type d)
+NEKRS_INCLUDES     := $(addprefix -I,$(NEKRS_INCLUDE_DIRS))
+
 NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
 NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
 # This needs to be exported
@@ -291,6 +260,7 @@ LIBMESH_F90_LIST := $(subst $(space),;,$(libmesh_F90))
 
 ifeq ($(ENABLE_NEK), yes)
   include            $(CARDINAL_DIR)/config/nekrs.mk
+  include 			 $(CARDINAL_DIR)/config/check_nekrs.mk
 else
 
 build_nekrs:
