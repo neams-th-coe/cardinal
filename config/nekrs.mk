@@ -1,3 +1,6 @@
+NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
+NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
 # By default, build nekrs
 BUILD_NEKRS ?= yes
 
@@ -58,6 +61,16 @@ clobber_nekrs:
 	@echo "Not clobbering pre-built nekrs"
 
 endif # BUILD_NEKRS
+
+NEKRS_INCLUDES := \
+	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/include/utils
+
+NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
+NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
+
+NEKRS_ADDITIONAL_LIBS := -L$(NEKRS_LIBDIR) -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+NEKRS_EXTERNAL_FLAGS := -L$(NEKRS_LIBDIR) -lnekrs $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
 
 # cleanall and clobberall are from moose.mk
 cleanall: cleanall_nekrs

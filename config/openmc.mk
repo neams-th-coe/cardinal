@@ -1,3 +1,6 @@
+OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
+OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
 # By default, build openmc
 
 BUILD_OPENMC ?= yes
@@ -47,6 +50,23 @@ clobber_openmc:
 	@echo "Not clobbering pre-built openmc"
 
 endif # BUILD_OPENMC
+
+OPENMC_INCLUDES := -I$(OPENMC_INSTALL_DIR)/include
+OPENMC_LIBDIR := $(OPENMC_INSTALL_DIR)/lib
+OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
+
+OPENMC_ADDITIONAL_LIBS := -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
+OPENMC_EXTERNAL_FLAGS := -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
+ifeq ($(ENABLE_DAGMC), ON)
+  OPENMC_ADDITIONAL_LIBS += -ldagmc -lMOAB
+  OPENMC_EXTERNAL_FLAGS += -ldagmc -lMOAB
+  ifeq ($(ENABLE_DOUBLE_DOWN), ON)
+    OPENMC_ADDITIONAL_LIBS += -lembree4 -ldd
+    OPENMC_EXTERNAL_FLAGS += -lembree4 -ldd
+  endif
+endif
+OPENMC_ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+OPENMC_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 
 cleanall: cleanall_openmc
 

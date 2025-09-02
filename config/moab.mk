@@ -1,5 +1,7 @@
-# By default, build moab
+MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
+MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
+# By default, build moab
 BUILD_MOAB ?= yes
 
 ifeq ($(BUILD_MOAB),yes)

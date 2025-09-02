@@ -1,5 +1,7 @@
-# By default, build embree
+EMBREE_BUILDDIR := $(CARDINAL_DIR)/build/embree
+EMBREE_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
+# By default, build embree
 BUILD_EMBREE ?= yes
 
 ifeq ($(BUILD_EMBREE),yes)

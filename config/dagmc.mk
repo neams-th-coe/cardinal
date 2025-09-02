@@ -1,3 +1,6 @@
+DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
+DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
 # By default, build dagmc
 BUILD_DAGMC ?= yes
 
