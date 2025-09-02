@@ -7,7 +7,8 @@
  * in an aux variable.
  */
 
-class ElementHierarchyAux:public AuxKernel{
+class ElementHierarchyAux : public AuxKernel
+{
 
 public:
   static InputParameters validParams();
