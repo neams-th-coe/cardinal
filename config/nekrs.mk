@@ -64,13 +64,18 @@ endif # BUILD_NEKRS
 
 NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/include/bin \
 	-I$(NEKRS_INSTALL_DIR)/include/lib \
 	-I$(NEKRS_INSTALL_DIR)/include/core \
 	-I$(NEKRS_INSTALL_DIR)/include/core/bdry \
 	-I$(NEKRS_INSTALL_DIR)/include/core/ogs \
+	-I$(NEKRS_INSTALL_DIR)/include/core/io \
 	-I$(NEKRS_INSTALL_DIR)/include/core/linAlg \
 	-I$(NEKRS_INSTALL_DIR)/include/mesh \
 	-I$(NEKRS_INSTALL_DIR)/include/occa \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/core \
+	-I$(NEKRS_INSTALL_DIR)/include/bench \
+	-I$(NEKRS_INSTALL_DIR)/include/elliptic \
 	-I$(NEKRS_INSTALL_DIR)/include/plugins \
 	-I$(NEKRS_INSTALL_DIR)/include/nekInterface \
 	-I$(NEKRS_INSTALL_DIR)/include/nrs \
