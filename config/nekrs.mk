@@ -62,8 +62,16 @@ clobber_nekrs:
 
 endif # BUILD_NEKRS
 
-NEKRS_INCLUDES := -I$(NEKRS_INSTALL_DIR)/include \
-				  -I$(NEKRS_INSTALL_DIR)/include/utils
+NEKRS_INCLUDES := \
+	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/include/lib \
+	-I$(NEKRS_INSTALL_DIR)/include/occa \
+	-I$(NEKRS_INSTALL_DIR)/include/core \
+	-I$(NEKRS_INSTALL_DIR)/include/plugins \
+	-I$(NEKRS_INSTALL_DIR)/include/nekInterface \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs \
+	-I$(NEKRS_INSTALL_DIR)/include/udf \
+	-I$(NEKRS_INSTALL_DIR)/include/utils
 
 ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
