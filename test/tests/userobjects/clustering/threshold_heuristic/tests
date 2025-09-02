@@ -1,4 +1,6 @@
 [Tests]
+    issue = "#1200"
+    design = "ThresholdHeuristicUserObject.md"
   [grid]
     type = Exodiff
     input = example_input.i

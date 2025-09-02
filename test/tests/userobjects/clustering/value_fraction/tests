@@ -1,4 +1,6 @@
 [Tests]
+    issue = "#1200"
+    design = "ValueFractionHeuristicUserObject.md"
   [grid]
     type = Exodiff
     input = example.i

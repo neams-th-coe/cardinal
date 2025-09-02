@@ -1,0 +1,26 @@
+[Tests]
+    issue = "#1200"
+    design = "BooleanComboClusteringUserObject.md"
+    [no_extra_integer_provided_boolean_combo]
+        type=RunException
+        input=boolean_combo_no_eeid.i
+        cli_args='--error'
+        expect_err="boolean_combo extra element integer is missing in the mesh.So adding extra element integer boolean_combo"
+        requirement="User need to add the extra element integer to the mesh.
+                    System will throw a warning if the extra element integer is not found in mesh and
+                    it will add one with the same name."
+    []
+    [mesh_is_not_replicated]
+        type=RunException
+        input=mesh_is_not_replicated.i
+        mesh_mode = "distributed"
+        expect_err = "Mesh must be replicated"
+        requirement = "For clustering elements mesh must be replicated"
+    []
+    [element_needs_to_be_constant_monomial]
+        type=RunException
+        input=constant_monomial.i
+        expect_err="Variable must be type of CONSTANT MONOMIAL"
+        requirement="For clustering, all the metric variable must be constant monomial."
+    []
+[]

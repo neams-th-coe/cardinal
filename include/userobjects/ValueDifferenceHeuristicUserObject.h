@@ -12,7 +12,13 @@ public:
   static InputParameters validParams();
   ValueDifferenceHeuristicUserObject(const InputParameters & params);
 
-  /// method for evaluting if element should be clusterd or not
+  /**
+   * Method for determining if the relative difference of the metric score
+   * for two element is less than a tolerance value .
+   * param[in] base_element the current element
+   * param[in] neighbor_elem the current neighbour of base_element
+   * return whether the two elements should be added to a cluster or not
+   */
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const override;
 
 protected:

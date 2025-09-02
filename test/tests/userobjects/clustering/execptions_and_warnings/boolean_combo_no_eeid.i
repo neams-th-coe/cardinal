@@ -9,12 +9,6 @@
     ymin = 0
     ymax = 10
   []
-  [add_eeid]
-    type = ParsedElementIDMeshGenerator
-    input = generated_mesh
-    extra_element_integer_names = 'threshold_heuristic' #names of the eeid
-    values = '-1'
-  []
 []
 
 [AuxVariables]
@@ -35,12 +29,6 @@
     function = 'sqrt(x*x + y*y)'
     execute_on = 'TIMESTEP_BEGIN'
   []
-  [store_element_id]
-    type=ExtraElementIDAux
-    extra_id_name ="threshold_heuristic"
-    execute_on = 'TIMESTEP_BEGIN'
-    variable=cluster_id_aux
-  []
 []
 
 [UserObjects]
@@ -59,7 +47,7 @@
   [boolean_combo]
     type = BooleanComboClusteringUserObject
     expression = "( threshold_1 and threshold_2 )"
-    id_name = "threshold_heuristic"
+    id_name = "boolean_combo"
   []
 []
 
@@ -78,3 +66,4 @@
 [Outputs]
   exodus = true
 []
+

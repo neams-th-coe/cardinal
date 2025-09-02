@@ -4,10 +4,10 @@
     dim = 2
     nx = 10
     ny = 10
-    xmin = 0
-    xmax = 10
-    ymin = 0
-    ymax = 10
+    x_min = 0
+    x_max = 10
+    y_min = 0
+    y_max = 10
   []
   [add_eeid]
     type = ParsedElementIDMeshGenerator
@@ -19,8 +19,8 @@
 
 [AuxVariables]
   [metric_var]
-    order = CONSTANT
-    family = MONOMIAL
+    order = FIRST
+    family = LAGRANGE
   []
   [cluster_id_aux]
     order = CONSTANT
@@ -49,16 +49,9 @@
     metric_variable_name = 'metric_var'
     threshold = 1.1
   []
-  [threshold_2]
-    type = ThresholdHeuristicUserObject
-    metric_variable_name = 'metric_var'
-    threshold = 1.4
-    cluster_if_above_threshold = false
-  []
-
   [boolean_combo]
     type = BooleanComboClusteringUserObject
-    expression = "( threshold_1 and threshold_2 )"
+    expression = "( threshold_1 )"
     id_name = "threshold_heuristic"
   []
 []
@@ -78,3 +71,4 @@
 [Outputs]
   exodus = true
 []
+

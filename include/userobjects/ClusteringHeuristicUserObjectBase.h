@@ -17,7 +17,7 @@ public:
   virtual void finalize() override {};
 
   /**
-   * A purely virtual function which must be overrided in derived classes.
+   * A purely virtual function which must be overridden in derived classes.
    * It applies the clustering logic for two elements in the derived class
    * param[in] base_element the current element
    * param[in] neighbor_elem the current neighbour of base_element
@@ -26,7 +26,11 @@ public:
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
 
 protected:
-  ///Get the metric data from the auxiliary system for an element.
+  /**
+   * Get the metric data from the auxiliary system for an element.
+   * @param[in] an element
+   * @param[out] real value of the _metric_variable
+   */
   Real getMetricData(const libMesh::Elem * elem) const;
 
   ///Mesh reference

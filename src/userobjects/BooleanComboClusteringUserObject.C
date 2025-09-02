@@ -26,11 +26,10 @@ BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(
 {
   if (!_mesh.has_elem_integer(_id_name))
   {
-    mooseWarning("Mesh does not have an extra element integer named ",
-                 _id_name,
-                 ". so adding the ",
-                 _id_name,
-                 " generator defines it with extra_element_integers.");
+    mooseWarning(_id_name,
+                 " extra element integer is missing in the mesh."
+                 "So adding extra element integer ",
+                 _id_name);
     _mesh.add_elem_integer(_id_name);
   }
   // check if mesh is replicated. If not then throw a moose error.
@@ -89,9 +88,7 @@ BooleanComboClusteringUserObject::belongsToCluster(libMesh::Elem * base_element,
       result_stack.push(!val);
     }
     else
-    {
       result_stack.push(_clustering_user_objects[token]->evaluate(base_element, neighbor_elem));
-    }
   }
   return result_stack.top();
 }
@@ -160,9 +157,7 @@ BooleanComboClusteringUserObject::reversePolishNotation(const std::vector<std::s
   for (const auto & token : expression)
   {
     if (token == _left_parenthesis)
-    {
       op_stack.push(token);
-    }
     else if (token == _right_parenthesis)
     {
       while (!op_stack.empty() && op_stack.top() != _left_parenthesis)
@@ -171,9 +166,7 @@ BooleanComboClusteringUserObject::reversePolishNotation(const std::vector<std::s
         op_stack.pop();
       }
       if (!op_stack.empty() && op_stack.top() == _left_parenthesis)
-      {
         op_stack.pop();
-      }
     }
     // operator handling based on _precedence
     else if (_precedence.find(token) != _precedence.end())
@@ -189,9 +182,7 @@ BooleanComboClusteringUserObject::reversePolishNotation(const std::vector<std::s
       op_stack.push(token);
     }
     else
-    {
       _output_stack.push_back(token);
-    }
   }
   while (!op_stack.empty())
   {

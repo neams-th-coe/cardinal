@@ -2,12 +2,12 @@
   [generated_mesh]
     type = GeneratedMeshGenerator
     dim = 2
-    nx = 20
-    ny = 20
-    x_min = 0
-    x_max = 10
-    y_min = 0
-    y_max = 10
+    nx = 10
+    ny = 10
+    xmin = 0
+    xmax = 10
+    ymin = 0
+    ymax = 10
     extra_element_integers = 'equal_value'
   []
 []

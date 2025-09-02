@@ -13,11 +13,17 @@ public:
   static InputParameters validParams();
   ValueFractionHeuristicUserObject(const InputParameters & params);
 
-  /// method for evaluting if element should be clusterd or not
+  /**
+   * Method for determining if metric score
+   * for two element either more/less than a percentage of the extremes.
+   * param[in] base_element the current element
+   * param[in] neighbor_elem the current neighbour of base_element
+   * return whether the two elements should be added to a cluster or not
+   */
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const override;
 
 protected:
-  /// maximum and minmum value finder
+  /// maximum and minimum value finder
   void extremesFinder();
 
   virtual void execute() override { extremesFinder(); };
