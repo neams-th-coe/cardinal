@@ -5,6 +5,7 @@
         type=RunException
         input=boolean_combo_no_eeid.i
         cli_args='--error'
+        mesh_mode = "replicated"
         expect_err="boolean_combo extra element integer is missing in the mesh.So adding extra element integer boolean_combo"
         requirement="User need to add the extra element integer to the mesh.
                     System will throw a warning if the extra element integer is not found in mesh and

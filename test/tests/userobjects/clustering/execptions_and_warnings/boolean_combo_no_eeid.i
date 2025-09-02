@@ -16,10 +16,6 @@
     order = CONSTANT
     family = MONOMIAL
   []
-  [cluster_id_aux]
-    order = CONSTANT
-    family = MONOMIAL
-  []
 []
 
 [AuxKernels]
