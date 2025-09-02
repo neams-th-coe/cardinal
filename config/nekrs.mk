@@ -62,9 +62,10 @@ clobber_nekrs:
 
 endif # BUILD_NEKRS
 
-NEKRS_INCLUDES := \
-	-I$(NEKRS_INSTALL_DIR)/include \
-	-I$(NEKRS_INSTALL_DIR)/include/utils
+NEKRS_INCLUDES := -I$(NEKRS_INSTALL_DIR)/include \
+				  -I$(NEKRS_INSTALL_DIR)/include/utils
+
+ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
 NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
 NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
