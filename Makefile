@@ -92,7 +92,7 @@ endif
 
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
-
+HDF5_LIBS		    ?= -lhdf5_hl -lhdf5
 ALL_MODULES         := no
 
 # you may opt to enable additional modules by listing them here; any modules required
