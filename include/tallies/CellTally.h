@@ -37,12 +37,6 @@ public:
    */
   virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 
-  /**
-   * A function to get the blocks associated with this CellTally.
-   * @return a set of blocks associated with this tally.
-   */
-  const std::unordered_set<SubdomainID> & getBlocks() const { return _tally_blocks; }
-
 protected:
   /**
    * A function which stores the results of this tally into the created
@@ -74,9 +68,6 @@ protected:
    * @return cells to which we should add tallies
    */
   std::vector<OpenMCCellAverageProblem::cellInfo> getTallyCells() const;
-
-  /// Blocks for which to add cell tallies.
-  std::unordered_set<SubdomainID> _tally_blocks;
 
   /// Whether a cell index, instance pair should be added to the tally filter
   std::map<OpenMCCellAverageProblem::cellInfo, bool> _cell_has_tally;

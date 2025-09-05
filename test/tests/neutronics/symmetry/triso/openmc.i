@@ -86,6 +86,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
+    block = 'compacts'
   []
 []
 

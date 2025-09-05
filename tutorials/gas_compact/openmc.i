@@ -90,6 +90,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
     execute_on = 'transfer initial timestep_end'
+    block = 'compacts compacts_trimmer_tri'
   []
   [max_tally_rel_err]
     type = TallyRelativeError

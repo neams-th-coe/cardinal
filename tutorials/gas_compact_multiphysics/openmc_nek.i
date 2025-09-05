@@ -168,6 +168,7 @@ N = 1000
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
     execute_on = 'transfer initial timestep_end'
+    block = ${fuel_blocks}
   []
   [max_tally_err]
     type = TallyRelativeError

@@ -48,7 +48,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      block = '1'
+      block = '1 2 3'
       name = heat_source
     []
   []
@@ -62,6 +62,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+    block = '1 2 3'
   []
   [fluid_heat_source]
     type = ElementIntegralVariablePostprocessor
