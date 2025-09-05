@@ -1,6 +1,7 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
-	url = https://github.com/openmc-dev/openmc.git
+	url = https://github.com/nuclearkevin/openmc.git
+  branch = density_mult
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://github.com/neams-th-coe/nekRS.git
