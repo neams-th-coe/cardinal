@@ -79,6 +79,13 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/plugins \
 	-I$(NEKRS_INSTALL_DIR)/include/nekInterface \
 	-I$(NEKRS_INSTALL_DIR)/include/nrs \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs/bdry \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs/cds \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs/cds/cvode \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs/neknek \
+	-I$(NEKRS_INSTALL_DIR)/include/nrs/postProcessing \
+	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation \
+	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation/findpts/ \
 	-I$(NEKRS_INSTALL_DIR)/include/udf \
 	-I$(NEKRS_INSTALL_DIR)/include/utils
 
