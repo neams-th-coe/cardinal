@@ -97,7 +97,8 @@ getTallyScoreEnum()
 {
   return MultiMooseEnum(
       "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy "
-      "flux H3_production total absorption scatter nu_scatter fission nu_fission inverse_velocity");
+      "flux H3_production total absorption scatter nu_scatter fission nu_fission prompt_nu_fission "
+      "delayed_nu_fission decay_rate inverse_velocity");
 }
 
 MultiMooseEnum
@@ -111,7 +112,8 @@ getSingleTallyScoreEnum()
 {
   return MooseEnum(
       "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy "
-      "flux H3_production total absorption scatter nu_scatter fission nu_fission inverse_velocity");
+      "flux H3_production total absorption scatter nu_scatter fission nu_fission prompt_nu_fission "
+      "delayed_nu_fission decay_rate inverse_velocity");
 }
 
 MooseEnum

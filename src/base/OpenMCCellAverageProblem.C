@@ -2550,13 +2550,19 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     else
       source *= *_source_strength;
 
-    // - Reaction rate scores & 'inverse-velocity' have units of reactions/src (OpenMC) or
-    //   reactions/s (Cardinal).
+    // - Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
+    // - 'inverse-velocity' has units of particles*s/src (OpenMC) or particles (Cardinal).
+    //   This score is flux-weighted, and must be divided by the flux to recover the true
+    //   inverse velocity, which has units of s/cm.
+    // - 'decay-rate' has units of reactions/src/s (OpenMC) or reactions/s^2 (Cardinal).
+    //   This score is weighted by the delayed fission rate, and must be divided by
+    //   `delayed-nu-fission` to obtain the true decay rate, which has units of 1/s.
     // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
     //   damage-energy are the same as a heating tally, we don't normalize it like one as it's
     //   used as an intermediate to compute DPA.
     if (isReactionRateScore(_all_tally_scores[global_score]) ||
         _all_tally_scores[global_score] == "inverse-velocity" ||
+        _all_tally_scores[global_score] == "decay_rate" ||
         _all_tally_scores[global_score] == "damage-energy")
       return source;
 
