@@ -20,6 +20,8 @@
 
 #include "FilterBase.h"
 
+/// A class which provides a thin wrapper around an OpenMC PolarFilter
+/// for use by Cardinal mapped tallies.
 class PolarAngleFilter : public FilterBase
 {
 public:
