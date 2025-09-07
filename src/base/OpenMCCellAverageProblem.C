@@ -2562,7 +2562,7 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     //   used as an intermediate to compute DPA.
     if (isReactionRateScore(_all_tally_scores[global_score]) ||
         _all_tally_scores[global_score] == "inverse-velocity" ||
-        _all_tally_scores[global_score] == "decay_rate" ||
+        _all_tally_scores[global_score] == "decay-rate" ||
         _all_tally_scores[global_score] == "damage-energy")
       return source;
 
