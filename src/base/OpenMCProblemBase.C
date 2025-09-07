@@ -805,7 +805,8 @@ bool
 OpenMCProblemBase::isReactionRateScore(const std::string & score) const
 {
   const std::set<std::string> viable_scores = {
-      "H3-production", "total", "absorption", "scatter", "nu-scatter", "fission", "nu-fission"};
+      "H3-production", "total", "absorption", "scatter", "nu-scatter", "fission", "nu-fission",
+      "prompt-nu-fission", "delayed-nu-fission"};
   return viable_scores.count(score);
 }
 
