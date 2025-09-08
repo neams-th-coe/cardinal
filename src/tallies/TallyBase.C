@@ -26,6 +26,7 @@
 
 #include "AngularLegendreFilter.h"
 #include "EnergyOutFilter.h"
+#include "DelayedGroupFilter.h"
 
 #include "openmc/settings.h"
 
@@ -104,9 +105,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
-  bool heating =
+  const bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
-  bool nu_scatter =
+  const bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
   if (isParamValid("estimator"))
@@ -207,12 +208,19 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   // Check the estimator to make sure it doesn't conflict with certain filters.
   for (auto & f : _ext_filters)
+  {
     if ((dynamic_cast<AngularLegendreFilter *>(f.get()) ||
          dynamic_cast<EnergyOutFilter *>(f.get())) &&
         _estimator != openmc::TallyEstimator::ANALOG)
       paramError("estimator",
                  "The filter " + f->name() +
                      " requires an analog estimator! Please ensure 'estimator' is set to analog.");
+
+    if (dynamic_cast<DelayedGroupFilter *>(f.get()))
+      for (const auto & s : _tally_score)
+        if (s != "delayed-nu-fission" && s != "decay-rate")
+          paramError("score", "The filter " + f->name() + " can only be used with delayed_nu_fission and decay_rate scores!");
+  }
 
   if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");
