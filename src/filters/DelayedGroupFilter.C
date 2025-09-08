@@ -41,15 +41,15 @@ DelayedGroupFilter::validParams()
 }
 
 DelayedGroupFilter::DelayedGroupFilter(const InputParameters & parameters)
-  : FilterBase(parameters),
-    _delayed_groups(getParam<std::vector<int>>("dnp_groups"))
+  : FilterBase(parameters), _delayed_groups(getParam<std::vector<int>>("dnp_groups"))
 {
   _openmc_problem.checkEmptyVector(_delayed_groups, "dnp_groups");
 
   // Initialize the OpenMC DelayedGroupFilter.
   _filter_index = openmc::model::tally_filters.size();
 
-  auto dnp_grp_filter = dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
+  auto dnp_grp_filter =
+      dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
   try
   {
     dnp_grp_filter->set_groups(openmc::span<int>(&_delayed_groups[0], _delayed_groups.size()));

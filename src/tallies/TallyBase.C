@@ -219,7 +219,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
     if (dynamic_cast<DelayedGroupFilter *>(f.get()))
       for (const auto & s : _tally_score)
         if (s != "delayed-nu-fission" && s != "decay-rate")
-          paramError("score", "The filter " + f->name() + " can only be used with delayed_nu_fission and decay_rate scores!");
+          paramError("score",
+                     "The filter " + f->name() +
+                         " can only be used with delayed_nu_fission and decay_rate scores!");
   }
 
   if (isParamValid("name"))
