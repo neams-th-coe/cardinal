@@ -103,7 +103,7 @@ NEKRS_INCLUDES += \
 	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
  	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
 	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic \
-	-I$(NEKRS_INSTALL_DIR)/include/solvers/solvers/cvode \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/cvode \
 	-I$(NEKRS_INSTALL_DIR)/include/cds \
 	-I$(NEKRS_INSTALL_DIR)/include/io \
 	-I$(NEKRS_INSTALL_DIR)/include/neknek
