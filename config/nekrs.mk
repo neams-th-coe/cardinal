@@ -95,7 +95,11 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation \
 	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation/findpts/ \
 	-I$(NEKRS_INSTALL_DIR)/include/udf \
-	-I$(NEKRS_INSTALL_DIR)/include/utils
+	-I$(NEKRS_INSTALL_DIR)/include/utils \
+	# Additional includes for nekrs <= 23.0
+	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
+	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
+ 	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond
 
 ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
