@@ -57,11 +57,12 @@ CellDensityAux::computeValue()
   if (_openmc_problem->materialID(index) == -1)
     return OpenMCCellAverageProblem::UNMAPPED;
 
+  // Fetch the density.
   double density;
-  int err = openmc_material_get_density(index, &density);
+  int err = openmc_cell_get_density(cell_info.first, &cell_info.second, &density);
 
   if (err)
-    mooseError("In attempting to get density for " + _openmc_problem->printMaterial(index) +
+    mooseError("In attempting to get the density for " + _openmc_problem->printCell(cell_info) +
                ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return density / _openmc_problem->densityConversionFactor();
