@@ -75,6 +75,7 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/occa \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/core \
 	-I$(NEKRS_INSTALL_DIR)/include/bench \
+	-I$(NEKRS_INSTALL_DIR)/include/bdry \
 	-I$(NEKRS_INSTALL_DIR)/include/elliptic \
 	-I$(NEKRS_INSTALL_DIR)/include/plugins \
 	-I$(NEKRS_INSTALL_DIR)/include/nekInterface \
