@@ -74,6 +74,13 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/mesh \
 	-I$(NEKRS_INSTALL_DIR)/include/occa \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/core \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/c \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/loops \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/functional \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/dtype \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/types \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/defines \
+	-I$(NEKRS_INSTALL_DIR)/include/occa/utils \
 	-I$(NEKRS_INSTALL_DIR)/include/bench \
 	-I$(NEKRS_INSTALL_DIR)/include/bdry \
 	-I$(NEKRS_INSTALL_DIR)/include/elliptic \
