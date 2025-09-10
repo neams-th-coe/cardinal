@@ -101,7 +101,9 @@ NEKRS_INCLUDES := \
 NEKRS_INCLUDES += \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
 	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
- 	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond
+ 	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/solvers/cvode
 
 ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
