@@ -106,7 +106,10 @@ NEKRS_INCLUDES += \
 	-I$(NEKRS_INSTALL_DIR)/include/solvers/cvode \
 	-I$(NEKRS_INSTALL_DIR)/include/cds \
 	-I$(NEKRS_INSTALL_DIR)/include/io \
-	-I$(NEKRS_INSTALL_DIR)/include/neknek
+	-I$(NEKRS_INSTALL_DIR)/include/neknek \
+	-I$(NEKRS_INSTALL_DIR)/include/navierStokes \
+	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation \
+	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation/findpts
 
 ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
