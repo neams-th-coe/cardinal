@@ -21,7 +21,15 @@ a tally. Options include:
 - `nu_scatter`: the scattering reaction rate combined with the total (n, xn) reaction rate
 - `fission`: the fission reaction rate
 - `nu_fission`: the fission neutron production rate
-- `inverse_velocity`: one over the particle velocity
+- `prompt_nu_fission`: the prompt fission neutron production rate
+- `delayed_nu_fission`: the delayed fission neutron production rate
+- `decay_rate`: the neutron precursor decay constant weighted by the delayed fission neutron production rate
+- `inverse_velocity`: one over the particle velocity weighted by the particle flux
+
+!alert note
+To obtain the true precursor decay constant or inverse velocity, you need to divide `decay_rate` by `delayed_nu_fission`
+and `inverse_velocity` by `flux` (respectively). This requires the addition of either `delayed_nu_fission` or `flux` and some
+additional post-processing.
 
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). The names of
