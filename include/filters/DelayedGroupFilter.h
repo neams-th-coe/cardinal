@@ -20,8 +20,10 @@
 
 #include "FilterBase.h"
 
-/// A class which provides a thin wrapper around an OpenMC DelayedGroupFilter
-/// for use by Cardinal mapped tallies.
+/**
+ * A class which provides a thin wrapper around an OpenMC DelayedGroupFilter
+ * for use by Cardinal mapped tallies.
+ */
 class DelayedGroupFilter : public FilterBase
 {
 public:
