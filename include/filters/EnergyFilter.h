@@ -21,8 +21,10 @@
 #include "FilterBase.h"
 #include "EnergyBinBase.h"
 
-/// A class which provides a thin wrapper around an OpenMC EnergyFilter
-/// for use by Cardinal mapped tallies.
+/**
+ * A class which provides a thin wrapper around an OpenMC EnergyFilter
+ * for use by Cardinal mapped tallies.
+ */
 class EnergyFilter : public FilterBase, public EnergyBinBase
 {
 public:

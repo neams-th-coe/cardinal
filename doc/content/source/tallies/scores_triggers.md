@@ -26,6 +26,11 @@ a tally. Options include:
 - `decay_rate`: the neutron precursor decay constant weighted by the delayed fission neutron production rate
 - `inverse_velocity`: one over the particle velocity weighted by the particle flux
 
+!alert note
+To obtain the true precursor decay constant or inverse velocity, you need to divide `decay_rate` by `delayed_nu_fission`
+and `inverse_velocity` by `flux` (respectively). This requires the addition of either `delayed_nu_fission` or `flux` and some
+additional post-processing.
+
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). The names of
 the tally auxvariables added by the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) can be modified by specifying a name
