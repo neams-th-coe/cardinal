@@ -48,6 +48,42 @@ cleanall_nekrs: |  $(NEKRS_BUILDDIR)/Makefile
 clobber_nekrs:
 	rm -rf $(NEKRS_LIB) $(NEKRS_BUILDDIR) $(NEKRS_INSTALL_DIR)
 
+NEKRS_INCLUDES := \
+	-I$(NEKRS_DIR)/src \
+	-I$(NEKRS_DIR)/src/bdry \
+	-I$(NEKRS_DIR)/src/bench/advsub \
+	-I$(NEKRS_DIR)/src/bench/axHelm \
+	-I$(NEKRS_DIR)/src/bench/core \
+	-I$(NEKRS_DIR)/src/bench/fdm \
+	-I$(NEKRS_DIR)/src/cds \
+	-I$(NEKRS_DIR)/src/core \
+	-I$(NEKRS_DIR)/src/findpts \
+	-I$(NEKRS_DIR)/src/io \
+	-I$(NEKRS_DIR)/src/lib \
+	-I$(NEKRS_DIR)/src/linAlg \
+	-I$(NEKRS_DIR)/src/mesh \
+	-I$(NEKRS_DIR)/src/navierStokes \
+	-I$(NEKRS_DIR)/src/nekInterface \
+	-I$(NEKRS_DIR)/src/neknek \
+	-I$(NEKRS_DIR)/src/plugins \
+	-I$(NEKRS_DIR)/src/pointInterpolation \
+	-I$(NEKRS_DIR)/src/pointInterpolation/findpts \
+	-I$(NEKRS_DIR)/src/postProcessing \
+	-I$(NEKRS_DIR)/src/regularization \
+	-I$(NEKRS_DIR)/src/setup \
+	-I$(NEKRS_DIR)/src/solvers/cvode \
+	-I$(NEKRS_DIR)/src/solvers/elliptic \
+	-I$(NEKRS_DIR)/src/solvers/elliptic/amgSolver \
+	-I$(NEKRS_DIR)/src/solvers/elliptic/linearSolver \
+	-I$(NEKRS_DIR)/src/solvers/elliptic/MG \
+	-I$(NEKRS_DIR)/src/udf \
+	-I$(NEKRS_DIR)/src/utils \
+	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
+	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
+	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
+	-I$(NEKRS_INSTALL_DIR)/include/linAlg
+
 else # BUILD_NEKRS=no
 
 NEKRS_INSTALL_DIR = $(NEKRS_DIR)
@@ -59,8 +95,6 @@ cleanall_nekrs:
 
 clobber_nekrs:
 	@echo "Not clobbering pre-built nekrs"
-
-endif # BUILD_NEKRS
 
 NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include \
@@ -82,6 +116,10 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/defines \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/utils \
 	-I$(NEKRS_INSTALL_DIR)/include/bench \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/advsub \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/axHelm \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/core \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/fdm \
 	-I$(NEKRS_INSTALL_DIR)/include/bdry \
 	-I$(NEKRS_INSTALL_DIR)/include/elliptic \
 	-I$(NEKRS_INSTALL_DIR)/include/plugins \
@@ -102,8 +140,11 @@ NEKRS_INCLUDES += \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
 	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
  	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
-	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic \
 	-I$(NEKRS_INSTALL_DIR)/include/solvers/cvode \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic/linearSolver \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic/amgSolver \
+	-I$(NEKRS_INSTALL_DIR)/include/solvers/elliptic/MG \
 	-I$(NEKRS_INSTALL_DIR)/include/cds \
 	-I$(NEKRS_INSTALL_DIR)/include/io \
 	-I$(NEKRS_INSTALL_DIR)/include/setup \
@@ -113,6 +154,8 @@ NEKRS_INCLUDES += \
 	-I$(NEKRS_INSTALL_DIR)/include/postProcessing \
 	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation \
 	-I$(NEKRS_INSTALL_DIR)/include/pointInterpolation/findpts
+
+endif # BUILD_NEKRS
 
 ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
 
