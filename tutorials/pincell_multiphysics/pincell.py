@@ -76,7 +76,7 @@ lower_left = (-pitch, -pitch, 0.0)
 upper_right = (pitch, pitch, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right)
 
-settings.source = openmc.IndependentSource(space=uniform_dist)
+settings.source = openmc.IndependentSource(space=uniform_dist, constraints={'fissionable' : True})
 
 settings.batches = 50
 settings.inactive = 10

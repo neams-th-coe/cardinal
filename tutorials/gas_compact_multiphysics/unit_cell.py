@@ -175,7 +175,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
         if (i == 0):
           c_cell = coolant_cell
         else:
-          c_cell = coolant_cell.clone()
+          c_cell = coolant_cell.clone(clone_materials = False)
 
         i += 1
 
@@ -183,8 +183,10 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
         ax_pos = 0.5 * (z_min + z_max)
         t = coolant_temp(specs.inlet_T, coolant_outlet_temp, reactor_height, ax_pos)
 
+        # Set the temperature in Kelvin
         c_cell.temperature = t
-        c_cell.fill.set_density('kg/m3', coolant_density(t))
+        # Set the density in g/cc
+        c_cell.density = coolant_density(t) / 1000.0
 
         # set the solid cells and their temperatures
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=mats.m_graphite_matrix)
