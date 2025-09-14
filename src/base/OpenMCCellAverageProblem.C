@@ -1453,30 +1453,16 @@ OpenMCCellAverageProblem::getMaterialFills()
 {
   VariadicTable<std::string, int> vt({"Cell", "Material"});
 
-  std::set<int32_t> materials_in_fluid;
-  std::set<int32_t> other_materials;
   _cell_to_material.clear();
-
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
 
+    if (!hasDensityFeedback(cell_info))
+      continue;
+
     int32_t material_index;
     auto is_material_cell = materialFill(cell_info, material_index);
-
-    if (!hasDensityFeedback(cell_info))
-    {
-      // TODO: this check should be extended for non-fluid cells which may contain
-      // lattices or  universes
-      if (is_material_cell)
-        other_materials.insert(material_index);
-      continue;
-    }
-
-    // check for each material that we haven't already discovered it; if we have, this means we
-    // didnt set up the materials correctly (if mapping by cell)
-    if (materials_in_fluid.find(material_index) == materials_in_fluid.end())
-      materials_in_fluid.insert(material_index);
 
     if (!is_material_cell)
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
@@ -1492,28 +1478,6 @@ OpenMCCellAverageProblem::getMaterialFills()
     _console << "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
     vt.print(_console);
   }
-
-  // check that the same material is not present in both the density feedback regions and the
-  // no-density-feedback regions, because this would give unintended consequences where
-  // density is indeed actually changing in parts of the OpenMC model where the user doesn't
-  // want that to happen; TODO: we technically should also check that the materials receiving
-  // density feedback are not present in parts of the OpenMC which totally do not overlap with
-  // the [Mesh] (but we are not tracking their behavior anywhere, we could do this but we'd
-  // need to loop over ALL OpenMC cells, get their fills, and check)
-  for (const auto & f : materials_in_fluid)
-    if (other_materials.count(f))
-      mooseError(
-          printMaterial(f) +
-          " is present in more than one OpenMC cell with different "
-          "density feedback settings!\nIn other words, this material will have its density changed "
-          "by Cardinal (because it is\ncontained in cells which map to the 'density_blocks'), but "
-          "this material is also present in\nOTHER OpenMC cells, which will give unintended "
-          "behavior "
-          "by changing density in ALL parts of the\ndomain containing this material (some of which "
-          "have not been coupled via Cardinal).\n\n"
-          "Please change your OpenMC model so that unique materials are used in regions which "
-          "receive "
-          "density feedback.");
 }
 
 void
