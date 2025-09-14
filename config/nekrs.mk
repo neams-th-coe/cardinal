@@ -82,6 +82,10 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/defines \
 	-I$(NEKRS_INSTALL_DIR)/include/occa/utils \
 	-I$(NEKRS_INSTALL_DIR)/include/bench \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/advsub \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/axHelm \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/core \
+	-I$(NEKRS_INSTALL_DIR)/include/bench/fdm \
 	-I$(NEKRS_INSTALL_DIR)/include/bdry \
 	-I$(NEKRS_INSTALL_DIR)/include/elliptic \
 	-I$(NEKRS_INSTALL_DIR)/include/plugins \
