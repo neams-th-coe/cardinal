@@ -92,7 +92,8 @@ OpenMCProblemBase::validParams()
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
       "The number of generations to use with the method of iterated fission probabilities.");
-
+  params.addParam<std::string>(
+      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
   return params;
 }
 
@@ -116,11 +117,23 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
-  int argc = 1;
-  char openmc[] = "openmc";
-  char * argv[1] = {openmc};
+  std::vector<std::string> argv_vec = {"openmc"};
 
-  openmc_init(argc, argv, &_communicator.get());
+  if (isParamSetByUser("xml_directory"))
+  {
+    argv_vec.push_back(getParam<std::string>("xml_directory"));
+  }
+
+  std::vector<char *> argv;
+
+  for (const auto & arg : argv_vec)
+  {
+    argv.push_back(const_cast<char *>(arg.data()));
+  }
+  // Add terminating nullptr
+  argv.push_back(nullptr);
+
+  openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 
   // ensure that any mapped cells have their distribcell indices generated in OpenMC
   if (!openmc::settings::material_cell_offsets)
