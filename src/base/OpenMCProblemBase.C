@@ -111,18 +111,14 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _run_on_adaptivity_cycle(true),
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
-    _initial_seed(openmc::openmc_get_seed())
+    _initial_seed(openmc::openmc_get_seed()),
+    _xml_directory(getParam<std::string>("xml_directory"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
-  std::vector<std::string> argv_vec = {"openmc"};
-
-  if (isParamSetByUser("xml_directory"))
-  {
-    argv_vec.push_back(getParam<std::string>("xml_directory"));
-  }
+  std::vector<std::string> argv_vec = {"openmc", _xml_directory};
 
   std::vector<char *> argv;
 
