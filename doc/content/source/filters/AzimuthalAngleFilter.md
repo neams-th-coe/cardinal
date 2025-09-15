@@ -1,9 +1,5 @@
 # AzimuthalAngleFilter
 
-!alert note
-`AzimuthalAngleFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `AzimuthalAngleFilter` object provides a thin wrapper around an OpenMC [AzimuthalFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.AzimuthalFilter.html#openmc.AzimuthalFilter) which local tallies (added through the [tally system](AddTallyAction.md))

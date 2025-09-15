@@ -1,9 +1,5 @@
 # CellTally
 
-!alert note
-`CellTally` can only be added to problems when the input files contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this tally will result in an error.
-
 ## Description
 
 The `CellTally` class wraps an OpenMC tally with a distributed cell filter to enable data transfer

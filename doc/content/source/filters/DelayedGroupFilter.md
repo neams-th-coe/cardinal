@@ -1,9 +1,5 @@
 # DelayedGroupFilter
 
-!alert note
-`DelayedGroupFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `DelayedGroupFilter` object provides a thin wrapper around an OpenMC [DelayedGroupFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.DelayedGroupFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. The delayed groups tallied over can be

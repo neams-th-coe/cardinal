@@ -1,9 +1,5 @@
 # EnergyFilter
 
-!alert note
-`EnergyFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `EnergyFilter` object provides a thin wrapper around an OpenMC [EnergyFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.EnergyFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. Bins can be provided
