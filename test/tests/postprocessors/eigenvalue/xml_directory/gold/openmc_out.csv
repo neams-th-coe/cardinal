@@ -1,0 +1,3 @@
+time,k_absorption,k_absorption_rel,k_absorption_std_dev,k_collision,k_collision_rel,k_collision_std_dev,k_combined,k_combined_rel,k_combined_std_dev,k_tracklength,k_tracklength_rel,k_tracklength_std_dev
+0,0,0,0,0,0,0,0,0,0,0,0,0
+1,0.99744191112158,0.016878015862871,0.016834840398203,0.99788038763811,0.020832011699997,0.020787855910475,0.99755628791172,0.015779147710766,0.015740588016763,0.99577195735428,0.023376872818636,0.023278034403435
