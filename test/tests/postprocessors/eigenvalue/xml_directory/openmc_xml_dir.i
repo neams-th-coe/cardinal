@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../../neutronics/meshes/sphere.e
+    file = ../../../neutronics/meshes/sphere.e
   []
   [solid]
     type = CombinerGenerator
@@ -24,8 +24,7 @@
   cell_level = 0
   check_tally_sum = false
 
-  # Assume running from cardinal base directory
-  #xml_directory = './test/tests/postprocessors/eigenvalue/xml_dir/'
+  xml_directory = './xml_settings/'
 
   initial_properties = xml
 
