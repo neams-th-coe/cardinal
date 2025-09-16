@@ -92,7 +92,7 @@ OpenMCProblemBase::validParams()
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
       "The number of generations to use with the method of iterated fission probabilities.");
-  params.addParam<std::string>(
+  params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
   return params;
 }
