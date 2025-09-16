@@ -5,3 +5,7 @@ XS_SCRIPT=${MOOSE_PREFIX}/share/${BINARY_NAME}/download-openmc-cross-sections.sh
 cp ${FROM_XS_SCRIPT} ${XS_SCRIPT}
 chmod +x ${XS_SCRIPT}
 ${XS_SCRIPT} ${MOOSE_PREFIX}/share/cardinal
+
+# Install openmc python
+cd ${APPLICATION_DIR}/contrib/openmc
+pip3 install .
