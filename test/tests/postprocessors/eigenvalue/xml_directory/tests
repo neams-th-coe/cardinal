@@ -1,0 +1,12 @@
+[Tests]
+  [xml_directory]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = 'openmc_out.csv'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The k-eigenvalue and its standard deviation shall be correctly retrieved from the OpenMC solution."
+    capabilities = 'openmc'
+  []
+[]
