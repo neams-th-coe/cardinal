@@ -63,7 +63,7 @@ The overall approach to build this three-physics coupled model will progress by 
 Our eventual goal will be to accomplish the following multiphysics coupling shown in [full_coupling]
 (this is step 3 above).
 Red arrows indicate those
-data transfers that Cardinal performs, while black arrows indicate [Transfers](Transfers.md)
+data transfers that Cardinal performs, while black arrows indicate [Transfers](Transfers/index.md)
 we will use directly from the MOOSE framework. The mesh shown in the center of the image
 is the mesh in the main app's input, and will be the central landing/retrieval point for
 the coupling data passed between each of the three coupled solvers.
@@ -86,13 +86,13 @@ represents step 1 above.
   style=width:90%;margin-left:auto;margin-right:auto
 
 Step 2 will then couple OpenMC to MOOSE heat conduction, with transfers shown in [two_coupling].
-This will allow us to describe [MultiApps](MultiApps.md) and [Transfers](Transfers.md) with just
+This will allow us to describe [MultiApps](MultiApps/index.md) and [Transfers](Transfers/index.md) with just
 two of the physics solvers. Then, we will be ready to progress to the fully coupled case, Step 3,
 shown in [full_coupling].
 
-!media single_coupling.png
-  id=single_coupling
-  caption=Three single-physics models we will build to gradually progress to [full_coupling]
+!media two_coupling.png
+  id=two_coupling
+  caption=Progression to couple two codes together
   style=width:90%;margin-left:auto;margin-right:auto
 
 ## Step 1: Single-Physics Uncoupled Models
@@ -405,13 +405,13 @@ between the inlet and outlet temperatures, then apply it to the `T_wall` auxilia
 
 ### OpenMC Model
 
-No changes are required to the XML files; we will simply add the [MultiApps](MultiApps.md)
-and [Transfers](Transfers.md) to communicate data between OpenMC and the heat conduction
+No changes are required to the XML files; we will simply add the [MultiApps](MultiApps/index.md)
+and [Transfers](Transfers/index.md) to communicate data between OpenMC and the heat conduction
 model. We can select either OpenMC or MOOSE to be the main, controlling application - here,
 we select OpenMC.
 
 The only changes we require to the OpenMC input file are to (i) switch to a [Transient](Transient.md)
-executioner and to add the [MultiApps](MultiApps.md) and [Transfers](Transfers.md) blocks.
+executioner and to add the [MultiApps](MultiApps/index.md) and [Transfers](Transfers/index.md) blocks.
 We register a multiapp to solve the heat conduction physics. Then, we add two data transfers
 to represent the data received/computed by OpenMC to couple with heat conduction. These
 transfers will pass mesh-based data using a nearest-node transfer. First, OpenMC will pass
@@ -506,7 +506,7 @@ of the OpenMC cell temperatures onto a mesh, whose elements may not conform to t
 OpenMC cell boundaries.
 
 !media cells_vs_subchannel.png
-  id=cells_vs_subchannel
+  id=cell_vs_subchannel
   caption=Temperature computed by the subchannel solver (left) as compared to the cell temperatures applied in OpenMC (right)
   style=width:75%;margin-left:auto;margin-right:auto
 
