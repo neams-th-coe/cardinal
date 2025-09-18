@@ -17,7 +17,7 @@
     [reaction_rates]
       type = CSVDiff
       input = openmc_mgxs_rxn.i
-      detail = "The system shall compute nu-scatter, nu-fission, and inverse-velocity scores fixed source mode."
+      detail = "The system shall compute nu-scatter, nu-fission, and inverse-velocity scores in fixed source mode."
       csvdiff = openmc_mgxs_rxn_out.csv
       capabilities = 'openmc'
     []
@@ -28,6 +28,20 @@
       capabilities = 'openmc'
       cli_args = 'Problem/Tallies/Cell/estimator=tracklength'
       expect_err = 'Non-analog estimators are not supported for nu_scatter scores!'
+    []
+  []
+
+  [delayed_mgxs]
+    issues = '#1207'
+    design = 'AddTallyAction.md'
+    requirement = "The system shall allow tallying of prompt-nu-fission, delayed-nu-fission, and decay-rate in fixed source mode."
+
+    [reaction_rates]
+      type = CSVDiff
+      input = openmc_delayed_rxn.i
+      detail = "The system shall compute prompt-nu-fission, delayed-nu-fission, and decay-rate scores in fixed source mode."
+      csvdiff = openmc_delayed_rxn_out.csv
+      capabilities = 'openmc'
     []
   []
 []

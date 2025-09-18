@@ -329,27 +329,6 @@ parameter. Options include:
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). All
 of the tallies added are normalized with the same `source_rate_normalization` score when running in eigenvalue mode.
-[tally_units] compares the units from OpenMC and the units of the AuxVariables created for all tally scores supported
-by Cardinal. Note that for all area or volume units in [tally_units], that those units match whatever unit is used in the `[Mesh]`.
-
-!table id=tally_units caption=Tally units from OpenMC and the conversion in Cardinal.
-| Tally score | OpenMC Units | Cardinal Units |
-| :- | :- | :- | :- |
-| `heating` | eV / source particle | W / volume |
-| `heating_local` | eV / source particle | W / volume |
-| `kappa_fission` | eV / source particle | W / volume |
-| `fission_q_prompt` | eV / source particle | W / volume |
-| `fission_q_recoverable` | eV / source particle | W / volume |
-| `damage_energy` | eV / source particle | eV / volume / second |
-| `flux` | particle - cm / source particle | particle / area / second |
-| `H3_production` | tritium / source particle | tritium / volume / second |
-| `total` | total reactions / source particle | total reactions / volume / second |
-| `absorption` | absorption reactions / source particle | absorption reactions / volume / second |
-| `scatter` | scattering reactions / source particle | scattering reactions / volume / second |
-| `nu_scatter` | nu-scattering reactions / source particle | nu-scattering reactions / volume / second |
-| `fission` | fission reactions / source particle | fission reactions / volume / second |
-| `nu_fission` | nu-fission reactions / source particle | nu-fission reactions / volume / second |
-| `inverse_velocity` | seconds / source particle | particle / volume |
 
 ### Tally Normalization
 

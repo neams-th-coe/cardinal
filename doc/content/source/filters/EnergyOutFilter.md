@@ -1,9 +1,5 @@
 # EnergyOutFilter
 
-!alert note
-`EnergyOutFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `EnergyOutFilter` object provides a thin wrapper around an OpenMC [EnergyoutFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.EnergyoutFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. Bins can be provided

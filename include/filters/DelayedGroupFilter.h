@@ -21,33 +21,26 @@
 #include "FilterBase.h"
 
 /**
- * A class which provides a thin wrapper around an arbitrary OpenMC
- * filter which already exists in the xml input file(s) such that
- * they can be used in a Cardinal mapped tally.
+ * A class which provides a thin wrapper around an OpenMC DelayedGroupFilter
+ * for use by Cardinal mapped tallies.
  */
-class FromXMLFilter : public FilterBase
+class DelayedGroupFilter : public FilterBase
 {
 public:
   static InputParameters validParams();
 
-  FromXMLFilter(const InputParameters & parameters);
+  DelayedGroupFilter(const InputParameters & parameters);
 
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * This filter appends 'bin_index' to the value stored in '_bin_label'.
+   * DelayedGroupFilter(s) use 'd' for each filter bin.
    * @param[in] bin_index the bin index
    * @return a short name for the bin represented by bin_index
    */
-  virtual std::string binName(unsigned int bin_index) const override
-  {
-    return _bin_label + Moose::stringify(bin_index + 1);
-  }
+  virtual std::string binName(unsigned int bin_index) const override;
 
 private:
-  /// The OpenMC id of the filter this class should provide to tallies added by [Problem/Tallies].
-  const unsigned int _filter_id;
-
-  /// The label applied to each filter bin.
-  const std::string & _bin_label;
+  /// The delayed groups to filter for.
+  std::vector<int> _delayed_groups;
 };

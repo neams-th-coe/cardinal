@@ -1,10 +1,6 @@
 # MeshTally
   id=um
 
-!alert note
-`MeshTally` can only be added to problems when the input files contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this tally will result in an error.
-
 ## Description
 
 The `MeshTally` class wraps an OpenMC tally with an unstructured libMesh filter to directly enable tallying on an unstructured mesh.
