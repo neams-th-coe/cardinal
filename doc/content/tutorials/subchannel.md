@@ -71,7 +71,7 @@ the coupling data passed between each of the three coupled solvers.
 !media full_coupling.png
   id=full_coupling
   caption=Multiphysics data transfers we will require to couple OpenMC, heat conduction, and subchannel models of the within-duct region of an [!ac](SFR)
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:75%;margin-left:auto;margin-right:auto
 
 Before we progress to this more complicated model, we will first build individual models of
 each solver, with all incoming data transfers set to be placeholder values. [single_coupling]
@@ -83,7 +83,7 @@ represents step 1 above.
 !media single_coupling.png
   id=single_coupling
   caption=Three single-physics models we will build to gradually progress to [full_coupling]
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:90%;margin-left:auto;margin-right:auto
 
 Step 2 will then couple OpenMC to MOOSE heat conduction, with transfers shown in [two_coupling].
 This will allow us to describe [MultiApps](MultiApps.md) and [Transfers](Transfers.md) with just
@@ -93,7 +93,7 @@ shown in [full_coupling].
 !media single_coupling.png
   id=single_coupling
   caption=Three single-physics models we will build to gradually progress to [full_coupling]
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:90%;margin-left:auto;margin-right:auto
 
 ## Step 1: Single-Physics Uncoupled Models
 
@@ -105,7 +105,7 @@ using MOOSE's reactor module for mesh-building. This mesh is built by first crea
 mesh of a single fuel pin, then packing that pin into a hexagonal lattice, and finally by
 extruding this 2-D mesh into 3-D.
 
-!listing /tutorials/openmc_subchannel/mesh.i
+!listing /tutorials/openmc_subchannel/meshes/mesh.i
 
 To generate the mesh as a file, run the input file in mesh generation mode:
 
@@ -115,6 +115,7 @@ cardinal-opt -i mesh.i --mesh-only
 !media bundle_solid_mesh.png
   id=bundle_solid_mesh
   caption=Mesh created by `mesh.i`
+  style=width:75%;margin-left:auto;margin-right:auto
 
 MOOSE mesh generators will often automatically set IDs to the sidesets in the model; in order
 to apply our pin surface temperature boundary condition, we need to know the ID of this sideset.
@@ -126,6 +127,7 @@ pin surface.
 !media paraview_sideset.png
   id=paraview_sideset
   caption=Paraview sideset viewer panel can be used to turn sideset views on/off until we find the number of the sideset representing the pin outer surface
+  style=width:75%;margin-left:auto;margin-right:auto
 
 Now that we have a mesh, we can create an input file to model heat conduction in the solid
 regions, without any multiphysics coupling. These files are located in the `heat_conduction`
@@ -212,7 +214,7 @@ The OpenMC geometry as produced via plots is shown in [bundle_openmc].
 !media bundle_openmc.png
   id=bundle_openmc
   caption=OpenMC geometry colored by cell ID (left) and material (right) shown on the $x$-$y$ plane
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:60%;margin-left:auto;margin-right:auto
 
 The top and bottom of the domain are vacuum boundaries, while the six lateral faces are reflective.
 Because we fill the `fuel_pin_universe` within the entries in the `fuel_pin_lattice`, and we fill
@@ -274,7 +276,7 @@ the OpenMC model into 10 unique cells in the axial direction.
 !media bundle_openmc_q.png
   id=bundle_openmc_q
   caption=OpenMC `kappa-fission` score mapped to the mesh
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:70%;margin-left:auto;margin-right:auto
 
 We can also inspect the `cell_temperature` and `cell_density` variables, and find that they
 reflect the temperatures/densities that OpenMC reads from the mesh.
@@ -359,7 +361,7 @@ shows the same data, but in a format representative of the subchannel discretiza
 !media subchannel_T.png
   id=subchannel_T
   caption=Subchannel solution for fluid temperature given a constant linear heating rate
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:70%;margin-left:auto;margin-right:auto
 
 We can confirm that this model conserves energy by comparing the value of the `expected_dT` postprocessor
 with the difference between the `inlet_temp` and `outlet_temp` postprocessors (the match is
@@ -367,7 +369,7 @@ not perfect because we took the specific heat just at a single value, averaged o
 (in other words, we were not 100% precise in the `expression` used in `expected_dT` -- energy is conserved
 if we did a more sophisticated integral of $\int\dot{m}C_pTdz$).
 
-## Two-Way Multiphysics Coupling
+## Step 2: Two-Way Multiphysics Coupling
   id=coupling
 
 In this section, two of the codes are coupled together - OpenMC and MOOSE heat conduction in the solids.
@@ -443,9 +445,9 @@ is shown on the right.
 !media two_coupled.png
   id=two_coupled
   caption=Temperature solution fields for the two-way coupled simulation
-  style=width:75%;margin-left:auto;margin-right:auto
+  style=width:85%;margin-left:auto;margin-right:auto
 
-## Three-Way Multiphysics Coupling
+## Step 3: Three-Way Multiphysics Coupling
 
 For our last simulation, we couple all three solvers - OpenMC, MOOSE heat conduction, and MOOSE
 subchannel. To describe this model, we will only describe what is now different from the two-way
@@ -518,7 +520,7 @@ as the coolant heats up).
 !media sfr_power_temp.png
   id=sfr_power_temp
   caption=Power computed by OpenMC (top) and the fuel temperature distribution computed by MOOSE (bottom)
-  style=width:55%;margin-left:auto;margin-right:auto
+  style=width:65%;margin-left:auto;margin-right:auto
 
 
 You can try several modifications to these files to improve the resolution of the feedback:

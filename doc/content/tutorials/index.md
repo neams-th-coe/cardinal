@@ -78,7 +78,7 @@ quickly reading this documentation before proceeding.
 Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://www.flexiquiz.com/SC/N/30fc79f0-f9a5-4cfc-b140-c07dda3bdf0b)!
 !alert-end!
 
-6. [Temperature coupling to MOOSE](openmc_solid.md)
+6. [Temperature, density, and tally coupling to MOOSE](openmc_solid.md)
 7. [Adaptive mesh refinement on mesh tallies](openmc_amr.md)
 8. [Multi-group cross section generation](openmc_mgxs.md)
 
