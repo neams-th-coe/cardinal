@@ -5,6 +5,7 @@ significant changes to report.
 
 ### 2025
 
+- [September 2025](news/september2025.md)
 - [July 2025](news/july2025.md)
 - [June 2025](news/june2025.md)
 - [April 2025](news/april2025.md)
