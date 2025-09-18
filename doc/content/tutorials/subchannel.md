@@ -327,9 +327,9 @@ To ensure the model is set up correctly, we can check the global energy conserva
 power deposited from the pins into the coolant should equal $\dot{m}C_p\Delta T$ provided that
 no heat is lost through the lateral walls of the assembly (true for this problem setup), all changes
 to internal energy arise from sensible heat (i.e. no latent heat), the flow is steady-state, and the
-pressur work is negligible. We compute the power with a [SCMPowerPostprocessor](SCMPowerPostprocessor.md),
-and then the bulk average inlet and outlet temperatures with two [SCMPlanarMean](SCMPlanarMean.md)
-postprocessors. The average specific heat is computed at the top of the input file with local
+pressure work is negligible. We add postprocessors to compute the total power deposited
+in the subchannel model, as well as the bulk average inlet and outlet temperatures.
+The average specific heat is computed at the top of the input file with local
 parser syntax based on the correlation used for sodium.
 
 !listing tutorials/openmc_subchannel/subchannel/subchannel.i
