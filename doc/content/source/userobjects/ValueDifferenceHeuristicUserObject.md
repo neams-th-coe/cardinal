@@ -2,14 +2,10 @@
 
 ## Description
 
-`ValueDifferenceHeuristicUserObject` inherits from the `ClusteringHeuristicUserObjectBase`.
-It implements the clustering heuristic if the relative difference between scores of two adjacent
-elements are less than a tolerance limit.
+`ValueDifferenceHeuristicUserObject` implements the clustering heuristic if the relative
+difference between variable of two adjacent elements are less than a tolerance limit.
 
-!alert! warning
-`ValueDifferenceHeuristicUserObject` doesn't implement the clustering and mesh walking process. Mesh walking and the clustering process are implemented
-by the [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
-!alert-end!
+## Example Input File
 
 The following input block declares a `ValueDifferenceHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)

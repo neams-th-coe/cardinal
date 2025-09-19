@@ -37,8 +37,6 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
                                          : std::vector<int>(_extra_element_id_names.size(), -1))
 {
   // check if value for every extra element integer is provided
-  // just keeping this comment for future reference that I will have to add a test to capture
-  // this error.
   if (_eeiid_values.size() != _extra_element_id_names.size())
     paramError("values",
                "Number of entries in 'values' (" + std::to_string(_eeiid_values.size()) +
@@ -56,14 +54,13 @@ ParsedElementIDMeshGenerator::generate()
   {
     // check if the extra element integer already exists in the mesh and only add the
     // element integer if it doesn't.
-    // If it exits already then just throw a mooseWarning.
+    // If it exits already then throw a mooseError.
     if (!mesh->has_elem_integer(_extra_element_id_names[i]))
       mesh->add_elem_integer(_extra_element_id_names[i], _eeiid_values[i]);
     else
-      mooseWarning("The element integer id named ",
-                   _extra_element_id_names[i],
-                   " already exists in the mesh. The existing values will be retained, and the "
-                   "provided values will be ignored.");
+      mooseError("The element integer id named ",
+                 _extra_element_id_names[i],
+                 " already exists in the mesh.");
   }
 
   return mesh;

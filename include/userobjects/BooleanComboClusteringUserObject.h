@@ -23,22 +23,23 @@ public:
 private:
   /**
    * getter function for extra element integer score of an element
-   * @param[int] a libmesh element
-   * @param[out] extra element integer score of that element
+   * @param[in] a libmesh element
+   * @return extra element integer score of that element
    */
   int getExtraIntegerScore(libMesh::Elem * elem) const;
 
   /**
    * function for converting the expression input to reverse polish notation
-   * it follows the  shunting yard algorithm.
+   * using the shunting yard algorithm.
    * @param[in] a parsed expression
    */
   void reversePolishNotation(const std::vector<std::string> & expression);
 
   /**
    * Method for evaluating if element should be clustered or not
-   * @param[in] base_element, a neighboring element of the base element
-   * @param[out] decides if these two element belongs to a cluster or not
+   * @param[in] base_element
+   * @param[in] neighbor_elem neighboring element of the base element
+   * @return decides if these two element belongs to a cluster or not
    */
   bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem);
 
@@ -52,7 +53,7 @@ private:
   void initializeUserObjects();
 
   /// extra element integer id name
-  const ExtraElementIDName _id_name;
+  const ExtraElementIDName & _id_name;
 
   /// mesh ref
   libMesh::MeshBase & _mesh;

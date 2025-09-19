@@ -2,16 +2,12 @@
 
 ## Description
 
-`ThresholdHeuristicUserObject` inherits from the `ClusteringHeuristicUserObjectBase`. It implements the clustering
+`ThresholdHeuristicUserObject` implements the clustering
 heuristic if their scores are more (default) or less than a `threshold`
 value provided in the input files. The operation will be flipped if the 
-input argument `cluster_if_above_threshold` is false. 
+input argument `cluster_if_above_threshold` is false.
 
-!alert! warning
-
-`ThresholdHeuristicUserObject` doesn't implement the clustering and mesh walking process.
-
-!alert-end!
+## Example Input File
 
 The following input block declares a `ThresholdHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
