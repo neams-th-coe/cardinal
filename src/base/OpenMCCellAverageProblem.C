@@ -2890,7 +2890,7 @@ OpenMCCellAverageProblem::reloadDAGMC()
 
   // Finalize DAGMC cell densities after setting up the new geometry. CSG cells (and
   // eventually non-skinned DAGMC cells) already have their densities finalized.
-  for (auto& c : openmc::model::cells)
+  for (auto & c : openmc::model::cells)
   {
     if (c->geom_type() == openmc::GeometryType::CSG)
       continue;
