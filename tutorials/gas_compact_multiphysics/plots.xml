@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <plots>
-  <plot basis="xz" color_by="cell" filename="plot1" id="1" type="slice">
+  <plot id="1" filename="plot1" color_by="cell" type="slice" basis="xz">
     <pixels>3008 10240</pixels>
     <origin>0.0 0.0 80.0</origin>
     <width>3.7600000000000002 12.8</width>
   </plot>
-  <plot basis="xy" color_by="material" filename="plot2" id="2" type="slice">
+  <plot id="2" filename="plot2" color_by="material" type="slice" basis="xy">
     <pixels>1504 1504</pixels>
     <origin>0.0 0.0 1.6</origin>
     <width>5.640000000000001 5.640000000000001</width>
@@ -16,7 +16,7 @@
     <color id="5" rgb="192 192 192"/>
     <color id="7" rgb="65 105 225"/>
   </plot>
-  <plot basis="xy" color_by="cell" filename="plot3" id="3" type="slice">
+  <plot id="3" filename="plot3" color_by="cell" type="slice" basis="xy">
     <pixels>1504 1504</pixels>
     <origin>0.0 0.0 1.6</origin>
     <width>5.640000000000001 5.640000000000001</width>
