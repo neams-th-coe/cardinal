@@ -2888,8 +2888,15 @@ OpenMCCellAverageProblem::reloadDAGMC()
   openmc::settings::verbosity = 1;
   openmc::finalize_cross_sections();
 
-  // Finalize cell densities after setting up the new geometry.
-  openmc::finalize_cell_densities();
+  // Finalize DAGMC cell densities after setting up the new geometry. CSG cells (and
+  // eventually non-skinned DAGMC cells) already have their densities finalized.
+  for (auto& c : openmc::model::cells)
+  {
+    if (c->geom_type() == openmc::GeometryType::CSG)
+      continue;
+
+    c->density_mult_ = {1.0};
+  }
 
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
