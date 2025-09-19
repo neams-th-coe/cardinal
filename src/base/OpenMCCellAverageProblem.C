@@ -2888,6 +2888,9 @@ OpenMCCellAverageProblem::reloadDAGMC()
   openmc::settings::verbosity = 1;
   openmc::finalize_cross_sections();
 
+  // Finalize cell densities after setting up the new geometry.
+  openmc::finalize_cell_densities();
+
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
   openmc::settings::verbosity = initial_verbosity;
