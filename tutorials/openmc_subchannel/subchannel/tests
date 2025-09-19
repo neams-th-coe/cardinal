@@ -1,0 +1,7 @@
+[Tests]
+  [subchannel]
+    type = RunApp
+    input = subchannel.i
+    requirement = 'The system shall be able to solve for subchannel flow in a sodium fast reactor assembly.'
+  []
+[]
