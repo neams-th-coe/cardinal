@@ -53,7 +53,7 @@
 [Executioner]
   type = Transient
   num_steps = 2
-  dt = 0.05
+  dt = 0.025
   nl_abs_tol = 1e-8
 
   # In order to obtain the pseudo-steady converged case, run this until steady state is
