@@ -63,15 +63,6 @@
 []
 
 [Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-  []
-  [fluid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
   [solid_heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
