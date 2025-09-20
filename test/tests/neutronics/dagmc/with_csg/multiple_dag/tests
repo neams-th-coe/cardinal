@@ -1,6 +1,6 @@
 [Tests]
   issues = '#1177'
-  design = 'MOABSkinner.md OpenMCCellAverageProblem.md'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
 
   [multi_dag_uni]
     type = RunException
