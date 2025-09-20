@@ -163,12 +163,12 @@ mass_flux_in = ${fparse total_mdot / flow_area}
     type = SCMPinPowerPostprocessor
   []
   [inlet_temp]
-    type = SCMTHPlanarMean
+    type = SCMPlanarMean
     variable = T
     height = 0.0
   []
   [outlet_temp]
-    type = SCMTHPlanarMean
+    type = SCMPlanarMean
     variable = T
     height = ${fparse height * 1e-2}
   []
