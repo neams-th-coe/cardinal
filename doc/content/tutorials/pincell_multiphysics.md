@@ -93,9 +93,9 @@ First, we create a number of materials to represent
 the fuel pellet and cladding. Because these materials will only receive temperature updates (i.e.
 we will not change their density, because doing so would require us to move cell boundaries in
 order to preserve mass), we can simply create one material that we will use on all axial layers.
-Next, we create a number of materials to represent the sodium material in each
-axial layer of the model. Because the sodium cells will change both their temperature *and*
-density, we need to create a unique material for each axial layer.
+Similar to temperature, a unique value of density can also be specified for each cell instance,
+and so we create a single sodium material for all of the coolant cells that will receive density
+and temperature feedback from NekRS.
 
 Next, we divide the geometry into a number of axial layers, where on each
 layer we set up cells to represent the pellet, cladding, and sodium. Each layer is then

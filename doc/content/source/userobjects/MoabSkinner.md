@@ -6,7 +6,7 @@
 
 This user object bins the spatial domain according to three characteristics:
 
-- temperature (by grouping elements into `n_temperature_bins` with equal spacing between `temperature_min` and `temperature_max`
+- temperature (by grouping elements into `n_temperature_bins` with equal spacing between `temperature_min` and `temperature_max`)
 - density (by grouping elements into `n_density_bins` with equal spacing between `density_min` and `density_max`)
 - subdomain
 

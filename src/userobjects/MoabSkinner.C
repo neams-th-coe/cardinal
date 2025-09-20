@@ -691,10 +691,7 @@ MoabSkinner::materialName(const unsigned int & block,
                           const unsigned int & density,
                           const unsigned int & temp) const
 {
-  if (_n_density_bins > 1)
-    return "mat:" + _material_names.at(block) + "_" + std::to_string(density);
-  else
-    return "mat:" + _material_names.at(block);
+  return "mat:" + _material_names.at(block);
 }
 
 void

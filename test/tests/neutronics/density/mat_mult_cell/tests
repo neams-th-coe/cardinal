@@ -1,0 +1,15 @@
+[Tests]
+  issues = '#1197'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [allow_mat_diff_cell]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall allow a material to be specified both in a cell "
+                  "with density feedback and a cell without density feedback. The "
+                  "gold file for this test was generated with a duplicated material "
+                  "of the feedback cell fill in the respective non-feedback cell."
+    capabilities = 'openmc'
+  []
+[]
