@@ -2,6 +2,7 @@
   [subchannel]
     type = RunApp
     input = subchannel.i
+    max_parallel = 1
     requirement = 'The system shall be able to solve for subchannel flow in a sodium fast reactor assembly.'
   []
 []
