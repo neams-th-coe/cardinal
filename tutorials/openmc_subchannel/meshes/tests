@@ -1,0 +1,8 @@
+[Tests]
+  [mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh of a sodium fast reactor assembly.'
+  []
+[]
