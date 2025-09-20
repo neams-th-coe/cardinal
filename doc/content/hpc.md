@@ -278,6 +278,7 @@ Pinchot is a small Ubuntu server at the University of Illinois hosted in Dr. Nov
 
 module load openmpi/ubuntu/5.0.0
 module load hdf5/ubuntu/1.14.3
+module load cmake/4.1.1
 
 # change to your Cardinal location (either the shared location in /shared/data,
 # or to a location in your home directory
