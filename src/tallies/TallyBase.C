@@ -48,7 +48,7 @@ TallyBase::validParams()
   params.addParam<std::vector<SubdomainName>>(
       "block",
       "Subdomains for which to add tallies in OpenMC. If not provided, "
-      "tallies will be applied over the entire mesh.");
+      "tallies will be applied over the entire domain corresponding to the [Mesh] block.");
   params.addParam<std::vector<SubdomainName>>("blocks",
                                               "This parameter is deprecated, use 'block' instead!");
 

@@ -47,7 +47,6 @@ CellTally::CellTally(const InputParameters & parameters)
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
 {
-
 }
 
 std::pair<unsigned int, openmc::Filter *>
