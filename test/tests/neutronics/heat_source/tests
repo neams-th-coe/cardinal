@@ -1,4 +1,13 @@
 [Tests]
+  [block_restrict_cell]
+    type = RunException
+    input = 'block_restrict_err.i'
+    expect_err = "The 'block' parameter of the object 'solid_heat_source' must be a subset of the 'block' parameter of the variable 'heat_source'"
+    requirement = "The system shall be capable of block restricting CellTally variables."
+    capabilities = 'openmc'
+    issues = '#1195'
+    design = 'CellTally.md MeshTally.md'
+  []
   [mapping_all]
     type = Exodiff
     input = mapping_all.i
