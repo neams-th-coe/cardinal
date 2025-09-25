@@ -6,9 +6,7 @@
   [solid]
     type = CombinerGenerator
     inputs = sphere
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    positions = '0 0 0'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -33,8 +31,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  temperature_blocks = '100 200'
-  density_blocks = '200'
 
   initial_properties = xml
 
@@ -47,14 +43,13 @@
   [Tallies]
     [Cell]
       type = CellTally
-      # Use a custom tally name
-      name = "volumetric_power"
+      name = heat_source
 
       # This input has fissile material in the fluid phase, so we will get a warning
       # that we are neglecting some of the global kappa-fission distribution; so here
       # the power is the total power of the OpenMC problem, and only a fraction of this
       # will be computed in the solid pebbles
-      block =  '100'
+      block = '100'
     []
   []
 []
@@ -64,15 +59,9 @@
 []
 
 [Postprocessors]
-  [heat_source]
+  [solid_heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = volumetric_power
-    block =  '100'
+    variable = heat_source
+    block = '200'
   []
-[]
-
-[Outputs]
-  exodus = true
-  csv = true
-  hide = 'density'
 []

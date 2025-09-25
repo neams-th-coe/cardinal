@@ -1,7 +1,3 @@
-# In this input, OpenMCs domain includes the entire MOOSE domain, but some
-# OpenMC cells are not mapped anywhere (we treat this by removing one sphere
-# from the MOOSE mesh).
-
 [Mesh]
   [sphere]
     type = FileMeshGenerator
@@ -11,7 +7,8 @@
     type = CombinerGenerator
     inputs = sphere
     positions = '0 0 0
-                 0 0 4'
+                 0 0 4
+                 0 0 8'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -51,7 +48,12 @@
     [Cell]
       type = CellTally
       name = heat_source
-      block = '100 200'
+
+      # This input has fissile material in the fluid phase, so we will get a warning
+      # that we are neglecting some of the global kappa-fission distribution; so here
+      # the power is the total power of the OpenMC problem, and only a fraction of this
+      # will be computed in the solid pebbles
+      block = '100'
     []
   []
 []
@@ -61,15 +63,6 @@
 []
 
 [Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-  []
-  [fluid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
   [solid_heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source

@@ -1,6 +1,6 @@
-# In this input, MOOSEs domain contains the entire OpenMC domain, but some
-# MOOSE elements arent mapped anywhere (this is facilitated by adding an
-# extra pebble to the MOOSE mesh).
+# In this input, OpenMCs domain includes the entire MOOSE domain, but some
+# OpenMC cells are not mapped anywhere (we treat this by removing one sphere
+# from the MOOSE mesh).
 
 [Mesh]
   [sphere]
@@ -11,9 +11,7 @@
     type = CombinerGenerator
     inputs = sphere
     positions = '0 0 0
-                 0 0 4
-                 0 0 8
-                 9 9 9'
+                 0 0 4'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -40,7 +38,11 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
+
   initial_properties = xml
+
+  # We are skipping some feedback with fissile regions, so we need to turn off the check
+  check_tally_sum = false
 
   verbose = true
   cell_level = 0
@@ -62,6 +64,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+    block = '100 200'
   []
   [fluid_heat_source]
     type = ElementIntegralVariablePostprocessor
@@ -76,7 +79,7 @@
 []
 
 [Outputs]
-  csv = true
   exodus = true
+  csv = true
   hide = 'density'
 []

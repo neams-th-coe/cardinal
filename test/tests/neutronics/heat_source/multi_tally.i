@@ -58,6 +58,7 @@
   [kappa_fission]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
+    block = '100 200'
   []
   [fluid_kappa_fission]
     type = ElementIntegralVariablePostprocessor

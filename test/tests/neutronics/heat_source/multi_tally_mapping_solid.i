@@ -35,52 +35,40 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-
-  initial_properties = xml
-
-  # We are skipping some feedback with fissile regions, so we need to turn off the check
-  check_tally_sum = false
-
   verbose = true
   cell_level = 0
+  normalize_by_global_tally = false
+  check_tally_sum = false
+
+  initial_properties = xml
 
   [Tallies]
     [Cell]
       type = CellTally
-      name = heat_source
-
-      # This input has fissile material in the fluid phase, so we will get a warning
-      # that we are neglecting some of the global kappa-fission distribution; so here
-      # the power is the total power of the OpenMC problem, and only a fraction of this
-      # will be computed in the solid pebbles
+      score = 'kappa_fission heating'
       block = '100'
     []
   []
 []
 
 [Executioner]
-  type = Steady
+  type = Transient
+  num_steps = 1
 []
 
 [Postprocessors]
-  [heat_source]
+  [solid_kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
+    block = '100'
   []
-  [fluid_heat_source]
+  [solid_heating]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
-  [solid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = heating
     block = '100'
   []
 []
 
 [Outputs]
-  exodus = true
   csv = true
-  hide = 'density'
 []
