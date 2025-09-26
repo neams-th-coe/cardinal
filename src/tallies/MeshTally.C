@@ -170,7 +170,7 @@ MeshTally::spatialFilter()
     {
       if (_is_adaptive)
         openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
-          _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
+            _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
       else
         openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(
             _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
@@ -181,7 +181,8 @@ MeshTally::spatialFilter()
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
 
   _mesh_index = openmc::model::meshes.size() - 1;
-  _mesh_template = dynamic_cast<openmc::UnstructuredMesh *>(openmc::model::meshes[_mesh_index].get());
+  _mesh_template =
+      dynamic_cast<openmc::UnstructuredMesh *>(openmc::model::meshes[_mesh_index].get());
 
   // by setting the ID to -1, OpenMC will automatically detect the next available ID
   _mesh_template->set_id(-1);
