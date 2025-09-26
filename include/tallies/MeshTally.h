@@ -96,7 +96,7 @@ protected:
   openmc::MeshFilter * _mesh_filter;
 
   /// OpenMC unstructured mesh instance for use with mesh tallies
-  openmc::LibMesh * _mesh_template;
+  openmc::UnstructuredMesh * _mesh_template;
 
   /// Whether we're using an indirection layer to map between the OpenMC mesh tally and the MOOSE mesh.
   const bool _use_dof_map;
