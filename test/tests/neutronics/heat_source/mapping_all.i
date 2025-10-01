@@ -57,6 +57,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+    block = '100 200'
   []
   [fluid_heat_source]
     type = ElementIntegralVariablePostprocessor

@@ -1,3 +1,7 @@
+# In this input, MOOSEs domain contains the entire OpenMC domain, but some
+# MOOSE elements arent mapped anywhere (this is facilitated by adding an
+# extra pebble to the MOOSE mesh).
+
 [Mesh]
   [sphere]
     type = FileMeshGenerator
@@ -8,7 +12,8 @@
     inputs = sphere
     positions = '0 0 0
                  0 0 4
-                 0 0 8'
+                 0 0 8
+                 9 9 9'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -35,58 +40,44 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
+  initial_properties = xml
+
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
-  check_tally_sum = false
-
-  initial_properties = xml
 
   [Tallies]
     [Cell]
       type = CellTally
-      score = 'kappa_fission heating'
-      block = '100'
+      name = heat_source
+      block = '100 200'
     []
   []
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
-  [kappa_fission]
+  [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
+    variable = heat_source
+    block = '100 200'
   []
-  [fluid_kappa_fission]
+  [fluid_heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
+    variable = heat_source
     block = '200'
   []
-  [solid_kappa_fission]
+  [solid_heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '100'
-  []
-  [heating]
-    type = ElementIntegralVariablePostprocessor
-    variable = heating
-  []
-  [fluid_heating]
-    type = ElementIntegralVariablePostprocessor
-    variable = heating
-    block = '200'
-  []
-  [solid_heating]
-    type = ElementIntegralVariablePostprocessor
-    variable = heating
+    variable = heat_source
     block = '100'
   []
 []
 
 [Outputs]
   csv = true
+  exodus = true
+  hide = 'density'
 []

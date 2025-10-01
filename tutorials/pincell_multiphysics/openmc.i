@@ -162,6 +162,8 @@ dT = ${fparse power / mdot / Cp}
     source_variable = heat_source
     variable = power
     to_multi_app = bison
+    from_blocks = '2'
+    to_blocks = '2'
   []
   [temp_from_nek]
     type = MultiAppGeneralFieldShapeEvaluationTransfer

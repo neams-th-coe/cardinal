@@ -67,6 +67,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = volumetric_power
+    block =  '100'
   []
 []
 
