@@ -415,7 +415,7 @@ fi
 if [[ "$SHORTHOST" ~=wr[0-9]+n[0-9]+ ]] || [[ "$SHORTHOST" =~ windriver* ]]
   echo "Loading WindRiver modules..."
   module purge
-  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
+  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3 python/3.10-miniforge-24.3.0
 fi
 
 export CC=mpicc
