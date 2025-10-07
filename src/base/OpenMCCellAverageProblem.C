@@ -2394,7 +2394,8 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
                      "each successive set-temperature operation is only overwriting the previous "
                      "value.\n\nThis error most often appears when you are filling a LATTICE into "
                      "multiple cells. One fix is to first place that lattice into a universe, and "
-                     "then fill that UNIVERSE into multiple cells.");
+                     "then fill that UNIVERSE into multiple cells.\n\nFor more information, please "
+                     "consult https://github.com/neams-th-coe/cardinal/pull/918.");
         }
 
         cells_already_set.insert(ci);
