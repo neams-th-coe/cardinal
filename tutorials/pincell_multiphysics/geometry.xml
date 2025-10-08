@@ -1,110 +1,110 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <geometry>
-  <cell id="1" material="1" name="Fuel0" region="-2 7 -8" universe="1" />
-  <cell id="2" material="3" name="Clad0" region="2 -1 7 -8" universe="1" />
-  <cell id="3" material="2" name="sodium0" region="1 7 -8 3 -4 5 -6" universe="1" />
-  <cell id="4" material="1" name="Fuel1" region="-2 8 -9" universe="1" />
-  <cell id="5" material="3" name="Clad1" region="2 -1 8 -9" universe="1" />
-  <cell id="6" material="4" name="sodium1" region="1 8 -9 3 -4 5 -6" universe="1" />
-  <cell id="7" material="1" name="Fuel2" region="-2 9 -10" universe="1" />
-  <cell id="8" material="3" name="Clad2" region="2 -1 9 -10" universe="1" />
-  <cell id="9" material="5" name="sodium2" region="1 9 -10 3 -4 5 -6" universe="1" />
-  <cell id="10" material="1" name="Fuel3" region="-2 10 -11" universe="1" />
-  <cell id="11" material="3" name="Clad3" region="2 -1 10 -11" universe="1" />
-  <cell id="12" material="6" name="sodium3" region="1 10 -11 3 -4 5 -6" universe="1" />
-  <cell id="13" material="1" name="Fuel4" region="-2 11 -12" universe="1" />
-  <cell id="14" material="3" name="Clad4" region="2 -1 11 -12" universe="1" />
-  <cell id="15" material="7" name="sodium4" region="1 11 -12 3 -4 5 -6" universe="1" />
-  <cell id="16" material="1" name="Fuel5" region="-2 12 -13" universe="1" />
-  <cell id="17" material="3" name="Clad5" region="2 -1 12 -13" universe="1" />
-  <cell id="18" material="8" name="sodium5" region="1 12 -13 3 -4 5 -6" universe="1" />
-  <cell id="19" material="1" name="Fuel6" region="-2 13 -14" universe="1" />
-  <cell id="20" material="3" name="Clad6" region="2 -1 13 -14" universe="1" />
-  <cell id="21" material="9" name="sodium6" region="1 13 -14 3 -4 5 -6" universe="1" />
-  <cell id="22" material="1" name="Fuel7" region="-2 14 -15" universe="1" />
-  <cell id="23" material="3" name="Clad7" region="2 -1 14 -15" universe="1" />
-  <cell id="24" material="10" name="sodium7" region="1 14 -15 3 -4 5 -6" universe="1" />
-  <cell id="25" material="1" name="Fuel8" region="-2 15 -16" universe="1" />
-  <cell id="26" material="3" name="Clad8" region="2 -1 15 -16" universe="1" />
-  <cell id="27" material="11" name="sodium8" region="1 15 -16 3 -4 5 -6" universe="1" />
-  <cell id="28" material="1" name="Fuel9" region="-2 16 -17" universe="1" />
-  <cell id="29" material="3" name="Clad9" region="2 -1 16 -17" universe="1" />
-  <cell id="30" material="12" name="sodium9" region="1 16 -17 3 -4 5 -6" universe="1" />
-  <cell id="31" material="1" name="Fuel10" region="-2 17 -18" universe="1" />
-  <cell id="32" material="3" name="Clad10" region="2 -1 17 -18" universe="1" />
-  <cell id="33" material="13" name="sodium10" region="1 17 -18 3 -4 5 -6" universe="1" />
-  <cell id="34" material="1" name="Fuel11" region="-2 18 -19" universe="1" />
-  <cell id="35" material="3" name="Clad11" region="2 -1 18 -19" universe="1" />
-  <cell id="36" material="14" name="sodium11" region="1 18 -19 3 -4 5 -6" universe="1" />
-  <cell id="37" material="1" name="Fuel12" region="-2 19 -20" universe="1" />
-  <cell id="38" material="3" name="Clad12" region="2 -1 19 -20" universe="1" />
-  <cell id="39" material="15" name="sodium12" region="1 19 -20 3 -4 5 -6" universe="1" />
-  <cell id="40" material="1" name="Fuel13" region="-2 20 -21" universe="1" />
-  <cell id="41" material="3" name="Clad13" region="2 -1 20 -21" universe="1" />
-  <cell id="42" material="16" name="sodium13" region="1 20 -21 3 -4 5 -6" universe="1" />
-  <cell id="43" material="1" name="Fuel14" region="-2 21 -22" universe="1" />
-  <cell id="44" material="3" name="Clad14" region="2 -1 21 -22" universe="1" />
-  <cell id="45" material="17" name="sodium14" region="1 21 -22 3 -4 5 -6" universe="1" />
-  <cell id="46" material="1" name="Fuel15" region="-2 22 -23" universe="1" />
-  <cell id="47" material="3" name="Clad15" region="2 -1 22 -23" universe="1" />
-  <cell id="48" material="18" name="sodium15" region="1 22 -23 3 -4 5 -6" universe="1" />
-  <cell id="49" material="1" name="Fuel16" region="-2 23 -24" universe="1" />
-  <cell id="50" material="3" name="Clad16" region="2 -1 23 -24" universe="1" />
-  <cell id="51" material="19" name="sodium16" region="1 23 -24 3 -4 5 -6" universe="1" />
-  <cell id="52" material="1" name="Fuel17" region="-2 24 -25" universe="1" />
-  <cell id="53" material="3" name="Clad17" region="2 -1 24 -25" universe="1" />
-  <cell id="54" material="20" name="sodium17" region="1 24 -25 3 -4 5 -6" universe="1" />
-  <cell id="55" material="1" name="Fuel18" region="-2 25 -26" universe="1" />
-  <cell id="56" material="3" name="Clad18" region="2 -1 25 -26" universe="1" />
-  <cell id="57" material="21" name="sodium18" region="1 25 -26 3 -4 5 -6" universe="1" />
-  <cell id="58" material="1" name="Fuel19" region="-2 26 -27" universe="1" />
-  <cell id="59" material="3" name="Clad19" region="2 -1 26 -27" universe="1" />
-  <cell id="60" material="22" name="sodium19" region="1 26 -27 3 -4 5 -6" universe="1" />
-  <cell id="61" material="1" name="Fuel20" region="-2 27 -28" universe="1" />
-  <cell id="62" material="3" name="Clad20" region="2 -1 27 -28" universe="1" />
-  <cell id="63" material="23" name="sodium20" region="1 27 -28 3 -4 5 -6" universe="1" />
-  <cell id="64" material="1" name="Fuel21" region="-2 28 -29" universe="1" />
-  <cell id="65" material="3" name="Clad21" region="2 -1 28 -29" universe="1" />
-  <cell id="66" material="24" name="sodium21" region="1 28 -29 3 -4 5 -6" universe="1" />
-  <cell id="67" material="1" name="Fuel22" region="-2 29 -30" universe="1" />
-  <cell id="68" material="3" name="Clad22" region="2 -1 29 -30" universe="1" />
-  <cell id="69" material="25" name="sodium22" region="1 29 -30 3 -4 5 -6" universe="1" />
-  <cell id="70" material="1" name="Fuel23" region="-2 30 -31" universe="1" />
-  <cell id="71" material="3" name="Clad23" region="2 -1 30 -31" universe="1" />
-  <cell id="72" material="26" name="sodium23" region="1 30 -31 3 -4 5 -6" universe="1" />
-  <cell id="73" material="1" name="Fuel24" region="-2 31 -32" universe="1" />
-  <cell id="74" material="3" name="Clad24" region="2 -1 31 -32" universe="1" />
-  <cell id="75" material="27" name="sodium24" region="1 31 -32 3 -4 5 -6" universe="1" />
-  <surface coeffs="0.0 0.0 0.485" id="1" name="Pincell outer radius" type="z-cylinder" />
-  <surface coeffs="0.0 0.0 0.4125" id="2" name="Pellet outer radius" type="z-cylinder" />
-  <surface boundary="reflective" coeffs="-0.64" id="3" name="minimum x" type="x-plane" />
-  <surface boundary="reflective" coeffs="0.64" id="4" name="maximum x" type="x-plane" />
-  <surface boundary="reflective" coeffs="-0.64" id="5" name="minimum y" type="y-plane" />
-  <surface boundary="reflective" coeffs="0.64" id="6" name="maximum y" type="y-plane" />
-  <surface boundary="vacuum" coeffs="0.0" id="7" type="z-plane" />
-  <surface coeffs="2.0" id="8" type="z-plane" />
-  <surface coeffs="4.0" id="9" type="z-plane" />
-  <surface coeffs="6.0" id="10" type="z-plane" />
-  <surface coeffs="8.0" id="11" type="z-plane" />
-  <surface coeffs="10.0" id="12" type="z-plane" />
-  <surface coeffs="12.0" id="13" type="z-plane" />
-  <surface coeffs="14.0" id="14" type="z-plane" />
-  <surface coeffs="16.0" id="15" type="z-plane" />
-  <surface coeffs="18.0" id="16" type="z-plane" />
-  <surface coeffs="20.0" id="17" type="z-plane" />
-  <surface coeffs="22.0" id="18" type="z-plane" />
-  <surface coeffs="24.0" id="19" type="z-plane" />
-  <surface coeffs="26.0" id="20" type="z-plane" />
-  <surface coeffs="28.0" id="21" type="z-plane" />
-  <surface coeffs="30.0" id="22" type="z-plane" />
-  <surface coeffs="32.0" id="23" type="z-plane" />
-  <surface coeffs="34.0" id="24" type="z-plane" />
-  <surface coeffs="36.0" id="25" type="z-plane" />
-  <surface coeffs="38.0" id="26" type="z-plane" />
-  <surface coeffs="40.0" id="27" type="z-plane" />
-  <surface coeffs="42.0" id="28" type="z-plane" />
-  <surface coeffs="44.0" id="29" type="z-plane" />
-  <surface coeffs="46.0" id="30" type="z-plane" />
-  <surface coeffs="48.0" id="31" type="z-plane" />
-  <surface boundary="vacuum" coeffs="50.0" id="32" type="z-plane" />
+  <cell id="1" name="Fuel0" material="1" region="-2 7 -8" universe="1"/>
+  <cell id="2" name="Clad0" material="3" region="2 -1 7 -8" universe="1"/>
+  <cell id="3" name="sodium0" material="2" region="1 7 -8 3 -4 5 -6" universe="1"/>
+  <cell id="4" name="Fuel1" material="1" region="-2 8 -9" universe="1"/>
+  <cell id="5" name="Clad1" material="3" region="2 -1 8 -9" universe="1"/>
+  <cell id="6" name="sodium1" material="2" region="1 8 -9 3 -4 5 -6" universe="1"/>
+  <cell id="7" name="Fuel2" material="1" region="-2 9 -10" universe="1"/>
+  <cell id="8" name="Clad2" material="3" region="2 -1 9 -10" universe="1"/>
+  <cell id="9" name="sodium2" material="2" region="1 9 -10 3 -4 5 -6" universe="1"/>
+  <cell id="10" name="Fuel3" material="1" region="-2 10 -11" universe="1"/>
+  <cell id="11" name="Clad3" material="3" region="2 -1 10 -11" universe="1"/>
+  <cell id="12" name="sodium3" material="2" region="1 10 -11 3 -4 5 -6" universe="1"/>
+  <cell id="13" name="Fuel4" material="1" region="-2 11 -12" universe="1"/>
+  <cell id="14" name="Clad4" material="3" region="2 -1 11 -12" universe="1"/>
+  <cell id="15" name="sodium4" material="2" region="1 11 -12 3 -4 5 -6" universe="1"/>
+  <cell id="16" name="Fuel5" material="1" region="-2 12 -13" universe="1"/>
+  <cell id="17" name="Clad5" material="3" region="2 -1 12 -13" universe="1"/>
+  <cell id="18" name="sodium5" material="2" region="1 12 -13 3 -4 5 -6" universe="1"/>
+  <cell id="19" name="Fuel6" material="1" region="-2 13 -14" universe="1"/>
+  <cell id="20" name="Clad6" material="3" region="2 -1 13 -14" universe="1"/>
+  <cell id="21" name="sodium6" material="2" region="1 13 -14 3 -4 5 -6" universe="1"/>
+  <cell id="22" name="Fuel7" material="1" region="-2 14 -15" universe="1"/>
+  <cell id="23" name="Clad7" material="3" region="2 -1 14 -15" universe="1"/>
+  <cell id="24" name="sodium7" material="2" region="1 14 -15 3 -4 5 -6" universe="1"/>
+  <cell id="25" name="Fuel8" material="1" region="-2 15 -16" universe="1"/>
+  <cell id="26" name="Clad8" material="3" region="2 -1 15 -16" universe="1"/>
+  <cell id="27" name="sodium8" material="2" region="1 15 -16 3 -4 5 -6" universe="1"/>
+  <cell id="28" name="Fuel9" material="1" region="-2 16 -17" universe="1"/>
+  <cell id="29" name="Clad9" material="3" region="2 -1 16 -17" universe="1"/>
+  <cell id="30" name="sodium9" material="2" region="1 16 -17 3 -4 5 -6" universe="1"/>
+  <cell id="31" name="Fuel10" material="1" region="-2 17 -18" universe="1"/>
+  <cell id="32" name="Clad10" material="3" region="2 -1 17 -18" universe="1"/>
+  <cell id="33" name="sodium10" material="2" region="1 17 -18 3 -4 5 -6" universe="1"/>
+  <cell id="34" name="Fuel11" material="1" region="-2 18 -19" universe="1"/>
+  <cell id="35" name="Clad11" material="3" region="2 -1 18 -19" universe="1"/>
+  <cell id="36" name="sodium11" material="2" region="1 18 -19 3 -4 5 -6" universe="1"/>
+  <cell id="37" name="Fuel12" material="1" region="-2 19 -20" universe="1"/>
+  <cell id="38" name="Clad12" material="3" region="2 -1 19 -20" universe="1"/>
+  <cell id="39" name="sodium12" material="2" region="1 19 -20 3 -4 5 -6" universe="1"/>
+  <cell id="40" name="Fuel13" material="1" region="-2 20 -21" universe="1"/>
+  <cell id="41" name="Clad13" material="3" region="2 -1 20 -21" universe="1"/>
+  <cell id="42" name="sodium13" material="2" region="1 20 -21 3 -4 5 -6" universe="1"/>
+  <cell id="43" name="Fuel14" material="1" region="-2 21 -22" universe="1"/>
+  <cell id="44" name="Clad14" material="3" region="2 -1 21 -22" universe="1"/>
+  <cell id="45" name="sodium14" material="2" region="1 21 -22 3 -4 5 -6" universe="1"/>
+  <cell id="46" name="Fuel15" material="1" region="-2 22 -23" universe="1"/>
+  <cell id="47" name="Clad15" material="3" region="2 -1 22 -23" universe="1"/>
+  <cell id="48" name="sodium15" material="2" region="1 22 -23 3 -4 5 -6" universe="1"/>
+  <cell id="49" name="Fuel16" material="1" region="-2 23 -24" universe="1"/>
+  <cell id="50" name="Clad16" material="3" region="2 -1 23 -24" universe="1"/>
+  <cell id="51" name="sodium16" material="2" region="1 23 -24 3 -4 5 -6" universe="1"/>
+  <cell id="52" name="Fuel17" material="1" region="-2 24 -25" universe="1"/>
+  <cell id="53" name="Clad17" material="3" region="2 -1 24 -25" universe="1"/>
+  <cell id="54" name="sodium17" material="2" region="1 24 -25 3 -4 5 -6" universe="1"/>
+  <cell id="55" name="Fuel18" material="1" region="-2 25 -26" universe="1"/>
+  <cell id="56" name="Clad18" material="3" region="2 -1 25 -26" universe="1"/>
+  <cell id="57" name="sodium18" material="2" region="1 25 -26 3 -4 5 -6" universe="1"/>
+  <cell id="58" name="Fuel19" material="1" region="-2 26 -27" universe="1"/>
+  <cell id="59" name="Clad19" material="3" region="2 -1 26 -27" universe="1"/>
+  <cell id="60" name="sodium19" material="2" region="1 26 -27 3 -4 5 -6" universe="1"/>
+  <cell id="61" name="Fuel20" material="1" region="-2 27 -28" universe="1"/>
+  <cell id="62" name="Clad20" material="3" region="2 -1 27 -28" universe="1"/>
+  <cell id="63" name="sodium20" material="2" region="1 27 -28 3 -4 5 -6" universe="1"/>
+  <cell id="64" name="Fuel21" material="1" region="-2 28 -29" universe="1"/>
+  <cell id="65" name="Clad21" material="3" region="2 -1 28 -29" universe="1"/>
+  <cell id="66" name="sodium21" material="2" region="1 28 -29 3 -4 5 -6" universe="1"/>
+  <cell id="67" name="Fuel22" material="1" region="-2 29 -30" universe="1"/>
+  <cell id="68" name="Clad22" material="3" region="2 -1 29 -30" universe="1"/>
+  <cell id="69" name="sodium22" material="2" region="1 29 -30 3 -4 5 -6" universe="1"/>
+  <cell id="70" name="Fuel23" material="1" region="-2 30 -31" universe="1"/>
+  <cell id="71" name="Clad23" material="3" region="2 -1 30 -31" universe="1"/>
+  <cell id="72" name="sodium23" material="2" region="1 30 -31 3 -4 5 -6" universe="1"/>
+  <cell id="73" name="Fuel24" material="1" region="-2 31 -32" universe="1"/>
+  <cell id="74" name="Clad24" material="3" region="2 -1 31 -32" universe="1"/>
+  <cell id="75" name="sodium24" material="2" region="1 31 -32 3 -4 5 -6" universe="1"/>
+  <surface id="1" name="Pincell outer radius" type="z-cylinder" coeffs="0.0 0.0 0.485"/>
+  <surface id="2" name="Pellet outer radius" type="z-cylinder" coeffs="0.0 0.0 0.4125"/>
+  <surface id="3" name="minimum x" type="x-plane" boundary="reflective" coeffs="-0.64"/>
+  <surface id="4" name="maximum x" type="x-plane" boundary="reflective" coeffs="0.64"/>
+  <surface id="5" name="minimum y" type="y-plane" boundary="reflective" coeffs="-0.64"/>
+  <surface id="6" name="maximum y" type="y-plane" boundary="reflective" coeffs="0.64"/>
+  <surface id="7" type="z-plane" boundary="vacuum" coeffs="0.0"/>
+  <surface id="8" type="z-plane" coeffs="2.0"/>
+  <surface id="9" type="z-plane" coeffs="4.0"/>
+  <surface id="10" type="z-plane" coeffs="6.0"/>
+  <surface id="11" type="z-plane" coeffs="8.0"/>
+  <surface id="12" type="z-plane" coeffs="10.0"/>
+  <surface id="13" type="z-plane" coeffs="12.0"/>
+  <surface id="14" type="z-plane" coeffs="14.0"/>
+  <surface id="15" type="z-plane" coeffs="16.0"/>
+  <surface id="16" type="z-plane" coeffs="18.0"/>
+  <surface id="17" type="z-plane" coeffs="20.0"/>
+  <surface id="18" type="z-plane" coeffs="22.0"/>
+  <surface id="19" type="z-plane" coeffs="24.0"/>
+  <surface id="20" type="z-plane" coeffs="26.0"/>
+  <surface id="21" type="z-plane" coeffs="28.0"/>
+  <surface id="22" type="z-plane" coeffs="30.0"/>
+  <surface id="23" type="z-plane" coeffs="32.0"/>
+  <surface id="24" type="z-plane" coeffs="34.0"/>
+  <surface id="25" type="z-plane" coeffs="36.0"/>
+  <surface id="26" type="z-plane" coeffs="38.0"/>
+  <surface id="27" type="z-plane" coeffs="40.0"/>
+  <surface id="28" type="z-plane" coeffs="42.0"/>
+  <surface id="29" type="z-plane" coeffs="44.0"/>
+  <surface id="30" type="z-plane" coeffs="46.0"/>
+  <surface id="31" type="z-plane" coeffs="48.0"/>
+  <surface id="32" type="z-plane" boundary="vacuum" coeffs="50.0"/>
 </geometry>

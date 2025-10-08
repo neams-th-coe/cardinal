@@ -37,7 +37,8 @@ OpenMCProblemBase::validParams()
   params.addParam<PostprocessorName>(
       "power", "Power (Watts) to normalize the OpenMC tallies; only used for k-eigenvalue mode");
   params.addParam<PostprocessorName>(
-      "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
+      "source_strength",
+      "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
   params.addParam<MooseEnum>("tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
@@ -92,7 +93,8 @@ OpenMCProblemBase::validParams()
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
       "The number of generations to use with the method of iterated fission probabilities.");
-
+  params.addParam<FileName>(
+      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
   return params;
 }
 
@@ -110,17 +112,25 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _run_on_adaptivity_cycle(true),
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
-    _initial_seed(openmc::openmc_get_seed())
+    _initial_seed(openmc::openmc_get_seed()),
+    _xml_directory(getParam<FileName>("xml_directory"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
-  int argc = 1;
-  char openmc[] = "openmc";
-  char * argv[1] = {openmc};
+  std::vector<std::string> argv_vec = {"openmc", _xml_directory};
 
-  openmc_init(argc, argv, &_communicator.get());
+  std::vector<char *> argv;
+
+  for (const auto & arg : argv_vec)
+  {
+    argv.push_back(const_cast<char *>(arg.data()));
+  }
+  // Add terminating nullptr
+  argv.push_back(nullptr);
+
+  openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 
   // ensure that any mapped cells have their distribcell indices generated in OpenMC
   if (!openmc::settings::material_cell_offsets)
@@ -236,8 +246,8 @@ void
 OpenMCProblemBase::catchOpenMCError(const int & err, const std::string descriptor) const
 {
   if (err)
-    mooseError("In attempting to ", descriptor, ", OpenMC reported:\n\n",
-      std::string(openmc_err_msg));
+    mooseError(
+        "In attempting to ", descriptor, ", OpenMC reported:\n\n", std::string(openmc_err_msg));
 }
 
 void
@@ -417,8 +427,8 @@ OpenMCProblemBase::writeSourceBank(const std::string & filename)
 {
   hid_t file_id = openmc::file_open(filename, 'w', true);
   openmc::write_attribute(file_id, "filetype", "source");
-  openmc::write_source_bank(file_id, openmc::simulation::source_bank,
-    openmc::simulation::work_index);
+  openmc::write_source_bank(
+      file_id, openmc::simulation::source_bank, openmc::simulation::work_index);
   openmc::file_close(file_id);
 }
 
@@ -540,7 +550,8 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   auto is_material_cell = materialFill(cell_info, material_index);
 
   if (!is_material_cell)
-    mooseError("Density transfer does not currently support cells filled with universes or lattices!");
+    mooseError(
+        "Density transfer does not currently support cells filled with universes or lattices!");
 
   // throw a special error if the cell is void, because the OpenMC error isn't very
   // clear what the mistake is
@@ -551,11 +562,11 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
     return;
   }
 
-  // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
-  // auxvariable as well as the MOOSE fluid properties module) to g/cm3
-  const char * units = "g/cc";
-  int err = openmc_material_set_density(
-      material_index, density * _density_conversion_factor, units);
+  // Compute the density. We multiply density by 0.001 to convert from kg/m3
+  // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
+  // properties module) to g/cm3
+  int err = openmc_cell_set_density(
+      cell_info.first, _density_conversion_factor * density, &cell_info.second, false);
 
   if (err)
   {
@@ -623,7 +634,8 @@ OpenMCProblemBase::tallySum(openmc::Tally * tally, const unsigned int & score) c
 }
 
 double
-OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const
+OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally,
+                                      const unsigned int & score) const
 {
   double sum = 0.0;
 
@@ -637,7 +649,8 @@ OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally, const 
 }
 
 double
-OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally,
+                                       const unsigned int & score) const
 {
   int n = 0;
   for (const auto & t : tally)
@@ -758,7 +771,7 @@ OpenMCProblemBase::geometryType(bool & has_csg_universe, bool & has_dag_universe
   has_dag_universe = false;
 
   // Loop over universes and check if type is DAGMC
-  for (const auto& universe: openmc::model::universes)
+  for (const auto & universe : openmc::model::universes)
   {
     if (universe->geom_type() == openmc::GeometryType::DAG)
       has_dag_universe = true;
@@ -791,8 +804,15 @@ OpenMCProblemBase::getKineticsParamTally()
 bool
 OpenMCProblemBase::isReactionRateScore(const std::string & score) const
 {
-  const std::set<std::string> viable_scores = {
-      "H3-production", "total", "absorption", "scatter", "nu-scatter", "fission", "nu-fission"};
+  const std::set<std::string> viable_scores = {"H3-production",
+                                               "total",
+                                               "absorption",
+                                               "scatter",
+                                               "nu-scatter",
+                                               "fission",
+                                               "nu-fission",
+                                               "prompt-nu-fission",
+                                               "delayed-nu-fission"};
   return viable_scores.count(score);
 }
 
@@ -805,7 +825,8 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
 }
 
 unsigned int
-OpenMCProblemBase::addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block)
+OpenMCProblemBase::addExternalVariable(const std::string & name,
+                                       const std::vector<SubdomainName> * block)
 {
   auto var_params = _factory.getValidParams("MooseVariable");
   var_params.set<MooseEnum>("family") = "MONOMIAL";

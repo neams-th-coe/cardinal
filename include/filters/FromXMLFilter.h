@@ -20,6 +20,11 @@
 
 #include "FilterBase.h"
 
+/**
+ * A class which provides a thin wrapper around an arbitrary OpenMC
+ * filter which already exists in the xml input file(s) such that
+ * they can be used in a Cardinal mapped tally.
+ */
 class FromXMLFilter : public FilterBase
 {
 public:

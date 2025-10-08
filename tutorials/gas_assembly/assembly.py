@@ -269,10 +269,9 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
         coolant_matrix_cell = openmc.Cell(region=+coolant_cyl, fill=m_graphite_matrix)
         coolant_matrix_cell.temperature = T
 
-        # create fluid cells, which require us to clone the material in order to be able to
-        # set unique densities
+        # create fluid cells
         coolant_cell = openmc.Cell(region=-coolant_cyl, fill=m_coolant)
-        coolant_cell.fill = [m_coolant.clone() for i in range(specs.n_coolant_channels_per_block)]
+        coolant_cell.fill = [m_coolant for i in range(specs.n_coolant_channels_per_block)]
 
         for mat in range(len(coolant_cell.fill)):
           m_colors[coolant_cell.fill[mat]] = 'red'
@@ -353,7 +352,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     l = bundle_pitch / math.sqrt(3.0)
     lower_left = (-l, -l, reactor_bottom)
     upper_right = (l, l, reactor_top)
-    source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
+    source_dist = openmc.stats.Box(lower_left, upper_right)
     source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 

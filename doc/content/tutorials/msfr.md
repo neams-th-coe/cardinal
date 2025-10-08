@@ -77,10 +77,9 @@ OpenMC model consists of a single large volume, enclosed by one large triangulat
 This geometry will be adaptively updated according to multiphysics feedback.
 
 The OpenMC model is created with the `model.py` script. The geometry is created from a
-triangulated volume mesh, exported from Cubit. We create a single material to represent
-the salt - notice how this contrasts with easlier tutorials for [!ac](CSG) geometries,
-where we needed to make a unique material for every unique density region. Later,
-Cardinal will automatically create new materials in memory when we skin the geometry.
+triangulated volume mesh, exported from Cubit. The Python script simply creates a
+single material to represent the fuel salt, assigns our CAD geometry, adds some settings,
+and exports the xml files necessary for running OpenMC.
 
 !listing /tutorials/msfr/model.py
 

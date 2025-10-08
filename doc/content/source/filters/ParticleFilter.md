@@ -1,9 +1,5 @@
 # ParticleFilter
 
-!alert note
-`ParticleFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `ParticleFilter` object provides a thin wrapper around an OpenMC [ParticleFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.ParticleFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. This filter allows for events to

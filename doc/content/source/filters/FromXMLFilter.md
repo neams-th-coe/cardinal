@@ -1,9 +1,5 @@
 # FromXMLFilter
 
-!alert note
-`FromXMLFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `FromXMLFilter` object provides a thin wrapper around an arbitrary OpenMC filter which

@@ -56,7 +56,8 @@ HexagonalSubchannelMeshBase::HexagonalSubchannelMeshBase(const InputParameters &
         0.0 /* wire diameter not needed for subchannel mesh, use dummy value */,
         1.0 /* wire pitch not needed for subchannel mesh, use dummy value */,
         _n_rings,
-        _axis)),
+        _axis,
+        0. /*rotation_around_axis*/)),
     _pin_centers(_hex_lattice.pinCenters())
 {
 }
