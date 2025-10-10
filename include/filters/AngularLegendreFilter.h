@@ -20,6 +20,10 @@
 
 #include "FilterBase.h"
 
+/**
+ * A class which provides a thin wrapper around an OpenMC LegendreFilter
+ * for use by Cardinal mapped tallies.
+ */
 class AngularLegendreFilter : public FilterBase
 {
 public:

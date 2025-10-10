@@ -83,13 +83,6 @@ OpenMCCellAverageProblem::validParams()
                         "Whether to assume that all tallies added in the XML files or by Cardinal "
                         "are spatially separate. This is a performance optimization");
 
-  params.addParam<bool>("map_density_by_cell",
-      true,
-      "Whether to apply a unique density to every OpenMC cell (the default), or "
-      "instead apply a unique density to every OpenMC material (even if that material is "
-      "filled into more than one cell). If your OpenMC model has a unique material "
-      "in every cell you want to receive density feedback, these two options are IDENTICAL");
-
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
   params.addParam<MooseEnum>(
@@ -205,7 +198,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
-    _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _specified_density_feedback(params.isParamSetByUser("density_blocks")),
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
@@ -315,11 +307,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-  if (!_specified_density_feedback || _using_skinner)
-    checkUnusedParam(params,
-                     "map_density_by_cell",
-                     "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
-
     // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
     // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
     // point have DAGMC enabled.
@@ -395,11 +382,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       mooseError("The 'skinner' can only be used when the cell using the DAGMC universe as a fill "
                  "is contained in the "
                  "root universe.");
-
-    // The newly-generated DAGMC cells could be disjoint in space, in which case
-    // it is impossible for us to know with 100% certainty a priori how many materials
-    // we would need to create.
-    _map_density_by_cell = false;
   }
 #else
   checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
@@ -1471,38 +1453,16 @@ OpenMCCellAverageProblem::getMaterialFills()
 {
   VariadicTable<std::string, int> vt({"Cell", "Material"});
 
-  std::set<int32_t> materials_in_fluid;
-  std::set<int32_t> other_materials;
   _cell_to_material.clear();
-
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
 
+    if (!hasDensityFeedback(cell_info))
+      continue;
+
     int32_t material_index;
     auto is_material_cell = materialFill(cell_info, material_index);
-
-    if (!hasDensityFeedback(cell_info))
-    {
-      // TODO: this check should be extended for non-fluid cells which may contain
-      // lattices or  universes
-      if (is_material_cell)
-        other_materials.insert(material_index);
-      continue;
-    }
-
-    // check for each material that we haven't already discovered it; if we have, this means we
-    // didnt set up the materials correctly (if mapping by cell)
-    if (materials_in_fluid.find(material_index) == materials_in_fluid.end())
-      materials_in_fluid.insert(material_index);
-    else if (_map_density_by_cell)
-      mooseError(printMaterial(material_index) +
-                 " is present in more than one density feedback cell.\n\nThis means that your "
-                 "model cannot independently change the density in cells filled with this "
-                 "material. You need to edit your OpenMC model to create additional materials "
-                 "unique to each density feedback cell.\n\n"
-                 "Or, if you want to apply feedback to a material spanning multiple "
-                 "cells, set 'map_density_by_cell' to false.");
 
     if (!is_material_cell)
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
@@ -1518,28 +1478,6 @@ OpenMCCellAverageProblem::getMaterialFills()
     _console << "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
     vt.print(_console);
   }
-
-  // check that the same material is not present in both the density feedback regions and the
-  // no-density-feedback regions, because this would give unintended consequences where
-  // density is indeed actually changing in parts of the OpenMC model where the user doesn't
-  // want that to happen; TODO: we technically should also check that the materials receiving
-  // density feedback are not present in parts of the OpenMC which totally do not overlap with
-  // the [Mesh] (but we are not tracking their behavior anywhere, we could do this but we'd
-  // need to loop over ALL OpenMC cells, get their fills, and check)
-  for (const auto & f : materials_in_fluid)
-    if (other_materials.count(f))
-      mooseError(
-          printMaterial(f) +
-          " is present in more than one OpenMC cell with different "
-          "density feedback settings!\nIn other words, this material will have its density changed "
-          "by Cardinal (because it is\ncontained in cells which map to the 'density_blocks'), but "
-          "this material is also present in\nOTHER OpenMC cells, which will give unintended "
-          "behavior "
-          "by changing density in ALL parts of the\ndomain containing this material (some of which "
-          "have not been coupled via Cardinal).\n\n"
-          "Please change your OpenMC model so that unique materials are used in regions which "
-          "receive "
-          "density feedback.");
 }
 
 void
@@ -2260,6 +2198,12 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     _tally_var_ids.emplace_back();
 
+    // Convert the subdomain ID map into a std::vector for addExternalVariable(...).
+    std::vector<SubdomainName> block_name_vec;
+    for (const auto b : _local_tallies[i]->getBlocks())
+      block_name_vec.emplace_back(mesh().getSubdomainName(b) != "" ? mesh().getSubdomainName(b)
+                                                                   : std::to_string(b));
+
     // We use this to check if a sequence of added tallies corresponds to a single translated mesh.
     // If the number of names reported in getAuxVarNames is zero, the tally must store it's results
     // in the variables added by the first mesh tally in the sequence.
@@ -2278,7 +2222,7 @@ OpenMCCellAverageProblem::addExternalVariables()
         _tally_var_ids[i].push_back(
             _tally_var_ids[previous_valid_name_index][j]); // Use variables from first in sequence.
       else
-        _tally_var_ids[i].push_back(addExternalVariable(names[j]));
+        _tally_var_ids[i].push_back(addExternalVariable(names[j], &block_name_vec));
 
       if (_local_tallies[i]->hasOutputs())
       {
@@ -2291,7 +2235,7 @@ OpenMCCellAverageProblem::addExternalVariables()
                 _tally_ext_var_ids[previous_valid_name_index][k]
                                   [j]); // Use variables from first in sequence.
           else
-            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n));
+            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n, &block_name_vec));
         }
       }
     }
@@ -2433,6 +2377,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
     containedCells contained_cells = containedMaterialCells(cell_info);
 
     for (const auto & contained : contained_cells)
+    {
       for (const auto & instance : contained.second)
       {
         cellInfo ci = {contained.first, instance};
@@ -2449,12 +2394,14 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
                      "each successive set-temperature operation is only overwriting the previous "
                      "value.\n\nThis error most often appears when you are filling a LATTICE into "
                      "multiple cells. One fix is to first place that lattice into a universe, and "
-                     "then fill that UNIVERSE into multiple cells.");
+                     "then fill that UNIVERSE into multiple cells.\n\nFor more information, please "
+                     "consult https://github.com/neams-th-coe/cardinal/pull/918.");
         }
 
         cells_already_set.insert(ci);
         setCellTemperature(contained.first, instance, average_temp, cell_info);
       }
+    }
   }
 
   if (!_verbose)
@@ -2486,12 +2433,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
                                                  coupling::density_and_temperature};
   std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase);
 
-  // in case multiple cells are filled by this material, assemble the sum of
-  // the rho-V product and V for each of those cells. If _map_density_by_cell
-  // is true, then the numerator and denominator are populated from just a single
-  // value (no sum)
-  std::map<int32_t, Real> numerator;
-  std::map<int32_t, Real> denominator;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -2499,29 +2440,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
     if (!hasDensityFeedback(cell_info))
       continue;
 
-    auto mat_idx = _cell_to_material.at(cell_info);
-
-    if (numerator.count(mat_idx))
-    {
-      numerator[mat_idx] += cell_vol_density.at(cell_info);
-      denominator[mat_idx] += _cell_to_elem_volume.at(cell_info);
-    }
-    else
-    {
-      numerator[mat_idx] = cell_vol_density.at(cell_info);
-      denominator[mat_idx] = _cell_to_elem_volume.at(cell_info);
-    }
-  }
-
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-
-    if (!hasDensityFeedback(cell_info))
-      continue;
-
-    auto mat_idx = _cell_to_material.at(cell_info);
-    Real average_density = numerator[mat_idx] / denominator[mat_idx];
+    Real average_density = cell_vol_density.at(cell_info) / _cell_to_elem_volume.at(cell_info);
 
     minimum = std::min(minimum, average_density);
     maximum = std::max(maximum, average_density);
@@ -2550,13 +2469,19 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     else
       source *= *_source_strength;
 
-    // - Reaction rate scores & 'inverse-velocity' have units of reactions/src (OpenMC) or
-    //   reactions/s (Cardinal).
+    // - Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
+    // - 'inverse-velocity' has units of particles*s/src (OpenMC) or particles (Cardinal).
+    //   This score is flux-weighted, and must be divided by the flux to recover the true
+    //   inverse velocity, which has units of s/cm.
+    // - 'decay-rate' has units of reactions/src/s (OpenMC) or reactions/s^2 (Cardinal).
+    //   This score is weighted by the delayed fission rate, and must be divided by
+    //   `delayed-nu-fission` to obtain the true decay rate, which has units of 1/s.
     // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
     //   damage-energy are the same as a heating tally, we don't normalize it like one as it's
     //   used as an intermediate to compute DPA.
     if (isReactionRateScore(_all_tally_scores[global_score]) ||
         _all_tally_scores[global_score] == "inverse-velocity" ||
+        _all_tally_scores[global_score] == "decay-rate" ||
         _all_tally_scores[global_score] == "damage-energy")
       return source;
 
@@ -2667,9 +2592,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         // Update the OpenMC geometry to take into account skinning. This also calls
         // _skinner->update().
         updateOpenMCGeometry();
-
-        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
-        updateMaterials();
 
         // regenerate the DAGMC geometry
         reloadDAGMC();
@@ -2979,6 +2901,16 @@ OpenMCCellAverageProblem::reloadDAGMC()
   openmc::settings::verbosity = 1;
   openmc::finalize_cross_sections();
 
+  // Finalize DAGMC cell densities after setting up the new geometry. CSG cells (and
+  // eventually non-skinned DAGMC cells) already have their densities finalized.
+  for (auto & c : openmc::model::cells)
+  {
+    if (c->geom_type() == openmc::GeometryType::CSG)
+      continue;
+
+    c->density_mult_ = {1.0};
+  }
+
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
   openmc::settings::verbosity = initial_verbosity;
@@ -3264,53 +3196,6 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
     for (const auto & [id, index] : openmc::model::surface_map)
       if (openmc::model::surfaces[index]->id_ != id)
         mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
-  }
-#endif
-}
-
-void
-OpenMCCellAverageProblem::updateMaterials()
-{
-#ifdef ENABLE_DAGMC
-  // We currently only re-init the materials one time, because we create one new
-  // material for every density bin, even if that density bin doesn't actually
-  // appear in the problem. TODO: we could probably reduce memory usage
-  // if we only re-generated materials we strictly needed for the model.
-  if (!_first_transfer)
-    return;
-
-  // only need to create new materials if we have density skinning
-  if (_skinner->nDensityBins() == 1)
-    return;
-
-  // map from IDs to names (names used by the skinner, not necessarily any internal
-  // name in OpenMC, because you're not strictly required to add names for materials
-  // with the OpenMC input files)
-  std::map<int32_t, std::string> ids_to_names;
-  for (const auto & m : openmc::model::material_map)
-  {
-    auto id = m.first;
-    auto idx = m.second;
-    if (ids_to_names.count(id))
-      mooseError("Internal error: material_map has more than one material with the same ID");
-
-    ids_to_names[id] = materialName(idx);
-  }
-
-  // append _0 to all existing material names
-  for (const auto & mat : openmc::model::materials)
-    mat->set_name(ids_to_names[mat->id()] + "_0");
-
-  // Then, create the copies of each material
-  int n_mats = openmc::model::materials.size();
-  for (unsigned int n = 0; n < n_mats; ++n)
-  {
-    auto name = ids_to_names[openmc::model::materials[n]->id()];
-    for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
-    {
-      openmc::Material & new_mat = openmc::model::materials[n]->clone();
-      new_mat.set_name(name + "_" + std::to_string(j));
-    }
   }
 #endif
 }

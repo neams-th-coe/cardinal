@@ -26,6 +26,7 @@
 
 #include "AngularLegendreFilter.h"
 #include "EnergyOutFilter.h"
+#include "DelayedGroupFilter.h"
 
 #include "openmc/settings.h"
 
@@ -43,6 +44,13 @@ TallyBase::validParams()
       "name",
       "Auxiliary variable name(s) to use for OpenMC tallies. "
       "If not specified, defaults to the names of the scores");
+
+  params.addParam<std::vector<SubdomainName>>(
+      "block",
+      "Subdomains for which to add tallies in OpenMC. If not provided, "
+      "tallies will be applied over the entire domain corresponding to the [Mesh] block.");
+  params.addParam<std::vector<SubdomainName>>("blocks",
+                                              "This parameter is deprecated, use 'block' instead!");
 
   MultiMooseEnum tally_trigger("rel_err none");
   params.addParam<MultiMooseEnum>(
@@ -104,9 +112,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
-  bool heating =
+  const bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
-  bool nu_scatter =
+  const bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
   if (isParamValid("estimator"))
@@ -207,12 +215,21 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   // Check the estimator to make sure it doesn't conflict with certain filters.
   for (auto & f : _ext_filters)
+  {
     if ((dynamic_cast<AngularLegendreFilter *>(f.get()) ||
          dynamic_cast<EnergyOutFilter *>(f.get())) &&
         _estimator != openmc::TallyEstimator::ANALOG)
       paramError("estimator",
                  "The filter " + f->name() +
                      " requires an analog estimator! Please ensure 'estimator' is set to analog.");
+
+    if (dynamic_cast<DelayedGroupFilter *>(f.get()))
+      for (const auto & s : _tally_score)
+        if (s != "delayed-nu-fission" && s != "decay-rate")
+          paramError("score",
+                     "The filter " + f->name() +
+                         " can only be used with delayed_nu_fission and decay_rate scores!");
+  }
 
   if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");
@@ -273,6 +290,33 @@ TallyBase::TallyBase(const InputParameters & parameters)
     skip = s;
   }
   _ext_bins_to_skip = skip;
+
+  if (isParamSetByUser("blocks"))
+    mooseError("This parameter is deprecated, use 'block' instead!");
+
+  if (isParamValid("block"))
+  {
+    auto block_names = getParam<std::vector<SubdomainName>>("block");
+    if (block_names.empty())
+      paramError("block", "Subdomain names must be provided if using 'block'!");
+
+    auto block_ids = _openmc_problem.getMooseMesh().getSubdomainIDs(block_names);
+    std::copy(
+        block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
+
+    // Check to make sure all of the blocks are in the mesh.
+    const auto & subdomains = _openmc_problem.getMooseMesh().meshSubdomains();
+    for (std::size_t b = 0; b < block_names.size(); ++b)
+      if (subdomains.find(block_ids[b]) == subdomains.end())
+        paramError("block",
+                   "Block '" + block_names[b] + "' specified in 'block' not found in mesh!");
+  }
+  else
+  {
+    // Tally over all mesh blocks if no blocks are provided.
+    for (const auto & s : _openmc_problem.getMooseMesh().meshSubdomains())
+      _tally_blocks.insert(s);
+  }
 
   _openmc_problem.checkDuplicateEntries(_tally_name, "name");
   _openmc_problem.checkDuplicateEntries(_tally_score, "score");

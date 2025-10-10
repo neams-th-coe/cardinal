@@ -522,6 +522,9 @@ protected:
   /// The global tally used to accumulate the scores required for kinetics parameters.
   openmc::Tally * _ifp_tally = nullptr;
 
+  /// Directory in which OpenMC settings xml files are located
+  const std::string & _xml_directory;
+
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};
 

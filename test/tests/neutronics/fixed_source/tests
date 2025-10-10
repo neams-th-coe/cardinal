@@ -1,15 +1,15 @@
 [Tests]
-  [overlap_all]
+  [mapping_all]
     type = CSVDiff
-    input = overlap_all.i
-    csvdiff = overlap_all_out.csv
+    input = mapping_all.i
+    csvdiff = mapping_all_out.csv
     requirement = "The system shall correctly normalize tallies from a fixed source simulation when there "
-                  "is perfect overlap between the OpenMC model and the MOOSE mesh."
+                  "is perfect mapping between the OpenMC model and the MOOSE mesh."
     capabilities = 'openmc'
   []
   [normalize_unused]
     type = RunException
-    input = overlap_solid.i
+    input = mapping_solid.i
     cli_args = "Problem/normalize_by_global_tally=true --error"
     expect_err = "When running OpenMC in fixed source mode, the 'normalize_by_global_tally' parameter is unused"
     requirement = "The system shall notify the user that the settings related to normalizing by global "
@@ -18,19 +18,19 @@
   []
   [missing_power]
     type = RunException
-    input = overlap_solid.i
+    input = mapping_solid.i
     cli_args = 'Problem/check_tally_sum=true'
     expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the total tally sum does not match the system-wide value for "
                   "fixed source simulations."
     capabilities = 'openmc'
   []
-  [overlap_solid]
+  [mapping_solid]
     type = CSVDiff
-    input = overlap_solid.i
-    csvdiff = overlap_solid_out.csv
+    input = mapping_solid.i
+    csvdiff = mapping_solid_out.csv
     requirement = "The system shall correctly normalize tallies from a fixed source simulation when there "
-                  "is only partial overlap between the OpenMC model and MOOSE domain."
+                  "is only partial mapping between the OpenMC model and MOOSE domain."
     capabilities = 'openmc'
   []
   [flux]

@@ -1,9 +1,5 @@
 # AngularLegendreFilter
 
-!alert note
-`AngularLegendreFilter` can only be added to problems when the input file contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this filter will result in an error.
-
 ## Description
 
 The `AngularLegendreFilter` object provides a thin wrapper around an OpenMC [LegendreFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.LegendreFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. This filter expands the change in particle direction in Legendre polynomials of an arbitrary order.

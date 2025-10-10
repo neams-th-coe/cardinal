@@ -278,6 +278,7 @@ Pinchot is a small Ubuntu server at the University of Illinois hosted in Dr. Nov
 
 module load openmpi/ubuntu/5.0.0
 module load hdf5/ubuntu/1.14.3
+module load cmake/4.1.1
 
 # change to your Cardinal location (either the shared location in /shared/data,
 # or to a location in your home directory
@@ -363,7 +364,7 @@ fi
 if [[ "$SHORTHOST" ~= br[0-9]+ ]] || [[ "$SHORTHOST" =~ bitterroot* ]]
   echo "Loading Bitterroot modules..."
   module purge
-  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
+  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3 python/3.10-miniforge-24.3.0
 fi
 
 export CC=mpicc
@@ -414,7 +415,7 @@ fi
 if [[ "$SHORTHOST" ~=wr[0-9]+n[0-9]+ ]] || [[ "$SHORTHOST" =~ windriver* ]]
   echo "Loading WindRiver modules..."
   module purge
-  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
+  module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3 python/3.10-miniforge-24.3.0
 fi
 
 export CC=mpicc

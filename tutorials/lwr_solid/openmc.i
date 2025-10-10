@@ -57,6 +57,7 @@
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+    block = '2 3'
   []
   [max_tally_rel_err]
     type = TallyRelativeError
@@ -64,5 +65,6 @@
   [max_heat_source]
     type = ElementExtremeValue
     variable = heat_source
+    block = '2 3'
   []
 []
