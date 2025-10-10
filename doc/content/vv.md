@@ -58,7 +58,7 @@ Where $\alpha$ is the thermal diffusivity of the fluid and $\nu$ is the kinemati
   caption=Temperature
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
-!table id=table2 caption=Comparison between cardinal results and the benchmark
+!table id=table2 caption=Comparison of Cardinal results with the benchmark
 | Ra | $10^3$ |  |  | $10^4$ |  |  | $10^5$ |  |  | $10^6$ |
 | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- | :- |
 | - | Cardinal | Benchmark | Relative Error | Cardinal | Benchmark | Relative Error | Cardinal | Benchmark | Relative Error | Cardinal | Benchmark | Relative Error |
