@@ -79,7 +79,7 @@ A mesh sensitivity study was conducted to ensure that the mesh resolution was su
 !media natural_convection_mesh.png
   id=fig_mesh
   caption=Computational mesh (1508 Elements).
-  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 
 ## Neutronics
