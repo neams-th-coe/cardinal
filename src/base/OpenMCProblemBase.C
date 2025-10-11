@@ -93,8 +93,11 @@ OpenMCProblemBase::validParams()
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
       "The number of generations to use with the method of iterated fission probabilities.");
-  params.addParam<FileName>(
-      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
+  params.addParam<std::string>(
+      "xml_directory",
+      "./",
+      "The directory in which to look for OpenMC XML files. If providing a relative path, "
+      "this is relative to the present working directory Cardinal is launched from.");
   return params;
 }
 
@@ -113,12 +116,13 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
     _initial_seed(openmc::openmc_get_seed()),
-    _xml_directory(getParam<FileName>("xml_directory"))
+    _xml_directory(getParam<std::string>("xml_directory"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
+  mooseInfo("Cardinal is looking for OpenMC XML input files in: " + _xml_directory);
   std::vector<std::string> argv_vec = {"openmc", _xml_directory};
 
   std::vector<char *> argv;
