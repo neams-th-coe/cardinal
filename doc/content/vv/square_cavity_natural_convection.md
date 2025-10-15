@@ -53,7 +53,7 @@ Where $\alpha$ is the thermal diffusivity of the fluid and $\nu$ is the kinemati
 | $w_{max}$ | 3.697 | 3.697 | 0.0E+00 | 19.627 | 19.617 | 5.1E-04 | 68.63 | 68.59 | 5.8E-04 | 220.56 | 219.36 | 5.4E-03 |
 | $\overline{Nu}$ | 1.118 | 1.118 | 0.0E+00 | 2.244 | 2.243 | 4.5E-04 | 4.522 | 4.519 | 6.6E-04 | 8.825 | 8.800 | 2.8E-03 |   
 
-A mesh sensitivity study was conducted to ensure that the mesh resolution was sufficient. [table3] presents the average Nusselt number computed using three different mesh sizes. Since the results obtained with the medium and fine meshes are identical, the medium mesh was selected for the test case. All results reported in [table2] were computed using this mesh. The medium mesh is shown in [fig_mesh]
+A mesh sensitivity study was conducted to ensure that the mesh resolution was sufficient. [table3] presents the average Nusselt number computed using three different mesh sizes. Since the results obtained with the medium and fine meshes are identical, the medium mesh was selected for the test case. All results reported in [table2] were computed using this mesh. The medium mesh is shown in [fig_mesh].
 
 !table id=table3 caption=Mesh sensitivity
 | Mesh | Number of Elements | $\overline{Nu}$ |
