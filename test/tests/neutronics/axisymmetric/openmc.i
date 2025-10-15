@@ -3,9 +3,9 @@
     type = GeneratedMeshGenerator
     dim = 2
     xmin = 0.0
-    xmax = 0.39218e-2
+    xmax = 0.39218
     ymin = 0.0
-    ymax = 300.0e-2
+    ymax = 1.0
     nx = 5
     ny = 20
   []
@@ -42,12 +42,20 @@
   type = OpenMCCellAverageProblem
   cell_level = 0
   power = 50
-  scaling = 100.0
+  volume_calculation = vol
+  verbose = true
 
   [Tallies]
     [p]
       type = CellTally
     []
+  []
+[]
+
+[UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 1000000
   []
 []
 
@@ -57,4 +65,14 @@
 
 [Outputs]
   exodus = true
+[]
+
+[Postprocessors]
+  [power]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+  []
+  [total_volume] # computes in cylindrical correctly (0.483193)
+    type = VolumePostprocessor
+  []
 []

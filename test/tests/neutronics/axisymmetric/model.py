@@ -3,7 +3,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 N = 5
-height = 300.0
+height = 1.0
 
 model = openmc.Model()
 
@@ -33,19 +33,19 @@ borated_water.add_s_alpha_beta('c_H_in_H2O')
 model.materials = openmc.Materials([uo2, helium, zircaloy, borated_water])
 
 # Create cylindrical surfaces
-fuel_or = openmc.ZCylinder(r=0.39218, name='Fuel OR')
-clad_ir = openmc.ZCylinder(r=0.40005, name='Clad IR')
-clad_or = openmc.ZCylinder(r=0.45720, name='Clad OR')
+fuel_or = openmc.YCylinder(r=0.39218)
+clad_ir = openmc.YCylinder(r=0.40005)
+clad_or = openmc.YCylinder(r=0.45720)
 
 # Create a region represented as the inside of a rectangular prism
 pitch = 1.25984
-box = openmc.model.RectangularPrism(pitch, pitch, boundary_type='reflective')
+box = openmc.model.RectangularPrism(pitch, pitch, boundary_type='reflective', axis='y')
 
 # Create cells, mapping materials to regions - split up the axial height
 planes = np.linspace(0.0, height, N + 1)
 plane_surfaces = []
 for i in range(N + 1):
-  plane_surfaces.append(openmc.ZPlane(z0=planes[i]))
+  plane_surfaces.append(openmc.YPlane(y0=planes[i]))
 
 # set the boundary condition on the topmost and bottommost planes to vacuum
 plane_surfaces[0].boundary_type = 'vacuum'
@@ -66,13 +66,13 @@ model.geometry = openmc.Geometry(all_cells)
 
 # Indicate how many particles to run
 model.settings = openmc.Settings()
-model.settings.batches = 150
-model.settings.inactive = 50
-model.settings.particles = 2000
+model.settings.batches = 15
+model.settings.inactive = 5
+model.settings.particles = 200
 
 # Create an initial uniform spatial source distribution over fissionable zones
-lower_left = (-pitch/2, -pitch/2, 0.0)
-upper_right = (pitch/2, pitch/2, height)
+lower_left = (-pitch/2, 0, -pitch/2)
+upper_right = (pitch/2, height, pitch/2)
 uniform_dist = openmc.stats.Box(lower_left, upper_right)
 model.settings.source = openmc.IndependentSource(space=uniform_dist)
 
