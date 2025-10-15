@@ -1,7 +1,7 @@
 # Laminar natural convection in a 2-D square cavity
 
 This test case models two-dimensional laminar flow of a Boussinesq fluid in an upright square cavity. 
-The computational domain follows the benchmark setup of [Davis and Jones (1983)](https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.1650030304). The objective is to compute the velocity and temperature fields for various Rayleigh numbers.
+The computational domain follows the benchmark setup of [Davis and Jones (1983)](https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.1650030304). The objective is to compute the velocity and temperature fields for various Rayleigh numbers. Note that this benchmark does not represent an analytic solution, but rather a numerical benchmark.
 
 ## Computational Domain
 
