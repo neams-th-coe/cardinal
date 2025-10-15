@@ -27,7 +27,7 @@ Where $\alpha$ is the thermal diffusivity of the fluid and $\nu$ is the kinemati
 | $T_2$ | $0$ |
 | $Pr$ | $0.71$ |
 | $Ra$ | $10^3, 10^4, 10^5, 10^6$ |
-| $Pe$ | $1$
+| $Pe$ | $1$ |
 | $Re$ | $1.4085$ |
 | $Ri$ | $0.71 \cdot Ra$ |
 
