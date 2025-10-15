@@ -66,3 +66,5 @@ A mesh sensitivity study was conducted to ensure that the mesh resolution was su
   id=fig_mesh
   caption=Computational mesh (1508 Elements).
   style=width:50%;margin-left:auto;margin-right:auto;halign:center
+  
+The coarsest mesh is run through Cardinal's verification test suite, in the interest of maintaining fast runtimes. The mesh can be uniformly refined to repeat the medium and fine mesh scenarios, which form the basis of the verification exercise.
