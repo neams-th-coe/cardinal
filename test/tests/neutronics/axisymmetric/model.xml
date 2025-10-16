@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material id="1" name="UO2 fuel at 2.4% wt enrichment" depletable="true">
+      <density value="10.29769" units="g/cm3"/>
+      <nuclide name="U234" ao="0.00021719193857965748"/>
+      <nuclide name="U235" ao="0.024299453780301263"/>
+      <nuclide name="U238" ao="0.9753720511113888"/>
+      <nuclide name="U236" ao="0.00011130316973028953"/>
+      <nuclide name="O16" ao="1.999242"/>
+      <nuclide name="O17" ao="0.000758"/>
+    </material>
+    <material id="2" name="Helium for gap">
+      <density value="0.001598" units="g/cm3"/>
+      <nuclide name="He3" ao="4.8088e-10"/>
+      <nuclide name="He4" ao="0.00024043951912"/>
+    </material>
+    <material id="3" name="Zircaloy 4">
+      <density value="6.55" units="g/cm3"/>
+      <nuclide name="Sn112" wo="0.00012801500069834377"/>
+      <nuclide name="Sn114" wo="8.865813200572833e-05"/>
+      <nuclide name="Sn115" wo="4.607357419970216e-05"/>
+      <nuclide name="Sn116" wo="0.001987443035732492"/>
+      <nuclide name="Sn117" wo="0.0010588319126396692"/>
+      <nuclide name="Sn118" wo="0.0033677060620942315"/>
+      <nuclide name="Sn119" wo="0.0012045572050073863"/>
+      <nuclide name="Sn120" wo="0.004607003663713992"/>
+      <nuclide name="Sn122" wo="0.0006656367453273949"/>
+      <nuclide name="Sn124" wo="0.0008460746685810585"/>
+      <nuclide name="Fe54" wo="9.315171067466311e-05"/>
+      <nuclide name="Fe56" wo="0.0015163752248627805"/>
+      <nuclide name="Fe57" wo="3.56460821256315e-05"/>
+      <nuclide name="Fe58" wo="4.826982336924971e-06"/>
+      <nuclide name="Cr50" wo="4.173686622718313e-05"/>
+      <nuclide name="Cr52" wo="0.000836993623513459"/>
+      <nuclide name="Cr53" wo="9.673586818675183e-05"/>
+      <nuclide name="Cr54" wo="2.4533642072606143e-05"/>
+      <nuclide name="Zr90" wo="0.49861860652704426"/>
+      <nuclide name="Zr91" wo="0.10994725677006655"/>
+      <nuclide name="Zr92" wo="0.1699042107425875"/>
+      <nuclide name="Zr94" wo="0.17593217455043395"/>
+      <nuclide name="Zr96" wo="0.02894775140986776"/>
+    </material>
+    <material id="4" name="Borated water">
+      <density value="0.740582" units="g/cm3"/>
+      <nuclide name="B10" ao="7.928e-06"/>
+      <nuclide name="B11" ao="3.2072e-05"/>
+      <nuclide name="H1" ao="0.04999221300000001"/>
+      <nuclide name="H2" ao="7.787e-06"/>
+      <nuclide name="O16" ao="0.023990904"/>
+      <nuclide name="O17" ao="9.096e-06"/>
+      <sab name="c_H_in_H2O"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="-1 8 -9" universe="1"/>
+    <cell id="2" material="2" region="1 -2 8 -9" universe="1"/>
+    <cell id="3" material="3" region="2 -3 8 -9" universe="1"/>
+    <cell id="4" material="4" region="3 8 -9 4 -5 6 -7" universe="1"/>
+    <cell id="5" material="1" region="-1 9 -10" universe="1"/>
+    <cell id="6" material="2" region="1 -2 9 -10" universe="1"/>
+    <cell id="7" material="3" region="2 -3 9 -10" universe="1"/>
+    <cell id="8" material="4" region="3 9 -10 4 -5 6 -7" universe="1"/>
+    <cell id="9" material="1" region="-1 10 -11" universe="1"/>
+    <cell id="10" material="2" region="1 -2 10 -11" universe="1"/>
+    <cell id="11" material="3" region="2 -3 10 -11" universe="1"/>
+    <cell id="12" material="4" region="3 10 -11 4 -5 6 -7" universe="1"/>
+    <cell id="13" material="1" region="-1 11 -12" universe="1"/>
+    <cell id="14" material="2" region="1 -2 11 -12" universe="1"/>
+    <cell id="15" material="3" region="2 -3 11 -12" universe="1"/>
+    <cell id="16" material="4" region="3 11 -12 4 -5 6 -7" universe="1"/>
+    <cell id="17" material="1" region="-1 12 -13" universe="1"/>
+    <cell id="18" material="2" region="1 -2 12 -13" universe="1"/>
+    <cell id="19" material="3" region="2 -3 12 -13" universe="1"/>
+    <cell id="20" material="4" region="3 12 -13 4 -5 6 -7" universe="1"/>
+    <surface id="1" type="y-cylinder" coeffs="0.0 0.0 0.39218"/>
+    <surface id="2" type="y-cylinder" coeffs="0.0 0.0 0.40005"/>
+    <surface id="3" type="y-cylinder" coeffs="0.0 0.0 0.4572"/>
+    <surface id="4" name="minimum x" type="x-plane" boundary="reflective" coeffs="-0.62992"/>
+    <surface id="5" name="maximum x" type="x-plane" boundary="reflective" coeffs="0.62992"/>
+    <surface id="6" name="minimum z" type="z-plane" boundary="reflective" coeffs="-0.62992"/>
+    <surface id="7" name="maximum z" type="z-plane" boundary="reflective" coeffs="0.62992"/>
+    <surface id="8" type="y-plane" boundary="vacuum" coeffs="0.0"/>
+    <surface id="9" type="y-plane" coeffs="0.2"/>
+    <surface id="10" type="y-plane" coeffs="0.4"/>
+    <surface id="11" type="y-plane" coeffs="0.6000000000000001"/>
+    <surface id="12" type="y-plane" coeffs="0.8"/>
+    <surface id="13" type="y-plane" boundary="vacuum" coeffs="1.0"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>200</particles>
+    <batches>15</batches>
+    <inactive>5</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-0.62992 0 -0.62992 0.62992 1.0 0.62992</parameters>
+      </space>
+    </source>
+    <temperature_default>553.15</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_range>294.0 3000.0</temperature_range>
+    <temperature_tolerance>1000.0</temperature_tolerance>
+  </settings>
+  </model>
