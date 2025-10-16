@@ -209,7 +209,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   const auto & subdomains = mesh().meshSubdomains();
   for (const auto & s : subdomains)
     if (mesh().getCoordSystem(s) == Moose::COORD_RZ)
-      mooseError("OpenMC coupling to axisymmetric meshes is not yet supported! Please convert your mesh block to a 3-D mesh (you may still use axisymmetric meshes for your other physics coupled to OpenMC and transfer data between those apps and a 3-D OpenMC model. You just cannot use an axisymmetric mesh from which OpenMC reads/writes data).");
+      mooseError(
+          "OpenMC coupling to axisymmetric meshes is not yet supported! Please convert your mesh "
+          "block to a 3-D mesh (you may still use axisymmetric meshes for your other physics "
+          "coupled to OpenMC and transfer data between those apps and a 3-D OpenMC model. You just "
+          "cannot use an axisymmetric mesh from which OpenMC reads/writes data).");
 
   if (_specified_temperature_feedback && openmc::settings::temperature_range[1] == 0.0)
     mooseWarning("For multiphysics simulations, we recommend setting the 'temperature_range' in "
