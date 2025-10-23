@@ -31,6 +31,10 @@ Where $\alpha$ is the thermal diffusivity of the fluid and $\nu$ is the kinemati
 | $Re$ | $1.4085$ |
 | $Ri$ | $0.71 \cdot Ra$ |
 
+## Input Files
+
+!listing test/tests/nek_ci/square_cavity/cavity.par language=cpp
+
 ## Results
 
 [fig_vel] shows the velocity field with streamlines, while [fig_temp] displays the temperature field along with temperature contours. To compare the results with the benchmark, the following quantities are reported in [table2]: the maximum horizontal velocity along the vertical centerline ($u_{max}$), the maximum vertical velocity along the horizontal centerline ($w_{max}$), and the average Nusselt number on the hot wall ($\overline{Nu}$). The simulation results are in excellent agreement with the benchmark.
