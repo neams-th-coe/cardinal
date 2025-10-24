@@ -1413,27 +1413,6 @@ get_velocity_z_squared(const int id, const int surf_offset)
 }
 
 void
-set_x_displacement(const int id, const dfloat value)
-{
-  mesh_t * mesh = entireMesh();
-  mesh->x[id] = value;
-}
-
-void
-set_y_displacement(const int id, const dfloat value)
-{
-  mesh_t * mesh = entireMesh();
-  mesh->y[id] = value;
-}
-
-void
-set_z_displacement(const int id, const dfloat value)
-{
-  mesh_t * mesh = entireMesh();
-  mesh->z[id] = value;
-}
-
-void
 checkFieldValidity(const field::NekWriteEnum & field)
 {
   switch (field)
@@ -1760,13 +1739,12 @@ nondimensionalDivisor(const field::NekFieldEnum & field)
 Real
 scratchUnits(const int slot)
 {
-  if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
-    return scales.flux_ref;
-  else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
-    return scales.source_ref;
-  else if (is_nondimensional)
+  //if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
+  //  return scales.flux_ref;
+  //else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
+  //  return scales.source_ref;
+  if (is_nondimensional)
   {
-    // TODO: we are lazy and did not include all the usrwrk indices
     mooseDoOnce(mooseWarning(
         "The units of 'usrwrk0" + std::to_string(slot) +
         "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +

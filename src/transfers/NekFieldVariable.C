@@ -47,7 +47,9 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    addExternalVariable(_usrwrk_slot[0], _variable);
+    auto d = nekrs::nondimensionalDivisor(_field);
+    auto a = nekrs::nondimensionalAdditive(_field);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
     // we don't impose any requirements on boundary conditions on the NekRS side, because this data
     // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used

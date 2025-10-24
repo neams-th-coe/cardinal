@@ -41,9 +41,12 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
     if (_usrwrk_slot.size() != 3)
       paramError("usrwrk_slot", "For mesh deformation, 'usrwrk_slot' must be of length 3");
 
-    addExternalVariable(_usrwrk_slot[0], _variable + "_x");
-    addExternalVariable(_usrwrk_slot[1], _variable + "_y");
-    addExternalVariable(_usrwrk_slot[2], _variable + "_z");
+    // all the mesh velocities scale the same way
+    auto d = nekrs::nondimensionalDivisor(field::mesh_velocity_x);
+    auto a = nekrs::nondimensionalAdditive(field::mesh_velocity_x);
+    addExternalVariable(_usrwrk_slot[0], _variable + "_x", a, d);
+    addExternalVariable(_usrwrk_slot[1], _variable + "_y", a, d);
+    addExternalVariable(_usrwrk_slot[2], _variable + "_z", a, d);
 
     indices.mesh_velocity_x = _usrwrk_slot[0] * nekrs::fieldOffset();
     indices.mesh_velocity_y = _usrwrk_slot[1] * nekrs::fieldOffset();
@@ -169,20 +172,20 @@ NekMeshDeformation::sendVolumeDeformationToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    //_nek_problem.mapVolumeDataToNekVolume(
-    //    e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
-    //_nek_problem.writeVolumeSolution(
-    //    e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
+    _nek_problem.writeVolumeDisplacement(
+        e, _displacement_x, field::x_displacement, &(_nek_mesh->nek_initial_x()));
 
-    //_nek_problem.mapVolumeDataToNekVolume(
-    //    e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
-    //_nek_problem.writeVolumeSolution(
-    //    e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
+    _nek_problem.writeVolumeDisplacement(
+        e, _displacement_y, field::y_displacement, &(_nek_mesh->nek_initial_y()));
 
-    //_nek_problem.mapVolumeDataToNekVolume(
-    //    e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
-    //_nek_problem.writeVolumeSolution(
-    //    e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
+    _nek_problem.mapVolumeDataToNekVolume(
+        e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
+    _nek_problem.writeVolumeDisplacement(
+        e, _displacement_z, field::z_displacement, &(_nek_mesh->nek_initial_z()));
   }
 }
 

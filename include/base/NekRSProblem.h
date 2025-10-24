@@ -278,6 +278,17 @@ public:
   }
 
   /**
+   * Write a mesh displacement into NekRS
+   * @param[in] elem_id element ID
+   * @param[in] s solution values to write for the field for the given element
+   * @param[in] f which component of the displacement to write
+   * @param[in] add optional vector of values to add to each value set on the NekRS end
+   */
+  void writeVolumeDisplacement(const int elem_id,
+                           double * s,
+                           const field::NekWriteEnum f,
+                           const std::vector<double> * add = nullptr);
+  /**
    * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms
    * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,
    * the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order, i.e. the re2
@@ -290,39 +301,7 @@ public:
   void writeVolumeSolution(const int slot,
                            const int elem_id,
                            double * s,
-                           const std::vector<double> * add = nullptr)
-  {
-    mesh_t * mesh = nekrs::entireMesh();
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-
-    auto vc = _nek_mesh->volumeCoupling();
-    int id = vc.element[elem_id] * mesh->Np;
-
-    if (_nek_mesh->exactMirror())
-    {
-      // can write directly into the NekRS solution
-      for (int v = 0; v < mesh->Np; ++v)
-      {
-        double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-        nrs->usrwrk[slot + id + v] = s[v] + extra;
-      }
-    }
-    else
-    {
-      // need to interpolate onto the higher-order Nek mesh
-      double * tmp = (double *)calloc(mesh->Np, sizeof(double));
-
-      interpolateVolumeSolutionToNek(elem_id, s, tmp);
-
-      for (int v = 0; v < mesh->Np; ++v)
-      {
-        double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-        nrs->usrwrk[slot + id + v] = tmp[v] + extra;
-      }
-
-      freePointer(tmp);
-    }
-  }
+                           const std::vector<double> * add = nullptr);
 
   /**
    * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in
@@ -331,32 +310,7 @@ public:
    * @param[in] elem_id element ID
    * @param[in] s solution values to write for the field for the given element
    */
-  void writeBoundarySolution(const int slot, const int elem_id, double * s)
-  {
-    mesh_t * mesh = nekrs::temperatureMesh();
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-
-    const auto & bc = _nek_mesh->boundaryCoupling();
-    int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
-
-    if (_nek_mesh->exactMirror())
-    {
-      // can write directly into the NekRS solution
-      for (int i = 0; i < mesh->Nfp; ++i)
-        nrs->usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
-    }
-    else
-    {
-      // need to interpolate onto the higher-order Nek mesh
-      double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
-      interpolateBoundarySolutionToNek(s, tmp);
-
-      for (int i = 0; i < mesh->Nfp; ++i)
-        nrs->usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
-
-      freePointer(tmp);
-    }
-  }
+  void writeBoundarySolution(const int slot, const int elem_id, double * s);
 
   /**
    * The casename (prefix) of the NekRS files

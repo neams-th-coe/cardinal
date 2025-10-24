@@ -843,27 +843,6 @@ double get_velocity_y_squared(const int id, const int surf_offset);
 double get_velocity_z_squared(const int id, const int surf_offset);
 
 /**
- * Write a value into the x-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_x_displacement(const int id, const dfloat value);
-
-/**
- * Write a value into the y-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_y_displacement(const int id, const dfloat value);
-
-/**
- * Write a value into the z-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_z_displacement(const int id, const dfloat value);
-
-/**
  * Initialize the characteristic scales for a nondimesional solution
  * @param[in] U reference velocity
  * @param[in] T reference temperature

@@ -23,6 +23,7 @@
 #include "UserErrorChecking.h"
 
 std::map<unsigned int, std::string> FieldTransferBase::_field_usrwrk_map;
+std::map<std::string, std::pair<Real, Real>> FieldTransferBase::_field_usrwrk_scales;
 
 InputParameters
 FieldTransferBase::validParams()
@@ -108,7 +109,7 @@ FieldTransferBase::addExternalVariable(const std::string name)
 }
 
 void
-FieldTransferBase::addExternalVariable(const unsigned int slot, const std::string name)
+FieldTransferBase::addExternalVariable(const unsigned int slot, const std::string name, const Real shift, const Real divisor)
 {
   addExternalVariable(name);
 
@@ -124,6 +125,7 @@ FieldTransferBase::addExternalVariable(const unsigned int slot, const std::strin
                    "If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
 
   _field_usrwrk_map.insert({slot, name});
+  _field_usrwrk_scales.insert({name, std::make_pair(shift, divisor)});
 }
 
 void

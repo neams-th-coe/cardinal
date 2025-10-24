@@ -45,7 +45,10 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
 {
   if (_direction == "to_nek")
   {
-    addExternalVariable(_usrwrk_slot[0], _variable);
+    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying interpretation
+    auto d = nekrs::nondimensionalDivisor(field::heat_source);
+    auto a = nekrs::nondimensionalAdditive(field::heat_source);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
     indices.heat_source = _usrwrk_slot[0] * nekrs::fieldOffset();
 
     if (_usrwrk_slot.size() > 1)

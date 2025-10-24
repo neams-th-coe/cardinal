@@ -348,11 +348,12 @@ NekRSProblem::initialSetup()
     nekrs::outfld(_timestepper->nondimensionalDT(_time), _t_step);
 
   VariadicTable<int, std::string, std::string, std::string> vt(
-      {"Slot", "MOOSE quantity", "How to Access (.oudf)", "How to Access (.udf)"});
+      {"Slot", "Data Written", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // fill a set with all of the slots managed by Cardinal, coming from either field transfers
   // or userobjects
   auto field_usrwrk_map = FieldTransferBase::usrwrkMap();
+  auto field_usrwrk_scales = FieldTransferBase::usrwrkScales();
   for (const auto & field : field_usrwrk_map)
     _usrwrk_slots.insert(field.first);
   for (const auto & uo : _scalar_transfers)
@@ -362,13 +363,29 @@ NekRSProblem::initialSetup()
   // a user object, or neither
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    std::string oudf = "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset+bc->idM]";
-    std::string udf = "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]";
+    std::string oudf = "bc->usrwrk["+ std::to_string(i) + "*bc->fieldOffset+bc->idM]";
+    std::string udf = "nrs->usrwrk["+ std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
     {
       // a field transfer owns it
-      vt.addRow(i, field_usrwrk_map[i], oudf, udf);
+      auto scales = field_usrwrk_scales[field_usrwrk_map[i]];
+
+      std::string top;
+      if (MooseUtils::absoluteFuzzyEqual(scales.first, 0.0))
+        top = field_usrwrk_map[i];
+      else
+        top = field_usrwrk_map[i] + "-" + std::to_string(scales.first);
+
+      if (!MooseUtils::absoluteFuzzyEqual(scales.second, 1.0))
+      {
+        if (MooseUtils::absoluteFuzzyEqual(scales.first, 0.0))
+          top = "(" + top + ")/" + std::to_string(scales.second);
+        else
+          top = top + "/" + std::to_string(scales.second);
+      }
+
+      vt.addRow(i, top, oudf, udf);
     }
     else
     {
@@ -381,10 +398,15 @@ NekRSProblem::initialSetup()
           owned_by_uo = true;
           auto slot = std::to_string(uo->usrwrkSlot());
           auto count = std::to_string(uo->offset());
+
+          std::string top = uo->name();
+          if (!MooseUtils::absoluteFuzzyEqual(uo->scaling(), 1.0))
+            top += top + "*" + std::to_string(uo->scaling());
+
           vt.addRow(i,
-                    uo->name(),
-                    "bc->usrwrk[" + slot + " * bc->fieldOffset + " + count + "]",
-                    "nrs->usrwrk[" + slot + " * nrs->fieldOffset + " + count + "]");
+                    top,
+                    "bc->usrwrk[" + slot + "*bc->fieldOffset+" + count + "]",
+                    "nrs->usrwrk[" + slot + "*nrs->fieldOffset+" + count + "]");
         }
       }
 
@@ -404,12 +426,12 @@ NekRSProblem::initialSetup()
         << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
         << std::endl;
     _console << "           Slot:  slice in scratch space holding the data" << std::endl;
-    _console << " MOOSE quantity:  name of the AuxVariable or Postprocessor that gets written into"
-             << std::endl;
-    _console << "                  this slot. If 'unused', this means that the space has been"
-             << std::endl;
-    _console << "                  allocated, but Cardinal is not otherwise using it for coupling"
-             << std::endl;
+    _console << "   Data written:  data that gets written into this slot. This data is shown" << std::endl;
+    _console << "                  in the form actually written into NekRS (which will be" << std::endl;
+    _console << "                  non-dimensional quantities if using the [Dimensionalize]" << std::endl;
+    _console << "                  block. Words refer to MOOSE AuxVariables/Postprocessors." << std::endl;
+    _console << "                  If 'unused', this means that the space has been allocated," << std::endl;
+    _console << "                  but Cardinal is not otherwise using it for coupling." << std::endl;
     _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
              << std::endl;
     _console << "                  'n' indicates a loop variable over GLL points\n" << std::endl;
@@ -904,4 +926,122 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
   }
 }
 
+void
+NekRSProblem::writeVolumeDisplacement(const int elem_id,
+                         double * s,
+                         const field::NekWriteEnum f,
+                         const std::vector<double> * add)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  auto vc = _nek_mesh->volumeCoupling();
+  int id = vc.element[elem_id] * mesh->Np;
+
+  if (_nek_mesh->exactMirror())
+  {
+    // can write directly into the NekRS solution
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+
+      if (f == field::x_displacement)
+        mesh->x[id + v] = s[v] + extra;
+      else if (f == field::y_displacement)
+        mesh->y[id + v] = s[v] + extra;
+      else if (f == field::z_displacement)
+        mesh->z[id + v] = s[v] + extra;
+      else
+        mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
+    }
+  }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeSolutionToNek(elem_id, s, tmp);
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      if (f == field::x_displacement)
+        mesh->x[id + v] = s[v] + extra;
+      else if (f == field::y_displacement)
+        mesh->y[id + v] = s[v] + extra;
+      else if (f == field::z_displacement)
+        mesh->z[id + v] = s[v] + extra;
+      else
+        mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
+    }
+
+    freePointer(tmp);
+  }
+}
+
+void
+NekRSProblem::writeVolumeSolution(const int slot,
+                         const int elem_id,
+                         double * s,
+                         const std::vector<double> * add)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  auto vc = _nek_mesh->volumeCoupling();
+  int id = vc.element[elem_id] * mesh->Np;
+
+  if (_nek_mesh->exactMirror())
+  {
+    // can write directly into the NekRS solution
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      nrs->usrwrk[slot + id + v] = s[v] + extra;
+    }
+  }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeSolutionToNek(elem_id, s, tmp);
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      nrs->usrwrk[slot + id + v] = tmp[v] + extra;
+    }
+
+    freePointer(tmp);
+  }
+}
+
+void
+NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * s)
+{
+  mesh_t * mesh = nekrs::temperatureMesh();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  const auto & bc = _nek_mesh->boundaryCoupling();
+  int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
+
+  if (_nek_mesh->exactMirror())
+  {
+    // can write directly into the NekRS solution
+    for (int i = 0; i < mesh->Nfp; ++i)
+      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
+  }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(s, tmp);
+
+    for (int i = 0; i < mesh->Nfp; ++i)
+      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
+
+    freePointer(tmp);
+  }
+}
 #endif

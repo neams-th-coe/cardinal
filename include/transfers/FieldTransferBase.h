@@ -40,6 +40,12 @@ public:
    */
   static std::map<unsigned int, std::string> usrwrkMap() { return _field_usrwrk_map; }
 
+  /**
+   * Get the mapping of usrwrk slots to their scalings
+   * @return map ordered as (MOOSE variable name, (additive, divisor))
+   */
+  static std::map<std::string, std::pair<Real, Real>> usrwrkScales() { return _field_usrwrk_scales; }
+
 protected:
   /**
    * Fill an outgoing auxiliary variable field with nekRS solution data
@@ -58,8 +64,10 @@ protected:
    * Add a MOOSE variable to facilitate coupling
    * @param[in] slot slot in usrwrk array holding this field
    * @param[in] name variable name
+   * @param[in] additive shift to apply to the non-dimensional variable
+   * @param[in] divisor division to apply to the non-dimensional variable
    */
-  void addExternalVariable(const unsigned int slot, const std::string name);
+  void addExternalVariable(const unsigned int slot, const std::string name, const Real additive, const Real divisor);
 
   /// Variable name (or prefix of names) to create in MOOSE to facilitate data passing
   std::string _variable;
@@ -75,6 +83,12 @@ protected:
    * stored as (slot, variable name in MOOSE)
    */
   static std::map<unsigned int, std::string> _field_usrwrk_map;
+
+  /**
+   * Information about nondimensional scaling to be applied to a MOOSE variable, stored as
+   * (slot, {shift, divisor})
+   */
+  static std::map<std::string, std::pair<Real, Real>> _field_usrwrk_scales;
 
   /// Number of points on the MOOSE mesh to write per element surface
   int _n_per_surf;

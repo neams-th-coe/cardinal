@@ -74,6 +74,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "supported. Contact the Cardinal developer team if you need this feature.");
 
     checkUnusedParam(parameters, "initial_flux_integral", "'direction = from_nek'");
+
     addExternalVariable(_variable);
 
     // right now, all of our systems used for transferring data assume that if we have a volume
@@ -93,7 +94,10 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    addExternalVariable(_usrwrk_slot[0], _variable);
+    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying interpretation
+    auto d = nekrs::nondimensionalDivisor(field::flux);
+    auto a = nekrs::nondimensionalAdditive(field::flux);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
     indices.flux = _usrwrk_slot[0] * nekrs::fieldOffset();
 
     // Check that the correct flux boundary condition is set on all of nekRS's
