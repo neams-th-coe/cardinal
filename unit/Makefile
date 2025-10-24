@@ -37,12 +37,18 @@
 
 # Whether you want to build with NekRS
 ENABLE_NEK          ?= yes
+BUILD_NEKRS 		?= yes
 
 # Whether you want to build with OpenMC
 ENABLE_OPENMC       ?= yes
+BUILD_OPENMC 		?= yes
 
 # Whether you want to build OpenMC with DAGMC support
 ENABLE_DAGMC        ?= no
+BUILD_DAGMC 		?= yes
+BUILD_MOAB 			?= yes
+BUILD_EMBREE 		?= yes
+BUILD_DOUBLEDOWN 	?= yes
 
 # Whether we want to use the double-precision interface to Embree for DAGMC
 # ray tracing instead of MOAB.
