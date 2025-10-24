@@ -293,7 +293,7 @@ public:
                            const std::vector<double> * add = nullptr)
   {
     mesh_t * mesh = nekrs::entireMesh();
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
 
     auto vc = _nek_mesh->volumeCoupling();
     int id = vc.element[elem_id] * mesh->Np;
@@ -334,7 +334,7 @@ public:
   void writeBoundarySolution(const int slot, const int elem_id, double * s)
   {
     mesh_t * mesh = nekrs::temperatureMesh();
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
 
     const auto & bc = _nek_mesh->boundaryCoupling();
     int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;

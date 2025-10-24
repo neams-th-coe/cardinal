@@ -205,17 +205,20 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
       _nek_problem.mapFaceDataToNekFace(
           e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
-      _nek_problem.writeBoundarySolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeBoundarySolution(
+          _usrwrk_slot[0] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
 
       _nek_problem.mapFaceDataToNekFace(
           e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
-      _nek_problem.writeBoundarySolution(_usrwrk_slot[1] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeBoundarySolution(
+          _usrwrk_slot[1] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
 
       _nek_problem.mapFaceDataToNekFace(
           e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
-      _nek_problem.writeBoundarySolution(_usrwrk_slot[2] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeBoundarySolution(
+          _usrwrk_slot[2] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
     }
   }
   else
@@ -230,17 +233,20 @@ NekMeshDeformation::sendBoundaryDeformationToNek()
       _nek_problem.mapFaceDataToNekVolume(
           e, _variable_number[_variable + "_x"], d, a, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
-      _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeVolumeSolution(
+          _usrwrk_slot[0] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
 
       _nek_problem.mapFaceDataToNekVolume(
           e, _variable_number[_variable + "_y"], d, a, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
-      _nek_problem.writeVolumeSolution(_usrwrk_slot[1] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeVolumeSolution(
+          _usrwrk_slot[1] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
 
       _nek_problem.mapFaceDataToNekVolume(
           e, _variable_number[_variable + "_z"], d, a, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
-      _nek_problem.writeVolumeSolution(_usrwrk_slot[2] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
+      _nek_problem.writeVolumeSolution(
+          _usrwrk_slot[2] * nekrs::fieldOffset(), e, _mesh_velocity_elem);
     }
   }
 }
