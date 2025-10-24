@@ -166,7 +166,7 @@ NekFieldVariable::sendDataToNek()
         continue;
 
       _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_v_face);
-      _nek_problem.writeBoundarySolution(e, _field, _v_face);
+      _nek_problem.writeBoundarySolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_face);
     }
   }
   else
@@ -179,7 +179,7 @@ NekFieldVariable::sendDataToNek()
         continue;
 
       _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-      _nek_problem.writeVolumeSolution(e, _field, _v_elem);
+      _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
     }
   }
 }

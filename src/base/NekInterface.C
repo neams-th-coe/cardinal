@@ -1413,27 +1413,6 @@ get_velocity_z_squared(const int id, const int surf_offset)
 }
 
 void
-set_temperature(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.temperature + id] = value;
-}
-
-void
-set_flux(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.flux + id] = value;
-}
-
-void
-set_heat_source(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.heat_source + id] = value;
-}
-
-void
 set_x_displacement(const int id, const dfloat value)
 {
   mesh_t * mesh = entireMesh();
@@ -1452,27 +1431,6 @@ set_z_displacement(const int id, const dfloat value)
 {
   mesh_t * mesh = entireMesh();
   mesh->z[id] = value;
-}
-
-void
-set_mesh_velocity_x(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.mesh_velocity_x + id] = value;
-}
-
-void
-set_mesh_velocity_y(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.mesh_velocity_y + id] = value;
-}
-
-void
-set_mesh_velocity_z(const int id, const dfloat value)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[indices.mesh_velocity_z + id] = value;
 }
 
 void
@@ -1636,60 +1594,6 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
-
-  return f;
-}
-
-void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat)
-{
-  void (*f)(int, dfloat);
-
-  switch (field)
-  {
-    case field::flux:
-      f = &set_flux;
-      break;
-    case field::heat_source:
-      f = &set_heat_source;
-      break;
-    case field::x_displacement:
-      f = &set_x_displacement;
-      break;
-    case field::y_displacement:
-      f = &set_y_displacement;
-      break;
-    case field::z_displacement:
-      f = &set_z_displacement;
-      break;
-    case field::mesh_velocity_x:
-      f = &set_mesh_velocity_x;
-      break;
-    case field::mesh_velocity_y:
-      f = &set_mesh_velocity_y;
-      break;
-    case field::mesh_velocity_z:
-      f = &set_mesh_velocity_z;
-      break;
-    default:
-      throw std::runtime_error("Unhandled NekWriteEnum!");
-  }
-
-  return f;
-}
-
-void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat)
-{
-  void (*f)(int, dfloat);
-
-  switch (field)
-  {
-    case field::temperature:
-      f = &set_temperature;
-      break;
-    default:
-      throw std::runtime_error("Unhandled NekFieldEnum in solutionWritePointer! Other write fields "
-                               "have not been added to this interface yet.");
   }
 
   return f;

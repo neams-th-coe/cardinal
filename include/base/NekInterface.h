@@ -731,13 +731,6 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int);
 double (*solutionPointer(const field::NekWriteEnum & field))(int, int);
 
 /**
- * Write various solution functions based on enumeration
- * @param[in] field field to write
- */
-void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat);
-void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat);
-
-/**
  * Get the scalar01 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar01 value at index
@@ -848,27 +841,6 @@ double get_velocity_y_squared(const int id, const int surf_offset);
  * @return square of z-velocity at index
  */
 double get_velocity_z_squared(const int id, const int surf_offset);
-
-/**
- * Write a value into the user scratch space that holds the temperature
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_temperature(const int id, const dfloat value);
-
-/**
- * Write a value into the user scratch space that holds the flux
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_flux(const int id, const dfloat value);
-
-/**
- * Write a value into the user scratch space that holds the volumetric heat source
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_heat_source(const int id, const dfloat value);
 
 /**
  * Write a value into the x-displacement

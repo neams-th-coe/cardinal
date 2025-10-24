@@ -127,7 +127,7 @@ NekVolumetricSource::sendDataToNek()
       continue;
 
     _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-    _nek_problem.writeVolumeSolution(e, field::heat_source, _v_elem);
+    _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
   }
 
   // Because the NekRSMesh may be quite different from that used in the app solving for

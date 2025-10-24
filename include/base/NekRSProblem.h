@@ -282,20 +282,18 @@ public:
    * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,
    * the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order, i.e. the re2
    * order) to add.
+   * @param[in] slot the slot in the usrwrk array to populate
    * @param[in] elem_id element ID
-   * @param[in] field field to write
    * @param[in] s solution values to write for the field for the given element
    * @param[in] add optional vector of values to add to each value set on the NekRS end
    */
-  template <typename T>
-  void writeVolumeSolution(const int elem_id,
-                           const T & field,
+  void writeVolumeSolution(const int slot,
+                           const int elem_id,
                            double * s,
                            const std::vector<double> * add = nullptr)
   {
     mesh_t * mesh = nekrs::entireMesh();
-    void (*write_solution)(int, dfloat);
-    write_solution = nekrs::solutionWritePointer(field);
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
 
     auto vc = _nek_mesh->volumeCoupling();
     int id = vc.element[elem_id] * mesh->Np;
@@ -306,7 +304,7 @@ public:
       for (int v = 0; v < mesh->Np; ++v)
       {
         double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-        write_solution(id + v, s[v] + extra);
+        nrs->usrwrk[slot + id + v] = s[v] + extra;
       }
     }
     else
@@ -319,7 +317,7 @@ public:
       for (int v = 0; v < mesh->Np; ++v)
       {
         double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-        write_solution(id + v, tmp[v] + extra);
+        nrs->usrwrk[slot + id + v] = tmp[v] + extra;
       }
 
       freePointer(tmp);
@@ -329,16 +327,14 @@ public:
   /**
    * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in
    * terms of a displacement, we need to add the displacement to the initial mesh coordinates.
+   * @param[in] slot the slot in the usrwrk array to populate
    * @param[in] elem_id element ID
-   * @param[in] field field to write
    * @param[in] s solution values to write for the field for the given element
    */
-  template <typename T>
-  void writeBoundarySolution(const int elem_id, const T & field, double * s)
+  void writeBoundarySolution(const int slot, const int elem_id, double * s)
   {
     mesh_t * mesh = nekrs::temperatureMesh();
-    void (*write_solution)(int, dfloat);
-    write_solution = nekrs::solutionWritePointer(field);
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
 
     const auto & bc = _nek_mesh->boundaryCoupling();
     int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
@@ -347,7 +343,7 @@ public:
     {
       // can write directly into the NekRS solution
       for (int i = 0; i < mesh->Nfp; ++i)
-        write_solution(mesh->vmapM[offset + i], s[i]);
+        nrs->usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
     }
     else
     {
@@ -356,7 +352,7 @@ public:
       interpolateBoundarySolutionToNek(s, tmp);
 
       for (int i = 0; i < mesh->Nfp; ++i)
-        write_solution(mesh->vmapM[offset + i], tmp[i]);
+        nrs->usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
 
       freePointer(tmp);
     }
