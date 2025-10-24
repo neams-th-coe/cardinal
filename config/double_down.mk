@@ -1,9 +1,6 @@
 DOUBLEDOWN_BUILDDIR := $(CARDINAL_DIR)/build/double-down
 DOUBLEDOWN_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
-# By default, build doubledown
-BUILD_DOUBLEDOWN ?= yes
-
 ifeq ($(BUILD_DOUBLEDOWN),yes)
 
 $(DOUBLEDOWN_BUILDDIR)/Makefile: build_moab build_embree | $(DOUBLEDOWN_DIR)/CMakeLists.txt

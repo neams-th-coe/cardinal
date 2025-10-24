@@ -1,9 +1,6 @@
 EMBREE_BUILDDIR := $(CARDINAL_DIR)/build/embree
 EMBREE_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
-# By default, build embree
-BUILD_EMBREE ?= yes
-
 ifeq ($(BUILD_EMBREE),yes)
 
 $(EMBREE_BUILDDIR)/Makefile: $(EMBREE_DIR)/CMakeLists.txt

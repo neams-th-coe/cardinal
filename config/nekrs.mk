@@ -1,9 +1,6 @@
 NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
-# By default, build nekrs
-BUILD_NEKRS ?= yes
-
 ifeq ($(BUILD_NEKRS),yes)
 
 # These have the same names and meanings as in makenrs

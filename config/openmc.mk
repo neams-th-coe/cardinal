@@ -1,10 +1,6 @@
 OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
 OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
-# By default, build openmc
-
-BUILD_OPENMC ?= yes
-
 ifeq ($(BUILD_OPENMC),yes)
 
 $(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
