@@ -22,8 +22,6 @@
 
 registerMooseObject("CardinalApp", NekBoundaryFlux);
 
-extern nekrs::usrwrkIndices indices;
-
 InputParameters
 NekBoundaryFlux::validParams()
 {
@@ -99,7 +97,6 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     auto d = nekrs::nondimensionalDivisor(field::flux);
     auto a = nekrs::nondimensionalAdditive(field::flux);
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
-    indices.flux = _usrwrk_slot[0] * nekrs::fieldOffset();
 
     // Check that the correct flux boundary condition is set on all of nekRS's
     // boundaries. To avoid throwing this error for test cases where we have a
@@ -218,7 +215,7 @@ NekBoundaryFlux::sendDataToNek()
 
   // integrate the flux over each individual boundary
   std::vector<double> nek_flux_sidesets =
-      nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
 
   bool successful_normalization;
   double normalized_nek_flux = 0.0;
@@ -343,13 +340,13 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
+        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  auto integrals = nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
@@ -394,13 +391,13 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
+        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  auto integrals = nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;

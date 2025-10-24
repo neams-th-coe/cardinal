@@ -23,8 +23,6 @@
 
 registerMooseObject("CardinalApp", NekMeshDeformation);
 
-extern nekrs::usrwrkIndices indices;
-
 InputParameters
 NekMeshDeformation::validParams()
 {
@@ -47,10 +45,6 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
     addExternalVariable(_usrwrk_slot[0], _variable + "_x", a, d);
     addExternalVariable(_usrwrk_slot[1], _variable + "_y", a, d);
     addExternalVariable(_usrwrk_slot[2], _variable + "_z", a, d);
-
-    indices.mesh_velocity_x = _usrwrk_slot[0] * nekrs::fieldOffset();
-    indices.mesh_velocity_y = _usrwrk_slot[1] * nekrs::fieldOffset();
-    indices.mesh_velocity_z = _usrwrk_slot[2] * nekrs::fieldOffset();
   }
   else
   {

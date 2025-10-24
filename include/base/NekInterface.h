@@ -672,31 +672,6 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
 /**
- * Integer indices in the usrwrk scratch space for writing solutions from MOOSE.
- * These will be set from Cardinal. Not all will be used simultaneously.
- */
-struct usrwrkIndices
-{
-  /// boundary heat flux (for conjugate heat transfer)
-  int flux = -1;
-
-  /// volumetric heat source (for volumetric heating)
-  int heat_source = -1;
-
-  /// x-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_x = -1;
-
-  /// y-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_y = -1;
-
-  /// z-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_z = -1;
-
-  /// temperature (for reverse-direction conjugate heat transfer coupling)
-  int temperature = -1;
-};
-
-/**
  * Characteristic scales assumed in nekRS if using a non-dimensional solution; initial values
  * are applied, which will be overridden by the DimensionalizeAction in Cardinal.
  */

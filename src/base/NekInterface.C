@@ -26,7 +26,6 @@ static dfloat * sgeo;
 static dfloat * vgeo;
 static unsigned int n_usrwrk_slots;
 static bool is_nondimensional;
-nekrs::usrwrkIndices indices;
 
 namespace nekrs
 {

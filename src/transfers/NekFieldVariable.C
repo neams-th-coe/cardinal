@@ -74,20 +74,12 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "provide the 'field' parameter.");
   }
 
-  if (_direction == "to_nek")
-  {
-    switch (_field)
-    {
-      case field::temperature:
-        indices.temperature = _usrwrk_slot[0] * nekrs::fieldOffset();
-        break;
-      default:
-        paramError("field",
-                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
-                   "Please contact the Cardinal developer team if you require writing of other "
-                   "NekRS field variables.");
-    }
-  }
+  // TODO: add test to relax this
+  if (_direction == "to_nek" && _field != field::temperature)
+    paramError("field",
+               "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
+               "Please contact the Cardinal developer team if you require writing of other "
+               "NekRS field variables.");
 
   if (_field == field::velocity_component)
     paramError("field",
