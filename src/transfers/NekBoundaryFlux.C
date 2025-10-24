@@ -94,7 +94,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying interpretation
+    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
+    // interpretation
     auto d = nekrs::nondimensionalDivisor(field::flux);
     auto a = nekrs::nondimensionalAdditive(field::flux);
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);

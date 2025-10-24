@@ -1739,10 +1739,10 @@ nondimensionalDivisor(const field::NekFieldEnum & field)
 Real
 scratchUnits(const int slot)
 {
-  //if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
-  //  return scales.flux_ref;
-  //else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
-  //  return scales.source_ref;
+  // if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
+  //   return scales.flux_ref;
+  // else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
+  //   return scales.source_ref;
   if (is_nondimensional)
   {
     mooseDoOnce(mooseWarning(

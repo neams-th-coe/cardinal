@@ -109,7 +109,10 @@ FieldTransferBase::addExternalVariable(const std::string name)
 }
 
 void
-FieldTransferBase::addExternalVariable(const unsigned int slot, const std::string name, const Real shift, const Real divisor)
+FieldTransferBase::addExternalVariable(const unsigned int slot,
+                                       const std::string name,
+                                       const Real shift,
+                                       const Real divisor)
 {
   addExternalVariable(name);
 

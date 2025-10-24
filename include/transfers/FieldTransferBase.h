@@ -44,7 +44,10 @@ public:
    * Get the mapping of usrwrk slots to their scalings
    * @return map ordered as (MOOSE variable name, (additive, divisor))
    */
-  static std::map<std::string, std::pair<Real, Real>> usrwrkScales() { return _field_usrwrk_scales; }
+  static std::map<std::string, std::pair<Real, Real>> usrwrkScales()
+  {
+    return _field_usrwrk_scales;
+  }
 
 protected:
   /**
@@ -67,7 +70,10 @@ protected:
    * @param[in] additive shift to apply to the non-dimensional variable
    * @param[in] divisor division to apply to the non-dimensional variable
    */
-  void addExternalVariable(const unsigned int slot, const std::string name, const Real additive, const Real divisor);
+  void addExternalVariable(const unsigned int slot,
+                           const std::string name,
+                           const Real additive,
+                           const Real divisor);
 
   /// Variable name (or prefix of names) to create in MOOSE to facilitate data passing
   std::string _variable;

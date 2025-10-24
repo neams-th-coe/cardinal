@@ -285,9 +285,9 @@ public:
    * @param[in] add optional vector of values to add to each value set on the NekRS end
    */
   void writeVolumeDisplacement(const int elem_id,
-                           double * s,
-                           const field::NekWriteEnum f,
-                           const std::vector<double> * add = nullptr);
+                               double * s,
+                               const field::NekWriteEnum f,
+                               const std::vector<double> * add = nullptr);
   /**
    * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms
    * of a displacement, we need to add the displacement to the initial mesh coordinates. For this,

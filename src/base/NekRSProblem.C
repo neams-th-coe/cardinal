@@ -363,8 +363,8 @@ NekRSProblem::initialSetup()
   // a user object, or neither
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    std::string oudf = "bc->usrwrk["+ std::to_string(i) + "*bc->fieldOffset+bc->idM]";
-    std::string udf = "nrs->usrwrk["+ std::to_string(i) + "*nrs->fieldOffset+n]";
+    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idM]";
+    std::string udf = "nrs->usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
     {
@@ -426,12 +426,18 @@ NekRSProblem::initialSetup()
         << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
         << std::endl;
     _console << "           Slot:  slice in scratch space holding the data" << std::endl;
-    _console << "   Data written:  data that gets written into this slot. This data is shown" << std::endl;
-    _console << "                  in the form actually written into NekRS (which will be" << std::endl;
-    _console << "                  non-dimensional quantities if using the [Dimensionalize]" << std::endl;
-    _console << "                  block. Words refer to MOOSE AuxVariables/Postprocessors." << std::endl;
-    _console << "                  If 'unused', this means that the space has been allocated," << std::endl;
-    _console << "                  but Cardinal is not otherwise using it for coupling." << std::endl;
+    _console << "   Data written:  data that gets written into this slot. This data is shown"
+             << std::endl;
+    _console << "                  in the form actually written into NekRS (which will be"
+             << std::endl;
+    _console << "                  non-dimensional quantities if using the [Dimensionalize]"
+             << std::endl;
+    _console << "                  block. Words refer to MOOSE AuxVariables/Postprocessors."
+             << std::endl;
+    _console << "                  If 'unused', this means that the space has been allocated,"
+             << std::endl;
+    _console << "                  but Cardinal is not otherwise using it for coupling."
+             << std::endl;
     _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
              << std::endl;
     _console << "                  'n' indicates a loop variable over GLL points\n" << std::endl;
@@ -928,9 +934,9 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
 
 void
 NekRSProblem::writeVolumeDisplacement(const int elem_id,
-                         double * s,
-                         const field::NekWriteEnum f,
-                         const std::vector<double> * add)
+                                      double * s,
+                                      const field::NekWriteEnum f,
+                                      const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
@@ -981,9 +987,9 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
 
 void
 NekRSProblem::writeVolumeSolution(const int slot,
-                         const int elem_id,
-                         double * s,
-                         const std::vector<double> * add)
+                                  const int elem_id,
+                                  double * s,
+                                  const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
