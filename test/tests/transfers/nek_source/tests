@@ -1,0 +1,12 @@
+[Tests]
+  design = 'NekUsrWrkIntegral.md NekVolumetricSource.md'
+
+  [multiple_transfers]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall be able to write multiple incoming volumetric source terms to NekRS. This is tested by writing two constant fields into the usrwrk array, and then integrating them over boundaries to ensure different fields are stored in each."
+    issues = '#1230'
+    capabilities = 'nekrs'
+  []
+[]
