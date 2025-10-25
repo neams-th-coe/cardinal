@@ -425,18 +425,18 @@ NekRSProblem::initialSetup()
     _console
         << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
         << std::endl;
-    _console << "           Slot:  slice in scratch space holding the data" << std::endl;
+    _console << "           Slot:  slice in scratch space holding the data\n" << std::endl;
     _console << "   Data written:  data that gets written into this slot. This data is shown"
              << std::endl;
     _console << "                  in the form actually written into NekRS (which will be"
              << std::endl;
     _console << "                  non-dimensional quantities if using the [Dimensionalize]"
              << std::endl;
-    _console << "                  block. Words refer to MOOSE AuxVariables/Postprocessors."
+    _console << "                  block). Words refer to MOOSE AuxVariables/Postprocessors."
              << std::endl;
     _console << "                  If 'unused', this means that the space has been allocated,"
              << std::endl;
-    _console << "                  but Cardinal is not otherwise using it for coupling."
+    _console << "                  but Cardinal is not otherwise using it for coupling.\n"
              << std::endl;
     _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
              << std::endl;
