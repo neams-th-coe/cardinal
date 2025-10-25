@@ -1,39 +1,39 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
-  n_usrwrk_slots = 2
+  n_usrwrk_slots = 3
 
   [FieldTransfers]
-    [src1]
-      type = NekVolumetricSource
+    [T3]
+      type = NekFieldVariable
       direction = to_nek
-      usrwrk_slot = 0
-      initial_source_integral = 10
+      usrwrk_slot = 2
+      field = temperature
     []
-    [src2]
-      type = NekVolumetricSource
+    [T2]
+      type = NekFieldVariable
       direction = to_nek
       usrwrk_slot = 1
-      initial_source_integral = 15
+      field = temperature
     []
   []
 []
 
 [Mesh]
   type = NekRSMesh
-  volume = true
+  boundary = '1'
 []
 
 [ICs]
-  [src1]
+  [T2]
     type = ConstantIC
-    variable = src1
-    value = 1
+    variable = T2
+    value = 20
   []
-  [src2]
+  [T3]
     type = ConstantIC
-    variable = src2
-    value = 1
+    variable = T3
+    value = 30
   []
 []
 
@@ -46,12 +46,12 @@
 []
 
 [Postprocessors]
-  [usrwrk1]
+  [T3]
     type = NekUsrWrkBoundaryIntegral
-    usrwrk_slot = 0
+    usrwrk_slot = 2
     boundary = '1'
   []
-  [usrwrk2]
+  [T2]
     type = NekUsrWrkBoundaryIntegral
     usrwrk_slot = 1
     boundary = '1'

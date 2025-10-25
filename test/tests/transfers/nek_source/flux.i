@@ -5,23 +5,23 @@
 
   [FieldTransfers]
     [src1]
-      type = NekVolumetricSource
-      direction = to_nek
-      usrwrk_slot = 0
-      initial_source_integral = 10
-    []
-    [src2]
-      type = NekVolumetricSource
+      type = NekBoundaryFlux
       direction = to_nek
       usrwrk_slot = 1
-      initial_source_integral = 15
+      initial_flux_integral = 10
+    []
+    [src2]
+      type = NekBoundaryFlux
+      direction = to_nek
+      usrwrk_slot = 0
+      initial_flux_integral = 15
     []
   []
 []
 
 [Mesh]
   type = NekRSMesh
-  volume = true
+  boundary = '2'
 []
 
 [ICs]
@@ -49,17 +49,12 @@
   [usrwrk1]
     type = NekUsrWrkBoundaryIntegral
     usrwrk_slot = 0
-    boundary = '1'
+    boundary = '2'
   []
   [usrwrk2]
     type = NekUsrWrkBoundaryIntegral
     usrwrk_slot = 1
-    boundary = '1'
-  []
-  [area]
-    type = NekSideIntegral
-    boundary = '1'
-    field = unity
+    boundary = '2'
   []
 []
 
