@@ -63,7 +63,7 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
       paramError("usrwrk_slot",
                  "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
                  "a vector of length " +
-                 Moose::stringify(_usrwrk_slot.size()));
+                     Moose::stringify(_usrwrk_slot.size()));
 
     auto d = nekrs::nondimensionalDivisor(_field);
     auto a = nekrs::nondimensionalAdditive(_field);

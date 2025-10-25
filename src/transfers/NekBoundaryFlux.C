@@ -346,7 +346,8 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
+  auto integrals =
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
@@ -397,7 +398,8 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
+  auto integrals =
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;

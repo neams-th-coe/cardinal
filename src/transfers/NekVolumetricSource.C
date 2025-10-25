@@ -109,7 +109,8 @@ NekVolumetricSource::normalizeVolumetricSource(const double moose,
 
   // check that the normalization worked properly
   normalized_nek =
-      nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all) * dimension_multiplier;
+      nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all) *
+      dimension_multiplier;
   bool low_rel_err = std::abs(normalized_nek - moose) / moose < _rel_tol;
   bool low_abs_err = std::abs(normalized_nek - moose) < _abs_tol;
 
@@ -137,7 +138,8 @@ NekVolumetricSource::sendDataToNek()
   // the heat source, we will need to normalize the total source on the nekRS side by the
   // total source computed by the coupled MOOSE app.
   const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_source = nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all);
+  const double nek_source =
+      nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all);
   const double moose_source = *_source_integral;
 
   // For the sake of printing diagnostics to the screen regarding source normalization,
