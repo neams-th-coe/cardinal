@@ -7,7 +7,7 @@
     max_parallel = 8
 
     cli_args = '--error'
-    expect_err = "In order to send a volumetric heat source to NekRS, you must have an OCCA source kernel in the passive scalar equations"
+    expect_err = "In order to use the volumetric heat source sent to NekRS, you must have an OCCA source kernel in the passive scalar equations"
     requirement = "The system shall throw an error if there is no heat source kernel when "
                   "using volume coupling"
     capabilities = 'nekrs'
