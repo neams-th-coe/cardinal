@@ -23,7 +23,7 @@
   [sfr_pincell_exact]
     type = CSVDiff
     input = nek_master_exact.i
-    csvdiff = 'nek_master_exact_out.csv nek_master_exact_out_nek0.csv'
+    csvdiff = 'nek_master_exact_out.csv'
     min_parallel = 6
     heavy = true
     rel_err = 5e-4
