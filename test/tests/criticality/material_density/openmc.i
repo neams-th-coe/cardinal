@@ -17,8 +17,8 @@
   [CriticalitySearch]
     type = OpenMCMaterialDensity
     material_id = 1
-    minimum = 1000
-    maximum = 30000
+    minimum = 10000
+    maximum = 20000
     tolerance = 1e-2
   []
 []
