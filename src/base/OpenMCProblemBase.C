@@ -256,6 +256,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
 
+void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
                                             const std::vector<unsigned int> & elem_ids,
                                             const Real & value)
