@@ -45,8 +45,11 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
 {
   if (_direction == "to_nek")
   {
-    addExternalVariable(_usrwrk_slot[0], _variable);
-    indices.heat_source = _usrwrk_slot[0] * nekrs::fieldOffset();
+    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
+    // interpretation
+    auto d = nekrs::nondimensionalDivisor(field::heat_source);
+    auto a = nekrs::nondimensionalAdditive(field::heat_source);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
     if (_usrwrk_slot.size() > 1)
       paramError("usrwrk_slot",
@@ -69,8 +72,9 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
   // we cannot tell _which_ passive scalar equation that it is applied to (we have
   // source kernels for the RANS passive scalar equations, for instance).
   if (nekrs::hasTemperatureSolve() && !nekrs::hasHeatSourceKernel())
-    mooseError("In order to send a volumetric heat source to NekRS, you must have an OCCA source "
-               "kernel in the passive scalar equations!");
+    mooseWarning(
+        "In order to use the volumetric heat source sent to NekRS, you must have an OCCA source "
+        "kernel in the passive scalar equations! The heat source will currently be unused.");
 
   if (!nekrs::hasTemperatureVariable())
     mooseError("In order to send a volumetric heat source to NekRS, your case files must have a "
@@ -102,11 +106,12 @@ NekVolumetricSource::normalizeVolumetricSource(const double moose,
   if (std::abs(nek) < _abs_tol)
     return true;
 
-  nekrs::scaleUsrwrk(indices.heat_source, moose / nek);
+  nekrs::scaleUsrwrk(_usrwrk_slot[0] * nekrs::fieldOffset(), moose / nek);
 
   // check that the normalization worked properly
   normalized_nek =
-      nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all) * dimension_multiplier;
+      nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all) *
+      dimension_multiplier;
   bool low_rel_err = std::abs(normalized_nek - moose) / moose < _rel_tol;
   bool low_abs_err = std::abs(normalized_nek - moose) < _abs_tol;
 
@@ -127,14 +132,15 @@ NekVolumetricSource::sendDataToNek()
       continue;
 
     _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-    _nek_problem.writeVolumeSolution(e, field::heat_source, _v_elem);
+    _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
   }
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
   // the heat source, we will need to normalize the total source on the nekRS side by the
   // total source computed by the coupled MOOSE app.
   const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_source = nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all);
+  const double nek_source =
+      nekrs::usrwrkVolumeIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), nek_mesh::all);
   const double moose_source = *_source_integral;
 
   // For the sake of printing diagnostics to the screen regarding source normalization,

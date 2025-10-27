@@ -22,8 +22,6 @@
 
 registerMooseObject("CardinalApp", NekBoundaryFlux);
 
-extern nekrs::usrwrkIndices indices;
-
 InputParameters
 NekBoundaryFlux::validParams()
 {
@@ -74,6 +72,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "supported. Contact the Cardinal developer team if you need this feature.");
 
     checkUnusedParam(parameters, "initial_flux_integral", "'direction = from_nek'");
+
     addExternalVariable(_variable);
 
     // right now, all of our systems used for transferring data assume that if we have a volume
@@ -93,8 +92,11 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    addExternalVariable(_usrwrk_slot[0], _variable);
-    indices.flux = _usrwrk_slot[0] * nekrs::fieldOffset();
+    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
+    // interpretation
+    auto d = nekrs::nondimensionalDivisor(field::flux);
+    auto a = nekrs::nondimensionalAdditive(field::flux);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
     // Check that the correct flux boundary condition is set on all of nekRS's
     // boundaries. To avoid throwing this error for test cases where we have a
@@ -186,7 +188,7 @@ NekBoundaryFlux::sendDataToNek()
         continue;
 
       _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_v_face);
-      _nek_problem.writeBoundarySolution(e, field::flux, _v_face);
+      _nek_problem.writeBoundarySolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_face);
     }
   }
   else
@@ -199,7 +201,7 @@ NekBoundaryFlux::sendDataToNek()
         continue;
 
       _nek_problem.mapFaceDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-      _nek_problem.writeVolumeSolution(e, field::flux, _v_elem);
+      _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
     }
   }
 
@@ -213,7 +215,7 @@ NekBoundaryFlux::sendDataToNek()
 
   // integrate the flux over each individual boundary
   std::vector<double> nek_flux_sidesets =
-      nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
 
   bool successful_normalization;
   double normalized_nek_flux = 0.0;
@@ -338,13 +340,14 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
+        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  auto integrals =
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
@@ -389,13 +392,14 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[indices.flux + id] *= ratio;
+        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  auto integrals =
+      nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
   normalized_nek_integral =
       std::accumulate(integrals.begin(), integrals.end(), 0.0) * _reference_flux_integral;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;

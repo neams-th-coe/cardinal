@@ -672,31 +672,6 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
 /**
- * Integer indices in the usrwrk scratch space for writing solutions from MOOSE.
- * These will be set from Cardinal. Not all will be used simultaneously.
- */
-struct usrwrkIndices
-{
-  /// boundary heat flux (for conjugate heat transfer)
-  int flux = -1;
-
-  /// volumetric heat source (for volumetric heating)
-  int heat_source = -1;
-
-  /// x-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_x = -1;
-
-  /// y-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_y = -1;
-
-  /// z-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_z = -1;
-
-  /// temperature (for reverse-direction conjugate heat transfer coupling)
-  int temperature = -1;
-};
-
-/**
  * Characteristic scales assumed in nekRS if using a non-dimensional solution; initial values
  * are applied, which will be overridden by the DimensionalizeAction in Cardinal.
  */
@@ -729,13 +704,6 @@ struct characteristicScales
  */
 double (*solutionPointer(const field::NekFieldEnum & field))(int, int);
 double (*solutionPointer(const field::NekWriteEnum & field))(int, int);
-
-/**
- * Write various solution functions based on enumeration
- * @param[in] field field to write
- */
-void (*solutionWritePointer(const field::NekWriteEnum & field))(int, dfloat);
-void (*solutionWritePointer(const field::NekFieldEnum & field))(int, dfloat);
 
 /**
  * Get the scalar01 solution at given GLL index
@@ -848,48 +816,6 @@ double get_velocity_y_squared(const int id, const int surf_offset);
  * @return square of z-velocity at index
  */
 double get_velocity_z_squared(const int id, const int surf_offset);
-
-/**
- * Write a value into the user scratch space that holds the temperature
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_temperature(const int id, const dfloat value);
-
-/**
- * Write a value into the user scratch space that holds the flux
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_flux(const int id, const dfloat value);
-
-/**
- * Write a value into the user scratch space that holds the volumetric heat source
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_heat_source(const int id, const dfloat value);
-
-/**
- * Write a value into the x-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_x_displacement(const int id, const dfloat value);
-
-/**
- * Write a value into the y-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_y_displacement(const int id, const dfloat value);
-
-/**
- * Write a value into the z-displacement
- * @param[in] id index
- * @param[in] value value to write
- */
-void set_z_displacement(const int id, const dfloat value);
 
 /**
  * Initialize the characteristic scales for a nondimesional solution

@@ -37,23 +37,6 @@ NekFieldVariable::validParams()
 NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
-  if (_direction == "from_nek")
-    addExternalVariable(_variable);
-  else
-  {
-    if (_usrwrk_slot.size() > 1)
-      paramError("usrwrk_slot",
-                 "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
-                 "a vector of length " +
-                     Moose::stringify(_usrwrk_slot.size()));
-
-    addExternalVariable(_usrwrk_slot[0], _variable);
-
-    // we don't impose any requirements on boundary conditions on the NekRS side, because this data
-    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used
-    // in a source term, for instance.
-  }
-
   if (isParamValid("field"))
     _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
   else
@@ -72,20 +55,31 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "provide the 'field' parameter.");
   }
 
-  if (_direction == "to_nek")
+  if (_direction == "from_nek")
+    addExternalVariable(_variable);
+  else
   {
-    switch (_field)
-    {
-      case field::temperature:
-        indices.temperature = _usrwrk_slot[0] * nekrs::fieldOffset();
-        break;
-      default:
-        paramError("field",
-                   "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
-                   "Please contact the Cardinal developer team if you require writing of other "
-                   "NekRS field variables.");
-    }
+    if (_usrwrk_slot.size() > 1)
+      paramError("usrwrk_slot",
+                 "'usrwrk_slot' must be of length 1 for field transfers to_nek; you have entered "
+                 "a vector of length " +
+                     Moose::stringify(_usrwrk_slot.size()));
+
+    auto d = nekrs::nondimensionalDivisor(_field);
+    auto a = nekrs::nondimensionalAdditive(_field);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
+
+    // we don't impose any requirements on boundary conditions on the NekRS side, because this data
+    // being sent to NekRS doesn't necessarily get used in a boundary condition. It could get used
+    // in a source term, for instance.
   }
+
+  // TODO: add test to relax this
+  if (_direction == "to_nek" && _field != field::temperature)
+    paramError("field",
+               "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
+               "Please contact the Cardinal developer team if you require writing of other "
+               "NekRS field variables.");
 
   if (_field == field::velocity_component)
     paramError("field",
@@ -166,7 +160,7 @@ NekFieldVariable::sendDataToNek()
         continue;
 
       _nek_problem.mapFaceDataToNekFace(e, _variable_number[_variable], d, a, &_v_face);
-      _nek_problem.writeBoundarySolution(e, _field, _v_face);
+      _nek_problem.writeBoundarySolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_face);
     }
   }
   else
@@ -179,7 +173,7 @@ NekFieldVariable::sendDataToNek()
         continue;
 
       _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-      _nek_problem.writeVolumeSolution(e, _field, _v_elem);
+      _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
     }
   }
 }
