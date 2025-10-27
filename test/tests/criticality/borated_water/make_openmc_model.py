@@ -27,7 +27,7 @@ u.add_nuclide('U235', 0.1)
 u.add_nuclide('U238', 1.0)
 u.add_nuclide('H3', 1e-4)
 
-bw = openmc.model.borated_water(boron_ppm=3000, density=0.8)
+bw = openmc.model.borated_water(boron_ppm=1000.0, density=1.0)
 h1_percent = bw.nuclides[0].percent
 for n in bw.nuclides:
   print(n.name, n.percent / h1_percent)
@@ -52,7 +52,7 @@ model.geometry = openmc.Geometry([box1, box2])
 # Finally, define some run settings
 model.settings.batches = 10
 model.settings.inactive = 3
-model.settings.particles = 1000
+model.settings.particles = 5000
 
 lower_left = (0, 0, 0)
 upper_right = (R, R, R)

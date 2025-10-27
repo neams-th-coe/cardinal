@@ -21,7 +21,7 @@ import openmc
 model = openmc.Model()
 
 pu = openmc.Material()
-pu.set_density('g/cc', 10.0)
+pu.set_density('g/cc', 16.37749)
 pu.add_nuclide('Pu239', 1.0)
 
 model.materials = openmc.Materials([pu])
@@ -42,7 +42,7 @@ model.geometry = openmc.Geometry([box])
 # Finally, define some run settings
 model.settings.batches = 50
 model.settings.inactive = 10
-model.settings.particles = 100
+model.settings.particles = 10000
 
 lower_left = (0, 0, 0)
 upper_right = (R, R, R)
