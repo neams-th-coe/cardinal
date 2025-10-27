@@ -34,7 +34,8 @@ CriticalitySearchBase::validParams()
   params.addRequiredParam<Real>(
       "maximum",
       "Maximum for values to search over; the root must occur at a value smaller than the maximum");
-  params.addRangeCheckedParam<Real>("target", 1.0, "target > 0.0", "Target value of k effective to search for");
+  params.addRangeCheckedParam<Real>(
+      "target", 1.0, "target > 0.0", "Target value of k effective to search for");
   params.addRangeCheckedParam<Real>(
       "tolerance",
       1e-3,
