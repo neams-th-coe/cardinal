@@ -1,0 +1,11 @@
+[Tests]
+  design = 'OpenMCCellAverageProblem.md'
+  issues = '#1222'
+  [error]
+    type = RunException
+    input = openmc.i
+    expect_err = "OpenMC coupling to axisymmetric meshes is not yet supported"
+    requirement = "The system shall error if attempting to use an axisymmetric mesh mirror because MOOSE's element volume functions only return areas for axisymmetric."
+    capabilities = 'openmc'
+  []
+[]
