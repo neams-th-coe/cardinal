@@ -34,6 +34,7 @@ CriticalitySearchBase::validParams()
   params.addRequiredParam<Real>(
       "maximum",
       "Maximum for values to search over; the root must occur at a value smaller than the maximum");
+  params.addRangeCheckedParam<Real>("target", 1.0, "target > 0.0", "Target value of k effective to search for");
   params.addRangeCheckedParam<Real>(
       "tolerance",
       1e-3,
@@ -56,7 +57,8 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     _maximum(getParam<Real>("maximum")),
     _minimum(getParam<Real>("minimum")),
     _tolerance(getParam<Real>("tolerance")),
-    _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>())
+    _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>()),
+    _target(getParam<Real>("target"))
 {
   if (_minimum >= _maximum)
     paramError("minimum",
@@ -93,7 +95,7 @@ CriticalitySearchBase::searchForCriticality()
     if (err)
       mooseError(openmc_err_msg);
 
-    // fetch k and return the residual, k-1
+    // fetch k and print values to console
     Real k = kMean(_estimator);
     Real k_std_dev = kStandardDeviation(_estimator);
     _k_values.push_back(k);
@@ -109,13 +111,13 @@ CriticalitySearchBase::searchForCriticality()
           "); you may have to run a lot of criticality search points to converge to this "
           "tolerance. You may want to loosen 'tolerance' or increase the number of particles."));
 
-    return k - 1.0;
+    return k - _target;
   };
 
   BrentsMethod::root(func, _minimum, _maximum, _tolerance);
 
   // check if the method converged
-  if (abs(kMean(_estimator) - 1.0) >= _tolerance)
+  if (abs(kMean(_estimator) - _target) >= _tolerance)
     mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
                "tight given the statistical error in the computation of k.");
 

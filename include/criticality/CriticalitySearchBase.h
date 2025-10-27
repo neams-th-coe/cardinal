@@ -61,6 +61,9 @@ protected:
   /// Estimator to use for k
   const eigenvalue::EigenvalueEnum _estimator;
 
+  /// Target k
+  const Real & _target;
+
   /// Values used in search
   std::vector<Real> _inputs;
 
