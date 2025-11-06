@@ -2088,7 +2088,7 @@ OpenMCCellAverageProblem::resetTallies()
   // erase global tallies
   if (_needs_global_tally)
   {
-    for (int i = _global_tally_index + _global_tally_scores.size() - 1; i >= 0; --i)
+    for (int i = _global_tally_scores.size() - 1; i >= 0; --i)
     {
       auto idx = openmc::model::tallies.begin() + _global_tally_index + i;
       openmc::model::tallies.erase(idx);

@@ -70,6 +70,12 @@ We recommend quickly reading this documentation before proceeding.
   id=openmc
 
 !alert! tip
+A video recording of the 2nd IAEA/ICTP Workshop, held in Trieste in September 2025,
+can be found [here](https://indico.ictp.it/event/10868/other-view?view=ictptimetable).
+This workshop provides 3 hours for introduction to OpenMC, 3 hours for introduction
+to MOOSE, and 3 hours for an introduction to the OpenMC wrapping in Cardinal.
+
+!alert! tip
 These tutorials make use of the following major Cardinal classes. We recommend
 quickly reading this documentation before proceeding.
 

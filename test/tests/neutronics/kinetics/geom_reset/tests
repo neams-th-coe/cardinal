@@ -1,0 +1,13 @@
+[Tests]
+  issues = '#1235'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [ifp_changing]
+    type = CSVDiff
+    input = one_bin.i
+    csvdiff = one_bin_out.csv
+    requirement = "The system shall be able to compute IFP quantities on changing geometries."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]

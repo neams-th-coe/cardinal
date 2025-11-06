@@ -12,6 +12,11 @@ To access this tutorial,
 cd cardinal/tutorials/openmc_subchannel
 ```
 
+!alert! tip
+This tutorial was the basis for the IAEA/ICTP workshop held in Trieste in September 2025.
+For video recordings, please see the OpenMC, MOOSE, and Cardinal videos [here](https://indico.ictp.it/event/10868/other-view?view=ictptimetable). This Cardinal tutorial builds upon
+the OpenMC and MOOSE sections of the workshop.
+
 The main focus of this tutorial is to teach you how to build a multiphysics simulation step by step.
 We first build the "single-physics" inputs for OpenMC, MOOSE heat conduction, and MOOSE subchannel
 using placeholder values for various source terms/boundary conditions.
