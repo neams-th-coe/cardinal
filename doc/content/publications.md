@@ -145,6 +145,15 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 
 # Sodium Fast Reactors
 
+D.R. Shaver, A. Kraus, A. Obabko, S. Harper, M. Pham, and S. Yoon,
+"Validation of NekRS for Flow-Splitting in a Wire-Wrapped Fuel Pin Bundle"
+*NURETH* (2025)
+
+A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
+["CFD Simulation of Interassembly Bypass Flow in Sodium Fast Reactors"](https://www.sciencedirect.com/science/article/pii/S0029549325002213)
+439 (114044)
+*Nuclear Engineering and Design* (2025)
+
 A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
 ["NekRS CFD Simulations of Interassembly Flow in Sodium Fast Reactors"](https://www.researchgate.net/publication/373331042_NekRS_CFD_Simulations_of_Interassembly_Flow_in_Sodium_Fast_Reactors)
 *Proceedings of Nureth* (2023)
@@ -166,7 +175,11 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 M. Dalinger, E. Merzari, T. Nguyen, M. Seneca, and R. Martineau, ["Multiphysics Modeling of SNAP 10A/2 Space Reactor with Cardinal"](https://www.ans.org/meetings/nets2025/session/view-2957/)
 *Proceedings of NETS* (2025)
 
-# Fusion Devices
+# Fusion Devices and Components
+
+K.A. Damm, M. Falcone, R.W. Eardley-Brunt, A. Dubas, and A. Davis,
+["Progress Towards Large-Eddy Simulation of Multiphase Conjugate Heat Transfer in a Hypervapotron"](conferences.iaea.org/event/392/papers/36412/files/13476-damm_fec_2025_manuscript.pdf)
+*IAEA-CN-392/2980* (2025)
 
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 ["Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"](https://www.researchgate.net/publication/373157683_Multiphysics_Coupling_of_OpenMC_CAD-Based_Transport_to_MOOSE_using_Cardinal_and_Aurora)
