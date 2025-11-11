@@ -86,7 +86,6 @@ public:
    * @return numeric index for the variable in the auxiliary system
    */
   unsigned int addExternalVariable(const std::string & name,
-                                   const std::string & system,
                                    const std::vector<SubdomainName> * block = nullptr);
 
   /**
@@ -231,18 +230,13 @@ public:
                                        const int & n_realizations) const;
 
   /**
-   * Compute relative error
-   * @param[in] sum sum of scores
-   * @param[in] sum_sq sum of scores squared
-   * @param[in] n_realizations number of realizations
-   */
-  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
-
-  /**
    * Get the density conversion factor (multiplicative factor)
    * @return density conversion factor from kg/m3 to g/cm3
    */
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
+
+  /// Number of particles that OpenMC will run in each batch
+  const Real * _particles;
 
   /**
    * Get the number of particles used in the current Monte Carlo calculation

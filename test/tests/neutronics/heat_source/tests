@@ -35,6 +35,29 @@
     requirement = "The power shall be provided by a postprocessor"
     capabilities = 'openmc'
   []
+  [n_particles_from_postprocessor]
+    type = Exodiff
+    input = particles_from_postprocessor.i
+
+    # use the same gold file from the mapping_all test; this test is exactly the same except
+    # that the number of particles comes from a postprocessor
+    cli_args = 'Outputs/file_base=mapping_all_out Problem/output_cell_mapping=false'
+    exodiff = 'mapping_all_out.e'
+
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The power shall be provided by a postprocessor"
+    capabilities = 'openmc'
+  []
+  [n_particles_invalid]
+    type = RunException
+    input = particles_from_postprocessor.i
+    cli_args = '--error Postprocessors/n_particles/default=-1'
+    expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
+    requirement = "An error shall be printed if a negative number of particles was provided."
+    capabilities = 'openmc'
+  []
   [mapping_solid]
     type = CSVDiff
     input = mapping_solid.i
