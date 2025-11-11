@@ -40,6 +40,12 @@ public:
    */
   const unsigned int offset() const { return _offset; }
 
+  /**
+   * Get the multiplicative scaling applied
+   * @return scaling
+   */
+  const Real & scaling() const { return _scaling; }
+
 protected:
   /// A multiplier to apply to the value passed in
   const Real & _scaling;

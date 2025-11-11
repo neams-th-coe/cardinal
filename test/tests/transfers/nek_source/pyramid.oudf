@@ -1,0 +1,16 @@
+void scalarDirichletConditions(bcData * bc)
+{
+  bc->s = 1.0;
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
+  bc->s = bc->usrwrk[bc->idM + 1 * bc->fieldOffset];
+
+  // in this test, we are just using the flux in the slot 1 (the slot 0 flux
+  // is just used for testing)
+}
