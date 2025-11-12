@@ -31,22 +31,27 @@
 []
 
 [Postprocessors]
+  [p]
+    type = Receiver
+    default = 100.0
+  []
   [particles]
     type = ConstantPostprocessor
-    value = 110
-    execute_on = 'initial'
+    value = 100
+    execute_on = 'timestep_begin'
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  power = 100
+  power = p
   particles = particles
   temperature_blocks = '100 200'
+  density_blocks = '200'
   verbose = true
   cell_level = 0
-  batches = 50
-  inactive_batches = 10
+
+  initial_properties = xml
 
   [Tallies]
     [Cell]
@@ -58,8 +63,7 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 3
+  type = Steady
 []
 
 [Postprocessors]
@@ -82,4 +86,5 @@
 [Outputs]
   execute_on = final
   exodus = true
+  hide = 'particles density p'
 []

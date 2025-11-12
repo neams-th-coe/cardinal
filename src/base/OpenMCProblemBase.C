@@ -214,8 +214,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamValid("particles"))
     _particles = &getPostprocessorValue("particles");
-  else
-    checkRequiredParam(params, "particles", "Using input number of particles");
 
   if (isParamValid("batches"))
   {
@@ -281,17 +279,18 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 int
 OpenMCProblemBase::nParticles() const
 {
+  if (!isParamValid("particles"))
+    return static_cast<int>(openmc::settings::n_particles);
+
   const double r = std::round(*_particles);
-  _console << " *_particles is " << *_particles << " and r is " << r << std::endl;
-  if (firstSolve())
-    return openmc::settings::n_particles;
+
   if (r <= 0.0)
-    mooseError("'particles' must be a positive integer. Try adding execute_on = 'initial' to your "
-               "postprocessor.");
-  if (*_particles - r > 1e-2)
-    mooseWarning("'particles' must be a positive integer. Got `particles =` " +
-                 std::to_string(*_particles) + " OpenMC particles will be set to " +
-                 std::to_string(static_cast<int>(r)) + "instead.");
+  {
+    mooseWarning("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your "
+               "postprocessor. number of particles from settings.xml will be used instead.");
+    return openmc::settings::n_particles;
+  }
+
   return static_cast<int>(r);
 }
 

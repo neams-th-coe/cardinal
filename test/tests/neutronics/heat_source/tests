@@ -47,15 +47,7 @@
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
-    requirement = "The power shall be provided by a postprocessor"
-    capabilities = 'openmc'
-  []
-  [n_particles_invalid]
-    type = RunException
-    input = particles_from_postprocessor.i
-    cli_args = '--error Postprocessors/n_particles/default=-1'
-    expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
-    requirement = "An error shall be printed if a negative number of particles was provided."
+    requirement = "The number of particles shall be provided by a postprocessor"
     capabilities = 'openmc'
   []
   [mapping_solid]

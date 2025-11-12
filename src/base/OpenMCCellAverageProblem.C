@@ -389,8 +389,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
 #endif
 
-  _n_particles_1 = nParticles();
-
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
@@ -522,6 +520,8 @@ OpenMCCellAverageProblem::initialSetup()
   OpenMCProblemBase::initialSetup();
 
   getOpenMCUserObjects();
+
+  _n_particles_1 = nParticles();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
