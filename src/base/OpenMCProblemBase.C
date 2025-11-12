@@ -286,8 +286,9 @@ OpenMCProblemBase::nParticles() const
 
   if (r <= 0.0)
   {
-    mooseWarning("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your "
-               "postprocessor. number of particles from settings.xml will be used instead.");
+    mooseWarning(
+        "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your "
+        "postprocessor. number of particles from settings.xml will be used instead.");
     return openmc::settings::n_particles;
   }
 
