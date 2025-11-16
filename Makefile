@@ -197,6 +197,7 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
 	-I$(NEKRS_INSTALL_DIR)/include \
 	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
+	-I$(NEKRS_INSTALL_DIR)/include/core \
 	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
 	-I$(NEKRS_INSTALL_DIR)/include/linAlg
 NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib

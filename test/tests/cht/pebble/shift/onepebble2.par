@@ -5,22 +5,23 @@ backend = CPU
 polynomialOrder = 5
 numSteps = 5
 dt = 1e-04
-writeInterval = 20
+checkpointInterval = 20
+scalars = temperature
 
 [MESH]
 file = ../onepebble2.re2
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-06
 
-[VELOCITY]
-boundaryTypeMap = W, O, v
+[FLUID VELOCITY]
+boundaryTypeMap = zeroDirichlet, zeroNeumann, udfDirichlet
 residualTol = 1e-07
 density = 1.0
 viscosity = 0.00005
 
-[TEMPERATURE]
-boundaryTypeMap = f, I, t
-rhoCp = 100000.0
-conductivity = 5.0
+[SCALAR TEMPERATURE]
+boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet
+transportCoeff = 100000.0
+diffusionCoeff = 5.0
 residualTol = 1e-07

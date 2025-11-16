@@ -14,7 +14,7 @@
 # Pr     = 15.005
 
 [GENERAL]
-  startFrom = conduction.fld+T
+  startFrom = conduction.fld
   stopAt = numSteps
   numSteps = 2000
   dt = 0.001
@@ -22,18 +22,19 @@
   writeControl = steps
   writeInterval = 100
   polynomialOrder = 4
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = -100.0
   density = 1.0
   residualTol = 1.0e-8
-  boundaryTypeMap = W, W, symy, W, v, o, W, W
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, zeroDirichletY/zeroNeumann, zeroDirichlet, udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-8
 
-[TEMPERATURE]
-  conductivity = -1500.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = -1500.5
+  transportCoeff = 1.0
   residualTol = 1.0e-8
-  boundaryTypeMap = f, f, I, I, t, o, f, I
+  boundaryTypeMap = udfNeumann, udfNeumann, zeroNeumann, zeroNeumann, udfDirichlet, zeroNeumann, udfNeumann, zeroNeumann

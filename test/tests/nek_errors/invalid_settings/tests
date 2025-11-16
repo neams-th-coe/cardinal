@@ -55,7 +55,7 @@
   [missing_flux_bc]
     type = RunException
     input = nek_bc.i
-    expect_err = "In order to send a boundary heat flux to NekRS, you must have a heat flux condition for each 'boundary' set in 'NekRSMesh'! Boundary 2 is of type 'zeroGradient' instead of 'fixedGradient'."
+    expect_err = "In order to send a boundary heat flux to NekRS, you must have a heat flux condition for each 'boundary' set in 'NekRSMesh'! Boundary 2 is of type 'zeroNeumann' instead of 'udfNeumann'."
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
     max_parallel = 12

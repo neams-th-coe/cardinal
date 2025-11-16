@@ -1,13 +1,13 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#include "pyramid.oudf"
+
+#endif
+
+void UDF_Setup()
 {
 }
 
-void UDF_Setup(nrs_t * nrs)
-{
-}
-
-void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }

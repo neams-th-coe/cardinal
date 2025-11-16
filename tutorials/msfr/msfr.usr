@@ -14,136 +14,16 @@ c     - usrdat2 : modify mesh coordinates
 c     - usrdat3 : general purpose routine for initialization
 c
 c-----------------------------------------------------------------------
-      include "recycle.f"
-c-----------------------------------------------------------------------
-      subroutine uservp(ix,iy,iz,eg) ! set variable properties
-      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-
-      integer ix,iy,iz,e,eg
-
-      udiff =0.0
-      utrans=0.0
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine userf(ix,iy,iz,eg) ! set acceleration term
-      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-c
-c     Note: this is an acceleration term, NOT a force!
-c     Thus, ffx will subsequently be multiplied by rho(x,t).
-c
-      integer ix,iy,iz,e,eg
-
-      ffx = 0.0
-      ffy = 0.0
-      ffz = 0.0
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine userq(ix,iy,iz,eg) ! set source term
-      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-
-      integer ix,iy,iz,e,eg
-
-      qvol = 0.0
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
-      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-
-      integer ix,iy,iz,iside,e,eg
-
-      e = gllel(eg)
-
-      ux   = 0.0
-      uy   =-1.54261473197
-      uz   = 0.0
-      temp = 0.0
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine useric(ix,iy,iz,eg) ! set up initial conditions
-      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-
-      integer ix,iy,iz,e,eg
-
-      e = gllel(eg)
-
-      ux   = 0.0
-      uy   = 0.0
-      uz   = 0.0
-      temp = 0.0
-
-      return
-      end
-c-----------------------------------------------------------------------
       subroutine userchk()
 C      implicit none
       include 'SIZE'
       include 'TOTAL'
 
-      real mass_flow_rate
-
-      COMMON /NRSSCPTR/ nrs_scptr(4)
-      integer*8         nrs_scptr	
-	
-      real qt
-      common /mauricio/ qt(lx1,ly1,lz1,lelv)
-
-
-      common /cvelbc/ uin(lx1,ly1,lz1,lelv)
-     &              , vin(lx1,ly1,lz1,lelv)
-     &              , win(lx1,ly1,lz1,lelv)
-     &              , tin(lx1,ly1,lz1,lelt,ldimt)
-
-c recycling boundary conditions
-      data ubar / 1.54261473197 /
-      data tbar / 0.0 /
-      save ubar,tbar
-
-      nxyz = nx1*ny1*nz1
-      ntot = nxyz*nelt
-
-      if(istep.eq.0) then
-        nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
-        nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
-        nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
-      endif
-
-      call set_inflow_fpt(0.0,-0.8,0.0,ubar,tbar) ! for unextruded inlet channels
-
-      call outlet_avgs()
-
-      nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
-      nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
-      nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
 
       return
       end
 c-----------------------------------------------------------------------
       subroutine userqtl ! Set thermal divergence
-
-      call userqtl_scig 
 
       return
       end
@@ -210,64 +90,3 @@ c-----------------------------------------------------------------------
       return
       end
 C-----------------------------------------------------------------------
-      subroutine inlet_avgs(mass_flow_rate)
-      include 'SIZE'
-      include 'TOTAL'
-
-      real sint2,sarea2
-      real tout,touta,TAA,mass_flow_rate
-	  
-      ntot = lx1*ly1*lz1*nelv
-      
-      touta = 0.0
-      TAA = 0.0
-
-      do ie=1,nelv
-      do ifc=1,2*ldim
-        if(cbc(ifc,ie,1).eq.'v  ') then
-        call surface_int(sint2,sarea2,vy,ie,ifc)
-        TAA= TAA + sarea2
-        touta= touta + sint2
-        endif
-      enddo
-      enddo
-
-      touta = glsum(touta,1)
-      TAA = glsum(TAA,1)
-
-      mass_flow_rate = touta
-
-      return
-      end
-c-----------------------------------------------------------------------
-c-----------------------------------------------------------------------
-      subroutine outlet_avgs()
-c      implicit none
-      include 'SIZE'
-      include 'TOTAL'
-
-      real tout,touta,TAA
-      real sint2,sarea2
-
-      ntot = lx1*ly1*lz1*nelv
-      
-      touta = 0.0
-      TAA = 0.0
-
-      do ie=1,nelv
-      do ifc=1,2*ldim
-        if(cbc(ifc,ie,1).eq.'O  ') then
-        call surface_int(sint2,sarea2,t(1,1,1,1,1),ie,ifc)
-        TAA= TAA + sarea2
-        touta= touta + sint2
-        endif
-      enddo
-      enddo
-
-      touta = glsum(touta,1)
-      TAA = glsum(TAA,1)
-      touta = touta/TAA
-
-      return
-      end  
-c-----------------------------------------------------------------------
