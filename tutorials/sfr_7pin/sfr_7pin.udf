@@ -1,4 +1,6 @@
-#include "udf.hpp"
+#ifdef __okl__
+#include "sfr_7pin.oudf"
+#endif
 
 float mass_flowrate()
 {
@@ -19,39 +21,42 @@ float inlet_velocity()
 
   // get density from input file
   float rho;
-  options.getArgs("DENSITY", rho);
+  options.getArgs("FLUID DENSITY", rho);
 
   return mass_flowrate() / flow_area / rho;
 }
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
   // inlet axial velocity (assuming zero radial and azimuthal components)
-  kernelInfo["defines/Vz"] = inlet_velocity();
+  kernelInfo.define("Vz") = inlet_velocity();
 
   // inlet temperature
-  kernelInfo["defines/inlet_T"] = inlet_temp();
+  kernelInfo.define("inlet_T") = inlet_temp();
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   // set initial conditions for the velocity, temperature, and pressure
-  mesh_t * mesh = nrs->cds->mesh[0];
+  mesh_t * mesh = nrs->scalar->mesh("temperature");
 
   float inlet_vel = inlet_velocity();
+
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, inlet_temp());
 
   // loop over all the GLL points and assign directly to the solution arrays by
   // indexing according to the field offset necessary to hold the data for each
   // solution component
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0;
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0;
-    nrs->U[n + 2 * nrs->fieldOffset] = inlet_vel;
+  for (int n = 0; n < mesh->Nlocal; ++n)
+    U[n + 2 * nrs->fieldOffset] = inlet_vel;
 
-    nrs->P[n] = 0.0;
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+}
 
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = inlet_temp();
-  }
+void UDF_ExecuteStep(double time, int tstep)
+{
 }

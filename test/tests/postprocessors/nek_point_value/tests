@@ -1,9 +1,9 @@
 [Tests]
-  design = 'NekPointValue.md'
+  design = 'NekPointValue.md NekVolumetricData.md'
   issues = '#1015 #1016 #1079'
 
   [pp]
-    requirement = 'The system shall interpolate the NekRS solution onto a given point. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
+    requirement = 'The system shall interpolate the NekRS solution onto a given point and with usrwrk data filled by a Cardinal transfer. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
     [points]
       type = CSVDiff
       input = points.i

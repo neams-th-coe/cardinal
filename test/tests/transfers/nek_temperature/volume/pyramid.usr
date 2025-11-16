@@ -1,0 +1,17 @@
+      subroutine usrdat3
+      include "SIZE"
+      include "TOTAL"
+
+      do ie=1,nelt
+        do ifc=1,2*ndim
+          if(cbc(ifc,ie,1).eq.'EXO')then
+            cbc(ifc,ie,1) = 'W  '
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          endif
+        enddo
+      enddo
+
+      return
+      end

@@ -42,18 +42,16 @@ protected:
    * Copied from NekRS because they do not want to move this to a file
    * other than main.cpp :|
    */
-  inipp::Ini * readPar(const std::string & _setupFile, MPI_Comm comm);
+  std::map<std::string, std::map<std::string, std::string>> readPar(const std::string & _setupFile,
+                                                                    MPI_Comm comm);
 
-  /// whether the user specified how many scratch slots to allocate
-  const bool _specified_scratch;
+  /// whether Cardinal will be responsible for initializing the usrwrk array
+  const bool & _initialize_usrwrk;
 
   /**
    * Number of slices/slots to allocate in nrs->usrwrk to hold fields
    * for coupling (i.e. data going into NekRS, written by Cardinal), or
-   * used for custom user actions, but not for coupling. By default, we just
-   * allocate 7 slots (no inherent reason, just a fairly big amount). For
-   * memory-limited cases, you can reduce this number to just the bare
-   * minimum necessary for your use case.
+   * used for custom user actions, but not for coupling.
    */
   const unsigned int & _n_usrwrk_slots;
 

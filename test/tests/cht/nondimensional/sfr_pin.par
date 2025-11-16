@@ -18,14 +18,14 @@
   numSteps = 2000
   dt = 0.05233843612334802
   timeStepper = tombo2
-  writeControl = steps
-  writeInterval = 100
+  checkpointControl = steps
+  checkpointInterval = 100
   polynomialOrder = 4
 
 [PROBLEMTYPE]
   stressFormulation = true
 
-[VELOCITY]
+[FLUID VELOCITY]
 
   # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
   viscosity = -3038.7881869873413
@@ -34,10 +34,10 @@
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-6
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
 
   # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
   conductivity = -13.773505042642078

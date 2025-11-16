@@ -262,7 +262,7 @@ a shorter height.
 Next, the `.par` file contains problem setup information.
 This input sets up a nondimensional passive scalar solution, loading $P$, $\vec{u}$,
 $k$, and $\tau$ from a restart file. We "freeze" the flow by setting
-`solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
+`solver = none` in the `[FLUID VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
 and `[SCALAR02]` ($\tau$ passive scalar) blocks. In the nondimensional formulation,
 the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
 "thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. These nondimensional

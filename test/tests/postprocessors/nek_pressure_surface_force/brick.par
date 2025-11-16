@@ -6,13 +6,10 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 5
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
-
-[TEMPERATURE]
-  solver = none
+[FLUID PRESSURE]

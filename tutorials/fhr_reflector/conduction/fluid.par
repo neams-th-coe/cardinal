@@ -21,14 +21,15 @@
   writeControl = steps
   writeInterval = 100
   polynomialOrder = 2
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = -1500.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = -1500.5
+  transportCoeff = 1.0
   residualTol = 1.0e-8
-  boundaryTypeMap = f, f, I, I, t, o, f, I
+  boundaryTypeMap = udfNeumann, udfNeumann, zeroNeumann, zeroNeumann, udfDirichlet, zeroNeumann, udfNeumann, zeroNeumann

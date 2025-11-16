@@ -1,41 +1,56 @@
-#include "udf.hpp"
-
 static dfloat inlet_v;
 static dfloat inlet_T;
+static dfloat Re;
+static dfloat D;
+static dfloat mu;
+static dfloat rho;
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#ifdef __okl__
+
+#include "pebble.oudf"
+
+#endif
+
+void UDF_Setup0(MPI_Comm comm, setupAide &options)
 {
   // get parameters from .par file
-  dfloat D, Re, mu, rho;
   platform->par->extract("casedata", "D", D);
   platform->par->extract("casedata", "Re", Re);
   platform->par->extract("casedata", "inlet_T", inlet_T);
-  platform->options.getArgs("VISCOSITY", mu);
-  platform->options.getArgs("DENSITY", rho);
-
-  // send parameter to device
-  inlet_v = Re * mu / D / rho;
-  kernelInfo["defines/p_inlet_v"] = inlet_v;
-  kernelInfo["defines/p_inlet_T"] = inlet_T;
+  platform->options.getArgs("FLUID VISCOSITY", mu);
+  platform->options.getArgs("FLUID DENSITY", rho);
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+  // send parameter to device
+  inlet_v = Re * mu / D / rho;
+  kernelInfo.define("p_inlet_v") = inlet_v;
+  kernelInfo.define("p_inlet_T") = inlet_T;
+}
+
+void UDF_Setup()
 {
   auto mesh = nrs->meshV;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+
+  for (int n = 0; n < mesh->Nlocal; ++n)
   {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = inlet_v; // z-velocity
+    U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    U[n + 2 * nrs->fieldOffset] = inlet_v; // z-velocity
 
-    nrs->P[n] = 0.0; // pressure
-
-    nrs->cds->S[n + 0 * nrs->fieldOffset] = inlet_T; // temperature
+    temp[n] = inlet_T; // temperature
   }
+
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
