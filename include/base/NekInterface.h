@@ -25,7 +25,8 @@
 
 #include "inipp.hpp"
 #include "nekrs.hpp"
-#include "bcMap.hpp"
+#include "nrs.hpp"
+//#include "bcMap.hpp"
 #include "udf.hpp"
 #include "inipp.hpp"
 #include "mesh.h"
@@ -52,6 +53,8 @@ void initializeHostMeshParameters();
 
 /// Update the mesh parameters on host
 void updateHostMeshParameters();
+
+nrs_t * nrsPtr() { return dynamic_cast<nrs_t *>(platform->app); }
 
 dfloat * getSgeo();
 dfloat * getVgeo();
@@ -924,7 +927,7 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
                  (const int *)recvCounts,
                  (const int *)displacement,
                  resolveType<T>(),
-                 platform->comm.mpiComm);
+                 platform->comm.mpiComm());
 
   free(recvCounts);
   free(displacement);

@@ -315,7 +315,7 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
   for (auto & i : nek_integral)
     i *= _reference_flux_integral;
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  //nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   mesh_t * mesh = nekrs::temperatureMesh();
   auto nek_boundary_coupling = _nek_mesh->boundaryCoupling();
 
@@ -340,7 +340,7 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        nrs->bc->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
@@ -376,7 +376,7 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
   if (std::abs(nek_integral) < _abs_tol)
     return true;
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  //nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   mesh_t * mesh = nekrs::temperatureMesh();
 
   const double ratio = moose_integral / nek_integral;
@@ -392,7 +392,7 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        nrs->bc->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
