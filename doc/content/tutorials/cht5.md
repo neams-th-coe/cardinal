@@ -17,10 +17,10 @@ The domain consists of a single pebble within a rectangular box; the pebble
 origin is at $(0, 0, 0)$. [pebble_1] shows the fluid portion of the domain (the
 pebble is not shown). The sideset numbering in the fluid domain is:
 
-- 1: inlet
-- 2: outlet
-- 3: pebble surface
-- 4: side walls
+- 2: inlet
+- 3: outlet
+- 4: pebble surface
+- 5: side walls
 
 !media pebble_1.png
   id=pebble_1
@@ -54,18 +54,15 @@ The above sequence is repeated until convergence.
 NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md).
 We already created the
 input files for NekRS in the [NekRS introduction tutorial](nek_intro.md).
-If you have not reviewed this tutorial, please be sure to do so before proceeding.
 We will only describe the aspects of our NekRS setup which *differ* from this
-previous tutorial. The `.par`, `.udf`, and `.usr` files are identical from
-the prior tutorial.
-
+previous tutorial. The `.par`, `.udf`, and `.usr` files are identical.
 For conjugate heat transfer coupling to MOOSE, we only need to change one line
 in the NekRS `.oudf` file to apply a heat flux boundary condition
-from MOOSE. In the `scalarNeumannConditions` function, we simply
+from MOOSE. In the `udfNeumann` function, we simply
 need to set
 
 ```
-bc->flux = bc->usrwrk[bc->idM];
+bc->fluxScalar = bc->usrwrk[bc->idxVol];
 ```
 
 We will explain in more detail shortly what this line means. Other than this single
@@ -75,9 +72,7 @@ change, you are ready to use the same NekRS files to couple to MOOSE.
 
 Aside from NekRS's input files, the wrapping of NekRS as a MOOSE
 application is specified in a "thin" MOOSE-type input file (which we named `nek.i`
-for this example).
-
-A mirror of the NekRS mesh
+for this example). First, a mirror of the NekRS mesh
 is constructed using the [NekRSMesh](NekRSMesh.md). The
 `boundary` parameter indicates the boundaries through which NekRS is coupled to MOOSE.
 
@@ -87,7 +82,8 @@ is constructed using the [NekRSMesh](NekRSMesh.md). The
 !alert note
 Note that `pebble.re2` does not appear anywhere in `nek.i` - the `pebble.re2` file is
 a mesh used directly by NekRS, while [NekRSMesh](NekRSMesh.md) is a mirror of the boundaries in `pebble.re2`
-through which boundary coupling with MOOSE will be performed.
+through which boundary coupling with MOOSE will be performed (a receiving/reading point
+for data to be coupled).
 
 Next, the [Problem](Problem/index.md)
  block describes all objects necessary for the actual physics solve.
@@ -104,13 +100,12 @@ to represent data passing between `nek.i` and NekRS's internal data structures. 
 [NekBoundaryFlux](NekBoundaryFlux.md) is used to write a wall flux into NekRS. This
 object will automatically create an auxiliary variable named `flux` and a postprocessor
 named `flux_integral` to use for ensuring conservation. Then, the [NekFieldVariable](NekFieldVariable.md) is used to fetch temperature from NekRS and write into an auxiliary
-variable named `temp`.
+variable named `temp` (these names are based on the names used in the brackets defining each transfer).
 
 Next, a [Transient](Transient.md) executioner
-is specified. This is the same executioner used for most transient MOOSE simulations, except now a
-different time stepper is used - [NekTimeStepper](NekTimeStepper.md).
-This time stepper simply
-reads the time step specified in NekRS's `.par` file.
+is specified. This is the same executioner used for most transient MOOSE simulations, but we use a
+different time stepper - [NekTimeStepper](NekTimeStepper.md).
+This time stepper reads the time step specified in NekRS's `.par` file.
 Except for synchronziation points
 with the MOOSE application(s) to which NekRS is coupled, NekRS controls all of its own
 time stepping. Note that in this example, NekRS will be run as a sub-application of
@@ -122,7 +117,7 @@ the simulation terminates.
 !listing /tutorials/pebble_cht/nek.i
   block=Executioner
 
-An Exodus II output format is specified.
+An Exodus output format is specified.
 It is important to note that this output file only outputs the NekRS solution fields that have
 been interpolated onto the mesh mirror; the solution over the entire NekRS domain is output
 with the usual field file format used by standalone NekRS calculations.
@@ -134,6 +129,9 @@ with the usual field file format used by standalone NekRS calculations.
 
 The MOOSE heat transfer module is used to solve for
 [energy conservation in the solid](theory/heat_eqn.md).
+
+!listing /tutorials/pebble_cht/solid.i
+  end=Variables
 
 First, a local variable, `pebble_diameter` is used to conveniently be able to
 repeat data throughout a MOOSE input file. Then, anywhere in the input file that
@@ -149,30 +147,25 @@ a location in the input file with half the value held by the file-local variable
 The mesh is generated using MOOSE's [SphereMeshGenerator](SphereMeshGenerator.md).
 You can either generate this mesh "online" as part of the simulation setup, or
 we can create it as a separate activity and then load it (just as you can load any Exodus
-mesh into a MOOSE simulation). We will do the former here, but still show you
-how you can generate a mesh.
-
-!listing /tutorials/pebble_cht/solid.i
-  block=Mesh
-
-We can run this file in "mesh-only mode" (which will skip all of the solves) to generate an Exodus
-mesh with
+mesh into a MOOSE simulation). The input file shown uses the in-line mesh generation feature, but
+we can run this file in "mesh-only mode" (which will skip all of the solves) to generate an Exodus
+mesh as its own file by
 
 ```
 cardinal-opt -i solid.i --mesh-only
 ```
 
 which will create a file name `solid_in.e` which contains the mesh. Note
-that you do not *need* to do this! When we run our simulation later, the mesh
-will already be visible in the output file. This is strictly showing you how you would
-generate *just* the mesh from a MOOSE input file.
+that you do not *need* to do this, but this can be helpful for debugging while building complicated simulations.
+When we run our simulation later, the mesh
+will already be visible in the output file.
 If we open `solid_in.e` in Paraview, we can see the mesh as shown in [one_pebble_mesh].
 The surface of the pebble is sideset 0.
 
 !media one_pebble_mesh.png
   id=one_pebble_mesh
   caption=Mesh used for the solid heat conduction.
-  style=width:30%;margin-left:auto;margin-right:auto;halign:center
+  style=width:25%;margin-left:auto;margin-right:auto;halign:center
 
 The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
@@ -210,7 +203,7 @@ a monomial field due to the nature of how MOOSE computes material properties.
 Next, the [MultiApps](MultiApps/index.md)
  and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat transfer module is here run as the main application, with
+and MOOSE. The MOOSE heat transfer module is run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
 time step. Allowing sub-cycling means that, if the MOOSE time step is 0.05 seconds, but
 the NekRS time step set in the `.par` file is 0.02 seconds, that for every MOOSE time step, NekRS will perform
@@ -245,7 +238,8 @@ spatial discretization from MOOSE) requires performing such conservations in Nek
 This is why an integral postprocessor must explicitly be passed.
 
 Next, postprocessors are used to compute the integral heat flux as a
-[SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md).
+[SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md) and also monitor
+the maximum solid temperature with a [NodalExtremeValue](NodalExtremeValud.md).
 
 !listing /tutorials/pebble_cht/solid.i
   block=Postprocessors
@@ -257,7 +251,8 @@ to omit the time derivative in the solid energy equation because we will reach
 the converged steady state faster than if the solve had to also ramp up the solid
 temperature from the initial condition. We will terminate the coupled solve once
 the relative change in the solid temperature is smaller than the
-`steady_state_tolerance`.
+`steady_state_tolerance`. There are some scenarios where you might choose to keep the
+time derivative for the solid heat conduction for stabilization purposes.
 
 !listing /tutorials/pebble_cht/solid.i
   start=Executioner
@@ -276,38 +271,36 @@ which will run with 4 MPI ranks. Both MOOSE and NekRS will be run with 4 process
 When you run Cardinal, a table will be printed out that shows all of the quantities
 in `usrwrk` (which is where MOOSE places its heat flux, and is what you used in the
 `.oudf` file to apply this boundary condition). This example *only* exchanges heat flux
-from MOOSE to NekRS, so the rest of the quantities in this space (called "scratch space")
-are actually unused. But it is in this table where you can find out what the "slots" in
-the scratch space represent from MOOSE if you are unsure.
+from MOOSE to NekRS, so we requested Cardinal to allocate a single slot in this array
+with the `n_usrwrk_slots` parameter.
 
 ```
- ===================>     MAPPING FROM MOOSE TO NEKRS      <===================
+  ===================>     MAPPING FROM MOOSE TO NEKRS      <===================
 
-           Slot:  slice in scratch space holding the data
- MOOSE quantity:  name of the AuxVariable or Postprocessor that gets written into
-                  this slot. If 'unused', this means that the space has been
-                  allocated, but Cardinal is not otherwise using it for coupling
-  How to Access:  C++ code to use in NekRS files; for the .udf instructions,
-                  'n' indicates a loop variable over GLL points
+            Slot:  slice in scratch space holding the data
 
------------------------------------------------------------------------------------------------------------
-| Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
------------------------------------------------------------------------------------------------------------
-|    0 | flux           | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
-|    1 | unused         | bc->usrwrk[1 * bc->fieldOffset+bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
-|    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
-|    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
-|    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
-|    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
-|    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
------------------------------------------------------------------------------------------------------------
+    Data written:  data that gets written into this slot. This data is shown
+                   in the form actually written into NekRS (which will be
+                   non-dimensional quantities if using the [Dimensionalize]
+                   block). Words refer to MOOSE AuxVariables/Postprocessors.
+                   If 'unused', this means that the space has been allocated,
+                   but Cardinal is not otherwise using it for coupling.
+
+   How to Access:  C++ code to use in NekRS files; for the .udf instructions,
+                   'n' indicates a loop variable over GLL points
+
+ --------------------------------------------------------------------------------------------------------------
+ | Slot | Data |           How to Access (.oudf)          |               How to Access (.udf)                |
+ --------------------------------------------------------------------------------------------------------------
+ |    0 | flux | bc->usrwrk[0*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+n] |
+ --------------------------------------------------------------------------------------------------------------
 ```
 
 When the simulation has completed, you will have created a number of different output files:
 
 - `pebble0.f<n>`, the NekRS output files
-- `solid_out.e`, an Exodus II output file with the solid mesh and solution
-- `solid_out_nek0.e`, an Exodus II output file with the fluid mirror mesh
+- `solid_out.e`, an Exodus output file with the solid mesh and solution
+- `solid_out_nek0.e`, an Exodus output file with the fluid mirror mesh
   and data that was ultimately transferred in/out of NekRS
 
 First, let's take a look at the two meshes *together*. [fluid_and_solid] shows a slice
@@ -316,7 +309,7 @@ through the NekRS mesh (with quadrature points shown) and the solid pebble mesh
 MOOSE's nearest node transfer, we don't even require overlap between the meshes.
 Of course there will be some interpolation error when the meshes are not exactly
 the same, but you can always conduct a mesh refinement study until you are happy with
-the numerical error in the mapping.
+the numerical error in the mapping or generate meshes which are conformal.
 
 !media fluid_and_solid.png
   id=fluid_and_solid
@@ -334,8 +327,7 @@ in temperature on the pebble surface.
 
 ## Heat Transfer Coefficients
 
-A heat transfer coefficient is a constitutive model, often generated by a [!ac](CFD) simulation, which can be used in lower-order solvers to _approximately capture the convective heat transfer process_ without needing to resolve boundary layers in those lower-order solvers.
-
+A heat transfer coefficient is a constitutive model, often generated by a [!ac](CFD) simulation, which can be used in lower-order solvers to *approximately capture the convective heat transfer process* without needing to resolve boundary layers in those lower-order solvers.
 A heat transfer coefficient is defined as
 
 \begin{equation}
@@ -349,7 +341,7 @@ For reference, we will compare to the following correlation [!cite](incropera) f
 flow over a sphere,
 
 \begin{equation}
-Nu=2+\left(0.4Re^{1/2}+0.06Re^{2/3}\right)Pr^0.4
+Nu=2+\left(0.4Re^{1/2}+0.06Re^{2/3}\right)Pr^{0.4}
 \end{equation}
 
 where $Re$ is based on the sphere diameter and $Nu$ is the Nusselt number, defined as
@@ -363,7 +355,7 @@ heat transfer coefficient computed by NekRS is somewhere in the vicinity of 198.
 Nusselt number - but for more realistic engineering geometries, such correlations
 may not yet exist!
 
-We need to compute three quantities - $q^{''}$, $T_{\text{wall}}$, and $T_{\text{bulk}}$.
+We need to compute three quantities: $q^{''}$, $T_{\text{wall}}$, and $T_{\text{bulk}}$.
 For illustration, we'll compute these as a function of space, and divide up the sphere into 5 axial layers. This is shown conceptually below for the fluid domain (left) and solid domain (right). For each layer, we'll compute (i) the average wall temperature from NekRS, (ii) the average bulk temperature from NekRS, and (iii) the average wall heat flux from MOOSE.
 
 !media pebble_htc.png
@@ -371,7 +363,7 @@ For illustration, we'll compute these as a function of space, and divide up the 
   caption=Illustration of the layers to be used for computing the heat transfer coefficient
   style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
-In the solid file, we add a
+In the `solid.i` file, we add a
 [LayeredSideAverage](LayeredSideAverage.md)
 userobject to evaluate the average surface heat flux in these layers.
 We then output the results of these userobjects to CSV using
@@ -387,25 +379,20 @@ and [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) objects.
 We then output the results of these userobjects to CSV using
 [SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md). These objects are
 actually performing integrations on the actual CFD mesh used by NekRS, so there is no
-approximation happening from data interpolation to the `[Mesh]`.
+error from data interpolation to the `[Mesh]`.
 
 !listing /tutorials/pebble_cht/nek.i
   start=UserObjects
 
-Now, simply re-run the model:
-
-```
-mpiexec -np 4 cardinal-opt -i solid.i
-```
-
-This will output a number of CSV files. Simply run the `htc.py` script provided in order to print the average heat transfer coefficient.
+These objects were present in the original file that we ran, so no need to re-run. We now look at the CSV
+files we outputted. Run the `htc.py` script provided in order to print the average heat transfer coefficient.
 
 !listing /tutorials/pebble_cht/htc.py language=python
 
-Running this script shows that we've computed an average heat transfer coefficient of 197 W/m$^2$/K - pretty close to the correlation we are comparing to!
+Running this script shows that we've computed an average heat transfer coefficient of 201 W/m$^2$/K - pretty close to the correlation we are comparing to!
 
 ```
 $ python htc.py
 
-The average heat transfer coefficient is (W/m^2K):  197.40833018071388
+The average heat transfer coefficient is (W/m^2/K):  201.71375047422958
 ```

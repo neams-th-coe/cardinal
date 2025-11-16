@@ -5,19 +5,19 @@
   numSteps = 1
   dt = 2e-03
   timeStepper = tombo3
-  writeControl = steps
-  writeInterval = 5
+  checkpointControl = steps
+  checkpointInterval = 5
 
 [MESH]
   file="../ethier.re2"
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-08
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none
 
 [SCALAR01]

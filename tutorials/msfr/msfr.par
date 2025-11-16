@@ -1,27 +1,30 @@
+#[OCCA]
+#  deviceNumber = 0
+#  backend = HIP
+
 [GENERAL]
   polynomialOrder = 7
   startFrom = restart.fld
   numSteps = 16000
   dt = 2.0e-4
   timeStepper = tombo2
-  writeInterval = 2000
+  checkpointInterval = 2000
 
-  filtering = hpfrt
-  filterWeight = 0.1/${dt}
-  filterModes = 2
+  regularization = hpfrt+nModes=1+scalingCoeff=0.1/${dt}
 
-  subCyclingSteps = 2
+  advectionSubCyclingSteps = 2
+  scalars = temperature
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-4
 
-[VELOCITY]
+[FLUID VELOCITY]
   boundaryTypeMap = inlet, outlet, wall
   residualTol = 1e-6
   density = 1.0
   viscosity = -4.8e4
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   boundaryTypeMap = inlet, outlet, flux
   rhoCp = 1.0
   conductivity = -818400.0

@@ -2,7 +2,7 @@
   [occupied_scratch_space]
     type = RunException
     input = nek.i
-    expect_err = "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal"
+    expect_err = "Because 'initialize_usrwrk' is true, the platform->app->bc->o_usrwrk array is allocated by Cardinal, but you have tried allocating it separately inside your case files."
     requirement = "MOOSE shall throw an error if the user attempts to allocate the scratch space "
                   "arrays in NekRS, since they are automatically allocated by Cardinal."
     capabilities = 'nekrs'

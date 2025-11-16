@@ -6,22 +6,25 @@
   numSteps = 1
   dt = 1.0
   polynomialOrder = 2
-  writeControl = steps
-  writeInterval = 1
+  checkpointControl = steps
+  checkpointInterval = 1
   oudf = "../nekbox.oudf"
   udf = "../nekbox.udf"
+  scalars = temperature
+
+[GEOM]
+  solver = user
 
 [MESH]
-  solver = user
   file = "../nekbox.re2"
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

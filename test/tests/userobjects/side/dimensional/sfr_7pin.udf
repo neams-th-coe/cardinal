@@ -4,7 +4,7 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
 {
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   // set initial conditions for the velocity, temperature, and pressure. Because
   // we turn off the solves, we're just doing postprocessing of whatever we set

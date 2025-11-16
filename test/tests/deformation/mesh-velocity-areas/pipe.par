@@ -4,7 +4,7 @@
   numSteps = 50
   dt = 2e-3
   timeStepper = tombo2
-  writeInterval = 50
+  checkpointInterval = 50
 
 [MESH]
   boundaryTypeMap = zeroValue,codedFixedValue,zeroValue
@@ -15,16 +15,16 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-4
   preconditioner = multigrid
   initialGuess = previous
 
-[VELOCITY]
+[FLUID VELOCITY]
   density = 1.0
   viscosity = 0.01
   boundaryTypeMap = codedFixedValue,codedFixedValue,zeroGradient
   residualTol = 1e-6
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

@@ -17,7 +17,7 @@ args = ap.parse_args()
 
 os.chdir(os.getcwd())
 
-fnek5000 = 'avg' + args.case + '.nek5000'
+fnek5000 = 'tavg.nek5000'
 
 try:
     print('Reading '+fnek5000,end='')

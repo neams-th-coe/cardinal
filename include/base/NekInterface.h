@@ -25,7 +25,7 @@
 
 #include "inipp.hpp"
 #include "nekrs.hpp"
-#include "bcMap.hpp"
+#include "nrs.hpp"
 #include "udf.hpp"
 #include "inipp.hpp"
 #include "mesh.h"
@@ -47,11 +47,23 @@ namespace nekrs
 
 static int build_only;
 
+/**
+ * Number of passive scalars
+ * @return number of passive scalars
+ */
+int Nscalar();
+
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
 
 /// Update the mesh parameters on host
 void updateHostMeshParameters();
+
+dfloat * host_x();
+dfloat * host_y();
+dfloat * host_z();
+
+nrs_t * nrsPtr();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
@@ -63,6 +75,8 @@ dfloat * getVgeo();
  */
 void checkFieldValidity(const field::NekFieldEnum & field);
 void checkFieldValidity(const field::NekWriteEnum & field);
+
+void copyDeviceToHost();
 
 /**
  * Compute y+ on the NekRS mesh
@@ -141,7 +155,7 @@ bool isInitialized();
  * @param[in] step time step index
  * @param[in] write_coords whether to write the mesh coordinates
  */
-void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
+void write_usrwrk_field_file(const int & size, const int & index, const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
 /**
  * Write a field file containing pressure, velocity, and scalars with given prefix
@@ -939,10 +953,21 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
                  (const int *)recvCounts,
                  (const int *)displacement,
                  resolveType<T>(),
-                 platform->comm.mpiComm);
+                 platform->comm.mpiComm());
 
   free(recvCounts);
   free(displacement);
 }
+
+void initializeNekHostArrays();
+
+// Accessors for NekRS host arrays
+std::tuple<dfloat *, dfloat *, dfloat *> host_xyz();
+std::vector<dfloat> & host_U();
+std::vector<dfloat> & host_P();
+std::vector<dfloat> & host_S();
+dfloat * host_wrk();
+
+mesh_t *createMesh2(mesh_t *_mesh, int Nc);
 
 } // end namespace nekrs
