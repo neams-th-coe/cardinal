@@ -13,7 +13,7 @@ public:
   ClusteringHeuristicUserObjectBase(const InputParameters & parameters);
 
   virtual void execute() override {};
-  virtual void initialize() override {};
+  virtual void initialize() override;
   virtual void finalize() override {};
 
   /**
@@ -33,21 +33,32 @@ protected:
    */
   Real getMetricData(const libMesh::Elem * elem) const;
 
-  ///Mesh reference
+  /**
+   * Gathers metric data from all processors during initialization
+   */
+  void gatherAllMetricData();
+
+  /// Mesh reference
   libMesh::MeshBase & _mesh;
 
-  ///Name of the metric variable based on which clustering is done
+  /// Name of the metric variable based on which clustering is done
   const AuxVariableName _metric_variable_name;
 
-  ///Metric variable
+  /// Metric variable
   MooseVariableBase & _metric_variable;
 
-  ///AuxiliarySystem reference
+  /// AuxiliarySystem reference
   AuxiliarySystem & _auxiliary_system;
 
-  ///DOF map
+  /// DOF map
   libMesh::DofMap & _dof_map;
 
-  ///Metric variable index
+  /// Metric variable index
   unsigned int _metric_variable_index;
+
+  /// Whether the global metric data has been gathered
+  bool _data_gathered;
+
+  /// libmesh numeric vector ptr with serialized solutions
+  std::unique_ptr<NumericVector<Real>> _serialized_metric_solution;
 };
