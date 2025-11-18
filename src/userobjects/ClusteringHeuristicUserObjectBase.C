@@ -40,7 +40,6 @@ ClusteringHeuristicUserObjectBase::initialize()
   const auto & sol = _auxiliary_system.currentSolution();
   const dof_id_type n_dofs = sol->size();
 
-  _serialized_metric_solution->clear();
   // create the serialized vector
   _serialized_metric_solution = libMesh::NumericVector<Real>::build(_communicator);
   _serialized_metric_solution->init(n_dofs, true, SERIAL);
