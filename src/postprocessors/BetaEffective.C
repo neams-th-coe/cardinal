@@ -61,24 +61,19 @@ Real
 BetaEffective::getValue() const
 {
   const auto & common_tally = _openmc_problem->getCommonKineticsTally();
-  const auto & beta_tally = _openmc_problem->getBetaTally();
+  const auto & mg_beta = _openmc_problem->getMGBetaTally();
 
-  const auto n_num = beta_tally.n_realizations_;
-  const auto n_den = common_tally.n_realizations_;
-
+  unsigned int n_num = 0;
   Real num_sum = 0.0;
   Real num_ss = 0.0;
-  const auto d = static_cast<unsigned int>(_beta_type) - 1;
   switch (_beta_type)
   {
     case BetaTypeEnum::Sum:
-      for (unsigned int i = 0; i < 6; ++i)
-      {
-        num_sum += xt::view(
-            beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[i];
-        num_ss += xt::view(
-            beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[i];
-      }
+      n_num = common_tally.n_realizations_;
+      num_sum = xt::view(
+        common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0];
+      num_ss = xt::view(
+        common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
       break;
     case BetaTypeEnum::D_1:
     case BetaTypeEnum::D_2:
@@ -86,16 +81,18 @@ BetaEffective::getValue() const
     case BetaTypeEnum::D_4:
     case BetaTypeEnum::D_5:
     case BetaTypeEnum::D_6:
+      n_num = mg_beta.n_realizations_;
       num_sum = xt::view(
-          beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[d];
+        mg_beta.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[static_cast<unsigned int>(_beta_type) - 1];
       num_ss = xt::view(
-          beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[d];
+        mg_beta.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[static_cast<unsigned int>(_beta_type) - 1];
       break;
     default:
       mooseError("Internal error: Unknown BetaTypeEnum.");
       break;
   }
 
+  const auto n_den = common_tally.n_realizations_;
   const auto den_sum =
       xt::view(common_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM))[0];
   const auto den_ss = xt::view(

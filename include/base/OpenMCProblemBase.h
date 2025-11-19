@@ -379,10 +379,10 @@ public:
   const openmc::Tally & getCommonKineticsTally();
 
   /**
-   * Get the tally responsible for accumulating \beta_{eff}.
+   * Get the tally responsible for accumulating delayed group values of \beta_{eff}.
    * @return the global IFP tally
    */
-  const openmc::Tally & getBetaTally();
+  const openmc::Tally & getMGBetaTally();
 
 protected:
   /// Find all userobjects which are changing OpenMC data structures
@@ -534,13 +534,13 @@ protected:
   int _ifp_common_tally_index = -1;
 
   /// The index of a global tally to accumulate the common scores required for kinetics parameters.
-  int _ifp_beta_tally_index = -1;
+  int _ifp_mg_beta_tally_index = -1;
 
   /// The global tally used to accumulate the common scores required for kinetics parameters.
   openmc::Tally * _ifp_common_tally = nullptr;
 
   /// The global tally used to accumulate the score required for \beta_eff.
-  openmc::Tally * _ifp_beta_tally = nullptr;
+  openmc::Tally * _ifp_mg_beta_tally = nullptr;
 
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;

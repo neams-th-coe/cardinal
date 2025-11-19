@@ -402,17 +402,17 @@ OpenMCProblemBase::initialSetup()
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
-    // For \Lambda_eff and the denominator of \beta_{eff,i}
+    // For \Lambda_eff, \beta_{eff}, and the denominator of \beta_{eff,i}
     _ifp_common_tally_index = openmc::model::tallies.size();
     _ifp_common_tally = openmc::Tally::create();
-    _ifp_common_tally->set_scores({"ifp-time-numerator", "ifp-denominator"});
+    _ifp_common_tally->set_scores({"ifp-time-numerator", "ifp-denominator", "ifp-beta-numerator"});
     _ifp_common_tally->estimator_ = openmc::TallyEstimator::COLLISION;
 
     // For \beta_{eff,i}
-    _ifp_beta_tally_index = openmc::model::tallies.size();
-    _ifp_beta_tally = openmc::Tally::create();
-    _ifp_beta_tally->set_scores({"ifp-beta-numerator"});
-    _ifp_beta_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+    _ifp_mg_beta_tally_index = openmc::model::tallies.size();
+    _ifp_mg_beta_tally = openmc::Tally::create();
+    _ifp_mg_beta_tally->set_scores({"ifp-beta-numerator"});
+    _ifp_mg_beta_tally->estimator_ = openmc::TallyEstimator::COLLISION;
 
     auto dnp_grp_filter =
         dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
@@ -420,7 +420,7 @@ OpenMCProblemBase::initialSetup()
     dnp_grp_filter->set_groups(openmc::span<int>(grps));
 
     std::vector<openmc::Filter *> df{dnp_grp_filter};
-    _ifp_beta_tally->set_filters({df});
+    _ifp_mg_beta_tally->set_filters({df});
   }
 }
 
@@ -831,12 +831,12 @@ OpenMCProblemBase::getCommonKineticsTally()
 }
 
 const openmc::Tally &
-OpenMCProblemBase::getBetaTally()
+OpenMCProblemBase::getMGBetaTally()
 {
-  if (!_ifp_beta_tally)
+  if (!_ifp_mg_beta_tally)
     mooseError("Internal error: kinetics parameters have not been enabled.");
 
-  return *_ifp_beta_tally;
+  return *_ifp_mg_beta_tally;
 }
 
 bool
