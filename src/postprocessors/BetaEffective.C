@@ -104,7 +104,7 @@ BetaEffective::getValue() const
   const Real beta_eff = (num_sum / n_num) / (den_sum / n_den);
 
   const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n_num);
-  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n_num);
+  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n_den);
   const Real beta_eff_rel = std::sqrt(num_rel * num_rel + den_rel * den_rel);
 
   switch (_output)
