@@ -415,12 +415,12 @@ OpenMCProblemBase::initialSetup()
     _ifp_beta_tally->estimator_ = openmc::TallyEstimator::COLLISION;
 
     auto dnp_grp_filter =
-      dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
-    std::vector<int> grps {1, 2, 3, 4, 5, 6};
+        dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
+    std::vector<int> grps{1, 2, 3, 4, 5, 6};
     dnp_grp_filter->set_groups(openmc::span<int>(grps));
 
-    std::vector<openmc::Filter*> df {dnp_grp_filter};
-    _ifp_beta_tally->set_filters({ df });
+    std::vector<openmc::Filter *> df{dnp_grp_filter};
+    _ifp_beta_tally->set_filters({df});
   }
 }
 
@@ -645,7 +645,9 @@ OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
 }
 
 Real
-OpenMCProblemBase::relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const
+OpenMCProblemBase::relativeError(const Real & sum,
+                                 const Real & sum_sq,
+                                 const int & n_realizations) const
 {
   Real rel_err = 0.0;
 
