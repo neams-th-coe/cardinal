@@ -35,4 +35,15 @@ public:
 protected:
   /// The value of the kinetics parameter to output.
   const statistics::OutputEnum _output;
+
+  const enum class BetaTypeEnum
+  {
+    Sum = 0,
+    D_1 = 1,
+    D_2 = 2,
+    D_3 = 3,
+    D_4 = 4,
+    D_5 = 5,
+    D_6 = 6
+  } _beta_type;
 };

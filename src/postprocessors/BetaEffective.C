@@ -32,6 +32,12 @@ BetaEffective::validParams()
   params.addClassDescription(
       "A post-processor which computes and returns the kinetics parameter $\\beta_{eff}$.");
   params.addParam<MooseEnum>(
+      "beta_type",
+      getBetaGroupEnum(),
+      "The delayed group to calculate $\\beta_{eff}$ for. Options are groups 1-6 "
+      "(from the ENDF delayed neutron groups) or the sum over all groups. Defaults "
+      "to 'sum'.");
+  params.addParam<MooseEnum>(
       "output",
       getStatsOutputEnum(),
       "The value to output. Options are $\\beta_{eff}$ (mean), the standard deviation "
@@ -43,7 +49,8 @@ BetaEffective::validParams()
 BetaEffective::BetaEffective(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     OpenMCBase(this, parameters),
-    _output(getParam<MooseEnum>("output").getEnum<statistics::OutputEnum>())
+    _output(getParam<MooseEnum>("output").getEnum<statistics::OutputEnum>()),
+    _beta_type(getParam<MooseEnum>("beta_type").getEnum<BetaTypeEnum>())
 {
   if (!_openmc_problem->computeKineticsParams())
     mooseError(
@@ -60,14 +67,33 @@ BetaEffective::getValue() const
   const auto n_den = common_tally.n_realizations_;
 
   Real num_sum = 0.0;
-  for (unsigned int i = 0; i < 6; ++i)
-    num_sum += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[i];
+  Real num_ss = 0.0;
+  const auto d = static_cast<unsigned int>(_beta_type) - 1;
+  switch (_beta_type)
+  {
+    case BetaTypeEnum::Sum:
+      for (unsigned int i = 0; i < 6; ++i)
+      {
+        num_sum += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[i];
+        num_ss += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[i];
+      }
+      break;
+    case BetaTypeEnum::D_1:
+    case BetaTypeEnum::D_2:
+    case BetaTypeEnum::D_3:
+    case BetaTypeEnum::D_4:
+    case BetaTypeEnum::D_5:
+    case BetaTypeEnum::D_6:
+      num_sum = xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[d];
+      num_ss = xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[d];
+      break;
+    default:
+      mooseError("Internal error: Unknown BetaTypeEnum.");
+      break;
+  }
+
   const auto den_sum =
       xt::view(common_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM))[0];
-
-  Real num_ss = 0.0;
-  for (unsigned int i = 0; i < 6; ++i)
-    num_ss += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[i];
   const auto den_ss =
       xt::view(common_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
 

@@ -40,6 +40,7 @@ MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
 MooseEnum getStatsOutputEnum();
+MooseEnum getBetaGroupEnum();
 
 namespace nek_mesh
 {
