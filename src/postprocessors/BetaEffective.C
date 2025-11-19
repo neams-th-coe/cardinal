@@ -71,9 +71,9 @@ BetaEffective::getValue() const
     case BetaTypeEnum::Sum:
       n_num = common_tally.n_realizations_;
       num_sum = xt::view(
-        common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0];
+          common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM))[0];
       num_ss = xt::view(
-        common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
+          common_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
       break;
     case BetaTypeEnum::D_1:
     case BetaTypeEnum::D_2:
@@ -83,9 +83,15 @@ BetaEffective::getValue() const
     case BetaTypeEnum::D_6:
       n_num = mg_beta.n_realizations_;
       num_sum = xt::view(
-        mg_beta.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[static_cast<unsigned int>(_beta_type) - 1];
+          mg_beta.results_,
+          xt::all(),
+          0,
+          static_cast<int>(openmc::TallyResult::SUM))[static_cast<unsigned int>(_beta_type) - 1];
       num_ss = xt::view(
-        mg_beta.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[static_cast<unsigned int>(_beta_type) - 1];
+          mg_beta.results_,
+          xt::all(),
+          0,
+          static_cast<int>(openmc::TallyResult::SUM_SQ))[static_cast<unsigned int>(_beta_type) - 1];
       break;
     default:
       mooseError("Internal error: Unknown BetaTypeEnum.");
