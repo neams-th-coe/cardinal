@@ -29,6 +29,8 @@
 #include "OpenMCTallyEditor.h"
 
 #include "openmc/random_lcg.h"
+// For filtering \beta_eff by DNP group.
+#include "openmc/tallies/filter_delayedgroup.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -400,10 +402,25 @@ OpenMCProblemBase::initialSetup()
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
-    _ifp_tally_index = openmc::model::tallies.size();
-    _ifp_tally = openmc::Tally::create();
-    _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
-    _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+    // For \Lambda_eff and the denominator of \beta_{eff,i}
+    _ifp_common_tally_index = openmc::model::tallies.size();
+    _ifp_common_tally = openmc::Tally::create();
+    _ifp_common_tally->set_scores({"ifp-time-numerator", "ifp-denominator"});
+    _ifp_common_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+
+    // For \beta_{eff,i}
+    _ifp_beta_tally_index = openmc::model::tallies.size();
+    _ifp_beta_tally = openmc::Tally::create();
+    _ifp_beta_tally->set_scores({"ifp-beta-numerator"});
+    _ifp_beta_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+
+    auto dnp_grp_filter =
+      dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
+    std::vector<int> grps {1, 2, 3, 4, 5, 6};
+    dnp_grp_filter->set_groups(openmc::span<int>(grps));
+
+    std::vector<openmc::Filter*> df {dnp_grp_filter};
+    _ifp_beta_tally->set_filters({ df });
   }
 }
 
@@ -627,6 +644,16 @@ OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
   return rel_err;
 }
 
+Real
+OpenMCProblemBase::relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const
+{
+  Real rel_err = 0.0;
+
+  auto mean = sum / n_realizations;
+  auto std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
+  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+}
+
 xt::xtensor<double, 1>
 OpenMCProblemBase::tallySum(openmc::Tally * tally, const unsigned int & score) const
 {
@@ -793,12 +820,21 @@ OpenMCProblemBase::numCells() const
 }
 
 const openmc::Tally &
-OpenMCProblemBase::getKineticsParamTally()
+OpenMCProblemBase::getCommonKineticsTally()
 {
-  if (!_ifp_tally)
+  if (!_ifp_common_tally)
     mooseError("Internal error: kinetics parameters have not been enabled.");
 
-  return *_ifp_tally;
+  return *_ifp_common_tally;
+}
+
+const openmc::Tally &
+OpenMCProblemBase::getBetaTally()
+{
+  if (!_ifp_beta_tally)
+    mooseError("Internal error: kinetics parameters have not been enabled.");
+
+  return *_ifp_beta_tally;
 }
 
 bool

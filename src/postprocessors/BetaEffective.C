@@ -53,23 +53,28 @@ BetaEffective::BetaEffective(const InputParameters & parameters)
 Real
 BetaEffective::getValue() const
 {
-  const auto & ifp_tally = _openmc_problem->getKineticsParamTally();
-  const auto n = ifp_tally.n_realizations_;
+  const auto & common_tally = _openmc_problem->getCommonKineticsTally();
+  const auto & beta_tally = _openmc_problem->getBetaTally();
 
-  const auto num_sum =
-      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM));
+  const auto n_num = beta_tally.n_realizations_;
+  const auto n_den = common_tally.n_realizations_;
+
+  Real num_sum = 0.0;
+  for (unsigned int i = 0; i < 6; ++i)
+    num_sum += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM))[i];
   const auto den_sum =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM));
+      xt::view(common_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM))[0];
 
-  const auto num_ss =
-      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ));
+  Real num_ss = 0.0;
+  for (unsigned int i = 0; i < 6; ++i)
+    num_ss += xt::view(beta_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[i];
   const auto den_ss =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ));
+      xt::view(common_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
 
-  const Real beta_eff = (num_sum[0] / n) / (den_sum[0] / n);
+  const Real beta_eff = (num_sum / n_num) / (den_sum / n_den);
 
-  const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n)[0];
-  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n)[0];
+  const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n_num);
+  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n_num);
   const Real beta_eff_rel = std::sqrt(num_rel * num_rel + den_rel * den_rel);
 
   switch (_output)
