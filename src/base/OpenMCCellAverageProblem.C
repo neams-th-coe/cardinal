@@ -590,10 +590,10 @@ OpenMCCellAverageProblem::initialSetup()
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
     // Rudimentary error checking to make sure all non-void DAGMC cells are mapped. This helps catch
-    // errors where the skinned MOOSE mesh deletes DAGMC geometry. Also error if the user is attempting
-    // to use a skinner when mapping both CSG cells and DAGMC geometry to the MOOSE mesh. The skinner
-    // is currently not set up to ignore elements that map to cells and will generate DAGMC geometry that
-    // overlaps with pre-existing CSG cells.
+    // errors where the skinned MOOSE mesh deletes DAGMC geometry. Also error if the user is
+    // attempting to use a skinner when mapping both CSG cells and DAGMC geometry to the MOOSE mesh.
+    // The skinner is currently not set up to ignore elements that map to cells and will generate
+    // DAGMC geometry that overlaps with pre-existing CSG cells.
     // TODO: This would be nice to fix, but would require a rework of the skinner.
     std::set<int32_t> mapped_dag_cells;
     for (const auto & c : openmc::model::cells)
@@ -606,8 +606,8 @@ OpenMCCellAverageProblem::initialSetup()
         else if (c->geom_type() == openmc::GeometryType::CSG &&
                  c_info.first == openmc::model::cell_map.at(c->id_))
           mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
-            "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
-            "cells which map to the MOOSE mesh.");
+                     "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
+                     "cells which map to the MOOSE mesh.");
       }
     }
 
