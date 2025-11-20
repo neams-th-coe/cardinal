@@ -590,13 +590,26 @@ OpenMCCellAverageProblem::initialSetup()
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
     // Rudimentary error checking to make sure all non-void DAGMC cells are mapped. This helps catch
-    // errors where the skinned MOOSE mesh deletes DAGMC geometry.
+    // errors where the skinned MOOSE mesh deletes DAGMC geometry. Also error if the user is
+    // attempting to use a skinner when mapping both CSG cells and DAGMC geometry to the MOOSE mesh.
+    // The skinner is currently not set up to ignore elements that map to cells and will generate
+    // DAGMC geometry that overlaps with pre-existing CSG cells.
+    // TODO: This would be nice to fix, but would require a rework of the skinner.
     std::set<int32_t> mapped_dag_cells;
     for (const auto & c : openmc::model::cells)
+    {
       for (const auto & [c_info, elem] : _cell_to_elem)
+      {
         if (c->geom_type() == openmc::GeometryType::DAG &&
             c_info.first == openmc::model::cell_map.at(c->id_))
           mapped_dag_cells.insert(c->id_);
+        else if (c->geom_type() == openmc::GeometryType::CSG &&
+                 c_info.first == openmc::model::cell_map.at(c->id_))
+          mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
+                     "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
+                     "cells which map to the MOOSE mesh.");
+      }
+    }
 
     unsigned int num_unmapped = 0;
     unsigned int num_dag_cells = 0;
@@ -1976,17 +1989,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
     }
 
     auto cell_index = _particle.coord(level).cell();
-
-    // Error if the user is attempting to use a skinner when mapping both CSG cells and DAGMC
-    // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
-    // map to cells and will generate DAGMC geometry that overlaps with pre-existing CSG cells.
-    // TODO: This would be nice to fix, but would require a rework of the skinner.
-    if (openmc::model::cells[cell_index]->geom_type() == openmc::GeometryType::CSG &&
-        _using_skinner)
-      mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
-                 "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
-                 "cells which map to the MOOSE mesh.");
-
     auto cell_instance = cell_instance_at_level(_particle, level);
 
     cellInfo cell_info = {cell_index, cell_instance};
