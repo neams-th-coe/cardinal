@@ -204,7 +204,13 @@ CellTally::getTallyCells() const
                  "do actually have the\n"
                  "same value, the volumetric tally will be different because you'll be "
                  "dividing each tally by a\n"
-                 "different mapped MOOSE volume.\n\n";
+                 "different mapped MOOSE volume. This can occur if the CellTally maps to different "
+                 "regions in\n"
+                 "your OpenMC geometry while computing the same score over each region. A common "
+                 "example is\n"
+                 "tallying fluxes over multiple regions (e.g. fuel + moderator) instead of a "
+                 "single region\n"
+                 "(e.g. fuel).\n\n";
 
           if (_openmc_problem.hasPointTransformations())
             msg << "NOTE: You have imposed symmetry, which means that you'll hit this error if any "
@@ -217,7 +223,10 @@ CellTally::getTallyCells() const
           else
             msg << "We recommend re-creating the mesh mirror to have an equal volume mapping of "
                    "MOOSE elements to each\n"
-                   "OpenMC cell. Or, you can disable this check by setting "
+                   "OpenMC cell instance if this tally is intended to compute scores over a single "
+                   "OpenMC cell. If this\n"
+                   "tally computes scores over multiple unique cells, you will need to disable "
+                   "this check by setting\n"
                    "'check_equal_mapped_tally_volumes = false'.";
 
           mooseError(msg.str());
