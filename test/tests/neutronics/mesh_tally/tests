@@ -52,7 +52,8 @@
                   "The gold file contains relative errors for an unscaled version of the test. The test "
                   "itself scales the mesh down in the mesh block, and scales it back up with 'scaling'. "
                   "If 'scaling' is not applied to the mesh mirror, the relative errors will change due "
-                  "to the difference in element volumes."
+                  "to the difference in element volumes. The min/max values in the gold files are manually "
+                  "converted from W/cm^3 (no scaling) to W/m^3 (scaled)."
     mesh_mode = 'replicated'
     capabilities = 'openmc'
     issues = '#1246'

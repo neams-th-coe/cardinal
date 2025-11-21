@@ -49,6 +49,17 @@
     type = TallyRelativeError
     value_type = min
   []
+
+  [max]
+    type = ElementExtremeValue
+    variable = kappa_fission
+    value_type = max
+  []
+  [min]
+    type = ElementExtremeValue
+    variable = kappa_fission
+    value_type = min
+  []
 []
 
 [Outputs]
