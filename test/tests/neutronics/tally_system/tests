@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1248'
+  design = 'AddTallyAction.md CellTally.md MeshTally.md'
+
   [cell_tally_unmapped]
     type = CSVDiff
     input = cell_with_unmapped.i
