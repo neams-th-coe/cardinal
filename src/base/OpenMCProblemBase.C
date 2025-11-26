@@ -408,7 +408,9 @@ OpenMCProblemBase::initialSetup()
     _ifp_common_tally->set_scores({"ifp-time-numerator", "ifp-denominator", "ifp-beta-numerator"});
     _ifp_common_tally->estimator_ = openmc::TallyEstimator::COLLISION;
 
-    // For \beta_{eff,i}
+    // For \beta_{eff,i}. A separate tally is required when sieving by delayed group to compute
+    // standard deviations and relative errors correctly for the total \beta_eff (due to covariances
+    // between delayed groups).
     _ifp_mg_beta_tally_index = openmc::model::tallies.size();
     _ifp_mg_beta_tally = openmc::Tally::create();
     _ifp_mg_beta_tally->set_scores({"ifp-beta-numerator"});
@@ -833,9 +835,6 @@ OpenMCProblemBase::getCommonKineticsTally()
 const openmc::Tally &
 OpenMCProblemBase::getMGBetaTally()
 {
-  if (!_ifp_mg_beta_tally)
-    mooseError("Internal error: kinetics parameters have not been enabled.");
-
   return *_ifp_mg_beta_tally;
 }
 

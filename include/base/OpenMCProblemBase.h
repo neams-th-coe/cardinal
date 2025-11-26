@@ -530,10 +530,13 @@ protected:
   /// The initial OpenMC seed
   const int64_t _initial_seed;
 
-  /// The index of a global tally to accumulate the common scores required for kinetics parameters.
+  /// The index of a global tally which accumulates the common scores required for kinetics parameters.
   int _ifp_common_tally_index = -1;
 
-  /// The index of a global tally to accumulate the common scores required for kinetics parameters.
+  /**
+   * The index of a global tally which accumulates the score required for the delayed group values
+   * of \beta_eff.
+   */
   int _ifp_mg_beta_tally_index = -1;
 
   /// The global tally used to accumulate the common scores required for kinetics parameters.
