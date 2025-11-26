@@ -20,6 +20,12 @@ If the above produces a `cardinal-opt` Cardinal executable, you can
 jump straight to [#running]. If you are on a GPU system, want to customize the
 build, or were not successful with the above, please consult the detailed instructions
 that follow.
+
+!alert! tip title=Using pre-built dependencies
+If you have some of the third-party libraries (TPLs) already installed, you can
+skip building them by setting `BUILD_[TPL_NAME]=no` and `[TPL_NAME]_DIR=/path/to/tpl`.
+See the "Using Pre-built Dependencies" section for more details.
+!alert-end!
 !alert-end!
 
 ## Access
@@ -72,6 +78,29 @@ For even further control, you can set other
 [optional environment variables](env_vars.md) to specify the optimization level,
 dependency locations, and more.
 !alert-end!
+
+#### Using Pre-built Dependencies
+  id=prebuilt
+
+By default, Cardinal will build all of its required dependencies from source. However, if you already have some of these dependencies installed, you can instruct Cardinal to use your pre-built versions. This is done by setting a `BUILD_*` variable to `no` and specifying the location of the pre-built dependency with a `*_DIR` variable.
+
+Here is a list of the build flags and their corresponding location variables:
+
+| Dependency   | Build Flag           | Location Variable   | Notes                                    |
+|--------------|----------------------|---------------------|------------------------------------------|
+| NekRS        | `BUILD_NEKRS`        | `NEKRS_DIR`         |                                          |
+| OpenMC       | `BUILD_OPENMC`       | `OPENMC_DIR`        |                                          |
+| DAGMC        | `BUILD_DAGMC`        | `DAGMC_DIR`         | Only relevant if `BUILD_OPENMC=yes`      |
+| MOAB         | `BUILD_MOAB`         | `MOAB_DIR`          | Only relevant if `BUILD_DAGMC=yes`       |
+| Embree       | `BUILD_EMBREE`       | `EMBREE_DIR`        | Only relevant if `BUILD_DOUBLEDOWN=yes`  |
+| Double-Down  | `BUILD_DOUBLEDOWN`   | `DOUBLEDOWN_DIR`    | Only relevant if `BUILD_DAGMC=yes`       |
+
+For example, to use a pre-built version of OpenMC, you would set the following environment variables:
+
+``` language=bash
+export BUILD_OPENMC=no
+export OPENMC_DIR=/path/to/your/openmc
+```
 
 #### Set OCCA Backend
 
