@@ -54,7 +54,7 @@ NekScalarValue::sendDataToNek()
            << std::endl;
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-  nrs->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
+  nrs->bc->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
 
   if (_postprocessor)
     _nek_problem.setPostprocessorValueByName(*_postprocessor, value_to_set);

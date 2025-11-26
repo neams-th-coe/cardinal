@@ -80,7 +80,7 @@ NekPointValue::execute()
     case field::velocity_z_squared:
       n_values = n * nrs->NVfields;
       o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nrs->fieldOffset, nrs->cds->o_U, n, o_interpolated);
+      interp.eval(n_values, nrs->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
       break;
     case field::pressure:
       o_interpolated = platform->device.malloc<dfloat>(n);
@@ -92,7 +92,7 @@ NekPointValue::execute()
     case field::scalar03:
       n_values = n * nrs->Nscalar;
       o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::scalarFieldOffset(), nrs->cds->o_S, n, o_interpolated);
+      interp.eval(n_values, nekrs::scalarFieldOffset(), nrs->scalar->o_S, n, o_interpolated);
       break;
     case field::unity:
       break;
@@ -101,7 +101,7 @@ NekPointValue::execute()
     case field::usrwrk02:
       n_values = n * _nek_problem->nUsrWrkSlots();
       o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::fieldOffset(), nrs->o_usrwrk, n, o_interpolated);
+      interp.eval(n_values, nekrs::fieldOffset(), nrs->bc.o_usrwrk, n, o_interpolated);
       break;
     default:
       mooseError("Unhandled NekFieldEnum in NekPointValue!");
