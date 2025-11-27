@@ -149,6 +149,13 @@ public:
   virtual const std::vector<std::string> & getTallyScores() const { return _all_tally_scores; }
 
   /**
+   * Get the number of tallies scoring a particular score.
+   * @param[in] score the score to check
+   * @return the number of tallies accumulating 'score'
+   */
+  unsigned int getNumScoringTallies(const std::string & score) const { return _score_count.count(score) > 0 ? _score_count.at(score) : 0; }
+
+  /**
    * Check to see if this problem contains a specific tally score.
    * @param[in] score the tally score
    * @return whether this problem contains the tally score in a tally object
@@ -158,6 +165,13 @@ public:
     return std::find(_all_tally_scores.begin(), _all_tally_scores.end(), score) !=
            _all_tally_scores.end();
   }
+
+  /**
+   * get a tally object by it's name.
+   * @param[in] name the name of the TallyBase
+   * @return a Cardinal wrapped tally
+   */
+  const TallyBase * getTally(const std::string & name);
 
   /**
    * Fetch the tally that contains the requested score.
@@ -177,6 +191,7 @@ public:
    */
   std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
                                                                     THREAD_ID tid,
+                                                                    const std::string & tally_name = "",
                                                                     const std::string & output = "",
                                                                     bool skip_func_exp = false);
 
@@ -191,6 +206,7 @@ public:
    */
   std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
                                                                  THREAD_ID tid,
+                                                                 const std::string & tally_name = "",
                                                                  const std::string & output = "",
                                                                  bool skip_func_exp = false);
 
@@ -206,6 +222,7 @@ public:
   std::vector<const VariableValue *>
   getTallyScoreNeighborVariableValues(const std::string & score,
                                       THREAD_ID tid,
+                                      const std::string & tally_name = "",
                                       const std::string & output = "",
                                       bool skip_func_exp = false);
 
