@@ -37,8 +37,6 @@
   density_blocks = '200'
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
-  check_tally_sum = false
 
   initial_properties = xml
 
@@ -47,6 +45,9 @@
       type = CellTally
       score = 'kappa_fission heating'
       block = '100'
+
+      normalize_by_global_tally = false
+      check_tally_sum = false
     []
   []
 []

@@ -22,7 +22,6 @@
   power = 100.0
   batches = 20
   cell_level = 0
-  normalize_by_global_tally = false
 
   source_rate_normalization = 'kappa_fission'
 
@@ -36,6 +35,8 @@
 
       trigger = 'rel_err rel_err'
       trigger_threshold = '2e-2 2e-2'
+
+      normalize_by_global_tally = false
     []
   []
 []

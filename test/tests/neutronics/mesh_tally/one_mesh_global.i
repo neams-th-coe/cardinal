@@ -18,15 +18,15 @@
   initial_properties = xml
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = true
 
   power = 100.0
-  check_tally_sum = false
 
   [Tallies]
     [Mesh]
       type = MeshTally
       mesh_template = '../meshes/sphere.e'
+      check_tally_sum = false
+      normalize_by_global_tally = true
     []
   []
 []

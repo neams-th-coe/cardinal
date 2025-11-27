@@ -36,13 +36,13 @@
   cell_level = 0
   initial_properties = xml
 
-  # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
-  normalize_by_global_tally = false
-
   [Tallies]
     [Mesh]
       type = MeshTally
       score = kappa_fission
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
   []
 []

@@ -35,7 +35,6 @@
   initial_properties = xml
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
 
   power = 100.0
 
@@ -43,6 +42,8 @@
     [Mesh]
       type = MeshTally
       score = 'kappa_fission'
+
+      normalize_by_global_tally = false
     []
   []
 []

@@ -13,7 +13,6 @@
 
   power = ${fparse 3000e6 / 273 * 4}
 
-  normalize_by_global_tally = false
   assume_separate_tallies = true
   skip_statepoint = true
 
@@ -24,6 +23,8 @@
       name = 'heat_source'
       output = 'unrelaxed_tally_std_dev'
       block = 'uo2_center uo2'
+
+      normalize_by_global_tally = false
     []
   []
 []

@@ -22,8 +22,6 @@
   power = 100.0
   cell_level = 0
 
-  normalize_by_global_tally = false
-
   max_batches = 200
 
   [Tallies]
@@ -32,6 +30,8 @@
       block = '100'
       trigger = rel_err
       trigger_threshold = 2e-2
+
+      normalize_by_global_tally = false
     []
   []
 []

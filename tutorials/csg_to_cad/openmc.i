@@ -9,13 +9,14 @@ power = 3000
 
   skinner = skinner
 
-  normalize_by_global_tally = false
   source_rate_normalization = 'kappa_fission'
 
   [Tallies]
     [mesh]
       type = MeshTally
       score = 'kappa_fission flux'
+
+      normalize_by_global_tally = false
     []
   []
 []

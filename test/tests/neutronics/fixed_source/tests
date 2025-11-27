@@ -19,7 +19,7 @@
   [missing_power]
     type = RunException
     input = mapping_solid.i
-    cli_args = 'Problem/check_tally_sum=true'
+    cli_args = 'Problem/Tallies/Cell/check_tally_sum=true'
     expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the total tally sum does not match the system-wide value for "
                   "fixed source simulations."
