@@ -61,14 +61,11 @@ public:
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
    * @param[in] output_type the output type
    * @return the sum of the tally over all bins. Only applicable for 'output_type = relaxed'
    */
   Real storeResults(const std::vector<unsigned int> & var_numbers,
                     unsigned int local_score,
-                    unsigned int global_score,
                     const std::string & output_type);
 
   /**
@@ -82,6 +79,16 @@ public:
    * particular score.
    */
   void computeSumAndMean();
+
+  /**
+   * A function which gathers the sums and means from all tallies linked to this tally.
+   */
+  void gatherLinkedSum();
+
+  /**
+   * A function which renormalizes this tally based on the gathered sum from linked tallies.
+   */
+  void renormalizeLinkedTallies();
 
   /**
    * Relax the tally and normalize it according to some normalization factor 'norm'. This tends to
@@ -101,20 +108,36 @@ public:
    * the relaxed tally to the raw (unrelaxed) tally.
    * @param[in] local_score the local index of the current score to normalize
    * @param[in] alpha the relaxation factor
-   * @param[in] norm the normalization factor
    */
-  void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm);
+  void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha);
 
   /**
-   * Get the OpenMC tally that this object wraps.
+   * Add a linked tally for normalization.
+   * @param[in] tally the other tally to link for normalization
+   */
+  void addLinkedTally(const TallyBase * other);
+
+  /**
+   * Get the local OpenMC tally that this object wraps.
    * @return the OpenMC tally object
    */
   const openmc::Tally * getWrappedTally() const;
 
   /**
+   * Get the global OpenMC tally that this object wraps.
+   * @return the OpenMC tally object
+   */
+  const openmc::Tally * getWrappedGlobalTally() const;
+
+  /**
    * Get the ID of the tally this object wraps.
    */
   int32_t getTallyID() const;
+
+  /**
+   * Get the global ID of the tally this object wraps.
+   */
+  int32_t getGlobalTallyID() const;
 
   /**
    * Get the list of scores this tally uses.
@@ -218,6 +241,18 @@ public:
    */
   const std::set<SubdomainID> & getBlocks() const { return _tally_blocks; }
 
+  /**
+   * Whether this tally requires a global tally or not.
+   * @return if the tally adds a global tally in addition to a mapped local tally
+   */
+  bool needGlobalTally() const { return _needs_global_tally; }
+
+  /**
+   * Get the number of tallies linked to this tally for normalization.
+   * @return the number of linked tallies
+   */
+  unsigned int numLinkedTallies() const { return _linked_tallies.size(); }
+
 protected:
   /**
    * A function which stores the results of this tally into the created
@@ -225,15 +260,12 @@ protected:
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
    * @param[in] tally_vals the tally values to store
    * @param[in] norm_by_src_rate whether or not tally_vals should be normalized by the source rate
    * @return the sum of the tally over all bins.
    */
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
-                                 unsigned int global_score,
                                  std::vector<xt::xtensor<double, 1>> tally_vals,
                                  bool norm_by_src_rate = true) = 0;
 
@@ -252,6 +284,27 @@ protected:
    * @param[in] tally the tally to apply triggers to
    */
   void applyTriggersToLocalTally(openmc::Tally * tally);
+
+  /**
+   * Factor by which to normalize a tally
+   * @param[in] score index for the tally score
+   * @return value to divide tally sum by for normalization
+   */
+  Real tallyNormalization(unsigned int score) const;
+
+  /**
+   * Check the sum of the tallies against the global tally
+   * @param[in] score tally score
+   */
+  void checkTallySum(const unsigned int & score) const;
+
+  /**
+   * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
+   * against the total tally value).
+   * @param[in] sum sum of the tally
+   * @param[in] score tally score
+   */
+  void checkNormalization(const Real & sum, unsigned int score) const;
 
   /// The OpenMCCellAverageProblem using the tally system.
   OpenMCCellAverageProblem & _openmc_problem;
@@ -280,6 +333,15 @@ protected:
   /// The index of the OpenMC tally this object wraps.
   unsigned int _local_tally_index;
 
+  /**
+   * The global OpenMC tally object this class wraps. Used for global normalization
+   * and error-checking of the sum of local tally results over all bins.
+   */
+  openmc::Tally * _global_tally = nullptr;
+
+  /// The index of the global OpenMC tally this object wraps.
+  unsigned int _global_tally_index;
+
   /// The index of the first filter added by this tally.
   unsigned int _filter_index;
 
@@ -289,11 +351,17 @@ protected:
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;
 
+  /// Sum value of the global tally associated with this tally object. Indexed by score.
+  std::vector<Real> _global_sum_tally;
+
   /**
    * Mean value of this tally across all bins; only used for fixed source mode.
    * Indexed by score.
    */
   std::vector<Real> _local_mean_tally;
+
+  /// Linked sum value across all bins. Indexed by score.
+  std::vector<Real> _linked_local_sum_tally;
 
   /**
    * Type of trigger to apply to OpenMC tallies to indicate when
@@ -337,6 +405,48 @@ protected:
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
 
+  /**
+   * How to normalize the OpenMC tally into units of W/volume. If 'true',
+   * normalization is performed by dividing each local tally against a problem-global
+   * tally. The advantage of this approach is that some non-zero tally regions of the
+   * OpenMC domain can be excluded from multiphysics feedback (without us having to guess
+   * what the power of the *included* part of the domain is). This can let us do
+   * "zooming" type calculations, where perhaps we only want to send T/H feedback to
+   * one bundle in a full core.
+   *
+   * If 'false', normalization is performed by dividing each local tally by the sum
+   * of the local tally itself. The advantage of this approach becomes evident when
+   * using mesh tallies. If a mesh tally does not perfectly align with an OpenMC cell -
+   * for instance, a first-order sphere mesh will not perfectly match the volume of a
+   * TRISO pebble - then not all of the power actually produced in the pebble is
+   * tallies on the mesh approximation to that pebble. Therefore, if you set a core
+   * power of 1 MW and you normalized based on a global tally, you'd always
+   * miss some of that power when sending to MOOSE. So, in this case, it is better to
+   * normalize against the local tally itself so that the correct power is preserved.
+   */
+  const bool _normalize_by_global;
+
+  /**
+   * Whether to check the tallies against the global tally;
+   * if set to true, and the tallies added for the 'tally_blocks' do not
+   * sum to the global tally, an error is thrown. If you are
+   * only performing multiphysics feedback for, say, a single assembly in a
+   * full-core OpenMC model, you must set this check to false, because there
+   * are known fission sources outside the domain of interest.
+   *
+   * If not specified, then this is set to 'true' if normalizing by a global
+   * tally, and to 'false' if normalizing by the local tally (because when we choose
+   * to normalize by the local tally, we're probably using mesh tallies). But you can
+   * of course still set a value for this parameter to override the default.
+   */
+  const bool _check_tally_sum;
+
+  /**
+   * Whether a global tally is required for the sake of normalization and/or checking
+   * the tally sum
+   */
+  const bool _needs_global_tally;
+
   /// Whether this tally stores results in variables names something other than '_tally_score'.
   const bool _renames_tally_vars;
 
@@ -354,6 +464,9 @@ protected:
 
   /// Blocks for which to add tallies.
   std::set<SubdomainID> _tally_blocks;
+
+  /// Other tallies linked for normalization.
+  std::vector<const TallyBase *> _linked_tallies;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;

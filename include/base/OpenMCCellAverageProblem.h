@@ -392,8 +392,9 @@ public:
    * @param[in] type the new tally type
    * @param[in] name the name of the new tally
    * @param[in] moose_object_pars the input parameters of the new tally
+   * @return a shared pointer to the TallyBase
    */
-  void
+  std::shared_ptr<TallyBase>
   addTally(const std::string & type, const std::string & name, InputParameters & moose_object_pars);
 
   /**
@@ -402,9 +403,10 @@ public:
    * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
    * multiply the normalized tally (which is unitless and has an integral
    * value of 1.0) by the power.
-   * @param[in] global_score tally score
+   * @param[in] score_name name of the score
+   * @param[in] local_mean_tally the mean tally associated with score_name
    */
-  Real tallyMultiplier(unsigned int global_score) const;
+  Real tallyMultiplier(const std::string & score_name, const Real & local_mean_tally) const;
 
   /**
    * Check whether a vector extracted with getParam is empty
@@ -522,14 +524,6 @@ protected:
    * @return transformed point
    */
   Point transformPointToOpenMC(const Point & pt) const;
-
-  /**
-   * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
-   * against the total tally value).
-   * @param[in] sum sum of the tally
-   * @param[in] score tally score
-   */
-  void checkNormalization(const Real & sum, unsigned int global_score) const;
 
   /**
    * For geometries with fine-scale details (e.g. TRISO), Cardinal's default settings can
@@ -669,12 +663,10 @@ protected:
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
-   * @param[in] global_score the global index of the tally score
    * @param[in] local_score the local index of the tally score
    * @param[in] local_tally the tally to relax and normalize
    */
-  void relaxAndNormalizeTally(unsigned int global_score,
-                              unsigned int local_score,
+  void relaxAndNormalizeTally(unsigned int local_score,
                               std::shared_ptr<TallyBase> local_tally);
 
   /**
@@ -748,19 +740,6 @@ protected:
    * and applying a single density per OpenMC cell.
    */
   void sendDensityToOpenMC() const;
-
-  /**
-   * Factor by which to normalize a tally
-   * @param[in] global_score global index for the tally score
-   * @return value to divide tally sum by for normalization
-   */
-  Real tallyNormalization(unsigned int global_score) const;
-
-  /**
-   * Check the sum of the tallies against the global tally
-   * @param[in] score tally score
-   */
-  void checkTallySum(const unsigned int & score) const;
 
   /**
    * Check if a mapped location is in the outer universe of a lattice
@@ -840,27 +819,6 @@ protected:
    */
   const bool & _export_properties;
 
-  /**
-   * How to normalize the OpenMC tally into units of W/volume. If 'true',
-   * normalization is performed by dividing each local tally against a problem-global
-   * tally. The advantage of this approach is that some non-zero tally regions of the
-   * OpenMC domain can be excluded from multiphysics feedback (without us having to guess
-   * what the power of the *included* part of the domain is). This can let us do
-   * "zooming" type calculations, where perhaps we only want to send T/H feedback to
-   * one bundle in a full core.
-   *
-   * If 'false', normalization is performed by dividing each local tally by the sum
-   * of the local tally itself. The advantage of this approach becomes evident when
-   * using mesh tallies. If a mesh tally does not perfectly align with an OpenMC cell -
-   * for instance, a first-order sphere mesh will not perfectly match the volume of a
-   * TRISO pebble - then not all of the power actually produced in the pebble is
-   * tallies on the mesh approximation to that pebble. Therefore, if you set a core
-   * power of 1 MW and you normalized based on a global tally, you'd always
-   * miss some of that power when sending to MOOSE. So, in this case, it is better to
-   * normalize against the local tally itself so that the correct power is preserved.
-   */
-  const bool _normalize_by_global;
-
   /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
   const bool _using_skinner;
 
@@ -870,21 +828,6 @@ protected:
    * after each OpenMC run.
    */
   bool _need_to_reinit_coupling;
-
-  /**
-   * Whether to check the tallies against the global tally;
-   * if set to true, and the tallies added for the 'tally_blocks' do not
-   * sum to the global tally, an error is thrown. If you are
-   * only performing multiphysics feedback for, say, a single assembly in a
-   * full-core OpenMC model, you must set this check to false, because there
-   * are known fission sources outside the domain of interest.
-   *
-   * If not specified, then this is set to 'true' if normalizing by a global
-   * tally, and to 'false' if normalizing by the local tally (because when we choose
-   * to normalize by the local tally, we're probably using mesh tallies). But you can
-   * of course still set a value for this parameter to override the default.
-   */
-  const bool _check_tally_sum;
 
   /// Constant relaxation factor
   const Real & _relaxation_factor;
@@ -965,12 +908,6 @@ protected:
   bool _needs_to_map_cells;
 
   /**
-   * Whether a global tally is required for the sake of normalization and/or checking
-   * the tally sum
-   */
-  const bool _needs_global_tally;
-
-  /**
    * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is
    * it's corresponding MOOSE name to allow tallies to look up filters.
    */
@@ -982,12 +919,8 @@ protected:
   /// A list of all of the scores contained by the local tallies added in the [Tallies] block.
   std::vector<std::string> _all_tally_scores;
 
-  /**
-   * The [Tallies] block allows tallies with different scores, and so we can't assume they have the
-   * same indices in each tally's arrays. This variable map between the name of each score and it's
-   * index in each local tally.
-   */
-  std::vector<std::map<std::string, int>> _local_tally_score_map;
+  /// Number of tallies scoring a particular score.
+  std::map<std::string, unsigned int> _score_count;
 
   /// A vector of auxvariable ids added by the [Tallies] block.
   std::vector<std::vector<unsigned int>> _tally_var_ids;
@@ -1106,15 +1039,6 @@ protected:
   /// Global tally estimators corresponding to '_global_tallies'.
   std::vector<openmc::TallyEstimator> _global_tally_estimators;
 
-  /// Sum value of the global tally(s), across all bins
-  std::vector<Real> _global_sum_tally;
-
-  /// Sum value of the local tally(s), across all bins
-  std::vector<Real> _local_sum_tally;
-
-  /// Mean value of the local tally(s), across all bins; only used for fixed source mode
-  std::vector<Real> _local_mean_tally;
-
   /// Whether the present transfer is the first transfer
   static bool _first_transfer;
 
@@ -1154,11 +1078,11 @@ protected:
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
 
-  /// Index in OpenMC tallies corresponding to the first global tally added by Cardinal
-  unsigned int _global_tally_index = 0;
+  /// The tally to be used for normalizing all other tallies when running an eigenvalue calculation.
+  std::shared_ptr<TallyBase> _source_rate_norm_tally;
 
-  /// Index in tally_score pointing to the score used for normalizing flux tallies in eigenvalue mode
-  unsigned int _source_rate_index;
+  /// The score index into "_source_rate_norm_tally".
+  int _source_rate_score = -1;
 
 #ifdef ENABLE_DAGMC
   /// Optional skinner to re-generate the OpenMC geometry on-the-fly for DAGMC models

@@ -203,7 +203,6 @@ MeshTally::resetTally()
 Real
 MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
-                             unsigned int global_score,
                              std::vector<xt::xtensor<double, 1>> tally_vals,
                              bool norm_by_src_rate)
 {
@@ -221,8 +220,8 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
       Real volumetric_tally = unnormalized_tally;
-      volumetric_tally *= norm_by_src_rate
-                              ? _openmc_problem.tallyMultiplier(global_score) /
+      volumetric_tally *= norm_by_src_rate ?
+                                    _openmc_problem.tallyMultiplier(_tally_score[local_score], _local_mean_tally[local_score]) /
                                     _mesh_template->volume(e) * _openmc_problem.scaling() *
                                     _openmc_problem.scaling() * _openmc_problem.scaling()
                               : 1.0;

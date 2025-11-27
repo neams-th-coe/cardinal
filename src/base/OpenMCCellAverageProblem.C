@@ -92,6 +92,8 @@ OpenMCCellAverageProblem::validParams()
       "particle source rate (source/sec) for a certain tallies in "
       "eigenvalue mode. In other words, the "
       "source/sec is computed as (power divided by the global value of this tally)");
+  params.addParam<std::string>("normalization_tally",
+    "The name of the local tally to use for normalizing results in eigenvalue calculations.");
 
   params.addParam<MooseEnum>(
       "k_trigger",
@@ -185,15 +187,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
-    _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
-                             ? false
-                             : getParam<bool>("normalize_by_global_tally")),
     _using_skinner(isParamValid("skinner")),
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
-    _check_tally_sum(
-        isParamValid("check_tally_sum")
-            ? getParam<bool>("check_tally_sum")
-            : (_run_mode == openmc::RunMode::FIXED_SOURCE ? true : _normalize_by_global)),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
@@ -201,7 +196,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _specified_density_feedback(params.isParamSetByUser("density_blocks")),
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
-    _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
@@ -300,11 +294,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
     paramError("k_trigger",
                "Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
-
-  if (_assume_separate_tallies && _needs_global_tally)
-    paramError("assume_separate_tallies",
-               "Cannot assume separate tallies when either of 'check_tally_sum' or"
-               "'normalize_by_global_tally' is true!");
 
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
@@ -1858,10 +1847,9 @@ OpenMCCellAverageProblem::getMappedTallyIDs() const
   for (const auto & t : _local_tallies)
     tally_ids.push_back(t->getTallyID());
   // global normalization tallies
-  for (const auto & t : _global_tallies)
-    tally_ids.push_back(t->id());
-  // ensure the first global tally is added as well
-  openmc::model::tallies[_global_tally_index]->id();
+  for (const auto & t : _local_tallies)
+    if (t->needGlobalTally())
+      tally_ids.push_back(t->getGlobalTallyID());
 
   return tally_ids;
 }
@@ -2079,23 +2067,13 @@ OpenMCCellAverageProblem::getPointInCell()
 void
 OpenMCCellAverageProblem::resetTallies()
 {
-  if (_local_tallies.size() == 0 && !_needs_global_tally)
+  if (_local_tallies.size() == 0)
     return;
 
   // We initialize [Problem/Tallies] by forward iterating this vector. We need to delete them in
   // reverse.
   for (int i = _local_tallies.size() - 1; i >= 0; --i)
     _local_tallies[i]->resetTally();
-
-  // erase global tallies
-  if (_needs_global_tally)
-  {
-    for (int i = _global_tally_scores.size() - 1; i >= 0; --i)
-    {
-      auto idx = openmc::model::tallies.begin() + _global_tally_index + i;
-      openmc::model::tallies.erase(idx);
-    }
-  }
 }
 
 void
@@ -2104,26 +2082,8 @@ OpenMCCellAverageProblem::initializeTallies()
   // add trigger information for k, if present
   openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
 
-  if (_local_tallies.size() == 0 && !_needs_global_tally)
+  if (_local_tallies.size() == 0)
     return;
-
-  // create the global tally for normalization; we make sure to use the
-  // same estimator as the local tally
-  if (_needs_global_tally)
-  {
-    _global_tally_index = openmc::model::tallies.size();
-
-    _global_tallies.clear();
-    for (unsigned int i = 0; i < _global_tally_scores.size(); ++i)
-    {
-      _global_tallies.push_back(openmc::Tally::create());
-      _global_tallies[i]->set_scores(_global_tally_scores[i]);
-      _global_tallies[i]->estimator_ = _global_tally_estimators[i];
-    }
-
-    _global_sum_tally.clear();
-    _global_sum_tally.resize(_all_tally_scores.size(), 0.0);
-  }
 
   // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
@@ -2468,15 +2428,15 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
 }
 
 Real
-OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
+OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name, const Real & local_mean_tally) const
 {
-  if (!isHeatingScore(_all_tally_scores[global_score]))
+  if (!isHeatingScore(score_name))
   {
     // we need to get an effective source rate (particles / second) in order to
     // normalize the tally
-    Real source = _local_mean_tally[global_score];
+    Real source = local_mean_tally;
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-      source *= *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
+      source *= *_power / EV_TO_JOULE / _source_rate_norm_tally->getMean(_source_rate_score);
     else
       source *= *_source_strength;
 
@@ -2490,13 +2450,13 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
     //   damage-energy are the same as a heating tally, we don't normalize it like one as it's
     //   used as an intermediate to compute DPA.
-    if (isReactionRateScore(_all_tally_scores[global_score]) ||
-        _all_tally_scores[global_score] == "inverse-velocity" ||
-        _all_tally_scores[global_score] == "decay-rate" ||
-        _all_tally_scores[global_score] == "damage-energy")
+    if (isReactionRateScore(score_name) ||
+        score_name == "inverse-velocity" ||
+        score_name == "decay-rate" ||
+        score_name == "damage-energy")
       return source;
 
-    if (_all_tally_scores[global_score] == "flux")
+    if (score_name == "flux")
       return source / _scaling;
     else
       mooseError("Unhandled tally score enum!");
@@ -2507,23 +2467,14 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     if (_run_mode == openmc::RunMode::EIGENVALUE)
       return *_power;
     else
-      return *_source_strength * EV_TO_JOULE * _local_mean_tally[global_score];
+      return *_source_strength * EV_TO_JOULE * local_mean_tally;
   }
 }
 
-Real
-OpenMCCellAverageProblem::tallyNormalization(unsigned int global_score) const
-{
-  return _normalize_by_global ? _global_sum_tally[global_score] : _local_sum_tally[global_score];
-}
-
 void
-OpenMCCellAverageProblem::relaxAndNormalizeTally(unsigned int global_score,
-                                                 unsigned int local_score,
+OpenMCCellAverageProblem::relaxAndNormalizeTally(unsigned int local_score,
                                                  std::shared_ptr<TallyBase> local_tally)
 {
-  Real comparison = tallyNormalization(global_score);
-
   Real alpha;
   switch (_relaxation)
   {
@@ -2551,7 +2502,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(unsigned int global_score,
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
 
-  local_tally->relaxAndNormalizeTally(local_score, alpha, comparison);
+  local_tally->relaxAndNormalizeTally(local_score, alpha);
 }
 
 void
@@ -2561,15 +2512,6 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
                                           4.0 * _n_particles_1 * _total_n_particles)) /
               2.0;
   openmc::settings::n_particles = n;
-}
-
-void
-OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int global_score) const
-{
-  if (tallyNormalization(global_score) > ZERO_TALLY_THRESHOLD)
-    if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
-      mooseError("Tally normalization process failed for " + _all_tally_scores[global_score] +
-                 " score! Total fraction of " + Moose::stringify(sum) + " does not match 1.0!");
 }
 
 void
@@ -2675,87 +2617,38 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
         break;
 
-      // Get the total tallies for normalization
-      if (_global_tallies.size() > 0)
-      {
-        for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-        {
-          for (unsigned int i = 0; i < _global_tallies.size(); ++i)
-          {
-            auto loc = std::find(_global_tally_scores[i].begin(),
-                                 _global_tally_scores[i].end(),
-                                 _all_tally_scores[global_score]);
-            if (loc == _global_tally_scores[i].end())
-              continue;
-
-            auto index = loc - _global_tally_scores[i].begin();
-            _global_sum_tally[global_score] = tallySumAcrossBins({_global_tallies[i]}, index);
-          }
-        }
-      }
-
       // Loop over all of the tallies and calculate their sums and averages.
       for (auto & local_tally : _local_tallies)
         local_tally->computeSumAndMean();
 
-      // Accumulate the sums and means for every score.
-      _local_sum_tally.clear();
-      _local_sum_tally.resize(_all_tally_scores.size(), 0.0);
-      _local_mean_tally.clear();
-      _local_mean_tally.resize(_all_tally_scores.size(), 0.0);
-      for (unsigned int i = 0; i < _local_tallies.size(); ++i)
-      {
-        for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-        {
-          const auto & tally_name = _all_tally_scores[global_score];
-          if (_local_tally_score_map[i].count(tally_name) ==
-              0) // If the local tally doesn't have this score, skip it.
-            continue;
-
-          auto local_score = _local_tally_score_map[i].at(_all_tally_scores[global_score]);
-          _local_sum_tally[global_score] += _local_tallies[i]->getSum(local_score);
-          _local_mean_tally[global_score] += _local_tallies[i]->getMean(local_score);
-        }
-      }
-
-      if (_check_tally_sum)
-        for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-          checkTallySum(global_score);
+      // Recompute sums and means for tallies that are linked to othher tallies.
+      // This is used to perform local normalization for translated copies of mesh tallies.
+      // These loops must be separate due to data dependencies.
+      for (auto & local_tally : _local_tallies)
+        local_tally->gatherLinkedSum();
+      for (auto & local_tally : _local_tallies)
+        local_tally->renormalizeLinkedTallies();
 
       // Loop over the tallies to relax and normalize their results score by score. Then, store the
       // results.
-      std::vector<Real> sums;
-      sums.resize(_all_tally_scores.size(), 0.0);
       for (unsigned int i = 0; i < _local_tallies.size(); ++i)
       {
-        for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
+        for (unsigned int score = 0; score < _local_tallies[i]->getScores().size(); ++score)
         {
-          const auto & tally_name = _all_tally_scores[global_score];
-          if (_local_tally_score_map[i].count(tally_name) ==
-              0) // If the local tally doesn't have this score, skip it.
-            continue;
-
-          auto local_score = _local_tally_score_map[i].at(tally_name);
-          relaxAndNormalizeTally(global_score, local_score, _local_tallies[i]);
+          relaxAndNormalizeTally(score, _local_tallies[i]);
 
           // Store the tally results.
-          sums[global_score] += _local_tallies[i]->storeResults(
-              _tally_var_ids[i], local_score, global_score, "relaxed");
+          _local_tallies[i]->storeResults(_tally_var_ids[i], score, "relaxed");
 
           // Store additional tally outputs.
           if (_local_tallies[i]->hasOutputs())
           {
             const auto & outs = _local_tallies[i]->getOutputs();
             for (unsigned int j = 0; j < outs.size(); ++j)
-              _local_tallies[i]->storeResults(
-                  _tally_ext_var_ids[i][j], local_score, global_score, outs[j]);
+              _local_tallies[i]->storeResults(_tally_ext_var_ids[i][j], score, outs[j]);
           }
         }
       }
-
-      // Check the normalization.
-      for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-        checkNormalization(sums[global_score], global_score);
 
       break;
     }
@@ -2766,25 +2659,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
-}
-
-void
-OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
-{
-  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] > 1e-6)
-  {
-    std::stringstream msg;
-    msg << _all_tally_scores[score] << " tallies do not match the global "
-        << _all_tally_scores[score] << " tally:\n"
-        << " Global value: " << Moose::stringify(_global_sum_tally[score])
-        << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
-        << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
-        << "\n\nThis means that the tallies created by Cardinal are missing some hits over the "
-           "domain.\n"
-        << "You can turn off this check by setting 'check_tally_sum' to false.";
-
-    mooseError(msg.str());
-  }
 }
 
 void
@@ -2937,19 +2811,23 @@ OpenMCCellAverageProblem::addFilter(const std::string & type,
   _filters[name] = filter;
 }
 
-void
+std::shared_ptr<TallyBase>
 OpenMCCellAverageProblem::addTally(const std::string & type,
                                    const std::string & name,
                                    InputParameters & moose_object_pars)
 {
   auto tally = addObject<TallyBase>(type, name, moose_object_pars, false)[0];
   _local_tallies.push_back(tally);
-  _local_tally_score_map.emplace_back();
 
   const auto & tally_scores = tally->getScores();
   for (unsigned int i = 0; i < tally_scores.size(); ++i)
   {
-    _local_tally_score_map.back()[tally_scores[i]] = i;
+    // Populate a map which counts the number of times a score is referenced by local tallies.
+    // Used for error checking.
+    if (_score_count.count(tally_scores[i]) == 0)
+      _score_count[tally_scores[i]] = 1;
+    else
+      _score_count[tally_scores[i]]++;
 
     // Add the local tally's score to the list of scores if we don't have it yet.
     if (std::find(_all_tally_scores.begin(), _all_tally_scores.end(), tally_scores[i]) ==
@@ -2957,12 +2835,7 @@ OpenMCCellAverageProblem::addTally(const std::string & type,
       _all_tally_scores.push_back(tally_scores[i]);
   }
 
-  // Add the associated global tally if required.
-  if (_needs_global_tally && tally->getAuxVarNames().size() > 0)
-  {
-    _global_tally_scores.push_back(tally_scores);
-    _global_tally_estimators.push_back(tally->getTallyEstimator());
-  }
+  return tally;
 }
 
 void
@@ -2972,35 +2845,19 @@ OpenMCCellAverageProblem::validateLocalTallies()
   if (_local_tallies.size() == 0)
     return;
 
-  /**
-   * Check to make sure local tallies don't share scores (unless they're distributed mesh tallies).
-   * This prevents normalization issues as we sum the values of all of the scores over all of the
-   * tally bins.
-   * TODO: we might be able to loosen this restriction later if there's a good way to
-   * account for bin overlap.
-   */
-  std::vector<unsigned int> tallies_per_score;
-  tallies_per_score.resize(_all_tally_scores.size(), 0);
-  for (unsigned int i = 0; i < _local_tallies.size(); ++i)
+  // Make sure we can assume that tallies can be separate.
+  if (_assume_separate_tallies)
   {
-    for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-    {
-      bool has_score = _local_tally_score_map[i].count(_all_tally_scores[global_score]) == 1;
-      // The second check is required to avoid multi counting translated mesh tallies.
-      if (has_score && _local_tallies[i]->getAuxVarNames().size() > 0)
-        tallies_per_score[global_score]++;
-    }
-  }
+    for (const auto & tally : _local_tallies)
+      if (tally->needGlobalTally())
+        paramError("assume_separate_tallies",
+                  "Cannot assume separate tallies when either of 'check_tally_sum' or"
+                  "'normalize_by_global_tally' is true!");
 
-  for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-  {
-    if (tallies_per_score[global_score] > 1)
-    {
-      mooseError("You have added " + Moose::stringify(tallies_per_score[global_score]) +
-                 " tallies which score " + _all_tally_scores[global_score] +
-                 "!\nCardinal does not support multiple tallies with the same"
-                 " scores as these tallies may have overlapping bins, preventing normalization.");
-    }
+    for (const auto & s : _all_tally_scores)
+      if (_score_count.at(s) > 1)
+        paramError("assume_separate_tallies",
+                   "Cannot assume separate tallies when multiple tallies tally the same score!");
   }
 
   // need some special treatment for non-heating scores, in eigenvalue mode
@@ -3029,15 +2886,79 @@ OpenMCCellAverageProblem::validateLocalTallies()
                        "source_rate_normalization",
                        "using a non-heating tally (" + non_heating_scores + ") in eigenvalue mode");
     const auto & norm = getParam<MooseEnum>("source_rate_normalization");
-
-    // If the score is already in tally_score, no need to do anything special.
     std::string n = enumToTallyScore(norm);
-    auto it = std::find(_all_tally_scores.begin(), _all_tally_scores.end(), n);
-    if (it != _all_tally_scores.end())
-      _source_rate_index = it - _all_tally_scores.begin();
-    else if (it == _all_tally_scores.end() && _local_tallies.size() == 1)
+
+    if (_local_tallies.size() > 1)
     {
-      if (_local_tallies[0]->renamesTallyVars())
+      if (_score_count.count(n) == 0)
+        mooseError("The local tallies added in the [Tallies] block do not contain the requested "
+          "heating score " +
+          n +
+          ". You must either add this score in one of the tallies or choose a different "
+          "heating score.");
+
+      if (_score_count.at(n) > 1)
+      {
+        // Edge case: multiple scores from linked MeshTally objects.
+        unsigned int linked = 0;
+        unsigned int num_with_score = 0;
+        for (auto tally : _local_tallies)
+        {
+          if (tally->hasScore(n))
+          {
+            linked = std::max(linked, tally->numLinkedTallies() + 1);
+            num_with_score++;
+          }
+        }
+
+        // Can only allow auto-detection of the normalization tally if there is a single linkage
+        // of every mesh tally with the normalization score.
+        if (_score_count.at(n) != linked || _score_count.at(n) != num_with_score)
+        {
+          // If there are more then one value of 'source_rate_normalization', the user needs
+          // to tell us which tally to use.
+          checkRequiredParam(_pars,
+                            "normalization_tally",
+                            "using a non-heating tally ("
+                            + non_heating_scores
+                            + ") in eigenvalue mode and adding more then one tally in the [Tallies] block");
+          const auto norm_tally_name = getParam<std::string>("normalization_tally");
+
+          // Check to make sure the user provided a tally name for eigenvalue normalization
+          // that's been added.
+          for (auto tally : _local_tallies)
+            if (norm_tally_name == tally->name())
+              _source_rate_norm_tally = tally;
+
+          if (!_source_rate_norm_tally)
+            paramError("normalization_tally",
+                       "The tally "
+                       + norm_tally_name
+                       + " does not exist in the problem! Please specify a tally added in the [Tallies] block!");
+        }
+        else
+        {
+          for (auto tally : _local_tallies)
+            if (tally->hasScore(n))
+              _source_rate_norm_tally = tally;
+        }
+      }
+      else
+      {
+        // Otherwise, we can check the tallies added and find the one scoring the requested
+        // value of 'source_rate_normalization'.
+        for (auto tally : _local_tallies)
+          if (tally->hasScore(n))
+            _source_rate_norm_tally = tally;
+      }
+    }
+    else
+      _source_rate_norm_tally = _local_tallies[0];
+
+    // If it's not in the specified source rate tally, we can add it for the user.
+    if (!_source_rate_norm_tally->hasScore(n))
+    {
+      if (_source_rate_norm_tally->renamesTallyVars())
         mooseError("When specifying 'name', the score indicated in "
                    "'source_rate_normalization' must be\n"
                    "listed in 'score' so that we know what you want to name that score (",
@@ -3047,20 +2968,11 @@ OpenMCCellAverageProblem::validateLocalTallies()
       // We can add the requested normalization score if and only if a single tally was added by
       // [Tallies].
       _all_tally_scores.push_back(n);
-      _local_tallies[0]->addScore(n);
-      _local_tally_score_map[0][n] = _local_tallies[0]->getScores().size() - 1;
-      _global_tally_scores[0].push_back(n);
-      _source_rate_index = _all_tally_scores.size() - 1;
+      _source_rate_norm_tally->addScore(n);
+      _source_rate_score = _source_rate_norm_tally->scoreIndex(n);
     }
     else
-    {
-      // Otherwise, we error and let the user know that they need to add the score.
-      mooseError("The local tallies added in the [Tallies] block do not contain the requested "
-                 "heating score " +
-                 n +
-                 ". You must either add this score in one of the tallies or choose a different "
-                 "heating score.");
-    }
+      _source_rate_score = _source_rate_norm_tally->scoreIndex(n);
   }
   else if (isParamValid("source_rate_normalization"))
     mooseWarning(
