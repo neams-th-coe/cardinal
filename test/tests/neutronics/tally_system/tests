@@ -104,4 +104,12 @@
     requirement = "The system shall error if two tallies score the normalization score and the user does not specify which to use for normalization."
     capabilities = 'openmc'
   []
+  [duplicate_names]
+    type = RunException
+    input = same_scores.i
+    cli_args = 'Problem/normalization_tally="Cell" Problem/Tallies/Cell/name="kappa_fission" Problem/Tallies/Mesh/name="kappa_fission flux"'
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'kappa_fission', but you already have a variable by this name."
+    requirement = "The system shall error if two tallies scoring the same score add the same variable names."
+    capabilities = 'openmc'
+  []
 []
