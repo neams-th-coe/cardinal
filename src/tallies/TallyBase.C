@@ -84,6 +84,15 @@ TallyBase::validParams()
 
   params.addParam<std::vector<std::string>>("filters", "External filters to add to this tally.");
 
+  params.addParam<bool>("check_tally_sum",
+                        "Whether to check consistency between the local tallies "
+                        "with a global tally sum");
+  params.addParam<bool>(
+      "normalize_by_global_tally",
+      true,
+      "Whether to normalize local tallies by a global tally (true) or else by the sum "
+      "of the local tally (false)");
+
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
   params.registerBase("Tally");
@@ -99,6 +108,14 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _aux(_openmc_problem.getAuxiliarySystem()),
     _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
     _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
+    _normalize_by_global(_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE
+                             ? false
+                             : getParam<bool>("normalize_by_global_tally")),
+    _check_tally_sum(
+        isParamValid("check_tally_sum")
+            ? getParam<bool>("check_tally_sum")
+            : (_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE ? true : _normalize_by_global)),
+    _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
@@ -340,11 +357,30 @@ TallyBase::initializeTally()
   _local_mean_tally.clear();
   _local_mean_tally.resize(_tally_score.size(), 0.0);
 
+  if (_linked_tallies.size() > 0)
+  {
+    _linked_local_sum_tally.clear();
+    _linked_local_sum_tally.resize(_tally_score.size(), 0.0);
+  }
+
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
   _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
+
+  // create the global tally for normalization; we make sure to use the
+  // same estimator as the local tally
+  if (_needs_global_tally)
+  {
+    _global_sum_tally.clear();
+    _global_sum_tally.resize(_tally_score.size(), 0.0);
+
+    _global_tally_index = openmc::model::tallies.size();
+    _global_tally = openmc::Tally::create();
+    _global_tally->set_scores(_tally_score);
+    _global_tally->estimator_ = _estimator;
+  }
 
   auto [index, spatial_filter] = spatialFilter();
   _filter_index = index;
@@ -371,6 +407,10 @@ TallyBase::resetTally()
   // Erase the tally.
   openmc::model::tallies.erase(openmc::model::tallies.begin() + _local_tally_index);
 
+  // Erase global tally.
+  if (_needs_global_tally)
+    openmc::model::tallies.erase(openmc::model::tallies.begin() + _global_tally_index);
+
   // Erase the filter(s).
   openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
 }
@@ -378,21 +418,24 @@ TallyBase::resetTally()
 Real
 TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
                         unsigned int local_score,
-                        unsigned int global_score,
                         const std::string & output_type)
 {
   Real total = 0.0;
 
   if (output_type == "relaxed")
-    total += storeResultsInner(var_numbers, local_score, global_score, _current_tally);
+    total += storeResultsInner(var_numbers, local_score, _current_tally);
   else if (output_type == "rel_error")
-    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_rel_error, false);
+    storeResultsInner(var_numbers, local_score, _current_raw_tally_rel_error, false);
   else if (output_type == "std_dev")
-    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_std_dev);
+    storeResultsInner(var_numbers, local_score, _current_raw_tally_std_dev);
   else if (output_type == "raw")
-    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally);
+    storeResultsInner(var_numbers, local_score, _current_raw_tally);
   else
     mooseError("Unknown external output " + output_type);
+
+  // Check the normalization.
+  if (output_type == "relaxed")
+    checkNormalization(total, local_score);
 
   return total;
 }
@@ -445,12 +488,46 @@ TallyBase::computeSumAndMean()
                        static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
 
     _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
+    if (_needs_global_tally)
+      _global_sum_tally[score] = _openmc_problem.tallySumAcrossBins({_global_tally}, score);
+
+    if (_linked_tallies.size() > 0)
+      _linked_local_sum_tally[score] = _local_sum_tally[score];
   }
 }
 
 void
-TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm)
+TallyBase::gatherLinkedSum()
 {
+  if (_linked_tallies.size() == 0)
+    return;
+
+  for (const auto & other : _linked_tallies)
+    for (unsigned int score = 0; score < _tally_score.size(); ++score)
+      _linked_local_sum_tally[score] += other->getSum(score);
+}
+
+void
+TallyBase::renormalizeLinkedTallies()
+{
+  if (_linked_tallies.size() == 0)
+    return;
+
+  for (unsigned int score = 0; score < _tally_score.size(); ++score)
+  {
+    _local_sum_tally[score] = _linked_local_sum_tally[score];
+    _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
+  }
+}
+
+void
+TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha)
+{
+  if (_check_tally_sum && _needs_global_tally)
+    checkTallySum(local_score);
+
+  const Real norm = tallyNormalization(local_score);
+
   auto & current = _current_tally[local_score];
   auto & previous = _previous_tally[local_score];
   auto & current_raw = _current_raw_tally[local_score];
@@ -489,19 +566,43 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
   std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
 }
 
+void
+TallyBase::addLinkedTally(const TallyBase * other)
+{
+  if (this != other)
+    _linked_tallies.push_back(other);
+  else
+    mooseError("Internal error: cannot link a tally with itself!");
+}
+
 const openmc::Tally *
 TallyBase::getWrappedTally() const
 {
   if (!_local_tally)
-    mooseError("This tally has not been initialized!");
+    mooseError("Internal error: this tally has not been initialized!");
 
   return _local_tally;
+}
+
+const openmc::Tally *
+TallyBase::getWrappedGlobalTally() const
+{
+  if (!_global_tally)
+    mooseError("Internal error: this tally has not been initialized!");
+
+  return _global_tally;
 }
 
 int32_t
 TallyBase::getTallyID() const
 {
   return getWrappedTally()->id();
+}
+
+int32_t
+TallyBase::getGlobalTallyID() const
+{
+  return getWrappedGlobalTally()->id();
 }
 
 int
@@ -559,5 +660,39 @@ TallyBase::applyTriggersToLocalTally(openmc::Tally * tally)
                                   _tally_trigger_threshold[score],
                                   _trigger_ignore_zeros[score],
                                   score});
+}
+
+Real
+TallyBase::tallyNormalization(unsigned int score) const
+{
+  return _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
+}
+
+void
+TallyBase::checkTallySum(const unsigned int & score) const
+{
+  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] > 1e-6)
+  {
+    std::stringstream msg;
+    msg << _tally_score[score] << " tallies do not match the global "
+        << _tally_score[score] << " tally:\n"
+        << " Global value: " << Moose::stringify(_global_sum_tally[score])
+        << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
+        << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
+        << "\n\nThis means that the tallies created by Cardinal are missing some hits over the "
+           "domain.\n"
+        << "You can turn off this check by setting 'check_tally_sum' to false.";
+
+    mooseError(msg.str());
+  }
+}
+
+void
+TallyBase::checkNormalization(const Real & sum, unsigned int score) const
+{
+  if (tallyNormalization(score) > ZERO_TALLY_THRESHOLD)
+    if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+      mooseError("Tally normalization process failed for " + _tally_score[score] +
+                 " score! Total fraction of " + Moose::stringify(sum) + " does not match 1.0!");
 }
 #endif

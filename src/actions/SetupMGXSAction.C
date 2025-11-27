@@ -57,6 +57,14 @@ SetupMGXSAction::validParams()
       "The type of estimator to use with the tallies added for MGXS generation. This is not "
       "applied to scattering / fission"
       " scores as the filters applied to those scores only support analog estimators.");
+  params.addParam<bool>("check_tally_sum",
+                        "Whether to check consistency between the local tallies "
+                        "with a global tally sum");
+  params.addParam<bool>(
+      "normalize_by_global_tally",
+      true,
+      "Whether to normalize local tallies by a global tally (true) or else by the sum "
+      "of the local tally (false)");
 
   // Options for MGXS generation. At a minimum, we generate multi-group total cross sections.
   params.addParam<bool>(
@@ -272,6 +280,9 @@ SetupMGXSAction::addTallies()
   // Total and flux tally.
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "total flux", false);
     params.set<MooseEnum>("estimator") = _estimator;
@@ -290,6 +301,9 @@ SetupMGXSAction::addTallies()
   if (_add_scattering || _add_diffusion)
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_scatter", false);
     params.set<MooseEnum>("estimator") = "analog";
@@ -309,6 +323,9 @@ SetupMGXSAction::addTallies()
   if (_add_fission)
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "nu_fission", false);
     params.set<MooseEnum>("estimator") = "analog";
@@ -327,6 +344,9 @@ SetupMGXSAction::addTallies()
   if (_add_kappa_fission)
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "kappa_fission", false);
     params.set<MooseEnum>("estimator") = _estimator;
@@ -344,6 +364,9 @@ SetupMGXSAction::addTallies()
   if (_add_inv_vel)
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "inverse_velocity", false);
     params.set<MooseEnum>("estimator") = _estimator;
@@ -361,6 +384,9 @@ SetupMGXSAction::addTallies()
   if (_add_absorption)
   {
     auto params = _factory.getValidParams(tally_type);
+    if (isParamValid("check_tally_sum"))
+      params.set<bool>("check_tally_sum") = getParam<bool>("check_tally_sum");
+    params.set<bool>("normalize_by_global_tally") = getParam<bool>("normalize_by_global_tally");
     params.set<MultiMooseEnum>("score") =
         MultiMooseEnum(getTallyScoreEnum().getRawNames(), "absorption", false);
     params.set<MooseEnum>("estimator") = _estimator;

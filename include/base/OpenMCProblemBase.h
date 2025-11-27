@@ -257,6 +257,12 @@ public:
   int nTotalParticles() const { return _total_n_particles; }
 
   /**
+   * Run mode of the OpenMC simulation
+   * @return the current run mode for OpenMC
+   */
+  openmc::RunMode runMode() const { return _run_mode; }
+
+  /**
    * Get the cell ID from the cell index
    * @param[in] index cell index
    * @return cell ID
