@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#1104'
+  issues = '#1104 #1107'
   design = 'LambdaEffective.md BetaEffective.md OpenMCCellAverageProblem.md'
 
   [compute_both]
@@ -7,6 +7,13 @@
     input = both.i
     csvdiff = both_out.csv
     requirement = "The system shall be able to calculate neutron kinetics parameters."
+    capabilities = 'openmc'
+  []
+  [six_group_beta]
+    type = CSVDiff
+    input = six_grp.i
+    csvdiff = six_grp_out.csv
+    requirement = "The system shall be able to calculate separate values of beta_eff for each delayed group in the ENDF delayed group structure."
     capabilities = 'openmc'
   []
   [no_ifp_lambda]
