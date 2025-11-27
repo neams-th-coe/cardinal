@@ -22,6 +22,7 @@
 
 #include "CardinalEnums.h"
 #include "TallyBase.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", ElementOpticalDepthIndicator);
 
@@ -48,6 +49,14 @@ ElementOpticalDepthIndicator::validParams()
       false,
       "Whether the optical depth is computed as the optical depth (false) or the inverse of the "
       "optical depth (true).");
+  params.addParam<std::string>(
+      "rxn_rate_tally",
+      "The name of the tally to fetch the reaction rate variable from. Only required if "
+      "your problem contains multiple tallies which accumulate the same reaction rate.");
+  params.addParam<std::string>(
+      "flux_tally",
+      "The name of the tally to fetch the flux variable from. Only required if "
+      "your problem contains multiple tallies which accumulate flux.");
 
   return params;
 }
@@ -79,11 +88,44 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
     mooseError("In order to use an ElementOpticalDepthIndicator one of your [Tallies] must add a "
                "flux score.");
 
+  std::string rxn_rate_tally_name = "";
+  if (_openmc_problem->getNumScoringTallies(score) > 1)
+  {
+    // When the problem has more then one tally accumulating the given score, the user needs to tell us
+    // which one to use.
+    checkRequiredParam(_pars,
+      "rxn_rate_tally",
+      "adding more then one tally with " + score + " in the [Tallies] block");
+
+    rxn_rate_tally_name = getParam<std::string>("rxn_rate_tally");
+    const auto * tally = _openmc_problem->getTally(rxn_rate_tally_name);
+    if (!tally)
+      paramError("rxn_rate_tally", "This tally does not exist in the [Tallies] block!");
+
+    if (!tally->hasScore(score))
+      paramError("rxn_rate_tally", "This tally does not score " + score + "!");
+  }
+  std::string flux_tally_name = "";
+  if (_openmc_problem->getNumScoringTallies("flux") > 1)
+  {
+    checkRequiredParam(_pars,
+      "flux_tally",
+      "adding more then one tally with flux in the [Tallies] block");
+
+    flux_tally_name = getParam<std::string>("flux_tally");
+    const auto * tally = _openmc_problem->getTally(flux_tally_name);
+    if (!tally)
+      paramError("flux_tally", "This tally does not exist in the [Tallies] block!");
+
+    if (!tally->hasScore("flux"))
+      paramError("flux_tally", "This tally does not score flux!");
+  }
+
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;
-  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid, "", true))
+  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid, rxn_rate_tally_name, "", true))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
-  for (const auto v : _openmc_problem->getTallyScoreVariables("flux", _tid, "", true))
+  for (const auto v : _openmc_problem->getTallyScoreVariables("flux", _tid, flux_tally_name, "", true))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
 
   if (!const_mon)
@@ -92,8 +134,8 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
                "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
 
   // Grab the reaction rate / flux variables from the [Tallies].
-  _rxn_rates = _openmc_problem->getTallyScoreVariableValues(score, _tid, "", true);
-  _scalar_fluxes = _openmc_problem->getTallyScoreVariableValues("flux", _tid, "", true);
+  _rxn_rates = _openmc_problem->getTallyScoreVariableValues(score, _tid, rxn_rate_tally_name, "", true);
+  _scalar_fluxes = _openmc_problem->getTallyScoreVariableValues("flux", _tid, flux_tally_name, "", true);
 }
 
 void
