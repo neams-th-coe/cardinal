@@ -19,13 +19,11 @@
 
   power = 1.0
   source_rate_normalization = 'kappa_fission'
-  # Some tally results will be missed as photon transport is enabled, but we filter MGXS tallies by a single particle type.
-  # This forces us to disable global normalization.
-  normalize_by_global_tally = false
 
   [Tallies/Cell]
     type = CellTally
     block = '100'
+    normalize_by_global_tally = false
   []
 
   [MGXS]
@@ -33,6 +31,7 @@
     particle = neutron
     group_structure = CASMO_2
     estimator = 'analog'
+    normalize_by_global_tally = false
     hide_tally_vars = true
 
     add_scattering = true

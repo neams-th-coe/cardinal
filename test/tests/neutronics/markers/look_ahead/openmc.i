@@ -40,7 +40,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  normalize_by_global_tally = false
 
   power = 100.0
   source_rate_normalization = 'kappa_fission'
@@ -50,10 +49,14 @@
       type = MeshTally
       score = 'kappa_fission'
       output = 'unrelaxed_tally_rel_error'
+
+      normalize_by_global_tally = false
     []
     [Mesh_2]
       type = MeshTally
       score = 'flux fission'
+
+      normalize_by_global_tally = false
     []
   []
 []
