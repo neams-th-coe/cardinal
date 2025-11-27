@@ -51,18 +51,18 @@ LambdaEffective::LambdaEffective(const InputParameters & parameters) : KEigenval
 Real
 LambdaEffective::getValue() const
 {
-  const auto & ifp_tally = _openmc_problem->getKineticsParamTally();
+  const auto & ifp_tally = _openmc_problem->getCommonKineticsTally();
   const auto n = ifp_tally.n_realizations_;
 
   const auto num_sum =
       xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
   const auto den_sum =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM));
+      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM));
 
   const auto num_ss =
       xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
   const auto den_ss =
-      xt::view(ifp_tally.results_, xt::all(), 2, static_cast<int>(openmc::TallyResult::SUM_SQ));
+      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
   const auto mean_k = kMean();
   const auto k_rel = kRelativeError();
