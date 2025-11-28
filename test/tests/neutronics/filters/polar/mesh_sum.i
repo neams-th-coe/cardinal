@@ -29,14 +29,14 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  # Disable global normalization since we have a loosely fitting mesh tally.
-  normalize_by_global_tally = false
-
   [Tallies]
     [Heating]
       type = CellTally
       score = 'kappa_fission'
       block = '100'
+
+      # Disable global normalization since we have a loosely fitting mesh tally.
+      normalize_by_global_tally = false
     []
     [Flux]
       type = MeshTally
@@ -46,6 +46,9 @@
                            0 0 4
                            0 0 8'
       filters = 'Polar'
+
+      # Disable global normalization since we have a loosely fitting mesh tally.
+      normalize_by_global_tally = false
     []
   []
 

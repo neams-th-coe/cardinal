@@ -44,8 +44,6 @@
   cell_level = 1
   scaling = 100.0
 
-  check_tally_sum = false
-
   [Tallies]
     [Mesh]
       type = MeshTally
@@ -53,6 +51,8 @@
       mesh_translations = '0.0 0.0 0.02
                            0.0 0.0 0.06
                            0.0 0.0 0.10'
+
+      check_tally_sum = false
     []
   []
 []

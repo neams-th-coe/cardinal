@@ -40,14 +40,14 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  # We are intentionally excluding some blocks, so we need to disable global normalization.
-  normalize_by_global_tally = false
-
   [Tallies]
     [Cell_1]
       type = CellTally
       score = kappa_fission
       block = '100'
+
+      # We are intentionally excluding some blocks, so we need to disable global normalization.
+      normalize_by_global_tally = false
     []
   []
 []

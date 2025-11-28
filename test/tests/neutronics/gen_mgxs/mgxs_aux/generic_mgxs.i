@@ -40,7 +40,6 @@
   initial_properties = xml
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
 
   power = 1.0
   source_rate_normalization = 'kappa_fission'
@@ -50,12 +49,16 @@
       type = CellTally
       score = 'kappa_fission'
       block = '100'
+
+      normalize_by_global_tally = false
     []
     [Cell_Total_Flux]
       type = CellTally
       score = 'total flux'
       block = '100'
       filters = 'Energy'
+
+      normalize_by_global_tally = false
     []
   []
   [Filters]

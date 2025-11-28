@@ -40,14 +40,14 @@
 
   skinner = moab
 
-  # Since we're ignoring the CSG geometry when mapping tallies, we need to
-  # disable the tally sum check.
-  check_tally_sum = false
-
   [Tallies]
     [Cell]
       type = CellTally
       block = '1 2'
+
+      # Since we're ignoring the CSG geometry when mapping tallies, we need to
+      # disable the tally sum check.
+      check_tally_sum = false
     []
   []
 []

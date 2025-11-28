@@ -71,8 +71,18 @@ AddTallyAction::act()
   if (_current_task == "add_tallies")
   {
     if (_type == "MeshTally")
+    {
+      // Add translated mesh tallies.
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
         addMeshTally(i, _mesh_translations[i]);
+
+      // Link them together for shared normalization.
+      for (const auto & tally_1 : _linked_mesh_tallies)
+        for (const auto & tally_2 : _linked_mesh_tallies)
+          if (tally_1 != tally_2)
+            tally_1->addLinkedTally(tally_2.get());
+      _linked_mesh_tallies.clear();
+    }
     else
       addTally();
   }
@@ -89,13 +99,15 @@ AddTallyAction::addMeshTally(unsigned int instance, const Point & translation)
   std::string obj_name = _name;
   if (_mesh_translations.size() > 1)
   {
-    obj_name += "_" + Moose::stringify(instance);
+    if (instance != 0)
+      obj_name += "_" + Moose::stringify(instance);
+
     _moose_object_pars.set<unsigned int>("instance") = instance;
     _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
   }
 
   _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
-  openmc_problem->addTally(_type, obj_name, _moose_object_pars);
+  _linked_mesh_tallies.push_back(openmc_problem->addTally(_type, obj_name, _moose_object_pars));
 }
 
 void

@@ -34,9 +34,6 @@
 
   initial_properties = xml
 
-  # We are skipping some feedback with fissile regions, so we need to turn off the check
-  check_tally_sum = false
-
   verbose = true
   cell_level = 0
 
@@ -50,6 +47,9 @@
       # the power is the total power of the OpenMC problem, and only a fraction of this
       # will be computed in the solid pebbles
       block = '100'
+
+      # We are skipping some feedback with fissile regions, so we need to turn off the check
+      check_tally_sum = false
     []
   []
 []

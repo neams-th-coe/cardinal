@@ -43,13 +43,13 @@
 
   initial_properties = xml
 
-  check_tally_sum = false
-
   [Tallies]
     [Mesh]
       type = MeshTally
       score = 'flux'
       output = 'unrelaxed_tally'
+
+      check_tally_sum = false
     []
   []
 []

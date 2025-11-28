@@ -24,7 +24,6 @@
   type = OpenMCCellAverageProblem
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
 
   power = 100.0
   source_rate_normalization = 'kappa_fission'
@@ -34,6 +33,8 @@
       type = MeshTally
       score = 'kappa_fission'
       output = 'unrelaxed_tally_rel_error'
+
+      normalize_by_global_tally = false
     []
   []
 []

@@ -22,7 +22,6 @@
   power = 100.0
   temperature_blocks = '100'
   cell_level = 0
-  check_tally_sum = false
 
   initial_properties = xml
 
@@ -30,6 +29,8 @@
     [Cell]
       type = CellTally
       block = '100'
+
+      check_tally_sum = false
     []
   []
 []

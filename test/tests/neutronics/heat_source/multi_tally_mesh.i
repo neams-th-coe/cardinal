@@ -27,8 +27,6 @@
   verbose = true
   cell_level = 0
 
-  check_tally_sum = false
-
   initial_properties = xml
 
   [Tallies]
@@ -39,6 +37,8 @@
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'
+
+      check_tally_sum = false
     []
   []
 []

@@ -23,7 +23,6 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 100.0
-  normalize_by_global_tally = false
 
   particles = 1000
   max_batches = 200
@@ -37,6 +36,8 @@
                            0 0 8'
       trigger = rel_err
       trigger_threshold = 5e-1
+
+      normalize_by_global_tally = false
     []
   []
 []

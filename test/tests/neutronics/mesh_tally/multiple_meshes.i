@@ -41,7 +41,6 @@
   initial_properties = xml
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = false
 
   power = 100.0
 
@@ -50,6 +49,8 @@
       type = MeshTally
       mesh_translations_file = pebble_centers.txt
       mesh_template = '../meshes/sphere.e'
+
+      normalize_by_global_tally = false
     []
   []
 []

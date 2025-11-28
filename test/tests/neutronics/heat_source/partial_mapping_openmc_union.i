@@ -41,9 +41,6 @@
 
   initial_properties = xml
 
-  # We are skipping some feedback with fissile regions, so we need to turn off the check
-  check_tally_sum = false
-
   verbose = true
   cell_level = 0
 
@@ -52,6 +49,9 @@
       type = CellTally
       name = heat_source
       block = '100 200'
+
+      # We are skipping some feedback with fissile regions, so we need to turn off the check
+      check_tally_sum = false
     []
   []
 []

@@ -34,7 +34,6 @@
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  normalize_by_global_tally = false
   cell_level = 1
   scaling = 100.0
 
@@ -46,6 +45,8 @@
                            0 0 0.10'
       mesh_template = mesh_in.e
       name = heat_source
+
+      normalize_by_global_tally = false
     []
   []
 []

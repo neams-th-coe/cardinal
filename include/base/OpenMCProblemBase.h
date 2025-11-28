@@ -175,7 +175,7 @@ public:
    * @param[in] score tally score
    * @return tally sum within each bin
    */
-  xt::xtensor<double, 1> tallySum(openmc::Tally * tally, const unsigned int & score) const;
+  xt::xtensor<double, 1> tallySum(const openmc::Tally * tally, const unsigned int & score) const;
 
   /**
    * Compute the sum of a tally across all of its bins
@@ -183,7 +183,8 @@ public:
    * @param[in] score tally score
    * @return tally sum
    */
-  double tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
+                            const unsigned int & score) const;
 
   /**
    * Compute the mean of a tally across all of its bins
@@ -191,7 +192,8 @@ public:
    * @param[in] score tally score
    * @return tally mean
    */
-  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
+                             const unsigned int & score) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
@@ -255,6 +257,12 @@ public:
    * @return total number of particles
    */
   int nTotalParticles() const { return _total_n_particles; }
+
+  /**
+   * Run mode of the OpenMC simulation
+   * @return the current run mode for OpenMC
+   */
+  openmc::RunMode runMode() const { return _run_mode; }
 
   /**
    * Get the cell ID from the cell index

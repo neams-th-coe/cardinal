@@ -43,10 +43,8 @@
   initial_properties = xml
   verbose = true
   cell_level = 0
-  normalize_by_global_tally = true
 
   power = 100.0
-  check_tally_sum = false
 
   [Tallies]
     [Mesh]
@@ -55,6 +53,9 @@
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'
+
+      normalize_by_global_tally = true
+      check_tally_sum = false
     []
   []
 []

@@ -12,8 +12,6 @@
 
   cell_level = 1
 
-  check_tally_sum = false
-
   initial_properties = xml
 
   [Tallies]
@@ -22,6 +20,7 @@
       block = '1 2 3'
       score = heating
       name = heat_source
+      check_tally_sum = false
     []
   []
 []
