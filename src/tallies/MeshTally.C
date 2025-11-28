@@ -200,6 +200,23 @@ MeshTally::resetTally()
   openmc::model::meshes.erase(openmc::model::meshes.begin() + _mesh_index);
 }
 
+void
+MeshTally::gatherLinkedSum()
+{
+  if (_linked_tallies.size() == 0)
+    return;
+
+  for (const auto & other : _linked_tallies)
+  {
+    for (unsigned int score = 0; score < _tally_score.size(); ++score)
+    {
+      _linked_local_sum_tally[score] += other->getSum(score);
+      if (other->addingGlobalTally())
+        _global_sum_tally[score] = _openmc_problem.tallySumAcrossBins({other->getWrappedGlobalTally()}, score);
+    }
+  }
+}
+
 Real
 MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,

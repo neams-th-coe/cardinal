@@ -83,12 +83,12 @@ public:
   /**
    * A function which gathers the sums and means from all tallies linked to this tally.
    */
-  void gatherLinkedSum();
+  virtual void gatherLinkedSum();
 
   /**
    * A function which renormalizes this tally based on the gathered sum from linked tallies.
    */
-  void renormalizeLinkedTallies();
+  virtual void renormalizeLinkedTallies();
 
   /**
    * Relax the tally and normalize it according to some normalization factor 'norm'. This tends to
@@ -245,7 +245,7 @@ public:
    * Whether this tally requires a global tally or not.
    * @return if the tally adds a global tally in addition to a mapped local tally
    */
-  bool needGlobalTally() const { return _needs_global_tally; }
+  virtual bool addingGlobalTally() const { return _needs_global_tally; }
 
   /**
    * Get the number of tallies linked to this tally for normalization.
