@@ -15,6 +15,9 @@
     input = solid
     subdomain_id = '100'
   []
+
+  allow_renumbering = false
+  parallel_type = replicated
 []
 
 [Problem]
