@@ -1848,7 +1848,7 @@ OpenMCCellAverageProblem::getMappedTallyIDs() const
     tally_ids.push_back(t->getTallyID());
   // global normalization tallies
   for (const auto & t : _local_tallies)
-    if (t->needGlobalTally())
+    if (t->addingGlobalTally())
       tally_ids.push_back(t->getGlobalTallyID());
 
   return tally_ids;
@@ -2849,7 +2849,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
   if (_assume_separate_tallies)
   {
     for (const auto & tally : _local_tallies)
-      if (tally->needGlobalTally())
+      if (tally->addingGlobalTally())
         paramError("assume_separate_tallies",
                   "Cannot assume separate tallies when either of 'check_tally_sum' or"
                   "'normalize_by_global_tally' is true!");

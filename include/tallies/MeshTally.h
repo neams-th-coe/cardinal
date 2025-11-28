@@ -45,6 +45,19 @@ public:
   /// A function to reset the tally. MeshTally overrides this function to delete the OpenMC mesh.
   virtual void resetTally() override;
 
+  /**
+   * A function which gathers the sums and means from all tallies linked to this tally. MeshTally
+   * overrides this function to gather global tallies for distributed mesh tallies.
+   */
+  virtual void gatherLinkedSum() override;
+
+  /**
+   * A function to return if this object is adding a global tally. MeshTally modifies this behavior
+   * to add a single global tally for distributed mesh tallies (which then communicate with
+   * tally linkages).
+   */
+  virtual bool addingGlobalTally() const override { return _needs_global_tally && _instance == 0; }
+
 protected:
   /**
    * A function which stores the results of this tally into the created

@@ -369,13 +369,16 @@ TallyBase::initializeTally()
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 
-  // create the global tally for normalization; we make sure to use the
-  // same estimator as the local tally
   if (_needs_global_tally)
   {
     _global_sum_tally.clear();
     _global_sum_tally.resize(_tally_score.size(), 0.0);
+  }
 
+  // create the global tally for normalization; we make sure to use the
+  // same estimator as the local tally
+  if (addingGlobalTally())
+  {
     _global_tally_index = openmc::model::tallies.size();
     _global_tally = openmc::Tally::create();
     _global_tally->set_scores(_tally_score);
@@ -408,7 +411,7 @@ TallyBase::resetTally()
   openmc::model::tallies.erase(openmc::model::tallies.begin() + _local_tally_index);
 
   // Erase global tally.
-  if (_needs_global_tally)
+  if (addingGlobalTally())
     openmc::model::tallies.erase(openmc::model::tallies.begin() + _global_tally_index);
 
   // Erase the filter(s).
@@ -488,7 +491,7 @@ TallyBase::computeSumAndMean()
                        static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
 
     _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
-    if (_needs_global_tally)
+    if (addingGlobalTally())
       _global_sum_tally[score] = _openmc_problem.tallySumAcrossBins({_global_tally}, score);
 
     if (_linked_tallies.size() > 0)
