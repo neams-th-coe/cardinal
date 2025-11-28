@@ -253,6 +253,8 @@ public:
    */
   unsigned int numLinkedTallies() const { return _linked_tallies.size(); }
 
+  const std::vector<const TallyBase *> & linkedTallies() const { return _linked_tallies; }
+
 protected:
   /**
    * A function which stores the results of this tally into the created

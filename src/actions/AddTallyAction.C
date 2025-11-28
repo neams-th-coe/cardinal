@@ -99,7 +99,9 @@ AddTallyAction::addMeshTally(unsigned int instance, const Point & translation)
   std::string obj_name = _name;
   if (_mesh_translations.size() > 1)
   {
-    obj_name += "_" + Moose::stringify(instance);
+    if (instance != 0)
+      obj_name += "_" + Moose::stringify(instance);
+
     _moose_object_pars.set<unsigned int>("instance") = instance;
     _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
   }

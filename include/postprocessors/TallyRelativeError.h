@@ -45,4 +45,7 @@ protected:
 
   /// The tally score we want to fetch the relative error of.
   std::string _score;
+
+  /// The tally we're computing the relative error from.
+  const TallyBase * _tally;
 };

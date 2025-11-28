@@ -174,13 +174,6 @@ public:
   const TallyBase * getTally(const std::string & name);
 
   /**
-   * Fetch the tally that contains the requested score.
-   * @param[in] score the tally score
-   * @return a vector of Cardinal tally objects containing the scores
-   */
-  std::vector<const TallyBase *> getTalliesByScore(const std::string & score);
-
-  /**
    * Get the variable(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
@@ -376,7 +369,7 @@ public:
    * Get the local tally
    * @return local tally
    */
-  const std::vector<std::shared_ptr<TallyBase>> & getLocalTally() const { return _local_tallies; }
+  const std::vector<std::shared_ptr<TallyBase>> & getLocalTallies() const { return _local_tallies; }
 
   /**
    * Get the temperature of a cell; for cells not filled with materials, this will return

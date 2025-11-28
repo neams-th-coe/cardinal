@@ -783,18 +783,6 @@ OpenMCCellAverageProblem::getTally(const std::string & name)
   return nullptr;
 }
 
-std::vector<const TallyBase *>
-OpenMCCellAverageProblem::getTalliesByScore(const std::string & score)
-{
-  // Loop over all of the tallies and check to see if they contain the requested score.
-  std::vector<const TallyBase *> tallies;
-  for (const auto & t : _local_tallies)
-    if (t->hasScore(score))
-      tallies.push_back(t.get());
-
-  return tallies;
-}
-
 std::vector<const MooseVariableFE<Real> *>
 OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
                                                  THREAD_ID tid,
