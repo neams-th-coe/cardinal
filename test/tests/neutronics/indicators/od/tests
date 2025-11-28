@@ -60,7 +60,7 @@
     input = openmc_dup.i
     requirement = "The system shall error if two tallies accumulate the same reaction rate scores and the user doesn't "
                   "select one to use for computing optical depths."
-    expect_err = "When adding more then one tally with kappa-fission in the \[Tallies\] block, the 'rxn_rate_tally' parameter is required!"
+    expect_err = "When adding more then one tally with total in the \[Tallies\] block, the 'rxn_rate_tally' parameter is required!"
     capabilities = 'openmc'
   []
   [duplicate_scores_flux_tally_not_provided]

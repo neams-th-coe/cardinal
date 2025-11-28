@@ -80,7 +80,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   }
 
   // Edge case: multiple scores from linked MeshTally objects.
-  const scoring_tallies = _openmc_problem->getNumScoringTallies(_score);
+  const auto scoring_tallies = _openmc_problem->getNumScoringTallies(_score);
   unsigned int linked = 0;
   unsigned int num_with_score = 0;
   for (auto tally : _openmc_problem->getLocalTallies())
