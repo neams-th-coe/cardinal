@@ -99,11 +99,10 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     // User must provide a tally to post-process if there isn't a single non-linked tally per score.
     if (scoring_tallies != linked || scoring_tallies != num_with_score)
     {
-      // When the problem has more then one tally accumulating the given score, the user needs to tell us
-      // which one to use.
-      checkRequiredParam(_pars,
-        "tally",
-        "adding more then one tally with " + _score + " in the [Tallies] block");
+      // When the problem has more then one tally accumulating the given score, the user needs to
+      // tell us which one to use.
+      checkRequiredParam(
+          _pars, "tally", "adding more then one tally with " + _score + " in the [Tallies] block");
 
       const auto t_name = getParam<std::string>("tally");
       _tally = _openmc_problem->getTally(t_name);

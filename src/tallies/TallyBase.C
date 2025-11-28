@@ -111,10 +111,11 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _normalize_by_global(_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _check_tally_sum(
-        isParamValid("check_tally_sum")
-            ? getParam<bool>("check_tally_sum")
-            : (_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE ? true : _normalize_by_global)),
+    _check_tally_sum(isParamValid("check_tally_sum")
+                         ? getParam<bool>("check_tally_sum")
+                         : (_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE
+                                ? true
+                                : _normalize_by_global)),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output")),
@@ -674,11 +675,12 @@ TallyBase::tallyNormalization(unsigned int score) const
 void
 TallyBase::checkTallySum(const unsigned int & score) const
 {
-  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] > 1e-6)
+  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] >
+      1e-6)
   {
     std::stringstream msg;
-    msg << _tally_score[score] << " tallies do not match the global "
-        << _tally_score[score] << " tally:\n"
+    msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score]
+        << " tally:\n"
         << " Global value: " << Moose::stringify(_global_sum_tally[score])
         << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
         << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]

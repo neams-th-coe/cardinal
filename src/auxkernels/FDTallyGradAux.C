@@ -82,11 +82,10 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
   std::string tally_name = "";
   if (_openmc_problem->getNumScoringTallies(score) > 1)
   {
-    // When the problem has more then one tally accumulating the given score, the user needs to tell us
-    // which one to use.
-    checkRequiredParam(_pars,
-      "tally",
-      "adding more then one tally with " + score + " in the [Tallies] block");
+    // When the problem has more then one tally accumulating the given score, the user needs to tell
+    // us which one to use.
+    checkRequiredParam(
+        _pars, "tally", "adding more then one tally with " + score + " in the [Tallies] block");
 
     tally_name = getParam<std::string>("tally");
     const auto * tally = _openmc_problem->getTally(tally_name);
@@ -99,7 +98,8 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
 
   auto score_vars = _openmc_problem->getTallyScoreVariables(score, _tid, tally_name);
   auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid, tally_name);
-  auto neighbor_score_bins = _openmc_problem->getTallyScoreNeighborVariableValues(score, _tid, tally_name);
+  auto neighbor_score_bins =
+      _openmc_problem->getTallyScoreNeighborVariableValues(score, _tid, tally_name);
 
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",

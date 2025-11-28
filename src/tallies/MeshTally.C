@@ -212,7 +212,8 @@ MeshTally::gatherLinkedSum()
     {
       _linked_local_sum_tally[score] += other->getSum(score);
       if (other->addingGlobalTally())
-        _global_sum_tally[score] = _openmc_problem.tallySumAcrossBins({other->getWrappedGlobalTally()}, score);
+        _global_sum_tally[score] =
+            _openmc_problem.tallySumAcrossBins({other->getWrappedGlobalTally()}, score);
     }
   }
 }
@@ -237,8 +238,9 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
       Real volumetric_tally = unnormalized_tally;
-      volumetric_tally *= norm_by_src_rate ?
-                                    _openmc_problem.tallyMultiplier(_tally_score[local_score], _local_mean_tally[local_score]) /
+      volumetric_tally *= norm_by_src_rate
+                              ? _openmc_problem.tallyMultiplier(_tally_score[local_score],
+                                                                _local_mean_tally[local_score]) /
                                     _mesh_template->volume(e) * _openmc_problem.scaling() *
                                     _openmc_problem.scaling() * _openmc_problem.scaling()
                               : 1.0;

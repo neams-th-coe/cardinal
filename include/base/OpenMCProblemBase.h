@@ -183,7 +183,8 @@ public:
    * @param[in] score tally score
    * @return tally sum
    */
-  double tallySumAcrossBins(std::vector<const openmc::Tally *> tally, const unsigned int & score) const;
+  double tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
+                            const unsigned int & score) const;
 
   /**
    * Compute the mean of a tally across all of its bins
@@ -191,7 +192,8 @@ public:
    * @param[in] score tally score
    * @return tally mean
    */
-  double tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally, const unsigned int & score) const;
+  double tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
+                             const unsigned int & score) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
