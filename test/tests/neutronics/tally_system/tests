@@ -112,4 +112,12 @@
     requirement = "The system shall error if two tallies scoring the same score add the same variable names."
     capabilities = 'openmc'
   []
+  [duplicate_scores_separate_tallies]
+    type = RunException
+    input = same_scores.i
+    cli_args = "Problem/assume_separate_tallies=true Problem/Tallies/Cell/normalize_by_global_tally=false"
+    expect_err = "Cannot assume separate tallies when multiple tallies tally the same score!"
+    requirement = "The system shall error if attempting to use separate tallies when adding two tallies with the same score."
+    capabilities = 'openmc'
+  []
 []
