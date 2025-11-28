@@ -293,7 +293,8 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Total_Flux", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Total_Flux", params).get());
   }
 
   // Scattering tally.
@@ -314,7 +315,8 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Scatter", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Scatter", params).get());
   }
 
   // Fission tally.
@@ -334,7 +336,8 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Fission", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Fission", params).get());
   }
 
   // Kappa-fission tally.
@@ -353,7 +356,10 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Kappa_Fission", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()
+            ->addTally(tally_type, "MGXS_" + tally_type + "_Kappa_Fission", params)
+            .get());
   }
 
   // Inverse velocity tally.
@@ -372,7 +378,10 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Inverse_velocity", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()
+            ->addTally(tally_type, "MGXS_" + tally_type + "_Inverse_velocity", params)
+            .get());
   }
 
   // Absorption tally.
@@ -391,7 +400,8 @@ SetupMGXSAction::addTallies()
     setObjectBlocks(params, _blocks);
 
     params.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmcProblem();
-    _mgxs_tallies.push_back(openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Absorption", params).get());
+    _mgxs_tallies.push_back(
+        openmcProblem()->addTally(tally_type, "MGXS_" + tally_type + "_Absorption", params).get());
   }
 }
 

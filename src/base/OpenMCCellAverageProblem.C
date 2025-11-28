@@ -92,8 +92,9 @@ OpenMCCellAverageProblem::validParams()
       "particle source rate (source/sec) for a certain tallies in "
       "eigenvalue mode. In other words, the "
       "source/sec is computed as (power divided by the global value of this tally)");
-  params.addParam<std::string>("normalization_tally",
-    "The name of the local tally to use for normalizing results in eigenvalue calculations.");
+  params.addParam<std::string>(
+      "normalization_tally",
+      "The name of the local tally to use for normalizing results in eigenvalue calculations.");
 
   params.addParam<MooseEnum>(
       "k_trigger",
@@ -2428,7 +2429,8 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
 }
 
 Real
-OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name, const Real & local_mean_tally) const
+OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
+                                          const Real & local_mean_tally) const
 {
   if (!isHeatingScore(score_name))
   {
@@ -2450,10 +2452,8 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name, const 
     // - 'damage-energy' has units of eV/src (OpenMC) or eV/s (Cardinal). While the units of
     //   damage-energy are the same as a heating tally, we don't normalize it like one as it's
     //   used as an intermediate to compute DPA.
-    if (isReactionRateScore(score_name) ||
-        score_name == "inverse-velocity" ||
-        score_name == "decay-rate" ||
-        score_name == "damage-energy")
+    if (isReactionRateScore(score_name) || score_name == "inverse-velocity" ||
+        score_name == "decay-rate" || score_name == "damage-energy")
       return source;
 
     if (score_name == "flux")
@@ -2851,8 +2851,8 @@ OpenMCCellAverageProblem::validateLocalTallies()
     for (const auto & tally : _local_tallies)
       if (tally->addingGlobalTally())
         paramError("assume_separate_tallies",
-                  "Cannot assume separate tallies when either of 'check_tally_sum' or"
-                  "'normalize_by_global_tally' is true!");
+                   "Cannot assume separate tallies when either of 'check_tally_sum' or"
+                   "'normalize_by_global_tally' is true!");
 
     for (const auto & s : _all_tally_scores)
       if (_score_count.at(s) > 1)
@@ -2892,10 +2892,10 @@ OpenMCCellAverageProblem::validateLocalTallies()
     {
       if (_score_count.count(n) == 0)
         mooseError("The local tallies added in the [Tallies] block do not contain the requested "
-          "heating score " +
-          n +
-          ". You must either add this score in one of the tallies or choose a different "
-          "heating score.");
+                   "heating score " +
+                   n +
+                   ". You must either add this score in one of the tallies or choose a different "
+                   "heating score.");
 
       if (_score_count.at(n) > 1)
       {
@@ -2917,11 +2917,11 @@ OpenMCCellAverageProblem::validateLocalTallies()
         {
           // If there are more then one value of 'source_rate_normalization', the user needs
           // to tell us which tally to use.
-          checkRequiredParam(_pars,
-                            "normalization_tally",
-                            "using a non-heating tally ("
-                            + non_heating_scores
-                            + ") in eigenvalue mode and adding more then one tally in the [Tallies] block");
+          checkRequiredParam(
+              _pars,
+              "normalization_tally",
+              "using a non-heating tally (" + non_heating_scores +
+                  ") in eigenvalue mode and adding more then one tally in the [Tallies] block");
           const auto norm_tally_name = getParam<std::string>("normalization_tally");
 
           // Check to make sure the user provided a tally name for eigenvalue normalization
@@ -2932,9 +2932,9 @@ OpenMCCellAverageProblem::validateLocalTallies()
 
           if (!_source_rate_norm_tally)
             paramError("normalization_tally",
-                       "The tally "
-                       + norm_tally_name
-                       + " does not exist in the problem! Please specify a tally added in the [Tallies] block!");
+                       "The tally " + norm_tally_name +
+                           " does not exist in the problem! Please specify a tally added in the "
+                           "[Tallies] block!");
         }
         else
         {

@@ -64,11 +64,10 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
   std::string tally_name = "";
   if (_openmc_problem->getNumScoringTallies(score) > 1)
   {
-    // When the problem has more then one tally accumulating the given score, the user needs to tell us
-    // which one to use.
-    checkRequiredParam(_pars,
-      "tally",
-      "adding more then one tally with " + score + " in the [Tallies] block");
+    // When the problem has more then one tally accumulating the given score, the user needs to tell
+    // us which one to use.
+    checkRequiredParam(
+        _pars, "tally", "adding more then one tally with " + score + " in the [Tallies] block");
 
     tally_name = getParam<std::string>("tally");
     const auto * tally = _openmc_problem->getTally(tally_name);
@@ -88,7 +87,8 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
 
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;
-  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid, tally_name, "_rel_error"))
+  for (const auto v :
+       _openmc_problem->getTallyScoreVariables(score, _tid, tally_name, "_rel_error"))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
 
   if (!const_mon)
@@ -97,7 +97,8 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
                "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
 
   // Grab the relative error from the [Tallies].
-  const auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid, tally_name, "_rel_error");
+  const auto score_bins =
+      _openmc_problem->getTallyScoreVariableValues(score, _tid, tally_name, "_rel_error");
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",
                "The external filter bin provided is invalid for the number of "

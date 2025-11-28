@@ -153,7 +153,10 @@ public:
    * @param[in] score the score to check
    * @return the number of tallies accumulating 'score'
    */
-  unsigned int getNumScoringTallies(const std::string & score) const { return _score_count.count(score) > 0 ? _score_count.at(score) : 0; }
+  unsigned int getNumScoringTallies(const std::string & score) const
+  {
+    return _score_count.count(score) > 0 ? _score_count.at(score) : 0;
+  }
 
   /**
    * Check to see if this problem contains a specific tally score.
@@ -182,11 +185,12 @@ public:
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
-                                                                    THREAD_ID tid,
-                                                                    const std::string & tally_name = "",
-                                                                    const std::string & output = "",
-                                                                    bool skip_func_exp = false);
+  std::vector<const MooseVariableFE<Real> *>
+  getTallyScoreVariables(const std::string & score,
+                         THREAD_ID tid,
+                         const std::string & tally_name = "",
+                         const std::string & output = "",
+                         bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
@@ -197,11 +201,12 @@ public:
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
-                                                                 THREAD_ID tid,
-                                                                 const std::string & tally_name = "",
-                                                                 const std::string & output = "",
-                                                                 bool skip_func_exp = false);
+  std::vector<const VariableValue *>
+  getTallyScoreVariableValues(const std::string & score,
+                              THREAD_ID tid,
+                              const std::string & tally_name = "",
+                              const std::string & output = "",
+                              bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
@@ -676,8 +681,7 @@ protected:
    * @param[in] local_score the local index of the tally score
    * @param[in] local_tally the tally to relax and normalize
    */
-  void relaxAndNormalizeTally(unsigned int local_score,
-                              std::shared_ptr<TallyBase> local_tally);
+  void relaxAndNormalizeTally(unsigned int local_score, std::shared_ptr<TallyBase> local_tally);
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
