@@ -30,6 +30,7 @@
   []
 
   allow_renumbering = false
+  parallel_type = replicated
 []
 
 [Problem]
