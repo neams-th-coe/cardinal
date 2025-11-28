@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1252 #850'
+  design = 'TallyRelativeError.md'
+
   [fission_tally_relative_error]
     type = CSVDiff
     input = openmc.i
