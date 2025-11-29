@@ -37,12 +37,18 @@
 
 # Whether you want to build with NekRS
 ENABLE_NEK          ?= yes
+BUILD_NEKRS 		?= yes
 
 # Whether you want to build with OpenMC
 ENABLE_OPENMC       ?= yes
+BUILD_OPENMC 		?= yes
 
 # Whether you want to build OpenMC with DAGMC support
 ENABLE_DAGMC        ?= no
+BUILD_DAGMC 		?= yes
+BUILD_MOAB 			?= yes
+BUILD_EMBREE 		?= yes
+BUILD_DOUBLEDOWN 	?= yes
 
 # Whether we want to use the double-precision interface to Embree for DAGMC
 # ray tracing instead of MOAB.
@@ -117,66 +123,6 @@ ifeq ($(METHOD),dbg)
 else
 	BUILD_TYPE := Release
 endif
-
-DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
-DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-
-DOUBLEDOWN_BUILDDIR := $(CARDINAL_DIR)/build/double-down
-DOUBLEDOWN_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-
-EMBREE_BUILDDIR := $(CARDINAL_DIR)/build/embree
-EMBREE_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-
-MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
-MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-
-NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
-NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-NEKRS_INCLUDES := \
-  -I$(NEKRS_DIR)/src \
-  -I$(NEKRS_DIR)/src/bdry \
-  -I$(NEKRS_DIR)/src/bench/advsub \
-  -I$(NEKRS_DIR)/src/bench/axHelm \
-  -I$(NEKRS_DIR)/src/bench/core \
-  -I$(NEKRS_DIR)/src/bench/fdm \
-  -I$(NEKRS_DIR)/src/cds \
-  -I$(NEKRS_DIR)/src/core \
-  -I$(NEKRS_DIR)/src/findpts \
-  -I$(NEKRS_DIR)/src/io \
-  -I$(NEKRS_DIR)/src/lib \
-  -I$(NEKRS_DIR)/src/linAlg \
-  -I$(NEKRS_DIR)/src/mesh \
-  -I$(NEKRS_DIR)/src/navierStokes \
-  -I$(NEKRS_DIR)/src/nekInterface \
-  -I$(NEKRS_DIR)/src/neknek \
-  -I$(NEKRS_DIR)/src/plugins \
-  -I$(NEKRS_DIR)/src/pointInterpolation \
-  -I$(NEKRS_DIR)/src/pointInterpolation/findpts \
-  -I$(NEKRS_DIR)/src/postProcessing \
-  -I$(NEKRS_DIR)/src/regularization \
-  -I$(NEKRS_DIR)/src/setup \
-  -I$(NEKRS_DIR)/src/solvers/cvode \
-  -I$(NEKRS_DIR)/src/solvers/elliptic \
-  -I$(NEKRS_DIR)/src/solvers/elliptic/amgSolver \
-  -I$(NEKRS_DIR)/src/solvers/elliptic/linearSolver \
-  -I$(NEKRS_DIR)/src/solvers/elliptic/MG \
-  -I$(NEKRS_DIR)/src/udf \
-  -I$(NEKRS_DIR)/src/utils \
-  -I$(NEKRS_INSTALL_DIR)/gatherScatter \
-  -I$(NEKRS_INSTALL_DIR)/include \
-  -I$(NEKRS_INSTALL_DIR)/libparanumal/include \
-  -I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
-  -I$(NEKRS_INSTALL_DIR)/include/linAlg
-NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
-NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
-# This needs to be exported
-export NEKRS_HOME=$(CARDINAL_DIR)
-
-OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
-OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-OPENMC_INCLUDES := -I$(OPENMC_INSTALL_DIR)/include
-OPENMC_LIBDIR := $(OPENMC_INSTALL_DIR)/lib
-OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 # This is used in $(FRAMEWORK_DIR)/build.mk
 HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
@@ -307,21 +253,8 @@ endif
 # ADDITIONAL_LIBS are used for linking in app.mk
 # CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
-
-ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
-endif
-
-ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
-  ifeq ($(ENABLE_DAGMC), ON)
-    ADDITIONAL_LIBS += -ldagmc -lMOAB
-		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
-			ADDITIONAL_LIBS += -lembree4 -ldd
-		endif
-  endif
-  ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
-endif
+ADDITIONAL_LIBS += $(NEKRS_ADDITIONAL_LIBS)
+ADDITIONAL_LIBS += $(OPENMC_ADDITIONAL_LIBS)
 
 # Determine if we need libpng and where using pkg-config (if available)
 LIBPNG_FLAGS ?= $(shell pkg-config --libs libpng 2>/dev/null)
@@ -346,22 +279,9 @@ CARDINAL_EXTERNAL_FLAGS := \
   $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
   $(BLASLAPACK_LIB) \
   $(PETSC_EXTERNAL_LIB_BASIC)
+CARDINAL_EXTERNAL_FLAGS += $(NEKRS_EXTERNAL_FLAGS)
+CARDINAL_EXTERNAL_FLAGS += $(OPENMC_EXTERNAL_FLAGS)
 
-ifeq ($(ENABLE_NEK), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(NEKRS_LIBDIR) -lnekrs $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
-endif
-
-ifeq ($(ENABLE_OPENMC), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
-  ifeq ($(ENABLE_DAGMC), ON)
-    CARDINAL_EXTERNAL_FLAGS += -ldagmc -lMOAB
-		ifeq ($(ENABLE_DOUBLE_DOWN), ON)
-			CARDINAL_EXTERNAL_FLAGS += -lembree4 -ldd
-		endif
-  endif
-  CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
-	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
-endif
 
 # EXTERNAL_FLAGS are for rules in app.mk
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
