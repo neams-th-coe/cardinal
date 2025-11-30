@@ -63,10 +63,9 @@ OpenMCProblemBase::validParams()
       "inactive_batches",
       "inactive_batches >= 0",
       "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("particles",
-                                            "particles > 0 ",
-                                            "Number of particles to run in each OpenMC batch; this "
-                                            "overrides the setting in the XML files.");
+  params.addParam<PostprocessorName>("particles",
+                                     "Number of particles to run in each OpenMC batch; this "
+                                     "overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>(
       "batches",
       "batches > 0",
@@ -204,7 +203,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
 
   if (isParamValid("particles"))
-    openmc::settings::n_particles = getParam<unsigned int>("particles");
+    _particles = &getPostprocessorValue("particles");
 
   if (isParamValid("batches"))
   {
@@ -276,7 +275,20 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 int
 OpenMCProblemBase::nParticles() const
 {
-  return openmc::settings::n_particles;
+  if (!isParamValid("particles"))
+    return static_cast<int>(openmc::settings::n_particles);
+
+  const double r = std::round(*_particles);
+
+  if (r <= 0.0)
+  {
+    mooseWarning(
+        "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your "
+        "postprocessor. number of particles from settings.xml will be used instead.");
+    return openmc::settings::n_particles;
+  }
+
+  return static_cast<int>(r);
 }
 
 std::string
@@ -357,7 +369,7 @@ OpenMCProblemBase::externalSolve()
     _console << " Skipping running OpenMC as the mesh has not changed!" << std::endl;
     return;
   }
-
+  openmc::settings::n_particles = nParticles();
   _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   // apply a new starting fission source
@@ -398,7 +410,6 @@ void
 OpenMCProblemBase::initialSetup()
 {
   ExternalProblem::initialSetup();
-
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
