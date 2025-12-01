@@ -155,6 +155,10 @@ A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
 *Nuclear Engineering and Design* (2025)
 
 A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
+["CFD Simulations of Interassembly Bypass Flow in Sodium Fast Reactors"](https://www.sciencedirect.com/science/article/pii/S0029549325002213)
+*Nuclear Engineering and Design* (2025)
+
+A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
 ["NekRS CFD Simulations of Interassembly Flow in Sodium Fast Reactors"](https://www.researchgate.net/publication/373331042_NekRS_CFD_Simulations_of_Interassembly_Flow_in_Sodium_Fast_Reactors)
 *Proceedings of Nureth* (2023)
 
