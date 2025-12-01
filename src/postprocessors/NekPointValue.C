@@ -50,8 +50,8 @@ NekPointValue::execute()
 
   // set the points to be interpolated; we include this every time we call the
   // interpolator, in case the mesh is moving. TODO: auto-detect for efficiency
-  auto interp = pointInterpolation_t(nrs);
-  interp.setPoints(n, x.data(), y.data(), z.data());
+  auto interp = pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
+  interp.setPoints(x, y, z);
   const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
   interp.find(verbosity);
 
@@ -78,13 +78,13 @@ NekPointValue::execute()
     case field::velocity_x_squared:
     case field::velocity_y_squared:
     case field::velocity_z_squared:
-      n_values = n * nrs->NVfields;
+      n_values = n * 3; //nVFields
       o_interpolated = platform->device.malloc<dfloat>(n_values);
       interp.eval(n_values, nrs->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
       break;
     case field::pressure:
       o_interpolated = platform->device.malloc<dfloat>(n);
-      interp.eval(1, nrs->fieldOffset, nrs->o_P, n, o_interpolated);
+      interp.eval(1, nrs->fieldOffset, nrs->fluid->o_P, n, o_interpolated);
       break;
     case field::temperature:
     case field::scalar01:

@@ -123,9 +123,9 @@ NekRSMesh::saveInitialVolMesh()
 
   auto [x, y, z] = _nek_internal_mesh->xyzHost();
 
-  memcpy(_initial_x.data(), x, ngllpts * sizeof(double));
-  memcpy(_initial_y.data(), y, ngllpts * sizeof(double));
-  memcpy(_initial_z.data(), z, ngllpts * sizeof(double));
+  memcpy(_initial_x.data(), x.data(), ngllpts * sizeof(double));
+  memcpy(_initial_y.data(), y.data(), ngllpts * sizeof(double));
+  memcpy(_initial_z.data(), z.data(), ngllpts * sizeof(double));
 }
 
 void
@@ -695,7 +695,7 @@ NekRSMesh::faceVertices()
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
-  //nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -716,9 +716,13 @@ NekRSMesh::faceVertices()
     // node positions. We only need to do this if the NekRS mesh is not already order 2.
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
-    else
-      mesh =
-          createMesh(platform->comm.mpiComm(), _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
+    else {
+      auto [meshT, meshV] = createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
+      if(nekrs::hasCHT())
+        mesh = meshT;
+      else
+        mesh = meshV;
+    }
 
     Nfp_mirror = mesh->Nfp;
   }
@@ -728,6 +732,8 @@ NekRSMesh::faceVertices()
   double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+
+  auto [nek_x, nek_y, nek_z] = _nek_internal_mesh->xyzHost();
 
   int c = 0;
   for (int k = 0; k < _boundary_coupling.total_n_faces; ++k)
@@ -745,9 +751,9 @@ NekRSMesh::faceVertices()
           int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = mesh->vmapM[offset + vertex_offset];
 
-          xtmp[c] = mesh->x[id];
-          ytmp[c] = mesh->y[id];
-          ztmp[c] = mesh->z[id];
+          xtmp[c] = nek_x[id];
+          ytmp[c] = nek_y[id];
+          ztmp[c] = nek_z[id];
         }
       }
     }
@@ -783,7 +789,7 @@ NekRSMesh::volumeVertices()
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * p = (double *) malloc(_n_build_per_volume_elem * _n_volume_elems * sizeof(double));
 
-  //nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -804,8 +810,13 @@ NekRSMesh::volumeVertices()
     // We only need to do this if the mesh is not already N = 2.
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
-    else
-      mesh = createMesh(platform->comm.mpiComm(), _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
+    else {
+      auto [meshT, meshV] = createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
+      if(nekrs::hasCHT())
+        mesh = meshT;
+      else
+        mesh = meshV;
+    }
     Np_mirror = mesh->Np;
   }
 
@@ -815,6 +826,8 @@ NekRSMesh::volumeVertices()
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ptmp = (double *) malloc(_n_build_per_volume_elem * _volume_coupling.n_elems * sizeof(double));
+
+  auto [nek_x, nek_y, nek_z] = _nek_internal_mesh->xyzHost();
 
   int c = 0;
   int d = 0;
@@ -833,9 +846,9 @@ NekRSMesh::volumeVertices()
           int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = offset + vertex_offset;
 
-          xtmp[c] = mesh->x[id];
-          ytmp[c] = mesh->y[id];
-          ztmp[c] = mesh->z[id];
+          xtmp[c] = nek_x[id];
+          ytmp[c] = nek_y[id];
+          ztmp[c] = nek_z[id];
         }
       }
     }

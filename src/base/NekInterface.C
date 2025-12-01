@@ -76,7 +76,8 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
     0 /* where to place data */, num_bytes * slot /* where to source data */);
 
   occa::memory o_null;
-  writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write, 1);
+  //TODO
+  //nek::writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write, 1);
 }
 
 void
@@ -92,8 +93,8 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
     Nscalar = nrs->Nscalar;
   }
 
-  writeFld(
-      prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->o_U, nrs->o_P, o_s, Nscalar);
+  //TODO
+  //nek::writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->fluid->o_U, nrs->fluid->o_P, o_s, Nscalar);
 }
 
 void
@@ -111,7 +112,14 @@ buildOnly()
 bool
 hasCHT()
 {
-  return entireMesh()->cht;
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  for (int is = 0; is < nrs->Nscalar; is++) {
+    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool
@@ -180,7 +188,8 @@ hasScalarVariable(int scalarId)
 bool
 hasHeatSourceKernel()
 {
-  return static_cast<bool>(udf.sEqnSource);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return static_cast<bool>(nrs->userSource);
 }
 
 bool
@@ -194,7 +203,7 @@ int
 scalarFieldOffset()
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->fieldOffset[0];
+  return nrs->scalar->fieldOffset(); //same for all scalars
 }
 
 int
@@ -233,7 +242,7 @@ mesh_t *
 temperatureMesh()
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->mesh[0];
+  return nrs->scalar->mesh("temperature");
 }
 
 mesh_t *
@@ -516,30 +525,36 @@ limitTemperature(const double * min_T, const double * max_T)
   nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
 
+  std::vector<dfloat> temp(mesh->Nlocal);
+  nrs->scalar->o_solution("temperature").copyTo(temp, temp.size());
+
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
       int id = i * mesh->Np + j;
 
-      if (nrs->scalar->S[id] < minimum)
-        nrs->scalar->S[id] = minimum;
-      if (nrs->scalar->S[id] > maximum)
-        nrs->scalar->S[id] = maximum;
+      if (temp[id] < minimum)
+        temp[id] = minimum;
+      if (temp[id] > maximum)
+        temp[id] = maximum;
     }
   }
 
   // when complete, copy to device
-  nrs->scalar->o_S.copyFrom(nrs->scalar->S);
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
 void
 copyDeformationToDevice()
 {
   mesh_t * mesh = entireMesh();
-  mesh->o_x.copyFrom(mesh->x);
-  mesh->o_y.copyFrom(mesh->y);
-  mesh->o_z.copyFrom(mesh->z);
+
+  auto [x, y, z] = mesh->xyzHost();
+
+  mesh->o_x.copyFrom(x.data());
+  mesh->o_y.copyFrom(y.data());
+  mesh->o_z.copyFrom(z.data());
   mesh->update();
 
   updateHostMeshParameters();
@@ -672,8 +687,10 @@ gllPoint(int local_elem_id, int local_node_id)
 {
   mesh_t * mesh = entireMesh();
 
+  auto [x, y, z] = mesh->xyzHost();
+
   int id = local_elem_id * mesh->Np + local_node_id;
-  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+  Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
   return p;
 }
@@ -685,7 +702,8 @@ gllPointFace(int local_elem_id, int local_face_id, int local_node_id)
   int face_id = mesh->EToB[local_elem_id * mesh->Nfaces + local_face_id];
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
   int id = mesh->vmapM[offset + local_node_id];
-  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+  auto [x, y, z] = mesh->xyzHost();
+  Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
   return p;
 }
@@ -701,13 +719,14 @@ centroidFace(int local_elem_id, int local_face_id)
   double mass = 0.0;
 
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
+  auto [x, y, z] = mesh->xyzHost();
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = mesh->vmapM[offset + v];
     double mass_matrix = sgeo[mesh->Nsgeo * (offset + v) + WSJID];
-    x_c += mesh->x[id] * mass_matrix;
-    y_c += mesh->y[id] * mass_matrix;
-    z_c += mesh->z[id] * mass_matrix;
+    x_c += x[id] * mass_matrix;
+    y_c += y[id] * mass_matrix;
+    z_c += z[id] * mass_matrix;
     mass += mass_matrix;
   }
 
@@ -724,14 +743,16 @@ centroid(int local_elem_id)
   double y_c = 0.0;
   double z_c = 0.0;
   double mass = 0.0;
+  
+  auto [x, y, z] = mesh->xyzHost();
 
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = local_elem_id * mesh->Np + v;
     double mass_matrix = vgeo[local_elem_id * mesh->Np * mesh->Nvgeo + JWID * mesh->Np + v];
-    x_c += mesh->x[id] * mass_matrix;
-    y_c += mesh->y[id] * mass_matrix;
-    z_c += mesh->z[id] * mass_matrix;
+    x_c += x[id] * mass_matrix;
+    y_c += y[id] * mass_matrix;
+    z_c += z[id] * mass_matrix;
     mass += mass_matrix;
   }
 
@@ -937,6 +958,9 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
 
   double integral = 0.0;
 
+  std::vector<dfloat> U(mesh->dim * nrs->fieldOffset);
+  nrs->fluid->o_U.copyTo(U.data(), U.size());
+
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -952,9 +976,9 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
+              U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
 
           integral += rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
@@ -990,6 +1014,9 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   double (*f)(int, int);
   f = solutionPointer(integrand);
 
+  std::vector<dfloat> U(mesh->dim * nrs->fieldOffset);
+  nrs->fluid->o_U.copyTo(U.data(), U.size());
+
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1004,9 +1031,9 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
+              U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
           integral += f(vol_id, 0 /* unused */) * rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
       }
@@ -1041,6 +1068,9 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
 
   double integral = 0.0;
 
+  std::vector<dfloat> P(nrs->fieldOffset);
+  nrs->fluid->o_P.copyTo(P.data(), P.size());
+
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1055,9 +1085,9 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double p_normal = nrs->P[vol_id] * (sgeo[surf_offset + NXID] * direction(0) +
-                                              sgeo[surf_offset + NYID] * direction(1) +
-                                              sgeo[surf_offset + NZID] * direction(2));
+          double p_normal = P[vol_id] * (sgeo[surf_offset + NXID] * direction(0) +
+                                         sgeo[surf_offset + NYID] * direction(1) +
+                                         sgeo[surf_offset + NZID] * direction(2));
 
           integral += p_normal * sgeo[surf_offset + WSJID];
         }
@@ -1088,6 +1118,9 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   double integral = 0.0;
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
 
+  std::vector<dfloat> temperature(nrs->fieldOffset);
+  nrs->scalar->o_solution("temperature").copyTo(temperature.data(), temperature.size());
+
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1099,7 +1132,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
         // some inefficiency if an element has more than one face on the sideset of interest,
         // because we will recompute the gradient in the element more than one time - but this
         // is of little practical interest because this will be a minority of cases.
-        gradient(mesh->Np, i, nrs->scalar->S, grad_T, pp_mesh);
+        gradient(mesh->Np, i, temperature.data(), grad_T, pp_mesh);
 
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
