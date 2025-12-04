@@ -933,4 +933,18 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
   free(displacement);
 }
 
+/**
+ * Host arrays for essential NekRS fields
+ */
+std::vector<dfloat> x;
+std::vector<dfloat> y;
+std::vector<dfloat> z;
+std::vector<dfloat> U;
+std::vector<dfloat> P;
+std::vector<dfloat> S;
+
+dfloat *usrwrk;
+
+void
+initializeNekHostArrays();
 } // end namespace nekrs

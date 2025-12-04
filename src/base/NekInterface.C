@@ -72,7 +72,7 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
 
   nrs_t * nrs = (nrs_t *)nrsPtr();
   occa::memory o_write = platform->device.malloc(num_bytes);
-  o_write.copyFrom(nrs->bc->o_usrwrk, num_bytes /* length we are copying */,
+  o_write.copyFrom(platform->app->bc->o_usrwrk, num_bytes /* length we are copying */,
     0 /* where to place data */, num_bytes * slot /* where to source data */);
 
   occa::memory o_null;
@@ -281,7 +281,7 @@ scratchAvailable()
   // else in the core base, so we will make sure to throw an error from MOOSE if these
   // arrays are already in use, because otherwise our MOOSE transfer might get overwritten
   // by whatever other operation the user is trying to do.
-  if (nrs->bc->usrwrk)
+  if (!platform->app->bc->o_usrwrk.size())
     return false;
 
   return true;
@@ -302,8 +302,8 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
-  nrs->bc->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), usrwrk);
+  usrwrk = (dfloat *)calloc(n_slots * fieldOffset(), sizeof(dfloat));
+  platform->app->bc->o_usrwrk.resize(n_slots * fieldOffset());
 
   n_usrwrk_slots = n_slots;
 }
@@ -314,7 +314,6 @@ freeScratch()
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   freePointer(usrwrk);
-  nrs->bc->o_usrwrk.free();
 }
 
 double
@@ -1221,7 +1220,7 @@ isMovingMeshBoundary(const int boundary)
 bool
 isTemperatureBoundary(const int boundary)
 {
-  auto bcType = platform->app->bc->typeID(boundary, "scalar temperature");
+  auto bcType = platform->app->bc->typeId(boundary, "scalar temperature");
   return bcType == bdryBase::bcType_zeroDirichlet || bcType == bdryBase::bcType_udfDirichlet;
 }
 
@@ -1230,7 +1229,7 @@ temperatureBoundaryType(const int boundary)
 {
   // TODO
   //return bcMap::text(boundary, "scalar00");
-  return true;
+  return "";
 }
 
 int
