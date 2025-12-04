@@ -525,32 +525,31 @@ limitTemperature(const double * min_T, const double * max_T)
   nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
 
-  std::vector<dfloat> temp(mesh->Nlocal);
-  nrs->scalar->o_solution("temperature").copyTo(temp, temp.size());
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const auto offset = nrs->scalar->fieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
-      int id = i * mesh->Np + j;
+      int id = i * mesh->Np + j + sid * offset;
 
-      if (temp[id] < minimum)
-        temp[id] = minimum;
-      if (temp[id] > maximum)
-        temp[id] = maximum;
+      if (S[id] < minimum)
+        S[id] = minimum;
+      if (S[id] > maximum)
+        S[id] = maximum;
     }
   }
 
   // when complete, copy to device
-  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+  auto o_temperature = nrs->scalar->o_solution("temperature");
+  o_temperature.copyFrom(S, offset, sid * offset, 0);
 }
 
 void
 copyDeformationToDevice()
 {
   mesh_t * mesh = entireMesh();
-
-  auto [x, y, z] = mesh->xyzHost();
 
   mesh->o_x.copyFrom(x.data());
   mesh->o_y.copyFrom(y.data());
@@ -687,8 +686,6 @@ gllPoint(int local_elem_id, int local_node_id)
 {
   mesh_t * mesh = entireMesh();
 
-  auto [x, y, z] = mesh->xyzHost();
-
   int id = local_elem_id * mesh->Np + local_node_id;
   Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
@@ -702,7 +699,7 @@ gllPointFace(int local_elem_id, int local_face_id, int local_node_id)
   int face_id = mesh->EToB[local_elem_id * mesh->Nfaces + local_face_id];
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
   int id = mesh->vmapM[offset + local_node_id];
-  auto [x, y, z] = mesh->xyzHost();
+
   Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
   return p;
@@ -719,7 +716,7 @@ centroidFace(int local_elem_id, int local_face_id)
   double mass = 0.0;
 
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
-  auto [x, y, z] = mesh->xyzHost();
+
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = mesh->vmapM[offset + v];
@@ -744,8 +741,6 @@ centroid(int local_elem_id)
   double z_c = 0.0;
   double mass = 0.0;
   
-  auto [x, y, z] = mesh->xyzHost();
-
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = local_elem_id * mesh->Np + v;
@@ -958,9 +953,6 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
 
   double integral = 0.0;
 
-  std::vector<dfloat> U(mesh->dim * nrs->fieldOffset);
-  nrs->fluid->o_U.copyTo(U.data(), U.size());
-
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1014,9 +1006,6 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   double (*f)(int, int);
   f = solutionPointer(integrand);
 
-  std::vector<dfloat> U(mesh->dim * nrs->fieldOffset);
-  nrs->fluid->o_U.copyTo(U.data(), U.size());
-
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1068,9 +1057,6 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
 
   double integral = 0.0;
 
-  std::vector<dfloat> P(nrs->fieldOffset);
-  nrs->fluid->o_P.copyTo(P.data(), P.size());
-
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
@@ -1118,8 +1104,9 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   double integral = 0.0;
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
 
-  std::vector<dfloat> temperature(nrs->fieldOffset);
-  nrs->scalar->o_solution("temperature").copyTo(temperature.data(), temperature.size());
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const auto offset = nrs->scalar->fieldOffset();
+  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1288,7 +1275,7 @@ NboundaryFaces()
 int
 NboundaryID()
 {
-  if (entireMesh()->cht)
+  if (hasCHT())
     return nekData.NboundaryIDt;
   else
     return nekData.NboundaryID;
@@ -1316,21 +1303,21 @@ double
 get_scalar01(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->S[id + 1 * scalarFieldOffset()];
+  return S[id + 1 * scalarFieldOffset()];
 }
 
 double
 get_scalar02(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->S[id + 2 * scalarFieldOffset()];
+  return S[id + 2 * scalarFieldOffset()];
 }
 
 double
 get_scalar03(const int id, const int surf_offset = 0)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->S[id + 3 * scalarFieldOffset()];
+  return S[id + 3 * scalarFieldOffset()];
 }
 
 double
@@ -1358,7 +1345,10 @@ double
 get_temperature(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->scalar->S[id];
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const auto offset = nrs->scalar->fieldOffset();
+  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
+  return temperature[id];
 }
 
 double
@@ -1376,10 +1366,13 @@ get_flux(const int id, const int surf_offset)
   int elem_id = id / mesh->Np;
   int vertex_id = id % mesh->Np;
 
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const auto offset = nrs->scalar->fieldOffset();
+  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
   // This function is slightly inefficient, because we compute grad(T) for all nodes in
   // an element even though we only call this function for one node at a time
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
-  gradient(mesh->Np, elem_id, nrs->scalar->S, grad_T, nek_mesh::all);
+  gradient(mesh->Np, elem_id, temperature.data(), grad_T, nek_mesh::all);
 
   double normal_grad_T = grad_T[vertex_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
                          grad_T[vertex_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
@@ -1393,7 +1386,7 @@ double
 get_pressure(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->P[id];
+  return P[id];
 }
 
 double
@@ -1406,21 +1399,21 @@ double
 get_velocity_x(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 0 * nrs->fieldOffset];
+  return U[id + 0 * nrs->fieldOffset];
 }
 
 double
 get_velocity_y(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 1 * nrs->fieldOffset];
+  return U[id + 1 * nrs->fieldOffset];
 }
 
 double
 get_velocity_z(const int id, const int surf_offset)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 2 * nrs->fieldOffset];
+  return U[id + 2 * nrs->fieldOffset];
 }
 
 double
@@ -1429,9 +1422,9 @@ get_velocity(const int id, const int surf_offset)
   nrs_t * nrs = (nrs_t *)nrsPtr();
   int offset = nrs->fieldOffset;
 
-  return std::sqrt(nrs->U[id + 0 * offset] * nrs->U[id + 0 * offset] +
-                   nrs->U[id + 1 * offset] * nrs->U[id + 1 * offset] +
-                   nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
+  return std::sqrt(U[id + 0 * offset] * U[id + 0 * offset] +
+                   U[id + 1 * offset] * U[id + 1 * offset] +
+                   U[id + 2 * offset] * U[id + 2 * offset]);
 }
 
 double
@@ -1814,6 +1807,21 @@ MPI_Datatype
 resolveType<int>()
 {
   return MPI_INT;
+}
+
+void
+initializeNekHostArrays()
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  mesh_t * mesh = entireMesh();
+
+  x.resize(mesh->Nlocal);
+  y.resize(mesh->Nlocal);
+  z.resize(mesh->Nlocal);
+
+  U.resize(mesh->dim * nrs->fluid->fieldOffset);
+  P.resize(mesh->Nlocal);
+  S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); //offset is same for all scalars
 }
 
 } // end namespace nekrs

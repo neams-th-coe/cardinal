@@ -127,7 +127,7 @@ NekInitAction::act()
         "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
-  auto par = readPar(casename, comm);
+  auto par = readPar(setup_file, comm);
 
   nekrs::setup(
       comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
@@ -166,15 +166,16 @@ NekInitAction::act()
   nekrs::initializeScratch(_n_usrwrk_slots);
 }
 
-inipp::Ini *
+std::map<std::string, std::map<std::string, std::string>>
 NekInitAction::readPar(const std::string & _setupFile, MPI_Comm comm)
 {
-  auto par = new inipp::Ini();
-
   int rank;
   MPI_Comm_rank(comm, &rank);
 
   const auto setupFile = _setupFile + ".par";
+
+  if (rank == 0)
+    std::cout << "reading " << setupFile << std::endl;
 
   int err = 0;
   if (rank == 0)
@@ -210,13 +211,15 @@ NekInitAction::readPar(const std::string & _setupFile, MPI_Comm comm)
     rbuf = new char[fsize];
   MPI_Bcast(rbuf, fsize, MPI_CHAR, 0, comm);
 
+  auto par = new inipp::Ini();
+
   std::stringstream is;
   is.write(rbuf, fsize);
 
   par->parse(is);
   par->interpolate();
 
-  return par;
+  return par->sections;
 }
 
 #endif
