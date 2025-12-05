@@ -25,7 +25,8 @@
 
 #include "inipp.hpp"
 #include "nekrs.hpp"
-#include "bcMap.hpp"
+#include "nrs.hpp"
+//#include "bcMap.hpp"
 #include "udf.hpp"
 #include "inipp.hpp"
 #include "mesh.h"
@@ -52,6 +53,8 @@ void initializeHostMeshParameters();
 
 /// Update the mesh parameters on host
 void updateHostMeshParameters();
+
+nrs_t * nrsPtr();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
@@ -924,10 +927,23 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
                  (const int *)recvCounts,
                  (const int *)displacement,
                  resolveType<T>(),
-                 platform->comm.mpiComm);
+                 platform->comm.mpiComm());
 
   free(recvCounts);
   free(displacement);
 }
 
+
+void
+initializeNekHostArrays();
+
+//Accessors for NekRS host arrays
+std::vector<dfloat>& host_x();
+std::vector<dfloat>& host_y();
+std::vector<dfloat>& host_z();
+std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> host_xyz();
+std::vector<dfloat>& host_U();
+std::vector<dfloat>& host_P();
+std::vector<dfloat>& host_S();
+dfloat* host_wrk();
 } // end namespace nekrs
