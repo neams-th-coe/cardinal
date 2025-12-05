@@ -54,7 +54,7 @@ void initializeHostMeshParameters();
 /// Update the mesh parameters on host
 void updateHostMeshParameters();
 
-nrs_t * nrsPtr() { return dynamic_cast<nrs_t *>(platform->app); }
+nrs_t * nrsPtr();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
@@ -933,18 +933,17 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
   free(displacement);
 }
 
-/**
- * Host arrays for essential NekRS fields
- */
-std::vector<dfloat> x;
-std::vector<dfloat> y;
-std::vector<dfloat> z;
-std::vector<dfloat> U;
-std::vector<dfloat> P;
-std::vector<dfloat> S;
-
-dfloat *usrwrk;
 
 void
 initializeNekHostArrays();
+
+//Accessors for NekRS host arrays
+std::vector<dfloat>& host_x();
+std::vector<dfloat>& host_y();
+std::vector<dfloat>& host_z();
+std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> host_xyz();
+std::vector<dfloat>& host_U();
+std::vector<dfloat>& host_P();
+std::vector<dfloat>& host_S();
+dfloat* host_wrk();
 } // end namespace nekrs

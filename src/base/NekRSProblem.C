@@ -522,7 +522,7 @@ NekRSProblem::externalSolve()
   // time step, even if we're not technically passing data to another app, because we have
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
   if (nekrs::printStepInfoFreq())
@@ -625,7 +625,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
 
-      nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+      auto nrs = nekrs::nrsPtr();
       if (nrs->userProperties)
       {
         nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
@@ -811,8 +811,8 @@ NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
   auto n = nekrs::fieldOffset();
   auto nbytes = n * sizeof(dfloat);
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-  platform->app->bc->o_usrwrk.copyFrom(nekrs::usrwrk + slot * n, nbytes, slot * nbytes);
+  auto nrs = nekrs::nrsPtr();
+  platform->app->bc->o_usrwrk.copyFrom(nekrs::host_wrk() + slot * n, nbytes, slot * nbytes);
 }
 
 void
@@ -941,10 +941,12 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
                                       const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   auto vc = _nek_mesh->volumeCoupling();
   int id = vc.element[elem_id] * mesh->Np;
+
+  auto [x, y, z] = nekrs::host_xyz();
 
   if (_nek_mesh->exactMirror())
   {
@@ -954,11 +956,11 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
 
       if (f == field::x_displacement)
-        nekrs::x[id + v] = s[v] + extra;
+        x[id + v] = s[v] + extra;
       else if (f == field::y_displacement)
-        nekrs::y[id + v] = s[v] + extra;
+        y[id + v] = s[v] + extra;
       else if (f == field::z_displacement)
-        nekrs::z[id + v] = s[v] + extra;
+        z[id + v] = s[v] + extra;
       else
         mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
     }
@@ -974,11 +976,11 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
       if (f == field::x_displacement)
-        nekrs::x[id + v] = s[v] + extra;
+        x[id + v] = s[v] + extra;
       else if (f == field::y_displacement)
-        nekrs::y[id + v] = s[v] + extra;
+        y[id + v] = s[v] + extra;
       else if (f == field::z_displacement)
-        nekrs::z[id + v] = s[v] + extra;
+        z[id + v] = s[v] + extra;
       else
         mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
     }
@@ -994,10 +996,12 @@ NekRSProblem::writeVolumeSolution(const int slot,
                                   const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   auto vc = _nek_mesh->volumeCoupling();
   int id = vc.element[elem_id] * mesh->Np;
+
+  auto usrwrk = nekrs::host_wrk();
 
   if (_nek_mesh->exactMirror())
   {
@@ -1005,7 +1009,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nekrs::usrwrk[slot + id + v] = s[v] + extra;
+      usrwrk[slot + id + v] = s[v] + extra;
     }
   }
   else
@@ -1018,7 +1022,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nekrs::usrwrk[slot + id + v] = tmp[v] + extra;
+      usrwrk[slot + id + v] = tmp[v] + extra;
     }
 
     freePointer(tmp);
@@ -1029,16 +1033,18 @@ void
 NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * s)
 {
   mesh_t * mesh = nekrs::temperatureMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   const auto & bc = _nek_mesh->boundaryCoupling();
   int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
+
+  auto usrwrk = nekrs::host_wrk();
 
   if (_nek_mesh->exactMirror())
   {
     // can write directly into the NekRS solution
     for (int i = 0; i < mesh->Nfp; ++i)
-      nekrs::usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
+      usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
   }
   else
   {
@@ -1047,7 +1053,7 @@ NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * 
     interpolateBoundarySolutionToNek(s, tmp);
 
     for (int i = 0; i < mesh->Nfp; ++i)
-      nekrs::usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
+      usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
 
     freePointer(tmp);
   }

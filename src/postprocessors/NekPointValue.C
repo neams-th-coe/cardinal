@@ -46,7 +46,7 @@ NekPointValue::execute()
   std::vector<dfloat> z = {_point(2) / nekrs::referenceLength()};
   int n = x.size();
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   // set the points to be interpolated; we include this every time we call the
   // interpolator, in case the mesh is moving. TODO: auto-detect for efficiency

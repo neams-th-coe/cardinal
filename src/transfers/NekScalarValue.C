@@ -53,8 +53,9 @@ NekScalarValue::sendDataToNek()
   _console << "Sending scalar value (" << Moose::stringify(value_to_set) << ") to NekRS..."
            << std::endl;
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-  nrs->bc->usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
+  auto nrs = nekrs::nrsPtr();
+  auto usrwrk = nekrs::host_wrk();
+  usrwrk[_usrwrk_slot * nekrs::fieldOffset() + _offset] = value_to_set;
 
   if (_postprocessor)
     _nek_problem.setPostprocessorValueByName(*_postprocessor, value_to_set);

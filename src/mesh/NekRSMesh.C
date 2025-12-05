@@ -121,9 +121,11 @@ NekRSMesh::saveInitialVolMesh()
   _initial_y.resize(ngllpts,0.0);
   _initial_z.resize(ngllpts,0.0);
 
-  memcpy(_initial_x.data(), nekrs::x.data(), ngllpts * sizeof(double));
-  memcpy(_initial_y.data(), nekrs::y.data(), ngllpts * sizeof(double));
-  memcpy(_initial_z.data(), nekrs::z.data(), ngllpts * sizeof(double));
+  auto [x, y, z] = nekrs::host_xyz();
+
+  memcpy(_initial_x.data(), x.data(), ngllpts * sizeof(double));
+  memcpy(_initial_y.data(), y.data(), ngllpts * sizeof(double));
+  memcpy(_initial_z.data(), z.data(), ngllpts * sizeof(double));
 }
 
 void
@@ -693,7 +695,7 @@ NekRSMesh::faceVertices()
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -731,6 +733,8 @@ NekRSMesh::faceVertices()
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
 
+  auto [nek_x, nek_y, nek_z] = nekrs::host_xyz();
+
   int c = 0;
   for (int k = 0; k < _boundary_coupling.total_n_faces; ++k)
   {
@@ -747,9 +751,9 @@ NekRSMesh::faceVertices()
           int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = mesh->vmapM[offset + vertex_offset];
 
-          xtmp[c] = nekrs::x[id];
-          ytmp[c] = nekrs::y[id];
-          ztmp[c] = nekrs::z[id];
+          xtmp[c] = nek_x[id];
+          ytmp[c] = nek_y[id];
+          ztmp[c] = nek_z[id];
         }
       }
     }
@@ -785,7 +789,7 @@ NekRSMesh::volumeVertices()
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * p = (double *) malloc(_n_build_per_volume_elem * _n_volume_elems * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -823,6 +827,8 @@ NekRSMesh::volumeVertices()
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ptmp = (double *) malloc(_n_build_per_volume_elem * _volume_coupling.n_elems * sizeof(double));
 
+  auto [nek_x, nek_y, nek_z] = nekrs::host_xyz();
+
   int c = 0;
   int d = 0;
   for (int k = 0; k < _volume_coupling.total_n_elems; ++k)
@@ -840,9 +846,9 @@ NekRSMesh::volumeVertices()
           int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = offset + vertex_offset;
 
-          xtmp[c] = nekrs::x[id];
-          ytmp[c] = nekrs::y[id];
-          ztmp[c] = nekrs::z[id];
+          xtmp[c] = nek_x[id];
+          ytmp[c] = nek_y[id];
+          ztmp[c] = nek_z[id];
         }
       }
     }

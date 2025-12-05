@@ -319,6 +319,8 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
   mesh_t * mesh = nekrs::temperatureMesh();
   auto nek_boundary_coupling = _nek_mesh->boundaryCoupling();
 
+  auto usrwrk = nekrs::host_wrk();
+
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
     if (nek_boundary_coupling.process[k] == nekrs::commRank())
@@ -340,7 +342,7 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nekrs::usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
@@ -381,6 +383,8 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
 
   const double ratio = moose_integral / nek_integral;
 
+  auto usrwrk = nekrs::host_wrk();
+
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
     if (nek_boundary_coupling.process[k] == nekrs::commRank())
@@ -392,7 +396,7 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nekrs::usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }

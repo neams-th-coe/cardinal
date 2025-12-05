@@ -27,6 +27,23 @@ static dfloat * vgeo;
 static unsigned int n_usrwrk_slots;
 static bool is_nondimensional;
 
+namespace { //private namespace
+/**
+ * Host arrays for essential NekRS fields
+ */
+std::vector<dfloat> x;
+std::vector<dfloat> y;
+std::vector<dfloat> z;
+std::vector<dfloat> U;
+std::vector<dfloat> P;
+std::vector<dfloat> S;
+
+dfloat *usrwrk = nullptr;
+
+nrs_t* nrs;
+
+} //end private namespace
+
 namespace nekrs
 {
 static double setup_time;
@@ -70,7 +87,6 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
 {
   int num_bytes = fieldOffset() * sizeof(dfloat);
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   occa::memory o_write = platform->device.malloc(num_bytes);
   o_write.copyFrom(platform->app->bc->o_usrwrk, num_bytes /* length we are copying */,
     0 /* where to place data */, num_bytes * slot /* where to source data */);
@@ -83,8 +99,6 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
 void
 write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-
   int Nscalar = 0;
   occa::memory o_s;
   if (nrs->Nscalar)
@@ -112,8 +126,6 @@ buildOnly()
 bool
 hasCHT()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-
   for (int is = 0; is < nrs->Nscalar; is++) {
     if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID")) {
       return true;
@@ -167,49 +179,42 @@ endControlNumSteps()
 bool
 hasTemperatureVariable()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
 }
 
 bool
 hasTemperatureSolve()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return hasTemperatureVariable() ? nrs->scalar->compute[0] : false;
 }
 
 bool
 hasScalarVariable(int scalarId)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return (scalarId < nrs->Nscalar);
 }
 
 bool
 hasHeatSourceKernel()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return static_cast<bool>(nrs->userSource);
 }
 
 bool
 isInitialized()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs;
 }
 
 int
 scalarFieldOffset()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->scalar->fieldOffset(); //same for all scalars
 }
 
 int
 velocityFieldOffset()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->fieldOffset;
 }
 
@@ -234,14 +239,12 @@ entireMesh()
 mesh_t *
 flowMesh()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->meshV;
 }
 
 mesh_t *
 temperatureMesh()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->scalar->mesh("temperature");
 }
 
@@ -272,7 +275,6 @@ commSize()
 bool
 scratchAvailable()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // Because these scratch spaces are available for whatever the user sees fit, it is
   // possible that the user wants to use these arrays for a _different_ purpose aside from
@@ -293,7 +295,6 @@ initializeScratch(const unsigned int & n_slots)
   if (n_slots == 0)
     return;
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = entireMesh();
 
   // clear them just to be sure
@@ -311,7 +312,6 @@ initializeScratch(const unsigned int & n_slots)
 void
 freeScratch()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   freePointer(usrwrk);
 }
@@ -434,7 +434,6 @@ displacementAndCounts(const std::vector<int> & base_counts,
 double
 usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
@@ -457,7 +456,6 @@ usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_m
 void
 scaleUsrwrk(const unsigned int & slot, const dfloat & value)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = getMesh(nek_mesh::all);
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -474,7 +472,6 @@ usrwrkSideIntegral(const unsigned int & slot,
                    const std::vector<int> & boundary,
                    const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
 
   std::vector<double> integral(boundary.size(), 0.0);
@@ -521,7 +518,6 @@ limitTemperature(const double * min_T, const double * max_T)
   minimum = (minimum - scales.T_ref) / scales.dT_ref;
   maximum = (maximum - scales.T_ref) / scales.dT_ref;
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
 
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
@@ -943,7 +939,6 @@ double
 massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
@@ -993,7 +988,6 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                              const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
@@ -1052,7 +1046,6 @@ double
 pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   double integral = 0.0;
 
@@ -1093,7 +1086,6 @@ double
 heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the conductivity is constant, because
   // otherwise we need to copy the conductivity from device to host
@@ -1301,49 +1293,42 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 double
 get_scalar01(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return S[id + 1 * scalarFieldOffset()];
 }
 
 double
 get_scalar02(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return S[id + 2 * scalarFieldOffset()];
 }
 
 double
 get_scalar03(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return S[id + 3 * scalarFieldOffset()];
 }
 
 double
 get_usrwrk00(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return usrwrk[id];
 }
 
 double
 get_usrwrk01(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return usrwrk[id + nrs->fieldOffset];
 }
 
 double
 get_usrwrk02(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return usrwrk[id + 2 * nrs->fieldOffset];
 }
 
 double
 get_temperature(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
   const auto offset = nrs->scalar->fieldOffset();
   std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
@@ -1357,7 +1342,6 @@ get_flux(const int id, const int surf_offset)
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh
@@ -1384,7 +1368,6 @@ get_flux(const int id, const int surf_offset)
 double
 get_pressure(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return P[id];
 }
 
@@ -1397,28 +1380,24 @@ get_unity(const int /* id */, const int surf_offset)
 double
 get_velocity_x(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return U[id + 0 * nrs->fieldOffset];
 }
 
 double
 get_velocity_y(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return U[id + 1 * nrs->fieldOffset];
 }
 
 double
 get_velocity_z(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return U[id + 2 * nrs->fieldOffset];
 }
 
 double
 get_velocity(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   int offset = nrs->fieldOffset;
 
   return std::sqrt(U[id + 0 * offset] * U[id + 0 * offset] +
@@ -1811,7 +1790,8 @@ resolveType<int>()
 void
 initializeNekHostArrays()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
+  nrs = dynamic_cast<nrs_t *>(platform->app);
+
   mesh_t * mesh = entireMesh();
 
   x.resize(mesh->Nlocal);
@@ -1823,6 +1803,51 @@ initializeNekHostArrays()
   S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); //offset is same for all scalars
 }
 
+// Accessors
+std::vector<dfloat>& 
+host_x() {
+  return x;
+}
+
+std::vector<dfloat>& 
+host_y() {
+  return y;
+}
+
+std::vector<dfloat>& 
+host_z() {
+  return z;
+}
+
+std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> 
+host_xyz() {
+  return {x, y, z};
+}
+
+std::vector<dfloat>& 
+host_U() {
+  return U;
+}
+
+std::vector<dfloat>& 
+host_P() {
+  return P;
+}
+
+std::vector<dfloat>& 
+host_S() {
+  return S;
+}
+
+dfloat* 
+host_wrk() {
+  return usrwrk;
+}
+
+nrs_t* 
+nrsPtr() {
+  return nrs;
+}
 } // end namespace nekrs
 
 #endif
