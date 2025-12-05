@@ -26,8 +26,7 @@
 #include <vector>
 #include <cstdint>
 
-class OpenMCCellTranslator : public GeneralUserObject,
-                             public OpenMCBase
+class OpenMCCellTranslator : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
