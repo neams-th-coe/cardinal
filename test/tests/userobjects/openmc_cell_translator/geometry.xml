@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<geometry>
+  <cell fill="10" id="1" region="12 -13 14 -15 5 -6" universe="0"/>
+  <cell id="2" material="2" region="1 -2 3 -4 5 -6 ~(12 -13 14 -15)" universe="0"/>
+  <cell id="1011" material="1" region="7 -8 9 -10 -11" universe="100"/>
+  <cell id="1012" material="2" region="7 -8 9 -10 11" universe="100"/>
+  <cell id="1013" material="2" universe="101"/>
+  <cell fill="200" id="2011" region="12 -13 14 -15 5 -6" universe="10"/>
+  <lattice id="200">
+    <pitch>4.0 4.0</pitch>
+    <outer>101</outer>
+    <dimension>2 2</dimension>
+    <lower_left>-4.0 -4.0</lower_left>
+    <universes>
+100 100 
+100 100 </universes>
+  </lattice>
+  <surface boundary="reflective" coeffs="-40.0" id="1" type="x-plane"/>
+  <surface boundary="reflective" coeffs="40.0" id="2" type="x-plane"/>
+  <surface boundary="reflective" coeffs="-40.0" id="3" type="y-plane"/>
+  <surface boundary="reflective" coeffs="40.0" id="4" type="y-plane"/>
+  <surface boundary="reflective" coeffs="0" id="5" type="z-plane"/>
+  <surface boundary="reflective" coeffs="30.0" id="6" type="z-plane"/>
+  <surface coeffs="-2.0" id="7" name="minimum x" type="x-plane"/>
+  <surface coeffs="2.0" id="8" name="maximum x" type="x-plane"/>
+  <surface coeffs="-2.0" id="9" name="minimum y" type="y-plane"/>
+  <surface coeffs="2.0" id="10" name="maximum y" type="y-plane"/>
+  <surface coeffs="0.0 0.0 1.0" id="11" type="z-cylinder"/>
+  <surface coeffs="-12.0" id="12" name="minimum x" type="x-plane"/>
+  <surface coeffs="12.0" id="13" name="maximum x" type="x-plane"/>
+  <surface coeffs="-12.0" id="14" name="minimum y" type="y-plane"/>
+  <surface coeffs="12.0" id="15" name="maximum y" type="y-plane"/>
+</geometry>
