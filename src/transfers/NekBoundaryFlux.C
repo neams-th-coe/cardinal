@@ -340,7 +340,7 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->bc->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        nekrs::usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
@@ -392,7 +392,7 @@ NekBoundaryFlux::normalizeFlux(const double moose_integral,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->bc->usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
+        nekrs::usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + id] *= ratio;
       }
     }
   }
