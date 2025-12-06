@@ -8,5 +8,6 @@
     exodiff = translate_cells_out.e
     requirement = 'The system shall correctly reinitialize OpenMC coupling when the mesh is translated.'
                   'This is tested by translating the mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
   []
 []
