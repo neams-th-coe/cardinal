@@ -30,61 +30,44 @@
   []
 []
 
-[Postprocessors]
-  [p]
-    type = Receiver
-    default = 100.0
+[Functions]
+  [nparticles_fn]
+    type = ParsedFunction
+    value = 100*t
   []
-  [particles]
-    type = ConstantPostprocessor
-    value = 100
-    execute_on = 'timestep_begin'
+[]
+
+[Postprocessors]
+  [n_particles]
+    type = FunctionValuePostprocessor
+    function = nparticles_fn
+    execute_on = 'initial timestep_begin'
+  []
+  [particles_reporter]
+    type = OpenMCParticles
+    value_type = instantaneous
+  []
+  [total_particles_reporter]
+    type = OpenMCParticles
+    value_type = total
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  power = p
-  particles = particles
-  temperature_blocks = '100 200'
-  density_blocks = '200'
+  power = 100
+  particles = n_particles
+
   verbose = true
   cell_level = 0
-
-  initial_properties = xml
-
-  [Tallies]
-    [Cell]
-      type = CellTally
-      block = '100 200'
-      name = heat_source
-    []
-  []
 []
 
 [Executioner]
-  type = Steady
-[]
-
-[Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-  []
-  [fluid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
-  [solid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '100'
-  []
+  type = Transient
+  num_steps = 2
 []
 
 [Outputs]
-  execute_on = final
-  exodus = true
-  hide = 'particles density p'
+  csv = true
+  exodus = false
 []
