@@ -36,13 +36,9 @@
     capabilities = 'openmc'
   []
   [n_particles_from_postprocessor]
-    type = Exodiff
+    type = CSVDiff
     input = particles_from_postprocessor.i
-
-    # use the same gold file from the mapping_all test; this test is exactly the same except
-    # that the number of particles comes from a postprocessor
-    cli_args = 'Outputs/file_base=mapping_all_out Problem/output_cell_mapping=false'
-    exodiff = 'mapping_all_out.e'
+    csvdiff = 'particles_from_postprocessor_out.csv'
 
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process

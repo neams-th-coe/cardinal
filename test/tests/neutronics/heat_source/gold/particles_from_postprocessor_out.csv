@@ -1,0 +1,4 @@
+time,n_particles,particles_reporter,total_particles_reporter
+0,0,0,0
+1,100,5000,5000
+2,200,10000,15000

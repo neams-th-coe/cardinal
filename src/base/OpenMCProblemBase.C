@@ -280,19 +280,19 @@ int
 OpenMCProblemBase::nParticles() const
 {
   if (!isParamValid("particles"))
-    return static_cast<int>(openmc::settings::n_particles);
-
-  const double r = std::round(*_particles);
-
-  if (r <= 0.0)
-  {
-    mooseWarning(
-        "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your "
-        "postprocessor. number of particles from settings.xml will be used instead.");
     return openmc::settings::n_particles;
+
+  if (*_particles <= 0.0)
+  {
+    // The if (firstSolve()) check here is necessary because OpenMCCellAverageProblem::initialSetup() calls nParticles()
+    // before the first solve, but the first OpenMC run will use the particles set from the postprocessor as expected.
+    if (firstSolve())
+      return openmc::settings::n_particles;
+    mooseError(
+        "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in your postprocessor.");
   }
 
-  return static_cast<int>(r);
+  return std::round(*_particles);
 }
 
 std::string
