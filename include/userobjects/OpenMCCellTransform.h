@@ -26,12 +26,12 @@
 #include <vector>
 #include <cstdint>
 
-class OpenMCCellTranslator : public GeneralUserObject, public OpenMCBase
+class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
-  OpenMCCellTranslator(const InputParameters & parameters);
+  OpenMCCellTransform(const InputParameters & parameters);
 
   virtual void initialize() override {}
   virtual void execute() override;
@@ -41,14 +41,17 @@ protected:
   /// OpenMC cell IDs to which the translation will be applied
   const std::vector<int32_t> _cell_ids;
 
-  /// Postprocessors providing x-translation component
-  const PostprocessorValue & _dx_pp;
+  /// Transform type: "translation" or "rotation"
+  const MooseEnum _transform_type;
 
-  /// Postprocessors providing y-translation component
-  const PostprocessorValue & _dy_pp;
+  /// Postprocessors providing the first entry of the transform array
+  const PostprocessorValue * _t0_pp;
 
-  /// Postprocessors providing z-translation component
-  const PostprocessorValue & _dz_pp;
+  /// Postprocessors providing the second entry of the transform array
+  const PostprocessorValue * _t1_pp;
+
+  /// Postprocessors providing the third entry of the transform array
+  const PostprocessorValue * _t2_pp;
 
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
   Real _scaling;

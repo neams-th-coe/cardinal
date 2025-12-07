@@ -79,30 +79,34 @@
 []
 
 [Functions]
+  [psi_fn]
+    type = ParsedFunction
+    expression = '10*t'
+  []
   [disp_x_fn]
     type = ParsedFunction
-    expression = '2*t'
+    expression = (cos(10*t*3.141593/180)-1)*x-sin(10*t*3.141593/180)*y
   []
   [disp_y_fn]
     type = ParsedFunction
-    expression = '2*t'
+    expression = sin(10*t*3.141593/180)*x+(cos(10*t*3.141593/180)-1)*y
   []
 []
 
 [Postprocessors]
-  [shift_x]
-    type = FunctionValuePostprocessor
-    function = disp_x_fn
-    execute_on = 'timestep_begin'
-  []
-  [shift_y]
-    type = FunctionValuePostprocessor
-    function = disp_y_fn
-    execute_on = 'timestep_begin'
-  []
-  [zero_z]
+  [phi]
     type = ConstantPostprocessor
     value = 0.0
+    execute_on = 'timestep_begin'
+  []
+  [theta]
+    type = ConstantPostprocessor
+    value = 0.0
+    execute_on = 'timestep_begin'
+  []
+  [psi]
+    type = FunctionValuePostprocessor
+    function = psi_fn
     execute_on = 'timestep_begin'
   []
   [k]
@@ -117,11 +121,10 @@
 
 [UserObjects]
   [translate_cells]
-    type = OpenMCCellTranslator
+    type = OpenMCCellTransform
+    transform_type = 'rotation'
+    transform_array = 'phi theta psi'
     cell_ids = '2011'
-    x_translation = shift_x
-    y_translation = shift_y
-    z_translation = zero_z
     execute_on = 'timestep_begin'
   []
 []
