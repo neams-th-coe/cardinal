@@ -46,7 +46,7 @@ OpenMCCellTransform::validParams()
 
   params.addClassDescription(
       "UserObject that applies either translation or rotation on one or more OpenMC cells. "
-      "The transform is driven by three MOOSE postprocessors (x, y, z)");
+      "The transform is driven by a transform array of three MOOSE postprocessors");
 
   return params;
 }

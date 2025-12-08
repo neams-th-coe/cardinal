@@ -1,13 +1,21 @@
 [Tests]
-  design = 'OpenMCCellTranslator.md'
+  design = 'OpenMCCellTransform.md'
   issues = '#1255'
 
   [translate_cells]
     type = Exodiff
     input = translate_cells.i
     exodiff = translate_cells_out.e
-    requirement = 'The system shall correctly reinitialize OpenMC coupling when the mesh is translated.'
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is translated.'
                   'This is tested by translating the mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
+  [rotate_cells]
+    type = Exodiff
+    input = rotate_cells.i
+    exodiff = rotate_cells_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is rotated.'
+                  'This is tested by rotating the mesh while also rotating OpenMC universe which contains the coupled cells.'
     capabilities = 'openmc'
   []
 []
