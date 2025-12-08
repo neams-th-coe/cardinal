@@ -35,7 +35,7 @@ OpenMCCellTransform::validParams()
 
   MooseEnum transform_type("translation rotation", "translation");
   params.addParam<MooseEnum>("transform_type",
-                              transform_type,
+                             transform_type,
                              "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
                              "(phi,theta,psi) in degrees.");
 
@@ -123,9 +123,9 @@ OpenMCCellTransform::execute()
       mooseError("In attempting to ",
                  (_transform_type == "translation" ? "translate" : "rotate"),
                  " OpenMC cell with ID ",
-                  cell_id,
-                  ", OpenMC reported:\n\n",
-                  openmc_err_msg);
+                 cell_id,
+                 ", OpenMC reported:\n\n",
+                 openmc_err_msg);
   }
 }
 
