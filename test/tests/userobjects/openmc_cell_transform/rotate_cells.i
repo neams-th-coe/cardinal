@@ -64,6 +64,7 @@
         variable = disp_x
         function = disp_x_fn
         execute_on = 'timestep_begin'
+        use_displaced_mesh = false
     []
   []
   [disp_y]
@@ -72,6 +73,7 @@
         variable = disp_y
         function = disp_y_fn
         execute_on = 'timestep_begin'
+        use_displaced_mesh = false
     []
   []
   [disp_z]

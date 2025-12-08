@@ -37,12 +37,12 @@ OpenMCCellTransform::validParams()
   params.addParam<MooseEnum>("transform_type",
                              transform_type,
                              "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
-                             "(phi,theta,psi) in degrees.");
+                             "(φ, θ, ψ) in degrees.");
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "transform_array",
       "An array of three postprocessors. For translation this array expects (dx, dy, dz) in mesh"
-      "units. For rotation this array expects 'φ, θ, ψ' in degrees.");
+      " units. For rotation this array expects 'φ, θ, ψ' in degrees.");
 
   params.addClassDescription(
       "UserObject that applies either translation or rotation on one or more OpenMC cells. "
