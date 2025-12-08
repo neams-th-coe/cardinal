@@ -81,15 +81,19 @@
 [Functions]
   [psi_fn]
     type = ParsedFunction
-    expression = '10*t'
+    expression = '5*t'
   []
   [disp_x_fn]
     type = ParsedFunction
-    expression = (cos(10*t*3.141593/180)-1)*x-sin(10*t*3.141593/180)*y
+    expression = (cos(5*t*3.14159265359/180)-1)*(x-x0)-sin(5*t*3.14159265359/180)*(y-y0)
+    symbol_names = 'x0 y0'
+    symbol_values = '0 0'
   []
   [disp_y_fn]
     type = ParsedFunction
-    expression = sin(10*t*3.141593/180)*x+(cos(10*t*3.141593/180)-1)*y
+    expression = sin(5*t*3.14159265359/180)*(x-x0)+(cos(5*t*3.14159265359/180)-1)*(y-y0)
+    symbol_names = 'x0 y0'
+    symbol_values = '0 0'
   []
 []
 
@@ -131,7 +135,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 4
+  num_steps = 2
 []
 
 [Outputs]
