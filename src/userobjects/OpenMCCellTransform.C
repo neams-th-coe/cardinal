@@ -34,15 +34,15 @@ OpenMCCellTransform::validParams()
       "cell_ids", "List of OpenMC cell IDs whose filled universes will be transformed.");
 
   MooseEnum transform_type("translation rotation", "translation");
-  params.addParam<MooseEnum>(
-      "transform_type",
-      transform_type,
-      "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation' (phi,theta,psi) in degrees.");
+  params.addParam<MooseEnum>("transform_type",
+                              transform_type,
+                             "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
+                             "(phi,theta,psi) in degrees.");
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "transform_array",
-      "An array of three postprocessors. For translation this array expects (dx, dy, dz) in mesh units."
-      "For rotation this array expects 'φ, θ, ψ' in degrees.");
+      "An array of three postprocessors. For translation this array expects (dx, dy, dz) in mesh"
+      "units. For rotation this array expects 'φ, θ, ψ' in degrees.");
 
   params.addClassDescription(
       "UserObject that applies either translation or rotation on one or more OpenMC cells. "
@@ -63,7 +63,8 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
 
   const auto & t = getParam<std::vector<PostprocessorName>>("transform_array");
   if (t.size() != 3)
-    paramError("transform_array", "Provide exactly 3 postprocessors: 'dx dy dz' in mesh units for translation"
+    paramError("transform_array",
+               "Provide exactly 3 postprocessors: 'dx dy dz' in mesh units for translation"
                "transform or 'φ, θ, ψ' in degrees for rotation transform.");
 
   _t0_pp = &GeneralUserObject::getPostprocessorValue("transform_array", 0);
@@ -90,8 +91,7 @@ OpenMCCellTransform::execute()
     vec[2] = _scaling * a2;
 
     _console << "Setting OpenMC cell translations for " << _cell_ids.size() << " cell(s) to ("
-             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm."
-             << std::endl;
+             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
   }
   else if (_transform_type == "rotation")
   {
@@ -120,9 +120,12 @@ OpenMCCellTransform::execute()
       err = openmc_cell_set_rotation(index, vec, 3);
 
     if (err)
-      mooseError("In attempting to ", (_transform_type == "translation" ? "translate" : "rotate"),
-                 " OpenMC cell with ID ", cell_id, ", OpenMC reported:\n\n", openmc_err_msg);
-
+      mooseError("In attempting to ",
+                 (_transform_type == "translation" ? "translate" : "rotate"),
+                 " OpenMC cell with ID ",
+                  cell_id,
+                  ", OpenMC reported:\n\n",
+                  openmc_err_msg);
   }
 }
 
