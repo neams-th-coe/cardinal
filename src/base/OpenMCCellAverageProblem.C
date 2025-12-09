@@ -2304,8 +2304,8 @@ OpenMCCellAverageProblem::externalSolve()
     if (isParamValid("particles"))
       openmc::settings::n_particles = OpenMCProblemBase::nParticles();
   }
-  _console << " Running OpenMC with " << openmc::settings::n_particles
-             << " particles per batch..." << std::endl;
+  _console << " Running OpenMC with " << openmc::settings::n_particles << " particles per batch..."
+           << std::endl;
 
   OpenMCProblemBase::externalSolve();
 }
