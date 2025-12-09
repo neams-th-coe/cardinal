@@ -284,11 +284,6 @@ OpenMCProblemBase::nParticles() const
 
   if (*_particles <= 0.0)
   {
-    // The if (firstSolve()) check here is necessary because
-    // OpenMCCellAverageProblem::initialSetup() calls nParticles() before the first solve, but the
-    // first OpenMC run will use the particles set from the postprocessor as expected.
-    if (firstSolve())
-      return openmc::settings::n_particles;
     mooseError("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
                "your postprocessor.");
   }

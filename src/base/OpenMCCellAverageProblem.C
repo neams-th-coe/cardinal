@@ -305,6 +305,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params, "particles", "using Dufek-Gudowski relaxation");
     checkRequiredParam(params, "first_iteration_particles", "using Dufek-Gudowski relaxation");
     openmc::settings::n_particles = getParam<int>("first_iteration_particles");
+    _n_particles_1 = getParam<int>("first_iteration_particles");
   }
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
@@ -520,8 +521,6 @@ OpenMCCellAverageProblem::initialSetup()
   OpenMCProblemBase::initialSetup();
 
   getOpenMCUserObjects();
-
-  _n_particles_1 = nParticles();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
