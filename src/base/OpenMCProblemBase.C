@@ -363,8 +363,6 @@ OpenMCProblemBase::externalSolve()
     _console << " Skipping running OpenMC as the mesh has not changed!" << std::endl;
     return;
   }
-  openmc::settings::n_particles = nParticles();
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())
