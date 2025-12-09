@@ -2265,6 +2265,11 @@ OpenMCCellAverageProblem::externalSolve()
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
   if (_relaxation == relaxation::dufek_gudowski && !firstSolve())
     dufekGudowskiParticleUpdate();
+  else
+  {
+    openmc::settings::n_particles = OpenMCProblemBase::nParticles();
+    _console << " Running OpenMC with " << OpenMCProblemBase::nParticles() << " particles per batch..." << std::endl;
+  }
 
   OpenMCProblemBase::externalSolve();
 }
