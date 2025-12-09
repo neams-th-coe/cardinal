@@ -2267,10 +2267,11 @@ OpenMCCellAverageProblem::externalSolve()
     dufekGudowskiParticleUpdate();
   else
   {
-    openmc::settings::n_particles = OpenMCProblemBase::nParticles();
-    _console << " Running OpenMC with " << OpenMCProblemBase::nParticles()
-             << " particles per batch..." << std::endl;
+    if (isParamValid("particles"))
+      openmc::settings::n_particles = OpenMCProblemBase::nParticles();
   }
+  _console << " Running OpenMC with " << openmc::settings::n_particles
+             << " particles per batch..." << std::endl;
 
   OpenMCProblemBase::externalSolve();
 }
