@@ -219,6 +219,10 @@ K. C. Sawatzky, E. W. Ahammed, P. P.H. Wilson, P. C. Shriwise, P. K. Romano, A. 
 
 # AI/ML
 
+V.C. Leite, E.  Merzari, A.  Novak, R. Ponciroli, and L. Ibarra,
+["Application of a Physics-Informed Convolutional Neural Network for Monitoring the Temperature Field in High-Temperature Gas Reactors"](https://doi.org/10.1080/00295639.2024.2443337)
+*Nuclear Science and Engineering* (2025)
+
 V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
 ["Application of a Physically Informed Convolutional Neural Network for Monitoring the Temperature Field in Advanced Reactors"](https://www.ans.org/pubs/proceedings/article-54472/)
 *Proceedings of Nureth* (2023)
