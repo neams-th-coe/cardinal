@@ -124,7 +124,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // Suppress OpenMC output when the language server is active by
   // decreasing the verbosity to level 1 (the lowest).
   std::vector<std::string> argv_vec = {"openmc"};
-  if (_app.isParamValid("language_server"))
+  if (_app.isParamValid("language_server") && _app.getParam<bool>("language_server")))
   {
     argv_vec.push_back("-q");
     argv_vec.push_back("1");
