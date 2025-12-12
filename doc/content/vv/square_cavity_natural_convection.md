@@ -31,9 +31,6 @@ Where $\alpha$ is the thermal diffusivity of the fluid and $\nu$ is the kinemati
 | $Re$ | $1.4085$ |
 | $Ri$ | $0.71 \cdot Ra$ |
 
-## Input Files
-
-!listing test/tests/nek_ci/square_cavity/cavity.par language=cpp
 
 ## Results
 
