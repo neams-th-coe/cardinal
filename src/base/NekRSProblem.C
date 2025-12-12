@@ -810,7 +810,7 @@ NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
   auto nbytes = n * sizeof(dfloat);
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-  nrs->o_usrwrk.copyFrom(nrs->usrwrk + slot * n, nbytes, slot * nbytes);
+  nrs->bc.o_usrwrk.copyFrom(nrs->bc->usrwrk + slot * n, nbytes, slot * nbytes);
 }
 
 void
@@ -1003,7 +1003,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nrs->usrwrk[slot + id + v] = s[v] + extra;
+      nrs->bc.usrwrk[slot + id + v] = s[v] + extra;
     }
   }
   else
@@ -1016,7 +1016,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nrs->usrwrk[slot + id + v] = tmp[v] + extra;
+      nrs->bc.usrwrk[slot + id + v] = tmp[v] + extra;
     }
 
     freePointer(tmp);
@@ -1036,7 +1036,7 @@ NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * 
   {
     // can write directly into the NekRS solution
     for (int i = 0; i < mesh->Nfp; ++i)
-      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
+      nrs->bc.usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
   }
   else
   {
@@ -1045,7 +1045,7 @@ NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * 
     interpolateBoundarySolutionToNek(s, tmp);
 
     for (int i = 0; i < mesh->Nfp; ++i)
-      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
+      nrs->bc.usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
 
     freePointer(tmp);
   }
