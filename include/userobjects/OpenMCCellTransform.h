@@ -44,13 +44,13 @@ protected:
   /// Transform type: "translation" or "rotation"
   const MooseEnum _transform_type;
 
-  /// Postprocessors providing the first entry of the transform array
+  /// Postprocessor providing the first entry of the transform array
   const PostprocessorValue * _t0_pp;
 
-  /// Postprocessors providing the second entry of the transform array
+  /// Postprocessor providing the second entry of the transform array
   const PostprocessorValue * _t1_pp;
 
-  /// Postprocessors providing the third entry of the transform array
+  /// Postprocessor providing the third entry of the transform array
   const PostprocessorValue * _t2_pp;
 
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
