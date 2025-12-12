@@ -248,11 +248,9 @@ public:
   virtual bool addingGlobalTally() const { return _needs_global_tally; }
 
   /**
-   * Get the number of tallies linked to this tally for normalization.
-   * @return the number of linked tallies
+   * Get the vector of tallies linked to this tally object for normalization
+   * @return the vector of linked tallies
    */
-  unsigned int numLinkedTallies() const { return _linked_tallies.size(); }
-
   const std::vector<const TallyBase *> & linkedTallies() const { return _linked_tallies; }
 
 protected:
@@ -353,12 +351,18 @@ protected:
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;
 
-  /// Sum value of the global tally associated with this tally object. Indexed by score.
+  /**
+   * Sum value of the global tally associated with this tally object. Each entry in
+   * _global_sum_tally corresponds to a score in _tally_score. As an example,
+   * _global_sum_tally[0] corresponds to the score located at _tally_score[0].
+   */
   std::vector<Real> _global_sum_tally;
 
   /**
    * Mean value of this tally across all bins; only used for fixed source mode.
-   * Indexed by score.
+   * Each entry in _local_mean_tally corresponds to a score in _tally_score. As
+   * an example, _local_mean_tally[0] corresponds to the score located at
+   * _tally_score[0].
    */
   std::vector<Real> _local_mean_tally;
 

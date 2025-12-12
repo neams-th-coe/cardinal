@@ -170,7 +170,7 @@ public:
   }
 
   /**
-   * get a tally object by it's name.
+   * Get a tally object by it's name.
    * @param[in] name the name of the TallyBase
    * @return a Cardinal wrapped tally
    */
@@ -180,6 +180,7 @@ public:
    * Get the variable(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] tally_name the name of the tally object to fetch score variables from
    * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
@@ -196,6 +197,7 @@ public:
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] tally_name the name of the tally object to fetch score variable values from
    * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
@@ -212,6 +214,7 @@ public:
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @param[in] tid the thread ID associated with the current MOOSE object
+   * @param[in] tally_name the name of the tally object to fetch score variable neighbor values from
    * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values

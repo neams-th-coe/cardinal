@@ -87,7 +87,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   {
     if (tally->hasScore(_score))
     {
-      linked = std::max(linked, tally->numLinkedTallies() + 1);
+      linked = std::max(linked, static_cast<unsigned int>(tally->linkedTallies().size()) + 1);
       num_with_score++;
 
       _tally = tally.get();

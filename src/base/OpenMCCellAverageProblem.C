@@ -63,7 +63,9 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<bool>("check_tally_sum",
                         "Whether to check consistency between the local tallies "
-                        "with a global tally sum");
+                        "and a global tally sum. This will require that the integral "
+                        "of the local tally matches a tally with no filters (defined "
+                        "over the entire phase space).");
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
@@ -94,7 +96,9 @@ OpenMCCellAverageProblem::validParams()
       "source/sec is computed as (power divided by the global value of this tally)");
   params.addParam<std::string>(
       "normalization_tally",
-      "The name of the local tally to use for normalizing results in eigenvalue calculations.");
+      "The name of a tally added in [Talliies] to be used when normalizing results in "
+      "eigenvalue calculations. This tally object must contain the score specified in "
+      "'source_rate_normalization'.");
 
   params.addParam<MooseEnum>(
       "k_trigger",
@@ -2621,7 +2625,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       for (auto & local_tally : _local_tallies)
         local_tally->computeSumAndMean();
 
-      // Recompute sums and means for tallies that are linked to othher tallies.
+      // Recompute sums and means for tallies that are linked to other tallies.
       // This is used to perform local normalization for translated copies of mesh tallies.
       // These loops must be separate due to data dependencies.
       for (auto & local_tally : _local_tallies)
@@ -2906,7 +2910,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
         {
           if (tally->hasScore(n))
           {
-            linked = std::max(linked, tally->numLinkedTallies() + 1);
+            linked = std::max(linked, static_cast<unsigned int>(tally->linkedTallies().size()) + 1);
             num_with_score++;
           }
         }
