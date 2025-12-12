@@ -121,7 +121,16 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
-  std::vector<std::string> argv_vec = {"openmc", _xml_directory};
+  // Suppress OpenMC output when the language server is active by
+  // decreasing the verbosity to level 1 (the lowest).
+  std::vector<std::string> argv_vec = {"openmc"};
+  if (_app.isParamValid("language_server"))
+  {
+    argv_vec.push_back("-q");
+    argv_vec.push_back("1");
+  }
+  // Add the parameter for the XML directory at the end.
+  argv_vec.push_back(_xml_directory);
 
   std::vector<char *> argv;
 
