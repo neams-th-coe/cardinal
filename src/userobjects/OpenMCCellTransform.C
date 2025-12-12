@@ -67,9 +67,9 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
                "Provide exactly 3 postprocessors: 'dx dy dz' in mesh units for translation"
                "transform or 'φ, θ, ψ' in degrees for rotation transform.");
 
-  _t0_pp = &GeneralUserObject::getPostprocessorValue("transform_array", 0);
-  _t1_pp = &GeneralUserObject::getPostprocessorValue("transform_array", 1);
-  _t2_pp = &GeneralUserObject::getPostprocessorValue("transform_array", 2);
+  _t0_pp = &getPostprocessorValue("transform_array", 0);
+  _t1_pp = &getPostprocessorValue("transform_array", 1);
+  _t2_pp = &getPostprocessorValue("transform_array", 2);
 
   if (_openmc_problem)
     _scaling = _openmc_problem->scaling();
