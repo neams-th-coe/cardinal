@@ -2858,10 +2858,9 @@ OpenMCCellAverageProblem::validateLocalTallies()
                    "Cannot assume separate tallies when either of 'check_tally_sum' or"
                    "'normalize_by_global_tally' is true!");
 
-    for (const auto & s : _all_tally_scores)
-      if (_score_count.at(s) > 1)
-        paramError("assume_separate_tallies",
-                   "Cannot assume separate tallies when multiple tallies tally the same score!");
+    if (_local_tallies.size() > 1)
+      paramError("assume_separate_tallies",
+                  "Cannot assume separate tallies when there are multiple tallies added in the [Tallies] block!");
   }
 
   // need some special treatment for non-heating scores, in eigenvalue mode
