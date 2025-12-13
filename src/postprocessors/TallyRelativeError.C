@@ -52,29 +52,17 @@ TallyRelativeError::validParams()
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
-    OpenMCBase(this, parameters),
+    TallyInterface(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   if (isParamValid("tally_score"))
-  {
-    const auto & tally_score = getParam<MooseEnum>("tally_score");
-    _score = _openmc_problem->enumToTallyScore(tally_score);
-
-    if (!_openmc_problem->hasScore(_score))
-      paramError(
-          "tally_score",
-          "To extract the relative error of the '" + std::string(tally_score) +
-              "' score, it must be included in one of the [Tallies] added in your input file!");
-  }
+    _score = getScore("tally_score");
   else
   {
     if (_openmc_problem->getTallyScores().size() != 1 && !isParamValid("tally_score"))
       paramError("tally_score",
                  "When multiple scores have been added by tally objects, you must specify a score "
                  "from which the relative error will be extracted.");
-
-    for (const auto & s : _openmc_problem->getTallyScores())
-      _console << s << std::endl;
 
     _score = _openmc_problem->getTallyScores()[0];
   }
@@ -94,25 +82,9 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     }
   }
 
-  if (scoring_tallies > 1)
-  {
-    // User must provide a tally to post-process if there isn't a single non-linked tally per score.
-    if (scoring_tallies != linked || scoring_tallies != num_with_score)
-    {
-      // When the problem has more then one tally accumulating the given score, the user needs to
-      // tell us which one to use.
-      checkRequiredParam(
-          _pars, "tally", "adding more then one tally with " + _score + " in the [Tallies] block");
-
-      const auto t_name = getParam<std::string>("tally");
-      _tally = _openmc_problem->getTally(t_name);
-      if (!_tally)
-        paramError("tally", "This tally does not exist in the [Tallies] block!");
-
-      if (!_tally->hasScore(_score))
-        paramError("tally", "This tally does not score " + _score + "!");
-    }
-  }
+  // User must provide a tally to post-process if there isn't a single non-linked tally per score.
+  if (scoring_tallies != linked || scoring_tallies != num_with_score)
+    _tally = _openmc_problem->getTally(tallyByScore(_score, "tally"));
 }
 
 Real

@@ -68,38 +68,13 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
                "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
                "ensure that 'variable' is of type MONOMIAL_VEC and order CONSTANT.");
 
-  std::string score = getParam<MooseEnum>("score");
-  std::replace(score.begin(), score.end(), '_', '-');
+  auto score = getScore("score");
+  auto tally_name = tallyByScore(score, "tally");;
 
-  // Error check and fetch the tally score.
-  if (!_openmc_problem->hasScore(score))
-    paramError("score",
-               "The problem does not contain any score named " +
-                   std::string(getParam<MooseEnum>("score")) +
-                   "! Please "
-                   "ensure that one of your [Tallies] is scoring the requested score.");
-
-  std::string tally_name = "";
-  if (_openmc_problem->getNumScoringTallies(score) > 1)
-  {
-    // When the problem has more then one tally accumulating the given score, the user needs to tell
-    // us which one to use.
-    checkRequiredParam(
-        _pars, "tally", "adding more then one tally with " + score + " in the [Tallies] block");
-
-    tally_name = getParam<std::string>("tally");
-    const auto * tally = _openmc_problem->getTally(tally_name);
-    if (!tally)
-      paramError("tally", "This tally does not exist in the [Tallies] block!");
-
-    if (!tally->hasScore(score))
-      paramError("tally", "This tally does not score " + score + "!");
-  }
-
-  auto score_vars = _openmc_problem->getTallyScoreVariables(score, _tid, tally_name);
-  auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid, tally_name);
+  auto score_vars = _openmc_problem->getTallyScoreVariables(score, tally_name, _tid);
+  auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, tally_name, _tid);
   auto neighbor_score_bins =
-      _openmc_problem->getTallyScoreNeighborVariableValues(score, _tid, tally_name);
+      _openmc_problem->getTallyScoreNeighborVariableValues(score, tally_name, _tid);
 
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",

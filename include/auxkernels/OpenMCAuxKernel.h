@@ -19,7 +19,7 @@
 #pragma once
 
 #include "AuxKernel.h"
-#include "OpenMCBase.h"
+#include "TallyInterface.h"
 #include "OpenMCCellAverageProblem.h"
 
 // forward declarations
@@ -35,7 +35,7 @@ typedef OpenMCAuxKernelTempl<RealEigenVector> OpenMCArrayAuxKernel;
  * the OpenMC problem.
  */
 template <typename ComputeValueType>
-class OpenMCAuxKernelTempl : public AuxKernelTempl<ComputeValueType>, public OpenMCBase
+class OpenMCAuxKernelTempl : public AuxKernelTempl<ComputeValueType>, public TallyInterface
 {
 public:
   OpenMCAuxKernelTempl(const InputParameters & parameters);

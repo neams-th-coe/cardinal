@@ -179,8 +179,8 @@ public:
   /**
    * Get the variable(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
-   * @param[in] tid the thread ID associated with the current MOOSE object
    * @param[in] tally_name the name of the tally object to fetch score variables from
+   * @param[in] tid the thread ID associated with the current MOOSE object
    * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
@@ -188,8 +188,8 @@ public:
    */
   std::vector<const MooseVariableFE<Real> *>
   getTallyScoreVariables(const std::string & score,
+                         const std::string & tally_name,
                          THREAD_ID tid,
-                         const std::string & tally_name = "",
                          const std::string & output = "",
                          bool skip_func_exp = false);
 
@@ -205,16 +205,16 @@ public:
    */
   std::vector<const VariableValue *>
   getTallyScoreVariableValues(const std::string & score,
+                              const std::string & tally_name,
                               THREAD_ID tid,
-                              const std::string & tally_name = "",
                               const std::string & output = "",
                               bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
-   * @param[in] tid the thread ID associated with the current MOOSE object
    * @param[in] tally_name the name of the tally object to fetch score variable neighbor values from
+   * @param[in] tid the thread ID associated with the current MOOSE object
    * @param[in] output the output variable (relative error, standard deviation, etc.) to fetch
    * @param[in] skip_func_exp whether functional expansion filter bins should be skipped or not when
    * fetching variable values
@@ -222,8 +222,8 @@ public:
    */
   std::vector<const VariableValue *>
   getTallyScoreNeighborVariableValues(const std::string & score,
+                                      const std::string & tally_name,
                                       THREAD_ID tid,
-                                      const std::string & tally_name = "",
                                       const std::string & output = "",
                                       bool skip_func_exp = false);
 

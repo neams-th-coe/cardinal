@@ -790,15 +790,15 @@ OpenMCCellAverageProblem::getTally(const std::string & name)
 
 std::vector<const MooseVariableFE<Real> *>
 OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
-                                                 THREAD_ID tid,
                                                  const std::string & tally_name,
+                                                 THREAD_ID tid,
                                                  const std::string & output,
                                                  bool skip_func_exp)
 {
   std::vector<const MooseVariableFE<Real> *> score_vars;
   for (const auto & t : _local_tallies)
   {
-    if (t->hasScore(score) && (t->name() == tally_name || tally_name == ""))
+    if (t->hasScore(score) && t->name() == tally_name)
     {
       auto vars = t->getScoreVars(score);
       for (unsigned int ext_bin = 0; ext_bin < vars.size(); ++ext_bin)
@@ -819,15 +819,15 @@ OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score,
 
 std::vector<const VariableValue *>
 OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
-                                                      THREAD_ID tid,
                                                       const std::string & tally_name,
+                                                      THREAD_ID tid,
                                                       const std::string & output,
                                                       bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
   for (const auto & t : _local_tallies)
   {
-    if (t->hasScore(score) && (t->name() == tally_name || tally_name == ""))
+    if (t->hasScore(score) && t->name() == tally_name)
     {
       auto vars = t->getScoreVars(score);
       for (unsigned int ext_bin = 0; ext_bin < vars.size(); ++ext_bin)
@@ -849,15 +849,15 @@ OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score,
 
 std::vector<const VariableValue *>
 OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string & score,
-                                                              THREAD_ID tid,
                                                               const std::string & tally_name,
+                                                              THREAD_ID tid,
                                                               const std::string & output,
                                                               bool skip_func_exp)
 {
   std::vector<const VariableValue *> score_vars;
   for (const auto & t : _local_tallies)
   {
-    if (t->hasScore(score) && (t->name() == tally_name || tally_name == ""))
+    if (t->hasScore(score) && t->name() == tally_name)
     {
       auto vars = t->getScoreVars(score);
       for (unsigned int ext_bin = 0; ext_bin < vars.size(); ++ext_bin)
