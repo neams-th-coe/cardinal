@@ -27,9 +27,9 @@ TallyInterface::validParams()
   return params;
 }
 
-TallyInterface::TallyInterface(const ParallelParamObject * object, const InputParameters & parameters)
-  : OpenMCBase(object, parameters),
-    _object(object)
+TallyInterface::TallyInterface(const ParallelParamObject * object,
+                               const InputParameters & parameters)
+  : OpenMCBase(object, parameters), _object(object)
 {
 }
 
@@ -42,9 +42,9 @@ TallyInterface::getScore(const std::string & score_param)
   if (!_openmc_problem->hasScore(score))
     _object->paramError(score_param,
                         "The problem does not contain any score named " +
-                        std::string(_object->getParam<MooseEnum>(score_param)) +
-                        "! Please ensure that one of your [Tallies] is "
-                        "accumulating the requested score.");
+                            std::string(_object->getParam<MooseEnum>(score_param)) +
+                            "! Please ensure that one of your [Tallies] is "
+                            "accumulating the requested score.");
 
   return score;
 }
@@ -61,8 +61,8 @@ TallyInterface::tallyByScore(const std::string & score, const std::string & tall
   if (_openmc_problem->getNumScoringTallies(score) > 1)
   {
     checkRequiredParam(_object->parameters(),
-                        tally_param,
-                        "adding more then one tally with " + score + " in the [Tallies] block");
+                       tally_param,
+                       "adding more then one tally with " + score + " in the [Tallies] block");
 
     tally_name = _object->getParam<std::string>(tally_param);
     const auto * tally = _openmc_problem->getTally(tally_name);

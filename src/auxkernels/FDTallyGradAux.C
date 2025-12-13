@@ -69,7 +69,8 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
                "ensure that 'variable' is of type MONOMIAL_VEC and order CONSTANT.");
 
   auto score = getScore("score");
-  auto tally_name = tallyByScore(score, "tally");;
+  auto tally_name = tallyByScore(score, "tally");
+  ;
 
   auto score_vars = _openmc_problem->getTallyScoreVariables(score, tally_name, _tid);
   auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, tally_name, _tid);

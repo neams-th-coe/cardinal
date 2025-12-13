@@ -49,8 +49,7 @@ StatRelErrorIndicator::validParams()
 }
 
 StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
-  : OpenMCIndicator(parameters),
-    _bin_index(getParam<unsigned int>("ext_filter_bin"))
+  : OpenMCIndicator(parameters), _bin_index(getParam<unsigned int>("ext_filter_bin"))
 {
   auto score = getScore("score");
   auto tally_name = tallyByScore(score, "tally");

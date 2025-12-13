@@ -186,12 +186,11 @@ public:
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const MooseVariableFE<Real> *>
-  getTallyScoreVariables(const std::string & score,
-                         const std::string & tally_name,
-                         THREAD_ID tid,
-                         const std::string & output = "",
-                         bool skip_func_exp = false);
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
+                                                                    const std::string & tally_name,
+                                                                    THREAD_ID tid,
+                                                                    const std::string & output = "",
+                                                                    bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
@@ -203,12 +202,11 @@ public:
    * fetching variable values
    * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *>
-  getTallyScoreVariableValues(const std::string & score,
-                              const std::string & tally_name,
-                              THREAD_ID tid,
-                              const std::string & output = "",
-                              bool skip_func_exp = false);
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
+                                                                 const std::string & tally_name,
+                                                                 THREAD_ID tid,
+                                                                 const std::string & output = "",
+                                                                 bool skip_func_exp = false);
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.

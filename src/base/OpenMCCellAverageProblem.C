@@ -2860,7 +2860,8 @@ OpenMCCellAverageProblem::validateLocalTallies()
 
     if (_local_tallies.size() > 1)
       paramError("assume_separate_tallies",
-                  "Cannot assume separate tallies when there are multiple tallies added in the [Tallies] block!");
+                 "Cannot assume separate tallies when there are multiple tallies added in the "
+                 "[Tallies] block!");
   }
 
   // need some special treatment for non-heating scores, in eigenvalue mode

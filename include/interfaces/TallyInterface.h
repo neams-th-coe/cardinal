@@ -46,7 +46,8 @@ protected:
    * 'tally_param' is not valid and only one tally object accumulates 'score', this
    * function returns the name of that tally.
    * @param[in] score the score which the tally should be accumulating
-   * @param[in] tally_param the parameter name in the input parameters for '_object' which contains the name of a tally.
+   * @param[in] tally_param the parameter name in the input parameters for '_object' which contains
+   * the name of a tally.
    * @return the name of the tally which can be used to fetch score variables
    */
   std::string tallyByScore(const std::string & score, const std::string & tally_param);
