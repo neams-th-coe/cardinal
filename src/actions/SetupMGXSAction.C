@@ -59,7 +59,9 @@ SetupMGXSAction::validParams()
       " scores as the filters applied to those scores only support analog estimators.");
   params.addParam<bool>("check_tally_sum",
                         "Whether to check consistency between the local tallies "
-                        "with a global tally sum");
+                        "with a global tally sum. This will require that the "
+                        "integral of the local tally matches a tally with no filters "
+                        "(defined over the entire phase space).");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,

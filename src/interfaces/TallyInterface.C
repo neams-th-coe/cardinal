@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "TallyInterface.h"
 
 #include "UserErrorChecking.h"
@@ -82,3 +84,5 @@ TallyInterface::tallyByScore(const std::string & score, const std::string & tall
 
   return tally_name;
 }
+
+#endif

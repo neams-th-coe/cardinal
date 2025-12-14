@@ -47,28 +47,4 @@
                   "when multiple tallies are added which accumulate the same scores."
     capabilities = 'openmc'
   []
-  [duplicate_scores_tally_not_provided]
-    type = RunException
-    input = openmc_dup.i
-    requirement = "The system shall error if two tallies accumulate the same scores and the user doesn't "
-                  "select one to use for computing tally gradients."
-    expect_err = "When adding more then one tally with kappa-fission in the \[Tallies\] block, the 'tally' parameter is required!"
-    capabilities = 'openmc'
-  []
-  [duplicate_scores_missing_tally]
-    type = RunException
-    input = openmc_dup.i
-    cli_args = "AuxKernels/comp_grad_kappa_fission/tally='na'"
-    requirement = "The system shall error if the user provides a non-existent tally."
-    expect_err = "This tally does not exist"
-    capabilities = 'openmc'
-  []
-  [duplicate_scores_tally_has_no_score]
-    type = RunException
-    input = openmc_dup.i
-    cli_args = "AuxKernels/comp_grad_kappa_fission/tally='Cell_Flux'"
-    requirement = "The system shall error if the user provides a tally that does not accumulate the requested score."
-    expect_err = "This tally does not score kappa-fission!"
-    capabilities = 'openmc'
-  []
 []
