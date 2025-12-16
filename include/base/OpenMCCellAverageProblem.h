@@ -170,7 +170,7 @@ public:
   }
 
   /**
-   * Get a tally object by it's name.
+   * Get a tally object by its name.
    * @param[in] name the name of the TallyBase
    * @return a Cardinal wrapped tally
    */
