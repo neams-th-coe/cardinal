@@ -1,0 +1,15 @@
+[Tests]
+  # This test needs to be in its own directory to prevent a false positive if another test
+  # writes a statepoint.50.h5 file
+  [check_statepoint_exists]
+    type = CheckFiles
+    input = openmc.i
+    check_files = 'statepoint.50.h5'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "A statepoint file must be written when the batches parameter matches the batches "
+                  "in settings.xml and they are both specified."
+    capabilities = 'openmc'
+  []
+[]
