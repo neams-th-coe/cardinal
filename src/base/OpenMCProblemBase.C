@@ -217,17 +217,19 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamValid("batches"))
   {
-    auto xml_n_batches = openmc::settings::n_batches;
+    auto xml_n_batches = openmc::settings::n_batches; // user XML setting
+
+    // the getParam<unsigned int>("batches") param overrides OpenMC XML
+    // IMPORTANT because openmc::settings:statepoint_batch is a C++ set,
+    // we need to remove this first in the case that xml_n_batches matches
+    // getParam<unsigned int>("batches") otherwise there will be no batch
+    // at which Cardinal writes a statepoint
+    openmc::settings::statepoint_batch.erase(xml_n_batches);
 
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
     catchOpenMCError(err, "set the number of batches");
-
-    // if we set the batches from Cardinal, remove whatever statepoint file was
-    // created for the #batches set in the XML files; this is just to reduce the
-    // number of statepoint files by removing an unnecessary point
-    openmc::settings::statepoint_batch.erase(xml_n_batches);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
