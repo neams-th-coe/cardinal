@@ -52,7 +52,7 @@ model.geometry = openmc.Geometry([box1, box2])
 # Finally, define some run settings
 model.settings.batches = 10
 model.settings.inactive = 3
-model.settings.particles = 5000
+model.settings.particles = 10000
 
 lower_left = (0, 0, 0)
 upper_right = (R, R, R)

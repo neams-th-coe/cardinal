@@ -1,3 +1,3 @@
-time,critical_value,k
-0,0,0
-1,507.03458693513,0.99529248708952
+time,k_converged_within_tolerance
+0,0
+1,1

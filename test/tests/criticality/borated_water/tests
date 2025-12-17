@@ -37,7 +37,7 @@
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
-    requirement = "The system shall perform a criticality search based on boron weight ppm in water. This test changes the water density and then searches for a criticality point; the resulting ppm is compared to a standalone OpenMC model (the comparison is done when running with many more particles for both scenarios). The multiplication factors agree within statistics."
+    requirement = "The system shall perform a criticality search based on boron weight ppm in water. This test changes the water density and then searches for a criticality point; the resulting ppm is compared to a standalone OpenMC model (the comparison is done when running with many more particles for both scenarios). The multiplication factors agree within statistics. Due to floating point non-determinism, the actual test only compares that k matches unity within the desired convergence tolerance."
     # the relative nuclide concentrations are also printed to the screen and shown to match against
     # those added by OpenMC's borated_water function
     capabilities = 'openmc'

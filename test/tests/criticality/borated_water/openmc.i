@@ -34,7 +34,7 @@
     material_id = 2
     minimum = 0
     maximum = 1000
-    tolerance = 1e-1
+    tolerance = 1e-2
   []
 []
 
@@ -46,8 +46,19 @@
   [k]
     type = KEigenvalue
   []
+  [k_residual]
+    type = ParsedPostprocessor
+    expression = 'abs(k - 1.0)'
+    pp_names = 'k'
+  []
+  [k_converged_within_tolerance]
+    type = ParsedPostprocessor
+    expression = 'if (k_residual < 1e-2, 1, 0)'
+    pp_names = 'k_residual'
+  []
 []
 
 [Outputs]
   csv = true
+  hide = 'k k_residual critical_value'
 []
