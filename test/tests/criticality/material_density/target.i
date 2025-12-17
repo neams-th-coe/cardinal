@@ -20,6 +20,7 @@
     minimum = 10000
     maximum = 20000
     tolerance = 1e-2
+    target = 0.9
   []
 []
 
@@ -33,7 +34,7 @@
   []
   [k_residual]
     type = ParsedPostprocessor
-    expression = 'abs(k - 1.0)'
+    expression = 'abs(k - 0.9)'
     pp_names = 'k'
   []
   [k_converged_within_tolerance]
