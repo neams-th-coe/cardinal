@@ -37,16 +37,15 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     # for computational expediency, the test is run with much fewer particles
-    requirement = 'The system shall conduct a criticality search based on material density. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics.'
+    requirement = 'The system shall conduct a criticality search based on material density. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
     capabilities = 'openmc'
   []
   [search_with_target]
     type = CSVDiff
-    input = openmc.i
-    csvdiff = target.csv
-    cli_args = 'Problem/CriticalitySearch/target=0.9 Outputs/file_base="target"'
+    input = target.i
+    csvdiff = target_out.csv
     # for computational expediency, the test is run with much fewer particles
-    requirement = 'The system shall conduct a criticality search with a non-unity target k. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics.'
+    requirement = 'The system shall conduct a criticality search with a non-unity target k. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
     capabilities = 'openmc'
   []
   [negative_min]
