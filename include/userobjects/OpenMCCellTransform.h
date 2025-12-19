@@ -23,8 +23,6 @@
 #include "GeneralUserObject.h"
 #include "OpenMCBase.h"
 
-#include <vector>
-#include <cstdint>
 
 class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
 {

@@ -75,14 +75,3 @@ model.settings.source = openmc.IndependentSource(
 
 
 model.export_to_xml()
-
-plot = openmc.Plot()
-plot.filename = "lattice_xy"
-plot.origin = (0.0, 0.0, 15.0)
-plot.width = (6.0 * pitch, 6.0 * pitch)
-plot.pixels = (800, 800)
-plot.color_by = "material"
-plot.basis = "xy"
-
-model.plots = openmc.Plots([plot])
-model.plots.export_to_xml()
