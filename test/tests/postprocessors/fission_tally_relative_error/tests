@@ -60,7 +60,7 @@
     input = openmc_dup.i
     requirement = "The system shall error if two tallies accumulate the same scores and the user doesn't "
                   "select one to use for computing a relative error metric."
-    expect_err = "When adding more then one tally with kappa-fission in the \[Tallies\] block, the 'tally' parameter is required!"
+    expect_err = "When adding more than one tally with kappa-fission in the \[Tallies\] block, the 'tally' parameter is required!"
     capabilities = 'openmc'
   []
   [duplicate_scores_missing_tally]

@@ -64,7 +64,7 @@ TallyInterface::tallyByScore(const std::string & score, const std::string & tall
   {
     checkRequiredParam(_object->parameters(),
                        tally_param,
-                       "adding more then one tally with " + score + " in the [Tallies] block");
+                       "adding more than one tally with " + score + " in the [Tallies] block");
 
     tally_name = _object->getParam<std::string>(tally_param);
     const auto * tally = _openmc_problem->getTally(tally_name);
