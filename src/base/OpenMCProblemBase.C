@@ -279,7 +279,7 @@ OpenMCProblemBase::nParticles() const
   if (*_particles <= 0.0)
   {
     mooseError("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
-               "your postprocessor.");
+               "your postprocessor and check that the postprocessor value itself is not less than zero.");
   }
 
   return std::round(*_particles);
@@ -363,6 +363,9 @@ OpenMCProblemBase::externalSolve()
     _console << " Skipping running OpenMC as the mesh has not changed!" << std::endl;
     return;
   }
+
+  _console << " Running OpenMC with " << openmc::settings::n_particles << " particles per batch..."
+           << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())
