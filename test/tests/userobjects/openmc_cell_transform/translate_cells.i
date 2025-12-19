@@ -100,11 +100,6 @@
     function = disp_y_fn
     execute_on = 'timestep_begin'
   []
-  [zero_z]
-    type = ConstantPostprocessor
-    value = 0.0
-    execute_on = 'timestep_begin'
-  []
   [k]
     type = KEigenvalue
   []
@@ -119,7 +114,7 @@
   [translate_cells]
     type = OpenMCCellTransform
     transform_type = 'translation'
-    transform_array = 'shift_x shift_y zero_z'
+    vector_value = 'shift_x shift_y 0'
     cell_ids = '2011'
     execute_on = 'timestep_begin'
   []

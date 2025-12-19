@@ -23,7 +23,6 @@
 #include "GeneralUserObject.h"
 #include "OpenMCBase.h"
 
-
 class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
 {
 public:
@@ -51,8 +50,6 @@ protected:
   /// Postprocessor providing the third entry of the transform array
   const PostprocessorValue * _t2_pp;
 
-  /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
-  Real _scaling;
 };
 
 #endif

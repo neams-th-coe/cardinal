@@ -100,16 +100,6 @@
 []
 
 [Postprocessors]
-  [phi]
-    type = ConstantPostprocessor
-    value = 0.0
-    execute_on = 'timestep_begin'
-  []
-  [theta]
-    type = ConstantPostprocessor
-    value = 0.0
-    execute_on = 'timestep_begin'
-  []
   [psi]
     type = FunctionValuePostprocessor
     function = psi_fn
@@ -129,7 +119,7 @@
   [translate_cells]
     type = OpenMCCellTransform
     transform_type = 'rotation'
-    transform_array = 'phi theta psi'
+    vector_value = '0 0 psi'
     cell_ids = '2011'
     execute_on = 'timestep_begin'
   []

@@ -38,8 +38,8 @@ OpenMCCellTransform::validParams()
                              "(φ, θ, ψ) in degrees.");
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
-      "transform_array",
-      "An array of three postprocessors. For translation this array expects (dx, dy, dz) in mesh"
+      "vector_value",
+      "An array of three values/postprocessors. For translation this array expects (dx, dy, dz) in mesh"
       " units. For rotation this array expects 'φ, θ, ψ' in degrees.");
 
   params.addClassDescription(
@@ -53,77 +53,63 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     OpenMCBase(this, parameters),
     _cell_ids(getParam<std::vector<int32_t>>("cell_ids")),
-    _transform_type(getParam<MooseEnum>("transform_type")),
-    _scaling(1.0)
+    _transform_type(getParam<MooseEnum>("transform_type"))
 {
   if (_cell_ids.empty())
     paramError("cell_ids", "At least one OpenMC cell ID must be provided.");
 
-  const auto & t = getParam<std::vector<PostprocessorName>>("transform_array");
+  const auto & t = getParam<std::vector<PostprocessorName>>("vector_value");
   if (t.size() != 3)
-    paramError("transform_array",
-               "Provide exactly 3 postprocessors: 'dx dy dz' in mesh units for translation"
+    paramError("vector_value",
+               "Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translation"
                "transform or 'φ, θ, ψ' in degrees for rotation transform.");
 
-  _t0_pp = &getPostprocessorValue("transform_array", 0);
-  _t1_pp = &getPostprocessorValue("transform_array", 1);
-  _t2_pp = &getPostprocessorValue("transform_array", 2);
+  _t0_pp = &getPostprocessorValue("vector_value", 0);
+  _t1_pp = &getPostprocessorValue("vector_value", 1);
+  _t2_pp = &getPostprocessorValue("vector_value", 2);
 
-  if (_openmc_problem)
-    _scaling = _openmc_problem->scaling();
 }
 
 void
 OpenMCCellTransform::execute()
 {
-  const Real a0 = *_t0_pp;
-  const Real a1 = *_t1_pp;
-  const Real a2 = *_t2_pp;
-
   double vec[3];
+  vec[0] = *_t0_pp;
+  vec[1] = *_t1_pp;
+  vec[2] = *_t2_pp;
 
   if (_transform_type == "translation")
   {
-    vec[0] = _scaling * a0;
-    vec[1] = _scaling * a1;
-    vec[2] = _scaling * a2;
-
-    _console << "Setting OpenMC cell translations for " << _cell_ids.size() << " cell(s) to ("
-             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
+    vec[0] *= _openmc_problem->scaling();
+    vec[1] *= _openmc_problem->scaling();
+    vec[2] *= _openmc_problem->scaling();
   }
-  else if (_transform_type == "rotation")
-  {
-    vec[0] = a0;
-    vec[1] = a1;
-    vec[2] = a2;
-
-    _console << "Setting OpenMC cell rotations for " << _cell_ids.size() << " cell(s) to ("
-             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
-  }
-  else
-    mooseError("Unhandled transform_type: " + _transform_type);
 
   for (const auto & cell_id : _cell_ids)
   {
     int32_t index = -1;
 
     int err = openmc_get_cell_index(cell_id, &index);
-    if (err)
-      mooseError("In attempting to find OpenMC cell with ID " + std::to_string(cell_id) +
+    _openmc_problem->catchOpenMCError(err, "In attempting to find OpenMC cell with ID " + std::to_string(cell_id) +
                  ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
     if (_transform_type == "translation")
+    {
       err = openmc_cell_set_translation(index, vec);
-    else
+      _console << "Setting OpenMC cell translations for cell with ID" + std::to_string(cell_id) + "to ("
+             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
+    }
+    else if (_transform_type == "rotation")
+    {
       err = openmc_cell_set_rotation(index, vec, 3);
+      _console << "Setting OpenMC cell rotations for cell with ID" + std::to_string(cell_id) + "to ("
+             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
+    }
+    else
+      mooseError("Unhandled transform_type: " + _transform_type);
 
-    if (err)
-      mooseError("In attempting to ",
-                 (_transform_type == "translation" ? "translate" : "rotate"),
-                 " OpenMC cell with ID ",
-                 cell_id,
-                 ", OpenMC reported:\n\n",
-                 openmc_err_msg);
+    _openmc_problem->catchOpenMCError(err, "In attempting to transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id) +
+                 ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
   }
 }
 
