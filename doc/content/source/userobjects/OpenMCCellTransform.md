@@ -4,10 +4,10 @@
 
 ## Description
 
-This user object can be used to either translate or rotate a universe inside an OpenMC cell.
+This user object can be used to either translate or rotate an `openmc.Universe` which is the fill of an `openmc.Cell`.
 
-!alert! warning title=The specified cell must be filled with a universe which is what will be transformed
-This userobject doesn't translate or rotate the surfaces of the specified cell. Instead, if that cell is filled with a universe, the given transform will be used to shift/rotate that universe. If you want to use moving mesh capabilities for general cell surfaces, you may consider using the [MoabSkinner](MoabSkinner.md) with DAGMC geometries instead.
+!alert! warning title=The specified transformation is only applied to the universe which fills the cell.
+This userobject doesn't translate or rotate the surfaces of the specified cell. Instead, the given transform will be used to shift/rotate the universe fill. Note that it is possible to create undesired void regions with a poorly defined cell/universe/transformation combination, which may result in lost particles. If you want to use moving mesh capabilities for general cell surfaces, consider using the [MoabSkinner](MoabSkinner.md) with DAGMC geometries instead.
 !alert-end!
 
 ## Example Input Syntax
