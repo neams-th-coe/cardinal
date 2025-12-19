@@ -53,7 +53,7 @@ CardinalProblem::CardinalProblem(const InputParameters & params)
 }
 
 void
-CardinalProblem::checkDuplicateVariableName(const std::string & name) const
+CardinalProblem::checkDuplicateVariableName(const std::string & name, const std::string & system) const
 {
   // TODO: eventually remove this
   std::string extra;
@@ -65,7 +65,9 @@ CardinalProblem::checkDuplicateVariableName(const std::string & name) const
   if (_aux.get()->hasVariable(name))
     mooseError("Cardinal is trying to add an auxiliary variable named '",
                name,
-               "', but you already have a variable by this name. Please choose a different name "
+               "' through the ",
+               system,
+               " system, but you already have a variable by this name. Please choose a different name "
                "for the auxiliary variable you are adding." +
                    extra);
 

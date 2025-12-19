@@ -88,9 +88,10 @@ public:
    * Add a constant monomial auxiliary variable
    * @param[in] name name of the variable
    * @param[in] block optional subdomain names on which to restrict the variable
+   * @param[in] system an optional string for the system adding a variable (to improve debugging)
    * @return numeric index for the variable in the auxiliary system
    */
-  unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
+  unsigned int addExternalVariable(const std::string & name, const std::string & system, const std::vector<SubdomainName> * block = nullptr);
 
   /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units

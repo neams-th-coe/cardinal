@@ -51,8 +51,9 @@ public:
    * Check whether the user has already created a variable using one of the protected
    * names that the wrapping is using.
    * @param[in] name variable name
+   * @param[in] system an optional string for the system to improve the error message
    */
-  void checkDuplicateVariableName(const std::string & name) const;
+  void checkDuplicateVariableName(const std::string & name, const std::string & system) const;
 
   /**
    * Whether a string ends in a particular sub-string

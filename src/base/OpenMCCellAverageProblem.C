@@ -2198,7 +2198,7 @@ OpenMCCellAverageProblem::addExternalVariables()
         _tally_var_ids[i].push_back(
             _tally_var_ids[previous_valid_name_index][j]); // Use variables from first in sequence.
       else
-        _tally_var_ids[i].push_back(addExternalVariable(names[j], &block_name_vec));
+        _tally_var_ids[i].push_back(addExternalVariable(names[j], "Tally", &block_name_vec));
 
       if (_local_tallies[i]->hasOutputs())
       {
@@ -2211,7 +2211,7 @@ OpenMCCellAverageProblem::addExternalVariables()
                 _tally_ext_var_ids[previous_valid_name_index][k]
                                   [j]); // Use variables from first in sequence.
           else
-            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n, &block_name_vec));
+            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n, "Tally", &block_name_vec));
         }
       }
     }
@@ -2221,7 +2221,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   _subdomain_to_density_vars.clear();
   for (const auto & v : _density_vars_to_blocks)
   {
-    auto number = addExternalVariable(v.first, &v.second);
+    auto number = addExternalVariable(v.first, "density feedback", &v.second);
 
     auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
@@ -2232,7 +2232,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   _subdomain_to_temp_vars.clear();
   for (const auto & v : _temp_vars_to_blocks)
   {
-    auto number = addExternalVariable(v.first, &v.second);
+    auto number = addExternalVariable(v.first, "temperature feedback", &v.second);
 
     auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
@@ -2243,13 +2243,13 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     std::string auxk_type = "CellIDAux";
     InputParameters params = _factory.getValidParams(auxk_type);
-    addExternalVariable("cell_id");
+    addExternalVariable("cell_id", "cell mapping");
     params.set<AuxVariableName>("variable") = "cell_id";
     addAuxKernel(auxk_type, "cell_id", params);
 
     auxk_type = "CellInstanceAux";
     params = _factory.getValidParams(auxk_type);
-    addExternalVariable("cell_instance");
+    addExternalVariable("cell_instance", "cell mapping");
     params.set<AuxVariableName>("variable") = "cell_instance";
     addAuxKernel(auxk_type, "cell_instance", params);
   }

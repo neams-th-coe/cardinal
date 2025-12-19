@@ -419,7 +419,7 @@ SetupMGXSAction::addAuxVars()
     params.set<MooseEnum>("order") = "CONSTANT";
     setObjectBlocks(params, _blocks);
 
-    openmcProblem()->checkDuplicateVariableName(name);
+    openmcProblem()->checkDuplicateVariableName(name, "MGXS");
     _problem->addAuxVariable("MooseVariable", name, params);
   }
 
@@ -439,7 +439,7 @@ SetupMGXSAction::addAuxVars()
           params.set<MooseEnum>("order") = "CONSTANT";
           setObjectBlocks(params, _blocks);
 
-          openmcProblem()->checkDuplicateVariableName(name);
+          openmcProblem()->checkDuplicateVariableName(name, "MGXS");
           _problem->addAuxVariable("MooseVariable", name, params);
         }
       }
@@ -458,7 +458,7 @@ SetupMGXSAction::addAuxVars()
         params.set<MooseEnum>("order") = "CONSTANT";
         setObjectBlocks(params, _blocks);
 
-        openmcProblem()->checkDuplicateVariableName(name);
+        openmcProblem()->checkDuplicateVariableName(name, "MGXS");
         _problem->addAuxVariable("MooseVariable", name, params);
       }
       {
@@ -468,7 +468,7 @@ SetupMGXSAction::addAuxVars()
         params.set<MooseEnum>("order") = "CONSTANT";
         setObjectBlocks(params, _blocks);
 
-        openmcProblem()->checkDuplicateVariableName(name);
+        openmcProblem()->checkDuplicateVariableName(name, "MGXS");
         _problem->addAuxVariable("MooseVariable", name, params);
       }
     }
@@ -485,7 +485,7 @@ SetupMGXSAction::addAuxVars()
       params.set<MooseEnum>("order") = "CONSTANT";
       setObjectBlocks(params, _blocks);
 
-      openmcProblem()->checkDuplicateVariableName(name);
+      openmcProblem()->checkDuplicateVariableName(name, "MGXS");
       _problem->addAuxVariable("MooseVariable", name, params);
     }
   }
@@ -501,7 +501,7 @@ SetupMGXSAction::addAuxVars()
       params.set<MooseEnum>("order") = "CONSTANT";
       setObjectBlocks(params, _blocks);
 
-      openmcProblem()->checkDuplicateVariableName(name);
+      openmcProblem()->checkDuplicateVariableName(name, "MGXS");
       _problem->addAuxVariable("MooseVariable", name, params);
     }
   }
@@ -517,7 +517,7 @@ SetupMGXSAction::addAuxVars()
       params.set<MooseEnum>("order") = "CONSTANT";
       setObjectBlocks(params, _blocks);
 
-      openmcProblem()->checkDuplicateVariableName(name);
+      openmcProblem()->checkDuplicateVariableName(name, "MGXS");
       _problem->addAuxVariable("MooseVariable", name, params);
     }
   }
@@ -533,7 +533,7 @@ SetupMGXSAction::addAuxVars()
       params.set<MooseEnum>("order") = "CONSTANT";
       setObjectBlocks(params, _blocks);
 
-      openmcProblem()->checkDuplicateVariableName(name);
+      openmcProblem()->checkDuplicateVariableName(name, "MGXS");
       _problem->addAuxVariable("MooseVariable", name, params);
     }
   }

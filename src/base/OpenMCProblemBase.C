@@ -872,6 +872,7 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
 
 unsigned int
 OpenMCProblemBase::addExternalVariable(const std::string & name,
+                                       const std::string & system,
                                        const std::vector<SubdomainName> * block)
 {
   auto var_params = _factory.getValidParams("MooseVariable");
@@ -881,7 +882,7 @@ OpenMCProblemBase::addExternalVariable(const std::string & name,
   if (block)
     var_params.set<std::vector<SubdomainName>>("block") = *block;
 
-  checkDuplicateVariableName(name);
+  checkDuplicateVariableName(name, system);
   addAuxVariable("MooseVariable", name, var_params);
   return _aux->getFieldVariable<Real>(0, name).number();
 }
