@@ -34,7 +34,6 @@
   particles = n_particles
 
   verbose = true
-  cell_level = 0
 []
 
 [Executioner]
