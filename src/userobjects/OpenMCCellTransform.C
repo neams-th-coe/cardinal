@@ -19,8 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellTransform.h"
-#include "CardinalAppTypes.h"
-#include <string>
 
 registerMooseObject("CardinalApp", OpenMCCellTransform);
 
