@@ -285,14 +285,14 @@ OpenMCProblemBase::nParticles() const
   _console << " *_particles is " << *_particles << " and r is " << r << std::endl;
   if (firstSolve())
     return openmc::settings::n_particles;
-  if (r <= 0.0)
-    mooseError("'particles' must be a positive integer. Try adding execute_on = 'initial' to your "
-               "postprocessor.");
-  if (*_particles - r > 1e-2)
-    mooseWarning("'particles' must be a positive integer. Got `particles =` " +
-                 std::to_string(*_particles) + " OpenMC particles will be set to " +
-                 std::to_string(static_cast<int>(r)) + "instead.");
-  return static_cast<int>(r);
+
+  if (*_particles <= 0.0)
+  {
+    mooseError("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
+               "your postprocessor and check that the postprocessor value itself is not less than zero.");
+  }
+
+  return std::round(*_particles);
 }
 
 std::string
@@ -375,6 +375,9 @@ OpenMCProblemBase::externalSolve()
   }
   openmc::settings::n_particles = nParticles();
   _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+
+  _console << " Running OpenMC with " << openmc::settings::n_particles << " particles per batch..."
+           << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())

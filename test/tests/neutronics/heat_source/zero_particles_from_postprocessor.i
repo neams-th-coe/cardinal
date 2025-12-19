@@ -8,7 +8,7 @@
 [Functions]
   [nparticles_fn]
     type = ParsedFunction
-    value = 100*t
+    value = 0
   []
 []
 
