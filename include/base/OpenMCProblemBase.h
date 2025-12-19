@@ -91,7 +91,9 @@ public:
    * @param[in] system an optional string for the system adding a variable (to improve debugging)
    * @return numeric index for the variable in the auxiliary system
    */
-  unsigned int addExternalVariable(const std::string & name, const std::string & system, const std::vector<SubdomainName> * block = nullptr);
+  unsigned int addExternalVariable(const std::string & name,
+                                   const std::string & system,
+                                   const std::vector<SubdomainName> * block = nullptr);
 
   /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
@@ -231,7 +233,8 @@ public:
    * @param[in] n_realizations number of realizations
    */
   xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
-    const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
+                                       const xt::xtensor<double, 1> & sum_sq,
+                                       const int & n_realizations) const;
 
   /**
    * Compute relative error
@@ -326,10 +329,13 @@ public:
    * @param[in] id cell ID
    * @param[in] instance cell instance
    * @param[in] T temperature
-   * @param[in] cell_info cell info for which we are setting interior temperature, for error printing
+   * @param[in] cell_info cell info for which we are setting interior temperature, for error
+   * printing
    */
-  virtual void setCellTemperature(const int32_t & id, const int32_t & instance, const Real & T,
-    const cellInfo & cell_info) const;
+  virtual void setCellTemperature(const int32_t & id,
+                                  const int32_t & instance,
+                                  const Real & T,
+                                  const cellInfo & cell_info) const;
 
   /**
    * Set the cell density, and print helpful error message if a failure occurs

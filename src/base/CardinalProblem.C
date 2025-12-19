@@ -47,13 +47,11 @@ CardinalProblem::validParams()
   return params;
 }
 
-CardinalProblem::CardinalProblem(const InputParameters & params)
-  : ExternalProblem(params)
-{
-}
+CardinalProblem::CardinalProblem(const InputParameters & params) : ExternalProblem(params) {}
 
 void
-CardinalProblem::checkDuplicateVariableName(const std::string & name, const std::string & system) const
+CardinalProblem::checkDuplicateVariableName(const std::string & name,
+                                            const std::string & system) const
 {
   // TODO: eventually remove this
   std::string extra;
@@ -63,25 +61,27 @@ CardinalProblem::checkDuplicateVariableName(const std::string & name, const std:
             "include these auxkernels manually.";
 
   if (_aux.get()->hasVariable(name))
-    mooseError("Cardinal is trying to add an auxiliary variable named '",
-               name,
-               "' through the ",
-               system,
-               " system, but you already have a variable by this name. Please choose a different name "
-               "for the auxiliary variable you are adding." +
-                   extra);
+    mooseError(
+        "Cardinal is trying to add an auxiliary variable named '",
+        name,
+        "' through the ",
+        system,
+        " system, but you already have a variable by this name. Please choose a different name "
+        "for the auxiliary variable you are adding." +
+            extra);
 
   if (_nl[0].get()->hasVariable(name))
-    mooseError("Cardinal is trying to add a nonlinear variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the nonlinear variable you are adding.");
+    mooseError("Cardinal is trying to add a nonlinear variable named '",
+               name,
+               "', but you already have a variable by this name. Please choose a different name "
+               "for the nonlinear variable you are adding.");
 }
 
 bool
 CardinalProblem::stringHasEnding(std::string const & full, std::string const & ending) const
 {
   if (full.length() >= ending.length())
-      return 0 == full.compare(full.length() - ending.length(), ending.length(), ending);
+    return 0 == full.compare(full.length() - ending.length(), ending.length(), ending);
 
   return false;
 }
