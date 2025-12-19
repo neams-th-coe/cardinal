@@ -292,7 +292,7 @@ OpenMCProblemBase::nParticles() const
                "your postprocessor and check that the postprocessor value itself is not less than zero.");
   }
 
-  return std::round(*_particles);
+  return *_particles;
 }
 
 std::string

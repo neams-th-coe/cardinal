@@ -47,7 +47,7 @@
     type = CSVDiff
     input = particles_from_postprocessor.i
     csvdiff = 'particles_from_postprocessor_out.csv'
-    requirement = "The number of particles shall be provided by a postprocessor"
+    requirement = "The system shall control the number of particles in OpenMC by a postprocessor"
     capabilities = 'openmc'
   []
   [mapping_solid]
