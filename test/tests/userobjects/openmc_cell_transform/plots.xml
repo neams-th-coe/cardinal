@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<plots>
-  <plot basis="xy" color_by="material" filename="lattice_xy" id="1" type="slice">
-    <pixels>800 800</pixels>
-    <origin>0.0 0.0 15.0</origin>
-    <width>24.0 24.0</width>
-  </plot>
-</plots>

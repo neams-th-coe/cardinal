@@ -49,7 +49,6 @@ protected:
 
   /// Postprocessor providing the third entry of the transform array
   const PostprocessorValue * _t2_pp;
-
 };
 
 #endif

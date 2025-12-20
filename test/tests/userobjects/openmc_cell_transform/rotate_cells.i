@@ -87,15 +87,11 @@
   []
   [disp_x_fn]
     type = ParsedFunction
-    expression = (cos(5*t*3.14159265359/180)-1)*(x-x0)-sin(5*t*3.14159265359/180)*(y-y0)
-    symbol_names = 'x0 y0'
-    symbol_values = '0 0'
+    expression = (cos(5*t*3.14159265359/180)-1)*x-sin(5*t*3.14159265359/180)*y
   []
   [disp_y_fn]
     type = ParsedFunction
-    expression = sin(5*t*3.14159265359/180)*(x-x0)+(cos(5*t*3.14159265359/180)-1)*(y-y0)
-    symbol_names = 'x0 y0'
-    symbol_values = '0 0'
+    expression = sin(5*t*3.14159265359/180)*x+(cos(5*t*3.14159265359/180)-1)*y
   []
 []
 
