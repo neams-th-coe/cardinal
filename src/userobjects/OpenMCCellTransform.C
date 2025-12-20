@@ -39,7 +39,8 @@ OpenMCCellTransform::validParams()
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "vector_value",
-      "An array of three values/postprocessors. For translation this array expects (dx, dy, dz) in mesh"
+      "An array of three values/postprocessors. For translation this array expects (dx, dy, dz) in "
+      "mesh"
       " units. For rotation this array expects 'φ, θ, ψ' in degrees.");
 
   params.addClassDescription(
@@ -67,7 +68,6 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   _t0_pp = &getPostprocessorValue("vector_value", 0);
   _t1_pp = &getPostprocessorValue("vector_value", 1);
   _t2_pp = &getPostprocessorValue("vector_value", 2);
-
 }
 
 void
@@ -90,30 +90,36 @@ OpenMCCellTransform::execute()
     int32_t index = -1;
 
     int err = openmc_get_cell_index(cell_id, &index);
-    _openmc_problem->catchOpenMCError(err, "In attempting to find OpenMC cell with ID " + std::to_string(cell_id) +
-                 ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    _openmc_problem->catchOpenMCError(err,
+                                      "In attempting to find OpenMC cell with ID " +
+                                          std::to_string(cell_id) + ", OpenMC reported:\n\n" +
+                                          std::string(openmc_err_msg));
 
     if (_transform_type == "translation")
     {
       // If a user tried to apply translation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_translation(index, vec);
-      _console << "Setting OpenMC cell translations for cell with ID" + std::to_string(cell_id) + "to ("
-             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
+      _console << "Setting OpenMC cell translations for cell with ID" + std::to_string(cell_id) +
+                      "to ("
+               << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
     }
     else if (_transform_type == "rotation")
     {
       // If a user tried to apply rotation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_rotation(index, vec, 3);
-      _console << "Setting OpenMC cell rotations for cell with ID" + std::to_string(cell_id) + "to ("
-             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
+      _console << "Setting OpenMC cell rotations for cell with ID" + std::to_string(cell_id) +
+                      "to ("
+               << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
     }
     else
       mooseError("Unhandled transform_type: " + _transform_type);
 
-    _openmc_problem->catchOpenMCError(err, "In attempting to transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id) +
-                 ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    _openmc_problem->catchOpenMCError(
+        err,
+        "In attempting to transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id) +
+            ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
   }
 }
 

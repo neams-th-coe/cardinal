@@ -70,8 +70,8 @@ lower = (-2, -2, 0)
 upper = (16, 16, root_half_z*2)
 
 model.settings.source = openmc.IndependentSource(
-    space=openmc.stats.Box(lower_left=lower, upper_right=upper, only_fissionable=False)
+    space=openmc.stats.Box(lower_left=lower, upper_right=upper)
 )
 
 
-model.export_to_xml()
+model.export_to_model_xml()
