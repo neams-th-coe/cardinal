@@ -18,4 +18,13 @@
                   'This is tested by rotating the mesh while also rotating OpenMC universe which contains the coupled cells.'
     capabilities = 'openmc'
   []
+  [cells_shadow]
+    type = Exodiff
+    input = cells_shadow.i
+    cli_args = 'Problem/xml_directory=./cells_shadow'
+    exodiff = cells_shadow_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is translated.'
+                  'This is tested by translating an OpenMC geometry on a stationary mesh and ensure elements are reset correctly.'
+    capabilities = 'openmc'
+  []
 []
