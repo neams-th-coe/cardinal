@@ -306,6 +306,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params, "particles", "using Dufek-Gudowski relaxation");
     checkRequiredParam(params, "first_iteration_particles", "using Dufek-Gudowski relaxation");
     openmc::settings::n_particles = getParam<int>("first_iteration_particles");
+    _n_particles_1 = getParam<int>("first_iteration_particles");
   }
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
@@ -389,8 +390,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 #else
   checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
 #endif
-
-  _n_particles_1 = nParticles();
 
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
@@ -2267,6 +2266,11 @@ OpenMCCellAverageProblem::externalSolve()
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
   if (_relaxation == relaxation::dufek_gudowski && !firstSolve())
     dufekGudowskiParticleUpdate();
+  else
+  {
+    if (isParamValid("particles"))
+      openmc::settings::n_particles = OpenMCProblemBase::nParticles();
+  }
 
   OpenMCProblemBase::externalSolve();
 }
