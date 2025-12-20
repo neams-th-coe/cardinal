@@ -46,7 +46,6 @@
   cell_level = 2
   verbose = true
   power = 100
-  fixed_mesh = false
 
   [Tallies]
     [heat]
@@ -112,7 +111,7 @@
 []
 
 [UserObjects]
-  [translate_cells]
+  [rotate_cells]
     type = OpenMCCellTransform
     transform_type = 'rotation'
     vector_value = '0 0 psi'
