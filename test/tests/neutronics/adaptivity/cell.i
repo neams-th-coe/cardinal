@@ -33,13 +33,13 @@
   cell_level = 0
   initial_properties = xml
 
-  normalize_by_global_tally = false
-
   [Tallies]
     [Cell]
       type = CellTally
       score = kappa_fission
       block = '100'
+
+      normalize_by_global_tally = false
     []
   []
 []

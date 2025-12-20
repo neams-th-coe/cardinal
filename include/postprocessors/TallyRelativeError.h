@@ -20,14 +20,14 @@
 
 #include "GeneralPostprocessor.h"
 
-#include "OpenMCBase.h"
+#include "TallyInterface.h"
 #include "CardinalEnums.h"
 #include "TallyBase.h"
 
 /**
  * Compute the max/min relative error of the tally coupling OpenMC to MOOSE.
  */
-class TallyRelativeError : public GeneralPostprocessor, public OpenMCBase
+class TallyRelativeError : public GeneralPostprocessor, public TallyInterface
 {
 public:
   static InputParameters validParams();
@@ -45,4 +45,7 @@ protected:
 
   /// The tally score we want to fetch the relative error of.
   std::string _score;
+
+  /// The tally we're computing the relative error from.
+  const TallyBase * _tally;
 };

@@ -64,7 +64,7 @@
   [duplicate_auxvar]
     type = RunException
     input = auxvar.i
-    expect_err = "Cardinal is trying to add an auxiliary variable named 'temp', but you already have a variable by this name."
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'temp' through the FieldTransfer system"
     requirement = "The system shall error if the user manually specifies a duplicate name for an output field."
     capabilities = 'nekrs'
   []

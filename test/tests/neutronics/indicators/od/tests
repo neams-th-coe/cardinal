@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#1028'
+  issues = '#1028 #1106'
   design = 'ElementOpticalDepthIndicator.md'
 
   [all_h]
@@ -44,6 +44,15 @@
     requirement = 'The system shall error if the flux is not available in a tally.'
     expect_err = 'In order to use an ElementOpticalDepthIndicator one of your'
     mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [duplicate_scores]
+    type = CSVDiff
+    input = openmc_dup.i
+    csvdiff = openmc_dup_out.csv
+    cli_args = "Adaptivity/Indicators/optical_depth_cuberoot/rxn_rate_tally='Mesh' Adaptivity/Indicators/optical_depth_cuberoot/flux_tally='Mesh'"
+    requirement = "The system shall allow for the computation of optical depth indicators "
+                  "when multiple tallies are added which accumulate the same scores."
     capabilities = 'openmc'
   []
 []

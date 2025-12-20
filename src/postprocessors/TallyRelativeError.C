@@ -42,26 +42,21 @@ TallyRelativeError::validParams()
                              getSingleTallyScoreEnum(),
                              "Score to report the relative error. If there is just a single score, "
                              "this defaults to that value");
+  params.addParam<std::string>(
+      "tally",
+      "The name of the tally to fetch the score variable from. Only required if "
+      "your problem contains multiple tallies which accumulate the same score.");
   params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
-    OpenMCBase(this, parameters),
+    TallyInterface(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   if (isParamValid("tally_score"))
-  {
-    const auto & tally_score = getParam<MooseEnum>("tally_score");
-    _score = _openmc_problem->enumToTallyScore(tally_score);
-
-    if (!_openmc_problem->hasScore(_score))
-      paramError(
-          "tally_score",
-          "To extract the relative error of the '" + std::string(tally_score) +
-              "' score, it must be included in one of the [Tallies] added in your input file!");
-  }
+    _score = getScore("tally_score");
   else
   {
     if (_openmc_problem->getTallyScores().size() != 1 && !isParamValid("tally_score"))
@@ -69,11 +64,27 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
                  "When multiple scores have been added by tally objects, you must specify a score "
                  "from which the relative error will be extracted.");
 
-    for (const auto & s : _openmc_problem->getTallyScores())
-      _console << s << std::endl;
-
     _score = _openmc_problem->getTallyScores()[0];
   }
+
+  // Edge case: multiple scores from linked MeshTally objects.
+  const auto scoring_tallies = _openmc_problem->getNumScoringTallies(_score);
+  unsigned int linked = 0;
+  unsigned int num_with_score = 0;
+  for (auto tally : _openmc_problem->getLocalTallies())
+  {
+    if (tally->hasScore(_score))
+    {
+      linked = std::max(linked, static_cast<unsigned int>(tally->linkedTallies().size()) + 1);
+      num_with_score++;
+
+      _tally = tally.get();
+    }
+  }
+
+  // User must provide a tally to post-process if there isn't a single non-linked tally per score.
+  if (scoring_tallies != linked || scoring_tallies != num_with_score)
+    _tally = _openmc_problem->getTally(tallyByScore(_score, "tally"));
 }
 
 Real
@@ -95,8 +106,12 @@ TallyRelativeError::getValue() const
       mooseError("Unhandled OperationEnum!");
   }
 
+  std::vector<const TallyBase *> tallies = {_tally};
+  for (const auto linked : _tally->linkedTallies())
+    tallies.push_back(linked);
+
   unsigned int num_values = 0;
-  for (const auto tally : _openmc_problem->getTalliesByScore(_score))
+  for (const auto tally : tallies)
   {
     const auto t = tally->getWrappedTally();
     auto sum = xt::view(t->results_,

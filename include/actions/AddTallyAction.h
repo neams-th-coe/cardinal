@@ -20,6 +20,8 @@
 
 #include "MooseObjectAction.h"
 
+#include "TallyBase.h"
+
 /// This action adds tallies for use in simulations that couple OpenMC.
 class AddTallyAction : public MooseObjectAction
 {
@@ -62,4 +64,10 @@ protected:
 
   /// The number of mesh translations.
   std::vector<Point> _mesh_translations;
+
+  /**
+   * The MeshTally objects added by this action which need to be linked together
+   * for shared normalization.
+   */
+  std::vector<std::shared_ptr<TallyBase>> _linked_mesh_tallies;
 };

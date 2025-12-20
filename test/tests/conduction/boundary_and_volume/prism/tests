@@ -29,7 +29,7 @@
     type = RunException
     input = nek.i
     cli_args = "AuxVariables/heat_source/order=FIRST"
-    expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source', but you already have a variable by this name."
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source' through the FieldTransfer system"
     requirement = "The system shall error if the user specifies a duplicate variable with a name overlapping with special names reserved for Cardinal data transfers."
     capabilities = 'nekrs'
   []

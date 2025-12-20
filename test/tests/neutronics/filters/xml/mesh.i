@@ -29,14 +29,14 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  check_tally_sum = false
-  normalize_by_global_tally = true
-
   [Tallies]
     [Heating]
       type = CellTally
       score = 'kappa_fission'
       block = '100'
+
+      check_tally_sum = false
+      normalize_by_global_tally = true
     []
     [Flux]
       type = MeshTally
@@ -46,6 +46,9 @@
                            0 0 4
                            0 0 8'
       filters = 'SPH_XML'
+
+      check_tally_sum = false
+      normalize_by_global_tally = true
     []
   []
 

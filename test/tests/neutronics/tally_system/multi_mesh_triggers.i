@@ -27,9 +27,6 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
-  normalize_by_global_tally = false
-
   particles = 100
   max_batches = 200
 
@@ -41,6 +38,9 @@
       trigger_threshold = 5e-1
       mesh_translations = '0 0 0'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
     [Mesh_2]
       type = MeshTally
@@ -49,6 +49,9 @@
       trigger_threshold = 5e-1
       mesh_translations = '0 0 0'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
   []
 []

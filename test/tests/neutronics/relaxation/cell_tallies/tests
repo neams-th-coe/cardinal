@@ -89,7 +89,7 @@
     type = CSVDiff
     input = openmc_nonaligned.i
     csvdiff = out.csv
-    cli_args = "Problem/normalize_by_global_tally=false Outputs/file_base=out Problem/relaxation=constant Problem/relaxation_factor=1.0"
+    cli_args = "Problem/Tallies/Cell/normalize_by_global_tally=false Outputs/file_base=out Problem/relaxation=constant Problem/relaxation_factor=1.0"
     min_parallel = 2
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the mesh mirror"
@@ -99,7 +99,7 @@
     type = CSVDiff
     input = openmc_nonaligned.i
     csvdiff = nonalignment_relaxation_out.csv
-    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_relaxation_out"
+    cli_args = "Problem/Tallies/Cell/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_relaxation_out"
     min_parallel = 2
     requirement = "The wrapping shall apply constant relaxation for a case with locally-normalized cell tallies "
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
