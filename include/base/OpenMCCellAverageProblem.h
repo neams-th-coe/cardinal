@@ -1042,18 +1042,6 @@ protected:
   /// Number of material-type cells contained within a cell
   std::map<cellInfo, int32_t> _cell_to_n_contained;
 
-  /**
-   * Global tallies. We add one per tally added in the [Tallies] block to
-   * enable global noramlization.
-   */
-  std::vector<openmc::Tally *> _global_tallies;
-
-  /// Global tally scores corresponding to '_global_tallies'.
-  std::vector<std::vector<std::string>> _global_tally_scores;
-
-  /// Global tally estimators corresponding to '_global_tallies'.
-  std::vector<openmc::TallyEstimator> _global_tally_estimators;
-
   /// Whether the present transfer is the first transfer
   static bool _first_transfer;
 

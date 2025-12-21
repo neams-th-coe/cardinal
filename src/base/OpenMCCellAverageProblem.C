@@ -2618,7 +2618,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       _console << "Extracting OpenMC tallies..." << std::endl;
 
-      if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
+      if (_local_tallies.size() == 0)
         break;
 
       // Loop over all of the tallies and calculate their sums and averages.
