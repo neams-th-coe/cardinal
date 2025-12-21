@@ -477,6 +477,13 @@ TallyBase::addScore(const std::string & score)
 }
 
 void
+TallyBase::setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor)
+{
+  _relaxation_type = relaxation_type;
+  _relaxation_factor = relaxation_factor;
+}
+
+void
 TallyBase::computeSumAndMean()
 {
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
@@ -527,49 +534,79 @@ TallyBase::renormalizeLinkedTallies()
 }
 
 void
-TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha)
+TallyBase::relaxAndNormalizeTally()
 {
-  if (_check_tally_sum && _needs_global_tally)
-    checkTallySum(local_score);
-
-  const Real norm = tallyNormalization(local_score);
-
-  auto & current = _current_tally[local_score];
-  auto & previous = _previous_tally[local_score];
-  auto & current_raw = _current_raw_tally[local_score];
-  auto & current_raw_rel_error = _current_raw_tally_rel_error[local_score];
-  auto & current_raw_std_dev = _current_raw_tally_std_dev[local_score];
-
-  auto mean_tally = _openmc_problem.tallySum(_local_tally, local_score);
-  /**
-   * If the value over the whole domain is zero, then the values in the individual bins must be
-   * zero. We need to avoid divide-by-zeros.
-   */
-  current_raw = std::abs(norm) < ZERO_TALLY_THRESHOLD
-                    ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
-                    : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
-
-  auto sum_sq = xt::view(_local_tally->results_,
-                         xt::all(),
-                         local_score,
-                         static_cast<int>(openmc::TallyResult::SUM_SQ));
-  current_raw_rel_error =
-      _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-  current_raw_std_dev = current_raw_rel_error * current_raw;
-
-  if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+  Real alpha;
+  switch (_relaxation_type)
   {
-    current = current_raw;
-    previous = current_raw;
-    return;
+    case relaxation::none:
+    {
+      alpha = 1.0;
+      break;
+    }
+    case relaxation::constant:
+    {
+      alpha = _relaxation_factor;
+      break;
+    }
+    case relaxation::robbins_monro:
+    {
+      alpha = 1.0 / (_openmc_problem.fixedPointIteration() + 1);
+      break;
+    }
+    case relaxation::dufek_gudowski:
+    {
+      alpha = static_cast<float>(_openmc_problem.nParticles()) / static_cast<float>(_openmc_problem.nTotalParticles());
+      break;
+    }
+    default:
+      mooseError("Unhandled RelaxationEnum in TallyBase!");
   }
 
-  // Save the current tally (from the previous iteration) into the previous one.
-  std::copy(current.cbegin(), current.cend(), previous.begin());
+  for (unsigned int score = 0; score < _tally_score.size(); ++score)
+  {
+    if (_check_tally_sum && _needs_global_tally)
+      checkTallySum(score);
 
-  // Relax the tallies by alpha. TODO: skip relaxation when alpha is one.
-  auto relaxed_tally = (1.0 - alpha) * previous + alpha * current_raw;
-  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
+    const Real norm = tallyNormalization(score);
+
+    auto & current = _current_tally[score];
+    auto & previous = _previous_tally[score];
+    auto & current_raw = _current_raw_tally[score];
+    auto & current_raw_rel_error = _current_raw_tally_rel_error[score];
+    auto & current_raw_std_dev = _current_raw_tally_std_dev[score];
+
+    auto mean_tally = _openmc_problem.tallySum(_local_tally, score);
+    /**
+     * If the value over the whole domain is zero, then the values in the individual bins must be
+     * zero. We need to avoid divide-by-zeros.
+     */
+    current_raw = std::abs(norm) < ZERO_TALLY_THRESHOLD
+                      ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
+                      : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
+
+    auto sum_sq = xt::view(_local_tally->results_,
+                          xt::all(),
+                          score,
+                          static_cast<int>(openmc::TallyResult::SUM_SQ));
+    current_raw_rel_error =
+        _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+    current_raw_std_dev = current_raw_rel_error * current_raw;
+
+    if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+    {
+      current = current_raw;
+      previous = current_raw;
+      continue;
+    }
+
+    // Save the current tally (from the previous iteration) into the previous one.
+    std::copy(current.cbegin(), current.cend(), previous.begin());
+
+    // Relax the tallies by alpha. TODO: skip relaxation when alpha is one.
+    auto relaxed_tally = (1.0 - alpha) * previous + alpha * current_raw;
+    std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
+  }
 }
 
 void

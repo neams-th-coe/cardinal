@@ -663,28 +663,6 @@ protected:
   void storeElementPhase();
 
   /**
-   * Relax the tally and normalize it according to some "global" tally. If you set
-   * 'normalize_by_global_tally = true', you will be normalizing by a tally over the ENTIRE
-   * OpenMC geometry. Otherwise, you normalize only by the sum of the tally bins themselves.
-   *
-   * NOTE: This function relaxes the tally _distribution_, and not the actual magnitude of the sum.
-   * That is, we relax the shape distribution and then multiply it by the power
-   * (for k-eigenvalue) or source strength (for fixed source) of the current step before
-   * applying it to MOOSE. If the magnitude of the power or source strength is constant in time,
-   * there is zero error in this. But if the magnitude of the tally varies in time, we are basically
-   * relaxing the distribution of the tally, but then multiplying it by the _current_ mean tally
-   * magnitude.
-   *
-   * There will be very small errors in these approximations unless the power/source strength
-   * change dramatically with iteration. But because relaxation is itself a numerical approximation,
-   * this is still inconsequential at the end of the day as long as your problem has converged
-   * the relaxed tally to the raw (unrelaxed) tally.
-   * @param[in] local_score the local index of the tally score
-   * @param[in] local_tally the tally to relax and normalize
-   */
-  void relaxAndNormalizeTally(unsigned int local_score, std::shared_ptr<TallyBase> local_tally);
-
-  /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
    * is mapped based on phase.
    */
@@ -843,9 +821,6 @@ protected:
    * after each OpenMC run.
    */
   bool _need_to_reinit_coupling;
-
-  /// Constant relaxation factor
-  const Real & _relaxation_factor;
 
   /**
    * If known a priori by the user, whether the tally cells (which are not simply material
