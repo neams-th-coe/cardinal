@@ -556,7 +556,8 @@ TallyBase::relaxAndNormalizeTally()
     }
     case relaxation::dufek_gudowski:
     {
-      alpha = static_cast<float>(_openmc_problem.nParticles()) / static_cast<float>(_openmc_problem.nTotalParticles());
+      alpha = static_cast<float>(_openmc_problem.nParticles()) /
+              static_cast<float>(_openmc_problem.nTotalParticles());
       break;
     }
     default:
@@ -585,10 +586,8 @@ TallyBase::relaxAndNormalizeTally()
                       ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
                       : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
 
-    auto sum_sq = xt::view(_local_tally->results_,
-                          xt::all(),
-                          score,
-                          static_cast<int>(openmc::TallyResult::SUM_SQ));
+    auto sum_sq = xt::view(
+        _local_tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM_SQ));
     current_raw_rel_error =
         _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
     current_raw_std_dev = current_raw_rel_error * current_raw;
