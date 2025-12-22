@@ -75,6 +75,13 @@ public:
   void addScore(const std::string & score);
 
   /**
+   * A function which sets the relaxation type and factor for a tally.
+   * @param[in] relaxation_type the type of relaxation to use
+   * @param[in] factor the relaxation factor to use (for constant relxation or no relaxation)
+   */
+  void setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor);
+
+  /**
    * A function which computes and stores the sum and mean of the tally across all bins for a
    * particular score.
    */
@@ -106,10 +113,8 @@ public:
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
-   * @param[in] local_score the local index of the current score to normalize
-   * @param[in] alpha the relaxation factor
    */
-  void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha);
+  void relaxAndNormalizeTally();
 
   /**
    * Add a linked tally for normalization.
@@ -473,6 +478,12 @@ protected:
 
   /// Other tallies linked for normalization.
   std::vector<const TallyBase *> _linked_tallies;
+
+  /// The type of relaxation this tally should employ.
+  relaxation::RelaxationEnum _relaxation_type;
+
+  /// The relaxation factor this tally should use (for constant relaxation).
+  Real _relaxation_factor;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
