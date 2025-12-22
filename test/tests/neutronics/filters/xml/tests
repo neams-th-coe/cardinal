@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1249'
+  design = 'FromXMLFilter.md'
+
   [arbitrary_cell]
     type = CSVDiff
     input = cell.i

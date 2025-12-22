@@ -20,10 +20,10 @@
 
 #include "Indicator.h"
 
-#include "OpenMCBase.h"
+#include "TallyInterface.h"
 #include "OpenMCCellAverageProblem.h"
 
-class OpenMCIndicator : public Indicator, public OpenMCBase
+class OpenMCIndicator : public Indicator, public TallyInterface
 {
 public:
   static InputParameters validParams();

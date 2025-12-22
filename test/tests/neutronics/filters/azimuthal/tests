@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1249'
+  design = 'AzimuthalAngleFilter.md'
+
   [azimuthal_cell_provided_bins]
     type = CSVDiff
     input = cell.i

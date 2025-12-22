@@ -29,6 +29,8 @@
 #include "OpenMCTallyEditor.h"
 
 #include "openmc/random_lcg.h"
+// For filtering \beta_eff by DNP group.
+#include "openmc/tallies/filter_delayedgroup.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -119,7 +121,16 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
 
-  std::vector<std::string> argv_vec = {"openmc", _xml_directory};
+  // Suppress OpenMC output when the language server is active by
+  // decreasing the verbosity to level 1 (the lowest).
+  std::vector<std::string> argv_vec = {"openmc"};
+  if (_app.isParamValid("language_server") && _app.getParam<bool>("language_server"))
+  {
+    argv_vec.push_back("-q");
+    argv_vec.push_back("1");
+  }
+  // Add the parameter for the XML directory at the end.
+  argv_vec.push_back(_xml_directory);
 
   std::vector<char *> argv;
 
@@ -206,17 +217,19 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamValid("batches"))
   {
-    auto xml_n_batches = openmc::settings::n_batches;
+    auto xml_n_batches = openmc::settings::n_batches; // user XML setting
+
+    // the getParam<unsigned int>("batches") param overrides OpenMC XML
+    // IMPORTANT because openmc::settings:statepoint_batch is a C++ set,
+    // we need to remove this first in the case that xml_n_batches matches
+    // getParam<unsigned int>("batches") otherwise there will be no batch
+    // at which Cardinal writes a statepoint
+    openmc::settings::statepoint_batch.erase(xml_n_batches);
 
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
     catchOpenMCError(err, "set the number of batches");
-
-    // if we set the batches from Cardinal, remove whatever statepoint file was
-    // created for the #batches set in the XML files; this is just to reduce the
-    // number of statepoint files by removing an unnecessary point
-    openmc::settings::statepoint_batch.erase(xml_n_batches);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -400,10 +413,27 @@ OpenMCProblemBase::initialSetup()
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
-    _ifp_tally_index = openmc::model::tallies.size();
-    _ifp_tally = openmc::Tally::create();
-    _ifp_tally->set_scores({"ifp-time-numerator", "ifp-beta-numerator", "ifp-denominator"});
-    _ifp_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+    // For \Lambda_eff, \beta_{eff}, and the denominator of \beta_{eff,i}
+    _ifp_common_tally_index = openmc::model::tallies.size();
+    _ifp_common_tally = openmc::Tally::create();
+    _ifp_common_tally->set_scores({"ifp-time-numerator", "ifp-denominator", "ifp-beta-numerator"});
+    _ifp_common_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+
+    // For \beta_{eff,i}. A separate tally is required when sieving by delayed group to compute
+    // standard deviations and relative errors correctly for the total \beta_eff (due to covariances
+    // between delayed groups).
+    _ifp_mg_beta_tally_index = openmc::model::tallies.size();
+    _ifp_mg_beta_tally = openmc::Tally::create();
+    _ifp_mg_beta_tally->set_scores({"ifp-beta-numerator"});
+    _ifp_mg_beta_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+
+    auto dnp_grp_filter =
+        dynamic_cast<openmc::DelayedGroupFilter *>(openmc::Filter::create("delayedgroup"));
+    std::vector<int> grps{1, 2, 3, 4, 5, 6};
+    dnp_grp_filter->set_groups(openmc::span<int>(grps));
+
+    std::vector<openmc::Filter *> df{dnp_grp_filter};
+    _ifp_mg_beta_tally->set_filters({df});
   }
 }
 
@@ -627,14 +657,26 @@ OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
   return rel_err;
 }
 
+Real
+OpenMCProblemBase::relativeError(const Real & sum,
+                                 const Real & sum_sq,
+                                 const int & n_realizations) const
+{
+  Real rel_err = 0.0;
+
+  auto mean = sum / n_realizations;
+  auto std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
+  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+}
+
 xt::xtensor<double, 1>
-OpenMCProblemBase::tallySum(openmc::Tally * tally, const unsigned int & score) const
+OpenMCProblemBase::tallySum(const openmc::Tally * tally, const unsigned int & score) const
 {
   return xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM));
 }
 
 double
-OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally,
+OpenMCProblemBase::tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
                                       const unsigned int & score) const
 {
   double sum = 0.0;
@@ -649,7 +691,7 @@ OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally,
 }
 
 double
-OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally,
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
                                        const unsigned int & score) const
 {
   int n = 0;
@@ -793,12 +835,18 @@ OpenMCProblemBase::numCells() const
 }
 
 const openmc::Tally &
-OpenMCProblemBase::getKineticsParamTally()
+OpenMCProblemBase::getCommonKineticsTally()
 {
-  if (!_ifp_tally)
+  if (!_ifp_common_tally)
     mooseError("Internal error: kinetics parameters have not been enabled.");
 
-  return *_ifp_tally;
+  return *_ifp_common_tally;
+}
+
+const openmc::Tally &
+OpenMCProblemBase::getMGBetaTally()
+{
+  return *_ifp_mg_beta_tally;
 }
 
 bool
@@ -826,6 +874,7 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
 
 unsigned int
 OpenMCProblemBase::addExternalVariable(const std::string & name,
+                                       const std::string & system,
                                        const std::vector<SubdomainName> * block)
 {
   auto var_params = _factory.getValidParams("MooseVariable");
@@ -835,7 +884,7 @@ OpenMCProblemBase::addExternalVariable(const std::string & name,
   if (block)
     var_params.set<std::vector<SubdomainName>>("block") = *block;
 
-  checkDuplicateVariableName(name);
+  checkDuplicateVariableName(name, system);
   addAuxVariable("MooseVariable", name, var_params);
   return _aux->getFieldVariable<Real>(0, name).number();
 }

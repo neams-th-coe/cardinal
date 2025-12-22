@@ -38,14 +38,14 @@
   cell_level = 0
   initial_properties = xml
 
-  # we are omitting the fluid regions from feedback (which have some fissile material),
-  # so we need to explicitly skip the tally check
-  check_tally_sum = false
-
   [Tallies]
     [Cell]
       type = CellTally
       block = '100'
+
+      # we are omitting the fluid regions from feedback (which have some fissile material),
+      # so we need to explicitly skip the tally check
+      check_tally_sum = false
     []
   []
 []

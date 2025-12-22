@@ -65,6 +65,7 @@ Extensions:
                 Software Quality Assurance (SQA) Information: /sqa/index.md
                 Code Standards: sqa/cardinal_scs.md
                 Code Coverage: https://mooseframework.inl.gov/cardinal/docs/coverage
+            V&V: vv.md
             Publications: publications.md
             Contact: contact.md
             Help: faq.md

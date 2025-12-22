@@ -21,6 +21,8 @@
 #include "FDTallyGradAux.h"
 
 #include "CardinalEnums.h"
+#include "TallyBase.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", FDTallyGradAux);
 
@@ -41,6 +43,10 @@ FDTallyGradAux::validParams()
                                 "tally with [Filters] (bin indices start at 0). This parameter "
                                 "should be specified if you wish to extract the relative error "
                                 "of a different non-spatial tally bin.");
+  params.addParam<std::string>(
+      "tally",
+      "The name of the tally to fetch the score variable from. Only required if "
+      "your problem contains multiple tallies which accumulate the same score.");
 
   params.addRelationshipManager("ElementSideNeighborLayers",
                                 Moose::RelationshipManagerType::ALGEBRAIC |
@@ -62,20 +68,14 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
                "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
                "ensure that 'variable' is of type MONOMIAL_VEC and order CONSTANT.");
 
-  std::string score = getParam<MooseEnum>("score");
-  std::replace(score.begin(), score.end(), '_', '-');
+  auto score = getScore("score");
+  auto tally_name = tallyByScore(score, "tally");
+  ;
 
-  // Error check and fetch the tally score.
-  if (!_openmc_problem->hasScore(score))
-    paramError("score",
-               "The problem does not contain any score named " +
-                   std::string(getParam<MooseEnum>("score")) +
-                   "! Please "
-                   "ensure that one of your [Tallies] is scoring the requested score.");
-
-  auto score_vars = _openmc_problem->getTallyScoreVariables(score, _tid);
-  auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid);
-  auto neighbor_score_bins = _openmc_problem->getTallyScoreNeighborVariableValues(score, _tid);
+  auto score_vars = _openmc_problem->getTallyScoreVariables(score, tally_name, _tid);
+  auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, tally_name, _tid);
+  auto neighbor_score_bins =
+      _openmc_problem->getTallyScoreNeighborVariableValues(score, tally_name, _tid);
 
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",

@@ -46,21 +46,24 @@
   relaxation = constant
   relaxation_factor = 0.5
 
-  # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
-  normalize_by_global_tally = false
-
   [Tallies]
     [Mesh_1]
       type = MeshTally
       score = kappa_fission
       mesh_translations = '0 0 0'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
     [Mesh_2]
       type = MeshTally
       score = flux
       mesh_translations = '0 0 0'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
   []
 []

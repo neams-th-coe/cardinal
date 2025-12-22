@@ -29,9 +29,6 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
-  normalize_by_global_tally = false
-
   [Tallies]
     [Mesh_1]
       type = MeshTally
@@ -40,6 +37,9 @@
                            0 0 4
                            0 0 8'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
     [Mesh_2]
       type = MeshTally
@@ -48,6 +48,9 @@
                            0 0 4
                            0 0 8'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
   []
 []

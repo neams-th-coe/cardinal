@@ -73,7 +73,6 @@ CellTally::spatialFilter()
 Real
 CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
-                             unsigned int global_score,
                              std::vector<xt::xtensor<double, 1>> tally_vals,
                              bool norm_by_src_rate)
 {
@@ -95,9 +94,11 @@ CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // divide each tally value by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally
       Real volumetric_tally = unnormalized_tally;
-      volumetric_tally *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
-                                                 _openmc_problem.cellMappedVolume(cell_info)
-                                           : 1.0;
+      volumetric_tally *= norm_by_src_rate
+                              ? _openmc_problem.tallyMultiplier(_tally_score[local_score],
+                                                                _local_mean_tally[local_score]) /
+                                    _openmc_problem.cellMappedVolume(cell_info)
+                              : 1.0;
       total += _ext_bins_to_skip[ext_bin] ? 0.0 : unnormalized_tally;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
@@ -204,7 +205,13 @@ CellTally::getTallyCells() const
                  "do actually have the\n"
                  "same value, the volumetric tally will be different because you'll be "
                  "dividing each tally by a\n"
-                 "different mapped MOOSE volume.\n\n";
+                 "different mapped MOOSE volume. This can occur if the CellTally maps to different "
+                 "regions in\n"
+                 "your OpenMC geometry while computing the same score over each region. A common "
+                 "example is\n"
+                 "tallying fluxes over multiple regions (e.g. fuel + moderator) instead of a "
+                 "single region\n"
+                 "(e.g. fuel).\n\n";
 
           if (_openmc_problem.hasPointTransformations())
             msg << "NOTE: You have imposed symmetry, which means that you'll hit this error if any "
@@ -217,7 +224,10 @@ CellTally::getTallyCells() const
           else
             msg << "We recommend re-creating the mesh mirror to have an equal volume mapping of "
                    "MOOSE elements to each\n"
-                   "OpenMC cell. Or, you can disable this check by setting "
+                   "OpenMC cell instance if this tally is intended to compute scores over a single "
+                   "OpenMC cell. If this\n"
+                   "tally computes scores over multiple unique cells, you will need to disable "
+                   "this check by setting\n"
                    "'check_equal_mapped_tally_volumes = false'.";
 
           mooseError(msg.str());

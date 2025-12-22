@@ -46,8 +46,6 @@
 
   relaxation = constant
 
-  check_tally_sum = false
-
   [Tallies]
     [Mesh]
       type = MeshTally
@@ -56,6 +54,7 @@
                            0.0 0.0 0.06
                            0.0 0.0 0.10'
       output = 'unrelaxed_tally'
+      check_tally_sum = false
     []
   []
 []

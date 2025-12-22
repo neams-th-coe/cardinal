@@ -40,16 +40,16 @@
   cell_level = 1
   scaling = 100.0
 
-  # our problem is missing overlap for fissile regions, so our local and global tallies
-  # wont match
-  check_tally_sum = false
-
   [Tallies]
     [Cell]
       type = CellTally
       score = 'kappa_fission heating'
       name = 'heat_source heating'
       block = '0'
+
+      # our problem is missing overlap for fissile regions, so our local and global tallies
+      # wont match
+      check_tally_sum = false
     []
   []
 []

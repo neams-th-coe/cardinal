@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1249'
+  design = 'AddFilterAction.md'
+
   [multi_filter]
     type = CSVDiff
     input = multi_filter.i

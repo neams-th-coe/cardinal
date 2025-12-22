@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1248 #1106'
+  design = 'AddTallyAction.md MeshTally.md CellTally.md'
+
   [cell_tally_unmapped]
     type = CSVDiff
     input = cell_with_unmapped.i
@@ -62,14 +65,6 @@
                   "The gold file was generated using an input that had a single MeshTally with multiple scores when using relaxation."
     capabilities = 'openmc'
   []
-  [duplicate_scores]
-    type = RunException
-    input = multi_cell.i
-    cli_args = 'Problem/Tallies/Cell_2/score="flux kappa_fission"'
-    expect_err = "You have added 2 tallies which score kappa-fission!"
-    requirement = "The system shall error if the user provides multiple tallies with overlapping scores."
-    capabilities = 'openmc'
-  []
   [multi_no_norm]
     type = RunException
     input = multi_cell.i
@@ -92,6 +87,37 @@
     exodiff = multi_diff_outputs.e
     cli_args = 'Problem/Tallies/Cell/output="unrelaxed_tally_std_dev unrelaxed_tally" Problem/Tallies/Mesh/output="unrelaxed_tally_std_dev" Outputs/file_base=multi_diff_outputs'
     requirement = "The system shall allow calculations with multiple different tally outputs."
+    capabilities = 'openmc'
+  []
+  [same_scores]
+    type = CSVDiff
+    input = same_scores.i
+    csvdiff = same_scores_out.csv
+    cli_args = 'Problem/normalization_tally="Cell"'
+    requirement = "The system shall allow multiple tallies to use the same scores."
+    capabilities = 'openmc'
+  []
+  [two_kf_unspecified_norm]
+    type = RunException
+    input = same_scores.i
+    expect_err = "When using a non-heating tally \(flux\) in eigenvalue mode and adding more then one tally in the \[Tallies\] block, the 'normalization_tally' parameter is required!"
+    requirement = "The system shall error if two tallies score the normalization score and the user does not specify which to use for normalization."
+    capabilities = 'openmc'
+  []
+  [duplicate_names]
+    type = RunException
+    input = same_scores.i
+    cli_args = 'Problem/normalization_tally="Cell" Problem/Tallies/Cell/name="kappa_fission" Problem/Tallies/Mesh/name="kappa_fission flux"'
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'kappa_fission' through the Tally system"
+    requirement = "The system shall error if two tallies scoring the same score add the same variable names."
+    capabilities = 'openmc'
+  []
+  [duplicate_scores_separate_tallies]
+    type = RunException
+    input = same_scores.i
+    cli_args = "Problem/assume_separate_tallies=true Problem/Tallies/Cell/normalize_by_global_tally=false"
+    expect_err = "Cannot assume separate tallies when there are multiple tallies"
+    requirement = "The system shall error if attempting to use separate tallies when adding two tallies with the same score."
     capabilities = 'openmc'
   []
 []

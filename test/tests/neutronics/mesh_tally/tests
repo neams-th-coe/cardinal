@@ -1,4 +1,6 @@
 [Tests]
+  design = 'MeshTally.md'
+
   [no_coupling]
     type = CSVDiff
     input = no_coupling.i
@@ -43,12 +45,18 @@
     capabilities = 'openmc'
   []
   [scaling]
-    type = RunException
-    input = one_mesh_no_input_file.i
-    cli_args = 'Problem/scaling=2.0'
-    expect_err = "Directly tallying on the \[Mesh\] is only supported for 'scaling' of unity."
-    requirement = "The system shall error if attempting to directly tally on a MOOSE mesh that has a scaling not equal to 1.0."
+    type = CSVDiff
+    input = scaling_mm.i
+    csvdiff = scaling_mm_out.csv
+    requirement = "The system shall allow users to use a mesh tally based on the mesh mirror with scaling. "
+                  "The gold file contains relative errors for an unscaled version of the test. The test "
+                  "itself scales the mesh down in the mesh block, and scales it back up with 'scaling'. "
+                  "If 'scaling' is not applied to the mesh mirror, the relative errors will change due "
+                  "to the difference in element volumes. The min/max values in the gold files are manually "
+                  "converted from W/cm^3 (no scaling) to W/m^3 (scaled)."
+    mesh_mode = 'replicated'
     capabilities = 'openmc'
+    issues = '#1246'
   []
   [one_mesh_global]
     type = Exodiff

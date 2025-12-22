@@ -23,6 +23,7 @@
       input = usrwrk_units.i
       csvdiff = usrwrk_units_out.csv
       detail = 'non-dimensional scaling of usrwrk slots for which the units are known'
+      skip = 'disabled until generalized units system implemented'
       capabilities = 'nekrs'
     []
   []

@@ -44,14 +44,14 @@
   verbose = true
   power = 1
 
-  # the underlying OpenMC model is not changing, so parts of the geometry become
-  # uncovered as the [Mesh] moves
-  check_tally_sum = false
-
   [Tallies]
     [heat]
       type = MeshTally
       score = 'kappa_fission'
+
+      # the underlying OpenMC model is not changing, so parts of the geometry become
+      # uncovered as the [Mesh] moves
+      check_tally_sum = false
     []
   []
 []

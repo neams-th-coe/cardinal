@@ -88,9 +88,12 @@ public:
    * Add a constant monomial auxiliary variable
    * @param[in] name name of the variable
    * @param[in] block optional subdomain names on which to restrict the variable
+   * @param[in] system an optional string for the system adding a variable (to improve debugging)
    * @return numeric index for the variable in the auxiliary system
    */
-  unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
+  unsigned int addExternalVariable(const std::string & name,
+                                   const std::string & system,
+                                   const std::vector<SubdomainName> * block = nullptr);
 
   /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
@@ -175,7 +178,7 @@ public:
    * @param[in] score tally score
    * @return tally sum within each bin
    */
-  xt::xtensor<double, 1> tallySum(openmc::Tally * tally, const unsigned int & score) const;
+  xt::xtensor<double, 1> tallySum(const openmc::Tally * tally, const unsigned int & score) const;
 
   /**
    * Compute the sum of a tally across all of its bins
@@ -183,7 +186,8 @@ public:
    * @param[in] score tally score
    * @return tally sum
    */
-  double tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
+                            const unsigned int & score) const;
 
   /**
    * Compute the mean of a tally across all of its bins
@@ -191,7 +195,8 @@ public:
    * @param[in] score tally score
    * @return tally mean
    */
-  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
+                             const unsigned int & score) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
@@ -228,7 +233,16 @@ public:
    * @param[in] n_realizations number of realizations
    */
   xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
-    const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
+                                       const xt::xtensor<double, 1> & sum_sq,
+                                       const int & n_realizations) const;
+
+  /**
+   * Compute relative error
+   * @param[in] sum sum of scores
+   * @param[in] sum_sq sum of scores squared
+   * @param[in] n_realizations number of realizations
+   */
+  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)
@@ -247,6 +261,12 @@ public:
    * @return total number of particles
    */
   int nTotalParticles() const { return _total_n_particles; }
+
+  /**
+   * Run mode of the OpenMC simulation
+   * @return the current run mode for OpenMC
+   */
+  openmc::RunMode runMode() const { return _run_mode; }
 
   /**
    * Get the cell ID from the cell index
@@ -309,10 +329,13 @@ public:
    * @param[in] id cell ID
    * @param[in] instance cell instance
    * @param[in] T temperature
-   * @param[in] cell_info cell info for which we are setting interior temperature, for error printing
+   * @param[in] cell_info cell info for which we are setting interior temperature, for error
+   * printing
    */
-  virtual void setCellTemperature(const int32_t & id, const int32_t & instance, const Real & T,
-    const cellInfo & cell_info) const;
+  virtual void setCellTemperature(const int32_t & id,
+                                  const int32_t & instance,
+                                  const Real & T,
+                                  const cellInfo & cell_info) const;
 
   /**
    * Set the cell density, and print helpful error message if a failure occurs
@@ -365,10 +388,16 @@ public:
   bool computeKineticsParams() const { return _calc_kinetics_params; }
 
   /**
-   * Get the tally responsible for accumulating the scores for \Lambda_{eff} and \beta_{eff}.
+   * Get the tally responsible for accumulating common scores for \Lambda_{eff} and \beta_{eff}.
    * @return the global IFP tally
    */
-  const openmc::Tally & getKineticsParamTally();
+  const openmc::Tally & getCommonKineticsTally();
+
+  /**
+   * Get the tally responsible for accumulating delayed group values of \beta_{eff}.
+   * @return the global IFP tally
+   */
+  const openmc::Tally & getMGBetaTally();
 
 protected:
   /// Find all userobjects which are changing OpenMC data structures
@@ -516,11 +545,20 @@ protected:
   /// The initial OpenMC seed
   const int64_t _initial_seed;
 
-  /// The index of a global tally to accumulate the scores required for kinetics parameters.
-  int _ifp_tally_index = -1;
+  /// The index of a global tally which accumulates the common scores required for kinetics parameters.
+  int _ifp_common_tally_index = -1;
 
-  /// The global tally used to accumulate the scores required for kinetics parameters.
-  openmc::Tally * _ifp_tally = nullptr;
+  /**
+   * The index of a global tally which accumulates the score required for the delayed group values
+   * of \beta_eff.
+   */
+  int _ifp_mg_beta_tally_index = -1;
+
+  /// The global tally used to accumulate the common scores required for kinetics parameters.
+  openmc::Tally * _ifp_common_tally = nullptr;
+
+  /// The global tally used to accumulate the score required for \beta_eff.
+  openmc::Tally * _ifp_mg_beta_tally = nullptr;
 
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;

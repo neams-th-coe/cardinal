@@ -45,6 +45,19 @@ public:
   /// A function to reset the tally. MeshTally overrides this function to delete the OpenMC mesh.
   virtual void resetTally() override;
 
+  /**
+   * A function which gathers the sums and means from all tallies linked to this tally. MeshTally
+   * overrides this function to gather global tallies for distributed mesh tallies.
+   */
+  virtual void gatherLinkedSum() override;
+
+  /**
+   * A function to return if this object is adding a global tally. MeshTally modifies this behavior
+   * to add a single global tally for distributed mesh tallies (which then communicate with
+   * tally linkages).
+   */
+  virtual bool addingGlobalTally() const override { return _needs_global_tally && _instance == 0; }
+
 protected:
   /**
    * A function which stores the results of this tally into the created
@@ -52,15 +65,12 @@ protected:
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
    * @param[in] tally_vals the tally values to store
    * @param[in] norm_by_src_rate whether or not tally_vals should be normalized by the source rate
    * @return the sum of the tally over all bins.
    */
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
-                                 unsigned int global_score,
                                  std::vector<xt::xtensor<double, 1>> tally_vals,
                                  bool norm_by_src_rate = true) override;
   /**

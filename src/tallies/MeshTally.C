@@ -92,13 +92,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
   }
   else
   {
-    if (std::abs(_openmc_problem.scaling() - 1.0) > 1e-6)
-      mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. "
-                 "Instead, please make a file containing your tally mesh and set it with "
-                 "'mesh_template'. You can generate a mesh file corresponding to the [Mesh] "
-                 "by running:\n\ncardinal-opt -i " +
-                 _app.getFileName() + " --mesh-only");
-
     // for distributed meshes, each rank only owns a portion of the mesh information, but
     // OpenMC wants the entire mesh to be available on every rank. We might be able to add
     // this feature in the future, but will need to investigate
@@ -207,10 +200,27 @@ MeshTally::resetTally()
   openmc::model::meshes.erase(openmc::model::meshes.begin() + _mesh_index);
 }
 
+void
+MeshTally::gatherLinkedSum()
+{
+  if (_linked_tallies.size() == 0)
+    return;
+
+  for (const auto & other : _linked_tallies)
+  {
+    for (unsigned int score = 0; score < _tally_score.size(); ++score)
+    {
+      _linked_local_sum_tally[score] += other->getSum(score);
+      if (other->addingGlobalTally())
+        _global_sum_tally[score] =
+            _openmc_problem.tallySumAcrossBins({other->getWrappedGlobalTally()}, score);
+    }
+  }
+}
+
 Real
 MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
-                             unsigned int global_score,
                              std::vector<xt::xtensor<double, 1>> tally_vals,
                              bool norm_by_src_rate)
 {
@@ -229,7 +239,8 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // mesh constructors in OpenMC, we need to adjust the division
       Real volumetric_tally = unnormalized_tally;
       volumetric_tally *= norm_by_src_rate
-                              ? _openmc_problem.tallyMultiplier(global_score) /
+                              ? _openmc_problem.tallyMultiplier(_tally_score[local_score],
+                                                                _local_mean_tally[local_score]) /
                                     _mesh_template->volume(e) * _openmc_problem.scaling() *
                                     _openmc_problem.scaling() * _openmc_problem.scaling()
                               : 1.0;

@@ -142,3 +142,9 @@ getStatsOutputEnum()
 {
   return MooseEnum("mean std_dev rel_err", "mean");
 }
+
+MooseEnum
+getBetaGroupEnum()
+{
+  return MooseEnum("sum 1 2 3 4 5 6", "sum");
+}

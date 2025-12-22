@@ -67,12 +67,13 @@
   density_blocks = '100'
   verbose = true
   cell_level = 0
-  check_tally_sum = false
 
   [Tallies]
     [Cell]
       type = CellTally
       block = '100'
+
+      check_tally_sum = false
     []
   []
 []

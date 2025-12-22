@@ -31,7 +31,8 @@ upper_right = (10, 10, 10)
 triso_lattice_shape = (1, 1, 1)
 pitch = (10, 10, 10)
 
-# insert TRISOs into a lattice to accelerate point location queries
+# insert TRISOs into a lattice to accelerate point location queries; the commented out lines
+# below demonstrate how to fix the issue and keep going
 triso_lattice = openmc.model.create_triso_lattice(trisos, lower_left, pitch, triso_lattice_shape, mat)
 #uni = openmc.Universe(cells=[openmc.Cell(fill=triso_lattice)])
 
@@ -39,6 +40,7 @@ cells = []
 for i in range(n):
   r = +planes[i] & -planes[i+1]
   cells.append(openmc.Cell(region=r & lay, fill=triso_lattice))
+  #cells.append(openmc.Cell(region=r & lay, fill=uni))
 
 root = openmc.Universe(cells=cells)
 model.geometry = openmc.Geometry(root)
