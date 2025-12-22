@@ -21,19 +21,16 @@ OpenMC separately, or using its conda environment (i.e., do
 
 !alert! note title=tldr
 
-Once your `cardinal` conda environment is set up, all you need to do to compile Cardinal is:
+All that you need to compile Cardinal is:
 
 ```
-conda activate cardinal
-conda install -c conda-forge openmc # Install OpenMC from conda-forge
+conda activate moose
 cd $HOME
 git clone https://github.com/neams-th-coe/cardinal.git
 cd cardinal
 ./scripts/get-dependencies.sh
 export ENABLE_NEK=false
 export HDF5_ROOT=$CONDA_PREFIX
-export OPENMC_DIR=$CONDA_PREFIX
-export BUILD_OPENMC=no
 export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 make -j8
 ```
@@ -42,42 +39,13 @@ If the above produces a `cardinal-opt` Cardinal executable, you can
 jump straight to [#running]. If you want to customize the
 build or were not successful with the above, please consult the detailed instructions
 that follow.
-
-!alert! tip title=Using OpenMC from your Conda Environment
-You can install OpenMC directly into your conda environment. See the "Using OpenMC from your Conda Environment" section for more details.
-!alert-end!
 !alert-end!
 
 ## Access
 
 !include access.md
 
-To get started, you'll need to create a dedicated conda environment for Cardinal. This ensures that all the necessary dependencies are isolated and managed correctly.
-
-**1. Configure Conda Channels:**
-
-First, add the required conda channels. These channels contain the MOOSE packages that Cardinal depends on. You only need to do this once.
-
-```bash
-conda config --add channels https://conda.software.inl.gov/public
-conda config --add channels conda-forge
-```
-
-**2. Create the Cardinal Environment:**
-
-Next, create the `cardinal` conda environment. This command will install `moose-tools`, which provide the core MOOSE functionalities. You only need to do this once.
-
-```bash
-conda create --name cardinal moose-tools
-```
-
-**3. Activate the Environment:**
-
-Every time you want to work on Cardinal, you'll need to activate the `cardinal` environment:
-
-```bash
-conda activate cardinal
-```
+To get MOOSE's conda environment, follow the instructions [here](https://mooseframework.inl.gov/getting_started/installation/index.html).
 
 ## Prerequisites
 
@@ -129,25 +97,6 @@ For even further control, you can set other
 [optional environment variables](env_vars.md) to specify the optimization level,
 dependency locations, and more.
 !alert-end!
-
-#### Using OpenMC from your Conda Environment
-  id=prebuilt-openmc
-
-You can install OpenMC directly into your conda environment using `conda install -c conda-forge openmc`. This will place the OpenMC libraries and headers in your conda environment's standard locations (e.g., `$CONDA_PREFIX/lib` and `$CONDA_PREFIX/include`).
-
-To instruct Cardinal to use this conda-installed OpenMC, you need to set the `BUILD_OPENMC` variable to `no` and specify the location of the conda environment as the `OPENMC_DIR`.
-
-For example:
-
-``` language=bash
-export BUILD_OPENMC=no
-export OPENMC_DIR=$CONDA_PREFIX
-```
-
-You can set these in your `~/.bashrc` file or on the command line when you run `make`.
-
-**Important Note on Version Compatibility:**
-Cardinal is developed and tested against a specific version of OpenMC. While using a conda-installed OpenMC can be very convenient, there might be version mismatches that could lead to compilation errors or unexpected runtime behavior. If you encounter issues, consider building OpenMC from source by *not* setting `BUILD_OPENMC=no` (or setting it to `yes`) and letting Cardinal manage the OpenMC dependency.
 
 #### Compile Cardinal
   id=compiling
