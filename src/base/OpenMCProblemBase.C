@@ -27,6 +27,7 @@
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
+#include "CriticalitySearchBase.h"
 
 #include "openmc/random_lcg.h"
 // For filtering \beta_eff by DNP group.
@@ -256,14 +257,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
 
 void
-OpenMCProblemBase::catchOpenMCError(const int & err, const std::string descriptor) const
-{
-  if (err)
-    mooseError(
-        "In attempting to ", descriptor, ", OpenMC reported:\n\n", std::string(openmc_err_msg));
-}
-
-void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
                                             const std::vector<unsigned int> & elem_ids,
                                             const Real & value)
@@ -369,7 +362,7 @@ OpenMCProblemBase::externalSolve()
     return;
   }
 
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+  _console << "Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())
@@ -388,9 +381,15 @@ OpenMCProblemBase::externalSolve()
     openmc_set_seed(_initial_seed);
   }
 
-  int err = openmc_run();
-  if (err)
-    mooseError(openmc_err_msg);
+  int err;
+  if (_criticality_search)
+    _criticality_search->searchForCriticality();
+  else
+  {
+    err = openmc_run();
+    if (err)
+      mooseError(openmc_err_msg);
+  }
 
   _total_n_particles += nParticles();
 
@@ -408,7 +407,7 @@ OpenMCProblemBase::externalSolve()
 void
 OpenMCProblemBase::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  CardinalProblem::initialSetup();
 
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
@@ -435,6 +434,17 @@ OpenMCProblemBase::initialSetup()
     std::vector<openmc::Filter *> df{dnp_grp_filter};
     _ifp_mg_beta_tally->set_filters({df});
   }
+
+  // Find a criticality search object
+  TheWarehouse::Query query = theWarehouse().query().condition<AttribSystem>("CriticalitySearch");
+  std::vector<CriticalitySearchBase *> objs;
+  query.queryInto(objs);
+
+  if (objs.size() > 1)
+    mooseError("Cannot have more than one CriticalitySearch object");
+
+  if (objs.size())
+    _criticality_search = objs[0];
 }
 
 void
@@ -965,6 +975,10 @@ void
 OpenMCProblemBase::executeFilterEditors()
 {
   executeControls(EXEC_FILTER_EDITORS);
+
+  if (!_filter_editor_uos.size())
+    return;
+
   _console << "Executing filter editors..." << std::endl;
   for (const auto & fe : _filter_editor_uos)
     fe->execute();
@@ -974,6 +988,10 @@ void
 OpenMCProblemBase::executeTallyEditors()
 {
   executeControls(EXEC_TALLY_EDITORS);
+
+  if (!_tally_editor_uos.size())
+    return;
+
   _console << "Executing tally editors..." << std::endl;
   for (const auto & te : _tally_editor_uos)
     te->execute();

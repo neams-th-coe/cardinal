@@ -18,46 +18,47 @@
 
 #pragma once
 
-#include "MooseObject.h"
+#include "OpenMCMaterialSearch.h"
 
-#include "OpenMCCellAverageProblem.h"
-
-namespace libMesh
-{
-class Elem;
-}
-
-class OpenMCBase
+/**
+ * Perform a criticality search based on the boron ppm in water
+ */
+class BoratedWater : public OpenMCMaterialSearch
 {
 public:
   static InputParameters validParams();
 
-  OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters);
+  BoratedWater(const InputParameters & parameters);
+
+  virtual void updateOpenMCModel(const Real & input) override;
 
 protected:
-  /**
-   * Compute standard deviation of a variable
-   * @param[in] mean mean
-   * @param[in] sum_sq sum squared
-   * @param[in] realizations the number of realizations of the variable
-   * @return standard deviation
-   */
-  Real stdev(const double & mean, const double & sum_sq, unsigned int realizations) const;
+  virtual std::string quantity() const override
+  {
+    return "material " + std::to_string(_material_id) + " boron";
+  }
 
-  /**
-   * A function which computes the mean value of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the mean value of the k-eigenvalue
-   */
-  Real kMean(const eigenvalue::EigenvalueEnum estimator) const;
+  virtual std::string units() const override { return "[ppm]"; }
 
-  /**
-   * A function which computes the standard deviation of \f$k_{eff}\f$.
-   * @param[in] estimator type of estimator
-   * @return the standard deviation of the k-eigenvalue
-   */
-  Real kStandardDeviation(const eigenvalue::EigenvalueEnum estimator) const;
+  /// Natural isotopes of hydrogen with their abundances
+  std::vector<std::pair<std::string, Real>> _hydrogen_natural;
 
-  /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
-  OpenMCCellAverageProblem * _openmc_problem;
+  /// Natural isotopes of boron with their abundances
+  std::vector<std::pair<std::string, Real>> _boron_natural;
+
+  /// Natural isotopes of oxygen with their abundances
+  std::vector<std::pair<std::string, Real>> _oxygen_natural;
+
+  /// Molar mass of water
+  Real _M_H2O;
+
+  /// Molar mass of boron
+  Real _M_B;
+
+private:
+  /** Adjust the natural abundances used for the criticality search if nuclides
+   *  are missing from the cross section library.
+   *  @param[in] allowable possible natural isotopes that will exist in the borated water
+   */
+  void applyAbsentNuclides(const std::vector<std::string> & allowable);
 };
