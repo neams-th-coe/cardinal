@@ -4,7 +4,7 @@
 
 On *CPU systems*, all that you need to compile Cardinal is:
 
-```
+``` language=bash
 cd $HOME
 git clone https://github.com/neams-th-coe/cardinal.git
 cd cardinal
@@ -20,6 +20,12 @@ If the above produces a `cardinal-opt` Cardinal executable, you can
 jump straight to [#running]. If you are on a GPU system, want to customize the
 build, or were not successful with the above, please consult the detailed instructions
 that follow.
+
+!alert! tip title=Using pre-built dependencies
+If you have some of the third-party libraries (TPLs) already installed, you can
+skip building them by setting `BUILD_[TPL_NAME]=no` and `[TPL_NAME]_DIR=/path/to/tpl`.
+See the "Using Pre-built Dependencies" section for more details.
+!alert-end!
 !alert-end!
 
 ## Access
@@ -73,6 +79,53 @@ For even further control, you can set other
 dependency locations, and more.
 !alert-end!
 
+#### Enable/Disable Optional Features
+  id=optional-features
+
+Cardinal allows you to enable or disable certain optional features and specify GPU backends. These are controlled by setting the following environment variables.
+
+| Feature / Backend    | Enable/Disable Flag | Description                                                    | Default | Notes                                             |
+|----------------------|---------------------|----------------------------------------------------------------|---------|---------------------------------------------------|
+| NekRS Integration    | `ENABLE_NEK`        | Controls whether to build with NekRS support.                  | `yes`   |                                                   |
+| OpenMC Integration   | `ENABLE_OPENMC`     | Controls whether to build with OpenMC support.                 | `yes`   |                                                   |
+| DAGMC Support        | `ENABLE_DAGMC`      | Controls whether OpenMC is built with DAGMC support.           | `no`    | Only relevant if `ENABLE_OPENMC=yes`              |
+| Double-Down Ray Tracing | `ENABLE_DOUBLE_DOWN` | Uses double-precision Embree for DAGMC ray tracing. | `off`   | Only relevant if `ENABLE_DAGMC=yes`               |
+| OCCA CUDA Backend    | `OCCA_CUDA_ENABLED` | Enables the OCCA CUDA backend for GPU acceleration.            | `0`     | Set to `1` to enable.                             |
+| OCCA HIP Backend     | `OCCA_HIP_ENABLED`  | Enables the OCCA HIP backend for GPU acceleration.             | `0`     | Set to `1` to enable.                             |
+| OCCA OpenCL Backend  | `OCCA_OPENCL_ENABLED` | Enables the OCCA OpenCL backend for GPU acceleration.          | `0`     | Set to `1` to enable.                             |
+| Nek AMGX Support     | `AMGX_ENABLED`      | Enables AMGX in Nek (Nvidia GPUs only). Automatically enables `OCCA_CUDA_ENABLED` if set to `1`. | `0` | Set to `1` to enable.                             |
+
+For example, to disable NekRS and enable DAGMC support with OpenMC, you would set:
+
+```language=bash
+export ENABLE_NEK=no
+export ENABLE_OPENMC=yes # Ensure OpenMC is enabled if not already
+export ENABLE_DAGMC=yes
+```
+
+#### Using Pre-built Dependencies
+  id=prebuilt
+
+By default, Cardinal will build all of its required dependencies from source. However, if you already have some of these dependencies installed, you can instruct Cardinal to use your pre-built versions. This is done by setting a `BUILD_*` variable to `no` and specifying the location of the pre-built dependency with a `*_DIR` variable.
+
+Here is a list of the build flags and their corresponding location variables:
+
+| Dependency   | Build Flag           | Location Variable   | Notes                                    |
+|--------------|----------------------|---------------------|------------------------------------------|
+| NekRS        | `BUILD_NEKRS`        | `NEKRS_DIR`         |                                          |
+| OpenMC       | `BUILD_OPENMC`       | `OPENMC_DIR`        |                                          |
+| DAGMC        | `BUILD_DAGMC`        | `DAGMC_DIR`         | Only relevant if `BUILD_OPENMC=yes`      |
+| MOAB         | `BUILD_MOAB`         | `MOAB_DIR`          | Only relevant if `BUILD_DAGMC=yes`       |
+| Embree       | `BUILD_EMBREE`       | `EMBREE_DIR`        | Only relevant if `BUILD_DOUBLEDOWN=yes`  |
+| Double-Down  | `BUILD_DOUBLEDOWN`   | `DOUBLEDOWN_DIR`    | Only relevant if `BUILD_DAGMC=yes`       |
+
+For example, to use a pre-built version of OpenMC, you would set the following environment variables:
+
+``` language=bash
+export BUILD_OPENMC=no
+export OPENMC_DIR=/path/to/your/openmc
+```
+
 #### Set OCCA Backend
 
 !include occa.md
@@ -82,7 +135,7 @@ dependency locations, and more.
 
 You must now build PETSc, libMesh, and WASP:
 
-```
+```bash
 ./contrib/moose/scripts/update_and_rebuild_petsc.sh
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ./contrib/moose/scripts/update_and_rebuild_wasp.sh

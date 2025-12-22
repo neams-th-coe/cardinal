@@ -1,3 +1,8 @@
+EMBREE_BUILDDIR := $(CARDINAL_DIR)/build/embree
+EMBREE_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
+ifeq ($(BUILD_EMBREE),yes)
+
 $(EMBREE_BUILDDIR)/Makefile: $(EMBREE_DIR)/CMakeLists.txt
 	mkdir -p $(EMBREE_BUILDDIR)
 	cd $(EMBREE_BUILDDIR) && \
@@ -24,6 +29,20 @@ cleanall_embree: | $(EMBREE_BUILDDIR)/Makefile
 
 clobber_embree:
 	rm -rf $(EMBREE_LIB) $(EMBREE_BUILDDIR) $(EMBREE_INSTALL_DIR)
+
+else # BUILD_EMBREE=no
+
+EMBREE_INSTALL_DIR = $(EMBREE_DIR)
+build_embree:
+	@echo "Using pre-built embree from $(EMBREE_INSTALL_DIR)"
+
+cleanall_embree:
+	@echo "Not cleaning pre-built embree"
+
+clobber_embree:
+	@echo "Not clobbering pre-built embree"
+
+endif # BUILD_EMBREE
 
 cleanall: cleanall_embree
 

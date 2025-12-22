@@ -1,3 +1,8 @@
+OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
+OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
+ifeq ($(BUILD_OPENMC),yes)
+
 $(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
 	cd $(OPENMC_BUILDDIR) && \
@@ -27,6 +32,38 @@ cleanall_openmc: | $(OPENMC_BUILDDIR)/Makefile
 
 clobber_openmc:
 	rm -rf $(OPENMC_LIB) $(OPENMC_BUILDDIR) $(OPENMC_INSTALL_DIR)
+
+else # BUILD_OPENMC=no
+
+OPENMC_INSTALL_DIR = $(OPENMC_DIR)
+build_openmc:
+	@echo "Using pre-built openmc from $(OPENMC_INSTALL_DIR)"
+
+cleanall_openmc:
+	@echo "Not cleaning pre-built openmc"
+
+clobber_openmc:
+	@echo "Not clobbering pre-built openmc"
+
+endif # BUILD_OPENMC
+
+OPENMC_INCLUDES := -I$(OPENMC_INSTALL_DIR)/include
+ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
+OPENMC_LIBDIR := $(OPENMC_INSTALL_DIR)/lib
+OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
+
+OPENMC_ADDITIONAL_LIBS := -L$(OPENMC_LIBDIR) ${OPENMC_LIB} ${HDF5_LIBS}
+OPENMC_EXTERNAL_FLAGS := -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) ${OPENMC_LIB}
+ifeq ($(ENABLE_DAGMC), ON)
+  OPENMC_ADDITIONAL_LIBS += -ldagmc -lMOAB
+  OPENMC_EXTERNAL_FLAGS += -ldagmc -lMOAB
+  ifeq ($(ENABLE_DOUBLE_DOWN), ON)
+    OPENMC_ADDITIONAL_LIBS += -lembree4 -ldd
+    OPENMC_EXTERNAL_FLAGS += -lembree4 -ldd
+  endif
+endif
+OPENMC_ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+OPENMC_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 
 cleanall: cleanall_openmc
 

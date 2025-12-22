@@ -1,3 +1,8 @@
+MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
+MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
+ifeq ($(BUILD_MOAB),yes)
+
 $(MOAB_BUILDDIR)/Makefile: $(MOAB_DIR)/CMakeLists.txt
 	mkdir -p $(MOAB_BUILDDIR)
 	cd $(MOAB_BUILDDIR) && \
@@ -27,6 +32,20 @@ cleanall_moab: | $(MOAB_BUILDDIR)/Makefile
 
 clobber_moab:
 	rm -rf $(MOAB_LIB) $(MOAB_BUILDDIR) $(MOAB_INSTALL_DIR)
+
+else # BUILD_MOAB=no
+
+MOAB_INSTALL_DIR = $(MOAB_DIR)
+build_moab:
+	@echo "Using pre-built moab from $(MOAB_INSTALL_DIR)"
+
+cleanall_moab:
+	@echo "Not cleaning pre-built moab"
+
+clobber_moab:
+	@echo "Not clobbering pre-built moab"
+
+endif # BUILD_MOAB
 
 cleanall: cleanall_moab
 
