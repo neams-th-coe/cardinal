@@ -23,7 +23,8 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
     _auxiliary_system(_fe_problem.getAuxiliarySystem()),
     _dof_map(_auxiliary_system.dofMap()),
     _metric_variable_index(_auxiliary_system.getVariable(_tid, _metric_variable_name).number()),
-    _data_gathered(false)
+    _data_gathered(false),
+    _serialized_metric_solution(_auxiliary_system.serializedSolution())
 {
   // check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
   if (_metric_variable.feType() != FEType(CONSTANT, MONOMIAL))
@@ -41,10 +42,10 @@ ClusteringHeuristicUserObjectBase::initialize()
   const dof_id_type n_dofs = sol->size();
 
   // create the serialized vector
-  _serialized_metric_solution = libMesh::NumericVector<Real>::build(_communicator);
-  _serialized_metric_solution->init(n_dofs, true, SERIAL);
+  _serialized_metric_solution = _auxiliary_system.serializedSolution();
+  _serialized_metric_solution.init(n_dofs, true, SERIAL);
 
-  sol->localize(*_serialized_metric_solution);
+  sol->localize(_serialized_metric_solution);
 
   _data_gathered = true;
 }
@@ -53,9 +54,13 @@ Real
 ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) const
 {
   std::vector<dof_id_type> dof_indices;
+  std::vector<double> solution_value(1);
   _dof_map.dof_indices(elem, dof_indices, _metric_variable_index);
-  if (_serialized_metric_solution->type() == SERIAL)
-    return (*_serialized_metric_solution)(dof_indices[0]);
+  if (_serialized_metric_solution.type() == SERIAL)
+  {
+    _serialized_metric_solution.get(dof_indices, solution_value);
+    return solution_value[0];
+  }
   else
     mooseError("Serialized solution vector not initialized as SERIAL!");
 }

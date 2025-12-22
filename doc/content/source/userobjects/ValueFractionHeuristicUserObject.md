@@ -3,8 +3,8 @@
 ## Description
 
 `ValueFractionHeuristicUserObject` implements the clustering heuristic if the variable values of two adjacent
-elements are both either more/less than an upper/lower cut off of the metric variable.
-The upper and lower cut off are calculated as,
+elements are both more/less than an upper/lower cut off of the metric variable.
+The upper and lower cutoff values are calculated as,
 
 upper_cut_off $= (1 -$ upper_fraction $)$ $ \times (S_{max} - S_{min}) + S_{min}$ $
 lower_cut_off $= $ lower_fraction $ \times (S_{max} - S_{min}) + S_{min}$

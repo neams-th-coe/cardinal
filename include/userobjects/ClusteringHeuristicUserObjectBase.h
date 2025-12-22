@@ -59,6 +59,6 @@ protected:
   /// Whether the global metric data has been gathered
   bool _data_gathered;
 
-  /// libmesh numeric vector ptr with serialized solutions
-  std::unique_ptr<NumericVector<Real>> _serialized_metric_solution;
+  /// libmesh numeric vector with serialized solutions
+  NumericVector<Real> & _serialized_metric_solution;
 };

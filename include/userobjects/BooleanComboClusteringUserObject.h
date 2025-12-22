@@ -6,8 +6,8 @@
 class ClusteringHeuristicUserObjectBase;
 
 /**
- * A clustering user object which implements the mesh walking process
- * and implements the clustering by evaluating  a user defined
+ * A clustering user object which implements the mesh walking
+ * and clustering process. This is performed by evaluating a user-defined
  * boolean expression involving other heuristic based user objects
  */
 class BooleanComboClusteringUserObject : public GeneralUserObject
