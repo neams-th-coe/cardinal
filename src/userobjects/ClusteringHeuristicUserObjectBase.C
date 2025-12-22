@@ -37,16 +37,7 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
 void
 ClusteringHeuristicUserObjectBase::initialize()
 {
-
-  const auto & sol = _auxiliary_system.currentSolution();
-  const dof_id_type n_dofs = sol->size();
-
-  // create the serialized vector
-  _serialized_metric_solution = _auxiliary_system.serializedSolution();
-  _serialized_metric_solution.init(n_dofs, true, SERIAL);
-
-  sol->localize(_serialized_metric_solution);
-
+  _auxiliary_system.serializeSolution();
   _data_gathered = true;
 }
 
@@ -56,11 +47,6 @@ ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) con
   std::vector<dof_id_type> dof_indices;
   std::vector<double> solution_value(1);
   _dof_map.dof_indices(elem, dof_indices, _metric_variable_index);
-  if (_serialized_metric_solution.type() == SERIAL)
-  {
-    _serialized_metric_solution.get(dof_indices, solution_value);
-    return solution_value[0];
-  }
-  else
-    mooseError("Serialized solution vector not initialized as SERIAL!");
+  _serialized_metric_solution.get(dof_indices, solution_value);
+  return solution_value[0];
 }
