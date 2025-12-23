@@ -1,0 +1,31 @@
+#include "ValueDifferenceHeuristicUserObject.h"
+
+registerMooseObject("CardinalApp", ValueDifferenceHeuristicUserObject);
+
+InputParameters
+ValueDifferenceHeuristicUserObject::validParams()
+{
+
+  InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
+  params.addRequiredParam<Real>(
+      "tolerance", "Maximum allowed difference in scores for elements to be clustered");
+  params.addClassDescription(
+      "Clusters elements whose relative score differences are less than the specified tolerance.");
+
+  return params;
+}
+
+ValueDifferenceHeuristicUserObject::ValueDifferenceHeuristicUserObject(
+    const InputParameters & params)
+  : ClusteringHeuristicUserObjectBase(params), _tolerance(getParam<Real>("tolerance"))
+{
+}
+
+bool
+ValueDifferenceHeuristicUserObject::evaluate(libMesh::Elem * base_element,
+                                             libMesh::Elem * neighbor_element) const
+{
+  const Real base_score = getMetricData(base_element);
+  const Real neighbor_score = getMetricData(neighbor_element);
+  return std::abs((base_score - neighbor_score) / base_score) < _tolerance;
+}
