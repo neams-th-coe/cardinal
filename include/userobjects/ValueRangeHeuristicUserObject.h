@@ -18,7 +18,7 @@ public:
    * for two element whose scores are within a user provided range
    * @param[in] base_element the current element
    * @param[in] neighbor_elem the current neighbour of base_element
-   * return whether the two elements should be added to a cluster or not
+   * @return whether the two elements should be added to a cluster or not
    */
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const override;
 

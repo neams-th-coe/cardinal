@@ -14,8 +14,8 @@ set to be the same as the element id of the first element in that cluster.
 ## Example Input File
 
 The following input block gives an example how `BooleanComboClusteringUserObject`
-can implement two different [ThresholdHeuristicUserObject](ThresholdHeuristicUserObject.md) heuristic by 
-a boolean logic. 
+can implement two different [ThresholdHeuristicUserObject](ThresholdHeuristicUserObject.md) heuristics with
+boolean logic. 
 
 !listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
 block=UserObjects

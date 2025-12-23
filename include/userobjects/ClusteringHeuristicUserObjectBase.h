@@ -19,24 +19,19 @@ public:
   /**
    * A purely virtual function which must be overridden in derived classes.
    * It applies the clustering logic for two elements in the derived class
-   * param[in] base_element the current element
-   * param[in] neighbor_elem the current neighbour of base_element
-   * return whether the two elements should be added to a cluster or not
+   * @param[in] base_element the current element
+   * @param[in] neighbor_elem the current neighbour of base_element
+   * @return whether the two elements should be added to a cluster or not
    */
   virtual bool evaluate(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem) const = 0;
 
 protected:
   /**
    * Get the metric data from the auxiliary system for an element.
-   * @param[in] an element
-   * @param[out] real value of the _metric_variable
+   * @param[in] element
+   * @return value of the _metric_variable
    */
   Real getMetricData(const libMesh::Elem * elem) const;
-
-  /**
-   * Gathers metric data from all processors during initialization
-   */
-  void gatherAllMetricData();
 
   /// Mesh reference
   libMesh::MeshBase & _mesh;

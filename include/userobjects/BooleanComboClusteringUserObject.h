@@ -31,7 +31,7 @@ private:
   /**
    * function for converting the expression input to reverse polish notation
    * using the shunting yard algorithm.
-   * @param[in] a parsed expression
+   * @param[in] expression a boolean logic expression
    */
   void reversePolishNotation(const std::vector<std::string> & expression);
 
@@ -61,7 +61,7 @@ private:
   /// element integer index
   unsigned int _extra_integer_index;
 
-  /// hash map for clustering user object.
+  /// Hash map for clustering user object. The key is the name of the UserObject
   std::unordered_map<std::string, const ClusteringHeuristicUserObjectBase *>
       _clustering_user_objects;
 
