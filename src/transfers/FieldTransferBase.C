@@ -102,7 +102,7 @@ FieldTransferBase::addExternalVariable(const std::string name)
       mooseError("Unhandled 'NekOrderEnum' in 'FieldTransferBase'!");
   }
 
-  _nek_problem.checkDuplicateVariableName(name);
+  _nek_problem.checkDuplicateVariableName(name, "FieldTransfer");
   _nek_problem.addAuxVariable("MooseVariable", name, var_params);
   _variable_number.insert(std::pair<std::string, unsigned int>(
       name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number()));

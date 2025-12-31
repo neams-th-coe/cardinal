@@ -26,7 +26,6 @@
   verbose = true
   power = ${fparse 3000e6 / 273 / (17 * 17)}
   temperature_blocks = '1 2 3'
-  normalize_by_global_tally = false
   cell_level = 0
 
   particles = 20000
@@ -37,6 +36,8 @@
     [heat_source]
       type = MeshTally
       name = heat_source
+
+      normalize_by_global_tally = false
     []
   []
 []

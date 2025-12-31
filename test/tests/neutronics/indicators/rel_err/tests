@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#1146'
+  issues = '#1146 #1106'
   design = 'StatRelErrorIndicator.md'
 
   [rel_err]
@@ -35,6 +35,15 @@
     requirement = 'The system shall error if the provided tally external filter bin is greater than the total number of external filter bins.'
     expect_err = 'The external filter bin provided is invalid for the number of external filter bins'
     mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [duplicate_scores]
+    type = CSVDiff
+    input = openmc_dup.i
+    csvdiff = openmc_dup_out.csv
+    cli_args = "Adaptivity/Indicators/stat_err/tally='Mesh'"
+    requirement = "The system shall allow for the computation of relative error indicators "
+                  "when multiple tallies are added which accumulate the same scores."
     capabilities = 'openmc'
   []
 []

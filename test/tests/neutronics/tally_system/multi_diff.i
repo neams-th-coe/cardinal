@@ -25,9 +25,6 @@
   cell_level = 0
   initial_properties = xml
 
-  # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
-  normalize_by_global_tally = false
-
   source_rate_normalization = 'kappa_fission'
 
   # Missing some hits in the model (only tallying a single pebble instead of 3)
@@ -38,12 +35,18 @@
       type = CellTally
       score = 'kappa_fission'
       block = '100'
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
     [Mesh]
       type = MeshTally
       score = 'flux'
       mesh_translations = '0 0 0'
       mesh_template = ../meshes/sphere.e
+
+      # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
+      normalize_by_global_tally = false
     []
   []
 []

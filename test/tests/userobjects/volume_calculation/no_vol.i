@@ -37,7 +37,6 @@
   power = 100.0
   temperature_blocks = '100'
   cell_level = 0
-  check_tally_sum = false
 
   initial_properties = xml
 
@@ -46,6 +45,7 @@
       type = CellTally
       block = '100'
       name = heat_source
+      check_tally_sum = false
     []
   []
 []

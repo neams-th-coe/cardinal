@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#1252 #850'
+  issues = '#1252 #850 #1106'
   design = 'TallyRelativeError.md'
 
   [fission_tally_relative_error]
@@ -29,7 +29,7 @@
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
-    expect_err = "To extract the relative error of the 'flux' score"
+    expect_err = "The problem does not contain any score named flux!"
     requirement = "The system shall error if trying to extract score information that does not exist"
     capabilities = 'openmc'
   []
@@ -41,6 +41,42 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The system shall prove equivalence between a by-hand calculation of relative error (std_dev output divided by tally value) as compared to the tally relative error postprocessor."
+    capabilities = 'openmc'
+  []
+  [duplicate_scores]
+    type = CSVDiff
+    input = openmc_dup.i
+    csvdiff = openmc_dup_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    cli_args = "Postprocessors/max_rel_err/tally=Mesh Postprocessors/min_rel_err/tally=Mesh Postprocessors/avg_rel_err/tally=Mesh"
+    requirement = "The system shall allow for the computation of tally relative errors when multiple "
+                  "tallies accumulating the same scores are added to the problem."
+    capabilities = 'openmc'
+  []
+  [duplicate_scores_tally_not_provided]
+    type = RunException
+    input = openmc_dup.i
+    requirement = "The system shall error if two tallies accumulate the same scores and the user doesn't "
+                  "select one to use for computing a relative error metric."
+    expect_err = "When adding more than one tally with kappa-fission in the \[Tallies\] block, the 'tally' parameter is required!"
+    capabilities = 'openmc'
+  []
+  [duplicate_scores_missing_tally]
+    type = RunException
+    input = openmc_dup.i
+    cli_args = "Postprocessors/max_rel_err/tally=na Postprocessors/min_rel_err/tally=Mesh Postprocessors/avg_rel_err/tally=Mesh"
+    requirement = "The system shall error if the user provides a non-existent tally."
+    expect_err = "This tally does not exist"
+    capabilities = 'openmc'
+  []
+  [duplicate_scores_tally_has_no_score]
+    type = RunException
+    input = openmc_dup.i
+    cli_args = "Postprocessors/max_rel_err/tally=Cell_2 Postprocessors/min_rel_err/tally=Mesh Postprocessors/avg_rel_err/tally=Mesh"
+    requirement = "The system shall error if the user provides a tally that does not accumulate the score."
+    expect_err = "This tally does not score kappa-fission!"
     capabilities = 'openmc'
   []
 []

@@ -88,9 +88,12 @@ public:
    * Add a constant monomial auxiliary variable
    * @param[in] name name of the variable
    * @param[in] block optional subdomain names on which to restrict the variable
+   * @param[in] system an optional string for the system adding a variable (to improve debugging)
    * @return numeric index for the variable in the auxiliary system
    */
-  unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
+  unsigned int addExternalVariable(const std::string & name,
+                                   const std::string & system,
+                                   const std::vector<SubdomainName> * block = nullptr);
 
   /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
@@ -175,7 +178,7 @@ public:
    * @param[in] score tally score
    * @return tally sum within each bin
    */
-  xt::xtensor<double, 1> tallySum(openmc::Tally * tally, const unsigned int & score) const;
+  xt::xtensor<double, 1> tallySum(const openmc::Tally * tally, const unsigned int & score) const;
 
   /**
    * Compute the sum of a tally across all of its bins
@@ -183,7 +186,8 @@ public:
    * @param[in] score tally score
    * @return tally sum
    */
-  double tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
+                            const unsigned int & score) const;
 
   /**
    * Compute the mean of a tally across all of its bins
@@ -191,7 +195,8 @@ public:
    * @param[in] score tally score
    * @return tally mean
    */
-  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
+  double tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
+                             const unsigned int & score) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
@@ -228,7 +233,8 @@ public:
    * @param[in] n_realizations number of realizations
    */
   xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
-    const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
+                                       const xt::xtensor<double, 1> & sum_sq,
+                                       const int & n_realizations) const;
 
   /**
    * Compute relative error
@@ -255,6 +261,12 @@ public:
    * @return total number of particles
    */
   int nTotalParticles() const { return _total_n_particles; }
+
+  /**
+   * Run mode of the OpenMC simulation
+   * @return the current run mode for OpenMC
+   */
+  openmc::RunMode runMode() const { return _run_mode; }
 
   /**
    * Get the cell ID from the cell index
@@ -317,10 +329,13 @@ public:
    * @param[in] id cell ID
    * @param[in] instance cell instance
    * @param[in] T temperature
-   * @param[in] cell_info cell info for which we are setting interior temperature, for error printing
+   * @param[in] cell_info cell info for which we are setting interior temperature, for error
+   * printing
    */
-  virtual void setCellTemperature(const int32_t & id, const int32_t & instance, const Real & T,
-    const cellInfo & cell_info) const;
+  virtual void setCellTemperature(const int32_t & id,
+                                  const int32_t & instance,
+                                  const Real & T,
+                                  const cellInfo & cell_info) const;
 
   /**
    * Set the cell density, and print helpful error message if a failure occurs

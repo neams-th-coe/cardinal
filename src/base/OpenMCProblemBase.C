@@ -670,13 +670,13 @@ OpenMCProblemBase::relativeError(const Real & sum,
 }
 
 xt::xtensor<double, 1>
-OpenMCProblemBase::tallySum(openmc::Tally * tally, const unsigned int & score) const
+OpenMCProblemBase::tallySum(const openmc::Tally * tally, const unsigned int & score) const
 {
   return xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM));
 }
 
 double
-OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally,
+OpenMCProblemBase::tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
                                       const unsigned int & score) const
 {
   double sum = 0.0;
@@ -691,7 +691,7 @@ OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally,
 }
 
 double
-OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally,
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
                                        const unsigned int & score) const
 {
   int n = 0;
@@ -874,6 +874,7 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
 
 unsigned int
 OpenMCProblemBase::addExternalVariable(const std::string & name,
+                                       const std::string & system,
                                        const std::vector<SubdomainName> * block)
 {
   auto var_params = _factory.getValidParams("MooseVariable");
@@ -883,7 +884,7 @@ OpenMCProblemBase::addExternalVariable(const std::string & name,
   if (block)
     var_params.set<std::vector<SubdomainName>>("block") = *block;
 
-  checkDuplicateVariableName(name);
+  checkDuplicateVariableName(name, system);
   addAuxVariable("MooseVariable", name, var_params);
   return _aux->getFieldVariable<Real>(0, name).number();
 }

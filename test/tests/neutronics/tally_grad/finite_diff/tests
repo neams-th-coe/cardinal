@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#1031'
+  issues = '#1031 #1106'
   design = 'FDTallyGradAux.md'
 
   [gradients]
@@ -32,9 +32,19 @@
     type = RunException
     input = 'openmc.i'
     cli_args = 'AuxKernels/comp_grad_kappa_fission/ext_filter_bin=1'
-    requirement = 'The system shall error if the external filter bin provided by the user is out of bounds for the filters applied to the given score.'
+    requirement = 'The system shall error if the external filter bin provided by the user is out of '
+                  'bounds for the filters applied to the given score.'
     expect_err = 'The external filter bin provided is invalid'
     mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [duplicate_scores]
+    type = CSVDiff
+    input = openmc_dup.i
+    csvdiff = openmc_dup_out.csv
+    cli_args = "AuxKernels/comp_grad_kappa_fission/tally='Mesh'"
+    requirement = "The system shall allow for the computation of tally gradients with finite differences "
+                  "when multiple tallies are added which accumulate the same scores."
     capabilities = 'openmc'
   []
 []

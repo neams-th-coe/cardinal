@@ -16,7 +16,6 @@
   type = OpenMCCellAverageProblem
   power = 100.0
   cell_level = 0
-  check_tally_sum = false
 
   initial_properties = xml
 
@@ -26,6 +25,8 @@
       block = '1'
       score = 'heating kappa_fission'
       output = 'unrelaxed_tally_std_dev'
+
+      check_tally_sum = false
     []
   []
 []

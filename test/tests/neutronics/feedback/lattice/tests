@@ -73,7 +73,7 @@
     type = RunException
     input = openmc.i
     cli_args = "AuxVariables/heat_source/order=FIRST"
-    expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source', but you already have a variable by this name."
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source' through the Tally system"
     requirement = "The system shall error if the user adds a duplicate variable with a name Cardinal reserves for OpenMC coupling."
     capabilities = 'openmc'
   []
