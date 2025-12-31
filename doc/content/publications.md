@@ -229,6 +229,10 @@ V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
 
 # Verification and Validation
 
+M. Eltawila, P.C.A. Simon, G.L. Giudicelli, H. Brooks, N. Wozniak, and A.J. Novak,
+["Thermomechanics Coupling to Monte Carlo Particle Transport on Unstructured Mesh Geometries Using Cardinal"](https://doi.org/10.1016/j.anucene.2025.112068)
+*Annals of Nuclear Energy* (2026)
+
 L. Gross, A.J. Novak, P. Shriwise, and P.P.H. Wilson,
 ["Verification of the Cardinal Multiphysics Solver for 1-D Coupled Heat Transfer and Neutron Transport"](https://www.researchgate.net/publication/373173646_Verification_of_the_Cardinal_Multiphysics_Solver_for_1-D_Coupled_Heat_Transfer_and_Neutron_Transport)
 *Proceedings of M&C* (2023)
