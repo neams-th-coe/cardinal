@@ -18,13 +18,15 @@
 
 import openmc
 
+# whether to run a standalone criticality search with OpenMC, for comparison
+# with the Cardinal-driven search
+search = False
+
 model = openmc.Model()
 
 pu = openmc.Material()
 pu.set_density('g/cc', 16.37749)
 pu.add_nuclide('Pu239', 1.0)
-
-model.materials = openmc.Materials([pu])
 
 # Create cube
 R = 10.0
@@ -52,4 +54,11 @@ model.settings.temperature = {'default': 600.0,
                         'method': 'nearest',
                         'range': (294.0, 1600.0)}
 
-model.export_to_xml()
+model.export_to_model_xml()
+
+def change_density(d):
+  pu.set_density('g/cc', d)
+  box.fill = pu
+
+if (search):
+  result = model.keff_search(change_density, x0=10, x1=20, output=True, k_tol=1e-3, sigma_final=1e-3)
