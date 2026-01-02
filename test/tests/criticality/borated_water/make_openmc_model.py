@@ -18,6 +18,9 @@
 
 import openmc
 
+# whether to do the criticality search natively with OpenMC
+search = False
+
 model = openmc.Model()
 
 u = openmc.Material()
@@ -27,12 +30,13 @@ u.add_nuclide('U235', 0.1)
 u.add_nuclide('U238', 1.0)
 u.add_nuclide('H3', 1e-4)
 
-bw = openmc.model.borated_water(boron_ppm=1000.0, density=1.0)
-h1_percent = bw.nuclides[0].percent
-for n in bw.nuclides:
-  print(n.name, n.percent / h1_percent)
-
-model.materials = openmc.Materials([u, bw])
+# to get this input file to match the Cardinal test, the density needs to be set
+# as 1.9 instead of 1.0. The test checks that the criticality search works when
+# a density change via Cardinal is simultaneously imposed.
+dens = 1.0
+if (search):
+  dens = 1.9
+bw = openmc.model.borated_water(boron_ppm=1000.0, density=dens)
 
 # Create two cubes side by side
 R = 10.0
@@ -62,4 +66,11 @@ model.settings.temperature = {'default': 600.0,
                         'method': 'nearest',
                         'range': (294.0, 1600.0)}
 
-model.export_to_xml()
+model.export_to_model_xml()
+
+def borated_water_ppm(ppm):
+  bw = openmc.model.borated_water(boron_ppm=ppm, density=dens)
+  box2.fill = bw
+
+if (search):
+  result = model.keff_search(borated_water_ppm, x0=0, x1=1000, output=True, k_tol=1e-3, sigma_final=1e-3)
