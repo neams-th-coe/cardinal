@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekUsrWrkIntegral.md NekVolumetricSource.md NekBoundaryFlux.md'
+  design = 'NekUsrWrkBoundaryIntegral.md NekVolumetricSource.md NekBoundaryFlux.md'
 
   [multiple_source_transfers]
     type = CSVDiff

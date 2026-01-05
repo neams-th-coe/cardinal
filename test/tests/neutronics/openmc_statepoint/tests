@@ -2,7 +2,7 @@
   # This test needs to be in its own directory to prevent a false positive if another test
   # writes a statepoint.50.h5 file
   issues = '#1261'
-  design = 'OpenMCCelllAverageProblem.md'
+  design = 'OpenMCCellAverageProblem.md'
   [check_statepoint_exists]
     type = CheckFiles
     input = openmc.i
