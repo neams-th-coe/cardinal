@@ -16,40 +16,27 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#ifdef ENABLE_OPENMC_COUPLING
 
-#include "AddFieldTransferAction.h"
-#include "NekRSProblem.h"
-#include "FieldTransferBase.h"
-
-registerMooseAction("CardinalApp", AddFieldTransferAction, "add_field_transfers");
+#include "OpenMCMaterialSearch.h"
+#include "UserErrorChecking.h"
+#include "openmc/capi.h"
 
 InputParameters
-AddFieldTransferAction::validParams()
+OpenMCMaterialSearch::validParams()
 {
-  auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a field transfer (mesh-based data) for coupling to NekRS");
+  auto params = CriticalitySearchBase::validParams();
+  params.addRequiredParam<int32_t>("material_id", "Material ID to modify");
+  params.addClassDescription(
+      "Base class for criticality searches using the properties of a material");
   return params;
 }
 
-AddFieldTransferAction::AddFieldTransferAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters)
+OpenMCMaterialSearch::OpenMCMaterialSearch(const InputParameters & parameters)
+  : CriticalitySearchBase(parameters), _material_id(getParam<int32_t>("material_id"))
 {
+  int err = openmc_get_material_index(_material_id, &_material_index);
+  catchOpenMCError(err, "get index for material with ID " + std::to_string(_material_id));
 }
 
-void
-AddFieldTransferAction::act()
-{
-  if (_current_task == "add_field_transfers")
-  {
-    auto nek_problem = dynamic_cast<NekRSProblem *>(_problem.get());
-
-    if (!nek_problem)
-      mooseError("The [FieldTransfers] block can only be used with wrapped Nek cases! "
-                 "You need to change the [Problem] block to 'NekRSProblem'.");
-
-    _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-    nek_problem->addObject<FieldTransferBase>(_type, _name, _moose_object_pars, false)[0];
-  }
-}
 #endif

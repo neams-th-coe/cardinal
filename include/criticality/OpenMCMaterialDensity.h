@@ -16,40 +16,27 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#pragma once
 
-#include "AddFieldTransferAction.h"
-#include "NekRSProblem.h"
-#include "FieldTransferBase.h"
+#include "OpenMCMaterialSearch.h"
 
-registerMooseAction("CardinalApp", AddFieldTransferAction, "add_field_transfers");
-
-InputParameters
-AddFieldTransferAction::validParams()
+/**
+ * Perform a criticality search based on a material total density
+ */
+class OpenMCMaterialDensity : public OpenMCMaterialSearch
 {
-  auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a field transfer (mesh-based data) for coupling to NekRS");
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-AddFieldTransferAction::AddFieldTransferAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters)
-{
-}
+  OpenMCMaterialDensity(const InputParameters & parameters);
 
-void
-AddFieldTransferAction::act()
-{
-  if (_current_task == "add_field_transfers")
+  virtual void updateOpenMCModel(const Real & input) override;
+
+protected:
+  virtual std::string quantity() const override
   {
-    auto nek_problem = dynamic_cast<NekRSProblem *>(_problem.get());
-
-    if (!nek_problem)
-      mooseError("The [FieldTransfers] block can only be used with wrapped Nek cases! "
-                 "You need to change the [Problem] block to 'NekRSProblem'.");
-
-    _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-    nek_problem->addObject<FieldTransferBase>(_type, _name, _moose_object_pars, false)[0];
+    return "material " + std::to_string(_material_id) + " density";
   }
-}
-#endif
+
+  virtual std::string units() const override { return "[kg/m3]"; }
+};
