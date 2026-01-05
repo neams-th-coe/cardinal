@@ -40,18 +40,6 @@ public:
 
 protected:
   /**
-   * A function which computes the mean value of k_{eff}.
-   * @return the mean value of the k-eigenvalue
-   */
-  Real kMean() const;
-
-  /**
-   * A function which computes the standard deviation of k_{eff}.
-   * @return the standard deviation of the k-eigenvalue
-   */
-  Real KStandardDeviation() const;
-
-  /**
    * A function which computes the relative error of k_{eff}.
    * @return the relative error of the k-eigenvalue
    */

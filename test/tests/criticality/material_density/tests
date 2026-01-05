@@ -1,0 +1,59 @@
+[Tests]
+  design = 'AddCriticalitySearchAction.md'
+  issues = '#1158'
+  [wrong_problem]
+    type = RunException
+    input = wrong_problem.i
+    expect_err = "The \[CriticalitySearch\] block can only be used with wrapped OpenMC cases! You need to change the \[Problem\] block to 'OpenMCCellAverageProblem'."
+    requirement = 'The system shall error if a criticality search is not paired with the correct problem class.'
+    capabilities = 'openmc'
+  []
+  [min_max]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=1.0 Problem/CriticalitySearch/maximum=-2.0'
+    expect_err = "The 'minimum' value \(1.000000\) must be less than the 'maximum' value \(-2.000000\)."
+    requirement = 'The system shall error if invalid values are provided for the range of values to consider for the criticality search.'
+    capabilities = 'openmc'
+  []
+  [too_tight_tolerance]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/tolerance=1e-6 --error'
+    expect_err = "The 'tolerance' for the criticality search \(0.000001\) is smaller than 3-sigma standard deviation in k"
+    requirement = 'The system shall warn if the selected tolerance might cause failure to converge due to high statistical noise.'
+    capabilities = 'openmc'
+  []
+  [fail_converge]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/tolerance=1e-6'
+    expect_err = "Failed to converge criticality search!"
+    requirement = 'The system shall error if the criticality search does not converge.'
+    capabilities = 'openmc'
+  []
+  [search]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall conduct a criticality search based on material density. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
+    capabilities = 'openmc'
+  []
+  [search_with_target]
+    type = CSVDiff
+    input = target.i
+    csvdiff = target_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall conduct a criticality search with a non-unity target k. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
+    capabilities = 'openmc'
+  []
+  [negative_min]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=-1'
+    expect_err = "The 'minimum' density \(-1.000000\) must be positive!"
+    requirement = 'The system shall error if an invalid minimum density is provided.'
+    capabilities = 'openmc'
+  []
+[]

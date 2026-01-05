@@ -64,7 +64,7 @@ LambdaEffective::getValue() const
   const auto den_ss =
       xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
-  const auto mean_k = kMean();
+  const auto mean_k = kMean(_type);
   const auto k_rel = kRelativeError();
 
   const Real lambda_eff = (num_sum[0] / n) / (den_sum[0] / n) / mean_k;

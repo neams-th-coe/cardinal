@@ -186,6 +186,8 @@ OPENMC_INCLUDES := -I$(OPENMC_INSTALL_DIR)/include
 OPENMC_LIBDIR := $(OPENMC_INSTALL_DIR)/lib
 OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
+ADDITIONAL_INCLUDES += -I$(CONTRIB_DIR)/nuclear_data
+
 # This is used in $(FRAMEWORK_DIR)/build.mk
 HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
 

@@ -40,3 +40,6 @@
 [submodule "contrib/embree"]
 	path = contrib/embree
 	url = https://github.com/RenderKit/embree.git
+[submodule "contrib/nuclear_data"]
+	path = contrib/nuclear_data
+	url = https://github.com/OTU-Centre-for-SMRs/nuclear_data.git

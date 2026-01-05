@@ -16,40 +16,39 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#ifdef ENABLE_OPENMC_COUPLING
 
-#include "AddFieldTransferAction.h"
-#include "NekRSProblem.h"
-#include "FieldTransferBase.h"
+#include "AddCriticalitySearchAction.h"
+#include "OpenMCCellAverageProblem.h"
+#include "CriticalitySearchBase.h"
 
-registerMooseAction("CardinalApp", AddFieldTransferAction, "add_field_transfers");
+registerMooseAction("CardinalApp", AddCriticalitySearchAction, "add_criticality_search");
 
 InputParameters
-AddFieldTransferAction::validParams()
+AddCriticalitySearchAction::validParams()
 {
   auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a field transfer (mesh-based data) for coupling to NekRS");
+  params.addClassDescription("Adds a criticality search for OpenMC");
   return params;
 }
 
-AddFieldTransferAction::AddFieldTransferAction(const InputParameters & parameters)
+AddCriticalitySearchAction::AddCriticalitySearchAction(const InputParameters & parameters)
   : MooseObjectAction(parameters)
 {
 }
 
 void
-AddFieldTransferAction::act()
+AddCriticalitySearchAction::act()
 {
-  if (_current_task == "add_field_transfers")
+  if (_current_task == "add_criticality_search")
   {
-    auto nek_problem = dynamic_cast<NekRSProblem *>(_problem.get());
+    auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
 
-    if (!nek_problem)
-      mooseError("The [FieldTransfers] block can only be used with wrapped Nek cases! "
-                 "You need to change the [Problem] block to 'NekRSProblem'.");
+    if (!openmc_problem)
+      mooseError("The [CriticalitySearch] block can only be used with wrapped OpenMC cases! "
+                 "You need to change the [Problem] block to 'OpenMCCellAverageProblem'.");
 
-    _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
-    nek_problem->addObject<FieldTransferBase>(_type, _name, _moose_object_pars, false)[0];
+    openmc_problem->addObject<CriticalitySearchBase>(_type, _name, _moose_object_pars, false)[0];
   }
 }
 #endif
