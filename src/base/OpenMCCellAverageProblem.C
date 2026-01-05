@@ -194,7 +194,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _export_properties(getParam<bool>("export_properties")),
     _using_skinner(isParamValid("skinner")),
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
-    _relaxation_factor(getParam<Real>("relaxation_factor")),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
@@ -2476,40 +2475,6 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
 }
 
 void
-OpenMCCellAverageProblem::relaxAndNormalizeTally(unsigned int local_score,
-                                                 std::shared_ptr<TallyBase> local_tally)
-{
-  Real alpha;
-  switch (_relaxation)
-  {
-    case relaxation::none:
-    {
-      alpha = 1.0;
-      break;
-    }
-    case relaxation::constant:
-    {
-      alpha = _relaxation_factor;
-      break;
-    }
-    case relaxation::robbins_monro:
-    {
-      alpha = 1.0 / (_fixed_point_iteration + 1);
-      break;
-    }
-    case relaxation::dufek_gudowski:
-    {
-      alpha = float(nParticles()) / float(_total_n_particles);
-      break;
-    }
-    default:
-      mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
-  }
-
-  local_tally->relaxAndNormalizeTally(local_score, alpha);
-}
-
-void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
   int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 +
@@ -2618,7 +2583,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       _console << "Extracting OpenMC tallies..." << std::endl;
 
-      if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
+      if (_local_tallies.size() == 0)
         break;
 
       // Loop over all of the tallies and calculate their sums and averages.
@@ -2637,10 +2602,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // results.
       for (unsigned int i = 0; i < _local_tallies.size(); ++i)
       {
+        _local_tallies[i]->relaxAndNormalizeTally();
+
         for (unsigned int score = 0; score < _local_tallies[i]->getScores().size(); ++score)
         {
-          relaxAndNormalizeTally(score, _local_tallies[i]);
-
           // Store the tally results.
           _local_tallies[i]->storeResults(_tally_var_ids[i], score, "relaxed");
 
@@ -2822,6 +2787,9 @@ OpenMCCellAverageProblem::addTally(const std::string & type,
 {
   auto tally = addObject<TallyBase>(type, name, moose_object_pars, false)[0];
   _local_tallies.push_back(tally);
+
+  // Set the relaxation scheme.
+  tally->setRelaxation(_relaxation, getParam<Real>("relaxation_factor"));
 
   const auto & tally_scores = tally->getScores();
   for (unsigned int i = 0; i < tally_scores.size(); ++i)
