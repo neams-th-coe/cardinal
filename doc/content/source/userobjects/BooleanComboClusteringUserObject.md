@@ -4,7 +4,7 @@
 
 `BooleanComboClusteringUserObject` implements the overall mesh walking and clustering
 process. It takes an expression as a logical function of different heuristic
-based user objects. It evalutes the expression between two adjacent elements which shares at least 
+based user objects. It evalutes the expression between two adjacent elements which share at least 
 one common side. 
 
 If the expression is true for those two elements then the `extra_integer` 

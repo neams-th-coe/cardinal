@@ -28,7 +28,7 @@ public:
 protected:
   /**
    * Get the metric data from the auxiliary system for an element.
-   * @param[in] element
+   * @param[in] elem
    * @return value of the _metric_variable
    */
   Real getMetricData(const libMesh::Elem * elem) const;

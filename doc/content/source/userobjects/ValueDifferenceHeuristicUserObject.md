@@ -3,7 +3,7 @@
 ## Description
 
 `ValueDifferenceHeuristicUserObject` implements the clustering heuristic if the relative
-difference of the variable between two adjacent elements are less than a tolerance limit.
+difference of the variable between two adjacent elements is less than a tolerance limit.
 
 ## Example Input File
 

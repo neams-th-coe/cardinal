@@ -14,7 +14,7 @@ It will throw an error. This ensures existing mesh annotations are preserved.
 
 ## Example Input File
 
-This example reads a mesh (in this case generated_mesh) created by a [GeneratedMeshGenerator](GeneratedMeshGenerator.md),
+This example reads a mesh (in this case `generated_mesh`) created by a [GeneratedMeshGenerator](GeneratedMeshGenerator.md),
 then the `ParsedElementIDMeshGenerator` adds one [!ac](EEIID) `threshold_heuristic` to the mesh.
 The value of [!ac](EEIID) `threshold_heuristic` will be `-1` throughout the whole mesh.
 
