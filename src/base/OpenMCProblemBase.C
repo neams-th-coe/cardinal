@@ -214,8 +214,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamValid("particles"))
     _particles = &getPostprocessorValue("particles");
-  else
-    checkRequiredParam(params, "particles", "Using input number of particles");
 
   if (isParamValid("batches"))
   {
