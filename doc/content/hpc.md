@@ -300,12 +300,6 @@ export MOOSE_DIR=$CARDINAL_DIR/contrib/moose
 export PYTHONPATH=$MOOSE_DIR/python:${PYTHONPATH}
 !listing-end!
 
-When building the PETSc dependency using the script, you'll also need to pass an additional flag to ensure that GNU BISON is downloaded during the build process.
-
-```
-./contrib/moose/scripts/update_and_rebuild_petsc.sh --download-bison
-```
-
 ## Sawtooth
 
 Last updated on 02/04/2025
