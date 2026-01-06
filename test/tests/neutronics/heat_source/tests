@@ -39,8 +39,8 @@
     type = RunException
     input = zero_particles_from_postprocessor.i
     expect_err = "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
-               "your postprocessor and check that the postprocessor value itself is not less than zero."
-    requirement = "The system shall be capable of block restricting CellTally variables."
+               "your postprocessor and check that the postprocessor value itself is not less than or equal to zero."
+    requirement = "The system shall error if the user specifies an invalid number of particles."
     capabilities = 'openmc'
   []
   [n_particles_from_postprocessor]

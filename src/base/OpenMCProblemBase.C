@@ -286,7 +286,7 @@ OpenMCProblemBase::nParticles() const
   {
     mooseError(
         "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
-        "your postprocessor and check that the postprocessor value itself is not less than zero.");
+        "your postprocessor and check that the postprocessor value itself is not less than or equal to zero.");
   }
 
   return *_particles;
