@@ -28,7 +28,7 @@ BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(
   {
     mooseWarning(_id_name,
                  " extra element integer is missing in the mesh."
-                 "So adding extra element integer ",
+                 "Adding extra element integer ",
                  _id_name);
     _mesh.add_elem_integer(_id_name);
   }

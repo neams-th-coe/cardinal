@@ -8,7 +8,7 @@ elements are both within a range. The range is calculated as
 $$S_{\text{lower}} = (1 - \text{tolerance_percentage}) \times \text{value} $$
 $$S_{\text{upper}} = (1 + \text{tolerance_percentage}) \times \text{value} $$
 
-where `value` and `tolerance_percentage`  are user provided inputs.
+where `value` and `tolerance_percentage`  are user-provided inputs.
 
 ## Example Input File
 

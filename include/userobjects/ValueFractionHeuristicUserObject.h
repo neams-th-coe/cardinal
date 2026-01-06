@@ -42,6 +42,7 @@ protected:
 
   /// upper cut off of the metric value
   Real _upper_cut_off;
+
   /// upper cut off of the metric value
   Real _lower_cut_off;
 };

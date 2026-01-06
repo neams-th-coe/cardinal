@@ -9,8 +9,8 @@ The upper and lower cutoff values are calculated as,
 upper_cut_off $= (1 -$ upper_fraction $)$ $ \times (S_{max} - S_{min}) + S_{min}$ $
 lower_cut_off $= $ lower_fraction $ \times (S_{max} - S_{min}) + S_{min}$
 
-where `upper_fraction` and `lower_fraction` are user defined input parameters and $S_{max}$ and
-$S_{min}$ are maximum and minimum value of the `metric_variable`
+where `upper_fraction` and `lower_fraction` are user-defined input parameters and $S_{max}$ and
+$S_{min}$ are maximum and minimum value of the `metric_variable`.
 
 ## Example Input File
 

@@ -23,7 +23,7 @@ ParsedElementIDMeshGenerator::validParams()
       "'extra_element_integer_names', "
       "with each value assigned to the respective extra element integer.");
 
-  params.addClassDescription("A MeshGenerator Object which just adds "
+  params.addClassDescription("Adds "
                              "extra element integers to the whole mesh.");
   return params;
 }

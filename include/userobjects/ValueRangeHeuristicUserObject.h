@@ -37,9 +37,9 @@ protected:
 
 private:
   /**
-   * Method for determining  if the score is with the range (_lower_limit, _upper_limit)
+   * Method for determining  if the score is within the range (_lower_limit, _upper_limit)
    * @param[in] element a libmesh element
-   * @return decides if the variable value is with in a range
+   * @return decides if the variable value is within a range
    */
   bool isInsideTheRange(libMesh::Elem * element) const;
 };
