@@ -18,6 +18,7 @@
     id_name = 'pin_id'
   []
   [delete]
+    # Only keeping block 1 (fuel pins) for this test
     type = BlockDeletionGenerator
     input = assembly
     block = 2
@@ -43,6 +44,8 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
+  # Updating cell_level to 2 to account for the nested
+  # universes. Refer to OpenMCCellAverageProblem docs for more details.
   cell_level = 2
   verbose = true
   power = 100
