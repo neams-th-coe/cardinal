@@ -106,8 +106,7 @@ OpenMCCellTransform::execute()
     }
     else if (_transform_type == "rotation")
     {
-      if (vec[0] < 0 || vec[0] >= 360 || vec[1] < 0 || vec[1] >= 360 || vec[2] < 0 ||
-          vec[2] >= 360)
+      if (vec[0] < 0 || vec[0] >= 360 || vec[1] < 0 || vec[1] >= 360 || vec[2] < 0 || vec[2] >= 360)
         mooseError("Rotation angles must be in the range [0, 360) degrees.");
       // If a user tried to apply rotation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
