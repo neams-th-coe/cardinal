@@ -279,15 +279,10 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 int
 OpenMCProblemBase::nParticles() const
 {
-  if (!isParamValid("particles"))
-    return openmc::settings::n_particles;
-
   if (*_particles <= 0.0)
-  {
-    mooseError(
-        "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
-        "your postprocessor and check that the postprocessor value itself is not less than or equal to zero.");
-  }
+    mooseError("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
+               "your postprocessor and check that the postprocessor value itself is not less than "
+               "or equal to zero.");
 
   return *_particles;
 }
@@ -401,7 +396,7 @@ OpenMCProblemBase::externalSolve()
       mooseError(openmc_err_msg);
   }
 
-  _total_n_particles += nParticles();
+  _total_n_particles += openmc::settings::n_particles;
 
   err = openmc_reset_timers();
   if (err)
