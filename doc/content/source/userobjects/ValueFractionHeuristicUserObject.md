@@ -6,8 +6,13 @@
 elements are both more/less than an upper/lower cutoff of the metric variable.
 The upper and lower cutoff values are calculated as,
 
-upper_cut_off $= (1 -$ upper_fraction $)$ $ \times (S_{max} - S_{min}) + S_{min}$ $
-lower_cut_off $= $ lower_fraction $ \times (S_{max} - S_{min}) + S_{min}$
+\begin{equation} 
+    \text{upper\_cut\_off} = (1 - \text{upper\_fraction}) \times (S_{\max} - S_{\min}) + S_{\min}
+\end{equation}
+
+\begin{equation}
+    \text{lower\_cut\_off} = \text{lower\_fraction} \times (S_{\max} - S_{\min}) + S_{\min}
+\end{equation}
 
 where `upper_fraction` and `lower_fraction` are user-defined input parameters and $S_{max}$ and
 $S_{min}$ are maximum and minimum value of the `metric_variable`.

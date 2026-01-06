@@ -28,7 +28,7 @@ BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(
   {
     mooseWarning(_id_name,
                  " extra element integer is missing in the mesh."
-                 "Adding extra element integer ",
+                 " Adding extra element integer ",
                  _id_name);
     _mesh.add_elem_integer(_id_name);
   }
@@ -48,7 +48,7 @@ BooleanComboClusteringUserObject::initializeUserObjects()
   for (const auto & token : _output_stack)
   {
     if (_precedence.count(token))
-      // seperate the user object names. If true that means name is an operator
+      // separate the user object names. If true that means name is an operator
       continue;
     const auto & uo = getUserObjectByName<ClusteringHeuristicUserObjectBase>(token);
     _clustering_user_objects.insert(std::make_pair(token, &uo));

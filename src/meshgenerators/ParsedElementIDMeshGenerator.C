@@ -36,6 +36,10 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
     _eeiid_values(isParamValid("values") ? getParam<std::vector<int>>("values")
                                          : std::vector<int>(_extra_element_id_names.size(), -1))
 {
+  if (_eeiid_values.empty() || _extra_element_id_names.empty())
+    mooseError("Both 'extra_element_integer_names' and 'values' cannot be empty. "
+               "Please provide at least one param for each.");
+
   // check if value for every extra element integer is provided
   if (_eeiid_values.size() != _extra_element_id_names.size())
     paramError("values",
@@ -54,13 +58,16 @@ ParsedElementIDMeshGenerator::generate()
   {
     // check if the extra element integer already exists in the mesh and only add the
     // element integer if it doesn't.
-    // If it exits already then throw a mooseError.
+    // If it exits already then throw a mooseWarning.
     if (!mesh->has_elem_integer(_extra_element_id_names[i]))
       mesh->add_elem_integer(_extra_element_id_names[i], _eeiid_values[i]);
     else
-      mooseError("The element integer id named ",
-                 _extra_element_id_names[i],
-                 " already exists in the mesh.");
+      mooseWarning("The element integer id named ",
+                   _extra_element_id_names[i],
+                   " already exists in the mesh. The existing values will be retained,"
+                   " and the provided value for ",
+                   _extra_element_id_names[i],
+                   " will be ignored.");
   }
 
   return mesh;

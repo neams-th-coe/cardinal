@@ -5,8 +5,13 @@
 `ValueRangeHeuristicUserObject` implements the clustering heuristic if the scores of two adjacent
 elements are both within a range. The range is calculated as
 
-$$S_{\text{lower}} = (1 - \text{tolerance_percentage}) \times \text{value} $$
-$$S_{\text{upper}} = (1 + \text{tolerance_percentage}) \times \text{value} $$
+\being{equation}
+S_{\text{lower}} = (1 - \text{tolerance_percentage}) \times \text{value} 
+\end{equation}
+
+\begin{equation}
+S_{\text{upper}} = (1 + \text{tolerance_percentage}) \times \text{value}
+\end{equation}
 
 where `value` and `tolerance_percentage`  are user-provided inputs.
 

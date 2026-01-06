@@ -39,17 +39,20 @@ private:
    * Method for evaluating if element should be clustered or not
    * @param[in] base_element
    * @param[in] neighbor_elem neighboring element of the base element
-   * @return decides if these two element belongs to a cluster or not
+   * @return if these two element belong to a cluster or not
    */
   bool belongsToCluster(libMesh::Elem * base_element, libMesh::Elem * neighbor_elem);
 
   /// this method implements the mesh walking process
   void findCluster();
 
-  /// sets the extra element integer to -1 for every active element
+  /// sets the extra element integer to NOT_VISITED for every active element
   void resetExtraInteger();
 
-  /// sets the ref to heuristic based user objects from the expression
+  /**
+   * Initializes the local cache of clustering user objects from the boolean
+   * logic operation expression from the input file
+   */
   void initializeUserObjects();
 
   /// extra element integer id name

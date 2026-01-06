@@ -40,16 +40,16 @@ protected:
   const AuxVariableName _metric_variable_name;
 
   /// Metric variable
-  MooseVariableBase & _metric_variable;
+  const MooseVariableBase & _metric_variable;
 
   /// AuxiliarySystem reference
   AuxiliarySystem & _auxiliary_system;
 
   /// DOF map
-  libMesh::DofMap & _dof_map;
+  const libMesh::DofMap & _dof_map;
 
   /// Metric variable index
-  unsigned int _metric_variable_index;
+  const unsigned int _metric_variable_index;
 
   /// Whether the global metric data has been gathered
   bool _data_gathered;
