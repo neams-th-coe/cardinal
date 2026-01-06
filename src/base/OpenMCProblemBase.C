@@ -281,9 +281,7 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 int
 OpenMCProblemBase::nParticles() const
 {
-  const double r = std::round(*_particles);
-  _console << " *_particles is " << *_particles << " and r is " << r << std::endl;
-  if (firstSolve())
+  if (!isParamValid("particles"))
     return openmc::settings::n_particles;
 
   if (*_particles <= 0.0)
@@ -374,8 +372,6 @@ OpenMCProblemBase::externalSolve()
     _console << " Skipping running OpenMC as the mesh has not changed!" << std::endl;
     return;
   }
-  openmc::settings::n_particles = nParticles();
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   _console << " Running OpenMC with " << openmc::settings::n_particles << " particles per batch..."
            << std::endl;
@@ -423,7 +419,8 @@ OpenMCProblemBase::externalSolve()
 void
 OpenMCProblemBase::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  CardinalProblem::initialSetup();
+
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
   {
