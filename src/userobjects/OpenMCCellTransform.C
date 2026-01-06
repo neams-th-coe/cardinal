@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellTransform.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", OpenMCCellTransform);
 
@@ -90,10 +91,9 @@ OpenMCCellTransform::execute()
     int32_t index = -1;
 
     int err = openmc_get_cell_index(cell_id, &index);
-    _openmc_problem->catchOpenMCError(err,
-                                      "In attempting to find OpenMC cell with ID " +
-                                          std::to_string(cell_id) + ", OpenMC reported:\n\n" +
-                                          std::string(openmc_err_msg));
+    catchOpenMCError(err,
+                     "In attempting to find OpenMC cell with ID " + std::to_string(cell_id) +
+                         ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
     if (_transform_type == "translation")
     {
@@ -118,10 +118,10 @@ OpenMCCellTransform::execute()
     else
       mooseError("Unhandled transform_type: " + _transform_type);
 
-    _openmc_problem->catchOpenMCError(
-        err,
-        "In attempting to transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id) +
-            ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    catchOpenMCError(err,
+                     "In attempting to transform OpenMC cell OpenMC cell with ID " +
+                         std::to_string(cell_id) + ", OpenMC reported:\n\n" +
+                         std::string(openmc_err_msg));
   }
 }
 
