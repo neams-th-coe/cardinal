@@ -244,6 +244,9 @@ public:
    */
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
 
+  /// Number of particles that OpenMC will run in each batch
+  const Real * _particles;
+
   /**
    * Get the number of particles used in the current Monte Carlo calculation
    * @return number of particles
