@@ -9,7 +9,8 @@ ValueFractionHeuristicUserObject::validParams()
   InputParameters param = ClusteringHeuristicUserObjectBase::validParams();
   param.addRequiredParam<Real>("upper_fraction", "upper percentage of error for the heuristics");
   param.addRequiredParam<Real>("lower_fraction", "lower percentage of error for the heuristics");
-  param.addClassDescription(" mimics the error fraction marker in moose");
+  param.addClassDescription("Clusters elements whose variable values both fall within either a"
+                            "specified upper or lower fraction of the extremes.");
 
   return param;
 }

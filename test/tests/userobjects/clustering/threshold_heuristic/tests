@@ -5,7 +5,9 @@
     type = Exodiff
     input = example_input.i
     exodiff = example_input_out.e
-    requirement = "cluster_id_aux needs to be the same"
+    requirement = "The system shall reproduce the clustering pattern by evaluating a
+                   boolean expression which combines multiple threshold-based heuristics and
+                   operates on element pairs."
     mesh_mode = 'replicated'
   []
 []

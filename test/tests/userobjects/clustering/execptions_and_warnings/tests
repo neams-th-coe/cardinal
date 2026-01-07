@@ -22,6 +22,6 @@
         type=RunException
         input=constant_monomial.i
         expect_err="metric_var must be of type CONSTANT MONOMIAL"
-        requirement="For clustering, all the metric variable must be constant monomial."
+        requirement="For clustering, all the 'metric_variable' must be constant monomial."
     []
 []

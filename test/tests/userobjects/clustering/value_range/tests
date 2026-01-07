@@ -5,7 +5,9 @@
     type = Exodiff
     input = example.i
     exodiff = example_out.e
-    requirement = "cluster_id_aux needs to be the same"
+    requirement = "The system shall be able to cluster elements by identifying element pairs whose metric values
+                   both fall within a range defined by a user-specified percentage above and below given
+                   reference values, with multiple ranges combined through a boolean expression."
     mesh_mode = 'replicated'
   []
 []

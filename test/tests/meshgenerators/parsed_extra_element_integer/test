@@ -6,7 +6,7 @@
         input = empty_extra_element_integer_names_and_values.i
         cli_args="--mesh-only"
         expect_err="Both 'extra_element_integer_names' and 'values' cannot be empty. Please provide at least one param for each."
-        requirement="Number of entries in values needs to be equal to the number of extra_element_integer_names"
+        requirement="Number of entries in 'values' and 'extra_element_integer_names' must be nonzero"
     []
     [more_names_less_value]
         type = RunException
