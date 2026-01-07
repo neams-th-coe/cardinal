@@ -28,7 +28,8 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
 {
   // check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
   if (_metric_variable.feType() != FEType(CONSTANT, MONOMIAL))
-    mooseError("Variable must be of type CONSTANT MONOMIAL");
+    paramError("metric_variable_name",
+               _metric_variable_name + " must be of type CONSTANT MONOMIAL");
   // check if mesh is replicated. If not then throw a moose error.
   if (!_mesh.is_replicated())
     mooseError("Mesh must be replicated");
