@@ -1029,7 +1029,7 @@ protected:
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
 
-  /// Number of particles simulated in the first iteration
+  /// Number of particles simulated in the first iteration in Dufek-Gudowski relaxation
   unsigned int _n_particles_1;
 
   /// Mapping from temperature variable name to the subdomains on which to read it from
