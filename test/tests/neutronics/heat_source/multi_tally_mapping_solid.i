@@ -64,8 +64,8 @@
     block = '100'
   []
   [solid_heating]
-    type = ElementIntegralVariablePostprocessor
-    variable = heating
+    type = ADElementIntegralFunctorPostprocessor
+    functor = heating
     block = '100'
   []
 []
