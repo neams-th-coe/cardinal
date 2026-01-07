@@ -2268,7 +2268,15 @@ OpenMCCellAverageProblem::externalSolve()
   else
   {
     if (isParamValid("particles"))
-      openmc::settings::n_particles = OpenMCProblemBase::nParticles();
+    {
+      if (*_particles <= 0.0)
+        mooseError(
+            "'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
+            "your postprocessor and check that the postprocessor value itself is not less than "
+            "or equal to zero.");
+      int64_t n = std::llround(*_particles);
+      openmc::settings::n_particles = n;
+    }
   }
 
   OpenMCProblemBase::externalSolve();

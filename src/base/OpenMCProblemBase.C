@@ -279,12 +279,7 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 int
 OpenMCProblemBase::nParticles() const
 {
-  if (*_particles <= 0.0)
-    mooseError("'particles' must be a positive integer. Try `execute_on = 'timestep_begin'` in "
-               "your postprocessor and check that the postprocessor value itself is not less than "
-               "or equal to zero.");
-
-  return *_particles;
+  return openmc::settings::n_particles;
 }
 
 std::string
@@ -366,8 +361,7 @@ OpenMCProblemBase::externalSolve()
     return;
   }
 
-  _console << " Running OpenMC with " << openmc::settings::n_particles << " particles per batch..."
-           << std::endl;
+  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
   // apply a new starting fission source
   if (_reuse_source && !firstSolve())
@@ -396,7 +390,7 @@ OpenMCProblemBase::externalSolve()
       mooseError(openmc_err_msg);
   }
 
-  _total_n_particles += openmc::settings::n_particles;
+  _total_n_particles += nParticles();
 
   err = openmc_reset_timers();
   if (err)
