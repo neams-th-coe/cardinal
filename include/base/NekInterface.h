@@ -26,7 +26,6 @@
 #include "inipp.hpp"
 #include "nekrs.hpp"
 #include "nrs.hpp"
-//#include "bcMap.hpp"
 #include "udf.hpp"
 #include "inipp.hpp"
 #include "mesh.h"
@@ -54,6 +53,12 @@ void initializeHostMeshParameters();
 /// Update the mesh parameters on host
 void updateHostMeshParameters();
 
+dfloat * host_x();
+dfloat *
+host_y();
+dfloat *
+host_z();
+
 nrs_t * nrsPtr();
 
 dfloat * getSgeo();
@@ -66,6 +71,8 @@ dfloat * getVgeo();
  */
 void checkFieldValidity(const field::NekFieldEnum & field);
 void checkFieldValidity(const field::NekWriteEnum & field);
+
+void copyDeviceToHost();
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -938,10 +945,7 @@ void
 initializeNekHostArrays();
 
 //Accessors for NekRS host arrays
-std::vector<dfloat>& host_x();
-std::vector<dfloat>& host_y();
-std::vector<dfloat>& host_z();
-std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> host_xyz();
+std::tuple<dfloat *, dfloat *, dfloat *> host_xyz();
 std::vector<dfloat>& host_U();
 std::vector<dfloat>& host_P();
 std::vector<dfloat>& host_S();

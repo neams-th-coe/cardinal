@@ -123,9 +123,9 @@ NekRSMesh::saveInitialVolMesh()
 
   auto [x, y, z] = nekrs::host_xyz();
 
-  memcpy(_initial_x.data(), x.data(), ngllpts * sizeof(double));
-  memcpy(_initial_y.data(), y.data(), ngllpts * sizeof(double));
-  memcpy(_initial_z.data(), z.data(), ngllpts * sizeof(double));
+  memcpy(_initial_x.data(), nekrs::host_x(), ngllpts * sizeof(double));
+  memcpy(_initial_y.data(), nekrs::host_y(), ngllpts * sizeof(double));
+  memcpy(_initial_z.data(), nekrs::host_z(), ngllpts * sizeof(double));
 }
 
 void

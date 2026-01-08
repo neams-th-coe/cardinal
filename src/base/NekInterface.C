@@ -22,27 +22,22 @@
 #include "CardinalUtils.h"
 
 static nekrs::characteristicScales scales;
-static dfloat * sgeo;
-static dfloat * vgeo;
 static unsigned int n_usrwrk_slots;
 static bool is_nondimensional;
 
-namespace { //private namespace
-/**
- * Host arrays for essential NekRS fields
- */
-std::vector<dfloat> x;
-std::vector<dfloat> y;
-std::vector<dfloat> z;
-std::vector<dfloat> U;
-std::vector<dfloat> P;
-std::vector<dfloat> S;
+/// Host arrays for essential NekRS fields
+static dfloat * sgeo;
+static dfloat * vgeo;
+static dfloat * x;
+static dfloat * y;
+static dfloat * z;
+static std::vector<dfloat> U;
+static std::vector<dfloat> P;
+static std::vector<dfloat> S;
 
 dfloat *usrwrk = nullptr;
 
-nrs_t* nrs;
-
-} //end private namespace
+nrs_t * nrs;
 
 namespace nekrs
 {
@@ -312,7 +307,9 @@ initializeScratch(const unsigned int & n_slots)
 void
 freeScratch()
 {
-
+  freePointer(x);
+  freePointer(y);
+  freePointer(z);
   freePointer(usrwrk);
 }
 
@@ -542,13 +539,22 @@ limitTemperature(const double * min_T, const double * max_T)
 }
 
 void
+copyDeviceToHost()
+{
+  mesh_t * mesh = entireMesh();
+  mesh->o_x.copyTo(x);
+  mesh->o_y.copyTo(y);
+  mesh->o_z.copyTo(z);
+}
+
+void
 copyDeformationToDevice()
 {
   mesh_t * mesh = entireMesh();
 
-  mesh->o_x.copyFrom(x.data());
-  mesh->o_y.copyFrom(y.data());
-  mesh->o_z.copyFrom(z.data());
+  mesh->o_x.copyFrom(x);
+  mesh->o_y.copyFrom(y);
+  mesh->o_z.copyFrom(z);
   mesh->update();
 
   updateHostMeshParameters();
@@ -560,6 +566,9 @@ initializeHostMeshParameters()
   mesh_t * mesh = entireMesh();
   sgeo = (dfloat *)calloc(mesh->o_sgeo.size(), sizeof(dfloat));
   vgeo = (dfloat *)calloc(mesh->o_vgeo.size(), sizeof(dfloat));
+  x = (dfloat *)calloc(mesh->o_x.size(), sizeof(dfloat));
+  y = (dfloat *)calloc(mesh->o_y.size(), sizeof(dfloat));
+  z = (dfloat *)calloc(mesh->o_z.size(), sizeof(dfloat));
 }
 
 void
@@ -1794,32 +1803,20 @@ initializeNekHostArrays()
 
   mesh_t * mesh = entireMesh();
 
-  x.resize(mesh->Nlocal);
-  y.resize(mesh->Nlocal);
-  z.resize(mesh->Nlocal);
-
   U.resize(mesh->dim * nrs->fluid->fieldOffset);
   P.resize(mesh->Nlocal);
   S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); //offset is same for all scalars
 }
 
-// Accessors
-std::vector<dfloat>& 
-host_x() {
-  return x;
-}
+dfloat *
+host_x() { return x; }
+dfloat *
+host_y() { return y; }
+dfloat *
+host_z() { return z; }
 
-std::vector<dfloat>& 
-host_y() {
-  return y;
-}
-
-std::vector<dfloat>& 
-host_z() {
-  return z;
-}
-
-std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> 
+//std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> 
+std::tuple<dfloat *, dfloat *, dfloat *> 
 host_xyz() {
   return {x, y, z};
 }

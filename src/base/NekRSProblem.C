@@ -631,7 +631,8 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
       }
 
-      copyScratchToDevice();
+      // copy host-side arrays which were filled to the device
+      copyHostToDevice();
 
       break;
 
@@ -639,15 +640,22 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      // fetch data from device to host
+      nekrs::copyDeviceToHost();
+
       // execute all outgoing field transfers
       for (const auto & t : _field_transfers)
         if (t->direction() == "from_nek")
           t->readDataFromNek();
 
       // execute all outgoing scalar transfers
+      // TODO: is this the wrong trransfer?
       for (const auto & t : _scalar_transfers)
         if (t->direction() == "from_nek")
           t->sendDataToNek();
+
+      // copy device-side arrays onto the host where they can be accessed
+      nekrs::copyDeviceToHost();
 
       break;
     }
@@ -790,7 +798,7 @@ NekRSProblem::interpolateBoundarySolutionToNek(double * incoming_moose_value,
 }
 
 void
-NekRSProblem::copyScratchToDevice()
+NekRSProblem::copyHostToDevice()
 {
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
