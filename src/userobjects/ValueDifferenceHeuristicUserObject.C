@@ -8,9 +8,9 @@ ValueDifferenceHeuristicUserObject::validParams()
 
   InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
   params.addRequiredParam<Real>(
-      "tolerance", "Maximum allowed difference in scores for elements to be clustered");
+      "tolerance", "Maximum allowed difference in values for elements to be clustered");
   params.addClassDescription(
-      "Clusters elements whose relative score differences are less than the specified tolerance.");
+      "Clusters elements whose relative value differences are less than the specified tolerance.");
 
   return params;
 }

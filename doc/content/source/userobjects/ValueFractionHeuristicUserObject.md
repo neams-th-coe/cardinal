@@ -15,13 +15,13 @@ The upper and lower cutoff values are calculated as,
 \end{equation}
 
 where `upper_fraction` and `lower_fraction` are user-defined input parameters and $S_{max}$ and
-$S_{min}$ are maximum and minimum value of the `metric_variable`.
+$S_{min}$ are the maximum and minimum values of the `metric_variable`.
 
 ## Example Input File
 
 The following input block declares a `ValueFractionHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
-where the mesh walking and cluster process is implemented.
+where the mesh walking and clustering process is implemented.
 
 !listing /test/tests/userobjects/clustering/value_range/example.i
 block=UserObjects

@@ -13,7 +13,7 @@ ValueRangeHeuristicUserObject::validParams()
   params.addRequiredParam<Real>(
       "value", "The reference value to decide if an element is close enough to be clustered");
   params.addClassDescription(
-      "Clusters elements if their score is within the tolerance of the value provided.");
+      "Clusters elements if their value is within the tolerance of the value provided.");
 
   return params;
 }

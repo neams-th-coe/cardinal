@@ -13,7 +13,7 @@ ThresholdHeuristicUserObject::validParams()
                         true,
                         " Cluster elements if the value is more than the threshold");
   params.addClassDescription(
-      "Clusters elements whose scores are less/more than a specified threshold.");
+      "Clusters elements whose values are less/more than a specified threshold.");
 
   return params;
 }

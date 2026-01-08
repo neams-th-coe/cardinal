@@ -38,7 +38,7 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
 {
   if (_eeiid_values.empty() || _extra_element_id_names.empty())
     mooseError("Both 'extra_element_integer_names' and 'values' cannot be empty. "
-               "Please provide at least one param for each.");
+               "Please provide at least one entry for each.");
 
   // check if value for every extra element integer is provided
   if (_eeiid_values.size() != _extra_element_id_names.size())

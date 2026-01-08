@@ -11,7 +11,7 @@ input argument `cluster_if_above_threshold` is false.
 
 The following input block declares a `ThresholdHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
-where the mesh walking and cluster process is implemented.
+where the mesh walking and clustering process is implemented.
 
 !listing /test/tests/userobjects/clustering/threshold_heuristic/example_input.i
 block=UserObjects

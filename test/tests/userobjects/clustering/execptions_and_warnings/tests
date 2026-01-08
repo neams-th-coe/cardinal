@@ -7,21 +7,19 @@
         cli_args='--error'
         mesh_mode = "replicated"
         expect_err="boolean_combo extra element integer is missing in the mesh. Adding extra element integer boolean_combo"
-        requirement="User need to add the extra element integer to the mesh.
-                    System will throw a warning if the extra element integer is not found in mesh and
-                    it will add one with the same name."
+          requirement = "The system shall throw a warning if the extra element integer is not found in mesh."
     []
     [mesh_is_not_replicated]
         type=RunException
         input=mesh_is_not_replicated.i
         mesh_mode = "distributed"
         expect_err = "Mesh must be replicated"
-        requirement = "For clustering elements mesh must be replicated"
+        requirement = "The system shall error if a non-replicated mesh is used while clustering."
     []
     [element_needs_to_be_constant_monomial]
         type=RunException
         input=constant_monomial.i
         expect_err="metric_var must be of type CONSTANT MONOMIAL"
-        requirement="For clustering, all the 'metric_variable' must be constant monomial."
+        requirement="The system shall error if the 'metric_variable' is not constant monomial."
     []
 []

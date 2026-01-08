@@ -19,7 +19,7 @@ where `value` and `tolerance_percentage`  are user-provided inputs.
 
 The following input block declares a `ValueRangeHeuristicUserObject` which
 is then used by [BooleanComboClusteringUserObject](BooleanComboClusteringUserObject.md)
-where the mesh walking and cluster process is implemented.
+where the mesh walking and clustering process is implemented.
 
 !listing /test/tests/userobjects/clustering/value_range/example.i
 block=UserObjects

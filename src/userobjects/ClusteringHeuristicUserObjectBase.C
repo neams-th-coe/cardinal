@@ -49,5 +49,6 @@ ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) con
   std::vector<double> solution_value(1);
   _dof_map.dof_indices(elem, dof_indices, _metric_variable_index);
   _serialized_metric_solution.get(dof_indices, solution_value);
+  // We can return simply the first DOF index because we restrict this object to const monomial
   return solution_value[0];
 }
