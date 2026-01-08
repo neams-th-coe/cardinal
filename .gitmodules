@@ -3,7 +3,8 @@
 	url = https://github.com/openmc-dev/openmc.git
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
-	url = https://github.com/neams-th-coe/nekRS.git
+       url = https://github.com/Nek5000/nekRS.git
+       branch = next
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git

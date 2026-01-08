@@ -55,13 +55,15 @@ NekViscousSurfaceForce::getValue() const
 {
   if (_component == "total")
   {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
-    postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+    auto nrs = nekrs::nrsPtr();
+    //postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+    auto o_Sij = nrs->strainRate();
 
     occa::memory o_b = platform->device.malloc<int>(_boundary.size(), _boundary.data());
-    const auto drag = postProcessing::viscousDrag(nrs, _boundary.size(), o_b, o_Sij);
+    // TODO
+    //const auto drag = postProcessing::viscousDrag(nrs, _boundary.size(), o_b, o_Sij);
     o_Sij.free();
+    Real drag = 1;
     return drag;
   }
   else

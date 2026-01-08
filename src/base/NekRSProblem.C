@@ -254,7 +254,7 @@ NekRSProblem::writeFieldFile(const Real & step_end_time, const int & step) const
     nekrs::write_field_file(prefix, t, step);
   }
   else
-    nekrs::outfld(t, step);
+    nekrs::writeCheckpoint(t);
 }
 
 void
@@ -345,7 +345,7 @@ NekRSProblem::initialSetup()
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
   if (nekrs::hasMovingMesh() && !_disable_fld_file_output)
-    nekrs::outfld(_timestepper->nondimensionalDT(_time), _t_step);
+    nekrs::writeCheckpoint(_timestepper->nondimensionalDT(_time));
 
   VariadicTable<int, std::string, std::string, std::string> vt(
       {"Slot", "Data Written", "How to Access (.oudf)", "How to Access (.udf)"});
@@ -487,11 +487,11 @@ NekRSProblem::externalSolve()
   _is_output_step = isOutputStep();
 
   // tell NekRS what the value of nrs->isOutputStep should be
-  nekrs::outputStep(_is_output_step);
+  nekrs::checkpointStep(_is_output_step);
 
   // NekRS prints out verbose info for the first 1000 time steps
   if (_t_step <= 1000)
-    nekrs::verboseInfo(true);
+    platform->options.setArgs("VERBOSE","TRUE");
 
   // Tell NekRS what the time step size is
   nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
@@ -522,11 +522,12 @@ NekRSProblem::externalSolve()
   // time step, even if we're not technically passing data to another app, because we have
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
-  nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
+  auto nrs = nekrs::nrsPtr();
+  nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  if (nekrs::printInfoFreq())
-    if (_t_step % nekrs::printInfoFreq() == 0)
-      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
+  if (nekrs::printStepInfoFreq())
+    if (_t_step % nekrs::printStepInfoFreq() == 0)
+      nekrs::printStepInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
 
   if (_is_output_step)
   {
@@ -566,9 +567,9 @@ NekRSProblem::externalSolve()
   nekrs::updateTimer("elapsedStepSum", _elapsedStepSum);
   nekrs::updateTimer("elapsed", _elapsedTime);
 
-  if (nekrs::printInfoFreq())
-    if (_t_step % nekrs::printInfoFreq() == 0)
-      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, true, false);
+  if (nekrs::printStepInfoFreq())
+    if (_t_step % nekrs::printStepInfoFreq() == 0)
+      nekrs::printStepInfo(_timestepper->nondimensionalDT(_time), _t_step, true, false);
 
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq() == 0)
@@ -624,13 +625,14 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
 
-      if (udf.properties)
+      auto nrs = nekrs::nrsPtr();
+      if (nrs->userProperties)
       {
-        nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-        evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
+        nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
       }
 
-      copyScratchToDevice();
+      // copy host-side arrays which were filled to the device
+      copyHostToDevice();
 
       break;
 
@@ -638,15 +640,22 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      // fetch data from device to host
+      nekrs::copyDeviceToHost();
+
       // execute all outgoing field transfers
       for (const auto & t : _field_transfers)
         if (t->direction() == "from_nek")
           t->readDataFromNek();
 
       // execute all outgoing scalar transfers
+      // TODO: is this the wrong trransfer?
       for (const auto & t : _scalar_transfers)
         if (t->direction() == "from_nek")
           t->sendDataToNek();
+
+      // copy device-side arrays onto the host where they can be accessed
+      nekrs::copyDeviceToHost();
 
       break;
     }
@@ -740,7 +749,8 @@ NekRSProblem::isOutputStep() const
 
   // this routine does not check if we are on the last step - just whether we have
   // met the requested runtime or time step interval
-  return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
+
+  return nekrs::checkpointStep(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void
@@ -788,7 +798,7 @@ NekRSProblem::interpolateBoundarySolutionToNek(double * incoming_moose_value,
 }
 
 void
-NekRSProblem::copyScratchToDevice()
+NekRSProblem::copyHostToDevice()
 {
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
@@ -809,8 +819,8 @@ NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
   auto n = nekrs::fieldOffset();
   auto nbytes = n * sizeof(dfloat);
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-  nrs->o_usrwrk.copyFrom(nrs->usrwrk + slot * n, nbytes, slot * nbytes);
+  auto nrs = nekrs::nrsPtr();
+  platform->app->bc->o_usrwrk.copyFrom(nekrs::host_wrk() + slot * n, nbytes, slot * nbytes);
 }
 
 void
@@ -939,10 +949,12 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
                                       const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   auto vc = _nek_mesh->volumeCoupling();
   int id = vc.element[elem_id] * mesh->Np;
+
+  auto [x, y, z] = nekrs::host_xyz();
 
   if (_nek_mesh->exactMirror())
   {
@@ -952,11 +964,11 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
 
       if (f == field::x_displacement)
-        mesh->x[id + v] = s[v] + extra;
+        x[id + v] = s[v] + extra;
       else if (f == field::y_displacement)
-        mesh->y[id + v] = s[v] + extra;
+        y[id + v] = s[v] + extra;
       else if (f == field::z_displacement)
-        mesh->z[id + v] = s[v] + extra;
+        z[id + v] = s[v] + extra;
       else
         mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
     }
@@ -972,11 +984,11 @@ NekRSProblem::writeVolumeDisplacement(const int elem_id,
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
       if (f == field::x_displacement)
-        mesh->x[id + v] = s[v] + extra;
+        x[id + v] = s[v] + extra;
       else if (f == field::y_displacement)
-        mesh->y[id + v] = s[v] + extra;
+        y[id + v] = s[v] + extra;
       else if (f == field::z_displacement)
-        mesh->z[id + v] = s[v] + extra;
+        z[id + v] = s[v] + extra;
       else
         mooseError("Unhandled NekWriteEnum in writeVolumeDisplacement!");
     }
@@ -992,10 +1004,12 @@ NekRSProblem::writeVolumeSolution(const int slot,
                                   const std::vector<double> * add)
 {
   mesh_t * mesh = nekrs::entireMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   auto vc = _nek_mesh->volumeCoupling();
   int id = vc.element[elem_id] * mesh->Np;
+
+  auto usrwrk = nekrs::host_wrk();
 
   if (_nek_mesh->exactMirror())
   {
@@ -1003,7 +1017,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nrs->usrwrk[slot + id + v] = s[v] + extra;
+      usrwrk[slot + id + v] = s[v] + extra;
     }
   }
   else
@@ -1016,7 +1030,7 @@ NekRSProblem::writeVolumeSolution(const int slot,
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      nrs->usrwrk[slot + id + v] = tmp[v] + extra;
+      usrwrk[slot + id + v] = tmp[v] + extra;
     }
 
     freePointer(tmp);
@@ -1027,16 +1041,18 @@ void
 NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * s)
 {
   mesh_t * mesh = nekrs::temperatureMesh();
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  auto nrs = nekrs::nrsPtr();
 
   const auto & bc = _nek_mesh->boundaryCoupling();
   int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
+
+  auto usrwrk = nekrs::host_wrk();
 
   if (_nek_mesh->exactMirror())
   {
     // can write directly into the NekRS solution
     for (int i = 0; i < mesh->Nfp; ++i)
-      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
+      usrwrk[slot + mesh->vmapM[offset + i]] = s[i];
   }
   else
   {
@@ -1045,7 +1061,7 @@ NekRSProblem::writeBoundarySolution(const int slot, const int elem_id, double * 
     interpolateBoundarySolutionToNek(s, tmp);
 
     for (int i = 0; i < mesh->Nfp; ++i)
-      nrs->usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
+      usrwrk[slot + mesh->vmapM[offset + i]] = tmp[i];
 
     freePointer(tmp);
   }
