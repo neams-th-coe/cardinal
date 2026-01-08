@@ -1,6 +1,6 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = 0.1;
-  bc->v = 0.0;
-  bc->w = 0.0;
+  bc->uxFluid = 0.1;
+  bc->uyFluid = 0.0;
+  bc->uzFluid = 0.0;
 }
