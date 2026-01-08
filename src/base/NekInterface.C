@@ -546,7 +546,16 @@ limitTemperature(const double * min_T, const double * max_T)
 }
 
 void
-copyDeviceToHost()
+copySolutionToHost()
+{
+  mesh_t * mesh = entireMesh();
+  nrs->fluid->o_U.copyTo(U.data(),U.size());
+  nrs->fluid->o_P.copyTo(P.data(),P.size());
+  nrs->scalar->o_S.copyTo(S.data(),S.size());
+}
+
+void
+copyMeshToHost()
 {
   mesh_t * mesh = entireMesh();
   mesh->o_x.copyTo(x);
@@ -576,6 +585,8 @@ initializeHostMeshParameters()
   x = (dfloat *)calloc(mesh->o_x.size(), sizeof(dfloat));
   y = (dfloat *)calloc(mesh->o_y.size(), sizeof(dfloat));
   z = (dfloat *)calloc(mesh->o_z.size(), sizeof(dfloat));
+
+  copyMeshToHost();
 }
 
 void

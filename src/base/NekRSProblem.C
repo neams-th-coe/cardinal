@@ -641,7 +641,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
       // fetch data from device to host
-      nekrs::copyDeviceToHost();
+      nekrs::copySolutionToHost();
 
       // execute all outgoing field transfers
       for (const auto & t : _field_transfers)
@@ -655,7 +655,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
           t->sendDataToNek();
 
       // copy device-side arrays onto the host where they can be accessed
-      nekrs::copyDeviceToHost();
+      nekrs::copySolutionToHost();
 
       break;
     }
