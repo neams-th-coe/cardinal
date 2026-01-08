@@ -6,14 +6,15 @@
         input = empty_extra_element_integer_names_and_values.i
         cli_args="--mesh-only"
         expect_err="Both 'extra_element_integer_names' and 'values' cannot be empty. Please provide at least one param for each."
-        requirement="Number of entries in 'values' and 'extra_element_integer_names' must be nonzero"
+        requirement="The system shall error if the number of entries in 'values' and 'extra_element_integer_names'
+                     are zero."
     []
     [more_names_less_value]
         type = RunException
         input = parsed_element_id_mesh_generator.i
         cli_args="--mesh-only"
         expect_err="Number of entries in 'values' \(5\) must match the number of entries in 'extra_element_integer_names' \(3\)"
-        requirement="Number of entries in values needs to be equal to the number of extra_element_integer_names"
+        requirement="The system shall error if the number of entries in 'values' isn't equal with the number of 'extra_element_integer_names'"
     []
     [eeid_already_exists]
         type = RunException

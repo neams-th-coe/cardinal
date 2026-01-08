@@ -32,8 +32,9 @@ ParsedElementIDMeshGenerator::ParsedElementIDMeshGenerator(const InputParameters
     _input(getMesh("input")),
     _extra_element_id_names(
         getParam<std::vector<ExtraElementIDName>>("extra_element_integer_names")),
-    _eeiid_values(isParamValid("values") ? getParam<std::vector<int>>("values")
-                                         : std::vector<int>(_extra_element_id_names.size(), -1))
+    _eeiid_values(isParamValid("values")
+                      ? getParam<std::vector<int>>("values")
+                      : std::vector<int>(_extra_element_id_names.size(), DEFAULT))
 {
   if (_eeiid_values.empty() || _extra_element_id_names.empty())
     mooseError("Both 'extra_element_integer_names' and 'values' cannot be empty. "

@@ -26,4 +26,7 @@ protected:
 
   /// values of the extra element integer ids used
   std::vector<int> _eeiid_values;
+
+  /// Default value of extra integer
+  constexpr static int DEFAULT = -1;
 };
