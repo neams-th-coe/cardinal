@@ -284,7 +284,7 @@ scratchAvailable()
   // else in the core base, so we will make sure to throw an error from MOOSE if these
   // arrays are already in use, because otherwise our MOOSE transfer might get overwritten
   // by whatever other operation the user is trying to do.
-  if (!platform->app->bc->o_usrwrk.size())
+  if (platform->app->bc->o_usrwrk.size() != 0)
     return false;
 
   return true;
