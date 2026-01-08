@@ -2769,7 +2769,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
 {
-  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] > 1e-6)
+  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] >
+      1e-6)
   {
     std::stringstream msg;
     msg << _all_tally_scores[score] << " tallies do not match the global "

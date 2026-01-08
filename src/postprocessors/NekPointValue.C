@@ -78,7 +78,7 @@ NekPointValue::execute()
     case field::velocity_x_squared:
     case field::velocity_y_squared:
     case field::velocity_z_squared:
-      n_values = n * 3; //nVFields
+      n_values = n * 3; // nVFields
       o_interpolated = platform->device.malloc<dfloat>(n_values);
       interp.eval(n_values, nrs->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
       break;

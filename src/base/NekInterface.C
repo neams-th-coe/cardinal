@@ -35,7 +35,7 @@ static std::vector<dfloat> U;
 static std::vector<dfloat> P;
 static std::vector<dfloat> S;
 
-dfloat *usrwrk = nullptr;
+dfloat * usrwrk = nullptr;
 
 nrs_t * nrs;
 
@@ -83,12 +83,15 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
   int num_bytes = fieldOffset() * sizeof(dfloat);
 
   occa::memory o_write = platform->device.malloc(num_bytes);
-  o_write.copyFrom(platform->app->bc->o_usrwrk, num_bytes /* length we are copying */,
-    0 /* where to place data */, num_bytes * slot /* where to source data */);
+  o_write.copyFrom(platform->app->bc->o_usrwrk,
+                   num_bytes /* length we are copying */,
+                   0 /* where to place data */,
+                   num_bytes * slot /* where to source data */);
 
   occa::memory o_null;
-  //TODO
-  //nek::writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write, 1);
+  // TODO
+  // nek::writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write,
+  // 1);
 }
 
 void
@@ -102,8 +105,9 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
     Nscalar = nrs->Nscalar;
   }
 
-  //TODO
-  //nek::writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->fluid->o_U, nrs->fluid->o_P, o_s, Nscalar);
+  // TODO
+  // nek::writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->fluid->o_U,
+  // nrs->fluid->o_P, o_s, Nscalar);
 }
 
 void
@@ -121,8 +125,10 @@ buildOnly()
 bool
 hasCHT()
 {
-  for (int is = 0; is < nrs->Nscalar; is++) {
-    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID")) {
+  for (int is = 0; is < nrs->Nscalar; is++)
+  {
+    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID"))
+    {
       return true;
     }
   }
@@ -204,7 +210,7 @@ isInitialized()
 int
 scalarFieldOffset()
 {
-  return nrs->scalar->fieldOffset(); //same for all scalars
+  return nrs->scalar->fieldOffset(); // same for all scalars
 }
 
 int
@@ -487,8 +493,8 @@ usrwrkSideIntegral(const unsigned int & slot,
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
         for (int v = 0; v < mesh->Nfp; ++v)
-          integral[b_index] += usrwrk[slot + mesh->vmapM[offset + v]] *
-                               sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral[b_index] +=
+              usrwrk[slot + mesh->vmapM[offset + v]] * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
       }
     }
   }
@@ -496,7 +502,8 @@ usrwrkSideIntegral(const unsigned int & slot,
   // sum across all processes; this can probably be done more efficiently
   std::vector<double> total_integral(boundary.size(), 0.0);
   for (std::size_t i = 0; i < boundary.size(); ++i)
-    MPI_Allreduce(&integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
+    MPI_Allreduce(
+        &integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   return total_integral;
 }
@@ -744,7 +751,7 @@ centroid(int local_elem_id)
   double y_c = 0.0;
   double z_c = 0.0;
   double mass = 0.0;
-  
+
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = local_elem_id * mesh->Np + v;
@@ -1205,7 +1212,7 @@ isHeatFluxBoundary(const int boundary)
   // will be present for backwards compatibility
 
   // TODO
-  //return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
+  // return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
   //       (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
   return true;
 }
@@ -1214,7 +1221,7 @@ bool
 isMovingMeshBoundary(const int boundary)
 {
   // TODO
-  //return bcMap::text(boundary, "mesh") == "codedFixedValue";
+  // return bcMap::text(boundary, "mesh") == "codedFixedValue";
   return true;
 }
 
@@ -1229,7 +1236,7 @@ const std::string
 temperatureBoundaryType(const int boundary)
 {
   // TODO
-  //return bcMap::text(boundary, "scalar00");
+  // return bcMap::text(boundary, "scalar00");
   return "";
 }
 
@@ -1350,7 +1357,6 @@ get_flux(const int id, const int surf_offset)
   // TODO: this function does not support non-constant thermal conductivity
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
-
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh
@@ -1805,44 +1811,59 @@ initializeNekHostArrays()
 
   U.resize(mesh->dim * nrs->fluid->fieldOffset);
   P.resize(mesh->Nlocal);
-  S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); //offset is same for all scalars
+  S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); // offset is same for all scalars
 }
 
 dfloat *
-host_x() { return x; }
+host_x()
+{
+  return x;
+}
 dfloat *
-host_y() { return y; }
+host_y()
+{
+  return y;
+}
 dfloat *
-host_z() { return z; }
+host_z()
+{
+  return z;
+}
 
-//std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&> 
-std::tuple<dfloat *, dfloat *, dfloat *> 
-host_xyz() {
+// std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&>
+std::tuple<dfloat *, dfloat *, dfloat *>
+host_xyz()
+{
   return {x, y, z};
 }
 
-std::vector<dfloat>& 
-host_U() {
+std::vector<dfloat> &
+host_U()
+{
   return U;
 }
 
-std::vector<dfloat>& 
-host_P() {
+std::vector<dfloat> &
+host_P()
+{
   return P;
 }
 
-std::vector<dfloat>& 
-host_S() {
+std::vector<dfloat> &
+host_S()
+{
   return S;
 }
 
-dfloat* 
-host_wrk() {
+dfloat *
+host_wrk()
+{
   return usrwrk;
 }
 
-nrs_t* 
-nrsPtr() {
+nrs_t *
+nrsPtr()
+{
   return nrs;
 }
 } // end namespace nekrs

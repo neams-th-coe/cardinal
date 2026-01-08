@@ -90,7 +90,8 @@ KEigenvalue::kMean() const
     {
       if (n <= 3)
         mooseError("Cannot compute combined k-effective estimate with fewer than 4 realizations!\n"
-          "Please change the 'value_type' to either 'collision', 'tracklength', or 'absorption'.");
+                   "Please change the 'value_type' to either 'collision', 'tracklength', or "
+                   "'absorption'.");
 
       double k_eff[2];
       openmc::openmc_get_keff(k_eff);

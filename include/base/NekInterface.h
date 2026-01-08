@@ -54,10 +54,8 @@ void initializeHostMeshParameters();
 void updateHostMeshParameters();
 
 dfloat * host_x();
-dfloat *
-host_y();
-dfloat *
-host_z();
+dfloat * host_y();
+dfloat * host_z();
 
 nrs_t * nrsPtr();
 
@@ -940,14 +938,12 @@ allgatherv(const std::vector<int> & base_counts, const T * input, T * output, co
   free(displacement);
 }
 
+void initializeNekHostArrays();
 
-void
-initializeNekHostArrays();
-
-//Accessors for NekRS host arrays
+// Accessors for NekRS host arrays
 std::tuple<dfloat *, dfloat *, dfloat *> host_xyz();
-std::vector<dfloat>& host_U();
-std::vector<dfloat>& host_P();
-std::vector<dfloat>& host_S();
-dfloat* host_wrk();
+std::vector<dfloat> & host_U();
+std::vector<dfloat> & host_P();
+std::vector<dfloat> & host_S();
+dfloat * host_wrk();
 } // end namespace nekrs

@@ -446,8 +446,13 @@ NekRSMesh::storeBoundaryCoupling()
 
   int N_mirror_faces = Nfaces * _n_build_per_surface_elem;
   _boundary_coupling.mirror_counts.resize(nekrs::commSize());
-  MPI_Allgather(
-      &N_mirror_faces, 1, MPI_INT, &_boundary_coupling.mirror_counts[0], 1, MPI_INT, platform->comm.mpiComm());
+  MPI_Allgather(&N_mirror_faces,
+                1,
+                MPI_INT,
+                &_boundary_coupling.mirror_counts[0],
+                1,
+                MPI_INT,
+                platform->comm.mpiComm());
 
   // compute the counts and displacements for face-based data exchange
   int * recvCounts = (int *)calloc(nekrs::commSize(), sizeof(int));
@@ -716,9 +721,11 @@ NekRSMesh::faceVertices()
     // node positions. We only need to do this if the NekRS mesh is not already order 2.
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
-    else {
-      auto [meshT, meshV] = createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
-      if(nekrs::hasCHT())
+    else
+    {
+      auto [meshT, meshV] =
+          createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
+      if (nekrs::hasCHT())
         mesh = meshT;
       else
         mesh = meshV;
@@ -810,9 +817,11 @@ NekRSMesh::volumeVertices()
     // We only need to do this if the mesh is not already N = 2.
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
-    else {
-      auto [meshT, meshV] = createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
-      if(nekrs::hasCHT())
+    else
+    {
+      auto [meshT, meshV] =
+          createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo);
+      if (nekrs::hasCHT())
         mesh = meshT;
       else
         mesh = meshV;
