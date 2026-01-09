@@ -1877,6 +1877,29 @@ nrsPtr()
 {
   return nrs;
 }
+
+void registerMeshKernels()
+{
+  static bool loadedMeshKernel = false;
+  if(loadedMeshKernel){
+    return;
+  }
+  loadedMeshKernel = true;
+
+  const std::string orderSuffix = std::string("_") + std::to_string(2);
+  std::string fileName;
+
+  const std::string oklpath = getenv("NEKRS_KERNEL_DIR");
+  auto meshKernelInfo = platform->kernelInfo + meshKernelProperties(2);
+
+  const std::string kernelName = "geometricFactorsHex3D";
+  fileName = oklpath + "/core/mesh/" + kernelName + ".okl";
+  const std::string meshPrefix = "pMGmesh-";
+  platform->kernelRequests.add(meshPrefix + kernelName + orderSuffix,
+                               fileName,
+                               meshKernelInfo,
+                               orderSuffix);
+}
 } // end namespace nekrs
 
 #endif
