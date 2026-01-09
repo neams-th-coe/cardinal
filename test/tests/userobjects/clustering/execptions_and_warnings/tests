@@ -27,6 +27,7 @@
     [lower_fraction_is_more_than_upper_fraction]
         type = RunException
         input = common_error.i
+        mesh_mode = "replicated"
         cli_args = "UserObjects/value_fraction/lower_fraction=0.6 UserObjects/value_fraction/upper_fraction=0.5"
         expect_err = "lower_fraction \+ upper_fraction must be less than 1"
         requirement = "The system shall error if 'lower_faction + upper_fraction' is more than 1."
