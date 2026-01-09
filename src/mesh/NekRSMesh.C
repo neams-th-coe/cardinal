@@ -602,8 +602,6 @@ NekRSMesh::buildMesh()
   if (_volume)
     storeVolumeCoupling();
 
-  if(_order == 1) nekrs::registerMeshKernels();
-
   if (_boundary && !_volume)
     extractSurfaceMesh();
 

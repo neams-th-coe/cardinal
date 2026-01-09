@@ -947,8 +947,6 @@ std::vector<dfloat> & host_P();
 std::vector<dfloat> & host_S();
 dfloat * host_wrk();
 
-void registerMeshKernels();
-
 mesh_t *createMesh2(mesh_t *_mesh, int Nc);
 
 } // end namespace nekrs

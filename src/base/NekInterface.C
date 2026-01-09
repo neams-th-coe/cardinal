@@ -1878,29 +1878,6 @@ nrsPtr()
   return nrs;
 }
 
-void registerMeshKernels()
-{
-  static bool loadedMeshKernel = false;
-  if(loadedMeshKernel){
-    return;
-  }
-  loadedMeshKernel = true;
-
-  const std::string orderSuffix = std::string("_") + std::to_string(2);
-  std::string fileName;
-
-  const std::string oklpath = getenv("NEKRS_KERNEL_DIR");
-  auto meshKernelInfo = platform->kernelInfo + meshKernelProperties(2);
-
-  const std::string kernelName = "geometricFactorsHex3D";
-  fileName = oklpath + "/core/mesh/" + kernelName + ".okl";
-  const std::string meshPrefix = "cardinal-";
-  platform->kernelRequests.add(meshPrefix + kernelName + orderSuffix,
-                               fileName,
-                               meshKernelInfo,
-                               orderSuffix);
-}
-
 mesh_t *createMesh2(mesh_t *_mesh, int Nc)
 {
   mesh_t *mesh = new mesh_t();
@@ -1909,13 +1886,7 @@ mesh_t *createMesh2(mesh_t *_mesh, int Nc)
   const int cubN = 0;
   meshLoadReferenceNodesHex3D(mesh, Nc, cubN);
 
-  const std::string orderSuffix = "_" + std::to_string(mesh->N);
-
-  const std::string prefix = "cardinal-";
-
-  mesh->geometricFactorsKernel =
-      platform->kernelRequests.load(prefix + "geometricFactorsHex3D" + orderSuffix);
-
+  mesh->geometricFactorsKernel = nullptr;
   mesh->surfaceGeometricFactorsKernel = nullptr;
   mesh->cubatureGeometricFactorsKernel = nullptr;
 
@@ -1937,19 +1908,6 @@ mesh_t *createMesh2(mesh_t *_mesh, int Nc)
   meshGlobalIds(mesh);
 
   meshParallelGatherScatterSetup(mesh, mesh->Nlocal, mesh->globalIds, platform->comm.mpiComm(), OOGS_AUTO, 0);
-
-  {
-    auto retVal = mesh->geometricFactors();
-    if (retVal > 0 && Nc == 1) {
-      platform->options.setArgs("GALERKIN COARSE OPERATOR", "TRUE");
-    } else {
-      nekrsCheck(retVal,
-                 platform->comm.mpiComm(),
-                 EXIT_FAILURE,
-                 "%s\n",
-                 "Invalid element Jacobian < 0 found!");
-    }
-  }
 
   return mesh;
 }
