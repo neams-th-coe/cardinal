@@ -1894,12 +1894,66 @@ void registerMeshKernels()
 
   const std::string kernelName = "geometricFactorsHex3D";
   fileName = oklpath + "/core/mesh/" + kernelName + ".okl";
-  const std::string meshPrefix = "pMGmesh-";
+  const std::string meshPrefix = "cardinal-";
   platform->kernelRequests.add(meshPrefix + kernelName + orderSuffix,
                                fileName,
                                meshKernelInfo,
                                orderSuffix);
 }
+
+mesh_t *createMesh2(mesh_t *_mesh, int Nc)
+{
+  mesh_t *mesh = new mesh_t();
+  memcpy(mesh, _mesh, sizeof(mesh_t));
+
+  const int cubN = 0;
+  meshLoadReferenceNodesHex3D(mesh, Nc, cubN);
+
+  const std::string orderSuffix = "_" + std::to_string(mesh->N);
+
+  const std::string prefix = "cardinal-";
+
+  mesh->geometricFactorsKernel =
+      platform->kernelRequests.load(prefix + "geometricFactorsHex3D" + orderSuffix);
+
+  mesh->surfaceGeometricFactorsKernel = nullptr;
+  mesh->cubatureGeometricFactorsKernel = nullptr;
+
+  mesh->o_D = platform->device.malloc<dfloat>(mesh->Nq * mesh->Nq, mesh->D);
+
+  dfloat *DT = (dfloat *)calloc(mesh->Nq * mesh->Nq, sizeof(dfloat));
+  for (int j = 0; j < mesh->Nq; j++) {
+    for (int i = 0; i < mesh->Nq; i++) {
+      DT[j * mesh->Nq + i] = mesh->D[i * mesh->Nq + j];
+    }
+  }
+  mesh->o_DT = platform->device.malloc<dfloat>(mesh->Nq * mesh->Nq, DT);
+  free(DT);
+
+  meshPhysicalNodesHex3D(mesh);
+
+  meshConnectFaceNodes3D(mesh);
+
+  meshGlobalIds(mesh);
+
+  meshParallelGatherScatterSetup(mesh, mesh->Nlocal, mesh->globalIds, platform->comm.mpiComm(), OOGS_AUTO, 0);
+
+  {
+    auto retVal = mesh->geometricFactors();
+    if (retVal > 0 && Nc == 1) {
+      platform->options.setArgs("GALERKIN COARSE OPERATOR", "TRUE");
+    } else {
+      nekrsCheck(retVal,
+                 platform->comm.mpiComm(),
+                 EXIT_FAILURE,
+                 "%s\n",
+                 "Invalid element Jacobian < 0 found!");
+    }
+  }
+
+  return mesh;
+}
+
 } // end namespace nekrs
 
 #endif

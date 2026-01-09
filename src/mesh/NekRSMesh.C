@@ -725,13 +725,7 @@ NekRSMesh::faceVertices()
       mesh = _nek_internal_mesh;
     else
     {
-      /* auto [meshT, meshV] = */
-      /*     createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo); */
-      /* if (nekrs::hasCHT()) */
-      /*   mesh = meshT; */
-      /* else */
-      /*   mesh = meshV; */
-      mesh = createMeshMG(_nek_internal_mesh, _order + 1);
+      mesh = nekrs::createMesh2(_nek_internal_mesh, _order + 1);
     }
 
     Nfp_mirror = mesh->Nfp;
@@ -827,13 +821,7 @@ NekRSMesh::volumeVertices()
       mesh = _nek_internal_mesh;
     else
     {
-      /* auto [meshT, meshV] = */
-      /*     createMesh(platform->comm.mpiComm(), _order + 1, 0, platform->kernelInfo); */
-      /* if (nekrs::hasCHT()) */
-      /*   mesh = meshT; */
-      /* else */
-      /*   mesh = meshV; */
-      mesh = createMeshMG(_nek_internal_mesh, _order + 1);
+      mesh = nekrs::createMesh2(_nek_internal_mesh, _order + 1);
     }
     Np_mirror = mesh->Np;
   }
