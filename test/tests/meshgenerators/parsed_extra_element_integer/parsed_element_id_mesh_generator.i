@@ -8,6 +8,7 @@
     xmax = 10
     ymin = 0
     ymax = 10
+    extra_element_integers = 'extreme_value'
   []
   [add_eeid]
     type = ParsedElementIDMeshGenerator

@@ -1,5 +1,5 @@
 #include "BooleanComboClusteringUserObject.h"
-#include "ClusteringHeuristicUserObjectBase.h"
+#include "ClusteringUserObjectBase.h"
 
 registerMooseObject("CardinalApp", BooleanComboClusteringUserObject);
 
@@ -32,9 +32,6 @@ BooleanComboClusteringUserObject::BooleanComboClusteringUserObject(
                  _id_name);
     _mesh.add_elem_integer(_id_name);
   }
-  // check if mesh is replicated. If not then throw a moose error.
-  if (!_mesh.is_replicated())
-    mooseError("Mesh must be replicated");
 
   _extra_integer_index = _mesh.get_elem_integer_index(_id_name);
   reversePolishNotation(getParam<std::vector<std::string>>("expression"));
@@ -48,9 +45,9 @@ BooleanComboClusteringUserObject::initializeUserObjects()
   for (const auto & token : _output_stack)
   {
     if (_precedence.count(token))
-      // separate the user object names. If true that means name is an operator
+      // separate the user object names. If true that means token is an operator
       continue;
-    const auto & uo = getUserObjectByName<ClusteringHeuristicUserObjectBase>(token);
+    const auto & uo = getUserObjectByName<ClusteringUserObjectBase>(token);
     _clustering_user_objects.insert(std::make_pair(token, &uo));
   }
 }

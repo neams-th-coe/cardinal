@@ -3,8 +3,8 @@
     design = "ParsedElementIDMeshGenerator.md"
     [zero_names_zero_values]
         type = RunException
-        input = empty_extra_element_integer_names_and_values.i
-        cli_args="--mesh-only"
+        input = parsed_element_id_mesh_generator.i
+        cli_args = "--mesh-only Mesh/add_eeid/extra_element_integer_names='' Mesh/add_eeid/values='' "
         expect_err="Both 'extra_element_integer_names' and 'values' cannot be empty. Please provide at least one entry for each."
         requirement="The system shall error if the number of entries in 'values' or 'extra_element_integer_names'
                      are zero."
@@ -18,9 +18,9 @@
     []
     [eeid_already_exists]
         type = RunException
-        input = id_already_exists.i
-        cli_args="--mesh-only --error"
-        expect_err="The element integer id named 'extreme_value' already exists in the mesh. The existing values will be retained, and the provided value for 'extreme_value' will be ignored."
+        input = parsed_element_id_mesh_generator.i
+        cli_args="--mesh-only --error Mesh/add_eeid/extra_element_integer_names='extreme_value' Mesh/add_eeid/values='-1'"
+        expect_err="The element integer id named extreme_value already exists in the mesh. The existing values will be retained, and the provided value for extreme_value will be ignored."
         requirement="The system shall skip adding extra element integer IDs if the ID already exists in the mesh with the same name."
     []
 []

@@ -12,7 +12,7 @@
   [add_eeid]
     type = ParsedElementIDMeshGenerator
     input = generated_mesh
-    extra_element_integer_names = 'threshold_heuristic' #names of the eeid
+    extra_element_integer_names = 'value_fraction_heuristic' #names of the eeid
     values = '-1'
   []
 []
@@ -35,24 +35,19 @@
     function = 'sqrt(x*x + y*y)'
     execute_on = 'TIMESTEP_BEGIN'
   []
-  [store_element_id]
-    type=ExtraElementIDAux
-    extra_id_name ="threshold_heuristic"
-    execute_on = 'TIMESTEP_BEGIN'
-    variable=cluster_id_aux
-  []
 []
 
 [UserObjects]
-  [threshold_1]
-    type = ThresholdHeuristicUserObject
+  [value_fraction]
+    type = ValueFractionHeuristicUserObject
     metric_variable_name = 'metric_var'
-    threshold = 1.1
+    lower_fraction = 0.2
+    upper_fraction = 0.3
   []
   [boolean_combo]
     type = BooleanComboClusteringUserObject
-    expression = "threshold_1"
-    id_name = "threshold_heuristic"
+    expression = "value_fraction"
+    id_name = "value_fraction_heuristic"
   []
 []
 

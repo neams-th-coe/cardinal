@@ -6,10 +6,11 @@ InputParameters
 ValueRangeHeuristicUserObject::validParams()
 {
 
-  InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
-  params.addRequiredParam<Real>("tolerance_percentage",
-                                "Fractional tolerance used to define"
-                                " the acceptable range around the reference value.");
+  InputParameters params = ClusteringUserObjectBase::validParams();
+  params.addRequiredRangeCheckedParam<Real>("tolerance_percentage",
+                                            "tolerance_percentage>0 & tolerance_percentage<1",
+                                            "Fractional tolerance used to define"
+                                            " the acceptable range around the reference value.");
   params.addRequiredParam<Real>(
       "value", "The reference value to decide if an element is close enough to be clustered");
   params.addClassDescription(
@@ -19,7 +20,7 @@ ValueRangeHeuristicUserObject::validParams()
 }
 
 ValueRangeHeuristicUserObject::ValueRangeHeuristicUserObject(const InputParameters & params)
-  : ClusteringHeuristicUserObjectBase(params),
+  : ClusteringUserObjectBase(params),
     _tolerance_percentage(getParam<Real>("tolerance_percentage")),
     _value(getParam<Real>("value")),
     _upper_limit((1 + _tolerance_percentage) * _value),

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ClusteringHeuristicUserObjectBase.h"
+#include "ClusteringUserObjectBase.h"
 
 /**
  * A clustering heuristic user object which clusters two neighboring elements whose scores
  * are within a user provided range
  */
-class ValueRangeHeuristicUserObject : public ClusteringHeuristicUserObjectBase
+class ValueRangeHeuristicUserObject : public ClusteringUserObjectBase
 {
 
 public:

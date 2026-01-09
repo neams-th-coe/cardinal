@@ -5,12 +5,12 @@
 class AuxiliarySystem;
 
 /* Base class for clustering in cardinal. */
-class ClusteringHeuristicUserObjectBase : public GeneralUserObject
+class ClusteringUserObjectBase : public GeneralUserObject
 {
 
 public:
   static InputParameters validParams();
-  ClusteringHeuristicUserObjectBase(const InputParameters & parameters);
+  ClusteringUserObjectBase(const InputParameters & parameters);
 
   virtual void execute() override {};
   virtual void initialize() override;
@@ -50,9 +50,6 @@ protected:
 
   /// Metric variable index
   const unsigned int _metric_variable_index;
-
-  /// Whether the global metric data has been gathered
-  bool _data_gathered;
 
   /// libmesh numeric vector with serialized solutions
   NumericVector<Real> & _serialized_metric_solution;

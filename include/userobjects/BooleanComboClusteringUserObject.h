@@ -3,7 +3,7 @@
 #include "GeneralUserObject.h"
 #include <unordered_map>
 
-class ClusteringHeuristicUserObjectBase;
+class ClusteringUserObjectBase;
 
 /**
  * A clustering user object which implements the mesh walking
@@ -65,8 +65,7 @@ private:
   unsigned int _extra_integer_index;
 
   /// Hash map for clustering user object. The key is the name of the UserObject
-  std::unordered_map<std::string, const ClusteringHeuristicUserObjectBase *>
-      _clustering_user_objects;
+  std::unordered_map<std::string, const ClusteringUserObjectBase *> _clustering_user_objects;
 
   /// hold the final rpn expression
   std::vector<std::string> _output_stack;

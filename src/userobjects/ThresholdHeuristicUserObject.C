@@ -6,7 +6,7 @@ InputParameters
 ThresholdHeuristicUserObject::validParams()
 {
 
-  InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
+  InputParameters params = ClusteringUserObjectBase::validParams();
   params.addRequiredParam<double>("threshold",
                                   " The value against which the clustering process is compared.");
   params.addParam<bool>("cluster_if_above_threshold",
@@ -19,7 +19,7 @@ ThresholdHeuristicUserObject::validParams()
 }
 
 ThresholdHeuristicUserObject::ThresholdHeuristicUserObject(const InputParameters & parameters)
-  : ClusteringHeuristicUserObjectBase(parameters),
+  : ClusteringUserObjectBase(parameters),
     _threshold(getParam<double>("threshold")),
     _cluster_if_above_threshold(getParam<bool>("cluster_if_above_threshold"))
 {

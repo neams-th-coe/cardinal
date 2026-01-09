@@ -1,11 +1,11 @@
-#include "ClusteringHeuristicUserObjectBase.h"
+#include "ClusteringUserObjectBase.h"
 #include "AuxiliarySystem.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/elem.h"
 
 InputParameters
-ClusteringHeuristicUserObjectBase::validParams()
+ClusteringUserObjectBase::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<AuxVariableName>(
@@ -14,8 +14,7 @@ ClusteringHeuristicUserObjectBase::validParams()
   return params;
 }
 
-ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
-    const InputParameters & parameters)
+ClusteringUserObjectBase::ClusteringUserObjectBase(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _mesh(_fe_problem.mesh().getMesh()),
     _metric_variable_name(getParam<AuxVariableName>("metric_variable_name")),
@@ -23,7 +22,6 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
     _auxiliary_system(_fe_problem.getAuxiliarySystem()),
     _dof_map(_auxiliary_system.dofMap()),
     _metric_variable_index(_auxiliary_system.getVariable(_tid, _metric_variable_name).number()),
-    _data_gathered(false),
     _serialized_metric_solution(_auxiliary_system.serializedSolution())
 {
   // check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
@@ -36,14 +34,13 @@ ClusteringHeuristicUserObjectBase::ClusteringHeuristicUserObjectBase(
 }
 
 void
-ClusteringHeuristicUserObjectBase::initialize()
+ClusteringUserObjectBase::initialize()
 {
   _auxiliary_system.serializeSolution();
-  _data_gathered = true;
 }
 
 Real
-ClusteringHeuristicUserObjectBase::getMetricData(const libMesh::Elem * elem) const
+ClusteringUserObjectBase::getMetricData(const libMesh::Elem * elem) const
 {
   std::vector<dof_id_type> dof_indices;
   std::vector<double> solution_value(1);

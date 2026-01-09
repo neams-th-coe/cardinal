@@ -6,7 +6,7 @@ InputParameters
 ValueDifferenceHeuristicUserObject::validParams()
 {
 
-  InputParameters params = ClusteringHeuristicUserObjectBase::validParams();
+  InputParameters params = ClusteringUserObjectBase::validParams();
   params.addRequiredParam<Real>(
       "tolerance", "Maximum allowed difference in values for elements to be clustered");
   params.addClassDescription(
@@ -17,7 +17,7 @@ ValueDifferenceHeuristicUserObject::validParams()
 
 ValueDifferenceHeuristicUserObject::ValueDifferenceHeuristicUserObject(
     const InputParameters & params)
-  : ClusteringHeuristicUserObjectBase(params), _tolerance(getParam<Real>("tolerance"))
+  : ClusteringUserObjectBase(params), _tolerance(getParam<Real>("tolerance"))
 {
 }
 

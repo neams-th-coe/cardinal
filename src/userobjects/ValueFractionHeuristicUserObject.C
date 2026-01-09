@@ -6,21 +6,27 @@ InputParameters
 ValueFractionHeuristicUserObject::validParams()
 {
 
-  InputParameters param = ClusteringHeuristicUserObjectBase::validParams();
-  param.addRequiredParam<Real>("upper_fraction", "upper percentage of error for the heuristics");
-  param.addRequiredParam<Real>("lower_fraction", "lower percentage of error for the heuristics");
+  InputParameters param = ClusteringUserObjectBase::validParams();
+  param.addRequiredRangeCheckedParam<Real>("upper_fraction",
+                                           "0.0 < upper_fraction &  upper_fraction < 1.0",
+                                           "upper percentage of error for the heuristics");
+  param.addRequiredRangeCheckedParam<Real>("lower_fraction",
+                                           "0.0 < lower_fraction & lower_fraction < 1.0 ",
+                                           "lower percentage of error for the heuristics");
   param.addClassDescription("Clusters elements whose variable values both fall within either a"
                             "specified upper or lower fraction of the extremes.");
 
   return param;
 }
 ValueFractionHeuristicUserObject::ValueFractionHeuristicUserObject(const InputParameters & params)
-  : ClusteringHeuristicUserObjectBase(params),
+  : ClusteringUserObjectBase(params),
     _upper_fraction(getParam<Real>("upper_fraction")),
     _lower_fraction(getParam<Real>("lower_fraction")),
     _max(std::numeric_limits<Real>::min()),
     _min(std::numeric_limits<Real>::max())
 {
+  if (_lower_fraction + _upper_fraction > 1)
+    mooseError("lower_fraction + upper_fraction must be less than 1");
 }
 
 void
