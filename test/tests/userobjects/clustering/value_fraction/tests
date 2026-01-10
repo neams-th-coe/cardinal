@@ -1,0 +1,12 @@
+[Tests]
+    issue = "#1200"
+    design = "ValueFractionHeuristicUserObject.md"
+  [grid]
+    type = Exodiff
+    input = example.i
+    exodiff = example_out.e
+    requirement = "The system shall be able to cluster elements by identifying element pairs whose
+                   variable values both fall within either a specified upper or lower fraction of the extremes."
+    mesh_mode = 'replicated'
+  []
+[]
