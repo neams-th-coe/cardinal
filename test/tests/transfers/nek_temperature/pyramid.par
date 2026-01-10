@@ -6,19 +6,20 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 1
-  writeControl = steps
-  writeInterval = 1
+  checkpointControl = steps
+  checkpointInterval = 1
+  scalars = temperature
 
 [MESH]
   file=../../nek_output/pyramid.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 1
-  rhoCp = 1
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 1.0
+  transportCoeff = 1.0
   boundaryTypeMap = t, I, I, I, I, I, I, I
   residualTol = 1e-6
