@@ -6,17 +6,16 @@
   numSteps = 10
   dt = 0.5
   polynomialOrder = 3
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature
 
 [MESH]
   file = "../../nek_mesh/first_order/pyramid.re2"
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
-
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   residualTol = 1.0e-5
   boundaryTypeMap = f, f, f, f, t, t, I, I
