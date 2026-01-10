@@ -31,8 +31,8 @@ ValueRangeHeuristicUserObject::ValueRangeHeuristicUserObject(const InputParamete
 bool
 ValueRangeHeuristicUserObject::isInsideTheRange(libMesh::Elem * element) const
 {
-  Real score = getMetricData(element);
-  return _lower_limit < score && score < _upper_limit;
+  Real metric_value = getMetricData(element);
+  return _lower_limit < metric_value && metric_value < _upper_limit;
 }
 
 bool

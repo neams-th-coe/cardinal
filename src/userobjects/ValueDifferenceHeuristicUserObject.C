@@ -25,7 +25,7 @@ bool
 ValueDifferenceHeuristicUserObject::evaluate(libMesh::Elem * base_element,
                                              libMesh::Elem * neighbor_element) const
 {
-  const Real base_score = getMetricData(base_element);
-  const Real neighbor_score = getMetricData(neighbor_element);
-  return std::abs((base_score - neighbor_score) / base_score) < _tolerance;
+  const Real base_metric_value = getMetricData(base_element);
+  const Real neighbor_metric_value = getMetricData(neighbor_element);
+  return std::abs((base_metric_value - neighbor_metric_value) / base_metric_value) < _tolerance;
 }

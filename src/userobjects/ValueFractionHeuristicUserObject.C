@@ -48,8 +48,8 @@ ValueFractionHeuristicUserObject::evaluate(libMesh::Elem * base_element,
                                            libMesh::Elem * neighbor_element) const
 {
 
-  Real base_score = getMetricData(base_element);
-  Real neighbor_score = getMetricData(neighbor_element);
-  return (base_score > _upper_cut_off && neighbor_score > _upper_cut_off) ||
-         (base_score < _lower_cut_off && neighbor_score < _lower_cut_off);
+  Real base_metric_value = getMetricData(base_element);
+  Real neighbor_metric_value = getMetricData(neighbor_element);
+  return (base_metric_value > _upper_cut_off && neighbor_metric_value > _upper_cut_off) ||
+         (base_metric_value < _lower_cut_off && neighbor_metric_value < _lower_cut_off);
 }

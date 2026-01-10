@@ -3,8 +3,8 @@
 #include "ClusteringUserObjectBase.h"
 
 /**
- * A clustering heuristic user object which clusters two neighboring elements whose scores
- * are more/less than a threshold.
+ * A clustering heuristic user object which clusters two neighboring elements whose metric variable
+ * values are more/less than a threshold.
  */
 class ThresholdHeuristicUserObject : public ClusteringUserObjectBase
 {

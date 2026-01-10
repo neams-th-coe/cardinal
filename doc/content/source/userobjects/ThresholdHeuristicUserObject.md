@@ -3,7 +3,7 @@
 ## Description
 
 `ThresholdHeuristicUserObject` implements the clustering
-heuristic if the scores are more (default) or less than a `threshold`
+heuristic if the metric values are more (default) or less than a `threshold`
 value provided in the input files. The operation will be flipped if the 
 input argument `cluster_if_above_threshold` is false.
 

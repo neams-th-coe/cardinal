@@ -2,7 +2,7 @@
 
 ## Description
 
-`ValueRangeHeuristicUserObject` implements the clustering heuristic if the scores of two adjacent
+`ValueRangeHeuristicUserObject` implements the clustering heuristic if the metric variable values of two adjacent
 elements are both within a range. The range is calculated as
 
 \being{equation}
