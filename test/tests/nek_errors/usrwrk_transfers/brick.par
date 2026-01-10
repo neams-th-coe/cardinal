@@ -6,21 +6,22 @@
   numSteps = 1000
   dt = 5.0e-4
   polynomialOrder = 3
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature
 
 [MESH]
   file = ../used_scratch/brick.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
   boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   residualTol = 1e-6
   boundaryTypeMap = I, I, I, I, I, f

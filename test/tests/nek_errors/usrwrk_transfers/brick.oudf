@@ -1,18 +1,15 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = 0.1;
-  bc->v = 0.0;
-  bc->w = 0.0;
+  bc->uxFluid = 0.1;
+  bc->uyFluid = 0.0;
+  bc->uzFluid = 0.0;
+
+  bc->sScalar = 573.0;
 }
 
-void scalarDirichletConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
-  bc->s = 573.0;
-}
-
-void scalarNeumannConditions(bcData *bc)
-{
-  bc->flux = 0.0;
+  bc->fluxScalar = 0.0;
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)

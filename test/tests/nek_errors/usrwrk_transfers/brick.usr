@@ -1,0 +1,42 @@
+      subroutine usrdat3
+      include "SIZE"
+      include "TOTAL"
+
+      do ie=1,nelt
+        do ifc=1,2*ndim
+          if(bc(5,ifc,ie,1).eq.1) then
+            cbc(ifc,ie,1) = 'SYM'
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          elseif(bc(5,ifc,ie,1).eq.2) then
+            cbc(ifc,ie,1) = 'SYM'
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          elseif(bc(5,ifc,ie,1).eq.3) then
+            cbc(ifc,ie,1) = 't  '
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          elseif(bc(5,ifc,ie,1).eq.4) then
+            cbc(ifc,ie,1) = 'O  '
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          elseif(bc(5,ifc,ie,1).eq.5) then
+            cbc(ifc,ie,1) = 'SYM'
+            cbc(ifc,ie,2) = 'I  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          elseif(bc(5,ifc,ie,1).eq.6) then
+            cbc(ifc,ie,1) = 'SYM'
+            cbc(ifc,ie,2) = 'f  '
+            boundaryID(ifc,ie) = bc(5,ifc,ie,1)
+            boundaryIDt(ifc,ie) = bc(5,ifc,ie,1)
+          endif
+        enddo
+      enddo
+
+      return
+      end

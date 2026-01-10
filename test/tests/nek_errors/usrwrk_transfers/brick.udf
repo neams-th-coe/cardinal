@@ -1,29 +1,35 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-static occa::kernel mooseHeatSourceKernel;
+#include "brick.oudf"
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
-{
-  mooseHeatSourceKernel = oudfBuildKernel(kernelInfo, "mooseHeatSource");
-}
+#endif
 
-void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
+void userSource(double time)
 {
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  auto mesh = nrs->cds->mesh[0];
-  mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
+  auto mesh = nrs->meshV;
+  mooseHeatSource(mesh->Nelements, nrs->scalar->fieldOffset(), platform->app->bc->o_usrwrk, nrs->scalar->o_EXT);
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  nrs->userSource = &userSource;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 700.0; // temperature
+  auto mesh = nrs->meshV;
 
-  udf.sEqnSource = &userq;
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+
+  for (int n = 0; n < mesh->Nlocal; n++)
+  {
+    temp[n] = 700.0;
+  }
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+}
+
+void UDF_ExecuteStep(double time, int tstep)
+{
+
 }
