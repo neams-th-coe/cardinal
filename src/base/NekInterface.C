@@ -180,7 +180,7 @@ endControlNumSteps()
 bool
 hasTemperatureVariable()
 {
-  return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
+  return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 NAME", "TEMPERATURE") : false;
 }
 
 bool
