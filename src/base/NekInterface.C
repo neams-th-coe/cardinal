@@ -216,7 +216,7 @@ scalarFieldOffset()
 int
 velocityFieldOffset()
 {
-  return nrs->fieldOffset;
+  return nrs->fluid->fieldOffset;
 }
 
 int
@@ -296,11 +296,6 @@ initializeScratch(const unsigned int & n_slots)
   if (n_slots == 0)
     return;
 
-  mesh_t * mesh = entireMesh();
-
-  // clear them just to be sure
-  freeScratch();
-
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
@@ -316,6 +311,8 @@ freeScratch()
   freePointer(x);
   freePointer(y);
   freePointer(z);
+  freePointer(sgeo);
+  freePointer(vgeo);
   freePointer(usrwrk);
 }
 

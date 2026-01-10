@@ -162,11 +162,11 @@ NekInitAction::act()
         "manual allocation of the space in your user files, and be sure to only write such that"
         "the space reserved for coupling data is untouched.");
 
-  // Initialize scratch space in NekRS to write data incoming data from MOOSE
-  nekrs::initializeScratch(_n_usrwrk_slots);
-
   // Initialize host Nek arrays
   nekrs::initializeNekHostArrays();
+
+  // Initialize scratch space in NekRS to write data incoming data from MOOSE
+  nekrs::initializeScratch(_n_usrwrk_slots);
 }
 
 std::map<std::string, std::map<std::string, std::string>>

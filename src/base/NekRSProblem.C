@@ -363,7 +363,7 @@ NekRSProblem::initialSetup()
   // a user object, or neither
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idM]";
+    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idxVol]";
     std::string udf = "nrs->usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
@@ -820,7 +820,7 @@ NekRSProblem::copyIndividualScratchSlot(const unsigned int & slot) const
   auto nbytes = n * sizeof(dfloat);
 
   auto nrs = nekrs::nrsPtr();
-  platform->app->bc->o_usrwrk.copyFrom(nekrs::host_wrk() + slot * n, nbytes, slot * nbytes);
+  platform->app->bc->o_usrwrk.copyFrom(nekrs::host_wrk() + slot * n, n, slot * n);
 }
 
 void
