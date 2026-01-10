@@ -1,18 +1,22 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#include "pyramid.oudf"
+
+#endif
+
+void UDF_Setup()
 {
+  auto mesh = nrs->meshV;
+
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+
+  for (int n = 0; n < mesh->Nlocal; n++)
+  {
+    temp[n] = 0.0;
+  }
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_Setup(nrs_t *nrs)
-{
-  auto mesh = nrs->cds->mesh[0];
-
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 0;     // temperature
-}
-
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
