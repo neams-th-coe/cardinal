@@ -6,22 +6,21 @@
   numSteps = 1
   dt = 1.0e-4
   polynomialOrder = 2
-  writeControl = steps
-  writeInterval = 1
+  checkpointControl = steps
+  checkpointInterval = 1
+  scalars = temperature
 
 [MESH]
   file = "../../nek_mesh/first_order/pyramid.re2"
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
 
-[PRESSURE]
-
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   boundaryTypeMap = inlet, I, I, I, I, I, I, I
-  rhoCp = 1.0
-  conductivity = 1.0
+  transportCoeff = 1.0
+  diffusionCoeff = 1.0
   residualTol = 1.0e-6
