@@ -83,6 +83,9 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   [displacement]
     block = fuel_pins
   []
+  [ff]
+    block = subchannel
+  []
 []
 
 [ICs]
@@ -138,6 +141,13 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   monolithic_thermal = false
   P_tol = 1.0e-5
   T_tol = 1.0e-5
+  friction_closure = 'cheng'
+[]
+
+[SCMClosures]
+  [cheng]
+    type = SCMFrictionUpdatedChengTodreas
+  []
 []
 
 [AuxKernels]
