@@ -1,26 +1,30 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#include "cube.oudf"
+
+#endif
+
+void UDF_Setup()
 {
-}
+  auto mesh = nrs->meshV;
 
-void UDF_Setup(nrs_t *nrs)
-{
-  auto mesh = nrs->cds->mesh[0];
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  auto [x, y, z] = mesh->xyzHost();
+
+  for (int n = 0; n < mesh->Nlocal; n++)
   {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
+    U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
 
-    nrs->P[n] = 0.0; // pressure
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 500.0;
+    temp[n] = 500.0;
   }
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
