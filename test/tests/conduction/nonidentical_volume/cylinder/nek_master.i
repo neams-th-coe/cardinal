@@ -106,12 +106,14 @@ o=0.15
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    search_value_conflicts = true
   []
   [source]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source
     to_multi_app = nek
     variable = heat_source
+    search_value_conflicts = true
   []
   [source_integral]
     type = MultiAppPostprocessorTransfer
