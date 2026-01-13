@@ -157,7 +157,7 @@ NekInitAction::act()
 
   if (!nekrs::scratchAvailable())
     mooseError(
-        "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal, "
+        "The nrs->usrwrk and nrs->bc->o_usrwrk arrays are automatically allocated by Cardinal, "
         "but you have tried allocating them separately inside your case files. Please remove the "
         "manual allocation of the space in your user files, and be sure to only write such that"
         "the space reserved for coupling data is untouched.");
