@@ -21,7 +21,7 @@
 [FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[SCALARS TEMPERATURE]
+[SCALAR TEMPERATURE]
   diffusionCoeff = 10.5
   transportCoeff = 1.0
   residualTol = 1.0e-6
