@@ -1,17 +1,17 @@
-void scalarDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
   if (bc->id == 1)
-    bc->s = 600.0 + 500.0 * exp(bc->y);
+    bc->sScalar = 600.0 + 500.0 * exp(bc->y);
 }
 
-void scalarNeumannConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
   if (bc->id == 2)
-    bc->flux = bc->usrwrk[bc->idM];
+    bc->fluxScalar = bc->usrwrk[bc->idxVol];
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
