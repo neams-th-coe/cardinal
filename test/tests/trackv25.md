@@ -23,3 +23,4 @@
 | conduction/nonidentical_volume/nondimensional | cylinder_heat_source                                                                     | ⏳ Pending Conversion             |     |
 | conduction/nonidentical_volume/cylinder   | cylinder_heat_source<br>cylinder_exact                                                       | ⏳ Pending Conversion             |     |
 | conduction/reverse_cht                    | reverse_cht                                                                                  | ⏳ Pending Conversion             |     |
+| nek_errors/usrwrk_transfers               | duplicate_scratch<br>exceed_allocated_field<br>exceed_allocated_scalar<br>field_duplicated_by_field<br>scalar_duplicated_by_field<br>flux_no_boundary<br>source_no_volume<br>flux_slots<br>source_slots<br>problem_field<br>problem_scalar   |  ✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass            |     |
