@@ -336,7 +336,7 @@ Pr()
   setupAide & options = platform->options;
   options.getArgs("DENSITY", rho);
   options.getArgs("SCALAR00 DENSITY", rho_cp);
-  options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   dfloat Pe = 1.0 / k;
   dfloat conductivity = scales.rho_ref * scales.U_ref * scales.Cp_ref * scales.L_ref / Pe;
@@ -1114,7 +1114,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   // TODO: This function only works correctly if the conductivity is constant, because
   // otherwise we need to copy the conductivity from device to host
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   double integral = 0.0;
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
@@ -1364,7 +1364,7 @@ get_flux(const int id, const int surf_offset)
 {
   // TODO: this function does not support non-constant thermal conductivity
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh

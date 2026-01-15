@@ -4,21 +4,22 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
 {
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->meshV;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+  auto [x, y, z] = mesh->xyzHost();
+  for (int n = 0; n < mesh->Nlocal; n++)
   {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = (exp(x) + sin(y) + x*y*z);
+    dfloat xn = x[n];
+    dfloat yn = y[n];
+    dfloat zn = z[n];
+    temp[n] = (exp(xn) + sin(yn) + xn*yn*zn);
   }
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
