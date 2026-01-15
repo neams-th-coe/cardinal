@@ -19,7 +19,7 @@
 | conduction/boundary_and_volume/prism      | pyramid_exact<br>duplicate_temp<br>pyramid                                                   | ❌ Fail<br>✅ Pass<br>❌ Fail   | Uncomment `heavy` to run<br> <br>Timeout error |
 | conduction/identical_volume/cube          | slab_heat_source                                                                             | ❌ Fail                          | Uncomment `heavy` to run    |
 | conduction/zero_flux                      | zero_flux_total<br>zero_flux_total_vpp<br>vpp_disjoint<br> vpp_disjoint_zero<br>mismatch_length<br>nodes_on_shared  | ✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass<br>✅ Pass |                     |
-| conduction/nonidentical_interface/cylinders | cylinder_conduction<br>cylinder_conduction_subcycle<br>cylinder_conduction_reversed<br>cylinder_conduction_min<br>cylinder_conduction_exact  | ⏳ Pending Conversion    |     |
+| conduction/nonidentical_interface/cylinders | cylinder_conduction<br>cylinder_conduction_subcycle<br>cylinder_conduction_reversed<br>cylinder_conduction_mini<br>cylinder_conduction_exact  | ✅ Pass<br>❌ Fail✅ Pass<br>❌ Fail✅ Pass | <br>Timeout error<br><br>Timeout error |
 | conduction/nonidentical_volume/nondimensional | cylinder_heat_source                                                                     | ⏳ Pending Conversion             |     |
 | conduction/nonidentical_volume/cylinder   | cylinder_heat_source<br>cylinder_exact                                                       | ⏳ Pending Conversion             |     |
 | conduction/reverse_cht                    | reverse_cht                                                                                  | ⏳ Pending Conversion             |     |
