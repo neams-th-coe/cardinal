@@ -6,27 +6,28 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
 {
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
-
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
-
-    nrs->P[n] = 0.0; // pressure
-
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z;
+  auto mesh = nrs->meshV;
+  std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+  std::vector<dfloat> P(mesh->Nlocal, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+  auto [x, y, z] = mesh->xyzHost();
+  for(int n = 0; n < mesh->Nlocal; n++) {
+    U[n + 0 * nrs->fluid->fieldOffset] = 0.0; // x-velocity
+    U[n + 1 * nrs->fluid->fieldOffset] = 0.0; // y-velocity
+    U[n + 2 * nrs->fluid->fieldOffset] = 0.0; // z-velocity
+    P[n] = 0.0; // pressure
+    dfloat xn = x[n];
+    dfloat yn = y[n];
+    dfloat zn = z[n];
+    temp[n] = (exp(xn) + sin(yn) + xn*yn*zn);
   }
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->fluid->o_P.copyFrom(P.data(), P.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
