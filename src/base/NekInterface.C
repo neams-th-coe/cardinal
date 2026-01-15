@@ -335,7 +335,7 @@ Pr()
   dfloat rho, rho_cp, k;
   setupAide & options = platform->options;
   options.getArgs("DENSITY", rho);
-  options.getArgs("SCALAR00 DENSITY", rho_cp);
+  options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
   options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   dfloat Pe = 1.0 / k;
