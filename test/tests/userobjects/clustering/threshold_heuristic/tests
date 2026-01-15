@@ -1,0 +1,13 @@
+[Tests]
+    issue = "#1200"
+    design = "ThresholdHeuristicUserObject.md"
+  [grid]
+    type = Exodiff
+    input = example_input.i
+    exodiff = example_input_out.e
+    requirement = "The system shall reproduce the clustering pattern by evaluating a
+                   boolean expression which combines multiple threshold-based heuristics and
+                   operates on element pairs."
+    mesh_mode = 'replicated'
+  []
+[]

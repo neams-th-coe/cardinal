@@ -1,0 +1,35 @@
+[Tests]
+    issue = "#1200"
+    design = "BooleanComboClusteringUserObject.md"
+    [no_extra_integer_provided_boolean_combo]
+        type = RunException
+        input = boolean_combo_no_eeid.i
+        cli_args = '--error'
+        mesh_mode = "replicated"
+        expect_err = "boolean_combo extra element integer is missing in the mesh. Adding extra element integer boolean_combo"
+        requirement = "The system shall throw a warning if the extra element integer is not found in mesh."
+    []
+    [mesh_is_not_replicated]
+        type = RunException
+        input = common_error.i
+        mesh_mode = "distributed"
+        expect_err = "Mesh must be replicated"
+        requirement = "The system shall error if a non-replicated mesh is used while clustering."
+    []
+    [element_needs_to_be_constant_monomial]
+        type = RunException
+        input = common_error.i
+        mesh_mode = "replicated"
+        cli_args = "AuxVariables/metric_var/family=LAGRANGE AuxVariables/metric_var/order=FIRST"
+        expect_err = "metric_var must be of type CONSTANT MONOMIAL"
+        requirement = "The system shall error if the 'metric_variable' is not constant monomial."
+    []
+    [lower_fraction_is_more_than_upper_fraction]
+        type = RunException
+        input = common_error.i
+        mesh_mode = "replicated"
+        cli_args = "UserObjects/value_fraction/lower_fraction=0.6 UserObjects/value_fraction/upper_fraction=0.5"
+        expect_err = "lower_fraction \+ upper_fraction must be less than 1"
+        requirement = "The system shall error if 'lower_faction + upper_fraction' is more than 1."
+    []
+[]

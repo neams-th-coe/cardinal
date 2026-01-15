@@ -277,8 +277,12 @@ Pinchot is a small Ubuntu server at the University of Illinois hosted in Dr. Nov
 !listing! language=bash caption=Sample `~/.bashrc` for Pinchot id=p1
 
 module load openmpi/ubuntu/5.0.0
-module load hdf5/ubuntu/1.14.3
 module load cmake/3.29.3
+
+# recommend to comment these two lines if using Double-Down so that PETSc will
+# download HDF5 for you
+module load hdf5/ubuntu/1.14.3
+export HDF5_ROOT=/software/HDF5-1.14.3-ubuntu22
 
 # change to your Cardinal location (either the shared location in /shared/data,
 # or to a location in your home directory
@@ -289,7 +293,6 @@ export NEKRS_HOME=$CARDINAL_DIR/install
 export LIBMESH_JOBS=80
 export MOOSE_JOBS=80
 export JOBS=80
-export HDF5_ROOT=/software/HDF5-1.14.3-ubuntu22
 
 # revise for your cross section location
 export OPENMC_CROSS_SECTIONS=/shared/data/endfb-vii.1-hdf5/cross_sections.xml

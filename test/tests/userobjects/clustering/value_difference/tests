@@ -1,0 +1,12 @@
+[Tests]
+    issue = "#1200"
+    design = "ValueDifferenceHeuristicUserObject.md"
+  [grid]
+    type = Exodiff
+    input = example.i
+    exodiff = example_out.e
+    requirement = "The system shall be able to cluster mesh elements by identifying elements with equal
+                   metric values within a specified tolerance using a value-difference heuristic."
+    mesh_mode = 'replicated'
+  []
+[]
