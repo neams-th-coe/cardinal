@@ -8,15 +8,19 @@
   polynomialOrder = 7
   writeControl = steps
   writeInterval = 2
+  scalars = temperature
 
 [MESH]
   file = ../../common_inputs/brick2.re2
 
-[VELOCITY]
-  solver = none
+[FLUID VELOCITY]
+  #solver = none    # fluid must be solved to read in bIDs
+  boundaryTypeMap = w,w,w,w,w,w
+  rho = 1.0
+  viscosity = -100
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 2
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 2
   solver = none

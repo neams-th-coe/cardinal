@@ -11,7 +11,7 @@
 | transfers/nek_temperature/volume          | temperature_input                                                                            | ✅ Pass                          |                             |
 | transfers/nek_source                      | multiple_source_transfers<br>multiple_flux_transfers                                         | ✅ Pass<br>✅ Pass              |                             |
 | transfers/nek_scalar_value                | controls                                                                                     | ✅ Pass                          |                             |
-| transfers/nek_flux                        | volume<br>flux                                                                               | ⏳ Pending Conversion            |                             |
+| transfers/nek_flux                        | volume<br>flux                                                                               | ✅ Pass<br>✅ Pass            | Source code updates required (NekInterface.C): replace DIFFUSIVITY with DIFFUSIONCOEFF. |
 | transfers/nek_postprocessor_value         | nek                                                                                          | ✅ Pass                          |                             |
 | transfers/nearest_point                   | nearest_point_receiver                                                                       | ✅ Pass                          |                             |
 | conduction/identical_interface/cube       | slab_conduction                                                                              | ✅ Pass                          |                             |
