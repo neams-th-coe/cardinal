@@ -107,6 +107,8 @@ o=0.15
     from_multi_app = nek
     variable = nek_temp
     search_value_conflicts = true
+    greedy_search = true
+    value_conflicts_output = '2000'
   []
   [source]
     type = MultiAppGeneralFieldNearestLocationTransfer
@@ -114,6 +116,8 @@ o=0.15
     to_multi_app = nek
     variable = heat_source
     search_value_conflicts = true
+    greedy_search = true
+    value_conflicts_output = '2000'
   []
   [source_integral]
     type = MultiAppPostprocessorTransfer
