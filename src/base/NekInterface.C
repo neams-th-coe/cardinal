@@ -1354,9 +1354,7 @@ double
 get_temperature(const int id, const int surf_offset)
 {
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
-  const auto offset = nrs->scalar->fieldOffset();
-  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
-  return temperature[id];
+  return S[id + sid * scalarFieldOffset()];
 }
 
 double
