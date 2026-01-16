@@ -8,12 +8,13 @@
   polynomialOrder = 4
   writeControl = steps
   writeInterval = 50
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[TEMPERATURE]
-  conductivity = 2.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 2.5
+  transportCoeff = 1.0
   residualTol = 1.0e-10
   boundaryTypeMap = t, f, I, I
