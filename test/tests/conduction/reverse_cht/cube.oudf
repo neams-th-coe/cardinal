@@ -1,12 +1,12 @@
-void scalarDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
   if (bc->id == 6)
-    bc->s = 600.0;
+    bc->sScalar = 600.0;
 
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
   if (bc->id == 4)
-    bc->s = bc->usrwrk[bc->idM + 1 * bc->fieldOffset];
+    bc->sScalar = bc->usrwrk[bc->idxVol + 1 * bc->fieldOffset];
 }
