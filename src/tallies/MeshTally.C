@@ -142,32 +142,8 @@ MeshTally::spatialFilter()
       _bin_to_element_mapping.shrink_to_fit();
     }
 
-    // When block restriction is active we need to create a copy of the mesh which only contains
-    // elements in the desired blocks.
-    if (_tally_blocks.size() > 0)
-    {
-      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(
-          _openmc_problem.comm(), _openmc_problem.getMooseMesh().dimension());
-
-      msh->create_submesh(*_libmesh_mesh_copy.get(),
-                          msh->active_subdomain_set_elements_begin(_tally_blocks),
-                          msh->active_subdomain_set_elements_end(_tally_blocks));
-      _libmesh_mesh_copy->allow_find_neighbors(true);
-      _libmesh_mesh_copy->allow_renumbering(false);
-      _libmesh_mesh_copy->prepare_for_use();
-
-      openmc::model::meshes.emplace_back(
-          std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
-    }
-    else
-    {
-      if (_is_adaptive)
-        openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
-            _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
-      else
-        openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(
-            _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling()));
-    }
+    openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
+        _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling(), _tally_blocks));
   }
   else
     openmc::model::meshes.emplace_back(
