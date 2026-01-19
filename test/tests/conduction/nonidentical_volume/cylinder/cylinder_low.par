@@ -8,17 +8,18 @@
   polynomialOrder = 3
   writeControl = steps
   writeInterval = 2
+  scalars = temperature
 
 [MESH]
   file=cylinder.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 1.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 1.5
+  transportCoeff = 1.0
   residualTol = 1.0e-5
   boundaryTypeMap = t, I, I
