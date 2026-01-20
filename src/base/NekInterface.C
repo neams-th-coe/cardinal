@@ -300,7 +300,7 @@ initializeScratch(const unsigned int & n_slots)
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
   usrwrk = (dfloat *)calloc(n_slots * fieldOffset(), sizeof(dfloat));
-  platform->app->bc->o_usrwrk.resize(n_slots * fieldOffset());
+  platform->app->bc->o_usrwrk.resize(n_slots * fieldOffset() * sizeof(dfloat));
 
   n_usrwrk_slots = n_slots;
 }
