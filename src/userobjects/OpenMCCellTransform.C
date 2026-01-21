@@ -36,7 +36,7 @@ OpenMCCellTransform::validParams()
   params.addParam<MooseEnum>("transform_type",
                              transform_type,
                              "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
-                             "(φ, θ, ψ) in degrees.");
+                             "(φ, θ, ψ) in degrees, where the angles are the rotations about the x, y, and z axes, respectively.");
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "vector_value",
@@ -46,7 +46,7 @@ OpenMCCellTransform::validParams()
 
   params.addClassDescription(
       "UserObject that applies either translation or rotation on one or more OpenMC cells. "
-      "The transform is driven by a transform array of three MOOSE postprocessors");
+      "The transform is driven by a transform array of three MOOSE postprocessors/scalar values");
 
   return params;
 }
@@ -100,7 +100,7 @@ OpenMCCellTransform::execute()
       // If a user tried to apply translation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_translation(index, vec);
-      _console << "Setting OpenMC cell translations for cell with ID" + std::to_string(cell_id) +
+      _console << "Setting OpenMC cell translations for cell with ID " + std::to_string(cell_id) +
                       "to ("
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
     }
@@ -111,7 +111,7 @@ OpenMCCellTransform::execute()
       // If a user tried to apply rotation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_rotation(index, vec, 3);
-      _console << "Setting OpenMC cell rotations for cell with ID" + std::to_string(cell_id) +
+      _console << "Setting OpenMC cell rotations for cell with ID " + std::to_string(cell_id) +
                       "to ("
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
     }
