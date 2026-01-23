@@ -80,13 +80,13 @@ setStartTime(const double & start)
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  int num_bytes = fieldOffset() * sizeof(dfloat);
+  int count = fieldOffset();
 
-  occa::memory o_write = platform->device.malloc(num_bytes);
+  occa::memory o_write = platform->device.malloc(count);
   o_write.copyFrom(platform->app->bc->o_usrwrk,
-                   num_bytes /* length we are copying */,
+                   count /* length we are copying */,
                    0 /* where to place data */,
-                   num_bytes * slot /* where to source data */);
+                   slot*count /* where to source data */);
 
   occa::memory o_null;
   // TODO
