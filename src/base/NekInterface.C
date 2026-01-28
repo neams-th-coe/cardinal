@@ -522,7 +522,7 @@ limitTemperature(const double * min_T, const double * max_T)
   mesh_t * mesh = temperatureMesh();
 
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
-  const auto offset = nrs->scalar->fieldOffset();
+  const auto offset = scalarFieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1120,8 +1120,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
 
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
-  const auto offset = nrs->scalar->fieldOffset();
-  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
+  const int offset = sid * scalarFieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1134,7 +1133,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
         // some inefficiency if an element has more than one face on the sideset of interest,
         // because we will recompute the gradient in the element more than one time - but this
         // is of little practical interest because this will be a minority of cases.
-        gradient(mesh->Np, i, temperature.data(), grad_T, pp_mesh);
+        gradient(mesh->Np, i, S.data() + offset, grad_T, pp_mesh);
 
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
@@ -1371,12 +1370,11 @@ get_flux(const int id, const int surf_offset)
   int vertex_id = id % mesh->Np;
 
   const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
-  const auto offset = nrs->scalar->fieldOffset();
-  std::vector<dfloat> temperature(S.begin() + sid * offset, S.begin() + (sid + 1) * offset);
+  const int offset = sid * scalarFieldOffset();
   // This function is slightly inefficient, because we compute grad(T) for all nodes in
   // an element even though we only call this function for one node at a time
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
-  gradient(mesh->Np, elem_id, temperature.data(), grad_T, nek_mesh::all);
+  gradient(mesh->Np, elem_id, S.data() + offset, grad_T, nek_mesh::all);
 
   double normal_grad_T = grad_T[vertex_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
                          grad_T[vertex_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
