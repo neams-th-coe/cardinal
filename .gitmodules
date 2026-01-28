@@ -4,7 +4,7 @@
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
        url = https://github.com/Nek5000/nekRS.git
-       branch = next
+       branch = master
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git
