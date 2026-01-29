@@ -8,7 +8,7 @@ Applications:
         show_warning: false
 
 Documents:
-    software_quality_plan: sqa/inl_records.md#software_quality_plan
+    software_quality_plan: sqa/cardinal_sqap.md#software_quality_assurance_plan
     enterprise_architecture_entry: sqa/inl_records.md#enterprise_architecture_entry
     safety_software_determination: sqa/inl_records.md#safety_software_determination
     quality_level_determination: sqa/inl_records.md#quality_level_determination
