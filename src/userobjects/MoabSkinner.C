@@ -62,7 +62,9 @@ MoabSkinner::validParams()
   params.addParam<Real>("graveyard_scale_outer",
                         1.10,
                         "Multiplier on mesh bounding box to form outer graveyard surface");
-
+  params.addParam<std::string>(
+      "implicit_complement_material",
+      "Assigns OpenMC material name or ID to the implicit complement region. If not provided, void material is assigned by default.");
   // TODO: would be nice to support other file formats as well, like exodus
   params.addParam<bool>(
       "output_skins",
@@ -77,9 +79,6 @@ MoabSkinner::validParams()
                         "be written to a file. The files will be named moab_full_<n>.h5m, where "
                         "<n> is the time step index. "
                         "You can then visualize these files by running 'mbconvert'.");
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
@@ -110,6 +109,14 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
   _use_displaced = getParam<bool>("use_displaced_mesh");
+
+  if (isParamValid("implicit_complement_material"))
+  {
+    _set_implicit_complement_material = true;
+    if (!_build_graveyard)
+      mooseError("You can only set 'implicit_complement_material' if 'build_graveyard' is true!");
+    _implicit_complement_group_name = "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
+  }
 
   // we can probably support this in the future, it's just not implemented yet
   if (!getMooseMesh().getMesh().is_serial())
@@ -970,6 +977,14 @@ MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
   // Create a volume set
   moab::EntityHandle volume_set;
   createVol(++vol_id, volume_set, graveyard);
+
+  if (_set_implicit_complement_material)
+  {
+    moab::EntityHandle comp_group;
+    unsigned int comp_id = nBins() + 2;
+    createGroup(comp_id, _implicit_complement_group_name, comp_group);
+    check(_moab->add_entities(comp_group, &volume_set, 1));
+  }
 
   // Set up for the volume data to pass to surfs
   VolData vdata = {volume_set, Sense::FORWARDS};
