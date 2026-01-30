@@ -110,7 +110,7 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   _build_graveyard = getParam<bool>("build_graveyard");
   _use_displaced = getParam<bool>("use_displaced_mesh");
 
-  if (isParamValid("implicit_complement_material"))
+  if (isParamSetByUser("implicit_complement_material"))
   {
     _set_implicit_complement_material = true;
     if (!_build_graveyard)
