@@ -62,9 +62,9 @@ MoabSkinner::validParams()
   params.addParam<Real>("graveyard_scale_outer",
                         1.10,
                         "Multiplier on mesh bounding box to form outer graveyard surface");
-  params.addParam<std::string>(
-      "implicit_complement_material",
-      "Assigns OpenMC material name or ID to the implicit complement region. If not provided, void material is assigned by default.");
+  params.addParam<std::string>("implicit_complement_material",
+                               "Assigns OpenMC material name or ID to the implicit complement "
+                               "region. If not provided, void material is assigned by default.");
   // TODO: would be nice to support other file formats as well, like exodus
   params.addParam<bool>(
       "output_skins",
@@ -115,7 +115,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _set_implicit_complement_material = true;
     if (!_build_graveyard)
       mooseError("You can only set 'implicit_complement_material' if 'build_graveyard' is true!");
-    _implicit_complement_group_name = "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
+    _implicit_complement_group_name =
+        "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
   }
 
   // we can probably support this in the future, it's just not implemented yet
