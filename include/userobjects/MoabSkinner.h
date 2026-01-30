@@ -213,6 +213,12 @@ protected:
    */
   bool _build_graveyard;
 
+  /// Whether to assign a material to the implicit complement region
+  bool _set_implicit_complement_material = false;
+
+  /// OpenMC material name or ID which will be assigned to the implicit complement
+  std::string _implicit_complement_group_name;
+
   /// Whether the skinned mesh should be generated from a displaced mesh
   bool _use_displaced;
 
