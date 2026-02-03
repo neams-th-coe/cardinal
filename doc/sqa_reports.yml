@@ -9,12 +9,10 @@ Applications:
 
 Documents:
     software_quality_plan: sqa/cardinal_sqap.md#software_quality_assurance_plan
-    enterprise_architecture_entry: sqa/inl_records.md#enterprise_architecture_entry
-    safety_software_determination: sqa/inl_records.md#safety_software_determination
-    quality_level_determination: sqa/inl_records.md#quality_level_determination
-    configuration_management_plan: sqa/inl_records.md#configuration_management_plan
-    asset_management_plan: sqa/inl_records.md#asset_management_plan
-    verification_validation_plan: sqa/inl_records.md#verification_and_validation_plan
+    #safety_software_determination: sqa/inl_records.md#safety_software_determination  # to be added again when official SSD is completed through Argonne
+    quality_level_determination: sqa/cardinal_qld.md#quality_level_determination
+    configuration_management_plan: sqa/cardinal_cmp.md#configuration_management_plan
+    verification_validation_plan: sqa/cardinal_vvp.md#verification_and_validation_plan
     software_requirements_specification: sqa/cardinal_srs.md
     software_design_description: sqa/cardinal_sdd.md
     software_test_plan: sqa/cardinal_stp.md
