@@ -116,6 +116,14 @@ M. Eltawila, A.J. Novak,
 
 # Molten Salt Reactors
 
+M. Dalinger, E. Merzari, and S. Lee,
+"Multiphysics Modelling of the Molten Salt Fast Reactor using NekRS and the Fission Matrix Method"
+*Proceedings of ANS* (2026)
+
+B. Kovacevic, L. Charlot, and S. Terlizzi,
+"Multiphysics Modeling of Molten Salt Reactors Using MOOSE and OpenMC"
+*Proceedings of ANS* (2026)
+
 M. Dalinger, E. Merzari, S. Lee, and C. Emler,
 ["High-Fidelity Modelling of the Molten Salt Fast Reactor"](https://www.researchgate.net/publication/393478397_High-Fidelity_Modelling_of_the_Molten_Salt_Fast_Reactor)
 *Proceedings of NURETH* (2025)
