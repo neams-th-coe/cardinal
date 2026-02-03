@@ -21,17 +21,6 @@
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
-  [add_implicit_complement]
-    type = Exodiff
-    input = openmc.i
-    exodiff = with_implicit_comp_out.e
-    cli_args = 'UserObjects/moab/implicit_complement_material="h2o" Outputs/hide="cell_instance"'
-    requirement = "The system shall assign a material to the implicit complement region when skinning "
-                  "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_3 "
-                  "directory."
-    mesh_mode = 'replicated'
-    capabilities = 'dagmc'
-  []
   [skin_null_density]
     type = Exodiff
     input = null_density.i

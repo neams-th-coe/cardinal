@@ -113,8 +113,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   if (isParamSetByUser("implicit_complement_material"))
   {
     _set_implicit_complement_material = true;
-    if (!_build_graveyard)
-      mooseError("You can only set 'implicit_complement_material' if 'build_graveyard' is true!");
     _implicit_complement_group_name =
         "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
   }
@@ -752,6 +750,30 @@ MoabSkinner::findSurfaces()
   if (_build_graveyard)
     buildGraveyard(vol_id, surf_id);
 
+  if (_set_implicit_complement_material)
+  {
+    moab::EntityHandle comp_group;
+    unsigned int comp_id = nBins() + 1;
+    if(_build_graveyard)
+      comp_id += 1;
+    createGroup(comp_id, _implicit_complement_group_name, comp_group);
+    moab::EntityHandle arbitray_volume = 0;
+    for (const auto & surf_pair : surfsToVols)
+    {
+      const auto & vols = surf_pair.second;
+      if (!vols.empty())
+      {
+        arbitray_volume = vols.back().vol;
+        break;
+      }
+      else
+      {
+        mooseError("No volumes in the geometry found to assign to the implicit complement material group!");
+      }
+    }
+      check(_moab->add_entities(comp_group, &arbitray_volume, 1));
+  }
+
   // Write MOAB volume and/or skin meshes to file
   write();
 }
@@ -978,14 +1000,6 @@ MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
   // Create a volume set
   moab::EntityHandle volume_set;
   createVol(++vol_id, volume_set, graveyard);
-
-  if (_set_implicit_complement_material)
-  {
-    moab::EntityHandle comp_group;
-    unsigned int comp_id = nBins() + 2;
-    createGroup(comp_id, _implicit_complement_group_name, comp_group);
-    check(_moab->add_entities(comp_group, &volume_set, 1));
-  }
 
   // Set up for the volume data to pass to surfs
   VolData vdata = {volume_set, Sense::FORWARDS};
