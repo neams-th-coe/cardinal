@@ -754,7 +754,7 @@ MoabSkinner::findSurfaces()
   {
     moab::EntityHandle comp_group;
     unsigned int comp_id = nBins() + 1;
-    if(_build_graveyard)
+    if (_build_graveyard)
       comp_id += 1;
     createGroup(comp_id, _implicit_complement_group_name, comp_group);
     moab::EntityHandle arbitray_volume = 0;
@@ -768,10 +768,11 @@ MoabSkinner::findSurfaces()
       }
       else
       {
-        mooseError("No volumes in the geometry found to assign to the implicit complement material group!");
+        mooseError("No volumes in the geometry found to assign to the implicit complement material "
+                   "group!");
       }
     }
-      check(_moab->add_entities(comp_group, &arbitray_volume, 1));
+    check(_moab->add_entities(comp_group, &arbitray_volume, 1));
   }
 
   // Write MOAB volume and/or skin meshes to file
