@@ -23,7 +23,7 @@ fluid viscosity. The sideset numbering in the fluid domain is:
 
 !media pipe.png
   id=pipe
-  caption=NekRS flow domain. The inlet is located at $z=0$ and the outlet is located at $z=10$.
+  caption=NekRS flow domain. The inlet is located at 0 and the outlet is at 10.
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 A computational mesh is built using MOOSE's mesh generators, shown
@@ -34,7 +34,7 @@ cardinal-opt -i pipe.i --mesh-only
 mv pipe_in.e pipe.exo
 ```
 
-!listing /tutorials/nek_turbulence/pipe.i
+!listing /tutorials/turbulence/pipe.i
 
 ## Inlet-Outlet Conditions
 
