@@ -278,6 +278,7 @@ With a constant heat flux, we know that the temperature at a height $z$ will jus
 be shifted by some amount $\gamma z$ relative to the temperature at height 0.
 
 \begin{equation}
+\label{eq:c2}
 T^\dagger(x,y,z,t)=\tilde{T}^\dagger(x,y,0,t)+\gamma z^\dagger
 \end{equation}
 
