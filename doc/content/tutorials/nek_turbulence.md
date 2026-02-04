@@ -183,7 +183,8 @@ solution scalar quantities (e.g. maximum/minimum values, norms along lines, etc.
 
 Another easy way to monitor steady state is using Cardinal. For example, the input
 below will run your NekRS case and automatically terminate once the relative change
-in your solution $\vec{s}$ between two successive time steps $n$ and $n+1$ is less than a provided tolerance $\epsilon$.
+in your solution $\vec{s}$ between two successive time steps $n$ and $n+1$ is less than a provided tolerance $\epsilon$. This check is performed for *all* auxiliary variables individually
+in your problem, if you are using `check_aux = True`.
 
 \begin{equation}
 \frac{1}{\Delta t}\frac{\|\vec{s}^{n+1}-\vec{s}^n\|}{\|\vec{s}^n\|}\leq\epsilon
