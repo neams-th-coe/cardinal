@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>eigenvalue</run_mode>
+  <particles>1000</particles>
+  <batches>100</batches>
+  <inactive>50</inactive>
+  <source strength="1.0">
+    <space type="box">
+      <parameters>-12.5 -12.5 -12.5 87.5 37.5 12.5</parameters>
+    </space>
+  </source>
+  <temperature_default>500.0</temperature_default>
+  <temperature_method>interpolation</temperature_method>
+  <temperature_range>294.0 3000.0</temperature_range>
+  <temperature_tolerance>1000.0</temperature_tolerance>
+</settings>
