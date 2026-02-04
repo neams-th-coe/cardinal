@@ -130,6 +130,23 @@ tool such as Paraview or Visit.
   caption=Time evolution of the fluid temperature
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
+From Paraview, we can also extract solution data along lines; for instance,
+below shows the fluid pressure along the pipe axis. Our mesh is a bit too coarse
+at the inlet, so there's some bumpiness there in pressure and velocity.
+The fully-developed pressure gradient, taken by computing the difference in pressure
+between two points near the outlet,
+
+\begin{equation}
+\frac{\pl P}{\pl z}_\text{fully developed}\approx\frac{P(0, 0, 10)-P(0, 0, 9.5)}{0.5}
+\end{equation}
+
+is around -0.3198 (nondimensional).
+
+!media pressure_gradient.png
+  id=pressure_gradient
+  caption=Fluid pressure plotted down the center of the pipe
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
 ### Monitoring Steady State
 
 Because all our boundary conditions are steady, our flow will reach a steady-state
@@ -192,4 +209,168 @@ in this tutorial.
 
 ## Periodic Boundary Conditions
 
-For many
+For many flows of interest, we are only interested in the fully-developed solution.
+We can use inlet-outlet conditions for these scenarios, provided our domain is sufficiently
+long enough and we only use the solution towards the outlet (once reaching fully-developed
+conditions). However, this can result in a very long flow domain. For instance, turbulent
+flow in a round pipe requires a development length $l$ of around
+
+\begin{equation}
+l=4.4Re^{1/6}D
+\end{equation}
+
+which can be 20-30 pipe diameters. For laminar flow, because the turbulent transport is
+not aiding in the lateral transport across the pipe, the development length
+can be even higher (on the order of 100 pipe diameters at the upper range of the laminar
+regime). Therefore, if our interest is only in the fully-developed state, a natural
+choice would be to instead model the pipe with periodic boundary conditions.
+
+The case files for this periodic case are in the `periodic` subdirectory.
+
+### Setting up a Periodic Mesh
+
+To establish a periodic mesh, our 3-D fluid mesh must have two faces which are periodic
+(identical topology). The element IDs on those faces must be shifted by an equal shift.
+For instance, if one mesh face has three elements with IDs 1, 2, 3 then the corresponding
+paired periodic mesh face would need to have IDs 9, 10, 11 (an equal shift of 8 for each).
+You can easily attain this by generating a 2-D mesh of your geometry, and then extruding
+it. This is how we made the exodus mesh for our pipe. However, we cannot simply
+use the `pipe.re2` we generated for the inlet-outlet case earlier. We need to re-run
+`exo2nek` and inform NekRS that we have one periodic pair of boundaries, and that those
+boundary IDs are 2 and 3.
+
+```
+exo2nek
+```
+
+Now, we have a new `pipe.re2` file. For periodic cases, we need to have a `.usr`
+file to (i) set the boundary IDs of any sidesets which are to be periodic, to zero
+and (ii) renormalize any remaining boundary IDs so that they are sequential beginning
+at 1.
+
+!listing /tutorials/turbulence/periodic/pipe.usr
+
+Then, in our `.par` file, we will only refer to the non-periodic boundaries which remain
+(so, our `boundaryTypeMap` fields will only list the boundary condition for the solid
+walls since that is the only boundary remaining in our mesh).
+
+!listing /tutorials/turbulence/periodic/pipe.par
+
+Note that in our `.oudf` file, we also only need to prescribe boundary conditions
+for the non-periodic boundaries.
+
+!listing /turbulence/periodic/pipe.oudf
+
+### Periodic Flow and Temperature
+
+NekRS treats the [!ac](GLL) points and their corresponding [!ac](DOFs) no different
+than interior nodes. That is, the velocity, pressure, temperature, etc. at the nodes
+on one periodic face are identical to those on the corresponding periodic face.
+
+For the inlet/outlet case, the pressure gradient $\partial P/\partial z$ becomes constant in the fully-developed
+region. Similarly, for a constant heat flux, the temperature gradient $\partial T/\partial z$ also becomes constant. Physically, this means that for the fully-developed flow
+that the pressure and temperature will have a constant streamwise gradient - so by
+definition, it's not possible for the pressure field to be identical on the inlet
+and outlet face (and neither for temperature). Therefore, what NekRS actually solves
+for in periodic flow cases is a decomposed pressure $\tilde{P}$ and a decomposed temperature $\tilde{T}$.
+
+With a constant heat flux, we know that the temperature at a height $z$ will just
+be shifted by some amount $\gamma z$ relative to the temperature at height 0.
+
+\begin{equation}
+T^\dagger(x,y,z,t)=\tilde{T}^\dagger(x,y,0,t)+\gamma z^\dagger
+\end{equation}
+
+From energy conservation, $\gamma$ is
+
+\begin{equation}
+\label{eq:gamma}
+\begin{aligned}
+q''^\dagger 2\pi R^\dagger z^\dagger=&\ \rho \pi (R^\dagger)^2U^\daggerC_p\underbrace{\left(T^\dagger(x,y,z,t)-\tilde{T}^\dagger(x,y,0,t)\right)}_{\gamma z^\dagger}\\
+\frac{q''^\dagger 2}{\rho R^\dagger U^\dagger C_p} =&\ \gamma
+\end{aligned}
+\end{equation}
+
+For this example, our heat flux is 1.0, and our nondimensional density, velocity, and specific
+heat are also 1.0. Therefore, $\gamma=2/R$.
+
+Now, we want to recast the energy equation in a way such that the outlet temperature does indeed equal the inlet temperature (so that our periodic boundary conditions work). Inserting the above into the conservation of energy equation,
+
+\beq
+\label{eq:c3}
+\frac{\pl T}{\pl t}+V_i\frac{\pl T}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl T}{\pl x_i}\\
+\frac{\pl \tilde{T}}{\pl t}+V_i\frac{\pl\tilde{T}}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl\tilde{T}}{\pl x_i}-V_z\gamma\\
+\eeq
+
+In this way, by adding a heat sink term $V_z\gamma$, the actual quantity we are solving for with the energy equation is the periodic temperature field $\tilde{T}$. This field can be a function of height if the geometry itself varies with $z$, such as in
+wire-wrapped pin bundles (e.g. see [!cite](dutra)).
+In other words, the representation in Eq. \eqref{eq:c2} does allow the periodic temperature field to vary in $z$ (i.e. if you were to plot $\tilde{T}$ along a vertical line, you would not see a constant temperature) unless your geometry had no change in the cross-sectional
+geometry with height (like is the case for our simple pipe).
+
+We need to add this heat sink, $\gamma z$, to our problem ourselves. This will require
+adding a kernel to the energy equation. Our resulting temperature field that we compute will represent the fully-developed temperature, but scaled so that its average is zero.
+Although including this heat sink is all that is strictly necessary, it is a good idea
+to also explicitly subtract out any numerical drift in the temperature average.
+Over long integration times, even if the bulk average is still a small number (e.g. $10^{-3}$), this can slowly drift over time.
+
+!listing /tutorials/turbulence/periodic/pipe.udf
+
+!listing /tutorials/turbulence/periodic/pipe.oudf
+
+Likewise for pressure, NekRS will solve for the pressure field superimposed on top of
+the constant-pressure-gradient arising from fully-developed flow.
+
+\begin{equation}
+\label{eq:lambda}
+P(x,y,z,t)=\tilde{P}(x,y,0,t)-\lambda z
+\end{equation}
+
+To correctly set up the flow aspects of a periodic case, all we need to add is the
+following line to the `.par` file, where the `meanVelocity` should be the mean
+velocity (for our non-dimensional case, this is the mean value of $U^\dagger$ which is
+just 1 because we choose a reference velocity scale $U_0$ to be the mean dimensional axial
+velocity). The `direction` indicates which coordinate direction represents the periodic
+direction.
+
+```
+constFlowRate = meanVelocity=1.0 + direction=Z
+```
+
+For the round pipe, our pressure distribution we will solve for with NekRS is
+simply zero (because our true pressure distribution is simply a constant axial gradient).
+Whereas in Eq. \eqerf{eq:gamma} we know how to scale back from our non-dimensional
+fully-developed temperature, you don't need to manually make any changes to kernels/etc.
+to accomplish the periodic flow (aside from setting the `constFlowRate`).
+When running the case, NekRS will print to the screen the
+fully developed pressure gradient ($\lambda$)
+in Eq. \eqref{eq:lambda} as the `scale` term. For instance, for the time step shown
+below, the fully developed pressure gradient is 3.0882e-1 (compare this to
+the value we estimated from our inlet/outlet case earlier).
+
+```
+Time Step 623, time = 11.0732, dt = 0.016456
+copying solution to nek
+S00      : iter 011  resNorm0 4.63e-07  resNorm 8.63e-08
+projP    : resNorm0 1.56e-07  resNorm 9.08e-12  ratio = 1.721e+04  5/8
+P        : iter 001  resNorm0 9.08e-12  resNorm 1.46e-12
+UVW      : iter 035  resNorm0 2.21e-03  resNorm 7.00e-08  divErrNorms 3.23e-14 3.00e-07
+flowRate : uBulk0 9.97e-01  uBulk 1.00e+00  err 2.22e-16  scale 3.08822e-01
+step= 623  t= 1.10731611e+01  dt=1.6e-02  C= 0.48  elapsedStep= 5.07e-02s  elapsedStepSum= 3.55035e+01s
+```
+
+We are now ready to run this case. We will use the Cardinal input from the inlet/outlet
+case earlier to easily monitor steady state detection. To run with 12 ranks
+(just an example),
+
+```
+mpiexec -np 12 cardinal-opt -i nek.i
+```
+
+You will notice that with the periodic case, we reach a steady-state much faster
+than the inlet/outlet case. Pressure is effectively zero. Shown below is the
+temperature, $\tilde{T}$.
+
+!media pipe_periodic.png
+  id=pipe
+  caption=NekRS temperature solution for periodic boundary conditions.
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
