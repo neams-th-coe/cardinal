@@ -25,7 +25,7 @@ nl = 8
     type = AdvancedExtruderGenerator
     input = delete_background
     direction = '0 0 1'
-    num_layers = 20
+    num_layers = 40
     heights = '10'
   []
   [delete_sides]
@@ -42,8 +42,5 @@ nl = 8
   [hex20]
     type = NekMeshGenerator
     input = rename
-    boundary = '1'
-    radius = ${R}
-    geometry_type = cylinder
   []
 []
