@@ -191,7 +191,7 @@ in your solution $\vec{s}$ between two successive time steps $n$ and $n+1$ is le
 
 The solution $\vec{s}$ is the auxiliary system solution, meaning one long vector
 containing all of the auxiliary variables (which you need to explicitly pass from NekRS's
-internals into MOOSE variables using [FieldTransfers](FieldTransfers.md).
+internals into MOOSE variables using [FieldTransfers](FieldTransfers/index.md).
 The norm above is scaled by $\Delta t$ so that if you have a very small time step,
 the solution wouldn't change very much in such a short window of time (even if the
 steady state has not been reached yet). You can also inspect postprocessors to see how
@@ -371,6 +371,6 @@ than the inlet/outlet case. Pressure is effectively zero. Shown below is the
 temperature, $\tilde{T}$.
 
 !media pipe_periodic.png
-  id=pipe
+  id=pipe_periodic
   caption=NekRS temperature solution for periodic boundary conditions.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
