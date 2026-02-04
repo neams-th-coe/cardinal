@@ -484,7 +484,7 @@ alternative boundary condition to our solid app.
 The fluid input files are mostly the same as the case with temperature-flux coupling,
 so we will only focus on the aspects which are different.
 
-To compute the quantities in Eq. \eqref{eq:hf}, we need to add a few user objects to
+To compute the quantities in [eq:hf], we need to add a few user objects to
 our Nek wrapping file. We will do so in the `nek_fluxflux.i` file. For our
 heat transfer coefficient, we will compute the heat transfer coefficient (ideally
 as a function of space, since it varies with position and this will yield a more
@@ -501,7 +501,7 @@ $h$, $T_\infty$, and $T_\text{wall}$. Our choice in this tutorial simply uses
 a conventional subchannel-type discretization.
 
 Then, we add additional user objects to compute the necessary terms
-in Eq. \eqref{eq:hf}:
+in [eq:hf]:
 
 - [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average heat flux on the pin surfaces (one unique calculation for each axial layer and for each subchannel). The heat flux from MOOSE is written into the zeroth slot in the `nrs->usrwrk` array, which we indicate as the field we want to average by setting `field = usrwrk00`.
 - [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average wall temperature on the pin surfaces (one unique calculation for each axial layer and for each subchannel). We indicate temperature by setting `field = temperature`.

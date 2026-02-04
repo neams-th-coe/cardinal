@@ -24,7 +24,7 @@ fluid viscosity. The sideset numbering in the fluid domain is:
 !media pipe.png
   id=pipe
   caption=NekRS flow domain. The inlet is located at 0 and the outlet is at 10.
-  style=width:30%;margin-left:auto;margin-right:auto;halign:center
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 A computational mesh is built using MOOSE's mesh generators, shown
 below. To generate this mesh, run
@@ -45,9 +45,9 @@ will be a uniform temperature of 0.
 
 !listing /inlet_outlet/pipe.par
 
-!listing /inlet_outlet/pipe.udf
+!listing /inlet_outlet/pipe.udf language=cpp
 
-!listing /inlet_outlet/pipe.oudf
+!listing /inlet_outlet/pipe.oudf language=cpp
 
 Along the pipe wall, we impose a constant heat flux in non-dimensional units of 1.0. When we non-dimensionalize the energy equation, we
 divide each term through by the coefficient on the advective term ($\rho C_p\Delta TU/L$), which results in a non-dimensional *volumetric* heat source of
@@ -81,18 +81,18 @@ energy entering the pipe is equal to $\dot{m}C_p(T_\text{out}-T_\text{in})$.
 
 \begin{equation}
 \label{eq:two}
-q''2\pi RH=\rho \piR^2 UC_p(T_\text{out}-T_\text{in})
+q''2\pi RH=\rho \pi R^2 UC_p(T_\text{out}-T_\text{in})
 \end{equation}
 
 where $2\pi RH$ is the surface area through which the heat enters and $\pi R^2$ is
-the cross-sectional area of the pipe. Inserting Eq. \eqref{eq:one} into Eq. \eqref{eq:two}
+the cross-sectional area of the pipe. Inserting [eq:one] into Eq. [eq:two]
 and then rearranging, we find the temperature rise (in dimensional units).
 
 \begin{equation}
 \Delta T\frac{2H}{R}=T_\text{out}-T_\text{in}
 \end{equation}
 
-For scaling temperature, we have not yet specified what $T_0$ and $\Delta T$ are in Eq. \eqref{eq:scale}. Ultimately, these scales do not matter, you can choose any scale! But,
+For scaling temperature, we have not yet specified what $T_0$ and $\Delta T$ are in [eq:scale]. Ultimately, these scales do not matter, you can choose any scale! But,
 it is customary to choose $T_0=T_\text{in}$ and $\Delta T=T_\text{out}-T_\text{in}$. With
 those choices, we can rewrite the right-hand side of the equation above to be in
 terms of non-dimensional quantities,
@@ -137,7 +137,7 @@ The fully-developed pressure gradient, taken by computing the difference in pres
 between two points near the outlet,
 
 \begin{equation}
-\frac{\pl P}{\pl z}_\text{fully developed}\approx\frac{P(0, 0, 10)-P(0, 0, 9.5)}{0.5}
+\frac{\partial P}{\partial z}_\text{fully developed}\approx\frac{P(0, 0, 10)-P(0, 0, 9.5)}{0.5}
 \end{equation}
 
 is around -0.3198 (nondimensional).
@@ -186,12 +186,12 @@ below will run your NekRS case and automatically terminate once the relative cha
 in your solution $\vec{s}$ between two successive time steps $n$ and $n+1$ is less than a provided tolerance $\epsilon$.
 
 \begin{equation}
-\frac{\|\vec{s}^{n+1}-\vec{s}^n\|}{\Delta t\|\vec{s}^n\|}\leq\epsilon
+\frac{1}{\Delta t}\frac{\|\vec{s}^{n+1}-\vec{s}^n\|}{\|\vec{s}^n\|}\leq\epsilon
 \end{equation}
 
 The solution $\vec{s}$ is the auxiliary system solution, meaning one long vector
 containing all of the auxiliary variables (which you need to explicitly pass from NekRS's
-internals into MOOSE variables using [FieldTransfers](FieldTransfers/index.md).
+internals into MOOSE variables using [FieldTransfers](AddFieldTransferAction.md).
 The norm above is scaled by $\Delta t$ so that if you have a very small time step,
 the solution wouldn't change very much in such a short window of time (even if the
 steady state has not been reached yet). You can also inspect postprocessors to see how
@@ -248,7 +248,7 @@ file to (i) set the boundary IDs of any sidesets which are to be periodic, to ze
 and (ii) renormalize any remaining boundary IDs so that they are sequential beginning
 at 1.
 
-!listing /tutorials/turbulence/periodic/pipe.usr
+!listing /tutorials/turbulence/periodic/pipe.usr language=fortran
 
 Then, in our `.par` file, we will only refer to the non-periodic boundaries which remain
 (so, our `boundaryTypeMap` fields will only list the boundary condition for the solid
@@ -259,7 +259,7 @@ walls since that is the only boundary remaining in our mesh).
 Note that in our `.oudf` file, we also only need to prescribe boundary conditions
 for the non-periodic boundaries.
 
-!listing /turbulence/periodic/pipe.oudf
+!listing /turbulence/periodic/pipe.oudf language=fortran
 
 ### Periodic Flow and Temperature
 
@@ -286,7 +286,7 @@ From energy conservation, $\gamma$ is
 \begin{equation}
 \label{eq:gamma}
 \begin{aligned}
-q''^\dagger 2\pi R^\dagger z^\dagger=&\ \rho \pi (R^\dagger)^2U^\daggerC_p\underbrace{\left(T^\dagger(x,y,z,t)-\tilde{T}^\dagger(x,y,0,t)\right)}_{\gamma z^\dagger}\\
+q''^\dagger 2\pi R^\dagger z^\dagger=&\ \rho \pi (R^\dagger)^2U^\dagger C_p\underbrace{\left(T^\dagger(x,y,z,t)-\tilde{T}^\dagger(x,y,0,t)\right)}_{\gamma z^\dagger}\\
 \frac{q''^\dagger 2}{\rho R^\dagger U^\dagger C_p} =&\ \gamma
 \end{aligned}
 \end{equation}
@@ -304,7 +304,7 @@ Now, we want to recast the energy equation in a way such that the outlet tempera
 
 In this way, by adding a heat sink term $V_z\gamma$, the actual quantity we are solving for with the energy equation is the periodic temperature field $\tilde{T}$. This field can be a function of height if the geometry itself varies with $z$, such as in
 wire-wrapped pin bundles (e.g. see [!cite](dutra)).
-In other words, the representation in Eq. \eqref{eq:c2} does allow the periodic temperature field to vary in $z$ (i.e. if you were to plot $\tilde{T}$ along a vertical line, you would not see a constant temperature) unless your geometry had no change in the cross-sectional
+In other words, the representation in [eq:c2] does allow the periodic temperature field to vary in $z$ (i.e. if you were to plot $\tilde{T}$ along a vertical line, you would not see a constant temperature) unless your geometry had no change in the cross-sectional
 geometry with height (like is the case for our simple pipe).
 
 We need to add this heat sink, $\gamma z$, to our problem ourselves. This will require
@@ -313,9 +313,9 @@ Although including this heat sink is all that is strictly necessary, it is a goo
 to also explicitly subtract out any numerical drift in the temperature average.
 Over long integration times, even if the bulk average is still a small number (e.g. $10^{-3}$), this can slowly drift over time.
 
-!listing /tutorials/turbulence/periodic/pipe.udf
+!listing /tutorials/turbulence/periodic/pipe.udf language=cpp
 
-!listing /tutorials/turbulence/periodic/pipe.oudf
+!listing /tutorials/turbulence/periodic/pipe.oudf language=cpp
 
 Likewise for pressure, NekRS will solve for the pressure field superimposed on top of
 the constant-pressure-gradient arising from fully-developed flow.
@@ -338,12 +338,12 @@ constFlowRate = meanVelocity=1.0 + direction=Z
 
 For the round pipe, our pressure distribution we will solve for with NekRS is
 simply zero (because our true pressure distribution is simply a constant axial gradient).
-Whereas in Eq. \eqerf{eq:gamma} we know how to scale back from our non-dimensional
+Whereas in [eq:gamma] we know how to scale back from our non-dimensional
 fully-developed temperature, you don't need to manually make any changes to kernels/etc.
 to accomplish the periodic flow (aside from setting the `constFlowRate`).
 When running the case, NekRS will print to the screen the
 fully developed pressure gradient ($\lambda$)
-in Eq. \eqref{eq:lambda} as the `scale` term. For instance, for the time step shown
+in Eq. [eq:lambda] as the `scale` term. For instance, for the time step shown
 below, the fully developed pressure gradient is 3.0882e-1 (compare this to
 the value we estimated from our inlet/outlet case earlier).
 
