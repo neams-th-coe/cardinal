@@ -28,6 +28,21 @@ Documents:
     working_dirs:
         - ${ROOT_DIR}/doc/content
         - ${MOOSE_DIR}/framework/doc/content
+    required_documents:
+        - software_quality_plan
+        #- safety_software_determination # add back in when SSD is completed by ANL
+        - quality_level_determination
+        - configuration_management_plan
+        - verification_validation_plan
+        - software_requirements_specification
+        - software_design_description
+        - software_test_plan
+        - requirements_traceability_matrix
+        - verification_validation_report
+        - failure_analysis_report
+        - software_library_list
+        - software_coding_standards
+        - communication_and_contact_information
 
 Requirements:
     cardinal:
