@@ -1,0 +1,23 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 3
+  numSteps = 10000
+  dt = targetCFL=0.5 + initial=1e-4
+  writeInterval = 1000
+
+[PRESSURE]
+  residualTol = 1e-06
+
+[VELOCITY]
+  boundaryTypeMap = W, v, o
+  residualTol = 1e-07
+  density = 1.0
+  viscosity = -100
+
+[TEMPERATURE]
+  boundaryTypeMap = f, t, o
+  residualTol = 1e-07
+  rhoCp = 1.0
+  conductivity = -100
