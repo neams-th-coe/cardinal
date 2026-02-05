@@ -753,9 +753,7 @@ MoabSkinner::findSurfaces()
   if (_set_implicit_complement_material)
   {
     moab::EntityHandle comp_group;
-    unsigned int comp_id = nBins() + 1;
-    if (_build_graveyard)
-      comp_id += 1;
+    unsigned int comp_id = nBins() + 1 + _build_graveyard;
     createGroup(comp_id, _implicit_complement_group_name, comp_group);
     moab::EntityHandle arbitray_volume = 0;
     for (const auto & surf_pair : surfsToVols)
