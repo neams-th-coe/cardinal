@@ -1,0 +1,50 @@
+c-----------------------------------------------------------------------
+      subroutine useric(i,j,k,eg)
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+      integer i,j,k,e,eg
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userchk
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2()
+      include 'SIZE'
+      include 'TOTAL'
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+         if (boundaryID(ifc,iel).eq. 1) then
+           boundaryID(ifc,iel) = 1
+         else if (boundaryID(ifc,iel).eq. 2) then
+           boundaryID(ifc,iel) = 0
+         else if (boundaryID(ifc,iel) .eq. 3) then
+           boundaryID(ifc,iel) = 0
+         endif
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------

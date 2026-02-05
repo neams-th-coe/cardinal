@@ -65,6 +65,7 @@ We recommend quickly reading this documentation before proceeding.
 3. [Conjugate heat transfer coupling](cht.md)
 4. [Forward uncertainty quantification](nekrs_stochastic.md)
 5. [Postprocessing/extracting the NekRS solution](nekrs_outputs.md)
+6. [Turbulence modeling with NekRS](nek_turbulence.md)
 
 ## Tutorials for OpenMC
   id=openmc
@@ -84,19 +85,19 @@ quickly reading this documentation before proceeding.
 Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://www.flexiquiz.com/SC/N/30fc79f0-f9a5-4cfc-b140-c07dda3bdf0b)!
 !alert-end!
 
-6. [Temperature, density, and tally coupling to MOOSE](openmc_solid.md)
-7. [Adaptive mesh refinement on mesh tallies](openmc_amr.md)
-8. [Multi-group cross section generation](openmc_mgxs.md)
+7. [Temperature, density, and tally coupling to MOOSE](openmc_solid.md)
+8. [Adaptive mesh refinement on mesh tallies](openmc_amr.md)
+9. [Multi-group cross section generation](openmc_mgxs.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
 
-9. [Coupling of NekRS, OpenMC, and MOOSE](coupled.md)
+10. [Coupling of NekRS, OpenMC, and MOOSE](coupled.md)
 
 ## Miscellaneous
 
-10. [Converting CSG to CAD for multiphysics](csg_to_cad.md)
-11. [Restarting coupled NekRS and MOOSE simulations](restart_nek_moose.md)
-12. [Coupling to arbitrary MOOSE applications](other_apps.md)
-13. [Assessing convergence](convergence.md)
-14. [What Transfer should I use?](transfers.md)
+11. [Converting CSG to CAD for multiphysics](csg_to_cad.md)
+12. [Restarting coupled NekRS and MOOSE simulations](restart_nek_moose.md)
+13. [Coupling to arbitrary MOOSE applications](other_apps.md)
+14. [Assessing convergence](convergence.md)
+15. [What Transfer should I use?](transfers.md)
