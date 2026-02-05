@@ -112,6 +112,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
 
   if (isParamSetByUser("implicit_complement_material"))
   {
+    // If the user specify a material that doesn't exist in materials.xml file, OpenMC
+    // will catch the mistake.
     _set_implicit_complement_material = true;
     _implicit_complement_group_name =
         "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
