@@ -1,0 +1,27 @@
+[Tests]
+  [skin]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
+                  "boundary conditions through the skinner as compared to applying BCs on a CSG cell that contains"
+                  "the DAGMC geometry in /equivalent_bcs."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [sideset_added_twice]
+    type = RunException
+    input = conflicting_bcs.i
+    expect_err = "Same sideset 4 appears in both vacuum_bcs_surfaces and reflective_bcs_surfaces."
+    requirement = "The system shall error if a sideset is assigned both vacuum and reflective BCs."
+    capabilities = 'dagmc'
+  []
+  [typo]
+    type = RunException
+    input = typo.i
+    expect_err = "Boundary 'topp' is not a sideset."
+    requirement = "The system shall error if an unknown sideset is assigned a BC."
+    capabilities = 'dagmc'
+  []
+[]
