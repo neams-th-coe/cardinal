@@ -759,16 +759,8 @@ MoabSkinner::findSurfaces()
     for (const auto & surf_pair : surfsToVols)
     {
       const auto & vols = surf_pair.second;
-      if (!vols.empty())
-      {
-        arbitray_volume = vols.back().vol;
-        break;
-      }
-      else
-      {
-        mooseError("No volumes in the geometry found to assign to the implicit complement material "
-                   "group!");
-      }
+      arbitray_volume = vols.front().vol;
+      break;
     }
     check(_moab->add_entities(comp_group, &arbitray_volume, 1));
   }
