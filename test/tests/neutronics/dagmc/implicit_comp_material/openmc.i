@@ -8,20 +8,6 @@ x0 = 12.5
 x1 = 37.5
 x2 = 62.5
 
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
-[]
-
 T0 = 600.0
 dT = 50.0
 
@@ -67,6 +53,8 @@ dT = 50.0
     temperature = temp
     build_graveyard = true
     implicit_complement_material="h2o"
+    graveyard_scale_inner = 1.1
+    graveyard_scale_outer = 1.2
   []
 []
 
@@ -74,13 +62,16 @@ dT = 50.0
   [k]
     type = KEigenvalue
   []
+  [k_std_dev]
+    type = KEigenvalue
+    output = 'std_dev'
+  []
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 2
+  type = Steady
 []
 
 [Outputs]
-  exodus = true
+  csv = true
 []
