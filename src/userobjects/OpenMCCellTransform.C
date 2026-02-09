@@ -36,7 +36,8 @@ OpenMCCellTransform::validParams()
   params.addParam<MooseEnum>("transform_type",
                              transform_type,
                              "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
-                             "(φ, θ, ψ) in degrees, where the angles are the rotations about the x, y, and z axes, respectively.");
+                             "(φ, θ, ψ) in degrees, where the angles are the rotations about the "
+                             "x, y, and z axes, respectively.");
 
   params.addRequiredParam<std::vector<PostprocessorName>>(
       "vector_value",
@@ -91,9 +92,7 @@ OpenMCCellTransform::execute()
     int32_t index = -1;
 
     int err = openmc_get_cell_index(cell_id, &index);
-    catchOpenMCError(err,
-                     "In attempting to find OpenMC cell with ID " + std::to_string(cell_id) +
-                         ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    catchOpenMCError(err, "find OpenMC cell with ID " + std::to_string(cell_id));
 
     if (_transform_type == "translation")
     {
@@ -118,10 +117,7 @@ OpenMCCellTransform::execute()
     else
       mooseError("Unhandled transform_type: " + _transform_type);
 
-    catchOpenMCError(err,
-                     "In attempting to transform OpenMC cell OpenMC cell with ID " +
-                         std::to_string(cell_id) + ", OpenMC reported:\n\n" +
-                         std::string(openmc_err_msg));
+    catchOpenMCError(err, "transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id));
   }
 }
 
