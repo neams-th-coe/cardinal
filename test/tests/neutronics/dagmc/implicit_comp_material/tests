@@ -1,0 +1,13 @@
+[Tests]
+  [add_implicit_complement]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall assign a material to the implicit complement region when skinning "
+                  "as compared to a CSG-equivalent version of the geometry, which is in /csg_equivalent "
+                  "directory. The result for k is within statistics of the CSG equivalent."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]

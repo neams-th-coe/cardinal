@@ -1,0 +1,15 @@
+[Tests]
+  [no_graveyard_implicit_complement]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall assign a material to the implicit complement region when skinning "
+                  " when there is no graveyard as compared to a CSG-equivalent version of the geometry"
+                  " which is in /csg_equivalent directory. The implicit complement region in this model exists as the "
+                  "space between the mesh geometry and an enclosing CSG cell. Results agree within "
+                  "statistics to the CSG reference."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]
