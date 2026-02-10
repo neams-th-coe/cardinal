@@ -321,7 +321,7 @@ viscosity()
 {
   dfloat mu;
   setupAide & options = platform->options;
-  options.getArgs("VISCOSITY", mu);
+  options.getArgs("FLUID VISCOSITY", mu);
 
   // because we set rho_ref, U_ref, and L_ref all equal to 1 if our input is dimensional,
   // we don't need to have separate treatments for dimensional vs. nondimensional cases
@@ -334,7 +334,7 @@ Pr()
 {
   dfloat rho, rho_cp, k;
   setupAide & options = platform->options;
-  options.getArgs("DENSITY", rho);
+  options.getArgs("FLUID DENSITY", rho);
   options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
   options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
@@ -967,7 +967,7 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  platform->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("FLUID DENSITY", rho);
 
   double integral = 0.0;
 
@@ -1016,7 +1016,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  platform->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("FLUID DENSITY", rho);
 
   double integral = 0.0;
 
