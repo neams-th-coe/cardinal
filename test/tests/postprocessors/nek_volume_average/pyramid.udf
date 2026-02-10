@@ -1,54 +1,57 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#include "pyramid.oudf"
+
+#endif
+
+void UDF_Setup()
 {
-}
+  auto mesh = nrs->meshV;
 
-void UDF_Setup(nrs_t *nrs)
-{
-  auto mesh = nrs->cds->mesh[0];
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> P(nrs->fluid->fieldOffset, 0.0);
+  std::vector<dfloat> S(nrs->scalar->fieldOffsetSum, 0.0);
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  auto [x, y, z] = mesh->xyzHost();
+
+  for (int n = 0; n < mesh->Nlocal; n++)
   {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
+    U[n + 0 * nrs->fluid->fieldOffset] = sin(x[n]);     // x-velocity
+    U[n + 1 * nrs->fluid->fieldOffset] = y[n] + 1;      // y-velocity
+    U[n + 2 * nrs->fluid->fieldOffset] = exp(x[n]*y[n]*z[n]); // z-velocity
 
-    nrs->U[n + 0 * nrs->fieldOffset] = sin(x);     // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = y + 1;      // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = exp(x*y*z); // z-velocity
+    P[n] = exp(x[n]) + exp(y[n]) + exp(z[n]); // pressure
 
-    nrs->P[n] = exp(x) + exp(y) + exp(z); // pressure
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
-    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 1; // scalar 01
-    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 2; // scalar 02
-    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 3; // scalar 03
+    S[n + 0 * nrs->scalar->fieldOffset()] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n]; // temperature
+    S[n + 1 * nrs->scalar->fieldOffset()] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n] + 1; // scalar 01
+    S[n + 2 * nrs->scalar->fieldOffset()] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n] + 2; // scalar 02
+    S[n + 3 * nrs->scalar->fieldOffset()] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n] + 3; // scalar 03
   }
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->fluid->o_P.copyFrom(P.data(), P.size());
+  nrs->scalar->o_S.copyFrom(S.data(), S.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
   if (tstep == 0)
   {
-    auto mesh = nrs->cds->mesh[0];
+    auto mesh = nrs->meshV;
 
     // have to fill usrwrk from this function because in UDF_Setup it has not yet been allocated
-    int n_gll_points = mesh->Np * mesh->Nelements;
-    for (int n = 0; n < n_gll_points; ++n)
-    {
-      dfloat x = mesh->x[n];
-      dfloat y = mesh->y[n];
-      dfloat z = mesh->z[n];
+    std::vector<dfloat> usrwrk(nrs->scalar->fieldOffset() * 4, 0.0);
+    auto [x, y, z] = mesh->xyzHost();
 
-      nrs->usrwrk[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + 1;
-      nrs->usrwrk[n + 1 * nrs->cds->fieldOffset[0]] = exp(y) + 1;
-      nrs->usrwrk[n + 2 * nrs->cds->fieldOffset[0]] = exp(z) + 1;
+    for (int n = 0; n < mesh->Nlocal; n++)
+    {
+      usrwrk[n + 0 * nrs->scalar->fieldOffset()] = exp(x[n]) + 1;
+      usrwrk[n + 1 * nrs->scalar->fieldOffset()] = exp(y[n]) + 1;
+      usrwrk[n + 2 * nrs->scalar->fieldOffset()] = exp(z[n]) + 1;
 
       // we only access the first three slices, but can define extra ones beyond that should
       // be unused for postprocessing
-      nrs->usrwrk[n + 3 * nrs->cds->fieldOffset[0]] = sin(x) + exp(z);
+      usrwrk[n + 3 * nrs->scalar->fieldOffset()] = sin(x[n]) + exp(z[n]);
     }
+    platform->app->bc->o_usrwrk.copyFrom(usrwrk.data(), usrwrk.size());
   }
 }

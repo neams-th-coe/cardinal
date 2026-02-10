@@ -6,23 +6,24 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 1
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature, scalar01, scalar02, scalar03
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none
 
-[SCALAR01]
+[SCALAR SCALAR01]
   solver = none
 
-[SCALAR02]
+[SCALAR SCALAR02]
   solver = none
 
-[SCALAR03]
+[SCALAR SCALAR03]
   solver = none
 
