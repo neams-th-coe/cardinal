@@ -62,7 +62,9 @@ MoabSkinner::validParams()
   params.addParam<Real>("graveyard_scale_outer",
                         1.10,
                         "Multiplier on mesh bounding box to form outer graveyard surface");
-
+  params.addParam<std::string>("implicit_complement_material",
+                               "Assigns OpenMC material name or ID to the implicit complement "
+                               "region. If not provided, void material is assigned by default.");
   // TODO: would be nice to support other file formats as well, like exodus
   params.addParam<bool>(
       "output_skins",
@@ -77,9 +79,6 @@ MoabSkinner::validParams()
                         "be written to a file. The files will be named moab_full_<n>.h5m, where "
                         "<n> is the time step index. "
                         "You can then visualize these files by running 'mbconvert'.");
-  params.addParam<bool>("use_displaced_mesh",
-                        false,
-                        "Whether the skinned mesh should be generated from a displaced mesh ");
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
@@ -110,6 +109,15 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
   _use_displaced = getParam<bool>("use_displaced_mesh");
+
+  if (isParamSetByUser("implicit_complement_material"))
+  {
+    // If the user specify a material that doesn't exist in materials.xml file, OpenMC
+    // will catch the mistake.
+    _set_implicit_complement_material = true;
+    _implicit_complement_group_name =
+        "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
+  }
 
   // we can probably support this in the future, it's just not implemented yet
   if (!getMooseMesh().getMesh().is_serial())
@@ -743,6 +751,21 @@ MoabSkinner::findSurfaces()
 
   if (_build_graveyard)
     buildGraveyard(vol_id, surf_id);
+
+  if (_set_implicit_complement_material)
+  {
+    moab::EntityHandle comp_group;
+    unsigned int comp_id = nBins() + 1 + _build_graveyard;
+    createGroup(comp_id, _implicit_complement_group_name, comp_group);
+    moab::EntityHandle arbitray_volume = 0;
+    for (const auto & surf_pair : surfsToVols)
+    {
+      const auto & vols = surf_pair.second;
+      arbitray_volume = vols.front().vol;
+      break;
+    }
+    check(_moab->add_entities(comp_group, &arbitray_volume, 1));
+  }
 
   // Write MOAB volume and/or skin meshes to file
   write();
