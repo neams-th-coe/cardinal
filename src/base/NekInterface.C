@@ -1215,36 +1215,35 @@ gradient(const int offset,
 bool
 isHeatFluxBoundary(const int boundary)
 {
-  // the heat flux boundary is now named 'codedFixedGradient', but 'fixedGradient'
-  // will be present for backwards compatibility
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
 
-  // TODO
-  // return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
-  //       (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
-  return true;
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return bcType == bdryBase::bcType_zeroNeumann || bcType == bdryBase::bcType_udfNeumann;
 }
 
 bool
 isMovingMeshBoundary(const int boundary)
 {
-  // TODO
-  // return bcMap::text(boundary, "mesh") == "codedFixedValue";
-  return true;
+  auto bcType = platform->app->bc->typeId(boundary, "mesh");
+  return bcType == bdryBase::bcType_udfDirichlet;
 }
 
 bool
 isTemperatureBoundary(const int boundary)
 {
-  auto bcType = platform->app->bc->typeId(boundary, "scalar temperature");
-  return bcType == bdryBase::bcType_zeroDirichlet || bcType == bdryBase::bcType_udfDirichlet;
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
+
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return bcType == bdryBase::bcType_udfDirichlet;
 }
 
 const std::string
 temperatureBoundaryType(const int boundary)
 {
-  // TODO
-  // return bcMap::text(boundary, "scalar00");
-  return "";
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
+
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return platform->app->bc->sBcIDToText.at(bcType);
 }
 
 int
