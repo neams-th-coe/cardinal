@@ -8,13 +8,11 @@ Applications:
         show_warning: false
 
 Documents:
-    software_quality_plan: sqa/inl_records.md#software_quality_plan
-    enterprise_architecture_entry: sqa/inl_records.md#enterprise_architecture_entry
-    safety_software_determination: sqa/inl_records.md#safety_software_determination
-    quality_level_determination: sqa/inl_records.md#quality_level_determination
-    configuration_management_plan: sqa/inl_records.md#configuration_management_plan
-    asset_management_plan: sqa/inl_records.md#asset_management_plan
-    verification_validation_plan: sqa/inl_records.md#verification_and_validation_plan
+    software_quality_plan: sqa/cardinal_sqap.md#software_quality_assurance_plan
+    #safety_software_determination: sqa/inl_records.md#safety_software_determination  # to be added again when official SSD is completed through Argonne
+    quality_level_determination: sqa/cardinal_qld.md#quality_level_determination
+    configuration_management_plan: sqa/cardinal_cmp.md#configuration_management_plan
+    verification_validation_plan: sqa/cardinal_vvp.md#verification_and_validation_plan
     software_requirements_specification: sqa/cardinal_srs.md
     software_design_description: sqa/cardinal_sdd.md
     software_test_plan: sqa/cardinal_stp.md
@@ -30,6 +28,21 @@ Documents:
     working_dirs:
         - ${ROOT_DIR}/doc/content
         - ${MOOSE_DIR}/framework/doc/content
+    required_documents:
+        - software_quality_plan
+        #- safety_software_determination # add back in when SSD is completed by ANL
+        - quality_level_determination
+        - configuration_management_plan
+        - verification_validation_plan
+        - software_requirements_specification
+        - software_design_description
+        - software_test_plan
+        - requirements_traceability_matrix
+        - verification_validation_report
+        - failure_analysis_report
+        - software_library_list
+        - software_coding_standards
+        - communication_and_contact_information
 
 Requirements:
     cardinal:
