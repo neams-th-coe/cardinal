@@ -27,4 +27,25 @@
                   'This is tested by translating an OpenMC geometry on a stationary mesh and ensure elements are reset correctly.'
     capabilities = 'openmc'
   []
+  [invalid_phi]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="360 0 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle φ must be in the range \[0, 360\) degrees. Got invalid φ = 360.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [invalid_theta]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 360 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle θ must be in the range \[0, 360\) degrees. Got invalid θ = 360.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [invalid_psi]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 0 360"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle ψ must be in the range \[0, 360\) degrees. Got invalid ψ = 360.000000 degrees.'
+    capabilities = 'openmc'
+  []
 []

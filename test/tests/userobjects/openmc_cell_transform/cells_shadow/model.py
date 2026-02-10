@@ -1,3 +1,4 @@
+# This input file is used by ../cells_shadow.i test where xml_directory parameter points here.
 import openmc
 
 model = openmc.Model()
