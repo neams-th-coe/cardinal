@@ -527,6 +527,10 @@ OpenMCCellAverageProblem::initialSetup()
                  "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
                  "Unexpected behavior may occur.");
 
+  // Coupling re-initialization should be triggered if we have cells transofrms which can happen
+  // even if the mesh isn't moving or adaptive.
+  _need_to_reinit_coupling |= hasCellTransform();
+
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
                      "volume_calculation",
