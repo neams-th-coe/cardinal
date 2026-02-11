@@ -654,9 +654,6 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         if (t->direction() == "from_nek")
           t->sendDataToNek();
 
-      // copy device-side arrays onto the host where they can be accessed
-      nekrs::copySolutionToHost();
-
       break;
     }
     default:
