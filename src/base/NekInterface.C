@@ -80,34 +80,89 @@ setStartTime(const double & start)
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  int count = fieldOffset();
+  static std::unique_ptr<iofld> usrWriter;
+  if(!usrWriter) {
+    usrWriter = iofldFactory::create("usrwrk");
+    auto mesh = entireMesh();
 
-  occa::memory o_write = platform->device.malloc(count);
-  o_write.copyFrom(platform->app->bc->o_usrwrk,
-                   count /* length we are copying */,
-                   0 /* where to place data */,
-                   slot*count /* where to source data */);
+    usrWriter->open(mesh, iofld::mode::write, prefix.c_str());
 
-  occa::memory o_null;
-  // TODO
-  // nek::writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write,
-  // 1);
+    if (platform->options.compareArgs("CHECKPOINT PRECISION", "FP32")) {
+      usrWriter->writeAttribute("precision", "32");
+    } else {
+      usrWriter->writeAttribute("precision", "64");
+    }
+    usrWriter->writeAttribute("outputmesh", write_coords ? "true" : "false");
+
+
+    {
+      std::vector<deviceMemory<double>> list;
+      list.push_back(platform->app->bc->o_usrwrk.slice(slot * fieldOffset(), mesh->Nlocal));
+
+      usrWriter->addVariable("usrwrk" + scalarDigitStr(slot), list);
+    }
+  }
+  usrWriter->addVariable("time", const_cast<double &>(time));
+  usrWriter->process();
 }
 
 void
 write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
-  int Nscalar = 0;
-  occa::memory o_s;
-  if (nrs->Nscalar)
-  {
-    o_s = nrs->scalar->o_S;
-    Nscalar = nrs->Nscalar;
+  static std::unique_ptr<iofld> checkpointWriter;
+  if (!checkpointWriter) {
+    checkpointWriter = iofldFactory::create("cardinal");
   }
 
-  // TODO
-  // nek::writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->fluid->o_U,
-  // nrs->fluid->o_P, o_s, Nscalar);
+  const auto outXYZ = platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE");
+
+  if (!checkpointWriter->isInitialized()) {
+    auto visMesh = entireMesh();
+    checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
+
+    if (nrs->fluid) {
+      if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE")) {
+        std::vector<occa::memory> o_V;
+        for (int i = 0; i < flowMesh()->dim; i++) {
+          o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
+        }
+        checkpointWriter->addVariable("velocity", o_V);
+
+        auto o_p = std::vector<occa::memory>{nrs->fluid->o_P.slice(0, visMesh->Nlocal)};
+        checkpointWriter->addVariable("pressure", o_p);
+      }
+    }
+
+    int Nscalar;
+    platform->options.getArgs("NUMBER OF SCALARS", Nscalar);
+    for (int i = 0; i < Nscalar; i++) {
+      if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE")) {
+        const auto temperatureExists = nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
+        std::vector<occa::memory> o_Si = {nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+        if (i == 0 && temperatureExists) {
+          checkpointWriter->addVariable("temperature", o_Si);
+        } else {
+          const auto is = (temperatureExists) ? i - 1 : i;
+          checkpointWriter->addVariable("scalar" + scalarDigitStr(is), o_Si);
+        }
+      }
+    }
+    int N;
+    platform->options.getArgs("POLYNOMIAL DEGREE", N);
+    checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
+
+    auto FP64 = platform->options.compareArgs("CHECKPOINT PRECISION", "FP64");
+
+    checkpointWriter->writeAttribute("precision", (FP64) ? "64" : "32");
+    checkpointWriter->writeAttribute("outputMesh", (outXYZ) ? "true" : "false");
+
+    std::string hSchedule;
+    if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule)) {
+      checkpointWriter->writeAttribute("hSchedule", hSchedule);
+    }
+  }
+  checkpointWriter->addVariable("time", const_cast<double &>(time));
+  checkpointWriter->process();
 }
 
 void
