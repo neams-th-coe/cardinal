@@ -103,7 +103,7 @@ OpenMCCellTransform::execute()
       // OpenMC will return an error.
       err = openmc_cell_set_translation(index, vec);
       _console << "Setting OpenMC cell translations for cell with ID " + std::to_string(cell_id) +
-                      "to ("
+                      " to ("
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
     }
     else if (_transform_type == "rotation")

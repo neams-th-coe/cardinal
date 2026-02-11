@@ -28,7 +28,7 @@
     direction = '0 0 1'
     input = delete
     heights = '30'
-    num_layers = '90'
+    num_layers = '5'
   []
   [translate]
     type = TransformGenerator
