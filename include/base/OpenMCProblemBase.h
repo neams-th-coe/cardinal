@@ -45,6 +45,7 @@
 class OpenMCNuclideDensities;
 class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
+class OpenMCCellTransform;
 class CriticalitySearchBase;
 
 /**
@@ -400,6 +401,9 @@ protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 
+  /// Whether OpenMC cell transforms are being applied to the geometry
+  bool hasCellTransform() const;
+
   /// Ensure that the IDs of OpenMC objects in UserObjects don't clash
   void checkOpenMCUserObjectIDs() const;
 
@@ -519,6 +523,9 @@ protected:
 
   /// Userobjects for creating/changing OpenMC tallies
   std::vector<OpenMCTallyEditor *> _tally_editor_uos;
+
+  /// Userobjects for updating OpenMC cell transforms
+  std::vector<OpenMCCellTransform *> _cell_transform_uos;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;

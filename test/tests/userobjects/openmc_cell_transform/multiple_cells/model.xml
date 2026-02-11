@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material depletable="true" id="1" name="fuel">
+      <density units="g/cm3" value="10.0"/>
+      <nuclide ao="1.0" name="U235"/>
+      <nuclide ao="2.0" name="O16"/>
+    </material>
+    <material id="2" name="water">
+      <density units="g/cm3" value="1.0"/>
+      <nuclide ao="2.0" name="H1"/>
+      <nuclide ao="1.0" name="O16"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell fill="200" id="1" region="1 -2 3 -4 5 -6" universe="0"/>
+    <cell id="1011" material="1" region="1 -7 3 -8 9 -10 -15" universe="100"/>
+    <cell id="1012" material="2" region="1 -7 3 -8 9 -10 15" universe="100"/>
+    <cell id="1013" material="2" region="1 -7 3 -8 9 -10 ~(11 -12 13 -14)" universe="100"/>
+    <cell id="1111" material="1" region="7 -2 3 -8 9 -10 -20" universe="110"/>
+    <cell id="1112" material="2" region="7 -2 3 -8 9 -10 20" universe="110"/>
+    <cell id="1113" material="2" region="7 -2 3 -8 9 -10 ~(16 -17 18 -19)" universe="110"/>
+    <cell id="1211" material="1" region="1 -7 8 -4 9 -10 -25" universe="120"/>
+    <cell id="1212" material="2" region="1 -7 8 -4 9 -10 25" universe="120"/>
+    <cell id="1213" material="2" region="1 -7 8 -4 9 -10 ~(21 -22 23 -24)" universe="120"/>
+    <cell id="1311" material="1" region="7 -2 8 -4 9 -10 -30" universe="130"/>
+    <cell id="1312" material="2" region="7 -2 8 -4 9 -10 30" universe="130"/>
+    <cell id="1313" material="2" region="7 -2 8 -4 9 -10 ~(26 -27 28 -29)" universe="130"/>
+    <cell fill="100" id="2011" region="1 -7 3 -8 9 -10" universe="200"/>
+    <cell fill="110" id="2012" region="7 -2 3 -8 9 -10" universe="200"/>
+    <cell fill="120" id="2013" region="1 -7 8 -4 9 -10" universe="200"/>
+    <cell fill="130" id="2014" region="7 -2 8 -4 9 -10" universe="200"/>
+    <surface boundary="reflective" coeffs="-4.0" id="1" type="x-plane"/>
+    <surface boundary="reflective" coeffs="5.0" id="2" type="x-plane"/>
+    <surface boundary="reflective" coeffs="-4.0" id="3" type="y-plane"/>
+    <surface boundary="reflective" coeffs="7.0" id="4" type="y-plane"/>
+    <surface boundary="reflective" coeffs="-15.0" id="5" type="z-plane"/>
+    <surface boundary="reflective" coeffs="15.0" id="6" type="z-plane"/>
+    <surface coeffs="0.0" id="7" type="x-plane"/>
+    <surface coeffs="0.0" id="8" type="y-plane"/>
+    <surface coeffs="-15.0" id="9" type="z-plane"/>
+    <surface coeffs="15.0" id="10" type="z-plane"/>
+    <surface coeffs="-4.0" id="11" name="minimum x" type="x-plane"/>
+    <surface coeffs="0.0" id="12" name="maximum x" type="x-plane"/>
+    <surface coeffs="-4.0" id="13" name="minimum y" type="y-plane"/>
+    <surface coeffs="0.0" id="14" name="maximum y" type="y-plane"/>
+    <surface coeffs="-2.0 -2.0 1.0" id="15" type="z-cylinder"/>
+    <surface coeffs="0.0" id="16" name="minimum x" type="x-plane"/>
+    <surface coeffs="4.0" id="17" name="maximum x" type="x-plane"/>
+    <surface coeffs="-4.0" id="18" name="minimum y" type="y-plane"/>
+    <surface coeffs="0.0" id="19" name="maximum y" type="y-plane"/>
+    <surface coeffs="2.0 -2.0 1.0" id="20" type="z-cylinder"/>
+    <surface coeffs="-4.0" id="21" name="minimum x" type="x-plane"/>
+    <surface coeffs="0.0" id="22" name="maximum x" type="x-plane"/>
+    <surface coeffs="0.0" id="23" name="minimum y" type="y-plane"/>
+    <surface coeffs="4.0" id="24" name="maximum y" type="y-plane"/>
+    <surface coeffs="-2.0 2.0 1.0" id="25" type="z-cylinder"/>
+    <surface coeffs="0.0" id="26" name="minimum x" type="x-plane"/>
+    <surface coeffs="4.0" id="27" name="maximum x" type="x-plane"/>
+    <surface coeffs="0.0" id="28" name="minimum y" type="y-plane"/>
+    <surface coeffs="4.0" id="29" name="maximum y" type="y-plane"/>
+    <surface coeffs="2.0 2.0 1.0" id="30" type="z-cylinder"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>1000</particles>
+    <batches>50</batches>
+    <inactive>10</inactive>
+    <source particle="neutron" strength="1.0" type="independent">
+      <space type="box">
+        <parameters>-4 -4 -15 5 7 15</parameters>
+      </space>
+    </source>
+  </settings>
+  <plots>
+    <plot basis="xy" color_by="material" filename="geom_material_xy" id="1" type="slice">
+      <pixels>800 800</pixels>
+      <origin>0.0 0.0 15.0</origin>
+      <width>15.0 15.0</width>
+    </plot>
+    <plot basis="xy" color_by="cell" filename="geom_cell_xy" id="2" type="slice">
+      <pixels>800 800</pixels>
+      <origin>0.0 0.0 15.0</origin>
+      <width>15.0 15.0</width>
+    </plot>
+  </plots>
+</model>

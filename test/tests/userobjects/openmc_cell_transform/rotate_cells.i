@@ -1,0 +1,133 @@
+[Mesh]
+  [pin]
+    type = ConcentricCircleMeshGenerator
+    num_sectors = 6
+    radii = '1.0'
+    rings = '3 3'
+    has_outer_square = on
+    pitch = 4.0
+    preserve_volumes = yes
+    smoothing_max_it = 3
+  []
+  [assembly]
+    type = CartesianIDPatternedMeshGenerator
+    inputs = 'pin'
+    pattern = '0 0;
+               0 0'
+    assign_type = 'cell'
+    id_name = 'pin_id'
+  []
+  [delete]
+    # Only keeping block 1 (fuel pins) for this test
+    type = BlockDeletionGenerator
+    input = assembly
+    block = 2
+  []
+  [extrude]
+    type = MeshExtruderGenerator
+    input = delete
+    extrusion_vector = '0 0 30'
+  []
+  [translate]
+    type = TransformGenerator
+    input = extrude
+    transform = TRANSLATE_CENTER_ORIGIN
+    vector_value = '-12 12 0'
+  []
+[]
+
+
+[GlobalParams]
+  displacements = 'disp_x disp_y disp_z'
+  use_displaced_mesh = true
+[]
+
+[Problem]
+  type = OpenMCCellAverageProblem
+  # Updating cell_level to 2 to account for the nested
+  # universes. Refer to OpenMCCellAverageProblem docs for more details.
+  cell_level = 2
+  verbose = true
+  power = 100
+
+  [Tallies]
+    [heat]
+      type = CellTally
+      score = 'kappa_fission'
+      block = '1'
+    []
+  []
+[]
+
+[AuxVariables]
+  [disp_x]
+    [AuxKernel]
+        type = FunctionAux
+        variable = disp_x
+        function = disp_x_fn
+        execute_on = 'timestep_begin'
+        use_displaced_mesh = false
+    []
+  []
+  [disp_y]
+    [AuxKernel]
+        type = FunctionAux
+        variable = disp_y
+        function = disp_y_fn
+        execute_on = 'timestep_begin'
+        use_displaced_mesh = false
+    []
+  []
+  [disp_z]
+  []
+[]
+
+[Functions]
+  [psi_fn]
+    type = ParsedFunction
+    expression = '5*t'
+  []
+  [disp_x_fn]
+    type = ParsedFunction
+    expression = (cos(5*t*3.14159265359/180)-1)*x-sin(5*t*3.14159265359/180)*y
+  []
+  [disp_y_fn]
+    type = ParsedFunction
+    expression = sin(5*t*3.14159265359/180)*x+(cos(5*t*3.14159265359/180)-1)*y
+  []
+[]
+
+[Postprocessors]
+  [psi]
+    type = FunctionValuePostprocessor
+    function = psi_fn
+    execute_on = 'timestep_begin'
+  []
+  [k]
+    type = KEigenvalue
+  []
+  [power]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+    block = '1'
+  []
+[]
+
+[UserObjects]
+  [rotate_cells]
+    type = OpenMCCellTransform
+    transform_type = 'rotation'
+    vector_value = '0 0 psi'
+    cell_ids = '2011'
+    execute_on = 'timestep_begin'
+  []
+[]
+
+[Executioner]
+  type = Transient
+  num_steps = 2
+[]
+
+[Outputs]
+  exodus = true
+[]
