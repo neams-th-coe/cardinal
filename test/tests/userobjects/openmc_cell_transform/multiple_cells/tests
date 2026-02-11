@@ -13,7 +13,7 @@
   [duplicate_cell_id]
     type = RunException
     input = translate_cells.i
-    cli_args = UserObjects/translate_top/cell_ids='2013 2013'
+    cli_args = "UserObjects/translate_top/cell_ids='2013 2013'"
     expect_err = "UserObjects/translate_top/cell_ids: Duplicate OpenMC cell IDs were detected. Provide each ID only once."
     requirement = "The system shall error if the same cell id is provided more than once."
     capabilities = 'openmc'
