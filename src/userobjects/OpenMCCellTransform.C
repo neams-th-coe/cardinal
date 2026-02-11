@@ -55,11 +55,14 @@ OpenMCCellTransform::validParams()
 OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     OpenMCBase(this, parameters),
-    _cell_ids(getParam<std::vector<int32_t>>("cell_ids")),
     _transform_type(getParam<MooseEnum>("transform_type"))
 {
-  if (_cell_ids.empty())
+  const auto & ids = getParam<std::vector<int32_t>>("cell_ids");
+  if (ids.empty())
     paramError("cell_ids", "At least one OpenMC cell ID must be provided.");
+  _cell_ids = std::set<int32_t>(ids.begin(), ids.end());
+  if (_cell_ids.size() != ids.size())
+    paramError("cell_ids", "Duplicate OpenMC cell IDs were detected. Provide each ID only once.");
 
   const auto & t = getParam<std::vector<PostprocessorName>>("vector_value");
   if (t.size() != 3)

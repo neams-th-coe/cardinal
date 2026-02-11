@@ -36,7 +36,7 @@ public:
 
 protected:
   /// OpenMC cell IDs to which the translation will be applied
-  const std::vector<int32_t> _cell_ids;
+  std::set<int32_t> _cell_ids;
 
   /// Transform type: "translation" or "rotation"
   const MooseEnum _transform_type;
