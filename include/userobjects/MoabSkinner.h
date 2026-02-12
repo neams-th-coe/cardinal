@@ -38,7 +38,9 @@ public:
    */
   virtual moab::ErrorCode check(const moab::ErrorCode input) const;
 
-  std::string materialName(const unsigned int & block, const unsigned int & density, const unsigned int & temp) const;
+  std::string materialName(const unsigned int & block,
+                           const unsigned int & density,
+                           const unsigned int & temp) const;
 
   /// Perform the skinning operation
   virtual void update();
@@ -264,10 +266,12 @@ protected:
    * @param[in] name name for the group
    * @param[in] group_set group of entities
    */
-  void createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set);
+  void
+  createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set);
 
   /// Helper method to create MOAB volume entity set
-  void createVol(const unsigned int & id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
+  void
+  createVol(const unsigned int & id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
 
   /// Helper method to create MOAB surface entity set
   void createSurf(const unsigned int & id,
@@ -353,6 +357,9 @@ protected:
   /// Group the binned elems into local temperature regions and find their surfaces
   void findSurfaces();
 
+  /// Add boundary condition groups to the DAGMC geometry
+  void addBoundaryConditionGroups();
+
   /// Group a given bin into local regions
   /// NB elems in param is a copy, localElems is a reference
   void groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Range> & localElems);
@@ -379,11 +386,23 @@ protected:
   /// Map from libmesh id to MOAB element entity handles
   std::map<dof_id_type, std::vector<moab::EntityHandle>> _id_to_elem_handles;
 
+  /// Map from libMesh id to MOAB vertex handles
+  std::map<dof_id_type, moab::EntityHandle> _node_id_to_handle;
+
   /// Save the first tet entity handle
   moab::EntityHandle offset;
 
   /// Name of the MOOSE variable containing the density
   std::string _density_name;
+
+  /// Parsed list of vacuum boundary condition surfaces
+  std::vector<BoundaryName> _vacuum_bcs_surfaces;
+
+  /// Parsed list of reflective boundary condition surfaces
+  std::vector<BoundaryName> _reflective_bcs_surfaces;
+
+  /// Whether to assign boundary conditions to surfaces
+  bool _set_bcs = false;
 
   /// Lower bound of density bins
   Real _density_min;
