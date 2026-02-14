@@ -896,7 +896,7 @@ viscousDrag(const std::vector<int> & boundary_id)
   postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
 
   // copy to host for evaluating drag
-  dfloat * Sij = (dfloat *) calloc(o_Sij.size(), sizeof(dfloat));
+  dfloat * Sij = (dfloat *)calloc(o_Sij.size(), sizeof(dfloat));
   o_Sij.copyTo(Sij);
   o_Sij.free();
 
@@ -943,9 +943,9 @@ viscousDrag(const std::vector<int> & boundary_id)
           dfloat s32 = s23;
           dfloat s33 = Sij[vol_id + 2 * nrs->fieldOffset];
 
-          dfloat dragx = scale * (s11*n1 + s12*n2 + s13*n3);
-          dfloat dragy = scale * (s21*n1 + s22*n2 + s23*n3);
-          dfloat dragz = scale * (s31*n1 + s32*n2 + s33*n3);
+          dfloat dragx = scale * (s11 * n1 + s12 * n2 + s13 * n3);
+          dfloat dragy = scale * (s21 * n1 + s22 * n2 + s23 * n3);
+          dfloat dragz = scale * (s31 * n1 + s32 * n2 + s33 * n3);
 
           integral_x += dragx;
           integral_y += dragy;
@@ -966,7 +966,7 @@ viscousDrag(const std::vector<int> & boundary_id)
   MPI_Allreduce(&integral_z, &total_integral_z, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // TODO: dimensionalize
-  //dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
+  // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
 
   freePointer(Sij);
   return {total_integral_x, total_integral_y, total_integral_z};
