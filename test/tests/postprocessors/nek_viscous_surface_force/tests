@@ -1,4 +1,7 @@
 [Tests]
+  design = 'NekViscousSurfaceForce.md'
+  issues = '#1290'
+
   [drag]
     type = CSVDiff
     input = nek.i
