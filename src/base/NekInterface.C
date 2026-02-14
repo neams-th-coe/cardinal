@@ -916,6 +916,10 @@ yPlus(const std::vector<int> & boundary_id)
 
   dfloat max_yp = -std::numeric_limits<float>::max();
   dfloat min_yp = std::numeric_limits<float>::max();
+  dfloat avg_yp = 0.0;
+  dfloat denom_yp = 0.0;
+
+  std::vector<int> istride = {mesh->Nq * mesh->Nq, mesh->Nq, -1, -mesh->Nq, 1, -mesh->Nq * mesh->Nq};
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -926,13 +930,13 @@ yPlus(const std::vector<int> & boundary_id)
       if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
       {
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
         for (int v = 0; v < mesh->Nfp; ++v)
         {
           int surf_offset = mesh->Nsgeo * (offset + v);
           int vol_id = mesh->vmapM[offset + v];
-          //dfloat sWJ = sgeo[surf_offset + WSJID];
-          // TODO: minus sign does not matter because I'm taking a norm anyways
-          dfloat scale = 2 * mu; // * sWJ;
+          dfloat sWJ = sgeo[surf_offset + WSJID];
+          dfloat scale = 2 * mu;
 
           dfloat n1 = sgeo[surf_offset + NXID];
           dfloat n2 = sgeo[surf_offset + NYID];
@@ -959,10 +963,20 @@ yPlus(const std::vector<int> & boundary_id)
 
           dfloat tauw = sqrt(f1 * f1 + f2 * f2 + f3 * f3);
           dfloat utau = tauw / sqrt(rho);
-          dfloat yplus = wall_distance[vol_id] * utau / nu;
-          std::cout << wall_distance[vol_id] << std::endl;
-          max_yp = std::max(yplus, max_yp);
-          min_yp = std::min(yplus, min_yp);
+
+          // need to shift when evaluating the wall distance, because we want the wall distance
+          // at the nearest node away from the face, not precisely on the face
+          dfloat wd = wall_distance[vol_id + istride[j]];
+
+          // check that we are not at a corner
+          if (wd > 1e-8)
+          {
+            dfloat yplus = wd * utau / nu;
+            max_yp = std::max(yplus, max_yp);
+            min_yp = std::min(yplus, min_yp);
+            avg_yp += yplus * sWJ;
+            denom_yp += sWJ;
+          }
         }
       }
     }
@@ -976,11 +990,18 @@ yPlus(const std::vector<int> & boundary_id)
    double total_min_yp;
    MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
+   // sum across all processes
+   double total_avg_yp;
+   MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+   double total_denom_yp;
+   MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
    // TODO: dimensionalize
    // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
 
   freePointer(Sij);
-  return {total_max_yp, total_min_yp};
+  return {total_max_yp, total_min_yp, total_avg_yp / total_denom_yp};
 }
 
 std::vector<dfloat>

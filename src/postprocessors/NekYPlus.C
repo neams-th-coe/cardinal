@@ -26,7 +26,7 @@ InputParameters
 NekYPlus::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  MooseEnum value_type("max min", "max");
+  MooseEnum value_type("max min avg", "max");
   params.addParam<MooseEnum>("value_type", value_type, "Type of value to report");
   params.addClassDescription("Compute y+ on boundaries");
   return params;
@@ -50,6 +50,8 @@ NekYPlus::getValue() const
     return yplus[0];
   else if (_value_type == "min")
     return yplus[1];
+  else if (_value_type == "avg")
+    return yplus[2];
   else
     mooseError("Unhandled 'value_type' in NekYPlus!");
 }
