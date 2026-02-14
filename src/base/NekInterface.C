@@ -887,7 +887,7 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 }
 
 std::vector<dfloat>
-yPlus(const std::vector<int> & boundary_id)
+yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
 {
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
 
@@ -900,7 +900,7 @@ yPlus(const std::vector<int> & boundary_id)
   o_Sij.copyTo(Sij);
   o_Sij.free();
 
-  double * wall_distance = (double *) nek::scPtr(1);
+  double * wall_distance = (double *) nek::scPtr(index);
 
   // integrate over the boundaries in the mesh; each rank will compute contributions to the
   // x, y, and z components
@@ -918,6 +918,7 @@ yPlus(const std::vector<int> & boundary_id)
   dfloat min_yp = std::numeric_limits<float>::max();
   dfloat avg_yp = 0.0;
   dfloat denom_yp = 0.0;
+  bool found_one = false;
 
   std::vector<int> istride = {mesh->Nq * mesh->Nq, mesh->Nq, -1, -mesh->Nq, 1, -mesh->Nq * mesh->Nq};
 
@@ -962,7 +963,7 @@ yPlus(const std::vector<int> & boundary_id)
           f3 -= f3 * n3 * n3;
 
           dfloat tauw = sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-          dfloat utau = tauw / sqrt(rho);
+          dfloat utau = sqrt(tauw / rho);
 
           // need to shift when evaluating the wall distance, because we want the wall distance
           // at the nearest node away from the face, not precisely on the face
@@ -976,29 +977,33 @@ yPlus(const std::vector<int> & boundary_id)
             min_yp = std::min(yplus, min_yp);
             avg_yp += yplus * sWJ;
             denom_yp += sWJ;
+            found_one = true;
           }
         }
       }
     }
   }
 
-   // max across all processes
-   double total_max_yp;
-   MPI_Allreduce(&max_yp, &total_max_yp, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
+  if (!found_one)
+    mooseError("Failed to find any eligible points on boundaries for computing y+!");
 
-   // min across all processes
-   double total_min_yp;
-   MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
+  // max across all processes
+  double total_max_yp;
+  MPI_Allreduce(&max_yp, &total_max_yp, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
 
-   // sum across all processes
-   double total_avg_yp;
-   MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  // min across all processes
+  double total_min_yp;
+  MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
-   double total_denom_yp;
-   MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  // sum across all processes
+  double total_avg_yp;
+  MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-   // TODO: dimensionalize
-   // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
+  double total_denom_yp;
+  MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  // TODO: dimensionalize
+  // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
 
   freePointer(Sij);
   return {total_max_yp, total_min_yp, total_avg_yp / total_denom_yp};

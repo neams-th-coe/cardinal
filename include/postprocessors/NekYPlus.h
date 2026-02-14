@@ -21,7 +21,7 @@
 #include "NekSidePostprocessor.h"
 
 /**
- * Compute the maximum or minimum \f$y^+\f$ on a boundary.
+ * Compute the \f$y^+\f$ on a boundary.
  *
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
@@ -38,4 +38,7 @@ public:
 protected:
   /// Type of value to return
   const MooseEnum & _value_type;
+
+  /// Index where wall distance is stored in nek::scPtr
+  const unsigned int & _wall_distance_index;
 };
