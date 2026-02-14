@@ -21,7 +21,7 @@ $z$ component, or magnitude of this force.
 
 ## Example Input Syntax
 
-As an example, the postprocessors below compute the pressure surface force
+As an example, the postprocessors below compute the viscous surface force
 on various sidesets in the NekRS mesh.
 
 !listing test/tests/postprocessors/nek_viscous_surface_force/nek.i
