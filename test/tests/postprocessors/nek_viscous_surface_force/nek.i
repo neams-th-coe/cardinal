@@ -1,3 +1,8 @@
+mu = 20
+area_side1 = ${fparse 2*.05*2*0.15}
+area_side3 = ${fparse 2*0.1*2*0.15}
+area_side5 = ${fparse 2*.05*2*0.1}
+
 [Problem]
   type = NekRSProblem
   casename = 'brick'
@@ -6,48 +11,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-[]
-
-[Functions]
-  [side1x]
-    type = ParsedFunction
-    expression = '20*(1+2)'
-  []
-  [side1y]
-    type = ParsedFunction
-    expression = '20*(2+2)'
-  []
-  [side1z]
-    type = ParsedFunction
-    expression = '20*(3+2)'
-  []
-[]
-
-[AuxVariables]
-  [f1]
-  []
-  [f2]
-  []
-  [f3]
-  []
-[]
-
-[AuxKernels]
-  [f1]
-    type = FunctionAux
-    variable = f1
-    function = side1x
-  []
-  [f2]
-    type = FunctionAux
-    variable = f2
-    function = side1y
-  []
-  [f3]
-    type = FunctionAux
-    variable = f3
-    function = side1z
-  []
 []
 
 [Executioner]
@@ -60,33 +23,134 @@
 
 [Outputs]
   csv = true
-  hide = 'f1 f2 f3'
 []
 
+# The compare_... postprocessors compute the components of the drag analytically
+# given the imposed velocity in the udf file
 [Postprocessors]
-  [viscous_1]
+  [viscous_total_1]
     type = NekViscousSurfaceForce
     boundary = '1'
     mesh = 'fluid'
+    component = 'total'
   []
-  [compare_x]
-    type = SideIntegralVariablePostprocessor
-    variable = f1
+  [viscous_x_1]
+    type = NekViscousSurfaceForce
     boundary = '1'
+    mesh = 'fluid'
+    component = 'x'
   []
-  [compare_y]
-    type = SideIntegralVariablePostprocessor
-    variable = f2
+  [viscous_y_1]
+    type = NekViscousSurfaceForce
     boundary = '1'
+    mesh = 'fluid'
+    component = 'y'
   []
-  [compare_z]
-    type = SideIntegralVariablePostprocessor
-    variable = f3
+  [viscous_z_1]
+    type = NekViscousSurfaceForce
     boundary = '1'
+    mesh = 'fluid'
+    component = 'z'
   []
-  [sum]
+  [compare_x_1]
+    type = ConstantPostprocessor
+    value = '${fparse area_side1*mu*(1+2)}'
+  []
+  [compare_y_1]
+    type = ConstantPostprocessor
+    value = '${fparse area_side1*mu*(2+2)}'
+  []
+  [compare_z_1]
+    type = ConstantPostprocessor
+    value = '${fparse area_side1*mu*(3+2)}'
+  []
+  [compare_total_1]
     type = ParsedPostprocessor
-    expression = 'sqrt(compare_x*compare_x+compare_y*compare_y+compare_z*compare_z)'
-    pp_names = 'compare_x compare_y compare_z'
+    expression = 'sqrt(compare_x_1*compare_x_1+compare_y_1*compare_y_1+compare_z_1*compare_z_1)'
+    pp_names = 'compare_x_1 compare_y_1 compare_z_1'
+  []
+
+  [viscous_total_3]
+    type = NekViscousSurfaceForce
+    boundary = '3'
+    mesh = 'fluid'
+    component = 'total'
+  []
+  [viscous_x_3]
+    type = NekViscousSurfaceForce
+    boundary = '3'
+    mesh = 'fluid'
+    component = 'x'
+  []
+  [viscous_y_3]
+    type = NekViscousSurfaceForce
+    boundary = '3'
+    mesh = 'fluid'
+    component = 'y'
+  []
+  [viscous_z_3]
+    type = NekViscousSurfaceForce
+    boundary = '3'
+    mesh = 'fluid'
+    component = 'z'
+  []
+  [compare_x_3]
+    type = ConstantPostprocessor
+    value = '${fparse area_side3*mu*(1+1)}'
+  []
+  [compare_y_3]
+    type = ConstantPostprocessor
+    value = '${fparse area_side3*mu*(2+1)}'
+  []
+  [compare_z_3]
+    type = ConstantPostprocessor
+    value = '${fparse area_side3*mu*(3+1)}'
+  []
+  [compare_total_3]
+    type = ParsedPostprocessor
+    expression = 'sqrt(compare_x_3*compare_x_3+compare_y_3*compare_y_3+compare_z_3*compare_z_3)'
+    pp_names = 'compare_x_3 compare_y_3 compare_z_3'
+  []
+
+  [viscous_total_5]
+    type = NekViscousSurfaceForce
+    boundary = '5'
+    mesh = 'fluid'
+    component = 'total'
+  []
+  [viscous_x_5]
+    type = NekViscousSurfaceForce
+    boundary = '5'
+    mesh = 'fluid'
+    component = 'x'
+  []
+  [viscous_y_5]
+    type = NekViscousSurfaceForce
+    boundary = '5'
+    mesh = 'fluid'
+    component = 'y'
+  []
+  [viscous_z_5]
+    type = NekViscousSurfaceForce
+    boundary = '5'
+    mesh = 'fluid'
+    component = 'z'
+  []
+  [compare_x_5]
+    type = ConstantPostprocessor
+    value = '${fparse -area_side5*mu*(1+3)}'
+  []
+  [compare_y_5]
+    type = ConstantPostprocessor
+    value = '${fparse -area_side5*mu*(2+3)}'
+  []
+  [compare_z_5]
+    type = ConstantPostprocessor
+    value = '${fparse -area_side5*mu*(3+3)}'
+  []
+  [compare_total_5]
+    type = ParsedPostprocessor
+    expression = 'sqrt(compare_x_5*compare_x_5+compare_y_5*compare_y_5+compare_z_5*compare_z_5)'
+    pp_names = 'compare_x_5 compare_y_5 compare_z_5'
   []
 []
