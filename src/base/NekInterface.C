@@ -925,7 +925,7 @@ viscousDrag(const std::vector<int> & boundary_id)
         for (int v = 0; v < mesh->Nfp; ++v)
         {
           int surf_offset = mesh->Nsgeo * (offset + v);
-          int vol_id = mesh->vmapM[offset + v] - i * mesh->Np;
+          int vol_id = mesh->vmapM[offset + v];
           dfloat sWJ = sgeo[surf_offset + WSJID];
           dfloat scale = -2 * mu * sWJ;
 
@@ -1190,6 +1190,10 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
+          // special use of vol_id only when calling gradient(...), since we have written this
+          // function internally here so that it computes the gradient in a given element (as
+          // opposed to doing so for all elements at once, like in NekRS's
+          // gradientVolumeHex3D kernel
           int vol_id = mesh->vmapM[offset + v] - i * mesh->Np;
           int surf_offset = mesh->Nsgeo * (offset + v);
 
