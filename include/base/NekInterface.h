@@ -65,6 +65,13 @@ void checkFieldValidity(const field::NekFieldEnum & field);
 void checkFieldValidity(const field::NekWriteEnum & field);
 
 /**
+ * Compute the three components of the viscous drag along a given boundary
+ * @param[in] boundary boundary IDs for drag computation
+ * @return components of drag (force fluid exerts on walls)
+ */
+std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
+
+/**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
  * @param[in] tol tolerance
  */
