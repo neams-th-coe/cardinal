@@ -900,7 +900,7 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
   o_Sij.copyTo(Sij);
   o_Sij.free();
 
-  double * wall_distance = (double *) nek::scPtr(index);
+  double * wall_distance = (double *)nek::scPtr(index);
 
   // integrate over the boundaries in the mesh; each rank will compute contributions to the
   // x, y, and z components
@@ -920,7 +920,8 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
   dfloat denom_yp = 0.0;
   bool found_one = false;
 
-  std::vector<int> istride = {mesh->Nq * mesh->Nq, mesh->Nq, -1, -mesh->Nq, 1, -mesh->Nq * mesh->Nq};
+  std::vector<int> istride = {
+      mesh->Nq * mesh->Nq, mesh->Nq, -1, -mesh->Nq, 1, -mesh->Nq * mesh->Nq};
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {

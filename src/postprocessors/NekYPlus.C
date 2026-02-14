@@ -28,7 +28,8 @@ NekYPlus::validParams()
   InputParameters params = NekSidePostprocessor::validParams();
   MooseEnum value_type("max min avg", "max");
   params.addParam<MooseEnum>("value_type", value_type, "Type of value to report");
-  params.addParam<unsigned int>("wall_distance_index", 1, "Index into nek::scPtr where the wall distance is stored");
+  params.addParam<unsigned int>(
+      "wall_distance_index", 1, "Index into nek::scPtr where the wall distance is stored");
   params.addClassDescription("Compute y+ on boundaries");
   return params;
 }
