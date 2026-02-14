@@ -53,20 +53,18 @@ NekViscousSurfaceForce::NekViscousSurfaceForce(const InputParameters & parameter
 Real
 NekViscousSurfaceForce::getValue() const
 {
-  if (_component == "total")
-  {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
-    postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+  auto drag = nekrs::viscousDrag(_boundary);
 
-    occa::memory o_b = platform->device.malloc<int>(_boundary.size(), _boundary.data());
-    const auto drag = postProcessing::viscousDrag(nrs, _boundary.size(), o_b, o_Sij);
-    o_Sij.free();
-    return drag;
-  }
+  if (_component == "total")
+    return std::sqrt(drag[0] * drag[0] + drag[1] * drag[1] + drag[2] * drag[2]);
+  else if (_component == "x")
+    return drag[0];
+  else if (_component == "y")
+    return drag[1];
+  else if (_component == "z")
+    return drag[2];
   else
-    mooseError("x, y, and z components of viscous drag not currently supported. Please contact "
-               "developers if this is affecting your analysis needs.");
+    mooseError("Unknown 'component' in NekViscousSurfaceForce!");
 }
 
 #endif
