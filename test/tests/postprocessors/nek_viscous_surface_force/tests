@@ -12,7 +12,7 @@
   [invalid_mesh]
     type = RunException
     input = nek.i
-    cli_args = 'Postprocessors/viscous_1/mesh=all'
+    cli_args = 'Postprocessors/viscous_x_1/mesh=all'
     expect_err = "The 'NekViscousSurfaceForce' postprocessor can only be applied to"
     requirement = "The system shall error if trying to compute viscous drag on non-fluid NekRS boundaries"
     capabilities = 'nekrs'
