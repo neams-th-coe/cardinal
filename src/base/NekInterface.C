@@ -887,6 +887,103 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 }
 
 std::vector<dfloat>
+yPlus(const std::vector<int> & boundary_id)
+{
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  // compute the rate of strain tensor on device
+  auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
+  postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+
+  // copy to host for evaluating wall-parallel stress
+  dfloat * Sij = (dfloat *)calloc(o_Sij.size(), sizeof(dfloat));
+  o_Sij.copyTo(Sij);
+  o_Sij.free();
+
+  double * wall_distance = (double *) nek::scPtr(1);
+
+  // integrate over the boundaries in the mesh; each rank will compute contributions to the
+  // x, y, and z components
+  mesh_t * mesh = getMesh(nek_mesh::fluid);
+
+  // TODO: This function only works correctly if the viscosity and rho is constant, because
+  // otherwise we need to copy the viscosity and rho from device to host
+  double mu;
+  platform->options.getArgs("VISCOSITY", mu);
+  double rho;
+  platform->options.getArgs("DENSITY", rho);
+  double nu = mu / rho;
+
+  dfloat max_yp = -std::numeric_limits<float>::max();
+  dfloat min_yp = std::numeric_limits<float>::max();
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int surf_offset = mesh->Nsgeo * (offset + v);
+          int vol_id = mesh->vmapM[offset + v];
+          //dfloat sWJ = sgeo[surf_offset + WSJID];
+          // TODO: minus sign does not matter because I'm taking a norm anyways
+          dfloat scale = 2 * mu; // * sWJ;
+
+          dfloat n1 = sgeo[surf_offset + NXID];
+          dfloat n2 = sgeo[surf_offset + NYID];
+          dfloat n3 = sgeo[surf_offset + NZID];
+
+          dfloat s11 = Sij[vol_id + 0 * nrs->fieldOffset];
+          dfloat s12 = Sij[vol_id + 3 * nrs->fieldOffset];
+          dfloat s13 = Sij[vol_id + 5 * nrs->fieldOffset];
+          dfloat s21 = s12;
+          dfloat s22 = Sij[vol_id + 1 * nrs->fieldOffset];
+          dfloat s23 = Sij[vol_id + 4 * nrs->fieldOffset];
+          dfloat s31 = s13;
+          dfloat s32 = s23;
+          dfloat s33 = Sij[vol_id + 2 * nrs->fieldOffset];
+
+          // tau_{ij}n_j - (tau_{jk} n_k n_j) * n_i
+          dfloat f1 = scale * (s11 * n1 + s12 * n2 + s13 * n3);
+          dfloat f2 = scale * (s21 * n1 + s22 * n2 + s23 * n3);
+          dfloat f3 = scale * (s31 * n1 + s32 * n2 + s33 * n3);
+
+          f1 -= f1 * n1 * n1;
+          f2 -= f2 * n2 * n2;
+          f3 -= f3 * n3 * n3;
+
+          dfloat tauw = sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+          dfloat utau = tauw / sqrt(rho);
+          dfloat yplus = wall_distance[vol_id] * utau / nu;
+          std::cout << wall_distance[vol_id] << std::endl;
+          max_yp = std::max(yplus, max_yp);
+          min_yp = std::min(yplus, min_yp);
+        }
+      }
+    }
+  }
+
+   // max across all processes
+   double total_max_yp;
+   MPI_Allreduce(&max_yp, &total_max_yp, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
+
+   // min across all processes
+   double total_min_yp;
+   MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
+
+   // TODO: dimensionalize
+   // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
+
+  freePointer(Sij);
+  return {total_max_yp, total_min_yp};
+}
+
+std::vector<dfloat>
 viscousDrag(const std::vector<int> & boundary_id)
 {
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();

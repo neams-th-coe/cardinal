@@ -64,6 +64,8 @@ dfloat * getVgeo();
 void checkFieldValidity(const field::NekFieldEnum & field);
 void checkFieldValidity(const field::NekWriteEnum & field);
 
+std::vector<dfloat> yPlus(const std::vector<int> & boundary_id);
+
 /**
  * Compute the three components of the viscous drag along a given boundary
  * @param[in] boundary boundary IDs for drag computation
