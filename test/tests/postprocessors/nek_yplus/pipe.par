@@ -1,0 +1,16 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 3
+  numSteps = 1
+  dt = targetCFL=0.5 + initial=1e-4
+  writeInterval = 100
+
+[PRESSURE]
+  residualTol = 1e-06
+
+[VELOCITY]
+  density = 1.0
+  viscosity = -40
+  solver = none

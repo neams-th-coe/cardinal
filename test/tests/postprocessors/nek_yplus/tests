@@ -1,0 +1,20 @@
+[Tests]
+  design = 'NekYPlus.md'
+  issues = '#1290'
+
+  [drag]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall allow y plus to be computed. The resulting expression is checked against an analytic expression for the friction velocity and by inspection of the wall distance for the first GLL points near the wall."
+    capabilities = 'nekrs'
+  []
+  [invalid_mesh]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max_yp/mesh=all'
+    expect_err = "The 'NekYPlus' postprocessor can only be applied to"
+    requirement = "The system shall error if trying to compute y plus on non-fluid NekRS boundaries"
+    capabilities = 'nekrs'
+  []
+[]
