@@ -1,0 +1,23 @@
+# Build and install Cardinal in a Docker image without conda
+#
+# This relies on the latest moose-dev docker image as the basis.
+#
+FROM idaholab/moose-dev 
+
+WORKDIR /cardinal-build
+
+RUN git clone https://github.com/neams-th-coe/cardinal.git
+
+WORKDIR /cardinal-build/cardinal
+
+# adding these shell arguments ensures that conda is properly instantiated
+# with each invocation of the shell
+SHELL ["/bin/bash", "-i", "-c"]
+
+ENV PATH=/opt/miniforge3/envs/moose/bin:$PATH
+RUN ./scripts/get-dependencies.sh
+
+RUN export HDF5_ROOT=${PETSC_DIR} && \
+    export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
+    export NEKRS_HOME=/cardinal-build/cardinal/install && \
+    make -j 16
