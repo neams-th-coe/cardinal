@@ -1,0 +1,21 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->meshV;
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    dfloat r = std::sqrt(mesh->x[n]*mesh->x[n] + mesh->y[n]*mesh->y[n]) * 2.0;
+    nrs->U[n + 2 * nrs->fieldOffset] = -2 * (r*r - 1);
+  }
+}
+
+void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
+{
+}
