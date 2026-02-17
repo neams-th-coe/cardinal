@@ -2,7 +2,6 @@
   backend = CPU
 
 [GENERAL]
-  startFrom = restart.fld
   polynomialOrder = 7
   numSteps = 50000
   dt = targetCFL=0.5 + initial=1e-4
@@ -10,9 +9,9 @@
   constFlowRate = meanVelocity=1.0 + direction=Z
 
   # comment out to run DNS (no LES filtering)
-  #filtering = hpfrt
-  #filterWeight = 5.0
-  #filterModes = 2
+  filtering = hpfrt
+  filterWeight = 5.0
+  filterModes = 2
 
 [PRESSURE]
   residualTol = 1e-06
