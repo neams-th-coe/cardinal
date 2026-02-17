@@ -4,6 +4,8 @@ In this tutorial, you will learn how to:
 
 - Understand important considerations for running CFD cases
 - Generate a periodic flow and heat transfer case with NekRS
+- Compute $y^+$
+- Run a [!ac](LES) and perform time averaging
 
 To access this tutorial,
 
@@ -376,3 +378,69 @@ temperature, $\tilde{T}$.
   id=pipe_periodic
   caption=NekRS temperature solution for periodic boundary conditions.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
+## Introduction to Turbulent Simulations
+
+Directly solving the Navier-Stokes equations, without any additional coupled equations
+([!ac](RANS)) or without any filters to drain energy from the shortest wavelengths
+([ac](LES)), is called [!ac](DNS). Performing a [!ac](DNS) simulation requires very
+fine meshes which capture all ranges of eddy sizes, down to the smallest eddies which
+dissipate turbulent kinetic energy into heat. If your mesh is not fine enough to
+resolve these scales, the typical observation will be that your velocity attains high,
+unphysical oscillations in value and/or a very high [!ac](CFL) number. In some simple
+geometries, you may need to add a perturbation to the initial condition for velocity
+in order to trip the simulation to turbulence. These aspects are briefly explored here,
+while a later section will be dedicated to properly setting up [!ac](DNS) simulations.
+
+In this section and those that follow, we will simulate our pipe at a Reynolds number
+of 5000, well within the turbulent regime.
+
+### Tripping a Simulation to Turbulence
+
+For simple geometries, it may be necessary to add some 3-D behavior to your initial
+condition for velocity in order for the simulation to trip into turbulence. For
+example, below shows the velocity distribution for $Re=5000$ as solved by NekRS when
+the initial condition is a parabola in the $z$-direction. No turbulence develops even
+after running this simulation for 20 convective units.
+
+!media laminar.png
+  id=laminar
+  caption=NekRS velocity solution after running for 20 convective units at $Re=5000$
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+We can set the initial condition to have some perturbation in the $x$ and $y$ components
+of velocity, such as
+
+\begin{equation}
+V_x=0.1\sin(z)
+\end{equation}
+
+\begin{equation}
+V_y=0.1\cos(z)
+\end{equation}
+
+This will trip the simulation into turbulence. For instance, a few snapshots at different
+convective units are shown below.
+
+!media kick.png
+  id=kick
+  caption=NekRS velocity solution after running a few convective units at $Re=5000$
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+### Underresolved Turbulence
+
+If your mesh is not fine enough to resolve the Kolmogorov length scales, many turbulent simulations
+will achieve very high [!ac](CFL) and therefore be unstable. In NekRS, this could manifest as the
+solve aborting or other unphysical observations in the flow (e.g. "stripes" or oscillations from
+element to element). If you observe either of these, you either want to refine the mesh so that
+the [!ac](GLL) point spacing is smaller than the local Kolmogorov scale, or to drain energy from
+the shortest wavelengths using [!ac](LES).
+
+
+## Large Eddy Simulation
+
+[!ac](LES) in NekRS uses a filter to drain energy from the shortest wavelengths (highest frequencies)
+of the velocity, temperature, and scalar(s) solutions. For a description on the theoretical background,
+see [this page](les_filter.md). Here, we focus on the practical aspects of running [!ac](LES)
+with NekRS.
+

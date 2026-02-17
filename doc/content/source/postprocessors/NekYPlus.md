@@ -9,14 +9,14 @@ on given sidesets in the domain. The value of $y^+$ at a point on the
 boundary is
 
 \begin{equation}
-y^+=\frac{\delta u_*}{\nu}
+y^+=\frac{\delta u_\tau}{\nu}
 \end{equation}
 
 where $\delta$ is the distance from the wall of the nearest GLL point,
-$\nu$ is the kinematic viscosity$, and $u_*$ is the friction velocity,
+$\nu$ is the kinematic viscosity$, and $u_\tau$ is the friction velocity,
 
 \begin{equation}
-u_*\equiv\sqrt{\frac{\tau_w}{\rho}}
+u_\tau\equiv\sqrt{\frac{\tau_w}{\rho}}
 \end{equation}
 
 The numerator in this expression represents the viscous force on the wall,
