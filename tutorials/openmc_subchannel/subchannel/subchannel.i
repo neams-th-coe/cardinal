@@ -142,6 +142,15 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   T_tol = 1.0e-5
 []
 
+[SCMClosures]
+  [cheng]
+    type = SCMFrictionUpdatedChengTodreas
+  []
+  [Dittus-Boelter]
+    type = SCMHTCDittusBoelter
+  []
+[]
+
 [AuxKernels]
   [T_in_bc]
     type = ConstantAux
