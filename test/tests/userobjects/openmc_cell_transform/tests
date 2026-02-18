@@ -30,22 +30,35 @@
   [invalid_phi]
     type = RunException
     input = rotate_cells.i
-    cli_args = 'UserObjects/rotate_cells/vector_value="360 0 0"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle φ must be in the range \[0, 360\) degrees. Got invalid φ = 360.000000 degrees.'
+    cli_args = 'UserObjects/rotate_cells/vector_value="361 0 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle φ must be in the range \(0, 361\] degrees. Got invalid φ = 361.000000 degrees.'
     capabilities = 'openmc'
   []
   [invalid_theta]
     type = RunException
     input = rotate_cells.i
-    cli_args = 'UserObjects/rotate_cells/vector_value="0 360 0"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle θ must be in the range \[0, 360\) degrees. Got invalid θ = 360.000000 degrees.'
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 361 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle θ must be in the range \(0, 361\] degrees. Got invalid θ = 361.000000 degrees.'
     capabilities = 'openmc'
   []
   [invalid_psi]
     type = RunException
     input = rotate_cells.i
-    cli_args = 'UserObjects/rotate_cells/vector_value="0 0 360"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle ψ must be in the range \[0, 360\) degrees. Got invalid ψ = 360.000000 degrees.'
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 0 361"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle ψ must be in the range \(0, 361\] degrees. Got invalid ψ = 361.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [empty_cell_ids]
+    type = RunException
+    input = empty_cell_ids.i
+    expect_err = 'UserObjects/translate_cells/cell_ids: At least one OpenMC cell ID must be provided.'
+    capabilities = 'openmc'
+  []
+  [wrong_vector_size]
+    type = RunException
+    input = translate_cells.i
+    cli_args = 'UserObjects/translate_cells/vector_value="shift_x"'
+    expect_err = "UserObjects/translate_cells/vector_value: Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translationtransform or 'φ, θ, ψ' in degrees for rotation transform."
     capabilities = 'openmc'
   []
 []
