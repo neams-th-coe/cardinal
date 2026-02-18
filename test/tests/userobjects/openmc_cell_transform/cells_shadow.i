@@ -4,7 +4,7 @@
     dim = 3
     nx = 20
     ny = 20
-    nz = 20
+    nz = 1
     xmin = -12
     xmax =  12
     ymin = -12
