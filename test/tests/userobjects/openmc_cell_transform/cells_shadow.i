@@ -14,21 +14,6 @@
   []
 []
 
-[GlobalParams]
-  # These parameters are added to invoke OpenMCCellAverageProblem to redo cell mapping at each
-  # time step, but the displacements will remain zero
-  displacements = 'disp_x disp_y disp_z'
-  use_displaced_mesh = true
-[]
-[Variables]
-  [disp_x]
-  []
-  [disp_y]
-  []
-  [disp_z]
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
