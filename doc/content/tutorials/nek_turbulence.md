@@ -524,5 +524,73 @@ of the velocity, temperature, and scalar(s) solutions. For a description on the 
 see [this page](les_filter.md). Here, we focus on the practical aspects of running [!ac](LES)
 with NekRS. These input files are in the `tutorials/turbulence/les` folder.
 
+### Time-Averaging
 
+[!ac](LES) and [!ac](DNS) both compute time-dependent flow fields. For comparison with [!ac](RANS)
+and some experimental measurements, it is helpful to time-average the flow fields to find the mean
+flow. Recall from the Reynolds decomposition that an instantaneous quantity can be decomposed
+into a mean and a fluctuation (with zero mean but nonzero variance). For instance, for the $i$-th
+component of velocity, this is
 
+\begin{equation}
+u_i=\langle u_i\rangle +u_i'
+\end{equation}
+
+The time average is defined as
+
+\begin{equation}
+\langle u_i\rangle\equiv\lim_{T\rightarrow\infty}\frac{1}{T}\int_{t_0}^{t_0+T}u_i dt
+\end{equation}
+
+NekRS provides functionality to time-average its instantaneous velocity/pressure/temperature solutions
+during the run. This section of the tutorial is an abridged version of the time-averaging
+documentation [on the NekRS website](https://nekrs.readthedocs.io/en/latest/problem_setup/postprocessing.html#time-averaging).
+
+In the `.udf` file, we simply add a few lines to register the time-averaging kernel,
+and then in `UDF_ExecuteStep` we call the time-averaging operation at the same frequency as we
+write output files (this is not required, but common).
+
+!listing /tutorials/turbulence/les/pipe.udf language=cpp
+
+When running NekRS, this will now create three additional output files on each output step.
+Since our casename is `pipe`, these will be named
+
+- `avgpipe0.f*`: these contain the time-averaged fields (first-order moments), i.e. $\langle u\rangle$,
+  $\langle v\rangle$, $\langle w\rangle$, etc. By default, the window for time averaging
+  resets each time the averaging routine is called. In other words, if an output file is written
+  on time steps 1000, 1500, and 3000, then `avgpipe0.f00001` contains the time average of the
+  solution fields over time steps 0-1000; `avgpipe0.f00002` contains the time average of the
+  solution fields over time steps 1000-1500; and `avgpipe0.f00003` contains the time average of
+  the solution fields over time steps 1500-3000.
+- `rmspipe0.f*`: averages of the squares (second-order moments)
+  e.g. $\langle uu\rangle$, $\langle vv\rangle$, $\langle ww\rangle$ and for temperature,
+  $\langle TT\rangle$.
+- `rm2pipe0.f*`: averages of the mixed correlations  $\langle uv\rangle$,
+  $\langle vw\rangle$, $\langle uw\rangle$.
+
+The mean Reynolds stress tensor has components which can then be computed as
+
+\begin{equation}
+\underbrace{\langle uu\rangle}_\text{in rms file}=\langle u\rangle\underbrace{\langle u\rangle}_\text{in avg file}+\underbrace{\langle u'u'\rangle}_\text{mean (0,0) entry in Reynolds stress tensor}
+\end{equation}
+
+\begin{equation}
+\underbrace{\langle uv\rangle}_\text{in rm2 file}=\langle u\rangle\underbrace{\langle v\rangle}_\text{in avg file}+\underbrace{\langle u'v'\rangle}_\text{mean (0,1) entry in Reynolds stress tensor}
+\end{equation}
+
+and so on for the other components.
+
+!alert note
+When generating these time-averaged files, the default behavior is for the time to reset in
+each file once the new time averaging window begins. Paraview will not be able to open these
+`avg`, `rms`, and `rm2` files as-is because they may not have a monotonically increasing
+simulation time. To convert the files into a form which can be read by Paraview, run from
+the folder where the output files are located,
+
+```
+python ../../../../scripts/change_time.py pipe
+```
+
+where `../../../../scripts/change_time.py` is the path to the `chang_time.py` script in the
+`cardinal/scripts` directory.
+!alert-end!
