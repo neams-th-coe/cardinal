@@ -10,6 +10,14 @@
                   'This is tested by translating the mesh while also translating OpenMC universe which contains the coupled cells.'
     capabilities = 'openmc'
   []
+  [scaled_translation]
+    type = Exodiff
+    input = scaled.i
+    exodiff = scaled_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when a scaled geometry is translated.'
+                  'This is tested by translating the scaled mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
   [rotate_cells]
     type = Exodiff
     input = rotate_cells.i
