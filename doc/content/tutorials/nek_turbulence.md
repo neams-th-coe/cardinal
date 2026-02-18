@@ -431,16 +431,98 @@ convective units are shown below.
 
 If your mesh is not fine enough to resolve the Kolmogorov length scales, many turbulent simulations
 will achieve very high [!ac](CFL) and therefore be unstable. In NekRS, this could manifest as the
-solve aborting or other unphysical observations in the flow (e.g. "stripes" or oscillations from
+solve aborting. You may also observe other unphysical observations in the flow (e.g. "stripes" or oscillations from
 element to element). If you observe either of these, you either want to refine the mesh so that
 the [!ac](GLL) point spacing is smaller than the local Kolmogorov scale, or to drain energy from
 the shortest wavelengths using [!ac](LES).
 
+## Mesh Resolution Requirements for Turbulence
+
+### Computing $y^+$
+
+In Cardinal, you can compute the maximum, minimum, or average value of $y^+$ on a given sideset in NekRS
+using the [NekYPlus](NekYPlus.md) postprocessor. For wall-resolved simulations (without the use of
+wall functions), it is recommended to have a mesh refined near the wall with $y^+<1$. NekRS does not
+currently have wall functions.
+
+$y^+$ is a non-dimensional length scale that is uniquely defined at each node on the wall as
+
+\begin{equation}
+y^+\equiv\frac{\delta u_\tau}{\nu}
+\end{equation}
+
+where $\delta$ is the distance from the wall to the nearest [!ac](GLL) point, $\nu$ is
+the kinematic viscosity ($1/Re$ for non-dimensional simulations), and $u_\tau$ is the friction
+velocity. $u_\tau$ is defined as
+
+\begin{equation}
+u_\tau\equiv\frac{\sqrt{\tau_w}{\rho}}
+\end{equation}
+
+where $\tau_w$ is the wall shear stress and $\rho$ is the density (1.0 for non-dimensional simulations).
+The wall shear stress is the magnitude of the viscous force vector on the wall, considering only the
+components of that vector which act tangential to the wall. In tensor notation, the
+$i$-th component of the viscous force is $\tau_{ij}n_j$. Therefore, to subtract off any contributions
+along the $\hat{n}$ direction (perpendicular to the surface), we write
+
+\begin{equation}
+\tau_w\equiv\sqrt{\frac{\|\tau_{ij}n_j-(\tau_{kl}n_ln_k)n_i\|}{\rho}}
+\end{equation}
+
+where $\tau_{kl}n_l$ is the $k$-the component of the viscous force vector, which when dotted
+with the unit normal ($\tau_{kl}n_ln_k$) is the component of the viscous force vector
+perpendicular to the surface. To subtract *out* this perpendicular component, we multiply by
+$n_i$ to correctly subtract out the $i$-th component of the perpendicular component from the
+$i$-th component of the viscous force vector $\tau_{ij}n_j$.
+
+When generating a mesh, it can be helpful to estimate $y^+$ (in addition to monitoring it with
+[NekYPlus](NekYPlus.md) during the simulation). To obtain a rough estimate of $y^+$, note
+that it can be related to the Darcy friction factor as
+
+\begin{equation}
+\tau_w=\frac{f}{8}\rho V^2
+\end{equation}
+
+giving
+
+\begin{equation}
+\begin{aligned}
+u_*\equiv&\ \sqrt{\frac{\tau_w}{\rho}}\\
+=&\ \sqrt{\frac{f\rho V^2}{8\rho}}\\
+=&\ V\sqrt{\frac{f}{8}}\\
+\end{aligned}
+\end{equation}
+
+where $V=1$ for non-dimensional solutions. It is common to simply take the Blasius correlation
+for flow along a flat plate, since this is just an approximation anyways and you can rely on the
+$y^+$ computed during the run to obtain final guidance on mesh resolution near the wall.
+
+\begin{equation}
+f=0.3164 Re^{-1/4}
+\end{equation}
+
+So, for the scenario in this tutorial, we could open an output file and obtain the coordinates at a point
+on the boundary to compute $\delta$ (use the red dot with a question mark
+on the toolbar and then hover over a node). From the two nodes shown below, we'd estimate $\delta$ to
+be around 0.000365.
+
+!media hover_icon.png
+  id=hover_icon
+  caption=NekRS mesh (showing the [!ac](GLL) points) and with the Paraview hover feature
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+Then, we would estimate $f=0.0376$ for a flat plate for $Re=5000$
+(definitely not a pipe, so we are just crudely estimating $y^+$). This would give an approximate
+$y^+$ on the wall as 0.38 in this mesh. We can compare this value with the [NekYPlus](NekYPlus.md)
+postprocessor, and find we did a pretty good job! The maximum $y^+$ on the mesh, after one
+convective unit, is around 0.5.
 
 ## Large Eddy Simulation
 
 [!ac](LES) in NekRS uses a filter to drain energy from the shortest wavelengths (highest frequencies)
 of the velocity, temperature, and scalar(s) solutions. For a description on the theoretical background,
 see [this page](les_filter.md). Here, we focus on the practical aspects of running [!ac](LES)
-with NekRS.
+with NekRS. These input files are in the `tutorials/turbulence/les` folder.
+
+
 
