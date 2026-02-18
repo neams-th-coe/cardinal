@@ -2,6 +2,12 @@ import struct
 import sys
 import re
 import os
+from argparse import ArgumentParser
+
+ap = ArgumentParser()
+ap.add_argument('--case', dest='case', type=str, required=True, help='NekRS casename')
+ap.add_argument('--reset', action='store_true', dest='reset', help='Whether to undo time modifications to go back to the original times written by NekRS')
+args = ap.parse_args()
 
 # The time-averaged files written by NekRS are all written at time zero to facilitate averaging
 # of those files together. However, this prevents those files from then being viewed in Paraview,
@@ -11,12 +17,7 @@ import os
 
 os.chdir(os.getcwd())
 
-if len(sys.argv) !=2 :
-    print('\nChange the time inside *0.f0* file based on timestep')
-    print('Usage: python3 ./%s <case_name> \n\n'%(sys.argv[0]))
-    quit(0)
-
-fnek5000 = 'avg' + sys.argv[1] + '.nek5000'
+fnek5000 = 'avg' + args.case + '.nek5000'
 
 try:
     print('Reading '+fnek5000,end='')
@@ -44,12 +45,17 @@ for i in range(numtimesteps):
 
         header = inline.split()
         time = float(header[7])
+        timestep = int(header[8])
+
         if (i == 0):
           newTime = time
+          priorNewTime = 0
         else:
-          newTime += time
-
-        timestep = int(header[8])
+          if (args.reset):
+            newTime = time - priorNewTime
+            priorNewTime = time
+          else:
+            newTime += time
 
         newHeader = inline[:38] + '%20.13E'%newTime + inline[58:]
         print('   step=%d time=%g newTime=%g'%(timestep,time,newTime))
