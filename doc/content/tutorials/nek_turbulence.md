@@ -497,7 +497,7 @@ after running this simulation for 20 convective units.
 
 !media laminar.png
   id=laminar
-  caption=NekRS velocity solution after running for 20 convective units at $Re=5000$
+  caption=NekRS velocity solution after running for 20 convective units at Reynolds number of 5000
   style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 We can set the initial condition to have some perturbation in the $x$ and $y$ components
@@ -516,7 +516,7 @@ convective units are shown below.
 
 !media kick.png
   id=kick
-  caption=NekRS velocity solution after running a few convective units at $Re=5000$
+  caption=NekRS velocity solution after running a few convective units at Reynolds number of 5000
   style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 ## Large Eddy Simulation
