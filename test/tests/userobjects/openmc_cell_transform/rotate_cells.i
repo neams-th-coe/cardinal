@@ -44,8 +44,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  # Updating cell_level to 2 to account for the nested
-  # universes. Refer to OpenMCCellAverageProblem docs for more details.
   cell_level = 2
   verbose = true
   power = 100
