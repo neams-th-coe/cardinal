@@ -83,6 +83,9 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   [displacement]
     block = fuel_pins
   []
+  [ff]
+    block = subchannel
+  []
 []
 
 [ICs]
