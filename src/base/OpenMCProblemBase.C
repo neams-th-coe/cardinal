@@ -649,12 +649,12 @@ OpenMCProblemBase::importProperties() const
   catchOpenMCError(err, "load temperature and density from a properties.h5 file");
 }
 
-xt::xtensor<double, 1>
-OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
-                                 const xt::xtensor<double, 1> & sum_sq,
+OMCTensor
+OpenMCProblemBase::relativeError(const OMCTensor & sum,
+                                 const OMCTensor & sum_sq,
                                  const int & n_realizations) const
 {
-  xt::xtensor<double, 1> rel_err = xt::zeros<double>({sum.size()});
+  OMCTensor rel_err = openmc::tensor::zeros<double>({sum.size()});
 
   for (unsigned int i = 0; i < sum.size(); ++i)
   {
@@ -678,10 +678,10 @@ OpenMCProblemBase::relativeError(const Real & sum,
   return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
 }
 
-xt::xtensor<double, 1>
+OMCTensor
 OpenMCProblemBase::tallySum(const openmc::Tally * tally, const unsigned int & score) const
 {
-  return xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM));
+  return OMCTensor(tally->results_.slice(openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM)));
 }
 
 double
@@ -693,7 +693,7 @@ OpenMCProblemBase::tallySumAcrossBins(std::vector<const openmc::Tally *> tally,
   for (const auto & t : tally)
   {
     auto mean = tallySum(t, score);
-    sum += xt::sum(mean)();
+    sum += mean.sum();
   }
 
   return sum;

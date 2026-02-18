@@ -55,22 +55,30 @@ LambdaEffective::getValue() const
   const auto n = ifp_tally.n_realizations_;
 
   const auto num_sum =
-      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      ifp_tally.results_.slice(openmc::tensor::all,
+                               0,
+                               static_cast<int>(openmc::TallyResult::SUM))[0];
   const auto den_sum =
-      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM));
+      ifp_tally.results_.slice(openmc::tensor::all,
+                               1,
+                               static_cast<int>(openmc::TallyResult::SUM))[0];
 
   const auto num_ss =
-      xt::view(ifp_tally.results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+      ifp_tally.results_.slice(openmc::tensor::all,
+                               0,
+                               static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
   const auto den_ss =
-      xt::view(ifp_tally.results_, xt::all(), 1, static_cast<int>(openmc::TallyResult::SUM_SQ));
+      ifp_tally.results_.slice(openmc::tensor::all,
+                               1,
+                               static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
 
   const auto mean_k = kMean(_type);
   const auto k_rel = kRelativeError();
 
-  const Real lambda_eff = (num_sum[0] / n) / (den_sum[0] / n) / mean_k;
+  const Real lambda_eff = (num_sum / n) / (den_sum / n) / mean_k;
 
-  const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n)[0];
-  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n)[0];
+  const Real num_rel = _openmc_problem->relativeError(num_sum, num_ss, n);
+  const Real den_rel = _openmc_problem->relativeError(den_sum, den_ss, n);
   const Real lambda_rel = std::sqrt(num_rel * num_rel + den_rel * den_rel + k_rel * k_rel);
 
   switch (_output)

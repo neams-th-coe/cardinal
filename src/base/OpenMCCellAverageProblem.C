@@ -44,7 +44,6 @@
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
 #include "openmc/universe.h"
-#include "xtensor/xarray.hpp"
 
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 

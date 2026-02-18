@@ -495,10 +495,9 @@ TallyBase::computeSumAndMean()
       for (unsigned int m = 0; m < mapped_bins; ++m)
         if (!_ext_bins_to_skip[ext])
           _local_sum_tally[score] +=
-              xt::view(_local_tally->results_,
-                       xt::all(),
-                       score,
-                       static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
+              _local_tally->results_.slice(openmc::tensor::all,
+                                           score,
+                                           static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
 
     _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
     if (addingGlobalTally())
@@ -582,15 +581,14 @@ TallyBase::relaxAndNormalizeTally()
      * If the value over the whole domain is zero, then the values in the individual bins must be
      * zero. We need to avoid divide-by-zeros.
      */
-    current_raw = std::abs(norm) < ZERO_TALLY_THRESHOLD
-                      ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
-                      : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
+    current_raw = mean_tally;
+    current_raw *= std::abs(norm) < ZERO_TALLY_THRESHOLD ? 0.0 : (1.0 / norm);
 
-    auto sum_sq = xt::view(
-        _local_tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM_SQ));
+    auto sum_sq = OMCTensor(_local_tally->results_.slice(openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
     current_raw_rel_error =
         _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-    current_raw_std_dev = current_raw_rel_error * current_raw;
+    current_raw_std_dev = current_raw_rel_error;
+    current_raw_std_dev *= current_raw;
 
     if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
     {
