@@ -300,11 +300,11 @@ heat are also 1.0. Therefore, $\gamma=2/R$.
 
 Now, we want to recast the energy equation in a way such that the outlet temperature does indeed equal the inlet temperature (so that our periodic boundary conditions work). Inserting the above into the conservation of energy equation,
 
-\beq
+\begin{equation}
 \label{eq:c3}
-\frac{\pl T}{\pl t}+V_i\frac{\pl T}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl T}{\pl x_i}\\
-\frac{\pl \tilde{T}}{\pl t}+V_i\frac{\pl\tilde{T}}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl\tilde{T}}{\pl x_i}-V_z\gamma\\
-\eeq
+\frac{\partial T}{\partial t}+V_i\frac{\partial T}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial T}{\partial x_i}\\
+\frac{\partial \tilde{T}}{\partial t}+V_i\frac{\partial\tilde{T}}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial\tilde{T}}{\partial x_i}-V_z\gamma\\
+\end{equation}
 
 In this way, by adding a heat sink term $V_z\gamma$, the actual quantity we are solving for with the energy equation is the periodic temperature field $\tilde{T}$. This field can be a function of height if the geometry itself varies with $z$, such as in
 wire-wrapped pin bundles (e.g. see [!cite](dutra)).
