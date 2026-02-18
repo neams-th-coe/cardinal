@@ -588,9 +588,16 @@ simulation time. To convert the files into a form which can be read by Paraview,
 the folder where the output files are located,
 
 ```
-python ../../../../scripts/change_time.py pipe
+python ../../../../scripts/change_time.py --case pipe
 ```
 
 where `../../../../scripts/change_time.py` is the path to the `chang_time.py` script in the
 `cardinal/scripts` directory.
+
+To *undo* this action, pass the `--reset` flag to the `change_time.py` script. The times must
+be unmodified to be able to time average the averaged files together.
+
+```
+python ../../../../scripts/change_time.py --case pipe --reset
+```
 !alert-end!
