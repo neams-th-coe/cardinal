@@ -1,0 +1,72 @@
+[Mesh]
+  [block]
+    type = GeneratedMeshGenerator
+    dim = 3
+    nx = 20
+    ny = 20
+    nz = 1
+    xmin = -12
+    xmax =  12
+    ymin = -12
+    ymax =   4
+    zmin =   0
+    zmax =  30
+  []
+[]
+
+[Problem]
+  type = OpenMCCellAverageProblem
+  verbose = true
+  power = 100.0
+  cell_level = 1
+  reset_seed = true
+  xml_directory=./cells_shadow
+
+  [Tallies]
+    [heat]
+      type = CellTally
+      score = 'kappa_fission'
+    []
+  []
+[]
+
+[Functions]
+  [shift_y_fn]
+    type = ParsedFunction
+    expression = '-t'
+  []
+[]
+
+[Postprocessors]
+  [shift_y]
+    type = FunctionValuePostprocessor
+    function = shift_y_fn
+    execute_on = 'timestep_begin'
+  []
+  [k]
+    type = KEigenvalue
+  []
+  [power]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+  []
+[]
+
+[UserObjects]
+  [move_bundle]
+    type = OpenMCCellTransform
+    transform_type = 'translation'
+    vector_value = '0 shift_y 0'
+    cell_ids = '2011'
+    execute_on = 'timestep_begin'
+  []
+[]
+
+[Executioner]
+  type = Transient
+  num_steps = 4
+[]
+
+[Outputs]
+  exodus = true
+[]
