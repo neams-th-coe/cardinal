@@ -49,6 +49,9 @@ void UDF_Setup(nrs_t *nrs)
     }
   }
 
+  // this will call userchk in the fortran file, which does the time averaging
+  nek::userchk();
+
   tavg::setup(nrs);
   udf.sEqnSource = &userq;
 }
