@@ -20,6 +20,7 @@
   power = 100.0
   cell_level = 1
   reset_seed = true
+  xml_directory=./cells_shadow
 
   [Tallies]
     [heat]
