@@ -37,8 +37,8 @@ void UDF_Setup(nrs_t *nrs)
     for (int n = 0; n < n_gll_points; ++n)
     {
       // comment out to see flow if no initial perturbation is applied to the x, y velocity components
-      nrs->U[n + 0 * nrs->fieldOffset] = 0.1 * std::cos(mesh->z[n]); // x-velocity
-      nrs->U[n + 1 * nrs->fieldOffset] = 0.1 * std::sin(mesh->z[n]); // y-velocity
+      nrs->U[n + 0 * nrs->fieldOffset] = 0.2 * std::cos(mesh->z[n]); // x-velocity
+      nrs->U[n + 1 * nrs->fieldOffset] = 0.2 * std::sin(mesh->z[n]); // y-velocity
 
       dfloat r = std::sqrt(mesh->x[n] * mesh->x[n] + mesh->y[n] * mesh->y[n]) * 2.0;
       nrs->U[n + 2 * nrs->fieldOffset] = -2 * (r * r - 1); // z-velocity

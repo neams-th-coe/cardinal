@@ -6,7 +6,8 @@ import os
 # The time-averaged files written by NekRS are all written at time zero to facilitate averaging
 # of those files together. However, this prevents those files from then being viewed in Paraview,
 # since Paraview likes to have files ordered sequentially in time. This script changes the time
-# index in the avg files so that you can view the files in Paraview.
+# index in the avg files so that you can view the files in Paraview. This file originally
+# comes from https://github.com/yslan/nek-utils/tree/main/usr_extra
 
 os.chdir(os.getcwd())
 
