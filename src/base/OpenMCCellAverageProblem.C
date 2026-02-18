@@ -523,7 +523,7 @@ OpenMCCellAverageProblem::initialSetup()
   getOpenMCUserObjects();
 
   if (_use_displaced && !_using_skinner && !hasCellTransform())
-    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner'. The "
+    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner' or an OpenMCCellTransform user object (both of which move the OpenMC geometry). The "
                  "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
                  "Unexpected behavior may occur.");
 
