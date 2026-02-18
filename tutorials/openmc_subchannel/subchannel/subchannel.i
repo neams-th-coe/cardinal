@@ -134,6 +134,7 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   compute_power = true
   implicit = true
   segregated = false
+  friction_closure = 'cheng'
   staggered_pressure = false
   monolithic_thermal = false
   P_tol = 1.0e-5
