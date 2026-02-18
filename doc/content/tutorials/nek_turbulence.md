@@ -379,66 +379,27 @@ temperature, $\tilde{T}$.
   caption=NekRS temperature solution for periodic boundary conditions.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
-## Introduction to Turbulent Simulations
+## Turbulent Simulations with NekRS
 
 Directly solving the Navier-Stokes equations, without any additional coupled equations
 ([!ac](RANS)) or without any filters to drain energy from the shortest wavelengths
-([ac](LES)), is called [!ac](DNS). Performing a [!ac](DNS) simulation requires very
-fine meshes which capture all ranges of eddy sizes, down to the smallest eddies which
-dissipate turbulent kinetic energy into heat. If your mesh is not fine enough to
-resolve these scales, the typical observation will be that your velocity attains high,
-unphysical oscillations in value and/or a very high [!ac](CFL) number. In some simple
-geometries, you may need to add a perturbation to the initial condition for velocity
-in order to trip the simulation to turbulence. These aspects are briefly explored here,
-while a later section will be dedicated to properly setting up [!ac](DNS) simulations.
-
+([ac](LES)), is called [!ac](DNS). The highest fidelity methods require more runtime,
+and hence there is a tradeoff in fidelity and computing requirements.
 In this section and those that follow, we will simulate our pipe at a Reynolds number
 of 5000, well within the turbulent regime.
 
-### Tripping a Simulation to Turbulence
+### RANS, LES, and DNS
 
-For simple geometries, it may be necessary to add some 3-D behavior to your initial
-condition for velocity in order for the simulation to trip into turbulence. For
-example, below shows the velocity distribution for $Re=5000$ as solved by NekRS when
-the initial condition is a parabola in the $z$-direction. No turbulence develops even
-after running this simulation for 20 convective units.
+<! add general intro to RANS, LES, DNS >
 
-!media laminar.png
-  id=laminar
-  caption=NekRS velocity solution after running for 20 convective units at $Re=5000$
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+In many cases, [!ac](RANS) simulations are performed alongside [!ac](LES) and/or
+[!ac](DNS) in order to help guide mesh resolution requirements.
 
-We can set the initial condition to have some perturbation in the $x$ and $y$ components
-of velocity, such as
+<! image of interplay>
 
-\begin{equation}
-V_x=0.1\sin(z)
-\end{equation}
+<! ### Mesh Resolution Requirements>
 
-\begin{equation}
-V_y=0.1\cos(z)
-\end{equation}
-
-This will trip the simulation into turbulence. For instance, a few snapshots at different
-convective units are shown below.
-
-!media kick.png
-  id=kick
-  caption=NekRS velocity solution after running a few convective units at $Re=5000$
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
-
-### Underresolved Turbulence
-
-If your mesh is not fine enough to resolve the Kolmogorov length scales, many turbulent simulations
-will achieve very high [!ac](CFL) and therefore be unstable. In NekRS, this could manifest as the
-solve aborting. You may also observe other unphysical observations in the flow (e.g. "stripes" or oscillations from
-element to element). If you observe either of these, you either want to refine the mesh so that
-the [!ac](GLL) point spacing is smaller than the local Kolmogorov scale, or to drain energy from
-the shortest wavelengths using [!ac](LES).
-
-## Mesh Resolution Requirements for Turbulence
-
-### Computing $y^+$
+#### Computing $y^+$
 
 In Cardinal, you can compute the maximum, minimum, or average value of $y^+$ on a given sideset in NekRS
 using the [NekYPlus](NekYPlus.md) postprocessor. For wall-resolved simulations (without the use of
@@ -517,12 +478,66 @@ $y^+$ on the wall as 0.38 in this mesh. We can compare this value with the [NekY
 postprocessor, and find we did a pretty good job! The maximum $y^+$ on the mesh, after one
 convective unit, is around 0.5.
 
+
+### Underresolved Turbulence
+
+If your mesh is not fine enough, the typical observation will be that your velocity attains high,
+unphysical oscillations in value and/or a very high [!ac](CFL) number (which in NekRS could cause
+the solve to abort).
+
+<! example image>
+
+### Tripping a Simulation to Turbulence
+
+For simple geometries, it may be necessary to add some 3-D behavior to your initial
+condition for velocity in order for the simulation to trip into turbulence. For
+example, below shows the velocity distribution for $Re=5000$ as solved by NekRS when
+the initial condition is a parabola in the $z$-direction. No turbulence develops even
+after running this simulation for 20 convective units.
+
+!media laminar.png
+  id=laminar
+  caption=NekRS velocity solution after running for 20 convective units at $Re=5000$
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+We can set the initial condition to have some perturbation in the $x$ and $y$ components
+of velocity, such as
+
+\begin{equation}
+V_x=0.1\sin(z)
+\end{equation}
+
+\begin{equation}
+V_y=0.1\cos(z)
+\end{equation}
+
+This will trip the simulation into turbulence. For instance, a few snapshots at different
+convective units are shown below.
+
+!media kick.png
+  id=kick
+  caption=NekRS velocity solution after running a few convective units at $Re=5000$
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
 ## Large Eddy Simulation
 
+In this section, we will model flow in a pipe at a Reynolds number of 5000 using [!ac](LES).
+These input files are in the `tutorials/turbulence/les` directory.
 [!ac](LES) in NekRS uses a filter to drain energy from the shortest wavelengths (highest frequencies)
 of the velocity, temperature, and scalar(s) solutions. For a description on the theoretical background,
 see [this page](les_filter.md). Here, we focus on the practical aspects of running [!ac](LES)
-with NekRS. These input files are in the `tutorials/turbulence/les` folder.
+with NekRS.
+
+To run an [!ac](LES) simulation with NekRS, simply enable the filtering in the `.par` file
+with the `filtering`, `filterWeight`, and `filterModes` options. Generally recommended settings,
+for polynomial order greater than or equal to 5, are shown in the file below. The [!ac](LES) filtering
+in NekRS is spectrally convergent, so you can always choose a filter setting and then conduct
+a p-refinement study to ensure an adequately converged solution.
+
+!listing /tutorials/turbulence/les/pipe.par
+
+The other input files are largely unchanged, but we will add time averaging operations in the `.udf`
+file, discussed next.
 
 ### Time-Averaging
 
@@ -546,8 +561,9 @@ NekRS provides functionality to time-average its instantaneous velocity/pressure
 during the run. This section of the tutorial is an abridged version of the time-averaging
 documentation [on the NekRS website](https://nekrs.readthedocs.io/en/latest/problem_setup/postprocessing.html#time-averaging).
 
-In the `.udf` file, we simply add a few lines to register the time-averaging kernel,
-and then in `UDF_ExecuteStep` we call the time-averaging operation at the same frequency as we
+In the `.udf` file, we simply add a few lines to register the time-averaging kernel in `UDF_LoadKernels`
+and `UDF_Setup`.
+Then in `UDF_ExecuteStep` we call the time-averaging operation at the same frequency as we
 write output files (this is not required, but common).
 
 !listing /tutorials/turbulence/les/pipe.udf language=cpp
@@ -580,8 +596,32 @@ The mean Reynolds stress tensor has components which can then be computed as
 
 and so on for the other components.
 
-!alert note
-When generating these time-averaged files, the default behavior is for the time to reset in
+To time-average together the averages, you will put in the `userchk()` routine in the `.usr`
+file a call to a function which will average together the various `avgpipe0.f*` files.
+This function takes as input the index of the file from which you want to begin the
+cumulative average, and the index of the file from which you want to end the cumulative average.
+For instance, if you want to average together files `avgpipe0.f00035`, `avgpipe0.f00036`,
+and `avgpipe0.f00037`, call the function as `call average_files("pipe", 35, 37)`.
+
+!listing /tutorials/turbulence/les/pipe.usr language=fortran
+
+To call this `userchk` function, put a call to `nek::userchk()` in the `UDF_Setup` routine.
+Then, you will run your simulation in two stages:
+
+1. Run your case as normal, with `ifaveraging=0`. This will generate all the nominal output files.
+2. Run the case a second time, but change `ifaveraging=0` to `ifaveraging=1`. The `exitt()` call will terminate
+   right after the time-average-of-time-averages is formed and
+   not run any time steps. This will create a new file, with `tav` as a prefix. This file
+   will contain the cumulative time average for the window specified.
+
+Several (sometimes many) convective units will be required to reach a statistically
+stationary state. Common choices could be 10-100 convective units to wait before you begin
+the cumulative average. Another 10-100 convective units would then be required after this
+point to obtain a long enough cumulative average so that the average itself becomes steady.
+
+#### Viewing the Individual Time-Averaged Slices
+
+When generating the time-averaged files, the default behavior is for the time to reset in
 each file once the new time averaging window begins. Paraview will not be able to open these
 `avg`, `rms`, and `rm2` files as-is because they may not have a monotonically increasing
 simulation time. To convert the files into a form which can be read by Paraview, run from
@@ -600,4 +640,3 @@ be unmodified to be able to time average the averaged files together.
 ```
 python ../../../../scripts/change_time.py --case pipe --reset
 ```
-!alert-end!
