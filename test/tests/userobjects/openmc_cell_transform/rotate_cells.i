@@ -24,9 +24,11 @@
     block = 2
   []
   [extrude]
-    type = MeshExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = delete
-    extrusion_vector = '0 0 30'
+    direction = '0 0 1'
+    heights = '30'
+    num_layers = 1
   []
   [translate]
     type = TransformGenerator

@@ -24,8 +24,8 @@ xmin = openmc.XPlane(surface_id=1, x0=-root_half_xy, boundary_type="reflective")
 xmax = openmc.XPlane(surface_id=2, x0=+root_half_xy, boundary_type="reflective")
 ymin = openmc.YPlane(surface_id=3, y0=-root_half_xy, boundary_type="reflective")
 ymax = openmc.YPlane(surface_id=4, y0=+root_half_xy, boundary_type="reflective")
-zmin = openmc.ZPlane(surface_id=5, z0=0, boundary_type="reflective")
-zmax = openmc.ZPlane(surface_id=6, z0=root_half_z*2, boundary_type="reflective")
+zmin = openmc.ZPlane(surface_id=5, z0=-root_half_z, boundary_type="reflective")
+zmax = openmc.ZPlane(surface_id=6, z0=root_half_z, boundary_type="reflective")
 
 root_region = +xmin & -xmax & +ymin & -ymax & +zmin & -zmax
 
@@ -66,8 +66,8 @@ model.settings.batches = 50
 model.settings.inactive = 10
 model.settings.particles = 1000
 
-lower = (-2, -2, 0)
-upper = (16, 16, root_half_z*2)
+lower = (-2, -2, -root_half_z)
+upper = (16, 16, root_half_z)
 
 model.settings.source = openmc.IndependentSource(
     space=openmc.stats.Box(lower_left=lower, upper_right=upper)

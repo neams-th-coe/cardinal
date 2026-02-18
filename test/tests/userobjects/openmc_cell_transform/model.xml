@@ -32,8 +32,8 @@
     <surface boundary="reflective" coeffs="40.0" id="2" type="x-plane"/>
     <surface boundary="reflective" coeffs="-40.0" id="3" type="y-plane"/>
     <surface boundary="reflective" coeffs="40.0" id="4" type="y-plane"/>
-    <surface boundary="reflective" coeffs="0" id="5" type="z-plane"/>
-    <surface boundary="reflective" coeffs="30.0" id="6" type="z-plane"/>
+    <surface boundary="reflective" coeffs="-15.0" id="5" type="z-plane"/>
+    <surface boundary="reflective" coeffs="15.0" id="6" type="z-plane"/>
     <surface coeffs="-2.0" id="7" name="minimum x" type="x-plane"/>
     <surface coeffs="2.0" id="8" name="maximum x" type="x-plane"/>
     <surface coeffs="-2.0" id="9" name="minimum y" type="y-plane"/>
@@ -51,7 +51,7 @@
     <inactive>10</inactive>
     <source particle="neutron" strength="1.0" type="independent">
       <space type="box">
-        <parameters>-2 -2 0 16 16 30.0</parameters>
+        <parameters>-2 -2 -15.0 16 16 15.0</parameters>
       </space>
     </source>
   </settings>
