@@ -1,0 +1,145 @@
+      subroutine average_files(inbase,startf,stopf)
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'AVG'
+
+      character*(*) inbase
+      character*8   ftail
+      integer lbase,startf,stopf,n,n2,i,j
+      logical ifxyo_s
+
+      n=nx1*ny1*nz1*nelv
+      n2=nx2*ny2*nz2*nelv
+
+      atime=0.0
+      call rzero(uavg,n)
+      call rzero(vavg,n)
+      call rzero(wavg,n)
+      call rzero(pavg,n2)
+      do j=1,ldimt
+        call rzero(tavg(1,1,1,1,j),n)
+      enddo
+      do i=startf,stopf
+        if(i.lt.10) then
+          write(ftail,'(a7,i1)')'0.f0000',i
+        elseif(i.lt.100) then
+          write(ftail,'(a6,i2)')'0.f000',i
+        elseif(i.lt.1000) then
+          write(ftail,'(a5,i3)')'0.f00',i
+        endif
+        call blank(initc(1),132)
+        initc(1)=trim(inbase)//ftail
+
+        call restart(1)
+
+        atime=atime+time
+        call add2s2(uavg,vx,time,n)
+        call add2s2(vavg,vy,time,n)
+        call add2s2(wavg,vz,time,n)
+        call add2s2(pavg,pr,time,n2)
+        do j=1,ldimt
+          call add2s2(tavg(1,1,1,1,j),t(1,1,1,1,j),time,n)
+        enddo
+      enddo
+      time=atime
+      call cmult(uavg,1.0/atime,n)
+      call cmult(vavg,1.0/atime,n)
+      call cmult(wavg,1.0/atime,n)
+      call cmult(pavg,1.0/atime,n2)
+      do j=1,ldimt
+        call cmult(tavg(1,1,1,1,j),1.0/atime,n)
+      enddo
+
+      call copy (vx,uavg,n)
+      call copy (vy,vavg,n)
+      call copy (vz,wavg,n)
+      call copy (pr,pavg,n2)
+      do j=1,ldimt
+        call copy(t(1,1,1,1,j),tavg(1,1,1,1,j),n)
+      enddo
+
+      ifxyo_s = ifxyo
+      ifxyo=.true.
+
+      call prepost (.true.,'tav')
+
+      ifxyo = ifxyo_s
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+      subroutine useric(i,j,k,eg)
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userchk
+      include 'SIZE'
+      include 'TOTAL'
+
+c change this to 1 to do the averaging. Before you can set this to 1,
+c you need to have run your case. 35 is the file to start reading, 50
+c is the file to stop reading. 'pipe' is the casename
+      ifaveraging=0
+      if (ifaveraging.eq.1) then
+       call average_files("pipe",35, 50)
+       call exitt()
+      endif
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2()
+      include 'SIZE'
+      include 'TOTAL'
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+         if (boundaryID(ifc,iel).eq. 1) then
+           boundaryID(ifc,iel) = 1
+           cbc(ifc,iel,1)= 'W  '
+         else if (boundaryID(ifc,iel).eq. 2) then
+           boundaryID(ifc,iel) = 0
+         else if (boundaryID(ifc,iel) .eq. 3) then
+           boundaryID(ifc,iel) = 0
+         endif
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+      include 'SIZE'
+      include 'TOTAL'
+
+      common /scrach_o1/ w1(lx1*ly1*lz1*lelv),
+     $                   w2(lx1*ly1*lz1*lelv),
+     $                   w3(lx1*ly1*lz1*lelv),
+     $                   w4(lx1*ly1*lz1*lelv),
+     $                   w5(lx1*ly1*lz1*lelv)
+
+      common /scrach_o2/ ywd(lx1,ly1,lz1,lelv)
+
+      COMMON /NRSSCPTR/ nrs_scptr(1)
+      integer*8         nrs_scptr
+
+      call distf(ywd,1,'W  ',w1,w2,w3,w4,w5)
+
+      nrs_scptr(1) = loc(ywd)
+
+      return
+      end
+c-----------------------------------------------------------------------

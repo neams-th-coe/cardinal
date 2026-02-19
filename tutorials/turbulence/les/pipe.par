@@ -1,0 +1,29 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 7
+  numSteps = 100000
+  dt = targetCFL=0.5 + initial=1e-4
+  writeInterval = 2000
+  constFlowRate = meanVelocity=1.0 + direction=Z
+
+  # comment out to run DNS (no LES filtering)
+  filtering = hpfrt
+  filterWeight = 5.0
+  filterModes = 2
+
+[PRESSURE]
+  residualTol = 1e-06
+
+[VELOCITY]
+  boundaryTypeMap = W
+  residualTol = 1e-07
+  density = 1.0
+  viscosity = -5000
+
+[TEMPERATURE]
+  boundaryTypeMap = f
+  residualTol = 1e-07
+  rhoCp = 1.0
+  conductivity = -5000

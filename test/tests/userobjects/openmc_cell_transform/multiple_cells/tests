@@ -1,0 +1,21 @@
+[Tests]
+  design = 'OpenMCCellTransform.md'
+  issues = '#1255'
+
+  [translate_multiple_cells]
+    type = Exodiff
+    input = translate_cells.i
+    exodiff = translate_cells_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when multiple geometry cells are translated.'
+                  'This is tested by translating the mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
+  [duplicate_cell_id]
+    type = RunException
+    input = translate_cells.i
+    cli_args = "UserObjects/translate_top/cell_ids='2013 2013'"
+    expect_err = "UserObjects/translate_top/cell_ids: Duplicate OpenMC cell IDs were detected. Provide each ID only once."
+    requirement = "The system shall error if the same cell id is provided more than once."
+    capabilities = 'openmc'
+  []
+[]

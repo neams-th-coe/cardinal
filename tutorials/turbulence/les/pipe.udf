@@ -1,0 +1,65 @@
+#include "udf.hpp"
+#include "plugins/tavg.hpp"
+
+static occa::kernel periodicSourceKernel;
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+  periodicSourceKernel = oudfBuildKernel(kernelInfo, "periodicSource");
+  tavg::buildKernel(kernelInfo);
+}
+
+void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
+{
+  auto mesh = nrs->cds->mesh[0];
+  dfloat R = 0.5;
+  dfloat q_dagger = 1.0;
+  periodicSourceKernel(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->o_U, o_FS);
+
+  // prevent any numerical drift by subtracting out the volume-average temperature
+  const dfloat Tbar =
+    platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm) / mesh->volume;
+  platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->meshV;
+
+  std::string name;
+  setupAide &options = platform->options;
+  options.getArgs("RESTART FILE NAME", name);
+
+  // only set initial conditions if there is no restart file
+  if (name == "")
+  {
+    int n_gll_points = mesh->Np * mesh->Nelements;
+    for (int n = 0; n < n_gll_points; ++n)
+    {
+      // comment out to see flow if no initial perturbation is applied to the x, y velocity components
+      nrs->U[n + 0 * nrs->fieldOffset] = 0.2 * std::cos(mesh->z[n]); // x-velocity
+      nrs->U[n + 1 * nrs->fieldOffset] = 0.2 * std::sin(mesh->z[n]); // y-velocity
+
+      dfloat r = std::sqrt(mesh->x[n] * mesh->x[n] + mesh->y[n] * mesh->y[n]) * 2.0;
+      nrs->U[n + 2 * nrs->fieldOffset] = -2 * (r * r - 1); // z-velocity
+
+      nrs->P[n] = 0.0; // pressure
+
+      nrs->cds->S[n + 0 * nrs->fieldOffset] = 0.0; // temperature
+    }
+  }
+
+  // this will call userchk in the fortran file, which does the time averaging
+  nek::userchk();
+
+  tavg::setup(nrs);
+  udf.sEqnSource = &userq;
+}
+
+void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
+{
+  tavg::run(time);
+
+  if (nrs->isOutputStep)
+    tavg::outfld();
+}

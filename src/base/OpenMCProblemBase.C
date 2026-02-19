@@ -27,6 +27,7 @@
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
+#include "OpenMCCellTransform.h"
 #include "CriticalitySearchBase.h"
 
 #include "openmc/random_lcg.h"
@@ -910,6 +911,8 @@ OpenMCProblemBase::subdomainName(const SubdomainID & id) const
 void
 OpenMCProblemBase::getOpenMCUserObjects()
 {
+  _cell_transform_uos.clear();
+
   TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
   std::vector<UserObject *> userobjs;
   uo_query.queryInto(userobjs);
@@ -927,9 +930,19 @@ OpenMCProblemBase::getOpenMCUserObjects()
     OpenMCDomainFilterEditor * f = dynamic_cast<OpenMCDomainFilterEditor *>(u);
     if (f)
       _filter_editor_uos.push_back(f);
+
+    OpenMCCellTransform * t = dynamic_cast<OpenMCCellTransform *>(u);
+    if (t)
+      _cell_transform_uos.push_back(t);
   }
 
   checkOpenMCUserObjectIDs();
+}
+
+bool
+OpenMCProblemBase::hasCellTransform() const
+{
+  return !_cell_transform_uos.empty();
 }
 
 void

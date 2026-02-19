@@ -1,0 +1,71 @@
+[Tests]
+  design = 'OpenMCCellTransform.md'
+  issues = '#1255'
+
+  [translate_cells]
+    type = Exodiff
+    input = translate_cells.i
+    exodiff = translate_cells_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is translated.'
+                  'This is tested by translating the mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
+  [scaled_translation]
+    type = Exodiff
+    input = scaled.i
+    exodiff = scaled_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when a scaled geometry is translated.'
+                  'This is tested by translating the scaled mesh while also translating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
+  [rotate_cells]
+    type = Exodiff
+    input = rotate_cells.i
+    exodiff = rotate_cells_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is rotated.'
+                  'This is tested by rotating the mesh while also rotating OpenMC universe which contains the coupled cells.'
+    capabilities = 'openmc'
+  []
+  [cells_shadow]
+    type = Exodiff
+    input = cells_shadow.i
+    exodiff = cells_shadow_out.e
+    requirement = 'The system shall correctly reinitialize OpenMC coupling when the geometry is translated.'
+                  'This is tested by translating an OpenMC geometry on a stationary mesh and ensure elements are reset correctly.'
+    capabilities = 'openmc'
+  []
+  [invalid_phi]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="361 0 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle φ must be in the range \(0, 360\] degrees. Got invalid φ = 361.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [invalid_theta]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 361 0"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle θ must be in the range \(0, 360\] degrees. Got invalid θ = 361.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [invalid_psi]
+    type = RunException
+    input = rotate_cells.i
+    cli_args = 'UserObjects/rotate_cells/vector_value="0 0 361"'
+    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle ψ must be in the range \(0, 360\] degrees. Got invalid ψ = 361.000000 degrees.'
+    capabilities = 'openmc'
+  []
+  [empty_cell_ids]
+    type = RunException
+    input = empty_cell_ids.i
+    expect_err = 'UserObjects/translate_cells/cell_ids: At least one OpenMC cell ID must be provided.'
+    capabilities = 'openmc'
+  []
+  [wrong_vector_size]
+    type = RunException
+    input = translate_cells.i
+    cli_args = 'UserObjects/translate_cells/vector_value="shift_x"'
+    expect_err = "UserObjects/translate_cells/vector_value: Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translationtransform or 'φ, θ, ψ' in degrees for rotation transform."
+    capabilities = 'openmc'
+  []
+[]
