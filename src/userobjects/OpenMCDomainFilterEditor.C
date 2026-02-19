@@ -49,6 +49,9 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())
 {
+  if (_openmc_problem->runRandomRay())
+    mooseError("OpenMCDomainFilterEditor is not supported when running the random ray solver!");
+
   bool filter_exists = this->filterExists();
 
   // if create_filter is set to true, but the filter already exists, display a warning

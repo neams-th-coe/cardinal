@@ -46,6 +46,9 @@ OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameter
     _names(getParam<std::vector<std::string>>("names")),
     _densities(getParam<std::vector<double>>("densities"))
 {
+  if (_openmc_problem->runRandomRay())
+    mooseError("OpenMCNuclideDensities is not supported when running the random ray solver!");
+
   catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
                    "get the material index for material with ID " + std::to_string(_material_id));
 }
