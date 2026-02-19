@@ -655,7 +655,7 @@ OpenMCProblemBase::relativeError(const OMCTensor & sum,
                                  const OMCTensor & sum_sq,
                                  const int & n_realizations) const
 {
-  OMCTensor rel_err = openmc::tensor::zeros<double>({sum.size()});
+  auto rel_err = openmc::tensor::zeros<double>({sum.size()});
 
   for (unsigned int i = 0; i < sum.size(); ++i)
   {

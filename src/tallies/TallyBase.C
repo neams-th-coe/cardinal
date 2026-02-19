@@ -587,8 +587,7 @@ TallyBase::relaxAndNormalizeTally()
     auto sum_sq = OMCTensor(_local_tally->results_.slice(openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
     current_raw_rel_error =
         _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-    current_raw_std_dev = current_raw_rel_error;
-    current_raw_std_dev *= current_raw;
+    current_raw_std_dev = current_raw_rel_error * current_raw;
 
     if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
     {
