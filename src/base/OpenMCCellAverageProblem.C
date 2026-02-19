@@ -126,6 +126,11 @@ OpenMCCellAverageProblem::validParams()
       "density_blocks",
       "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "there will be no density feedback to OpenMC.");
+  params.addParam<std::vector<Real>>(
+      "mgxs_reference_densities",
+      "Reference density values to use when applying density feedback (only used in multi-group "
+      "mode). Each entry maps to the corresponding row in 'density_variables.' Units are expected "
+      "to be kg/m3.");
 
   params.addParam<unsigned int>("cell_level",
                                 "Coordinate level in OpenMC (across the entire geometry) to use "
@@ -396,6 +401,31 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   readBlockVariables("temperature", "temp", _temp_vars_to_blocks, _temp_blocks);
   readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
 
+  // When running in multi-group mode, the user needs to provide a reference density if density
+  // feedback is specified (to convert to the dimensionless MGXS density).
+  // TODO: support density scaling per block.
+  if (!openmc::settings::run_CE && _specified_density_feedback)
+  {
+    checkRequiredParam(params,
+                       "mgxs_reference_densities",
+                       "running in multi-group mode and using density feedback");
+    const auto & density_scales = getParam<std::vector<Real>>("mgxs_reference_densities");
+
+    std::vector<std::string> density_vars;
+    for (const auto & [density_var, density_blocks] : _density_vars_to_blocks)
+      density_vars.push_back(density_var);
+
+    if (density_scales.size() != density_vars.size())
+      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!");
+
+    for (unsigned int i = 0; i < density_vars.size(); i++)
+      _density_vars_to_ref_density[density_vars[i]] = density_scales[i];
+  }
+  else
+    checkUnusedParam(params,
+                     "mgxs_reference_densities",
+                     "not running in multi-group mode and using density feedback");
+
   for (const auto & i : _identical_cell_fill_blocks)
     if (std::find(_density_blocks.begin(), _density_blocks.end(), i) != _density_blocks.end())
       paramError(
@@ -475,7 +505,7 @@ OpenMCCellAverageProblem::readBlockVariables(
   std::vector<std::vector<SubdomainName>> blocks;
   read2DBlockParameters(b, blocks, specified_blocks);
 
-  // now, get the names of those temperature variables
+  // now, get the names of those variables
   std::vector<std::vector<std::string>> vars;
   if (isParamValid(v))
   {
@@ -490,7 +520,7 @@ OpenMCCellAverageProblem::readBlockVariables(
                  std::to_string(vars.size()) + " and '" + b + "' is of length " +
                  std::to_string(blocks.size()));
 
-    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+    // TODO: for now, we restrict each set of blocks to map to a single variable
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
         mooseError("Each entry in '" + v + "' must be of length 1. Entry " + std::to_string(i) +
@@ -2237,7 +2267,11 @@ OpenMCCellAverageProblem::addExternalVariables()
 
     auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
+    {
       _subdomain_to_density_vars[s] = {number, v.first};
+      if (!openmc::settings::run_CE)
+        _subdomain_to_ref_density[s] = _density_vars_to_ref_density[v.first];
+    }
   }
 
   // create the variable(s) that will be used to receive temperature
@@ -2299,7 +2333,8 @@ OpenMCCellAverageProblem::externalSolve()
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
 OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
     const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-    const std::vector<coupling::CouplingFields> * phase = nullptr) const
+    const std::vector<coupling::CouplingFields> * phase,
+    const std::map<SubdomainID, Real> * scaling) const
 {
   const auto & sys_number = _aux->number();
 
@@ -2327,7 +2362,8 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
       const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       auto v = var_num.at(elem->subdomain_id()).first;
       auto dof_idx = elem->dof_number(sys_number, v, 0);
-      product += _serialized_solution(dof_idx) * elem->volume();
+      const auto scale_val = scaling ? scaling->at(elem->subdomain_id()) : 1.0;
+      product += _serialized_solution(dof_idx) * elem->volume() / scale_val;
     }
 
     volume_product.push_back(product);
@@ -2499,6 +2535,12 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
     else
       return *_source_strength * EV_TO_JOULE * local_mean_tally;
   }
+}
+
+const Real
+OpenMCCellAverageProblem::getReferenceDensity(const Elem * elem) const
+{
+  return openmc::settings::run_CE || !elem ? 1.0 : _subdomain_to_ref_density.at(elem->subdomain_id());
 }
 
 void

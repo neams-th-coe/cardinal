@@ -132,6 +132,10 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
+  for (const auto & score : _tally_score)
+    if (_openmc_problem.runRandomRay() && !_openmc_problem.validRandomRayScore(score))
+        paramError("score", "OpenMC's random ray solver currently doesn't support " + score + "! Please remove this score.");
+
   const bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
   const bool nu_scatter =
@@ -140,6 +144,12 @@ TallyBase::TallyBase(const InputParameters & parameters)
   if (isParamValid("estimator"))
   {
     auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
+
+    if (estimator != tally::tracklength && _openmc_problem.runRandomRay())
+      paramError(
+          "estimator",
+          "The random ray solver in OpenMC requires that tallies use "
+          "tracklength estimators! Please set 'estimator' to 'tracklength'.");
 
     // Photon heating tallies cannot use tracklength estimators.
     if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
@@ -161,7 +171,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
      */
     _estimator = openmc::TallyEstimator::TRACKLENGTH;
 
-    if (nu_scatter && !(heating && openmc::settings::photon_transport))
+    if (nu_scatter && !(heating && openmc::settings::photon_transport) && !_openmc_problem.runRandomRay())
       _estimator = openmc::TallyEstimator::ANALOG;
     else if (nu_scatter && heating && openmc::settings::photon_transport)
       paramError(
@@ -171,7 +181,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
           "which scores nu_scatter (with an analog estimator), and a second tally that scores "
           "heating (with a collision estimator).");
 
-    if (heating && openmc::settings::photon_transport)
+    if (heating && openmc::settings::photon_transport && !_openmc_problem.runRandomRay())
       _estimator = openmc::TallyEstimator::COLLISION;
   }
 
