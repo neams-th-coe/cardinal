@@ -69,7 +69,7 @@ and the low-pass filtered signal ($Gu$), and then subtracted from the momentum, 
 transport equations. For example, the non-dimensional momentum equation would become
 
 \begin{equation}
-\rho^\dagger\left(\frac{\partial u_i^\dagger}{\partial t^\dagger}+u_j^\dagger\frac{\partial u_i^\dagger}{\partial x_j^\dagger}\right)=-\frac{\partial P^\dagger}{\partial x_i^\dagger}+\frac{1}{Re}\frac{\partial \tau_{ij}^\dagger}{\partial x_j^\dagger}+\rho^\dagger f_i^\dagger-\underbrace{\chi\left(u-Gu\right)}_{\text{low-pass filtered signal}}
+\rho^\dagger\left(\frac{\partial u_i^\dagger}{\partial t^\dagger}+u_j^\dagger\frac{\partial u_i^\dagger}{\partial x_j^\dagger}\right)=-\frac{\partial P^\dagger}{\partial x_i^\dagger}+\frac{1}{Re}\frac{\partial \tau_{ij}^\dagger}{\partial x_j^\dagger}+\rho^\dagger f_i^\dagger-\chi\left(u-\underbrace{Gu}_{\text{low-pass filtered signal}}\right)
 \end{equation}
 
 The high pass filter is enabled by setting `filtering = hpfrt` in the `[GENERAL]` block.

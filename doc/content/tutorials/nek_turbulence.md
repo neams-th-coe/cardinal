@@ -4,6 +4,8 @@ In this tutorial, you will learn how to:
 
 - Understand important considerations for running CFD cases
 - Generate a periodic flow and heat transfer case with NekRS
+- Compute $y^+$
+- Run a [!ac](LES) and perform time averaging
 
 To access this tutorial,
 
@@ -298,11 +300,11 @@ heat are also 1.0. Therefore, $\gamma=2/R$.
 
 Now, we want to recast the energy equation in a way such that the outlet temperature does indeed equal the inlet temperature (so that our periodic boundary conditions work). Inserting the above into the conservation of energy equation,
 
-\beq
+\begin{equation}
 \label{eq:c3}
-\frac{\pl T}{\pl t}+V_i\frac{\pl T}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl T}{\pl x_i}\\
-\frac{\pl \tilde{T}}{\pl t}+V_i\frac{\pl\tilde{T}}{\pl x_i}=&\ \frac{k}{\rho C_p}\frac{\pl}{\pl x_i}\frac{\pl\tilde{T}}{\pl x_i}-V_z\gamma\\
-\eeq
+\frac{\partial T}{\partial t}+V_i\frac{\partial T}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial T}{\partial x_i}\\
+\frac{\partial \tilde{T}}{\partial t}+V_i\frac{\partial\tilde{T}}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial\tilde{T}}{\partial x_i}-V_z\gamma\\
+\end{equation}
 
 In this way, by adding a heat sink term $V_z\gamma$, the actual quantity we are solving for with the energy equation is the periodic temperature field $\tilde{T}$. This field can be a function of height if the geometry itself varies with $z$, such as in
 wire-wrapped pin bundles (e.g. see [!cite](dutra)).
@@ -376,3 +378,265 @@ temperature, $\tilde{T}$.
   id=pipe_periodic
   caption=NekRS temperature solution for periodic boundary conditions.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
+## Turbulent Simulations with NekRS
+
+Directly solving the Navier-Stokes equations, without any additional coupled equations
+([!ac](RANS)) or without any filters to drain energy from the shortest wavelengths
+([ac](LES)), is called [!ac](DNS). The highest fidelity methods require more runtime,
+and hence there is a tradeoff in fidelity and computing requirements.
+In this section and those that follow, we will simulate our pipe at a Reynolds number
+of 5000, well within the turbulent regime.
+
+### RANS, LES, and DNS
+
+<! add general intro to RANS, LES, DNS >
+
+In many cases, [!ac](RANS) simulations are performed alongside [!ac](LES) and/or
+[!ac](DNS) in order to help guide mesh resolution requirements.
+
+<! image of interplay>
+
+<! ### Mesh Resolution Requirements>
+
+#### Computing $y^+$
+
+In Cardinal, you can compute the maximum, minimum, or average value of $y^+$ on a given sideset in NekRS
+using the [NekYPlus](NekYPlus.md) postprocessor. For wall-resolved simulations (without the use of
+wall functions), it is recommended to have a mesh refined near the wall with $y^+<1$. NekRS does not
+currently have wall functions.
+
+$y^+$ is a non-dimensional length scale that is uniquely defined at each node on the wall as
+
+\begin{equation}
+y^+\equiv\frac{\delta u_\tau}{\nu}
+\end{equation}
+
+where $\delta$ is the distance from the wall to the nearest [!ac](GLL) point, $\nu$ is
+the kinematic viscosity ($1/Re$ for non-dimensional simulations), and $u_\tau$ is the friction
+velocity. $u_\tau$ is defined as
+
+\begin{equation}
+u_\tau\equiv\frac{\sqrt{\tau_w}{\rho}}
+\end{equation}
+
+where $\tau_w$ is the wall shear stress and $\rho$ is the density (1.0 for non-dimensional simulations).
+The wall shear stress is the magnitude of the viscous force vector on the wall, considering only the
+components of that vector which act tangential to the wall. In tensor notation, the
+$i$-th component of the viscous force is $\tau_{ij}n_j$. Therefore, to subtract off any contributions
+along the $\hat{n}$ direction (perpendicular to the surface), we write
+
+\begin{equation}
+\tau_w\equiv\sqrt{\frac{\|\tau_{ij}n_j-(\tau_{kl}n_ln_k)n_i\|}{\rho}}
+\end{equation}
+
+where $\tau_{kl}n_l$ is the $k$-the component of the viscous force vector, which when dotted
+with the unit normal ($\tau_{kl}n_ln_k$) is the component of the viscous force vector
+perpendicular to the surface. To subtract *out* this perpendicular component, we multiply by
+$n_i$ to correctly subtract out the $i$-th component of the perpendicular component from the
+$i$-th component of the viscous force vector $\tau_{ij}n_j$.
+
+When generating a mesh, it can be helpful to estimate $y^+$ (in addition to monitoring it with
+[NekYPlus](NekYPlus.md) during the simulation). To obtain a rough estimate of $y^+$, note
+that it can be related to the Darcy friction factor as
+
+\begin{equation}
+\tau_w=\frac{f}{8}\rho V^2
+\end{equation}
+
+giving
+
+\begin{equation}
+\begin{aligned}
+u_*\equiv&\ \sqrt{\frac{\tau_w}{\rho}}\\
+=&\ \sqrt{\frac{f\rho V^2}{8\rho}}\\
+=&\ V\sqrt{\frac{f}{8}}\\
+\end{aligned}
+\end{equation}
+
+where $V=1$ for non-dimensional solutions. It is common to simply take the Blasius correlation
+for flow along a flat plate, since this is just an approximation anyways and you can rely on the
+$y^+$ computed during the run to obtain final guidance on mesh resolution near the wall.
+
+\begin{equation}
+f=0.3164 Re^{-1/4}
+\end{equation}
+
+So, for the scenario in this tutorial, we could open an output file and obtain the coordinates at a point
+on the boundary to compute $\delta$ (use the red dot with a question mark
+on the toolbar and then hover over a node). From the two nodes shown below, we'd estimate $\delta$ to
+be around 0.000365.
+
+!media hover_icon.png
+  id=hover_icon
+  caption=NekRS mesh (showing the [!ac](GLL) points) and with the Paraview hover feature
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+Then, we would estimate $f=0.0376$ for a flat plate for $Re=5000$
+(definitely not a pipe, so we are just crudely estimating $y^+$). This would give an approximate
+$y^+$ on the wall as 0.38 in this mesh. We can compare this value with the [NekYPlus](NekYPlus.md)
+postprocessor, and find we did a pretty good job! The maximum $y^+$ on the mesh, after one
+convective unit, is around 0.5.
+
+
+### Underresolved Turbulence
+
+If your mesh is not fine enough, the typical observation will be that your velocity attains high,
+unphysical oscillations in value and/or a very high [!ac](CFL) number (which in NekRS could cause
+the solve to abort).
+
+<! example image>
+
+### Tripping a Simulation to Turbulence
+
+For simple geometries, it may be necessary to add some 3-D behavior to your initial
+condition for velocity in order for the simulation to trip into turbulence. For
+example, below shows the velocity distribution for $Re=5000$ as solved by NekRS when
+the initial condition is a parabola in the $z$-direction. No turbulence develops even
+after running this simulation for 20 convective units.
+
+!media laminar.png
+  id=laminar
+  caption=NekRS velocity solution after running for 20 convective units at Reynolds number of 5000
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+We can set the initial condition to have some perturbation in the $x$ and $y$ components
+of velocity, such as
+
+\begin{equation}
+V_x=0.1\sin(z)
+\end{equation}
+
+\begin{equation}
+V_y=0.1\cos(z)
+\end{equation}
+
+This will trip the simulation into turbulence. For instance, a few snapshots at different
+convective units are shown below.
+
+!media kick.png
+  id=kick
+  caption=NekRS velocity solution after running a few convective units at Reynolds number of 5000
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+
+## Large Eddy Simulation
+
+In this section, we will model flow in a pipe at a Reynolds number of 5000 using [!ac](LES).
+These input files are in the `tutorials/turbulence/les` directory.
+[!ac](LES) in NekRS uses a filter to drain energy from the shortest wavelengths (highest frequencies)
+of the velocity, temperature, and scalar(s) solutions. For a description on the theoretical background,
+see [this page](les_filter.md). Here, we focus on the practical aspects of running [!ac](LES)
+with NekRS.
+
+To run an [!ac](LES) simulation with NekRS, simply enable the filtering in the `.par` file
+with the `filtering`, `filterWeight`, and `filterModes` options. Generally recommended settings,
+for polynomial order greater than or equal to 5, are shown in the file below. The [!ac](LES) filtering
+in NekRS is spectrally convergent, so you can always choose a filter setting and then conduct
+a p-refinement study to ensure an adequately converged solution.
+
+!listing /tutorials/turbulence/les/pipe.par
+
+The other input files are largely unchanged, but we will add time averaging operations in the `.udf`
+file, discussed next.
+
+### Time-Averaging
+
+[!ac](LES) and [!ac](DNS) both compute time-dependent flow fields. For comparison with [!ac](RANS)
+and some experimental measurements, it is helpful to time-average the flow fields to find the mean
+flow. Recall from the Reynolds decomposition that an instantaneous quantity can be decomposed
+into a mean and a fluctuation (with zero mean but nonzero variance). For instance, for the $i$-th
+component of velocity, this is
+
+\begin{equation}
+u_i=\langle u_i\rangle +u_i'
+\end{equation}
+
+The time average is defined as
+
+\begin{equation}
+\langle u_i\rangle\equiv\lim_{T\rightarrow\infty}\frac{1}{T}\int_{t_0}^{t_0+T}u_i dt
+\end{equation}
+
+NekRS provides functionality to time-average its instantaneous velocity/pressure/temperature solutions
+during the run. This section of the tutorial is an abridged version of the time-averaging
+documentation [on the NekRS website](https://nekrs.readthedocs.io/en/latest/problem_setup/postprocessing.html#time-averaging).
+
+In the `.udf` file, we simply add a few lines to register the time-averaging kernel in `UDF_LoadKernels`
+and `UDF_Setup`.
+Then in `UDF_ExecuteStep` we call the time-averaging operation at the same frequency as we
+write output files (this is not required, but common).
+
+!listing /tutorials/turbulence/les/pipe.udf language=cpp
+
+When running NekRS, this will now create three additional output files on each output step.
+Since our casename is `pipe`, these will be named
+
+- `avgpipe0.f*`: these contain the time-averaged fields (first-order moments), i.e. $\langle u\rangle$,
+  $\langle v\rangle$, $\langle w\rangle$, etc. By default, the window for time averaging
+  resets each time the averaging routine is called. In other words, if an output file is written
+  on time steps 1000, 1500, and 3000, then `avgpipe0.f00001` contains the time average of the
+  solution fields over time steps 0-1000; `avgpipe0.f00002` contains the time average of the
+  solution fields over time steps 1000-1500; and `avgpipe0.f00003` contains the time average of
+  the solution fields over time steps 1500-3000.
+- `rmspipe0.f*`: averages of the squares (second-order moments)
+  e.g. $\langle uu\rangle$, $\langle vv\rangle$, $\langle ww\rangle$ and for temperature,
+  $\langle TT\rangle$.
+- `rm2pipe0.f*`: averages of the mixed correlations  $\langle uv\rangle$,
+  $\langle vw\rangle$, $\langle uw\rangle$.
+
+The mean Reynolds stress tensor has components which can then be computed as
+
+\begin{equation}
+\underbrace{\langle uu\rangle}_\text{in rms file}=\langle u\rangle\underbrace{\langle u\rangle}_\text{in avg file}+\underbrace{\langle u'u'\rangle}_\text{mean (0,0) entry in Reynolds stress tensor}
+\end{equation}
+
+\begin{equation}
+\underbrace{\langle uv\rangle}_\text{in rm2 file}=\langle u\rangle\underbrace{\langle v\rangle}_\text{in avg file}+\underbrace{\langle u'v'\rangle}_\text{mean (0,1) entry in Reynolds stress tensor}
+\end{equation}
+
+and so on for the other components.
+
+To time-average together the averages, you will put in the `userchk()` routine in the `.usr`
+file a call to a function which will average together the various `avgpipe0.f*` files.
+This function takes as input the index of the file from which you want to begin the
+cumulative average, and the index of the file from which you want to end the cumulative average.
+For instance, if you want to average together files `avgpipe0.f00035`, `avgpipe0.f00036`,
+and `avgpipe0.f00037`, call the function as `call average_files("pipe", 35, 37)`.
+
+!listing /tutorials/turbulence/les/pipe.usr language=fortran
+
+To call this `userchk` function, put a call to `nek::userchk()` in the `UDF_Setup` routine.
+Then, you will run your simulation in two stages:
+
+1. Run your case as normal, with `ifaveraging=0`. This will generate all the nominal output files.
+2. Run the case a second time, but change `ifaveraging=0` to `ifaveraging=1`. The `exitt()` call will terminate
+   right after the time-average-of-time-averages is formed and
+   not run any time steps. This will create a new file, with `tav` as a prefix. This file
+   will contain the cumulative time average for the window specified.
+
+Several (sometimes many) convective units will be required to reach a statistically
+stationary state. Common choices could be 10-100 convective units to wait before you begin
+the cumulative average. Another 10-100 convective units would then be required after this
+point to obtain a long enough cumulative average so that the average itself becomes steady.
+
+#### Viewing the Individual Time-Averaged Slices
+
+When generating the time-averaged files, the default behavior is for the time to reset in
+each file once the new time averaging window begins. Paraview will not be able to open these
+`avg`, `rms`, and `rm2` files as-is because they may not have a monotonically increasing
+simulation time. To convert the files into a form which can be read by Paraview, run from
+the folder where the output files are located,
+
+```
+python ../../../../scripts/change_time.py --case pipe
+```
+
+where `../../../../scripts/change_time.py` is the path to the `chang_time.py` script in the
+`cardinal/scripts` directory.
+
+To *undo* this action, pass the `--reset` flag to the `change_time.py` script. The times must
+be unmodified to be able to time average the averaged files together.
+
+```
+python ../../../../scripts/change_time.py --case pipe --reset
+```

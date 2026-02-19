@@ -918,7 +918,6 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
   dfloat min_yp = std::numeric_limits<float>::max();
   dfloat avg_yp = 0.0;
   dfloat denom_yp = 0.0;
-  bool found_one = false;
 
   std::vector<int> istride = {
       mesh->Nq * mesh->Nq, mesh->Nq, -1, -mesh->Nq, 1, -mesh->Nq * mesh->Nq};
@@ -978,15 +977,11 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
             min_yp = std::min(yplus, min_yp);
             avg_yp += yplus * sWJ;
             denom_yp += sWJ;
-            found_one = true;
           }
         }
       }
     }
   }
-
-  if (!found_one)
-    mooseError("Failed to find any eligible points on boundaries for computing y+!");
 
   // max across all processes
   double total_max_yp;
@@ -999,6 +994,9 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
   // sum across all processes
   double total_avg_yp;
   MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  if (total_avg_yp == 0)
+    mooseError("Failed to find any eligible points on boundaries for computing y+!");
 
   double total_denom_yp;
   MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);

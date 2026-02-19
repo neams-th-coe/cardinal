@@ -1,0 +1,14 @@
+void scalarNeumannConditions(bcData * bc)
+{
+  bc->flux = 1.0; // heat flux
+}
+
+@kernel void periodicSource(const dlong Nelements, const dlong offset, const dfloat gamma, @restrict const dfloat * vel_z, @restrict dfloat * QVOL)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = - 1.0 * vel_z[id + 2 * offset] * gamma;
+    }
+  }
+}
