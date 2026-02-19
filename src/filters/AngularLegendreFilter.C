@@ -20,6 +20,8 @@
 
 #include "AngularLegendreFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
+
 #include "openmc/tallies/filter_legendre.h"
 
 registerMooseObject("CardinalApp", AngularLegendreFilter);
@@ -38,6 +40,9 @@ AngularLegendreFilter::validParams()
 AngularLegendreFilter::AngularLegendreFilter(const InputParameters & parameters)
   : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("AngularLegendreFilter is presently not supported when running the random ray solver!");
+
   auto legendre_filter = dynamic_cast<openmc::LegendreFilter *>(openmc::Filter::create("legendre"));
 
   legendre_filter->set_order(_order);
