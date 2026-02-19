@@ -20,6 +20,8 @@
 
 #include "AzimuthalAngleFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
+
 #include "openmc/tallies/filter_azimuthal.h"
 
 registerMooseObject("CardinalApp", AzimuthalAngleFilter);
@@ -50,6 +52,9 @@ AzimuthalAngleFilter::validParams()
 AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
   : FilterBase(parameters)
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("AzimuthalAngleFilter is presently not supported when running the random ray solver!");
+
   if (isParamValid("num_equal_divisions") == isParamValid("azimuthal_angle_boundaries"))
     mooseError(
         "You have either set 'num_equal_divisions' and 'azimuthal_angle_boundaries' or have not "

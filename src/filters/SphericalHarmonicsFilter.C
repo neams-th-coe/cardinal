@@ -20,6 +20,8 @@
 
 #include "SphericalHarmonicsFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
+
 #include "openmc/tallies/filter_sph_harm.h"
 
 registerMooseObject("CardinalApp", SphericalHarmonicsFilter);
@@ -38,6 +40,9 @@ SphericalHarmonicsFilter::validParams()
 SphericalHarmonicsFilter::SphericalHarmonicsFilter(const InputParameters & parameters)
   : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("SphericalHarmonicsFilter is presently not supported when running the random ray solver!");
+
   auto sh_filter = dynamic_cast<openmc::SphericalHarmonicsFilter *>(
       openmc::Filter::create("sphericalharmonics"));
   try

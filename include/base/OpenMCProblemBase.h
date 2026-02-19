@@ -28,6 +28,7 @@
 #include "openmc/bank.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
+#include "openmc/constants.h"
 #include "openmc/geometry.h"
 #include "openmc/geometry_aux.h"
 #include "openmc/hdf5_interface.h"
@@ -35,6 +36,7 @@
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
 #include "openmc/simulation.h"
+#include "openmc/random_ray/random_ray_simulation.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
 #include "openmc/tallies/tally.h"
@@ -81,6 +83,12 @@ public:
   bool isHeatingScore(const std::string & score) const;
 
   /**
+   * Whether the random ray solver can accumulate a score or not.
+   * @return whether the random ray solver can accumulate the score or not
+   */
+  bool validRandomRayScore(const std::string & score) const;
+
+  /**
    * Add a constant monomial auxiliary variable
    * @param[in] name name of the variable
    * @param[in] block optional subdomain names on which to restrict the variable
@@ -102,6 +110,13 @@ public:
    * @return whether the user has set the problem scaling or not
    */
   bool hasScaling() const { return _specified_scaling; }
+
+  /**
+   * Whether the problem is running OpenMC with the multi-group random ray solver or the
+   * continuous energy Monte Carlo solver.
+   * @return if random ray is being used
+   */
+  bool runRandomRay() const;
 
   /**
    * Convert from a MOOSE-type enum into a valid OpenMC tally score string
