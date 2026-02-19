@@ -466,6 +466,7 @@ OpenMCProblemBase::writeSourceBank(const std::string & filename)
 {
   hid_t file_id = openmc::file_open(filename, 'w', true);
   openmc::write_attribute(file_id, "filetype", "source");
+  openmc::write_attribute(file_id, "version", openmc::VERSION_STATEPOINT);
   openmc::write_source_bank(
       file_id, openmc::simulation::source_bank, openmc::simulation::work_index);
   openmc::file_close(file_id);
