@@ -16,7 +16,7 @@
   solver = none
   viscosity = 20
 
-[PRESSURE]
+[FLUID PRESSURE]
 
 [TEMPERATURE]
   solver = none

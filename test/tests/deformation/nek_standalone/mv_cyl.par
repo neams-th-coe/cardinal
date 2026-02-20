@@ -12,7 +12,7 @@ residualTol = 1e-6
 solver = pcg+block
 initialGuess = projection+nVector=1
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-8
 initialGuess = previous
 

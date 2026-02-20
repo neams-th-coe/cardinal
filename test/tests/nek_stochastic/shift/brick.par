@@ -15,7 +15,7 @@
 [FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5
 
 [TEMPERATURE]

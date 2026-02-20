@@ -12,7 +12,7 @@
 [FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
 [TEMPERATURE]
   solver = none

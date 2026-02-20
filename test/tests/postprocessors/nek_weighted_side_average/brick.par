@@ -13,7 +13,7 @@
   solver = none
   density = 834.5
 
-[PRESSURE]
+[FLUID PRESSURE]
 
 [TEMPERATURE]
   solver = none

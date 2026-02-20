@@ -11,7 +11,7 @@ udf = "../ethier.udf"
 [MESH]
 file = "../ethier.re2"
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-08
 
 [FLUID VELOCITY]

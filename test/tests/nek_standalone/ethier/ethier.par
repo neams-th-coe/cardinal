@@ -7,7 +7,7 @@
   writeControl = simulationTime
   writeInterval = 0.1
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-08
 
 [FLUID VELOCITY]

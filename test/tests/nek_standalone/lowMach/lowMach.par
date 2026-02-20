@@ -6,7 +6,7 @@ dt = 1e-03
 timeStepper = tombo2
 writeInterval = 100
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-08
 initialGuess = previous
 

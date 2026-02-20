@@ -10,7 +10,7 @@
   residualTol = 1e-08
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
 [TEMPERATURE]
   boundaryTypeMap = t, O, I, I

@@ -14,7 +14,7 @@
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5
 
 [TEMPERATURE]

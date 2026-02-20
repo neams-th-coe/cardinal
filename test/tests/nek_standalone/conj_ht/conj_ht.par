@@ -5,7 +5,7 @@
   timeStepper = tombo2
   writeInterval = -1
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-06
 
 [FLUID VELOCITY]

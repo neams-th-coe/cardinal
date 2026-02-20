@@ -15,5 +15,5 @@
   residualTol = 1.0e-6
   boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5

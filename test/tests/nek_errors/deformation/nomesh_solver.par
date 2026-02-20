@@ -15,7 +15,7 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-4
 
 [FLUID VELOCITY]

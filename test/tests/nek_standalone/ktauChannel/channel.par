@@ -12,7 +12,7 @@ writeInterval = 50
 [PROBLEMTYPE]
 stressFormulation = true # required for variable viscosity
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-04
 
 [FLUID VELOCITY]

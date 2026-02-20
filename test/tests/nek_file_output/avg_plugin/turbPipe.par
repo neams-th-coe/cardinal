@@ -17,7 +17,7 @@
   filterWeight = 0.1/${dt}
   filterModes = 1
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-04
 
 [MESH]

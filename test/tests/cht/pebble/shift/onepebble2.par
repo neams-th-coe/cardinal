@@ -10,7 +10,7 @@ writeInterval = 20
 [MESH]
 file = ../onepebble2.re2
 
-[PRESSURE]
+[FLUID PRESSURE]
 residualTol = 1e-06
 
 [FLUID VELOCITY]

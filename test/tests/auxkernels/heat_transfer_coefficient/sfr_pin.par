@@ -23,7 +23,7 @@
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-6
 
 [TEMPERATURE]
