@@ -6,7 +6,7 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 2
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 2
 
 [FLUID VELOCITY]

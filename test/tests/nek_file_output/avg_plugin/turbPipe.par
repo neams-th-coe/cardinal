@@ -10,7 +10,7 @@
   timeStepper = tombo2
   subCyclingSteps = 2
 
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 3
 
   filtering = hpfrt

@@ -5,7 +5,7 @@
   numSteps = 1
   dt = 2e-03
   timeStepper = tombo3
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 5
 
 [MESH]

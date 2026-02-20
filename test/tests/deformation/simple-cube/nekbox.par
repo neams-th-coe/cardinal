@@ -6,7 +6,7 @@
   numSteps = 50
   dt = 1.0
   polynomialOrder = 2
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 10
 
 [MESH]

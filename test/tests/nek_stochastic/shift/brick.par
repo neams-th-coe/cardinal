@@ -6,7 +6,7 @@
   numSteps = 3
   dt = 5.0e-1
   polynomialOrder = 3
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 2
 
 [MESH]

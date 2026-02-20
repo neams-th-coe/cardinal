@@ -3,7 +3,7 @@
   numSteps = 1
   dt = 5.0e-4
   timeStepper = tombo2
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 25
   dealiasing = yes
   polynomialOrder = 3

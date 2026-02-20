@@ -6,7 +6,7 @@
   numSteps = 1
   dt = 1.0
   polynomialOrder = 2
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 1
   oudf = "../nekbox.oudf"
   udf = "../nekbox.udf"

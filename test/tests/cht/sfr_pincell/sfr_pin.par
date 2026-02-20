@@ -7,7 +7,7 @@
   numSteps = 4
   dt = 5e-3
   timeStepper = tombo2
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 100
   polynomialOrder = 4
 

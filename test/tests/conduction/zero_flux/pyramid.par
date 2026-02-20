@@ -6,7 +6,7 @@
   numSteps = 2
   dt = 1.0
   polynomialOrder = 5
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 1
   scalars = temperature
 

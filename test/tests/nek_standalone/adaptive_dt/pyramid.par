@@ -5,7 +5,7 @@
   stopAt = numSteps
   numSteps = 5
   polynomialOrder = 5
-  writeControl = steps
+  checkpointControl = steps
   checkpointInterval = 5
 
   dt = targetCFL=0.4 + max=1e-2 + initial=1e-4

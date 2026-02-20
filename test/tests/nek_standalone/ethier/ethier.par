@@ -4,7 +4,7 @@
   numSteps = 100
   dt = 2e-03
   timeStepper = tombo3
-  writeControl = simulationTime
+  checkpointControl = simulationTime
   checkpointInterval = 0.1
 
 [FLUID PRESSURE]
