@@ -17,7 +17,7 @@ void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
   mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   auto mesh = nrs->cds->mesh[0];
 

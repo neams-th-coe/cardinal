@@ -23,7 +23,7 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
   kernelInfo["defines/inlet_T"] = 628.15;
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   auto mesh = nrs->cds->mesh[0];
 

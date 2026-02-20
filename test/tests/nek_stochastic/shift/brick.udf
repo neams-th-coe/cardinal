@@ -8,7 +8,7 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
   cFillKernel = oudfBuildKernel(kernelInfo, "cFillKernel");
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   slice = (double *) calloc(nrs->fieldOffset, sizeof(double));
   for (int i = 0; i < nrs->fieldOffset; ++i)

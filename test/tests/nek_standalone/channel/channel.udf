@@ -37,7 +37,7 @@ void UDF_Setup0(MPI_Comm comm, setupAide &options)
   nek_cb_scnrs[0] = P_ROT;
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   mesh_t *mesh = nrs->meshV;
 

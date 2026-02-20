@@ -214,7 +214,7 @@ void UDF_LoadKernels(occa::properties &kernelInfo)
   kernelInfo["defines/p_pi"] = M_PI;
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   udf.sEqnSource = &userq;
 }

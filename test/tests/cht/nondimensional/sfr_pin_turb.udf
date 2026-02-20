@@ -181,7 +181,7 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
   RANSktau::buildKernel(kernelInfo);
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   auto mesh = nrs->cds->mesh;
 
