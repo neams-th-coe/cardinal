@@ -7,7 +7,7 @@ dt = 2e-02
 timeStepper = tombo2
 
 writeControl = simulationTime 
-writeInterval = 50
+checkpointInterval = 50
 
 [PROBLEMTYPE]
 stressFormulation = true # required for variable viscosity

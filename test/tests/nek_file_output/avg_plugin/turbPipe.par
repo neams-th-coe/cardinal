@@ -11,7 +11,7 @@
   subCyclingSteps = 2
 
   writeControl = steps
-  writeInterval = 3
+  checkpointInterval = 3
 
   filtering = hpfrt
   filterWeight = 0.1/${dt}

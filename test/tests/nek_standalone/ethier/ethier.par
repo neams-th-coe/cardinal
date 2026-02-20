@@ -5,7 +5,7 @@
   dt = 2e-03
   timeStepper = tombo3
   writeControl = simulationTime
-  writeInterval = 0.1
+  checkpointInterval = 0.1
 
 [FLUID PRESSURE]
   residualTol = 1e-08

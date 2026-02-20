@@ -7,7 +7,7 @@
   dt = 5.0e-4
   polynomialOrder = 5
   writeControl = steps
-  writeInterval = 2
+  checkpointInterval = 2
 
 [MESH]
   file=../nek_weighted_side_integral/brick.re2

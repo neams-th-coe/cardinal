@@ -7,7 +7,7 @@
   dt = 5.0e-4
   polynomialOrder = 7
   writeControl = steps
-  writeInterval = 2
+  checkpointInterval = 2
 
 [FLUID VELOCITY]
   viscosity = -880.2742616033756

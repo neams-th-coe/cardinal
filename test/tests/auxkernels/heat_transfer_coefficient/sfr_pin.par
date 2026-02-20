@@ -8,7 +8,7 @@
   dt = 5e-3
   timeStepper = tombo2
   writeControl = steps
-  writeInterval = 1000
+  checkpointInterval = 1000
   polynomialOrder = 1
 
 [MESH]

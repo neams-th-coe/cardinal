@@ -7,7 +7,7 @@
   dt = 1.0
   polynomialOrder = 2
   writeControl = steps
-  writeInterval = 10
+  checkpointInterval = 10
 
 [MESH]
   solver = user

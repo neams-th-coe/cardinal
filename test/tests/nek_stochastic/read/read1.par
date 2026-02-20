@@ -6,7 +6,7 @@
   dt = 2e-03
   timeStepper = tombo3
   writeControl = steps
-  writeInterval = 5
+  checkpointInterval = 5
 
 [MESH]
   file="../ethier.re2"

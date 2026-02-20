@@ -7,7 +7,7 @@
   dt = 0.1
   polynomialOrder = 7
   writeControl = steps
-  writeInterval = 10
+  checkpointInterval = 10
   scalars = temperature
 
 [FLUID VELOCITY]

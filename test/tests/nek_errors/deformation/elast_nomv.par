@@ -4,7 +4,7 @@ stopAt = numSteps
 numSteps = 1
 dt = 1e-3
 timeStepper = tombo2
-writeInterval = 100
+checkpointInterval = 100
 oudf = "nekbox_elast.oudf"
 udf = "nekbox.udf"
 

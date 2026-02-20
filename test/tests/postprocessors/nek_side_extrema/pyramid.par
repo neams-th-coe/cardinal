@@ -7,7 +7,7 @@
   dt = 5e-4
   polynomialOrder = 1
   writeControl = steps
-  writeInterval = 2
+  checkpointInterval = 2
 
 [FLUID VELOCITY]
   solver = none

@@ -5,7 +5,7 @@ backend = CPU
 polynomialOrder = 5
 numSteps = 5
 dt = 1e-04
-writeInterval = 20
+checkpointInterval = 20
 
 [MESH]
 file = ../onepebble2.re2

@@ -7,7 +7,7 @@
   dt = 5.0e-4
   polynomialOrder = 3
   writeControl = steps
-  writeInterval = 2
+  checkpointInterval = 2
 
 [MESH]
   file = ../../common_inputs/brick2.re2

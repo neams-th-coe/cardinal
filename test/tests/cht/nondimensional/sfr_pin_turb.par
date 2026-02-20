@@ -19,7 +19,7 @@
   dt = 1e-2
   timeStepper = tombo2
   writeControl = steps
-  writeInterval = 1
+  checkpointInterval = 1
   polynomialOrder = 4
 
 [PROBLEMTYPE]

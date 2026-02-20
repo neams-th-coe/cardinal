@@ -3,7 +3,7 @@
   numSteps = 1
   dt = 2e-02
   timeStepper = tombo2
-  writeInterval = 1
+  checkpointInterval = 1
 
 [FLUID VELOCITY]
   boundaryTypeMap = v, O, W, SYM

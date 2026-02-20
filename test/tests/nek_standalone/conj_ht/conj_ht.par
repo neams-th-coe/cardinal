@@ -3,7 +3,7 @@
   numSteps = 5
   dt = 2e-02
   timeStepper = tombo2
-  writeInterval = -1
+  checkpointInterval = -1
 
 [FLUID PRESSURE]
   residualTol = 1e-06

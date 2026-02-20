@@ -4,7 +4,7 @@
   numSteps = 50
   dt = 2e-3
   timeStepper = tombo2
-  writeInterval = 50
+  checkpointInterval = 50
 
 [MESH]
   boundaryTypeMap = zeroValue,codedFixedValue,zeroValue
