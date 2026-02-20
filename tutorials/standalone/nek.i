@@ -8,6 +8,11 @@
   type = NekRSProblem
   casename = 'turbPipe'
 
+  # This particular NekRS case initializes usrwrk within the case files manually,
+  # so we do not want Cardinal to take control of that aspect (or else we would have
+  # to modify turbPipe.udf, but we just copied it over from NekRS unmodified).
+  initialize_usrwrk = false
+
   [FieldTransfers]
     [pressure]
       type = NekFieldVariable
@@ -94,6 +99,7 @@
     type = TransientMultiApp
     input_files = sub.i
     execute_on = timestep_end
+    sub_cycling = true
   []
 []
 

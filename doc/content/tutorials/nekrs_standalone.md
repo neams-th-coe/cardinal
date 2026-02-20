@@ -62,12 +62,13 @@ during the simulation as specified by settings in the `.par` file.
 
 To run NekRS via MOOSE, without any physics coupling,
 Cardinal simply replaces calls to MOOSE solve methods with NekRS solve methods available
-through an [!ac](API). There are no data transfers to/from NekRS. A
+through an [!ac](API). There are no data transfers to NekRS, but data can be extracted from NekRS. A
 thinly-wrapped simulation uses:
 
 1. [NekRSMesh](NekRSMesh.md): create a "mirror" of the NekRS mesh, which can *optionally* be used to interpolate
    a high-order NekRS solution into a lower-order mesh (in any MOOSE-supported format).
 2. [NekRSProblem](NekRSProblem.md): allow MOOSE to run NekRS
+3. [NekTimeStepper](NekTimeStepper.md): allow NekRS's time stepping to be used by MOOSE
 
 For this tutorial, we will use the `turbPipe` example that ships with the NekRS repository
 as an example case. This case models
@@ -91,23 +92,20 @@ as a standalone case. These input files include:
 - `turbPipe.udf`: User-defined C++ functions for on-line postprocessing and model setup
 - `turbPipe.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
 
-This particular input also uses an optional `turbPipe.usr` file for setting up
-other parts of the model using the Nek5000 backend. We refer a discussion
-of these files to the [NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
-
 Instead of running this input directly with the NekRS scripts like we did
 in [#standalone], we instead wrap the NekRS simulation as a MOOSE application.
 The Cardinal input file is shown below; this is not the simplest file that we
-*need* to run NekRS, but we add extra features to be described shortly.
+*need* to run NekRS, but we added extra features to be described shortly for the
+purpose of illustrating how to do postprocessing.
 
 !listing /tutorials/standalone/nek.i
 
 The essential blocks in the input file are:
 
-- `Mesh`: creates a lower-order mirror of the NekRS mesh
-- `Problem`: replaces MOOSE finite element solves with NekRS solves. [NekFieldVariable](NekFieldVariable.md) objects are added in order to read from the NekRS internal solution fields and write onto the [NekRSMesh](NekRSMesh.md) for viewing.
-- `Executioner`: controls the time stepping according to the settings in the NekRS input files
-- `Outputs`: outputs any results that have been projected onto the [NekRSMesh](NekRSMesh.md) to the specified format.
+- `[Mesh]`: creates a lower-order mirror of the NekRS mesh
+- `[Problem]`: replaces MOOSE finite element solves with NekRS solves. [NekFieldVariable](NekFieldVariable.md) objects are added in order to read from the NekRS internal solution fields and write onto the [NekRSMesh](NekRSMesh.md) for viewing.
+- `[Executioner]`: controls the time stepping according to the settings in the NekRS input files with the [NekTimeStepper](NekTimeStepper.md)
+- `[Outputs]`: outputs any results that have been projected onto the [NekRSMesh](NekRSMesh.md) to the specified format.
 
 This input file is run with:
 
@@ -117,23 +115,20 @@ mpiexec -np 4 cardinal-opt -i nek.i
 
 which will run with 4 MPI ranks. This will create a number of output files:
 
-- `nek_out.e` shows the NekRS solution mapped to a MOOSE mesh
-- `nek_out_sub0.` shows the result of a postprocessing operation, mapped to a
-  different MOOSE mesh
-- `nek_out.csv` shows the CSV postprocessor values
+- `nek_out.e` shows the NekRS solution mapped to a MOOSE mesh (since `exodus = true` was specified in the `[Outputs]` block of the `nek.i` input). This is the output file of the `nek.i` input.
+- `nek_out_sub0.e` shows the result of a postprocessing operation, mapped to a
+  different MOOSE mesh (where `sub` refers to the name of the [MultiApp](MultiApp.md) block in the `nek.i`). This is the output file of the `sub.i` input, which is run as a sub-application on `nek.i`.
+- `nek_out.csv` shows the CSV postprocessor values (since `csv = true` was specified in the `[Outputs]` block of the `nek.i` input)
 - `turbPipe0.f<n>` are the NekRS output files, where `<n>` is an integer representing output step index in NekRS
-
-When running this tutorial, the NekRS output file is the `nek_out.e` file,
-while the output of the sub-application is the `nek_out_sub0.e` file.
 
 Now that you know how to run, let's describe
 the rest of the contents in the `nek.i` input file.
 This file adds a few additional postprocessing operations to compute:
 
-- pressure drop, computed by subtracting the inlet average pressure from the outlet
+- Pressure drop, computed by subtracting the inlet average pressure from the outlet
   average pressure with two [NekSideAverage](NekSideAverage.md)
   postprocessors and the [DifferencePostprocessor](DifferencePostprocessor.md)
-- mass flowrate, computed with a [NekMassFluxWeightedSideIntegral](NekMassFluxWeightedSideIntegral.md)
+- Mass flowrate, computed with a [NekMassFluxWeightedSideIntegral](NekMassFluxWeightedSideIntegral.md)
   postprocessor
 
 !listing /tutorials/standalone/nek.i
@@ -147,9 +142,9 @@ which can be useful for evaluating solution progression:
 | time           | dP             | mdot           |
 +----------------+----------------+----------------+
 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
-|   6.000000e-03 |  -3.334281e+02 |  -7.854005e-01 |
-|   1.200000e-02 |   1.637766e+02 |  -7.853985e-01 |
-|   1.800000e-02 |   1.540674e+00 |  -7.853985e-01 |
+|   6.000000e-03 |  -3.333152e+02 |  -7.853902e-01 |
+|   1.500000e-02 |   1.969592e+02 |  -7.853905e-01 |
+|   2.500000e-02 |   2.037865e+00 |  -7.853905e-01 |
 +----------------+----------------+----------------+
 ```
 
@@ -159,20 +154,21 @@ into a CSV format, which is convenient for script-based postprocessing operation
 ```
 time,dP,mdot
 0,0,0
-0.006,-333.42814336273,-0.78540045786239
-0.012,163.77659967808,-0.78539846245391
-0.018,1.540674311383,-0.78539846245391
+0.006,-333.31516283033,-0.78539022886957
+0.015,196.95921676409,-0.7853904926578
+0.025,2.0378645809721,-0.78539049265785
 ```
 
 By using [NekFieldVariable](NekFieldVariable.md) objects in the `[FieldTransfers]` block,
 we write the NekRS solution for pressure and velocity (which for this example has $(7+1)^3$ degrees of
-freedom per element, since `polynomialOrder = 7` in `turbPipe.par`)
+freedom per element, since `polynomialOrder = 7`)
 onto second-order Lagrange auxiliary variables
 named `P` and `velocity_x`, `velocity_y`, and `velocity_z`. You can then apply *any* MOOSE object to those
 variables, such as postprocessors, userobjects, auxiliary kernels, and so on.
 You can also transfer these variables to another MOOSE application
-if you want to couple NekRS to MOOSE *without feedback* - such as for using
-Nek's velocity to transport a passive scalar in another MOOSE application.
+if you want to couple NekRS to MOOSE *without feedback to NekRS* - such as for using
+Nek's velocity to transport a passive scalar in another MOOSE application. Future tutorials
+will show how to pass data into NekRS to accomplish two-way coupling.
 
 The axial velocity computed by NekRS, as well as the velocity interpolated onto
 the mesh mirror, are shown in [nek_vels].
@@ -184,7 +180,7 @@ the mesh mirror, are shown in [nek_vels].
 
 We can also apply several userobjects *directly* to the NekRS solution for a
 number of postprocessing operations. Below, we perform a volume average
-of $V_z$ in 12 radial bins discretized into 20 axial layers.
+of the axial velocity in 12 radial bins discretized into 20 axial layers.
 
 !listing /tutorials/standalone/nek.i
   block=UserObjects
@@ -217,7 +213,7 @@ be seen).
   caption=Representation of the `volume_averages` binned averaging on the NekRS mesh mirror
   style=width:65%;margin-left:auto;margin-right:auto;halign:center
 
-Instead, we can
+To represent our averaged data on a mesh consistent with how the radial rings are set up, we can
 leverage MOOSE's [MultiApp](MultiApps/index.md)
 system to transfer the user object to a sub-application with a different mesh
 than what is used in NekRS. Then we can visualize the averaging operation
@@ -267,4 +263,5 @@ simulations include:
   oscillating system
 
 Please consult the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html)
-for a full list of available postprocessors.
+for a full list of available postprocessors. Many postprocessing activities can also be done
+natively in NekRS, and are documented on the [NekRS website](https://nekrs.readthedocs.io/en/latest/problem_setup/postprocessing.html).
