@@ -9,7 +9,7 @@
   writeControl = steps
   writeInterval = 2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = -880.2742616033756
   density = 1.0

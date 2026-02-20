@@ -8,7 +8,7 @@
   dealiasing = yes
   polynomialOrder = 5
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = 2.37e-4
   density = 834.5

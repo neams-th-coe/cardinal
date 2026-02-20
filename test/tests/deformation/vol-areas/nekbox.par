@@ -12,7 +12,7 @@
 [MESH]
   solver = user
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall

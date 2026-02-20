@@ -17,7 +17,7 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
   boundaryTypeMap = W, W, v, O

@@ -16,7 +16,7 @@ initialGuess = projection+nVector=1
 residualTol = 1e-8
 initialGuess = previous
 
-[VELOCITY]
+[FLUID VELOCITY]
 boundaryTypeMap = codedFixedValue, zeroValue, sym
 residualTol = 1e-12
 

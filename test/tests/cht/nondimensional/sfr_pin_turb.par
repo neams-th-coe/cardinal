@@ -25,7 +25,7 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[VELOCITY]
+[FLUID VELOCITY]
 
   # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
   viscosity = -3038.7881869873413

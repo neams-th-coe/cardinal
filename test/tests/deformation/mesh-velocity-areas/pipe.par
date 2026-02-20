@@ -20,7 +20,7 @@
   preconditioner = multigrid
   initialGuess = previous
 
-[VELOCITY]
+[FLUID VELOCITY]
   density = 1.0
   viscosity = 0.01
   boundaryTypeMap = codedFixedValue,codedFixedValue,zeroGradient

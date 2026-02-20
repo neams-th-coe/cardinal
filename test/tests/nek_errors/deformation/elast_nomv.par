@@ -19,7 +19,7 @@ stressFormulation = true
 [PRESSURE]
 residualTol = 1e-4
 
-[VELOCITY]
+[FLUID VELOCITY]
 density = 1.0
 viscosity = -100.0
 boundaryTypeMap = zeroValue,codedFixedValue,zeroValue,zeroValue,zeroValue,zeroGradient

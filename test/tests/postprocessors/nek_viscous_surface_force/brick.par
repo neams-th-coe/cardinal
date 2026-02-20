@@ -12,7 +12,7 @@
 [MESH]
   file=../nek_weighted_side_integral/brick.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = 20
 

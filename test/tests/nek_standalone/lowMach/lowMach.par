@@ -10,7 +10,7 @@ writeInterval = 100
 residualTol = 1e-08
 initialGuess = previous
 
-[VELOCITY]
+[FLUID VELOCITY]
 boundaryTypeMap = codedFixedValue
 residualTol = 1e-12
 

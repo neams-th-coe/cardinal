@@ -13,7 +13,7 @@ file = ../onepebble2.re2
 [PRESSURE]
 residualTol = 1e-06
 
-[VELOCITY]
+[FLUID VELOCITY]
 boundaryTypeMap = W, O, v
 residualTol = 1e-07
 density = 1.0

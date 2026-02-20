@@ -12,7 +12,7 @@
 [MESH]
   file = ../../common_inputs/brick2.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
 [PRESSURE]

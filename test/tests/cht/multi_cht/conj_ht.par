@@ -5,7 +5,7 @@
   timeStepper = tombo2
   writeInterval = 1
 
-[VELOCITY]
+[FLUID VELOCITY]
   boundaryTypeMap = v, O, W, SYM
   residualTol = 1e-08
   solver = none

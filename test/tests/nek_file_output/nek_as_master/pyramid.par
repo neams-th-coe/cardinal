@@ -9,7 +9,7 @@
   writeControl = steps
   writeInterval = 3
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
 [PRESSURE]

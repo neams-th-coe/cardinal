@@ -23,7 +23,7 @@
 [MESH]
   file=../../cht/sfr_pincell/sfr_pin.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   boundaryTypeMap = wall, wall, inlet, outlet
   density = 1.0
   viscosity = -19000

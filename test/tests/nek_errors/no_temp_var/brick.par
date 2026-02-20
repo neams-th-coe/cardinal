@@ -9,7 +9,7 @@
   writeControl = steps
   writeInterval = 2
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6

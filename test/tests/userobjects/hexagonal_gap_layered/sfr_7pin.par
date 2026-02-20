@@ -8,7 +8,7 @@
   dealiasing = yes
   polynomialOrder = 9
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
 [PRESSURE]

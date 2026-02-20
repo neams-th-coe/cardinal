@@ -10,7 +10,7 @@
 [PRESSURE]
   residualTol = 1e-08
 
-[VELOCITY]
+[FLUID VELOCITY]
   boundaryTypeMap = inlet
   residualTol = 1e-12
   density = 1.0
