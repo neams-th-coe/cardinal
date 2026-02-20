@@ -69,6 +69,6 @@
 [Outputs]
   exodus = true
   csv = true
-  interval = 10
+  time_step_interval = 10
   hide = 'flux_integral'
 []

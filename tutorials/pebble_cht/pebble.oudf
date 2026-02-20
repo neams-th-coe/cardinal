@@ -1,20 +1,21 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = 0.0; // x-velocity
-  bc->v = 0.0; // y-velocity
-  bc->w = p_inlet_v; // z-velocity
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = 0.0; // x-velocity
+    bc->uyFluid = 0.0; // y-velocity
+    bc->uzFluid = p_inlet_v; // z-velocity
+  }
+
+  if (isField("scalar temperature"))
+    bc->sScalar = p_inlet_T; // temperature
 }
 
-void scalarDirichletConditions(bcData *bc)
-{
-  bc->s = p_inlet_T; // temperature
-}
-
-void scalarNeumannConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->flux = bc->usrwrk[bc->idM]; // heat flux from MOOSE
+  bc->fluxScalar = bc->usrwrk[bc->idxVol]; // heat flux from MOOSE
 }

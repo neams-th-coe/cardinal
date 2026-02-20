@@ -3,9 +3,10 @@
 These tutorials describe how to couple NekRS to MOOSE through *boundary*
 heat transfer by exchanging boundary conditions. Cardinal provides three options
 for these boundary conditions:
+
 - Wall temperature
 - Wall conductive heat flux (i.e. $-k\nabla T\cdot\hat{n}$)
-- Wall convective heat flux (i.e. $h(T-T_\infty)$
+- Wall convective heat flux (i.e. $h(T-T_\infty)$)
 
 This type of simulation is referred to as [!ac](CHT).
 To set up a well-defined [!ac](CHT) case, you must choose one of these
@@ -43,6 +44,7 @@ You might choose
 to use different boundary conditions in order to improve the stability of the coupling;
 when Cardinal was first developed, only one option existed - the "Cond. Flux - Temperature"
 option, even though it is known that this option can be less stable than the others.
+Many tutorials use this option, but it is interchangeable with other coupling modes.
 
 Cardinal uses a general formulation that allows NekRS to couple via conjugate
 heat transfer to *any* MOOSE thermal-fluid application. This

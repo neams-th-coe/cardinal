@@ -35,4 +35,4 @@ h = []
 for i in range(len(Twall)):
   h.append(flux[i] / (Twall[i] - Tbulk[i]))
 
-print('The average heat transfer coefficient is (W/m^2K): ', np.mean(h))
+print('The average heat transfer coefficient is (W/m^2/K): ', np.mean(h))
