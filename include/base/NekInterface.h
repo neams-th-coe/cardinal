@@ -47,6 +47,12 @@ namespace nekrs
 
 static int build_only;
 
+/**
+ * Number of passive scalars
+ * @return number of passive scalars
+ */
+int Nscalar();
+
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
 

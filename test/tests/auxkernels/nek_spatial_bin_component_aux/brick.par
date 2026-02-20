@@ -5,22 +5,12 @@
   stopAt = numSteps
   numSteps = 1
   dt = 5.0e-4
-  polynomialOrder = 7
+  polynomialOrder = 2
   checkpointControl = steps
   checkpointInterval = 2
-  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
-  viscosity = -880.2742616033756
-  density = 1.0
-  residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall
 
 [FLUID PRESSURE]
   residualTol = 1.0e-5
-
-[SCALAR TEMPERATURE]
-  solver = none
-  residualTol = 1.0e-5
-  boundaryTypeMap = t, t, t

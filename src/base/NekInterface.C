@@ -133,9 +133,8 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
       }
     }
 
-    int Nscalar;
-    platform->options.getArgs("NUMBER OF SCALARS", Nscalar);
-    for (int i = 0; i < Nscalar; i++) {
+    int ns = Nscalar();
+    for (int i = 0; i < ns; i++) {
       if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE")) {
         const auto temperatureExists = nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
         std::vector<occa::memory> o_Si = {nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
@@ -180,7 +179,8 @@ buildOnly()
 bool
 hasCHT()
 {
-  for (int is = 0; is < nrs->Nscalar; is++)
+  auto ns = Nscalar();
+  for (int is = 0; is < ns; is++)
   {
     if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID"))
     {
@@ -235,7 +235,7 @@ endControlNumSteps()
 bool
 hasTemperatureVariable()
 {
-  return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 NAME", "TEMPERATURE") : false;
+  return Nscalar() ? platform->options.compareArgs("SCALAR00 NAME", "TEMPERATURE") : false;
 }
 
 bool
@@ -1860,6 +1860,14 @@ resolveType<int>()
   return MPI_INT;
 }
 
+int
+Nscalar()
+{
+  int Nscalar;
+  platform->options.getArgs("NUMBER OF SCALARS", Nscalar);
+  return Nscalar;
+}
+
 void
 initializeNekHostArrays()
 {
@@ -1869,7 +1877,9 @@ initializeNekHostArrays()
 
   U.resize(mesh->dim * nrs->fluid->fieldOffset);
   P.resize(mesh->Nlocal);
-  S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); // offset is same for all scalars
+
+  if (Nscalar())
+    S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); // offset is same for all scalars
 }
 
 dfloat *
