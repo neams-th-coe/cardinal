@@ -17,7 +17,7 @@
 [FLUID VELOCITY]
   solver = none
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none
 
 [SCALAR01]

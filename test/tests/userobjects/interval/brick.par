@@ -18,5 +18,5 @@
 [FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

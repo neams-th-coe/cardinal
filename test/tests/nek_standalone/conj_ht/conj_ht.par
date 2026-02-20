@@ -14,7 +14,7 @@
   density = 1.0
   viscosity = 0.001
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   boundaryTypeMap = t, O, I
   residualTol = 1e-08
   rhoCp = 1.0

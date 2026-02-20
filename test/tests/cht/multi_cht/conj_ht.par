@@ -12,7 +12,7 @@
 
 [FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   boundaryTypeMap = t, O, I, I
   residualTol = 1e-08
   solver = none

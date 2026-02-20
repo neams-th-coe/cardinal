@@ -14,7 +14,7 @@ initialGuess = previous
 boundaryTypeMap = codedFixedValue
 residualTol = 1e-12
 
-[TEMPERATURE] 
+[SCALAR TEMPERATURE] 
 boundaryTypeMap = codedFixedValue
 residualTol = 1e-12
 

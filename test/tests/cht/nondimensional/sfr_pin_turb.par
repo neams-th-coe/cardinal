@@ -37,7 +37,7 @@
 [FLUID PRESSURE]
   residualTol = 1.0e-6
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
   conductivity = -13.773505042642078
 

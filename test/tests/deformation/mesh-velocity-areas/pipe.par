@@ -26,5 +26,5 @@
   boundaryTypeMap = codedFixedValue,codedFixedValue,zeroGradient
   residualTol = 1e-6
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

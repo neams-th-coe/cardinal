@@ -25,5 +25,5 @@ viscosity = -100.0
 boundaryTypeMap = zeroValue,codedFixedValue,zeroValue,zeroValue,zeroValue,zeroGradient
 residualTol = 1e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
 solver = none

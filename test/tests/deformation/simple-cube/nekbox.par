@@ -20,7 +20,7 @@
 [FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   conductivity = 1.0
   rhoCp = 0.0
   residualTol = 1.0e-5

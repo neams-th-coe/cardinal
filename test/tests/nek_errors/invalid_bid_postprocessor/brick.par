@@ -18,6 +18,6 @@
 [FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   residualTol = 1.0e-5
   boundaryTypeMap = f, f, f, f, f, f

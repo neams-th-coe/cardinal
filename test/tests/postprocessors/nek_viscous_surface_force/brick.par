@@ -18,5 +18,5 @@
 
 [FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none
