@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Couple NekRS with MOOSE for [!ac](CHT) in a pebble bed reactor reflector block
-- Propagate scalar values into the [!ac](OCCA) GPU kernels
+- Set up NekRs simulations in non-dimensional form
 
 To access this tutorial,
 
@@ -11,15 +11,16 @@ To access this tutorial,
 cd cardinal/tutorials/fhr_reflector
 ```
 
-This tutorial also requires you to download
+This tutorial was developed with funding from the NRIC [!ac](VTB). You can
+find additional context on this model in our conference publication
+[!cite](novak_ans_2021).
+
+!alert note title=Download Mesh Files
+This tutorial requires you to download
 some mesh files and restart files from Box. Please download the files
 from the `fhr_reflector` folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure
 in `tutorials/fhr_reflector`.
-
-This tutorial was developed with funding from the NRIC [!ac](VTB). You can
-find additional context on this model in our conference publication
-[!cite](novak_ans_2021).
 
 !alert! note title=Computing Needs
 This tutorial requires [!ac](HPC) resources to run.
@@ -32,8 +33,10 @@ The pebble region in the [!ac](PB-FHR) is enclosed by an outer graphite reflecto
 In order to keep the graphite reflector within
 allowable design temperatures, the reflector contains several bypass flow
 paths so that a small percentage of the coolant flow can
-maintain the graphite within allowable temperature ranges. This
-bypass flow
+maintain the graphite within allowable temperature ranges. This bypass flow is
+also unavoidable due to the temperature- and irradiation-dependent dimensional
+changes in graphite.
+This bypass flow
 is important to quantify so that accurate
 estimates of core cooling and reflector temperatures can be obtained. By repeating
 these calculations for a range of Reynolds numbers and geometries, this model
@@ -168,7 +171,7 @@ to run Cardinal in [!ac](CHT) mode is described in [#part2].
 Cubit [!cite](cubit) is used to
 programmatically create meshes with user-defined geometry and customizable
 boundary layers. Journal files, or Python-scripted Cubit inputs, are used
-to create meshes in Exodus II format. The MOOSE framework accepts meshes in
+to create meshes in Exodus format. The MOOSE framework accepts meshes in
 a wide range of formats that can be generated with many commercial and free
 meshing tools; other tutorials will make meshes natively within MOOSE.
 
@@ -220,8 +223,6 @@ the right by showing the highlighted surface to which each boundary corresponds.
 While the names of the surfaces are shown,
 NekRS does not directly use these names - rather, NekRS assigns boundary
 conditions based on the boundary ID.
-An important restriction in NekRS is that the boundary IDs be ordered
-sequentially beginning from 1.
 
 !media fluid_mesh.png
   id=fluid_mesh
@@ -243,7 +244,7 @@ can be meshed according to its physics requirements.
 
 Because NekRS uses a custom binary mesh format with a `.re2` extension, the `exo2nek` utility
 must be used to convert an Exodus II format to `.re2` format.
-For more information, please consult the [tools documentation](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html).
+For more information, please consult the [tools documentation](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html). On Box, the `.re2` file is provided [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527832672).
 
 ## Part 1: Initial Conduction Coupling
   id=part1
@@ -259,15 +260,10 @@ All input files for this stage are present in the
 
 The solid phase is solved with the MOOSE heat transfer module, and is described in the `solid.i` input.
 At the top of this file, the core heat flux is defined as a variable local to the file.
-
-!listing /tutorials/fhr_reflector/conduction/solid.i
-  end=Mesh
-
 Next, the solid mesh is
 specified by pointing to the Exodus mesh.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
-  start=Mesh
   end=Variables
 
 The heat transfer module will solve for temperature, which is defined as a nonlinear
@@ -345,7 +341,7 @@ interpolation onto NekRS's [!ac](GLL) points).
   start=MultiApps
   end=Postprocessors
 
-Next, postprocessors are used to compute the integral heat flux as a
+Next, a postprocessor is used to compute the integral heat flux as a
 [SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md).
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
@@ -355,7 +351,6 @@ Next, postprocessors are used to compute the integral heat flux as a
 Finally, a transient executioner is used for the solid phase.
 The overall coupled simulation is considered
 converged once the relative change in the solution between steps is less than $5\times10^{-4}$.
-An output format of Exodus II is specified.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
   start=Executioner
@@ -366,7 +361,6 @@ An output format of Exodus II is specified.
 The fluid phase is solved with NekRS.
 The wrapping of NekRS as a MOOSE
 application is specified in the `nek.i` file.
-
 First, a local variable, `fluid_solid_interface`, is used to define all the boundary IDs through which NekRS is coupled
 via [!ac](CHT) to MOOSE. A first-order mirror of the NekRS mesh
 is constructed using the [NekRSMesh](NekRSMesh.md). By specifying the
@@ -388,7 +382,11 @@ heat conduction application, the characteristic scales used to establish the non
 problem are provided. The wall heat flux will be written into NekRS using a
 [NekBoundaryFlux](NekBoundaryFlux.md) object; this automatically creates an auxiliary
 variable named `avg_flux` and a [Receiver](Receiver.md) postprocessor named `flux_integral`. A [NekFieldVariable](NekFieldVariable.md) is used to read out temperature into
-an auxiliary variable (created automatically) named `temp`.
+an auxiliary variable (created automatically) named `temp`. The
+`[Dimensionalize]` block is used to specify the characteristic scales used in the NekRS simulation, so that
+all quantities output by MOOSE will be dimensional. This is necessary to ensure that the data transfers
+to MOOSE (which is used in this example with dimensional form) are consistent. For more
+information on non-dimensional theory, see [these notes](https://cardinal.cels.anl.gov/theory/nondimensional_ns.html).
 
 !listing /tutorials/fhr_reflector/conduction/nek.i
   start=Problem
@@ -414,18 +412,7 @@ coupling surfaces).
   start=Postprocessors
 
 The `nek.i` input file only describes how NekRS is *wrapped* within the MOOSE framework;
-each NekRS simulation requires additional files
-that share the same case name `fluid` but with different extensions.
-The additional NekRS files are:
-
-- `fluid.re2`: Mesh file
-- `fluid.par`: High-level settings for the solver, boundary
-  condition mappings to sidesets, and the equations to solve
-- `fluid.udf`: User-defined C++ functions for on-line postprocessing and model setup
-- `fluid.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and
-  source terms
-
-First, begin with the `fluid.par` file.
+each NekRS simulation requires the usual set of case files. The `fluid.par` file is shown below.
 
 !listing /tutorials/fhr_reflector/conduction/fluid.par
 
@@ -435,11 +422,11 @@ Because the purpose of this
 simulation is only to obtain a reasonable initial condition, a low polynomial order
 of 2 is used.
 
-Next, the `[VELOCITY]` and `[PRESSURE]` blocks describe the solution of the
+Next, the `[FLUID VELOCITY]` and `[FLUID PRESSURE]` blocks describe the solution of the
 pressure Poisson equation and velocity Helmholtz equations. In the velocity block,
 setting `solver = none` turns off the velocity solution; therefore, none of the
 parameters specified here are used right now, so their description will be deferred
-to [#part2]. Finally, the `[TEMPERATURE]` block describes the solution of the
+to [#part2]. Finally, the `[SCALAR TEMPERATURE]` block describes the solution of the
 temperature passive scalar equation. $\rho_fC_{p,f}$ is set to unity because the
 solve is conducted in non-dimensional form, such that
 
@@ -449,8 +436,8 @@ solve is conducted in non-dimensional form, such that
 \end{equation}
 
 The coefficient on the diffusive equation term in the [non-dimensional energy equation](theory/nondimensional_ns.md)
-is equal to $1/Pe$. In NekRS, specifying `conductivity = -1500.5` is equivalent
-to specifying `conductivity = 0.00066644` (i.e. $1/1500.5$), or a Peclet number of
+is equal to $1/Pe$. In NekRS, specifying `diffusionCoeff = -1500.5` is equivalent
+to specifying `diffusionCoeff = 0.00066644` (i.e. $1/1500.5$), or a Peclet number of
 1500.5.
 
 Next, `residualTol` specifies the solver tolerance for the temperature equation
@@ -461,23 +448,14 @@ Boundaries 1, 2, and 7 are flux boundaries
 insulated, boundary 5 is a specified temperature, and boundary 6 is a zero-gradient
 outlet. The actual assignment of values for these boundary conditions is then
 performed in the `fluid.oudf` file.
-Because this case does not have any user-defined
-source terms in NekRS, these [!ac](OCCA) kernels are only used to apply boundary conditions.
 
 !listing /tutorials/fhr_reflector/conduction/fluid.oudf language=cpp
 
 Finally, the `fluid.udf` file contains user-defined C++ functions through
-which other interactions with the NekRS solution are performed. Here, the `UDF_Setup` function
-is called once at the very start of the NekRS simulation, and it is here that initial
-conditions are applied.
+which other interactions with the NekRS solution are performed. We use the default
+initial conditions of 0, so do not need to do anything with this file.
 
 !listing /tutorials/fhr_reflector/conduction/fluid.udf language=cpp
-
-The initial condition is applied by looping over all
-the [!ac](GLL) points and setting zero to each (recall that this is a non-dimensional
-simulation, such that $T^\dagger=0$ corresponds to a dimensional temperature of $T_{ref}$).
-Here, `nrs->cds->S` is the array holding the NekRS passive scalar solutions (of which
-there is only one for this example).
 
 ### Execution and Postprocessing
   id=ep
@@ -493,14 +471,12 @@ When the simulation has completed, you will have created a number of different o
 
 - `fluid0.f<n>`, where `<n>` is a five-digit number indicating the output file number
   created by NekRS (a separate output file is written for each time step
-  according to the settings in the `fluid.par` file). An extra program is required to visualize
-  NekRS output files in Paraview; see the instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files).
-- `solid_out.e`, an Exodus II output file with the solid mesh and solution.
-- `solid_out_nek0.e`, an Exodus II output file with the fluid mirror mesh
+  according to the settings in the `fluid.par` file).
+- `solid_out.e`, an Exodus output file with the solid mesh and solution.
+- `solid_out_nek0.e`, an Exodus output file with the fluid mirror mesh
   and data that was ultimately transferred in/out of NekRS.
 
-After converting the NekRS output files to a format viewable in Paraview, the simulation
-results can be displayed. The solid temperature, surface heat flux, and fluid temperature
+The solid temperature, surface heat flux, and fluid temperature
 are shown below. Note that the fluid temperature is shown in nondimensional form based on
 the selected characteristic scales. The image of the fluid solution is rotated so as to
 better display the temperature variation around the inner reflector block.
