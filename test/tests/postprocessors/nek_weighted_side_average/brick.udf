@@ -1,30 +1,34 @@
-#include "udf.hpp"
+#ifdef __okl__
+#endif
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->scalar->mesh("temperature");
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+
+  auto [x, y, z] = mesh->xyzHost();
+
+  for (int n = 0; n < mesh->Nlocal; ++n)
   {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
+    U[n + 0 * nrs->fieldOffset] = 1 + x[n] * y[n] * z[n]; // x-velocity
+    U[n + 1 * nrs->fieldOffset] = 2 + y[n] * exp(z[n]); // y-velocity
+    U[n + 2 * nrs->fieldOffset] = 3 + z[n] * x[n]; // z-velocity
 
-    nrs->U[n + 0 * nrs->fieldOffset] = 1 + x * y * z; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 2 + y * exp(z); // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 3 + z * x; // z-velocity
-
-    nrs->P[n] = 0.0; // pressure
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
+    temp[n] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n]; // temperature
   }
+
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
