@@ -8,17 +8,15 @@
   polynomialOrder = 2
   checkpointControl = steps
   checkpointInterval = 10
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
-  residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
 [FLUID PRESSURE]
-  residualTol = 1.0e-5
 
 [SCALAR TEMPERATURE]
-  conductivity = 1.5
-  rhoCp = 1.0
+  diffusionCoeff = 1.5
+  transportCoeff = 1.0
   residualTol = 1.0e-5
-  boundaryTypeMap = I, t, t, t, t, I
+  boundaryTypeMap = zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann
