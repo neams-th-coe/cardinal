@@ -1272,9 +1272,13 @@ bool
 isHeatFluxBoundary(const int boundary)
 {
   auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
-
   auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
-  return bcType == bdryBase::bcType_zeroNeumann || bcType == bdryBase::bcType_udfNeumann;
+
+  // the purpose of this function is to check if the user has a non-zero flux boundary
+  // condition so that if MOOSE sends data to NekRS it will actually be used (even
+  // though zeroNeumann is technically a heat flux condition, it would not indicate
+  // the user has set up their model correctly)
+  return bcType == bdryBase::bcType_udfNeumann;
 }
 
 bool

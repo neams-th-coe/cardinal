@@ -1,6 +1,10 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#include "brick.oudf"
+
+#endif
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
@@ -8,6 +12,6 @@ void UDF_Setup()
 {
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
