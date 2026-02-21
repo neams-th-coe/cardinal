@@ -8,6 +8,7 @@
   polynomialOrder = 1
   checkpointControl = steps
   checkpointInterval = 2
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
