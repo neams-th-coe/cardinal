@@ -1,3 +1,8 @@
+# Directories complete
+
+- auxkernels
+- nek_temp
+
 # Cases Tested with v25
 
 | Case Directory                            | Test Name                                                                                    | Pass / Fail                       | Comment                     |

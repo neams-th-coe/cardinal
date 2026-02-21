@@ -1,6 +1,0 @@
-void udfDirichlet(bcData *bc)
-{
-  bc->uxFluid = 0.1;
-  bc->uyFluid = 0.0;
-  bc->uzFluid = 0.0;
-}
