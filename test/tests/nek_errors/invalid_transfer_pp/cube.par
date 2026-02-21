@@ -11,14 +11,5 @@
 
 [FLUID VELOCITY]
   solver = none
-  residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
 [FLUID PRESSURE]
-  residualTol = 1.0e-5
-
-[SCALAR TEMPERATURE]
-  conductivity = 2.5
-  rhoCp = 1.0
-  residualTol = 1.0e-10
-  boundaryTypeMap = I, I, I, f, I, t
