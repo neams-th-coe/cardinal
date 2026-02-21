@@ -8,9 +8,6 @@ void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 
 void UDF_Setup()
 {
-  // we need this here if the temperature solve is off, because otherwise it's not set
-  platform->options.setArgs("SCALAR00 DENSITY", "1.0");
-  platform->options.setArgs("SCALAR00 DIFFUSIVITY", "0.00125");
 }
 
 void UDF_ExecuteStep(double time, int tstep)

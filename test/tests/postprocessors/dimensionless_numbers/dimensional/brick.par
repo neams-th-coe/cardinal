@@ -19,4 +19,6 @@
 [FLUID PRESSURE]
 
 [SCALAR TEMPERATURE]
+  transportCoeff = 1001400
+  diffusionCoeff = 2.34
   solver = none

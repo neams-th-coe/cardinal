@@ -20,4 +20,6 @@
   residualTol = 1.0e-5
 
 [SCALAR TEMPERATURE]
+  transportCoeff = 1.0
+  diffusionCoeff = 0.00125
   solver = none
