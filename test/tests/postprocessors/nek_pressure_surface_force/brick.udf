@@ -1,24 +1,26 @@
-#include "udf.hpp"
+#ifdef __okl__
+#endif
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->meshV;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> P(mesh->Nlocal, 0.0);
 
-    nrs->P[n] = x + 2*y + 3*z + cos(x) + 25; // pressure
-  }
+  auto [x, y, z] = mesh->xyzHost();
+
+  for (int n = 0; n < mesh->Nlocal; ++n)
+    P[n] = x[n] + 2*y[n] + 3*z[n] + cos(x[n]) + 25;
+
+  // copy host data into the device data
+  nrs->fluid->o_P.copyFrom(P.data(), P.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
