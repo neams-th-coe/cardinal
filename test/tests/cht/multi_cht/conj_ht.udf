@@ -1,28 +1,34 @@
-#include "udf.hpp"
+#ifdef __okl__
 
-void UDF_LoadKernels(occa::properties& kernelInfo)
+#endif
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->scalar->mesh("temperature");
+  auto [x, y, z] = mesh->xyzHost();
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> P(mesh->Nlocal, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+  std::vector<dfloat> apple(mesh->Nlocal, 0.0);
+
+  for (int n = 0; n < mesh->Nlocal; ++n)
   {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
-
-    nrs->P[n] = cos(y); // pressure
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 100 * sin(y) + 100*y; // temperature
-
-    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = ((y - 0.5) * (y - 0.5)) + 0.1; // scalar01
+    P[n] = cos(y[n]); // pressure
+    temp[n] = 100 * sin(y[n]) + 100*y[n]; // temperature
+    apple[n] = ((y[n] - 0.5) * (y[n] - 0.5)) + 0.1; // scalar01
   }
+
+  // copy host data into the device data
+  nrs->fluid->o_P.copyFrom(P.data(), P.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+  nrs->scalar->o_solution("apple").copyFrom(apple.data(), apple.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }

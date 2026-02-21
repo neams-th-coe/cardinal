@@ -4,18 +4,16 @@
   dt = 2e-02
   timeStepper = tombo2
   checkpointInterval = 1
+  scalars = temperature, apple
 
 [FLUID VELOCITY]
-  boundaryTypeMap = v, O, W, SYM
-  residualTol = 1e-08
   solver = none
 
 [FLUID PRESSURE]
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = t, O, I, I
-  residualTol = 1e-08
   solver = none
+  mesh=fluid+solid
 
-[SCALAR01]
+[SCALAR APPLE]
   solver = none
