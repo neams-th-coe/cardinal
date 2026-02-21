@@ -600,10 +600,11 @@ limitTemperature(const double * min_T, const double * max_T)
 void
 copySolutionToHost()
 {
-  mesh_t * mesh = entireMesh();
   nrs->fluid->o_U.copyTo(U.data(),U.size());
   nrs->fluid->o_P.copyTo(P.data(),P.size());
-  nrs->scalar->o_S.copyTo(S.data(),S.size());
+
+  if (Nscalar())
+    nrs->scalar->o_S.copyTo(S.data(),S.size());
 }
 
 void
