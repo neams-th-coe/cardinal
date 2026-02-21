@@ -10,14 +10,6 @@
   checkpointInterval = 2
 
 [FLUID VELOCITY]
-  viscosity = 1.0
-  density = 1.0
-  residualTol = 1.0e-6
-  boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
+  solver = none
 
 [FLUID PRESSURE]
-  residualTol = 1.0e-5
-
-[SCALAR TEMPERATURE]
-  residualTol = 1.0e-5
-  boundaryTypeMap = f, f, f, f, f, f
