@@ -1,7 +1,5 @@
 #ifdef __okl__
 
-#include "brick.oudf"
-
 #endif
 
 void UDF_Setup()
