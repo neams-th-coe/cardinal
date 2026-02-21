@@ -5,8 +5,8 @@
   timeStepper = tombo2
   checkpointControl = steps
   checkpointInterval = 25
-  dealiasing = yes
   polynomialOrder = 3
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
