@@ -8,6 +8,7 @@
   polynomialOrder = 7
   checkpointControl = steps
   checkpointInterval = 2
+  scalars = temperature
 
 [FLUID VELOCITY]
   viscosity = 2.37e-4
@@ -16,7 +17,6 @@
   boundaryTypeMap = inlet, outlet, wall
 
 [FLUID PRESSURE]
-  residualTol = 1.0e-5
 
 [SCALAR TEMPERATURE]
   solver = none

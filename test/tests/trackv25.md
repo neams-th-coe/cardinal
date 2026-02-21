@@ -3,6 +3,7 @@
 - auxkernels
 - nek_temp
 - transfers
+- nek_errors EXCEPT FOR nek_errors/deformation
 
 # Cases Tested with v25
 
