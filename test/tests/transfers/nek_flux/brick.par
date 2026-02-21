@@ -14,10 +14,7 @@
   file = ../../common_inputs/brick2.re2
 
 [FLUID VELOCITY]
-  #solver = none    # fluid must be solved to read in bIDs
-  boundaryTypeMap = w,w,w,w,w,w
-  rho = 1.0
-  viscosity = -100
+  solver = none
 
 [FLUID PRESSURE]
 

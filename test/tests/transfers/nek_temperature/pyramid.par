@@ -21,5 +21,5 @@
 [SCALAR TEMPERATURE]
   diffusionCoeff = 1.0
   transportCoeff = 1.0
-  boundaryTypeMap = t, I, I, I, I, I, I, I
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann
   residualTol = 1e-6

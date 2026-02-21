@@ -17,10 +17,10 @@
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet, zeroDirichlet, zeroDirichlet, zeroDirichlet, zeroDirichlet
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = inlet, I, I, I, I, I, I, I
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann
   transportCoeff = 1.0
   diffusionCoeff = 1.0
   residualTol = 1.0e-6

@@ -15,12 +15,10 @@ void UDF_Setup()
 
   for (int n = 0; n < mesh->Nlocal; n++)
   {
-    U[n + 0 * nrs->fieldOffset] = 0.001; // x-velocity
-    U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
-
+    U[n] = 0.001; // x-velocity
     temp[n] = 0.5;
   }
+
   nrs->fluid->o_U.copyFrom(U.data(), U.size());
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }

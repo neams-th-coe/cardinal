@@ -18,4 +18,4 @@
 
 [SCALAR TEMPERATURE]
   residualTol = 1.0e-5
-  boundaryTypeMap = f, f, f, f, t, t, I, I
+  boundaryTypeMap = udfNeumann, udfNeumann, udfNeumann, udfNeumann, udfDirichlet, udfDirichlet, zeroNeumann, zeroNeumann

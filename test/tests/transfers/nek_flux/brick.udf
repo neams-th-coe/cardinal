@@ -1,6 +1,7 @@
-#include "udf.hpp"
+#ifdef __okl__
+#endif
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
@@ -11,12 +12,8 @@ void UDF_Setup()
   std::vector<dfloat> temp(mesh->Nlocal, 0.0);
   auto [x, y, z] = mesh->xyzHost();
   for (int n = 0; n < mesh->Nlocal; n++)
-  {
-    dfloat xn = x[n];
-    dfloat yn = y[n];
-    dfloat zn = z[n];
-    temp[n] = (exp(xn) + sin(yn) + xn*yn*zn);
-  }
+    temp[n] = (exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n]);
+
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 

@@ -2,6 +2,7 @@
 
 - auxkernels
 - nek_temp
+- transfers
 
 # Cases Tested with v25
 
