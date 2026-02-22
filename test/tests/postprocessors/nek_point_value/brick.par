@@ -8,6 +8,7 @@
   polynomialOrder = 3
   checkpointControl = steps
   checkpointInterval = 2
+  scalars = temperature, one, two, three
 
 [MESH]
   file = ../../common_inputs/brick2.re2
@@ -20,12 +21,12 @@
 [SCALAR TEMPERATURE]
   solver = none
 
-[SCALAR01]
+[SCALAR ONE]
   solver = none
 
-[SCALAR02]
+[SCALAR TWO]
   solver = none
 
-[SCALAR03]
+[SCALAR THREE]
   solver = none
 
