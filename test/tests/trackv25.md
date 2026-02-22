@@ -3,7 +3,9 @@
 - auxkernels
 - nek_temp
 - transfers
-- nek_errors EXCEPT FOR nek_errors/deformation
+- nek_errors EXCEPT FOR nek_errors/deformation (need help)
+- userobjects EXCEPT FOR userobjects/side (need to understand what I was doing with centroidFace)
+- postprocessors EXCEPT FOR nek_viscous_surface_force (wrong example on NekRS website?)
 
 # Cases Tested with v25
 
