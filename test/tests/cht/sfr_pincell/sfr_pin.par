@@ -10,21 +10,19 @@
   checkpointControl = steps
   checkpointInterval = 100
   polynomialOrder = 4
-
-[PROBLEMTYPE]
-  stressFormulation = true
+  scalars = temperature
 
 [FLUID VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
-  boundaryTypeMap = W, W, v, O
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, udfDirichlet, zeroNeumann
   residualTol = 1.0e-6
 
 [FLUID PRESSURE]
   residualTol = 1.0e-6
 
 [SCALAR TEMPERATURE]
-  conductivity = 64.21
-  rhoCp = 1024766.0
-  boundaryTypeMap = f, I, t, O
+  diffusionCoeff = 64.21
+  transportCoeff = 1024766.0
+  boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet, zeroNeumann
   residualTol = 1.0e-3

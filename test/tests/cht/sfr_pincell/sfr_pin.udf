@@ -1,4 +1,6 @@
-#include "udf.hpp"
+#ifdef __okl__
+#include "sfr_pin.oudf"
+#endif
 
 #define Re 500
 #define pin_outer_radius 0.4e-2
@@ -15,32 +17,38 @@ dfloat inlet_velocity()
   return Re * mu / hydraulic_d / rho;
 }
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
-  kernelInfo["defines/Vz"] = inlet_velocity();
+  kernelInfo.define("Vz") = inlet_velocity();
 
   // inlet temperature
-  kernelInfo["defines/inlet_T"] = 628.15;
+  kernelInfo.define("inlet_T") = 628.15;
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->scalar->mesh("temperature");
 
   dfloat inlet_Vz = inlet_velocity();
+
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
 
   // loop over all the GLL points and assign directly to the solution arrays by
   // indexing according to the field offset necessary to hold the data for each
   // solution component
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  for (int n = 0; n < mesh->Nlocal; ++n)
   {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = inlet_Vz; // z-velocity
-
-    nrs->P[n] = 0.0; // pressure
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 628.15; // temperature
+    U[n + 2 * nrs->fieldOffset] = inlet_Vz; // z-velocity
+    temp[n] = 628.15; // temperature
   }
+
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+}
+
+void UDF_ExecuteStep(double time, int tstep)
+{
 }
