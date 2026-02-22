@@ -49,7 +49,7 @@ AddFieldTransferAction::act()
                  "You need to change the [Problem] block to 'NekRSProblem'.");
 
     if (_type == "NekFieldVariable" || _type == "NekVolumetricSource" ||
-        _type == "NekBoundaryFlux" || _type == "NekMeshDeformation")
+        _type == "NekBoundaryFlux" || _type == "NekMeshDeformation" || _type == "NekVolumetricData")
     {
       _moose_object_pars.set<NekRSProblem *>("_nek_problem") = nek_problem;
       auto transfer =
