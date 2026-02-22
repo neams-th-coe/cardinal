@@ -1,10 +1,30 @@
+Lref = 5.0
+
 [Problem]
   type = NekRSProblem
   casename = 'brick'
-  n_usrwrk_slots = 4
+  n_usrwrk_slots = 3
+
+  [FieldTransfers]
+    [usrwrk00]
+      type = NekVolumetricData
+      usrwrk_slot = 0
+      direction = to_nek
+    []
+    [usrwrk01]
+      type = NekVolumetricData
+      usrwrk_slot = 1
+      direction = to_nek
+    []
+    [usrwrk02]
+      type = NekVolumetricData
+      usrwrk_slot = 2
+      direction = to_nek
+    []
+  []
 
   [Dimensionalize]
-    L = 5.0
+    L = ${Lref}
     U = 0.2
     T = 10.0
     dT = 200.0
@@ -20,9 +40,46 @@
   []
 []
 
+[AuxKernels]
+  [usrwrk00]
+    type = FunctionAux
+    variable = usrwrk00
+    function = usrwrk00
+    execute_on = initial
+  []
+  [usrwrk01]
+    type = FunctionAux
+    variable = usrwrk01
+    function = usrwrk01
+    execute_on = initial
+  []
+  [usrwrk02]
+    type = FunctionAux
+    variable = usrwrk02
+    function = usrwrk02
+    execute_on = initial
+  []
+[]
+
+[Functions]
+  [usrwrk00]
+    type = ParsedFunction
+    expression = 'exp(x/${Lref})+1'
+  []
+  [usrwrk01]
+    type = ParsedFunction
+    expression = 'exp(y/${Lref})+1'
+  []
+  [usrwrk02]
+    type = ParsedFunction
+    expression = 'exp(z/${Lref})+1'
+  []
+[]
+
 [Mesh]
   type = NekRSMesh
   volume = true
+  exact = true
   scaling = 5.0
 []
 
