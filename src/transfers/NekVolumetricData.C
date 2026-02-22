@@ -39,7 +39,7 @@ NekVolumetricData::NekVolumetricData(const InputParameters & parameters)
                "a vector of length " +
                    Moose::stringify(_usrwrk_slot.size()));
 
-  addExternalVariable(_usrwrk_slot[0], _variable, 1.0, 1.0);
+  addExternalVariable(_usrwrk_slot[0], _variable, 0.0, 1.0);
 
   if (!_nek_mesh->volume())
     mooseError("The NekVolumetricData object can only be used when there is volumetric coupling "
