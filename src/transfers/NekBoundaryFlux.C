@@ -108,7 +108,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
           mooseError("In order to send a boundary heat flux to NekRS, you must have a heat flux "
                      "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
                      std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
-                     "' instead of 'fixedGradient'.");
+                     "' instead of 'udfNeumann'.");
 
     if (!nekrs::hasTemperatureSolve())
       mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
