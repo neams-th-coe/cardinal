@@ -6,21 +6,22 @@
   writeControl = steps
   writeInterval = 1000
   polynomialOrder = 3
+  scalars = temperature
 
 [MESH]
   file=fluid.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
-  boundaryTypeMap = W, v, O, W
+  boundaryTypeMap = zeroDirichlet, udfDirichlet, zeroNeumann, zeroDirichlet
   residualTol = 1.0e-6
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-6
 
-[TEMPERATURE]
-  conductivity = 64.21
-  rhoCp = 1024766.0
-  boundaryTypeMap = f, t, O, f
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 64.21
+  transportCoeff = 1024766.0
+  boundaryTypeMap = udfNeumann, udfDirichlet, zeroNeumann, udfNeumann
   residualTol = 1.0e-5

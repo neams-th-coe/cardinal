@@ -14,7 +14,8 @@ To access this tutorial,
 cd cardinal/tutorials/sfr_7pin
 ```
 
-This tutorial also requires you to download a mesh file from Box.
+!alert note title=Download Mesh Files
+This tutorial requires you to download a mesh file from Box.
 Please download the files from the `sfr_7pin` folder
 [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure in
@@ -61,16 +62,7 @@ q^{''}=\sigma\frac{T^4-T_{gap}^4}{\frac{1}{\sigma_A}+\frac{1}{\sigma_B}-1}+\frac
 where $\sigma$ is the Stefan-Boltzmann constant, $T$ is the temperature at a quadrature
 point, $T_{gap}$ is the temperature of the nearest quadrature point across the gap,
 $\sigma_A$ and $\sigma_B$ are emissivities of boundaries $A$ and $B$, respectively, and
-$r_{th}$ is the conduction resistance. For cylinders, the conduction is
-
-\begin{equation}
-\label{eq:2}
-r_{th}=\frac{\ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
-\end{equation}
-
-where $r_2>r_1$ are the outer and inner radii
-of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
-thermal conductivity of the annulus material.
+$r_{th}$ is the conduction resistance.
 
 In this tutorial, we will demonstrate two different [!ac](CHT)
 coupling options for the boundary condition on the fuel pin surfaces and the duct inner boundary (the
@@ -79,7 +71,7 @@ boundaries in contact with a modeled fluid):
 - "Cond. Flux - Temperature" in [#condtemp] boundary condition applied to the solid is wall temperature
 - "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to the solid is wall convective flux
 
-The "Cond. Flux - Temperature" option will be described first, and then sections towards the end
+For both of the above, the boundary condition to the fluid boundary is a conductive heat flux. The "Cond. Flux - Temperature" option will be described first, and then sections towards the end
 will describe the modifications necessary to use alternate [!ac](CHT) boundary conditions.
 
 ### NekRS Model
@@ -90,12 +82,7 @@ is selected such that the mass flowrate is 0.1 kg/s, which is low enough that th
 laminar and a turbulence model is not required.
 At the outlet, a zero (gage) pressure is imposed and an outflow condition is applied for
 the energy conservation equation. On all solid-fluid interfaces, the velocity is set
-to the no-slip condition. The boundary conditions on the pin outer surface and the
-duct inner surface depends on the [!ac](CHT) boundary conditions:
-
-- "Cond. Flux - Temperature" in [#condtemp]: boundary condition applied to NekRs is wall conductive flux
-- "Cond. Flux - Conv. Flux" in [#fluxflux]: boundary condition applied to NekRS is wall conductive flux
-
+to the no-slip condition.
 The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
 
@@ -104,11 +91,12 @@ are set to uniform initial conditions that match the inlet conditions.
 ### Solid Mesh
 
 MOOSE [MeshGenerators](Mesh/index.md) are used to generate the meshes for the solid.
-The same solid mesh will be used in the various different models in this tutorial,
-so we place the content to generate the mesh in `mesh.i`, and then include it
-from within the other files.
 
 !listing /tutorials/sfr_7pin/mesh.i
+
+The same solid mesh will be used in the various different models in this tutorial,
+so we place the content to generate the mesh in `mesh.i`, and then include it
+from within the other files, like as shown below.
 
 !listing /tutorials/sfr_7pin/solid.i
   end=Variables
@@ -141,8 +129,7 @@ the "do-nothing" boundary condition in the finite element method is a zero-flux 
 ### Fluid Mesh
 
 The fluid mesh is shown in [fluid_mesh]. You can download this mesh from `sfr_7pin` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89), or you can generate it yourself using the [meshing scripts](https://cardinal.cels.anl.gov/tutorials/meshing.html) in Cardinal.
-
-To generate the mesh yourself, navigate to the `cardinal/utils/meshing/assembly` directory.
+To generate the mesh yourself, navigate to the `cardinal/utils/meshes/assembly` directory.
 The `mesh_settings.py` file contains a set of configurable parameters to generate this mesh.
 The settings used for this tutorial are shown below, which will generate a 7-pin mesh in
 dimensional units and with geometry choices consistent with [table1].
@@ -153,6 +140,8 @@ You can then generate the mesh in exodus format (`fluid.exo`) and then convert i
 NekRS's `.re2` format by running
 
 ```
+cp mesh_settings.py ../../utils/meshes/assembly
+cd ../../utils/meshes/assembly
 python mesh.py -g
 ~/Nek5000/bin/exo2nek
 ```
@@ -266,8 +255,7 @@ of interest.
 
 To understand the purpose of this (optional) transfer, we need to describe in more
 detail the data transfers that occur when sub-cycling. Please note that this is an
-advanced feature added for very large runs to squeeze out as much performance as possible -
-this feature is not necessary for beginner users.
+advanced feature added for very large runs to squeeze out as much performance as possible.
 
 Consider the case where the main application has a time step of 1,
 but NekRS has a time step of 0.2. After the solution of the main application, the heat flux
@@ -278,16 +266,16 @@ transfer into NekRS consists of several steps:
    This is the transfer that happens in the `Transfers` block.
 2. Once the heat flux is available in the `heat_flux` variable in the `nek.i` input, transfer
    that heat flux into NekRS on the host (i.e. the CPU) by interpolating from the
-   [NekRSMesh](NekRSMesh.md) to the [!ac](GLL) points. Also normalize the heat flux using the `heat_flux_integral` postprocesor to ensure conservation.
-3. Once the heat flux has been normalized on the host, it is then copied from the host to the device (i.e. the parallel backend,
+   [NekRSMesh](NekRSMesh.md) to the [!ac](GLL) points.
+3. The heat flux is then copied from the host to the device (i.e. the parallel backend,
    which will be either a CPU or GPU).
 
 If NekRS is run with a much smaller time step than the main application,
 steps 2 and 3 can be omitted to save on the interpolation from the [NekRSMesh](NekRSMesh.md)
 to NekRS's [!ac](GLL) points *and* on the copy from the host to the device.
 However, MOOSE's design means that the sub-application doesn't really know anything
-about how it fits into the hierarchical multiapp tree - it is agnostic. So, the user
-of this postprocessor (plus some settings in [NekRSProblem](NekRSProblem.md), to be
+about how it fits into the hierarchical multiapp tree - it is agnostic. So, this
+`synchronize_in` postprocessor (plus some settings in [NekRSProblem](NekRSProblem.md), to be
 discussed shortly) can be used to only perform steps 2 and 3 *only
 on the synchronization points* between NekRS and MOOSE. In other words,
 if NekRS runs with a time step 100 times smaller than a main application,
@@ -304,7 +292,7 @@ Finally, we specify an executioner and an exodus output for the solid solution.
 ### Fluid Input Files
 
 The fluid phase is solved with NekRS, and is specified
-in the `nek.i` file. For [!ac](CHT) coupling, first we construct a mirror of NekRS's
+in the `nek.i` file. First we construct a mirror of NekRS's
 mesh on the boundaries of interest - the IDs associated with the fluid-solid interfaces
 (as known to NekRS) are boundaries 1 and 4.
 
@@ -356,31 +344,24 @@ by the main application). We also specify an Exodus output file format.
   end=Postprocessors
 
 Additional files necessary to set up the NekRS problem are the same files you'd need
-to set up a standalone NekRS simulation -
-
-- `sfr_7pin.re2`: NekRS mesh
-- `sfr_7pin.par`: High-level settings for the solver, boundary condition mappings to sidesets,
-  and the equations to solve
-- `sfr_7pin.udf`: User-defined C++ functions for on-line postprocessing and model setup
-- `sfr_7pin.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
-
-Begin with the `sfr_7pin.par` file.
+to set up a standalone NekRS simulation.
+Begin with the `sfr_7pin.par` file, shown below.
 
 !listing /tutorials/sfr_7pin/sfr_7pin.par
 
 Boundaries 1 and 4 will receive heat flux from MOOSE, so these two boundaries are set to
-flux boundaries, or `f` for the `[TEMPERATURE]` block. Other settings are largely the same.
+flux boundaries, or `f` for the `[SCALAR TEMPERATURE]` block. Other settings are largely the same.
 
 The assignment of boundary condition values is performed in the
 `sfr_7pin.oudf` file, shown below. Note that for boundaries 1 and 4, where we want to receive
-heat flux from MOOSE, we set the value of the flux equal to `bc->usrwrk[bc->idM]`, or
+heat flux from MOOSE, we set the value of the flux equal to `bc->usrwrk[bc->idxVol]`, or
 the scratch array that is written by [NekRSProblem](NekRSProblem.md).
 
 !listing /tutorials/sfr_7pin/sfr_7pin.oudf language=cpp
 
 Finally, the `sfr_7pin.udf` file contains C++ functions to set up boundary conditions
 and perform other post-processing operations. In `UDF_Setup`, we set initial
-conditions for velocity, pressure, and temperature. For convenience, we define
+conditions for axial velocity and temperature (default initial conditions are zero unless specified). For convenience, we define
 local functions like `mass_flowrate()` to be able to set problem
 parameters in a single place and use them multiple places (these functions are
 *not* NekRS syntax - i.e. we could equivalently have done something like `#define mdot 0.1`).
@@ -399,12 +380,9 @@ Because we used `synchronization_interval = parent_app`, you will see in the scr
 that the data transfers into NekRS only occur on synchronization points with the
 main application - all other time steps will omit the messages about normalizing
 heat flux and extracting temperatures from NekRS.
-
-After converting the NekRS output files to a format viewable in Paraview
-(see instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files)),
-the simulation results can be displayed. [temperature2] shows the fluid temperature
-along with the solid mesh; and the solid temperature along with the
-fluid mesh. The temperature color scale is the same in both figures.
+[temperature2] shows the fluid temperature from NekRS
+along with the solid mesh (left) and the solid temperature along with the
+fluid mesh (right). The temperature color scale is the same in both figures.
 
 !media sfr_temperature1.png
   id=temperature2
@@ -417,14 +395,16 @@ By default, [NekBoundaryFlux](NekBoundaryFlux.md)
 will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
 For this example, this means that the pin outer surface flux will not *exactly*
 match the pin outer flux from MOOSE (and similarly for the duct inner surface flux),
-because these surfaces are lumped together. In this section, we illustrate a more
-advanced option to individually preserve flux by sideset.
+because these surfaces are lumped together (and therefore only the sum of the power input
+on all of these surfaces is preserved). In this section, we illustrate a more
+advanced option to individually preserve flux by sideset, which is a more faithful
+representation of the problem.
 
 The input files we will use are the `solid_vpp.i` and `nek_vpp.i` files. These files
 are almost identical to the files described in the previous section, so we only
 emphasize the differences. First, in the solid model we need to set up individual
 postprocessors for the heat flux corresponding to each NekRS boundary.
-Then, we need to set up a [VectorOfPostprocessors](VectorOfPostprocessors.md)
+Then, we need to set up [VectorOfPostprocessors](VectorOfPostprocessors.md)
 to fill a vector with each flux postprocessor. Note that the order
 of the postprocessors must match the boundaries they get mapped to in
 [NekRSMesh](NekRSMesh.md).
@@ -473,8 +453,8 @@ q''=h(T_w-T_\infty)
 
 where $q''$ is the heat flux that will be imposed on the solid boundaries, $h$
 is the convective heat transfer coefficient, $T_w$ is NekRS's wall temperature,
-and $T_\infty$ is NekRS's bulk temperature. To use this "Cond. Flux - Conv. Flux" coupling option, we simply need to
-add user objects to the fluid input files to comput $h$ and $T_\infty$.
+and $T_\infty$ is NekRS's bulk temperature. To use this "Cond. Flux - Conv. Flux" coupling option, we need to
+add user objects to compute $h$ and $T_\infty$.
 A [previous tutorial](cht5.md) showed how to compute a heat transfer coefficient
 with NekRS; we will use this same foundation now to compute $h$ and then apply this
 alternative boundary condition to our solid app.
@@ -485,8 +465,8 @@ The fluid input files are mostly the same as the case with temperature-flux coup
 so we will only focus on the aspects which are different.
 
 To compute the quantities in Eq. \eqref{eq:hf}, we need to add a few user objects to
-our Nek wrapping file. We will do so in the `nek_fluxflux.i` file. For our
-heat transfer coefficient, we will compute the heat transfer coefficient (ideally
+our Nek wrapping file. We will do so in the `nek_fluxflux.i` file.
+We will compute the heat transfer coefficient (ideally
 as a function of space, since it varies with position and this will yield a more
 accurate coupling).
 First, we need to define how NekRS's mesh will be "chunked" for this calculation.
@@ -503,7 +483,7 @@ a conventional subchannel-type discretization.
 Then, we add additional user objects to compute the necessary terms
 in Eq. \eqref{eq:hf}:
 
-- [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average heat flux on the pin surfaces (one unique calculation for each axial layer and for each subchannel). The heat flux from MOOSE is written into the zeroth slot in the `nrs->usrwrk` array, which we indicate as the field we want to average by setting `field = usrwrk00`.
+- [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average heat flux on the pin surfaces (one unique calculation for each axial layer and for each subchannel). The heat flux from MOOSE is written into the zeroth slot in the `usrwrk` array, which we indicate as the field we want to average by setting `field = usrwrk00`.
 - [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average wall temperature on the pin surfaces (one unique calculation for each axial layer and for each subchannel). We indicate temperature by setting `field = temperature`.
 - [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) to compute the average bulk temperature over the subchannel volumes (one unique calculation for each axial layer and for each subchannel). We indicate temperature by setting `field = temperature`.
 
