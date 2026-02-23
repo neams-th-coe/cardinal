@@ -1,26 +1,30 @@
-#include "udf.hpp"
+#ifdef __okl__
+#endif
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->meshV;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+
+  auto [x, y, z] = mesh->xyzHost();
+
+  for (int n = 0; n < mesh->Nlocal; ++n)
   {
-    dfloat x = mesh->x[n];
-    dfloat y = mesh->y[n];
-    dfloat z = mesh->z[n];
-
-    nrs->U[n + 0*nrs->fieldOffset] = x+y+z+1;
-    nrs->U[n + 1*nrs->fieldOffset] = 2*(x+y+z)+2;
-    nrs->U[n + 2*nrs->fieldOffset] = 3*(x+y+z)+3;
+    U[n + 0*nrs->fieldOffset] = x[n]+y[n]+z[n]+1;
+    U[n + 1*nrs->fieldOffset] = 2*(x[n]+y[n]+z[n])+2;
+    U[n + 2*nrs->fieldOffset] = 3*(x[n]+y[n]+z[n])+3;
   }
+
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }

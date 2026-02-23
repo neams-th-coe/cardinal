@@ -53,19 +53,28 @@ NekViscousSurfaceForce::NekViscousSurfaceForce(const InputParameters & parameter
 Real
 NekViscousSurfaceForce::getValue() const
 {
-  if (_component == "total")
-  {
-    auto nrs = nekrs::nrsPtr();
-    // postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
-    auto o_Sij = nrs->strainRate();
+  auto nrs = nekrs::nrsPtr();
+  auto mesh = nekrs::flowMesh();
 
-    occa::memory o_b = platform->device.malloc<int>(_boundary.size(), _boundary.data());
-    // TODO
-    // const auto drag = postProcessing::viscousDrag(nrs, _boundary.size(), o_b, o_Sij);
-    o_Sij.free();
-    Real drag = 1;
-    return drag;
-  }
+  auto o_Sij   = nrs->strainRate();
+  auto o_bID = platform->device.malloc<int>(_boundary.size(), _boundary.data());
+
+  auto o_tangentialViscousTraction = nrs->viscousShearStress(o_bID, o_Sij); // tau dot n - ((tau dot n) dot n) * n
+  auto o_normalViscousTraction = nrs->viscousNormalStress(o_bID, o_Sij); // ((tau dot n) dot n) * n
+
+  const dlong Ntotal = o_tangentialViscousTraction.size() / mesh->dim;
+  auto fvT = mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_tangentialViscousTraction);
+  auto fvN = mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_normalViscousTraction);
+
+  auto fx = fvT[0] + fvN[0];
+  auto fy = fvT[1] + fvN[1];
+  auto fz = fvT[2] + fvN[2];
+
+  o_Sij.free();
+  o_bID.free();
+
+  if (_component == "total")
+    return std::sqrt(fx*fx + fy*fy + fz*fz);
   else
     mooseError("x, y, and z components of viscous drag not currently supported. Please contact "
                "developers if this is affecting your analysis needs.");

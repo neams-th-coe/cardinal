@@ -17,6 +17,3 @@
   viscosity = 20
 
 [FLUID PRESSURE]
-
-[SCALAR TEMPERATURE]
-  solver = none
