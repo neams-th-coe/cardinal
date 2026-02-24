@@ -6,6 +6,7 @@ polynomialOrder = 5
 numSteps = 5
 dt = 1e-04
 checkpointInterval = 20
+scalars = temperature
 
 [MESH]
 file = ../onepebble2.re2
@@ -14,13 +15,13 @@ file = ../onepebble2.re2
 residualTol = 1e-06
 
 [FLUID VELOCITY]
-boundaryTypeMap = W, O, v
+boundaryTypeMap = zeroDirichlet, zeroNeumann, udfDirichlet
 residualTol = 1e-07
 density = 1.0
 viscosity = 0.00005
 
 [SCALAR TEMPERATURE]
-boundaryTypeMap = f, I, t
-rhoCp = 100000.0
-conductivity = 5.0
+boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet
+transportCoeff = 100000.0
+diffusionCoeff = 5.0
 residualTol = 1e-07
