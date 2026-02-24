@@ -548,7 +548,7 @@ file (by appending `+T` to the file name). We increase the polynomial order as w
 
 !listing /tutorials/fhr_reflector/cht/fluid.par
 
-In the `[VELOCITY]` block, the density is set to unity, because the solve is conducted
+In the `[FLUID VELOCITY]` block, the density is set to unity, because the solve is conducted
 in nondimensional form, such that
 
 \begin{equation}

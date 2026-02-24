@@ -107,7 +107,7 @@ form means that you do not need to also "ramp" absolute values for velocity/pres
 as just modifying the thermophysical "properties" of the fluid (e.g. viscosity, conductivity, etc.).
 
 When the Navier-Stokes equations
-are written in [non-dimensional form](nondimensional_ns.md), the "density" in the `[VELOCITY]` block becomes unity because
+are written in [non-dimensional form](nondimensional_ns.md), the "density" in the `[FLUID VELOCITY]` block becomes unity because
 
 \begin{equation}
 \label{eq:nondim_p}
@@ -119,7 +119,7 @@ viscous stress term ($1/Re$, where $Re$ is the Reynolds number).
 In NekRS, specifying `diffusivity = -50.0` is equivalent to specifying
 `diffusivity = 0.02` (i.e. $1/50.0$), or a Reynolds number of 50.0.
 
-In non-dimensional form, the `rhoCp` term in the `[TEMPERATURE]` block becomes unity because
+In non-dimensional form, the `rhoCp` term in the `[SCALAR TEMPERATURE]` block becomes unity because
 
 \begin{equation}
 \label{eq:nek1}
@@ -190,7 +190,7 @@ a shorter height.
 Next, the `.par` file contains problem setup information.
 This input sets up a nondimensional passive scalar solution, loading $P$, $\vec{u}$,
 $k$, and $\tau$ from a restart file. In order to "freeze," or turn off the $P$, $\vec{u}$,
-$k$, and $\tau$ solves, we set `solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
+$k$, and $\tau$ solves, we set `solver = none` in the `[FLUID VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
 and `[SCALAR02]` ($\tau$ passive scalar) blocks.
 The only equation that NekRS will solve is for temperature.
 
