@@ -78,11 +78,14 @@ setStartTime(const double & start)
 }
 
 void
-write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
+write_usrwrk_field_file(const int & usrWriterSize, const int & usrWriterIndex, const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  static std::unique_ptr<iofld> usrWriter;
+  static std::vector<std::unique_ptr<iofld>> usrWriterVector(usrWriterSize);
+
+  auto &usrWriter = usrWriterVector[usrWriterIndex];
+
   if(!usrWriter) {
-    usrWriter = iofldFactory::create("usrwrk");
+    usrWriter = iofldFactory::create();
     auto mesh = entireMesh();
 
     usrWriter->open(mesh, iofld::mode::write, prefix.c_str());
@@ -92,16 +95,10 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
     } else {
       usrWriter->writeAttribute("precision", "64");
     }
-    usrWriter->writeAttribute("outputmesh", write_coords ? "true" : "false");
-
-
-    {
-      std::vector<deviceMemory<double>> list;
-      list.push_back(platform->app->bc->o_usrwrk.slice(slot * fieldOffset(), mesh->Nlocal));
-
-      usrWriter->addVariable("usrwrk" + scalarDigitStr(slot), list);
-    }
+    usrWriter->addVariable("scalar00", std::vector<deviceMemory<dfloat>>{platform->app->bc->o_usrwrk.slice(slot * fieldOffset(), mesh->Nlocal)});
   }
+
+  usrWriter->writeAttribute("outputmesh", write_coords ? "true" : "false");
   usrWriter->addVariable("time", const_cast<double &>(time));
   usrWriter->process();
 }
@@ -111,7 +108,7 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
 {
   static std::unique_ptr<iofld> checkpointWriter;
   if (!checkpointWriter) {
-    checkpointWriter = iofldFactory::create("cardinal");
+    checkpointWriter = iofldFactory::create();
   }
 
   const auto outXYZ = platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE");
@@ -146,19 +143,20 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
         }
       }
     }
-    int N;
-    platform->options.getArgs("POLYNOMIAL DEGREE", N);
-    checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
+  }
 
-    auto FP64 = platform->options.compareArgs("CHECKPOINT PRECISION", "FP64");
+  int N;
+  platform->options.getArgs("POLYNOMIAL DEGREE", N);
+  checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
 
-    checkpointWriter->writeAttribute("precision", (FP64) ? "64" : "32");
-    checkpointWriter->writeAttribute("outputMesh", (outXYZ) ? "true" : "false");
+  auto FP64 = platform->options.compareArgs("CHECKPOINT PRECISION", "FP64");
 
-    std::string hSchedule;
-    if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule)) {
-      checkpointWriter->writeAttribute("hSchedule", hSchedule);
-    }
+  checkpointWriter->writeAttribute("precision", (FP64) ? "64" : "32");
+  checkpointWriter->writeAttribute("outputMesh", (outXYZ) ? "true" : "false");
+
+  std::string hSchedule;
+  if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule)) {
+    checkpointWriter->writeAttribute("hSchedule", hSchedule);
   }
   checkpointWriter->addVariable("time", const_cast<double &>(time));
   checkpointWriter->process();

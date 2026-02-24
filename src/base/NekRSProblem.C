@@ -543,7 +543,9 @@ NekRSProblem::externalSolve()
       {
         bool write_coords = first_fld[i] ? true : false;
 
-        nekrs::write_usrwrk_field_file((*_usrwrk_output)[i],
+        nekrs::write_usrwrk_field_file(_usrwrk_output->size(),
+                                       i,
+                                       (*_usrwrk_output)[i],
                                        (*_usrwrk_output_prefix)[i],
                                        _timestepper->nondimensionalDT(step_end_time),
                                        _t_step,
