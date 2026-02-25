@@ -8,14 +8,11 @@
 
   dt = 6.0e-3
   timeStepper = tombo2
-  subCyclingSteps = 2
 
   checkpointControl = steps
   checkpointInterval = 3
 
-  filtering = hpfrt
-  filterWeight = 0.1/${dt}
-  filterModes = 1
+  regularization = hpfrt + nModes=1 + scalingCoeff=0.1/${dt}
 
 [FLUID PRESSURE]
   residualTol = 1e-04

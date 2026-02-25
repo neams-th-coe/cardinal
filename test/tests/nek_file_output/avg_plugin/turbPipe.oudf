@@ -1,16 +1,21 @@
-// Boundary conditions
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = bc->usrwrk[bc->idM + 0*bc->fieldOffset];
-  bc->v = bc->usrwrk[bc->idM + 1*bc->fieldOffset];
-  bc->w = bc->usrwrk[bc->idM + 2*bc->fieldOffset];
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = bc->usrwrk[bc->idxVol + 0*bc->fieldOffset];
+    bc->uyFluid = bc->usrwrk[bc->idxVol + 1*bc->fieldOffset];
+    bc->uzFluid = bc->usrwrk[bc->idxVol + 2*bc->fieldOffset];
+  }
+  else if (isField("fluid pressure"))
+  {
+    const dfloat iU0delta = 20.0;
+    const dfloat un = bc->uxFluid*bc->nx + bc->uyFluid*bc->ny + bc->uzFluid*bc->nz;
+    const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
+    bc->pFluid = -0.5 * (bc->uxFluid*bc->uxFluid + bc->uyFluid*bc->uyFluid + bc->uzFluid*bc->uzFluid) * s0;
+  }
 }
 
 // Stabilized outflow (Dong et al)
 void pressureDirichletConditions(bcData *bc)
 {
-  const dfloat iU0delta = 20.0;
-  const dfloat un = bc->u*bc->nx + bc->v*bc->ny + bc->w*bc->nz;
-  const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
-  bc->p = -0.5 * (bc->u*bc->u + bc->v*bc->v + bc->w*bc->w) * s0;
 }

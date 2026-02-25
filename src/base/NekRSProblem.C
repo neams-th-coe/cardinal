@@ -96,6 +96,10 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _tSolveStepMin(std::numeric_limits<double>::max()),
     _tSolveStepMax(std::numeric_limits<double>::min())
 {
+  // fetch data from device to host; this needs to be here in case there are any Cardinal objects
+  // executing on 'initial', so that this will execute even before NekRS has run any time steps
+  nekrs::copySolutionToHost();
+
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
   nekrs::nondimensional(_nondimensional);
@@ -348,7 +352,7 @@ NekRSProblem::initialSetup()
     nekrs::writeCheckpoint(_timestepper->nondimensionalDT(_time));
 
   VariadicTable<int, std::string, std::string, std::string> vt(
-      {"Slot", "Data Written", "How to Access (.oudf)", "How to Access (.udf)"});
+      {"Slot", "Data", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // fill a set with all of the slots managed by Cardinal, coming from either field transfers
   // or userobjects
@@ -364,7 +368,7 @@ NekRSProblem::initialSetup()
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
     std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idxVol]";
-    std::string udf = "nrs->usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
+    std::string udf = "platform->app->bc->o_usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
     {
@@ -426,7 +430,7 @@ NekRSProblem::initialSetup()
         << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
         << std::endl;
     _console << "           Slot:  slice in scratch space holding the data\n" << std::endl;
-    _console << "   Data written:  data that gets written into this slot. This data is shown"
+    _console << "           Data:  data that gets written into this slot. This data is shown"
              << std::endl;
     _console << "                  in the form actually written into NekRS (which will be"
              << std::endl;
