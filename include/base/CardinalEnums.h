@@ -67,7 +67,7 @@ enum SynchronizationEnum
   constant,
   parent_app
 };
-} //namespace synchronization
+} // namespace synchronization
 
 namespace order
 {
@@ -287,3 +287,14 @@ enum OpenMCFilterType
   mesh,
   none
 };
+
+namespace criticality
+{
+/// Rotational axis used for criticality search
+enum RotationAxisEnum
+{
+  x,
+  y,
+  z
+};
+} // namespace criticality
