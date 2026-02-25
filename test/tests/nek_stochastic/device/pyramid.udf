@@ -1,12 +1,12 @@
 #include "udf.hpp"
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties occa::properties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  auto mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->scalar->mesh("temperature");
 
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)

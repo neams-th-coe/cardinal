@@ -6,7 +6,7 @@
     max_time = 400
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
                   "random values from MOOSE to NekRS, where time synchronization is driven by the main app. "
-                  "The values of the random variables are used to fill SCALAR02 with a constant value, which we "
+                  "The values of the random variables are used to fill SCALAR TWO with a constant value, which we "
                   "then measure by outputting the scalar and applying postprocessors to it. This confirms that "
                   "the random data we send to NekRS does correctly make it to device"
     capabilities = 'nekrs'
