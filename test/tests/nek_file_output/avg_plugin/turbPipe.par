@@ -4,7 +4,7 @@
 [GENERAL]
   polynomialOrder = 3
   stopAt = endTime
-  endTime = 0.03
+  endTime = 0.02
 
   dt = 6.0e-3
   timeStepper = tombo2
@@ -21,8 +21,7 @@
   file=../../cht/sfr_pincell/sfr_pin.re2
 
 [FLUID VELOCITY]
-  boundaryTypeMap = wall, wall, inlet, outlet
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, udfDirichlet, zeroNeumann
   density = 1.0
-  viscosity = -19000
+  viscosity = -1000
   residualTol = 1e-06
-  solver = none

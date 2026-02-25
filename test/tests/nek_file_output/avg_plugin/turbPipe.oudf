@@ -2,20 +2,8 @@ void udfDirichlet(bcData *bc)
 {
   if (isField("fluid velocity"))
   {
-    bc->uxFluid = bc->usrwrk[bc->idxVol + 0*bc->fieldOffset];
-    bc->uyFluid = bc->usrwrk[bc->idxVol + 1*bc->fieldOffset];
-    bc->uzFluid = bc->usrwrk[bc->idxVol + 2*bc->fieldOffset];
+    bc->uxFluid = 0.0;
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 1.0;
   }
-  else if (isField("fluid pressure"))
-  {
-    const dfloat iU0delta = 20.0;
-    const dfloat un = bc->uxFluid*bc->nx + bc->uyFluid*bc->ny + bc->uzFluid*bc->nz;
-    const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
-    bc->pFluid = -0.5 * (bc->uxFluid*bc->uxFluid + bc->uyFluid*bc->uyFluid + bc->uzFluid*bc->uzFluid) * s0;
-  }
-}
-
-// Stabilized outflow (Dong et al)
-void pressureDirichletConditions(bcData *bc)
-{
 }

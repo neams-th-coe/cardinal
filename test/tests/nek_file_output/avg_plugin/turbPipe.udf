@@ -14,7 +14,7 @@ void UDF_Setup()
 {
    std::vector< tavg::field > tavgFields;
 
-   deviceMemory<dfloat> o_U(nrs->fluid->o_solution("x"));
+   deviceMemory<dfloat> o_U(nrs->fluid->o_solution("z"));
    tavgFields.push_back({"U", std::vector{o_U}});
 
    avg = std::make_unique<tavg>(nrs->fluid->fieldOffset, tavgFields);

@@ -2,9 +2,9 @@
   [avg_plugin]
     type = CheckFiles
     input = nek.i
-    check_files = 'avgturbPipe0.f00000 rm2turbPipe0.f00000 rmsturbPipe0.f00000 avgturbPipe0.f00001 rm2turbPipe0.f00001 rmsturbPipe0.f00001'
+    check_files = 'tavg0.f00000 tavg0.f00001'
     min_parallel = 4
-    requirement = "The correct output file writing sequence shall occur when relying on nrs->isOutputStep"
+    requirement = "The correct output file writing sequence shall occur when driven by Cardinal, showing that the indications to write output files are correctly handledf by a driver"
     capabilities = 'nekrs'
   []
 []
