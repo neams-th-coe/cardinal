@@ -67,7 +67,7 @@ enum SynchronizationEnum
   constant,
   parent_app
 };
-} //namespace synchronization
+} // namespace synchronization
 
 namespace order
 {

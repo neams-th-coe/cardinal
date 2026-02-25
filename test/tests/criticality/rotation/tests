@@ -1,0 +1,47 @@
+[Tests]
+  issues = '#1294'
+  [wrong_transform_type]
+    type = RunException
+    input = wrong_transform_type.i
+    expect_err = "Please select a transform that rotates a cell."
+    requirement = 'The system shall error if the OpenMCCellTransform UO is not a `rotation`.'
+    capabilities = 'openmc'
+  []
+  [wrong_UO]
+    type = RunException
+    input = wrong_UO_type.i
+    expect_err = "s not derived from the required type."
+    requirement = 'The system shall error if the UserObject that is passed to a RotationSearch is not an OpenMCCellTransform UO.'
+    capabilities = 'openmc'
+  []
+  [rotation_with_nonzero_other_components]
+    type = RunException
+    input = malformed_rotation.i
+    expect_err = "An entry that is not the rotation axis returned a non-zero value, which is not allowed."
+    requirement = 'The system shall error if a RotationSearch is specified with any non-zero `vector_value`.'
+    capabilities = 'openmc'
+  []
+  [rotation_with_more_than_one_PP]
+    type = RunException
+    input = two_postprocessor.i
+    expect_err = "Only one component of `vector_value` can be non-zero for a RotationSearch and it must be a PostprocessorName."
+    requirement = 'The system shall error if a RotationSearch is specified with more than one non-zero entry in `vector_value`.'
+    capabilities = 'openmc'
+  []
+  [rotation_with_no_PP_but_numeric_rotation_axis]
+    type = RunException
+    input = no_postprocessor.i
+    expect_err = "The entry corresponding to the specified rotation axis is not a Postprocessor, which is required for a RotationSearch."
+    requirement = 'The system shall error if there is no Postprocessor specifiedin `vector_value`, even if the non-zero component is correct with respect to the rotation axis.'
+    capabilities = 'openmc'
+  []
+  [rotation_search]
+    type = CSVDiff
+    input = openmc.i
+    min_parallel = 6
+    csvdiff = openmc_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall conduct a criticality search by modifying a cell rotation. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
+    capabilities = 'openmc'
+  []
+[]
