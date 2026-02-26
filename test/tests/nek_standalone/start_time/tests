@@ -10,7 +10,7 @@
   [manual_start_time]
     type = CheckFiles
     input = force_start.i
-    check_files = 'dumpyramid0.f00001'
+    check_files = 'dump0.f00000'
     requirement = "The system shall be able to force NekRS to start on a MOOSE-specified start time. "
                   "This is checked by looking for the existence of an output file that NekRS only writes "
                   "at t = 1.0005, which is only reached if MOOSE properly sets a custom start time."
