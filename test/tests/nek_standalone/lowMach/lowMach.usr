@@ -8,6 +8,90 @@ c-----------------------------------------------------------------------
       INCLUDE 'TOTAL'
       INCLUDE 'CASEDATA'
 
+      COMMON /SCRNS/ pre    (LX1,LY1,LZ1,LELT)
+     $              ,T_err  (LX1,LY1,LZ1,LELT)
+     $              ,VX_err (LX1,LY1,LZ1,LELT)
+     $              ,QTL_err(LX1,LY1,LZ1,LELT)
+     $              ,pr_err (LX1,LY1,LZ1,LELT)
+      real pre,vT_err,VX_err,QTL_err, pr_err
+
+      real sumqw,l2_err,exact,max_err,XD,sech
+      
+      real dist(lx1,ly1,lz1,lelt)
+      save dist
+      
+      real err(3)
+      save err
+
+      if (istep.lt.1) then
+        call cheap_dist(dist, 1, 'v  ')
+        call nekrs_registerPtr('dist', dist)
+
+        return
+      endif
+
+      call nekrs_registerPtr('errors', err)
+
+c      call printdiverr
+
+      ntot = nx1*ny1*nz1*nelv
+
+      do 100 iel=1,nelv
+      do 100 k=1,nz1
+      do 100 j=1,ny1
+      do 100 i=1,nx1
+         XD = XM1(i,j,k,iel)/P_DELTA
+         sech = 1.0/cosh(XD)
+         exact = 0.5*(3.0 + tanh(XD))
+         aa = 3./2 - (tanh(1.0) - tanh(-1.0))/3.
+
+         qtle               = 0.5/P_DELTA*(1. - (tanh(XD)*tanh(XD)))
+         pre(i,j,k,iel)     = 4./3 * qtle - exact + aa
+
+         VX_err(i,j,k,iel)  = abs(VX(i,j,k,iel)   - exact) 
+         T_err(i,j,k,iel)   = abs(T (i,j,k,iel,1) - exact) 
+         QTL_err(i,j,k,iel) = abs(QTL(i,j,k,iel)  - qtle) 
+ 100  continue 
+
+      max_err = glmax(VX_err,ntot)
+      err(1) = max_err
+      l2_err  = glsc3(VX_err,bm1,VX_err,ntot)/VOLVM1
+      if (l2_err.gt.0) l2_err = sqrt(l2_err)
+c      if(nid.eq.0)
+c     & write(6,1) istep,time,max_err,l2_err
+c    1 format(i8,1p3e12.4,' ERROR VX: MAX/L2')
+
+      max_err = glmax(T_err,ntot)
+      err(3) = max_err
+      l2_err  = glsc3(T_err,bm1,T_err,ntot)/VOLVM1
+      if (l2_err.gt.0) l2_err = sqrt(l2_err)
+c      if(nid.eq.0)
+c     & write(6,2) istep,time,max_err,l2_err
+c    2 format(i8,1p3e12.4,' ERROR T: MAX/L2')
+
+c      max_err = glmax(QTL_err,ntot)
+c      l2_err  = glsc3(QTL_err,bm1,QTL_err,ntot)/VOLVM1
+c      if (l2_err.gt.0) l2_err = sqrt(l2_err)
+c      if(nid.eq.0)
+c     & write(6,3) istep,time,max_err,l2_err
+c    3 format(i8,1p3e12.4,' ERROR QTL: MAX/L2')
+
+      pbar  = glsc2(pr ,bm2,ntot)/volvm1
+      pbre  = glsc2(pre,bm2,ntot)/volvm1
+      call cadd(pre,-pbre,ntot)     !  Make sure pr and pre have same
+      call cadd(pre,pbar,ntot)      !  average pressure before comparing.
+      call sub3(pr_err,PR,pre,ntot)
+
+      max_err = glamax(pr_err,ntot)
+      err(2) = max_err
+      l2_err  = glsc3(pr_err,bm1,pr_err,ntot)/VOLVM1
+      if (l2_err.gt.0) l2_err = sqrt(l2_err)
+c      if(nid.eq.0)
+c     & write(6,4) istep,time,max_err,l2_err
+c    4 format(i8,1p3e12.4,' ERROR PR: MAX/L2')
+
+
+      RETURN
       END
 C-----------------------------------------------------------------------
       SUBROUTINE USERIC (IX,IY,IZ,ieg)
@@ -36,7 +120,12 @@ C   Set initial conditions
       RETURN
       END
 C-----------------------------------------------------------------------
-      subroutine usrdat
+      subroutine usrdat0
+      include 'SIZE'
+      include 'CASEDATA'
+
+      call nekrs_registerPtr('p_delta', P_DELTA)
+      call nekrs_registerPtr('p_gamma', P_GAMMA)
 
       return
       end
@@ -46,13 +135,7 @@ C-----------------------------------------------------------------------
       include 'TOTAL'
       include 'CASEDATA'
       
-      common /scnrs/ sc_nrs(10)
-      real               sc_nrs
-
       logical ifaln,ifnorx,ifnory,ifnorz
-
-      P_DELTA = sc_nrs(1)
-      P_GAMMA = sc_nrs(2)
 
       call rescale_x(xm1,-1.0,1.0)
       call rescale_x(ym1, 0.0,1.0)
@@ -75,11 +158,6 @@ C-----------------------------------------------------------------------
          if (cbc(ifc,iel,1) .eq. 'P  ') cbc(ifc,iel,2) = 'P  ' 
       enddo
       enddo
-
-      return
-      end
-C-----------------------------------------------------------------------
-      subroutine usrdat3
 
       return
       end
