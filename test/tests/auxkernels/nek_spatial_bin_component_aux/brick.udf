@@ -1,3 +1,6 @@
+#ifdef __okl__
+#endif
+
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
