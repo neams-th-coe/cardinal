@@ -27,9 +27,6 @@
 
   source_rate_normalization = 'kappa_fission'
 
-  # Missing some hits in the model (only tallying a single pebble instead of 3)
-  check_tally_sum = false
-
   [Tallies]
     [Cell]
       type = CellTally

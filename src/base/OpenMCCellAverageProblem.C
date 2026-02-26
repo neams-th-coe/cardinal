@@ -61,11 +61,6 @@ OpenMCCellAverageProblem::validParams()
                         "Whether to automatically output the mapping from OpenMC cells to the "
                         "[Mesh], usually for diagnostic purposes");
 
-  params.addParam<bool>("check_tally_sum",
-                        "Whether to check consistency between the local tallies "
-                        "and a global tally sum. This will require that the integral "
-                        "of the local tally matches a tally with no filters (defined "
-                        "over the entire phase space).");
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
