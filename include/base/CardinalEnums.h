@@ -41,6 +41,7 @@ MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
 MooseEnum getStatsOutputEnum();
 MooseEnum getBetaGroupEnum();
+MooseEnum getRotationAxisEnum();
 
 namespace nek_mesh
 {

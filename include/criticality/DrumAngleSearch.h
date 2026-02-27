@@ -2,6 +2,7 @@
 
 #include "CriticalitySearchBase.h"
 #include "OpenMCCellTransform.h"
+#include "CardinalEnums.h"
 
 /**
  * Perform a criticality search based  Pon a material
@@ -25,5 +26,5 @@ protected:
   const MooseEnum _rotation_axis_char;
 
   /// pointer to OpenMCCellTransform to update the initial critical guess each iteration
-  const std::shared_ptr<OpenMCCellTransform> _t;
+  const OpenMCCellTransform * _t;
 };

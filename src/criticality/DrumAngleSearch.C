@@ -21,8 +21,8 @@ DrumAngleSearch::validParams()
 
 DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
   : CriticalitySearchBase(parameters),
-    _rotation_axis_char(getParam<MooseEnum>("rotation_axis")),
     _transform_name(getParam<std::string>("transform_name")),
+    _rotation_axis_char(getParam<MooseEnum>("rotation_axis"))
 {
   // update the OpenMCCellTransform UserObject with the last iteration critical guess
   const auto & _t = getUserObjectByName<OpenMCCellTransform>(_transform_name);
@@ -32,7 +32,7 @@ DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
   if (_t._transform_type != "rotation")
     paramError("transform_name",
                "You have attempted search for critical drum angle on the OpenMCCellTransform " +
-                   std::to_string(_transform_name) +
+                   _transform_name +
                    ", which does not modify a cell rotation."
                    "Please select a transform that rotates a control drum cell.");
 }
