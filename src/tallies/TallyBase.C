@@ -494,10 +494,10 @@ TallyBase::computeSumAndMean()
     for (unsigned int ext = 0; ext < _num_ext_filter_bins; ++ext)
       for (unsigned int m = 0; m < mapped_bins; ++m)
         if (!_ext_bins_to_skip[ext])
-          _local_sum_tally[score] +=
-              _local_tally->results_.slice(openmc::tensor::all,
-                                           score,
-                                           static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
+          _local_sum_tally[score] += _local_tally->results_.slice(
+              openmc::tensor::all,
+              score,
+              static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
 
     _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
     if (addingGlobalTally())
@@ -584,7 +584,8 @@ TallyBase::relaxAndNormalizeTally()
     current_raw = mean_tally;
     current_raw *= std::abs(norm) < ZERO_TALLY_THRESHOLD ? 0.0 : (1.0 / norm);
 
-    auto sum_sq = OMCTensor(_local_tally->results_.slice(openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
+    auto sum_sq = OMCTensor(_local_tally->results_.slice(
+        openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
     current_raw_rel_error =
         _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
     current_raw_std_dev = current_raw_rel_error * current_raw;

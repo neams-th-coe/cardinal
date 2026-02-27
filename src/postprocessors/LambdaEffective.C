@@ -54,23 +54,15 @@ LambdaEffective::getValue() const
   const auto & ifp_tally = _openmc_problem->getCommonKineticsTally();
   const auto n = ifp_tally.n_realizations_;
 
-  const auto num_sum =
-      ifp_tally.results_.slice(openmc::tensor::all,
-                               0,
-                               static_cast<int>(openmc::TallyResult::SUM))[0];
-  const auto den_sum =
-      ifp_tally.results_.slice(openmc::tensor::all,
-                               1,
-                               static_cast<int>(openmc::TallyResult::SUM))[0];
+  const auto num_sum = ifp_tally.results_.slice(
+      openmc::tensor::all, 0, static_cast<int>(openmc::TallyResult::SUM))[0];
+  const auto den_sum = ifp_tally.results_.slice(
+      openmc::tensor::all, 1, static_cast<int>(openmc::TallyResult::SUM))[0];
 
-  const auto num_ss =
-      ifp_tally.results_.slice(openmc::tensor::all,
-                               0,
-                               static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
-  const auto den_ss =
-      ifp_tally.results_.slice(openmc::tensor::all,
-                               1,
-                               static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
+  const auto num_ss = ifp_tally.results_.slice(
+      openmc::tensor::all, 0, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
+  const auto den_ss = ifp_tally.results_.slice(
+      openmc::tensor::all, 1, static_cast<int>(openmc::TallyResult::SUM_SQ))[0];
 
   const auto mean_k = kMean(_type);
   const auto k_rel = kRelativeError();

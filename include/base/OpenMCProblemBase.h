@@ -227,9 +227,8 @@ public:
    * @param[in] sum_sq sum of scores squared
    * @param[in] n_realizations number of realizations
    */
-  OMCTensor relativeError(const OMCTensor & sum,
-                          const OMCTensor & sum_sq,
-                          const int & n_realizations) const;
+  OMCTensor
+  relativeError(const OMCTensor & sum, const OMCTensor & sum_sq, const int & n_realizations) const;
 
   /**
    * Compute relative error

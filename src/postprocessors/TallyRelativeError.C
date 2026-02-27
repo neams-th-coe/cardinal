@@ -113,14 +113,12 @@ TallyRelativeError::getValue() const
   for (const auto tally : tallies)
   {
     const auto t = tally->getWrappedTally();
-    auto sum =
-        OMCTensor(t->results_.slice(openmc::tensor::all,
-                                    tally->scoreIndex(_score),
-                                    static_cast<int>(openmc::TallyResult::SUM)));
-    auto sum_sq =
-        OMCTensor(t->results_.slice(openmc::tensor::all,
-                                    tally->scoreIndex(_score),
-                                    static_cast<int>(openmc::TallyResult::SUM_SQ)));
+    auto sum = OMCTensor(t->results_.slice(openmc::tensor::all,
+                                           tally->scoreIndex(_score),
+                                           static_cast<int>(openmc::TallyResult::SUM)));
+    auto sum_sq = OMCTensor(t->results_.slice(openmc::tensor::all,
+                                              tally->scoreIndex(_score),
+                                              static_cast<int>(openmc::TallyResult::SUM_SQ)));
 
     auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)

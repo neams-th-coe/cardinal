@@ -682,7 +682,8 @@ OpenMCProblemBase::relativeError(const Real & sum,
 OMCTensor
 OpenMCProblemBase::tallySum(const openmc::Tally * tally, const unsigned int & score) const
 {
-  return OMCTensor(tally->results_.slice(openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM)));
+  return OMCTensor(tally->results_.slice(
+      openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM)));
 }
 
 double
