@@ -26,38 +26,31 @@
   numSteps = 1000
 
   # write an output file every specified time steps
-  writeControl = steps
-  writeInterval = 1000
+  checkpointControl = steps
+  checkpointInterval = 1000
+
+  scalars = temperature, k, tau
 
 [PROBLEMTYPE]
-  stressFormulation = true
+  equation=navierStokes+variableViscosity
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-04
 
-[VELOCITY]
-  solver = none
+[FLUID VELOCITY]
+  #solver = none
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann
   viscosity = -223214
   density = 1.0
-  boundaryTypeMap = v, o, W
+
+[SCALAR TEMPERATURE]
+  transportCoeff = 1.0
+  diffusionCoeff = -146205
+  boundaryTypeMap = udfDirichlet, zeroNeumann, udfNeumann
   residualTol = 1e-06
 
-[TEMPERATURE]
-  rhoCp = 1.0
-  conductivity = -146205
-  boundaryTypeMap = t, o, f
-  residualTol = 1e-06
-
-[SCALAR01] # k
+[SCALAR K]
   solver = none
-  boundaryTypeMap = t, I, o
-  residualTol = 1e-06
-  rho = 1.0
-  diffusivity = -223214
 
-[SCALAR02] # tau
+[SCALAR TAU]
   solver = none
-  boundaryTypeMap = t, I, o
-  residualTol = 1e-06
-  rho = 1.0
-  diffusivity = -223214

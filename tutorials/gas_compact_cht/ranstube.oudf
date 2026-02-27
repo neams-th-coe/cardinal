@@ -1,4 +1,4 @@
-@kernel void scalarScaledAdd(const dlong offset, const dlong N,
+@kernel void scalarScaledAdd(const dlong N,
                              const dfloat a,
                              const dfloat b,
                              @restrict const dfloat* X,
@@ -6,24 +6,24 @@
 {
   for (dlong n = 0; n < N; ++n; @tile(256,@outer,@inner))
     if (n < N)
-      Y[n] = a + b * X[n + offset];
+      Y[n] = a + b * X[n];
 }
 
 // Boundary conditions are only needed for temperature, since the solves of pressure,
 // velocity, k, and tau are all frozen
 
-void scalarDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
   // inlet temperature
-  bc->s = 0.0;
+  bc->sScalar = 0.0;
 }
 
-void scalarNeumannConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
   // wall (temperature)
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->flux = bc->usrwrk[bc->idM];
+  bc->fluxScalar = bc->usrwrk[bc->idxVol];
 }
