@@ -39,9 +39,9 @@ fluid_solid_interface = '1 2 7'
   type = Transient
   timestep_tolerance = 1e-9
 
-  [./TimeStepper]
+  [TimeStepper]
     type = NekTimeStepper
-  [../]
+  []
 []
 
 [Outputs]

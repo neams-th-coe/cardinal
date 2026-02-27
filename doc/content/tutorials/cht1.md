@@ -542,9 +542,9 @@ As in [#part1], additional files are required to set up the NekRS simulation -
 same as those used in the steady conduction model, so only the differences will be
 emphasized here.
 The `fluid.par` file is shown below. Here, `startFrom` provides a restart file (that
-we generated from [#part1]),
-`conduction.fld` and specifies that we only want to read temperature from the
-file (by appending `+T` to the file name). We increase the polynomial order as well.
+we generated from [#part1]), `conduction.fld`. There is no particular naming convention
+for a restart file, but people often will rename a field file (like `fluid0.f00009` to
+some other file name ending with `.fld`).
 
 !listing /tutorials/fhr_reflector/cht/fluid.par
 
@@ -558,30 +558,21 @@ in nondimensional form, such that
 
 The coefficient on the diffusive term in the [non-dimensional momentum equation](theory/nondimensional_ns.md)
 is equal to
-$1/Re$. In NekRS, specifying `diffusivity = -100.0` is equivalent to specifying
-`diffusivity = 0.001` (i.e. $1/100.0$), or a Reynolds number of 100.0. All other parameters
+$1/Re$. In NekRS, specifying `diffusionCoeff = -100.0` is equivalent to specifying
+`diffusionCoeff = 0.001` (i.e. $1/100.0$), or a Reynolds number of 100.0. All other parameters
 have similar interpretations as described in [#part1].
 
 The `fluid.udf` file is shown below. The `UDF_Setup` function is again used to apply initial
 conditions; because temperature is read from the restart file, only initial conditions on
-velocity and pressure are required. `nrs->U` is an array storing the three components of
-velocity (padded with length `nrs->fieldOffset`), while `nrs->P` is the array storing the
-pressure solution.
+velocity and pressure are needed (and we use the default zero initial condition
+for pressure). `nrs->fluid->o_U` is an array storing the three components of
+velocity (padded with length `nrs->fieldOffset`).
 
 !listing /tutorials/fhr_reflector/cht/fluid.udf language=cpp
 
-This file also includes the `UDF_LoadKernels` function, which is used to propagate
-quantities to variables accessible through [!ac](OCCA) kernels. The `kernelInfo`
-object is used to define two variables - `Vz` and `inlet_T` that will be accessible
-through the [!ac](GPU) kernels, eliminating some burden on the user if the problem
-setup must be changed in multiple locations throughout the NekRS input files.
-
-Finally, the `fluid.oudf` file is shown below. Because the velocity is enabled,
-additional boundary condition functions must be specified.
-In the `velocityDirichletConditions` function, the kernel variable `Vz` was defined in the `fluid.udf` file.
-The other boundary conditions -
-the Dirichlet temperature conditions and the Neumann heat flux conditions - are the
-same as for the steady conduction case.
+Finally, the `fluid.oudf` file is shown below. Dirichlet conditions are specified
+on both the velocity and temperature on the inlet. The Neumann heat flux condition
+is the same as for the steady conduction case.
 
 !listing /tutorials/fhr_reflector/cht/fluid.oudf language=cpp
 
