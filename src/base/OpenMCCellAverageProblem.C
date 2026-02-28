@@ -37,6 +37,7 @@
 #include "openmc/particle.h"
 #include "openmc/photon.h"
 #include "openmc/message_passing.h"
+#include "openmc/mgxs_interface.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
 #include "openmc/settings.h"
