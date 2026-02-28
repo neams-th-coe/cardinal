@@ -19,7 +19,7 @@ Tmin = T0        # Minimum temperature for data set
 Tmax = 1200.0    # Maximum temperature for data set
 height = 200.0   #Length in x direction
 ###############################################################
-#axial divisions
+# Axial subdivisions.
 ap = ArgumentParser()
 ap.add_argument('-n', dest='n_axial', type=int, default=20,
                 help='Number of axial cell divisions')
@@ -114,11 +114,9 @@ doppler_slab_model.geometry = openmc.Geometry(root)
 
 # settings
 doppler_slab_model.settings.energy_mode = 'multi-group'
-
-# source in one side
-# TODO: figure out how to do a plane source, if possible
 doppler_slab_model.settings.run_mode = 'fixed source'
 
+# source in one side
 source = openmc.IndependentSource(space=openmc.stats.Box((-1.0, 0.0, 0.0), (0.0, 2.0, 2.0)),
                                   angle=openmc.stats.Monodirectional(reference_uvw = [1.0, 0.0, 0.0]))
 doppler_slab_model.settings.source = [source]
