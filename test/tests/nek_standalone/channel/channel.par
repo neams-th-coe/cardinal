@@ -1,3 +1,5 @@
+userSections = CASEDATA
+
 [GENERAL]
   polynomialOrder = 7
   numSteps = 100
@@ -12,7 +14,7 @@
   residualTol = 1e-08
 
 [FLUID VELOCITY]
-  boundaryTypeMap = sym
+  boundaryTypeMap = zeroDirichletN/zeroNeumann
   residualTol = 1e-12
   density = 1.0
   viscosity = 0.1
