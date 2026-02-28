@@ -8,6 +8,7 @@
     csvdiff = 'openmc_nearest_out.csv'
     requirement = 'The system shall support nearest temperature interpolation'
                   ' when running in multi-group mode.'
+    capabilities = 'openmc'
   []
   [interpolation]
     type = CSVDiff
@@ -15,5 +16,6 @@
     csvdiff = 'openmc_interp_out.csv'
     requirement = 'The system shall support linear temperature interpolation'
                   ' when running in multi-group mode.'
+    capabilities = 'openmc'
   []
 []
