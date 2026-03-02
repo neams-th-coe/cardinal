@@ -14,7 +14,6 @@
   verbose = true
   cell_level = 0
 
-  normalize_by_global_tally = true
 
   power = 100.0
 
