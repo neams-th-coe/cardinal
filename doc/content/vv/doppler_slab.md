@@ -77,7 +77,7 @@ root feedback. The cannonical benchmark parameters can be found in [benchmark_pa
 | :- | :- |
 | $\psi_{0}$ | $6.65\times 10^{11}$ (n cm^-2^ s^-1^) |
 | $N_{0}$ | $0.025$ (atom barn^-1^ cm^-1^) |
-| $\sigma_{0} | $4$ (barn) |
+| $\sigma_{0}$ | $4$ (barn) |
 | $q$ | $10^{6}$ (eV) |
 | $T_{0}$ | $293$ (K) |
 | $k$ | 0.6 W (m^-1^ K^-1^) |
