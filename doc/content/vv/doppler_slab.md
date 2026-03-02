@@ -2,8 +2,8 @@
 
 ## Problem Description
 
-This test case models the 1D Doppler slab benchmark derived by [!cite](doppler_slab_benchmark), which
-models coupled neutron transport and heat conduction in a semi-infinite slab with microscopic
+This test case models the 1D Doppler slab benchmark from [!cite](doppler_slab_benchmark), which
+couples neutron transport and heat conduction in a semi-infinite slab with microscopic
 absorption cross section $\sigma_{0}$, number density $N_{0}$, and thermal conductivity $k$. A
 beam of neutrons (intensity $\psi_{0}$) is incident on the left face ($z = 0$) of the slab, which
 is held at a fixed temperature of $T_{0}$. The geometry of the benchmark problem can be found in
@@ -25,7 +25,7 @@ The second is an inverse square-root dependence on temperature:
 !equation id=inverse_root_feedback
 \Sigma(z) = \underbrace{N_{0}\sigma_{0}}_{\Sigma_{0}}\sqrt{\frac{T_{0}}{T(z)}}\text{.}
 
-Absorptions reactions heat the slab with an energy released per reaction of $q$. The analytic solution
+Absorption reactions heat the slab with an energy released per reaction of $q$. The analytic solution
 for the temperature ([linear_temp]) and flux ([linear_flux]) in the slab when the cross section is
 represented by [linear_feedback] can be obtained:
 
@@ -34,7 +34,7 @@ T(z) = T_{0} + \frac{2 \phi_{0} T_{0}\left[1 - \exp\left(-\sqrt{A}\Sigma_{0} z\r
 {1 - \exp\left(-\sqrt{A}\Sigma_{0}z\right) + \sqrt{A}\left[1 + \exp\left(-\sqrt{A}\Sigma_{0}z\right)\right]}\text{,}
 
 !equation id=linear_flux
-T(z) = \frac{4 \psi_{0} A\left[1 - \exp\left(-\sqrt{A}\Sigma_{0} z\right)\right]}
+\psi(z) = \frac{4 \psi_{0} A\left[1 - \exp\left(-\sqrt{A}\Sigma_{0} z\right)\right]}
 {\left[1 + \sqrt{A} - \left(1 - \sqrt{A}\right)\exp\left(-\sqrt{A}\Sigma_{0}z\right)\right]^{2}}\text{.}
 
 $\phi_{0}$ is defined as:
@@ -58,7 +58,7 @@ and
 !equation id=inv_root_flux
 \psi(z) = \frac{2k T_{0}\Sigma_{0}B}{q}\left[W\left(\frac{\phi_{0}}{2B}\exp\left(\frac{\Sigma_{0}z + C}{B}\right)\right)\right]\text{.}
 
-$B$ is defined with:
+$B$ is defined as:
 
 !equation id=B
 B = -\left[1 + \frac{\phi_{0}}{2}\right]\text{,}
@@ -66,11 +66,12 @@ B = -\left[1 + \frac{\phi_{0}}{2}\right]\text{,}
 and $C$ is:
 
 !equation id=C
-C = \frac{\phi_{0}}{2}
+C = \frac{\phi_{0}}{2}\text{.}
 
-When using linear temperature feedback, the benchmark parameters must be selected such that $A > 0$ to
-prevent non-physical solutions (negative cross sections). There are no such constraints on the inverse-
-root feedback. The cannonical benchmark parameters can be found in [benchmark_params].
+$W(\mathcal{Z})$ is the Lambert W function (also known as the product logarithm). When using linear
+temperature feedback, the benchmark parameters must be selected such that $A > 0$ to prevent non-
+physical solutions (negative cross sections). There are no such constraints on the inverse-root
+feedback. The cannonical benchmark parameters can be found in [benchmark_params].
 
 !table id=benchmark_params caption=Doppler slab benchmark parameters proposed in [!cite](doppler_slab_benchmark).
 | Parameter | Value |
@@ -86,13 +87,14 @@ root feedback. The cannonical benchmark parameters can be found in [benchmark_pa
 ## Cardinal Multi-Group Monte Carlo Solutions
 
 Cardinal's coupling between MOOSE's heat conduction solver, OpenMC, and NekRS
-running as a solid heat conduction solver was performed in [!cite](doppler_slab_mc_cardinal). 200 mesh
-elements with linear Lagrange basis functions were used in the heat conduction solution. The OpenMC
-simulation used 200 cells and a mesh tally with 200 bins to ensure temperature feedback and flux tallies
-matched the heat conduction mesh. As the benchmark problem is semi-infinite, a length must be chosen to
-truncate the problem at apply a symmetry boundary condition (heat conduction) and vacuum condition (neutronics).
-This was selected to be $200$ cm. Results for [linear_feedback] can be found in [doppler_linear], and results
-for [inverse_root_feedback] can be found in [doppler_inv_root].
+running as a solid heat conduction solver was verified in [!cite](doppler_slab_mc_cardinal) with the
+Doppler slab problem. 200 mesh elements with linear Lagrange basis functions were used in the heat
+conduction solution. The OpenMC simulation used 200 cells and a mesh tally with 200 bins to ensure
+temperature feedback and flux tallies matched the heat conduction mesh. As the benchmark problem
+is semi-infinite, a length must be chosen to truncate the problem at apply a symmetry boundary
+condition (heat conduction) and vacuum condition (neutronics). This was selected to be $200$ cm.
+Results for [linear_feedback] can be found in [doppler_linear], and results for
+[inverse_root_feedback] can be found in [doppler_inv_root].
 
 !media doppler_linear.png
   id=doppler_linear
