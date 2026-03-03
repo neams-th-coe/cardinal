@@ -91,7 +91,7 @@ running as a solid heat conduction solver was verified in [!cite](doppler_slab_m
 Doppler slab problem. 200 mesh elements with linear Lagrange basis functions were used in the heat
 conduction solution. The OpenMC simulation used 200 cells and a mesh tally with 200 bins to ensure
 temperature feedback and flux tallies matched the heat conduction mesh. As the benchmark problem
-is semi-infinite, a length must be chosen to truncate the problem at apply a symmetry boundary
+is semi-infinite, a length must be chosen to truncate the problem at in order to apply a symmetry boundary
 condition (heat conduction) and vacuum condition (neutronics). This was selected to be $200$ cm.
 Results for [linear_feedback] can be found in [doppler_linear], and results for
 [inverse_root_feedback] can be found in [doppler_inv_root].
@@ -106,7 +106,7 @@ Results for [linear_feedback] can be found in [doppler_linear], and results for
   caption=Cardinal simulations of the Doppler slab problem with inverse root temperature feedback, taken from [!cite](doppler_slab_mc_cardinal).
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
-The maximim relative error for linear feedback is $0.0767\%$ (temperature) and $4.0100\%$ (flux). The maximim
+The maximum relative error for linear feedback is $0.0767\%$ (temperature) and $4.0100\%$ (flux). The maximim
 relative error for inverse root feedback is $0.1500\%$ (temperature) and $0.7800\%$ (flux). Error in Cardinal results
 is dominated by (i) statistical noise near the right boundary due to neutron attenuation, and (ii) boundary condition
 effects at the right boundary caused by the finite (as opposed to semi-infinite) slab. More information regarding the
@@ -114,4 +114,9 @@ problem setup and results can be found in [!cite](doppler_slab_mc_cardinal).
 
 Input files for the linear temperature feedback case are included in Cardinal to verify the heat conduction module,
 Cardinal's OpenMC coupling, and different temperature interpolation schemes present in OpenMC. These input files
-can be found in `/test/tests/neutronics/mg/doppler_slab_lin`.
+can be found in `/test/tests/neutronics/mg/doppler_slab_lin`. The OpenMC and heat conduction inpute files for this
+problem can be found below.
+
+!listing /test/tests/neutronics/mg/doppler_slab_lin/openmc_base.i
+
+!listing /test/tests/neutronics/mg/doppler_slab_lin/solid.i

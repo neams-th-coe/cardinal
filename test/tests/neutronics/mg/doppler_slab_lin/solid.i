@@ -1,9 +1,5 @@
 !include mesh.i
 
-[Problem]
-  type = FEProblem
-[]
-
 [Variables]
   [T]
     initial_condition = 293.6
@@ -59,10 +55,8 @@
   [power]
     family = MONOMIAL
     order = CONSTANT
-    initial_condition = 0
   []
 []
-
 
 [Executioner]
   type = Transient
