@@ -3,7 +3,7 @@
 #include "DrumAngleSearch.h"
 #include "openmc/capi.h"
 
-registerMooseObject("CardinalApp", DrumAngleSearch); // TODO
+// registerMooseObject("CardinalApp", DrumAngleSearch); // TODO
 
 InputParameters
 DrumAngleSearch::validParams()
@@ -25,11 +25,11 @@ DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
     _rotation_axis_char(getParam<MooseEnum>("rotation_axis"))
 {
   // update the OpenMCCellTransform UserObject with the last iteration critical guess
-  const auto & _t = getUserObjectByName<OpenMCCellTransform>(_transform_name);
+  const auto & _t = getUserObjectByName(_transform_name);
   // const auto _t = &getUserObjectByName<OpenMCCellTransform>(_transform_name);
 
   // check that the specified transform is a rotational transform
-  if (_t._transform_type != "rotation")
+  if (_t->_transform_type != "rotation")
     paramError("transform_name",
                "You have attempted search for critical drum angle on the OpenMCCellTransform " +
                    _transform_name +
@@ -45,19 +45,19 @@ DrumAngleSearch::updateOpenMCModel(const Real & angle)
   switch (_rotation_axis_char)
   {
     case 'x':
-      _t->_t0_pp = angle;
-      _t->_t1_pp = 0.0;
-      _t->_t2_pp = 0.0;
+      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, angle),
+                               std::make_tuple(_t->_t1_pp_name, Real(0.0)),
+                               std::make_tuple(_t->_t2_pp_name, Real(0.0)));
     case 'y':
-      _t->_t0_pp = 0.0;
-      _t->_t1_pp = angle;
-      _t->_t2_pp = 0.0;
+      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, Real(0.0)),
+                               std::make_tuple(_t->_t1_pp_name, angle),
+                               std::make_tuple(_t->_t2_pp_name, Real(0.0)));
     case 'z':
-      _t->_t0_pp = 0.0;
-      _t->_t1_pp = 0.0;
-      _t->_t2_pp = angle;
+      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, Real(0.0)),
+                               std::make_tuple(_t->_t1_pp_name, Real(0.0)),
+                               std::make_tuple(_t->_t2_pp_name, angle));
   }
-  _t->execute(); // update transform with new critical angle
+  // _t->execute(); // update transform with new angle guess
 }
 
 #endif

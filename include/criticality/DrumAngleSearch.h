@@ -26,5 +26,5 @@ protected:
   const MooseEnum _rotation_axis_char;
 
   /// pointer to OpenMCCellTransform to update the initial critical guess each iteration
-  const OpenMCCellTransform * _t;
+  OpenMCCellTransform * _t;
 };

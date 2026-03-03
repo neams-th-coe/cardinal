@@ -21,6 +21,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "GeneralUserObject.h"
+#include "PostprocessorInterface.h"
 #include "OpenMCBase.h"
 
 class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
@@ -29,6 +30,14 @@ public:
   static InputParameters validParams();
 
   OpenMCCellTransform(const InputParameters & parameters);
+
+  const PostprocessorName _t0_pp_name;
+  const PostprocessorName _t1_pp_name;
+  const PostprocessorName _t2_pp_name;
+
+  void setTransformPPValues(const std::tuple<PostprocessorName, Real> pp_name_value_tuple_0,
+                            const std::tuple<PostprocessorName, Real> pp_name_value_tuple_1,
+                            const std::tuple<PostprocessorName, Real> pp_name_value_tuple_2);
 
   virtual void initialize() override {}
   virtual void execute() override;
