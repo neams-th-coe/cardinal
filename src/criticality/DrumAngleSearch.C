@@ -2,6 +2,7 @@
 
 #include "DrumAngleSearch.h"
 #include "openmc/capi.h"
+#include "UserObjectInterface.h"
 
 // registerMooseObject("CardinalApp", DrumAngleSearch); // TODO
 
@@ -9,7 +10,7 @@ InputParameters
 DrumAngleSearch::validParams()
 {
   auto params = CriticalitySearchBase::validParams();
-  params.addRequiredParam<std::string>(
+  params.addRequiredParam<UserObjectName>(
       "transform_name",
       "The OpenMCCellTransform UserObject that will control the criticality search");
   params.addRequiredParam<MooseEnum>(
@@ -21,12 +22,13 @@ DrumAngleSearch::validParams()
 
 DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
   : CriticalitySearchBase(parameters),
-    _transform_name(getParam<std::string>("transform_name")),
+    UserObjectInterface(this),
+    _transform_name(getParam<UserObjectName>("transform_name")),
     _rotation_axis_char(getParam<MooseEnum>("rotation_axis"))
 {
   // update the OpenMCCellTransform UserObject with the last iteration critical guess
-  const auto & _t = getUserObjectByName(_transform_name);
-  // const auto _t = &getUserObjectByName<OpenMCCellTransform>(_transform_name);
+  _t =
+      const_cast<OpenMCCellTransform *>(&getUserObjectByName<OpenMCCellTransform>(_transform_name));
 
   // check that the specified transform is a rotational transform
   if (_t->_transform_type != "rotation")

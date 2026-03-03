@@ -31,13 +31,17 @@ public:
 
   OpenMCCellTransform(const InputParameters & parameters);
 
+  /// Name of each postprocessor
   const PostprocessorName _t0_pp_name;
   const PostprocessorName _t1_pp_name;
   const PostprocessorName _t2_pp_name;
 
-  void setTransformPPValues(const std::tuple<PostprocessorName, Real> pp_name_value_tuple_0,
-                            const std::tuple<PostprocessorName, Real> pp_name_value_tuple_1,
-                            const std::tuple<PostprocessorName, Real> pp_name_value_tuple_2);
+  /// Transform type: "translation" or "rotation"
+  const MooseEnum _transform_type;
+
+  void setTransformPPValues(std::tuple<PostprocessorName, Real> pp_name_value_tuple_0,
+                            std::tuple<PostprocessorName, Real> pp_name_value_tuple_1,
+                            std::tuple<PostprocessorName, Real> pp_name_value_tuple_2);
 
   virtual void initialize() override {}
   virtual void execute() override;
@@ -46,9 +50,6 @@ public:
 protected:
   /// OpenMC cell IDs to which the translation will be applied
   std::set<int32_t> _cell_ids;
-
-  /// Transform type: "translation" or "rotation"
-  const MooseEnum _transform_type;
 
   /// Postprocessor providing the first entry of the transform array
   const PostprocessorValue * _t0_pp;

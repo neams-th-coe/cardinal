@@ -7,7 +7,7 @@
 /**
  * Perform a criticality search based  Pon a material
  */
-class DrumAngleSearch : public CriticalitySearchBase
+class DrumAngleSearch : public CriticalitySearchBase, public UserObjectInterface
 {
 public:
   static InputParameters validParams();
@@ -20,7 +20,7 @@ protected:
   virtual std::string units() const override { return "[degrees]"; }
 
   // name of the OpenMCCellTransform UserObject used to control the criticality search
-  const std::string _transform_name;
+  const UserObjectName _transform_name;
 
   // the rotational axis used to search for criticality
   const MooseEnum _rotation_axis_char;
