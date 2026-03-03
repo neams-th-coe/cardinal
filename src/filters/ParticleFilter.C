@@ -54,7 +54,7 @@ ParticleFilter::ParticleFilter(const InputParameters & parameters) : FilterBase(
 
   std::vector<openmc::ParticleType> p;
   for (const auto & ps : _particles)
-    p.emplace_back(openmc::str_to_particle_type(ps));
+    p.emplace_back(ps);
 
   particle_filter->set_particles(p);
   _filter = particle_filter;

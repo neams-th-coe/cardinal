@@ -13,3 +13,5 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Laminar natural convection in a 2-D square cavity](vv/square_cavity_natural_convection.md)
 
 ## Neutronics
+
+- [1D Doppler slab benchmark](vv/doppler_slab.md)

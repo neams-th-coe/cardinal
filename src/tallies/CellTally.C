@@ -73,7 +73,7 @@ CellTally::spatialFilter()
 Real
 CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
-                             std::vector<xt::xtensor<double, 1>> tally_vals,
+                             const std::vector<OMCTensor> & tally_vals,
                              bool norm_by_src_rate)
 {
   Real total = 0.0;
