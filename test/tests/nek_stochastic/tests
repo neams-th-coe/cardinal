@@ -21,7 +21,7 @@
     # runs multiple sim
     max_parallel = 1
 
-    check_files = 'a00ethier0.f00001 a01ethier0.f00001 a02ethier0.f00001'
+    check_files = 'a00ethier0.f00000 a01ethier0.f00000 a02ethier0.f00000'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique "
                   "NekRS field files for each. By limiting this test to fewer MPI ranks than Apps, we "
                   "also check that we still get the correct naming scheme"
