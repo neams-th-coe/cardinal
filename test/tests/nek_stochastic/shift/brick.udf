@@ -1,11 +1,13 @@
 #include "udf.hpp"
 
-static occa::kernel cFillKernel;
+#ifdef __okl__
+#include "brick.oudf"
+#endif
+
 static double * slice;
 
-void UDF_LoadKernels(deviceKernelProperties occa::properties & kernelInfo)
+void UDF_LoadKernels(occa::properties& kernelInfo)
 {
-  cFillKernel = oudfBuildKernel(kernelInfo, "cFillKernel");
 }
 
 void UDF_Setup()
@@ -15,10 +17,9 @@ void UDF_Setup()
     slice[i] = 1.5;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
   mesh_t *mesh = nrs->meshV;
-  cds_t *cds = nrs->cds;
 
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
@@ -27,9 +28,13 @@ void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 
   // set scalar1 value, which should not be affected by the incoming data from MOOSE
   if (tstep == 0)
-    nrs->o_usrwrk.copyFrom(slice, nrs->fieldOffset * sizeof(dfloat));
+    platform->app->bc->o_usrwrk.copyFrom(slice, nrs->fieldOffset);
 
   // set scalar2 and scalar3 values
-  cFillKernel(mesh->Nelements, 2 * nrs->fieldOffset, nrs->usrwrk[1 * nrs->fieldOffset + 0], nrs->cds->o_S);
-  cFillKernel(mesh->Nelements, 3 * nrs->fieldOffset, nrs->usrwrk[1 * nrs->fieldOffset + 1], nrs->cds->o_S);
+  const size_t idx2 = 1 * nrs->fieldOffset + 0;
+  const size_t idx3 = 1 * nrs->fieldOffset + 1;
+  auto o_val2 = platform->app->bc->o_usrwrk.slice(idx2, 1);
+  auto o_val3 = platform->app->bc->o_usrwrk.slice(idx3, 1);
+  cFillKernel(mesh->Nelements, 2 * nrs->fieldOffset, o_val2, nrs->scalar->o_S);
+  cFillKernel(mesh->Nelements, 3 * nrs->fieldOffset, o_val3, nrs->scalar->o_S);
 }
