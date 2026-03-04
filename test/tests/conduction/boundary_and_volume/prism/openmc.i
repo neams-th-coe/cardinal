@@ -28,10 +28,6 @@
   [nek_temp] # This is received from nekRS
     initial_condition = 500.0
   []
-  [bison_flux] # This is received from BISON
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]
@@ -162,50 +158,30 @@
     to_postprocessors_to_be_preserved = source_integral
     allow_skipped_adjustment = true
   []
-  [bison_flux_to_openmc]
-    type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = flux
-    from_multi_app = bison
-    variable = bison_flux
-
-    # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
-    # just restrict this transfer from the source surface of interest because this
-    # flux is used in nekRS only for a boundary condition (at the time this test was
-    # created, there was not an option to restrict to a target boundary for elementals)
-    from_boundaries = '2'
-  []
-  [bison_flux_integral_to_openmc]
-    type = MultiAppPostprocessorTransfer
-    to_postprocessor = flux_integral
-    from_postprocessor = flux_integral
-    from_multi_app = bison
-    reduction_type = 'average' # not used when only one sub-app
-  []
   [bison_temp_to_openmc]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     variable = bison_temp
     from_multi_app = bison
-
-    # IMPORTANT: this cannot be boundary restricted because we use this temperature to
-    # compute a heat source for BISON
   []
 
   [bison_flux_to_nek]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = bison_flux
+    from_multi_app = bison
+    source_variable = flux
     variable = flux
     to_multi_app = nek
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
     # just restrict this transfer from the sourcesurface of interest because this
-    # flux is used in nekRS only for a boundary condition (at the time this test was
-    # created, there was not an option to restrict to a target boundary for elementals)
+    # flux is used in nekRS only for a boundary condition
     from_boundaries = '2'
+    to_boundaries = '2'
   []
   [bison_flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
+    from_multi_app = bison
     from_postprocessor = flux_integral
     to_multi_app = nek
   []
@@ -226,9 +202,6 @@
     source_variable = temp
     variable = nek_temp
     from_multi_app = nek
-
-    # IMPORTANT: this cannot be restricted to a boundary because we need it to
-    # compute the heat source by OpenMC
   []
 []
 
