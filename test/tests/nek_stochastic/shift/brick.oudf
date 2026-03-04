@@ -1,9 +1,9 @@
-@kernel void cFillKernel(const dlong Nelements, const dlong offset, const dfloat value, @restrict dfloat * source)
+@kernel void cFillKernel(const dlong Nelements, const dlong offset, @restrict dfloat * value, @restrict dfloat * source)
 {
   for(dlong e=0;e<Nelements;++e;@outer(0)){
     for(int n=0;n<p_Np;++n;@inner(0)){
       const int id = e*p_Np + n;
-      source[offset + id] = value;
+      source[offset + id] = value[0];
     }
   }
 }
@@ -14,7 +14,7 @@ void udfDirichlet(bcData *bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->sScalar = bc->usrwrk[bc->idM];
+  bc->sScalar = bc->usrwrk[bc->idxVol];
 }
 
 void udfNeumann(bcData *bc)
