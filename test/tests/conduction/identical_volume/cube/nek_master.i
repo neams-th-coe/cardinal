@@ -5,22 +5,20 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 40
-  ny = 40
-  nz = 40
+  nx = 7
+  ny = 7
+  nz = 7
 []
 
-[Variables]
-  [dummy]
-  []
+[Problem]
+  type = FEProblem
+  solve = false
 []
 
 [AuxVariables]
   [source]
   []
   [nek_temp]
-    # This initial value will be used in the first heat source sent to nekRS
-    # because MOOSE runs first
     initial_condition = 500.0
   []
 []
@@ -32,22 +30,6 @@
     expression = 'nek_temp*7'
     coupled_variables = 'nek_temp'
     execute_on = 'timestep_end'
-  []
-[]
-
-[Kernels]
-  [diffusion]
-    type = Diffusion
-    variable = dummy
-  []
-[]
-
-[BCs]
-  [left]
-    type = DirichletBC
-    variable = dummy
-    value = 1.0
-    boundary = 'right'
   []
 []
 
@@ -103,7 +85,12 @@
 []
 
 [Outputs]
-  exodus = true
   print_linear_residuals = false
-  execute_on = 'final'
+
+  [exo]
+    type = Exodus
+    execute_on = 'final'
+  []
+
+  hide = 'source_integral source'
 []

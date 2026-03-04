@@ -2,10 +2,7 @@
   [slab_heat_source]
     type = Exodiff
     input = nek_master.i
-    exodiff = 'nek_master_out_nek0.e'
-    min_parallel = 8
-    rel_err = 2e-4
-    heavy = true
+    exodiff = nek_master_out_nek0_out.e
     requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall produce the correct "
                   "temperature distribution when a heat source is applied to the nekRS problem. "
                   "A reference MOOSE standalone problem (in moose.i) solves the equation "
@@ -18,7 +15,7 @@
                   "case very well - with a nekRS mesh of 15x15x15 elements, postprocessors for the "
                   "side- and volume-averaged temperature, as well as maximum temperature, match the "
                   "MOOSE standalone case to within 0.1%. To keep the gold files small here, this test "
-                  "is only performed on a 10x10x10 nekRS mesh."
+                  "is only performed on a 7x7x7 nekRS mesh."
     capabilities = 'nekrs'
   []
 []
