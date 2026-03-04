@@ -32,14 +32,14 @@
     type = ParsedAux
     variable = source
     coupled_variables = 'temperature'
-    function = 'temperature+50'
+    expression = 'temperature+50'
     block = '1'
   []
   [source2]
     type = ParsedAux
     variable = source
     coupled_variables = 'temperature'
-    function = '0.5*temperature+10'
+    expression = '0.5*temperature+10'
     block = '2'
   []
 []

@@ -1,5 +1,5 @@
-# This is just a dummy application that stands in OpenMCs stead, by providing
-# heat sources to BISON and nekRS.
+# This is just a dummy application that stands in for OpenMC instead, by providing
+# heat sources to BISON and nekRS that are prescribed functions of temperature.
 
 [Mesh]
   type = FileMesh
@@ -10,9 +10,9 @@
   uniform_refine = 0
 []
 
-[Variables]
-  [dummy]
-  []
+[Problem]
+  type = FEProblem
+  solve = false
 []
 
 [AuxVariables]
@@ -26,7 +26,6 @@
     initial_condition = 500.0
   []
   [nek_temp] # This is received from nekRS
-    # we set an initial condition because BISON will run first with this initial value
     initial_condition = 500.0
   []
   [bison_flux] # This is received from BISON
@@ -35,36 +34,20 @@
   []
 []
 
-[Kernels]
-  [dummy]
-    type = Diffusion
-    variable = dummy
-  []
-[]
-
 [AuxKernels]
   [source1]
     type = ParsedAux
     variable = source_nek
     coupled_variables = 'nek_temp'
-    function = 'nek_temp+50'
+    expression = 'nek_temp+50'
     block = '1'
   []
   [source2]
     type = ParsedAux
     variable = source_bison
     coupled_variables = 'bison_temp'
-    function = '0.5*bison_temp+10'
+    expression = '0.5*bison_temp+10'
     block = '2'
-  []
-[]
-
-[BCs]
-  [left]
-    type = DirichletBC
-    variable = dummy
-    boundary = 'vol2_top'
-    value = 1.0
   []
 []
 
@@ -72,6 +55,7 @@
   [source_integral_nek]
     type = ElementIntegralVariablePostprocessor
     variable = source_nek
+    execute_on = 'transfer'
     block = '1'
   []
   [source_integral_bison]
@@ -158,7 +142,7 @@
 
 [Transfers]
   [nek_temp_to_bison]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = nek_temp
     variable = nek_temp
     to_multi_app = bison
@@ -166,11 +150,11 @@
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
     # just restrict this transfer between the two surfaces of interest because this
     # temperature is used in BISON only for a boundary condition
-    source_boundary = '2'
-    target_boundary = '2'
+    from_boundaries = '2'
+    to_boundaries = '2'
   []
   [source_to_bison]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source_bison
     variable = source
     to_multi_app = bison
@@ -179,7 +163,7 @@
     allow_skipped_adjustment = true
   []
   [bison_flux_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     from_multi_app = bison
     variable = bison_flux
@@ -188,7 +172,7 @@
     # just restrict this transfer from the source surface of interest because this
     # flux is used in nekRS only for a boundary condition (at the time this test was
     # created, there was not an option to restrict to a target boundary for elementals)
-    source_boundary = '2'
+    from_boundaries = '2'
   []
   [bison_flux_integral_to_openmc]
     type = MultiAppPostprocessorTransfer
@@ -198,7 +182,7 @@
     reduction_type = 'average' # not used when only one sub-app
   []
   [bison_temp_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     variable = bison_temp
     from_multi_app = bison
@@ -208,16 +192,16 @@
   []
 
   [bison_flux_to_nek]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = bison_flux
-    variable = avg_flux
+    variable = flux
     to_multi_app = nek
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
     # just restrict this transfer from the sourcesurface of interest because this
     # flux is used in nekRS only for a boundary condition (at the time this test was
     # created, there was not an option to restrict to a target boundary for elementals)
-    source_boundary = '2'
+    from_boundaries = '2'
   []
   [bison_flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
@@ -226,7 +210,7 @@
     to_multi_app = nek
   []
   [source_to_nek]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source_nek
     variable = heat_source
     to_multi_app = nek
@@ -238,7 +222,7 @@
     to_multi_app = nek
   []
   [nek_temp_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     variable = nek_temp
     from_multi_app = nek
@@ -260,5 +244,5 @@
   exodus = true
   print_linear_residuals = false
   execute_on = 'final'
-  hide = 'source_bison source_nek dummy source_integral_nek source_integral_bison flux_integral'
+  hide = 'source_bison source_nek source_integral_nek source_integral_bison flux_integral'
 []
