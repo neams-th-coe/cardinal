@@ -15,6 +15,8 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [flux_projected]
+  []
   [source]
   []
   [nek_temp]
@@ -39,6 +41,11 @@
     component = normal
     diffusivity = thermal_conductivity
     boundary = '2'
+  []
+  [flux_projected]
+    type = ProjectionAux
+    variable = flux_projected
+    v = flux
   []
 []
 

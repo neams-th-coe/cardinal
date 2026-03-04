@@ -163,12 +163,13 @@
     source_variable = temp
     variable = bison_temp
     from_multi_app = bison
+    to_blocks = '2'
   []
 
   [bison_flux_to_nek]
     type = MultiAppGeneralFieldNearestLocationTransfer
     from_multi_app = bison
-    source_variable = flux
+    source_variable = flux_projected
     variable = flux
     to_multi_app = nek
 
@@ -202,20 +203,24 @@
     source_variable = temp
     variable = nek_temp
     from_multi_app = nek
+    to_blocks = '1'
   []
 []
 
 [Executioner]
   type = Transient
   dt = 0.05
-  num_steps = 30
+  num_steps = 20
   nl_abs_tol = 1e-8
   nl_rel_tol = 1e-12
 []
 
 [Outputs]
-  exodus = true
+  [out]
+    type = Exodus
+    execute_on = 'final'
+  []
+
   print_linear_residuals = false
-  execute_on = 'final'
   hide = 'source_bison source_nek source_integral_nek source_integral_bison flux_integral'
 []
