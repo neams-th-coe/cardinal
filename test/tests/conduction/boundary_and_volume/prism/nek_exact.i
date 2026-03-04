@@ -6,7 +6,7 @@
   n_usrwrk_slots = 2
 
   [FieldTransfers]
-    [avg_flux]
+    [flux]
       type = NekBoundaryFlux
       usrwrk_slot = 0
       direction = to_nek
@@ -104,7 +104,7 @@
 
 [Outputs]
   exodus = true
-  interval = 30
+  time_step_interval = 30
 
   hide = 'flux_integral source_integral'
 []

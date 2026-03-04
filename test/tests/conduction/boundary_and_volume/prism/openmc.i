@@ -126,13 +126,11 @@
     type = TransientMultiApp
     input_files = 'nek.i'
     execute_on = timestep_end
-    sub_cycling = true
   []
   [bison]
     type = TransientMultiApp
     input_files = 'bison.i'
     execute_on = timestep_begin
-    sub_cycling = true
   []
 []
 
@@ -216,8 +214,12 @@
 []
 
 [Outputs]
-  [out]
+  [exo]
     type = Exodus
+    execute_on = 'final'
+  []
+  [csv]
+    type = CSV
     execute_on = 'final'
   []
 
