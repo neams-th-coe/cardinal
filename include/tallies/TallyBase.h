@@ -22,13 +22,15 @@
 #include "CardinalEnums.h"
 
 #include "openmc/tallies/tally.h"
-#include "xtensor/xview.hpp"
+#include "openmc/tensor.h"
 
 /// Forward declarations.
 class OpenMCCellAverageProblem;
 class MooseMesh;
 class AuxiliarySystem;
 class FilterBase;
+
+typedef openmc::tensor::Tensor<double> OMCTensor;
 
 class TallyBase : public MooseObject
 {
@@ -271,7 +273,7 @@ protected:
    */
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
-                                 std::vector<xt::xtensor<double, 1>> tally_vals,
+                                 const std::vector<OMCTensor> & tally_vals,
                                  bool norm_by_src_rate = true) = 0;
 
   /**
@@ -402,19 +404,19 @@ protected:
    * is _previous_tally, and PHI is the most-recently-computed tally result
    * (the _current_raw_tally).
    */
-  std::vector<xt::xtensor<double, 1>> _current_tally;
+  std::vector<OMCTensor> _current_tally;
 
   /// Previous fixed point iteration tally result (after relaxation)
-  std::vector<xt::xtensor<double, 1>> _previous_tally;
+  std::vector<OMCTensor> _previous_tally;
 
   /// Current "raw" tally output from Monte Carlo solution
-  std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+  std::vector<OMCTensor> _current_raw_tally;
 
   /// Current "raw" tally relative error.
-  std::vector<xt::xtensor<double, 1>> _current_raw_tally_rel_error;
+  std::vector<OMCTensor> _current_raw_tally_rel_error;
 
   /// Current "raw" tally standard deviation
-  std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
+  std::vector<OMCTensor> _current_raw_tally_std_dev;
 
   /**
    * How to normalize the OpenMC tally into units of W/volume. If 'true',

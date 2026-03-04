@@ -1,0 +1,21 @@
+[Tests]
+  issues = '#1292'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [nearest]
+    type = CSVDiff
+    input = 'openmc_nearest.i'
+    csvdiff = 'openmc_nearest_out.csv'
+    requirement = 'The system shall support nearest temperature interpolation'
+                  ' when running in multi-group mode.'
+    capabilities = 'openmc'
+  []
+  [interpolation]
+    type = CSVDiff
+    input = 'openmc_interp.i'
+    csvdiff = 'openmc_interp_out.csv'
+    requirement = 'The system shall support linear temperature interpolation'
+                  ' when running in multi-group mode.'
+    capabilities = 'openmc'
+  []
+[]

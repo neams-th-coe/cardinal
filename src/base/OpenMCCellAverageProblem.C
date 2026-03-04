@@ -37,6 +37,7 @@
 #include "openmc/particle.h"
 #include "openmc/photon.h"
 #include "openmc/message_passing.h"
+#include "openmc/mgxs_interface.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
 #include "openmc/settings.h"
@@ -44,7 +45,6 @@
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
 #include "openmc/universe.h"
-#include "xtensor/xarray.hpp"
 
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
@@ -2608,6 +2608,22 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
       if (_export_properties)
         openmc_properties_export("properties.h5");
+
+      // After setting cell temperatures, we need to re-initialize MGXS data as temperature
+      // interpolation is performed on initialization. Verbosity is temporarily modified here
+      // as the user has seen the MGXS initialization info previously.
+      if (!openmc::settings::run_CE)
+      {
+        auto initial_verbosity = openmc::settings::verbosity;
+        openmc::settings::verbosity = 1;
+        // Clear the MGXS manager.
+        openmc::data::mg = {};
+        // Reload the MGXS data.
+        openmc::data::mg.read_header(openmc::settings::path_cross_sections);
+        openmc::put_mgxs_header_data_to_globals();
+        openmc::finalize_cross_sections();
+        openmc::settings::verbosity = initial_verbosity;
+      }
 
       break;
     }
