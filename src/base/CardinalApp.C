@@ -172,29 +172,29 @@ CardinalApp::registerApps()
 #endif
 
   {
-    const std::string doc = "nekRS computational fluid dynamics coupling ";
+    const std::string doc = "NekRS computational fluid dynamics coupling ";
 #ifdef ENABLE_NEK_COUPLING
-    addCapability("nekrs", true, doc + "is available.");
+    addBoolCapability("nekrs", true, doc + "is available.");
 #else
-    addCapability("nekrs", false, doc + "is not available.");
+    addBoolCapability("nekrs", false, doc + "is not available.");
 #endif
   }
 
   {
-    const std::string doc = "OpenMC monte carlo particle transport coupling ";
+    const std::string doc = "OpenMC Monte Carlo particle transport coupling ";
 #ifdef ENABLE_OPENMC_COUPLING
-    addCapability("openmc", true, doc + "is available.");
+    addBoolCapability("openmc", true, doc + "is available.");
 #else
-    addCapability("openmc", false, doc + "is not available.");
+    addBoolCapability("openmc", false, doc + "is not available.");
 #endif
   }
 
   {
-    const std::string doc = "DAGMC Direct Accelerated Geometry Monte Carlo coupling ";
+    const std::string doc = "DAGMC CAD geometry ";
 #ifdef ENABLE_DAGMC
-    addCapability("dagmc", true, doc + "is available.");
+    addBoolCapability("dagmc", true, doc + "is available.");
 #else
-    addCapability("dagmc", false, doc + "is not available.");
+    addBoolCapability("dagmc", false, doc + "is not available.");
 #endif
   }
 }
