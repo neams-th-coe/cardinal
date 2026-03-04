@@ -29,7 +29,7 @@
   [source]
     type = ParsedAux
     variable = source
-    function = 'nek_temp*7'
+    expression = 'nek_temp*7'
     coupled_variables = 'nek_temp'
     execute_on = 'timestep_end'
   []
@@ -68,13 +68,13 @@
 
 [Transfers]
   [temperature]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
   []
   [source]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source
     to_multi_app = nek
     variable = heat_source
