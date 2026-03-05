@@ -1,26 +1,24 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "DrumAngleSearch.h"
+#include "RotationSearch.h"
 #include "openmc/capi.h"
 #include "UserObjectInterface.h"
 
-// registerMooseObject("CardinalApp", DrumAngleSearch); // TODO
-
 InputParameters
-DrumAngleSearch::validParams()
+RotationSearch::validParams()
 {
   auto params = CriticalitySearchBase::validParams();
   params.addRequiredParam<UserObjectName>(
       "transform_name",
       "The OpenMCCellTransform UserObject that will control the criticality search");
   params.addRequiredParam<MooseEnum>(
-      "rotation_axis", getRotationAxisEnum(), "Axis about which to rotate the cell. [x, y, z]");
+      "rotation_axis", MooseEnum("x y z"), "Axis about which to rotate the cell's fill.");
   params.addClassDescription("Searches for criticality rotating a drum angle in degrees");
 
   return params;
 }
 
-DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
+RotationSearch::RotationSearch(const InputParameters & parameters)
   : CriticalitySearchBase(parameters),
     UserObjectInterface(this),
     _transform_name(getParam<UserObjectName>("transform_name")),
@@ -40,7 +38,7 @@ DrumAngleSearch::DrumAngleSearch(const InputParameters & parameters)
 }
 
 void
-DrumAngleSearch::updateOpenMCModel(const Real & angle)
+RotationSearch::updateOpenMCModel(const Real & angle)
 {
   _console << "Searching for drum angle = " << angle << units() << std::endl;
 
@@ -59,7 +57,6 @@ DrumAngleSearch::updateOpenMCModel(const Real & angle)
                                std::make_tuple(_t->_t1_pp_name, Real(0.0)),
                                std::make_tuple(_t->_t2_pp_name, angle));
   }
-  // _t->execute(); // update transform with new angle guess
 }
 
 #endif

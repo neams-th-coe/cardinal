@@ -41,7 +41,6 @@ MooseEnum getNekMeshEnum();
 MooseEnum getFilterTypeEnum();
 MooseEnum getStatsOutputEnum();
 MooseEnum getBetaGroupEnum();
-MooseEnum getRotationAxisEnum();
 
 namespace nek_mesh
 {
@@ -288,14 +287,3 @@ enum OpenMCFilterType
   mesh,
   none
 };
-
-namespace criticality
-{
-/// Rotational axis used for criticality search
-enum RotationAxisEnum
-{
-  x,
-  y,
-  z
-};
-} // namespace criticality

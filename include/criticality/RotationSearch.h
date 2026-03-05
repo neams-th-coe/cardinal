@@ -7,12 +7,12 @@
 /**
  * Perform a criticality search based  Pon a material
  */
-class DrumAngleSearch : public CriticalitySearchBase, public UserObjectInterface
+class RotationSearch : public CriticalitySearchBase, public UserObjectInterface
 {
 public:
   static InputParameters validParams();
 
-  DrumAngleSearch(const InputParameters & parameters);
+  RotationSearch(const InputParameters & parameters);
 
   virtual void updateOpenMCModel(const Real & input) override;
 
