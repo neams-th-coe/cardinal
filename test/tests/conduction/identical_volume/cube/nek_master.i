@@ -54,12 +54,14 @@
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    greedy_search = true
   []
   [source]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source
     to_multi_app = nek
     variable = heat_source
+    greedy_search = true
   []
   [source_integral]
     type = MultiAppPostprocessorTransfer
