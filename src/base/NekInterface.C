@@ -789,8 +789,7 @@ centroidFace(int local_elem_id, int local_face_id)
   double mass = 0.0;
 
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
-
-  for (int v = 0; v < mesh->Np; ++v)
+  for (int v = 0; v < mesh->Nfp; ++v)
   {
     int id = mesh->vmapM[offset + v];
     double mass_matrix = sgeo[mesh->Nsgeo * (offset + v) + WSJID];
