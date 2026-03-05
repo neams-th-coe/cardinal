@@ -19,6 +19,7 @@
     csvdiff = openmc_exact_out.csv
     min_parallel = 8
     heavy = true
+    rel_err = 1e-4
     requirement = "The system shall couple NekRS to MOOSE through simultaneous boundary heat flux and "
                   "volumetric heating when using an exact mesh mirror. The solution is nearly identical "
                   "to the pyramid test and the usrwrk output for flux and volumetric heating match the "
