@@ -9,14 +9,15 @@
   writeControl = steps
   writeInterval = 500
   polynomialOrder = 5
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  rhoCp = 50.0
+[SCALAR TEMPERATURE]
+  transportCoeff = 50.0
   boundaryTypeMap = insulated, insulated, t, insulated, flux, insulated
   residualTol = 1.0e-6
 
@@ -24,4 +25,4 @@
   # perturbing, because these are used to initialize the elliptic solvers
   # for the entire simulation, and you want to use a reasonably representative
   # value here.
-  conductivity = 5.0
+  diffusionCoeff = 5.0
