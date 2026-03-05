@@ -27,7 +27,6 @@
   cell_level = 0
 
   power = 100.0
-  check_tally_sum = false
 
   [Tallies]
     [Mesh]
