@@ -493,10 +493,6 @@ NekRSProblem::externalSolve()
   // tell NekRS what the value of nrs->isOutputStep should be
   nekrs::checkpointStep(_is_output_step);
 
-  // NekRS prints out verbose info for the first 1000 time steps
-  if (_t_step <= 1000)
-    platform->options.setArgs("VERBOSE", "TRUE");
-
   // Tell NekRS what the time step size is
   nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
                   _timestepper->nondimensionalDT(_dt),
