@@ -214,7 +214,7 @@
 []
 
 [Outputs]
-  [exo]
+  [out]
     type = Exodus
     execute_on = 'final'
   []
