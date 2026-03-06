@@ -203,13 +203,13 @@ hasVariableDt()
 bool
 hasBlendingSolver()
 {
-  return !platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return !platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
 hasUserMeshSolver()
 {
-  return platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
@@ -1281,7 +1281,7 @@ isHeatFluxBoundary(const int boundary)
 bool
 isMovingMeshBoundary(const int boundary)
 {
-  auto bcType = platform->app->bc->typeId(boundary, "mesh");
+  auto bcType = platform->app->bc->typeId(boundary, "geom");
   return bcType == bdryBase::bcType_udfDirichlet;
 }
 
