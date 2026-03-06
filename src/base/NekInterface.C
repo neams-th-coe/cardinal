@@ -113,10 +113,10 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
 
   const auto outXYZ = platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE");
 
-  if (!checkpointWriter->isInitialized()) {
-    auto visMesh = entireMesh();
-    checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
+  auto visMesh = entireMesh();
+  checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
 
+  if (!checkpointWriter->isInitialized()) {
     if (nrs->fluid) {
       if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE")) {
         std::vector<occa::memory> o_V;

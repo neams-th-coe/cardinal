@@ -253,7 +253,7 @@ NekRSProblem::writeFieldFile(const Real & step_end_time, const int & step) const
     auto full_path = _app.getOutputFileBase();
     std::string last_element(full_path.substr(full_path.rfind(name) + name.size()));
 
-    auto prefix = fieldFilePrefix(std::stoi(last_element));
+    auto prefix = fieldFilePrefix(std::stoi(last_element)) + casename();
 
     nekrs::write_field_file(prefix, t, step);
   }
