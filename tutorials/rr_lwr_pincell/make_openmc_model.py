@@ -52,28 +52,25 @@ def build_sr_pin(pin_fill, num_rings, num_sectors, fuel_or_surf) -> openmc.Unive
   print('Equal volume slices:', avg_volume)
   print('Fuel radii:', radii)
 
-  radial_surf = [openmc.ZCylinder(x0=0, y0=0, r=surf_r) for surf_r in radii[:-1]]
+  radial_surf = [openmc.ZCylinder(x0=0, y0=0, r=surf_r) for surf_r in radii[1:-1]]
   radial_surf.append(fuel_or_surf)
   azimuthal_surf = [openmc.Plane(a=-openmc.sin(angle), b=openmc.cos(angle), c=0, d=0) for angle in angles]
 
   pincell_base = openmc.Universe()
   cell_id = 0
-  if num_sectors < 2:
-    # In the case where there is only a single azimuthal region, we just subdivide in r.
-    for i in range(num_rings):
-      r_region = -radial_surf[i+1]
-      if radial_surf[i].r > 0.0:
-        r_region &= +radial_surf[i]
 
+  for i in range(num_rings):
+    r_region = -radial_surf[i]
+    if i > 0:
+      r_region &= +radial_surf[i - 1]
+
+    if num_sectors < 2:
+      # If there are no azimuthal segments, just divide in r.
       cell = openmc.Cell(fill=pin_fill, region=r_region, name=f'Fuel cell {cell_id}')
       pincell_base.add_cell(cell)
       cell_id += 1
-  else:
-    # In the case where there are multiple azimuthal segments, we subdivide in r and theta.
-    for i in range(num_rings):
-      r_region = -radial_surf[i+1]
-      if radial_surf[i].r > 0.0:
-        r_region &= +radial_surf[i]
+    else:
+      # In the case where there are multiple azimuthal segments, we subdivide in r and theta.
       for j in range(num_sectors):
         azimuthal_region = +azimuthal_surf[j] & -azimuthal_surf[(j+1) % num_sectors]
         cell = openmc.Cell(fill=pin_fill, region=r_region & azimuthal_region, name=f'Fuel cell {cell_id}')
@@ -131,8 +128,9 @@ def main() -> None:
   mod_cell = openmc.Cell(fill = h2o, region = +fuel_zr_or, name = 'Moderator Cell')
 
   ## Use the helper function to build a universe filled with subdivided
-  ## fuel source regions.
-  fuel_pin_uni = build_sr_pin(uo2, 3, 4, fuel_pin_or)
+  ## fuel source regions. The problem is symmetric in the azimuthal plane, so we only need
+  ## to subdivide the pin radially.
+  fuel_pin_uni = build_sr_pin(uo2, 3, 1, fuel_pin_or)
   ## Add the other cells to this universe.
   fuel_pin_uni.add_cells([gap_cell, clad_cell, mod_cell])
 
