@@ -258,7 +258,7 @@ public:
    * Get the density conversion factor (multiplicative factor)
    * @return density conversion factor from kg/m3 to g/cm3
    */
-  const Real & densityConversionFactor() const { return _density_conversion_factor; }
+  const Real densityConversionFactor() const;
 
   /// Number of particles that OpenMC will run in each batch
   const Real * _particles;
