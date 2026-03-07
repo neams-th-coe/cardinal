@@ -63,8 +63,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   particles = 1000
-  inactive_batches = 600
-  batches = 1000
+  inactive_batches = 200
+  batches = 600
 
   scaling = 1e2
 
