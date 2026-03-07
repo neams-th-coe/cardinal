@@ -609,7 +609,7 @@ OpenMCProblemBase::materialFill(const cellInfo & cell_info, int32_t & material_i
 const Real
 OpenMCProblemBase::densityConversionFactor() const
 {
-  // Densities are unitless when running with in multi-group mode.
+  // Densities are unitless when running in multi-group mode.
   return openmc::settings::run_CE ? _density_conversion_factor : 1.0;
 }
 
