@@ -270,7 +270,7 @@
         </mesh>
       </source_region_meshes>
       <diagonal_stabilization_rho>1.0</diagonal_stabilization_rho>
-      <source_shape>linear</source_shape>
+      <source_shape>flat</source_shape>
     </random_ray>
     <mesh id="2">
       <dimension>10 10 1</dimension>

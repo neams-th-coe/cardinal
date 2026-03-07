@@ -2468,8 +2468,9 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   // collect the volume-density product across local ranks
   std::vector<coupling::CouplingFields> phase = {coupling::density,
                                                  coupling::density_and_temperature};
+  const auto scaling = openmc::settings::run_CE ? nullptr : &_subdomain_to_ref_density;
   std::map<cellInfo, Real> cell_vol_density =
-      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, &_subdomain_to_ref_density);
+      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, scaling);
 
   for (const auto & c : _cell_to_elem)
   {
