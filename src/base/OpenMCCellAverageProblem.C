@@ -2469,7 +2469,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   std::vector<coupling::CouplingFields> phase = {coupling::density,
                                                  coupling::density_and_temperature};
   std::map<cellInfo, Real> cell_vol_density =
-      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase);
+      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, &_subdomain_to_ref_density);
 
   for (const auto & c : _cell_to_elem)
   {
@@ -2484,14 +2484,21 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
     maximum = std::max(maximum, average_density);
 
     if (_verbose)
-      _console << "Setting cell " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4)
-               << average_density << std::endl;
+      if (openmc::settings::run_CE)
+        _console << "Setting cell " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4)
+                << average_density << std::endl;
+      else
+        _console << "Setting cell " << printCell(cell_info) << " to MGXS density (-): " << std::setw(4)
+                << average_density << std::endl;
 
     setCellDensity(average_density, cell_info);
   }
 
   if (!_verbose)
-    _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
+    if (openmc::settings::run_CE)
+      _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
+    else
+      _console << " Sent cell-averaged min/max (-): " << minimum << ", " << maximum << std::endl;
 }
 
 Real

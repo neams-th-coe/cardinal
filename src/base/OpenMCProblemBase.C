@@ -606,6 +606,13 @@ OpenMCProblemBase::materialFill(const cellInfo & cell_info, int32_t & material_i
   return true;
 }
 
+const Real
+OpenMCProblemBase::densityConversionFactor() const
+{
+  // Densities are unitless when running with in multi-group mode.
+  return openmc::settings::run_CE ? _density_conversion_factor : 1.0;
+}
+
 void
 OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_info) const
 {
@@ -637,7 +644,7 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
   // properties module) to g/cm3
   int err = openmc_cell_set_density(
-      cell_info.first, _density_conversion_factor * density, &cell_info.second, false);
+      cell_info.first, densityConversionFactor() * density, &cell_info.second, false);
 
   if (err)
   {
