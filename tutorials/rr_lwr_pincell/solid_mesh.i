@@ -26,25 +26,9 @@
 
     create_outward_interface_boundaries = false
   []
-  [Rod_Bundle]
-    type = PatternedCartesianMeshGenerator
-    inputs = 'Pincell'
-    pattern = '0 0 0;
-               0 0 0;
-               0 0 0'
-
-    pattern_boundary = 'none'
-
-    external_boundary_id = 0
-    external_boundary_name = 'vacuum'
-
-    assign_type = 'cell'
-    id_name = 'pin_id'
-    generate_core_metadata = false
-  []
   [3D_Core]
     type = AdvancedExtruderGenerator
-    input = 'Rod_Bundle'
+    input = 'Pincell'
     heights = '${HEIGHT}'
     num_layers = '${AXIAL_LAYERS}'
     direction = '0.0 0.0 1.0'

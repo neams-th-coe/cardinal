@@ -7,30 +7,63 @@
   []
 []
 
+[AuxVariables]
+  [cell_density]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [cell_temperature]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
 [ICs]
-  [temp]
+  [temp_fuel]
     type = ConstantIC
     variable = temp
     value = '${T_AVG}'
   []
-  [density]
+  [temp_fluid]
+    type = FunctionIC
+    variable = 'temp'
+    function = 'T_fluid'
+    block = 'water'
+  []
+  [density_fluid]
     type = FunctionIC
     variable = 'density'
-    function = density
+    function = 'Rho_fluid'
+    block = 'water'
   []
 []
 
 [Functions]
-  [density]
+  [T_fluid]
+    type = ParsedFunction
+    expression = '${T_INLET} + ${fparse T_OUTLET - T_INLET} * ((z + ${fparse 0.5 * 1e-2 * HEIGHT}) / ${fparse 1e-2 * HEIGHT})'
+  []
+  [Rho_fluid]
     type = ParsedFunction
     expression = '${RHO_INLET} + ${fparse RHO_OUTLET - RHO_INLET} * ((z + ${fparse 0.5 * 1e-2 * HEIGHT}) / ${fparse 1e-2 * HEIGHT})'
+  []
+[]
+
+[AuxKernels]
+  [cell_density]
+    type = CellDensityAux
+    variable = cell_density
+  []
+  [cell_temperature]
+    type = CellTemperatureAux
+    variable = cell_temperature
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
   particles = 1000
-  inactive_batches = 50
+  inactive_batches = 600
   batches = 1000
 
   scaling = 1e2
@@ -41,7 +74,7 @@
   skip_statepoint = true
 
   cell_level = 1
-  temperature_blocks = 'uo2_tri uo2'
+  temperature_blocks = 'uo2_tri uo2 water'
   density_blocks = 'water'
   mgxs_reference_densities = '1002.0'
 
