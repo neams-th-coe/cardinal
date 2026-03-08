@@ -123,6 +123,11 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _has_outputs(isParamValid("output")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
 {
+  if (_needs_global_tally && _openmc_problem.runRandomRay())
+    mooseError("Cannot add global tallies when running in random "
+               "ray mode! Please set 'normalize_by_global_tally' "
+               "and 'check_tally_sum' to false.");
+
   if (isParamValid("score"))
   {
     const auto & scores = getParam<MultiMooseEnum>("score");
