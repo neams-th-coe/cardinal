@@ -86,7 +86,7 @@
     output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
     block = 'uo2 uo2_tri'
 
-    normalize_by_global_tally = true
+    normalize_by_global_tally = false
   []
 []
 
