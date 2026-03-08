@@ -63,14 +63,13 @@
 [Problem]
   type = OpenMCCellAverageProblem
   particles = 1000
-  inactive_batches = 200
-  batches = 600
+  inactive_batches = 400
+  batches = 800
 
   scaling = 1e2
 
   power = ${fparse 3000e6 / 273 / (18 * 18)}
 
-  assume_separate_tallies = true
   skip_statepoint = true
 
   cell_level = 1
@@ -87,7 +86,7 @@
     output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
     block = 'uo2 uo2_tri'
 
-    normalize_by_global_tally = false
+    normalize_by_global_tally = true
   []
 []
 
