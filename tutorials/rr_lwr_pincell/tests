@@ -1,0 +1,19 @@
+[Tests]
+  [solid_mesh]
+    type = RunApp
+    input = solid_mesh.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall be able to create a mesh for the solid region in a pincell."
+  []
+  [openmc]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Problem/particles=100 Executioner/num_steps=1 Problem/inactive_batches=50 Problem/batches=100'
+    rel_err = 6e-5
+    requirement = "The system shall be able to run OpenMC in random ray mode with temperature and "
+                  "density feedback from MOOSE."
+    prereq = 'solid_mesh'
+    capabilities = 'openmc'
+  []
+[]
