@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <model>
   <materials>
-    <cross_sections>/home/kevincs2/Projects/cardinal/tutorials/rr_lwr_pincell/mgxs.h5</cross_sections>
+    <cross_sections>./mgxs.h5</cross_sections>
     <material id="1" name="UO2_Fuel" depletable="true">
       <density value="1.0" units="macro"/>
       <macroscopic name="UO2_Fuel"/>
@@ -28,203 +28,203 @@
       <dimension>1 1 100</dimension>
       <lower_left>-0.63 -0.63 -100.0</lower_left>
       <universes>
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
-1 
+1
 
 1 </universes>
     </lattice>
