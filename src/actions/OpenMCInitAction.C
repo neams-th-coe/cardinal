@@ -45,7 +45,7 @@ OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters)
 void
 OpenMCInitAction::act()
 {
-  if (_type != "OpenMCCellAverageProblem") // TODO: add more types?
+  if (_type != "OpenMCCellAverageProblem")
     return;
 
   const auto timeStart = std::chrono::high_resolution_clock::now();
@@ -73,7 +73,7 @@ OpenMCInitAction::act()
   // Initialize OpenMC
   openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 
-  // Timer - TODO - maybe not needed
+  // Timer
   double elapsedTime = 0;
   const auto timeStop = std::chrono::high_resolution_clock::now();
   elapsedTime += std::chrono::duration<double, std::milli>(timeStop - timeStart).count() / 1e3;
