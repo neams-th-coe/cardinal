@@ -43,7 +43,7 @@
     <output>
       <summary>false</summary>
     </output>
-    <temperature_default>600.0</temperature_default>
+    <temperature_default>294.0</temperature_default>
     <temperature_method>nearest</temperature_method>
     <temperature_range>294.0 1600.0</temperature_range>
   </settings>

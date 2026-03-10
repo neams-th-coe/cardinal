@@ -2,7 +2,8 @@
 
 #include "RotationSearch.h"
 #include "openmc/capi.h"
-#include "UserObjectInterface.h"
+
+registerMooseObject("CardinalApp", RotationSearch);
 
 InputParameters
 RotationSearch::validParams()
@@ -55,21 +56,13 @@ RotationSearch::updateOpenMCModel(const Real & angle)
 {
   _console << "Searching for drum angle = " << angle << units() << std::endl;
 
-  switch (_rotation_axis_char)
-  {
-    case 'x':
-      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, angle),
-                               std::make_tuple(_t->_t1_pp_name, Real(0.0)),
-                               std::make_tuple(_t->_t2_pp_name, Real(0.0)));
-    case 'y':
-      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, Real(0.0)),
-                               std::make_tuple(_t->_t1_pp_name, angle),
-                               std::make_tuple(_t->_t2_pp_name, Real(0.0)));
-    case 'z':
-      _t->setTransformPPValues(std::make_tuple(_t->_t0_pp_name, Real(0.0)),
-                               std::make_tuple(_t->_t1_pp_name, Real(0.0)),
-                               std::make_tuple(_t->_t2_pp_name, angle));
-  }
+  // make a vectorized version of the rotation angle with 0 for the non-rotating axes
+  std::vector<Real> angles = {Real(0.0), Real(0.0), Real(0.0)};
+  angles[int(_rotation_axis_char)] =
+      angle; // the enum default indices correspond to which vector component is non zero
+
+  // set the transform values using the angle vector
+  _t->setTransformPPValues(angles[0], angles[1], angles[2]);
 }
 
 #endif

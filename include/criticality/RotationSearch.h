@@ -3,6 +3,7 @@
 #include "CriticalitySearchBase.h"
 #include "OpenMCCellTransform.h"
 #include "CardinalEnums.h"
+#include "UserObjectInterface.h"
 
 /**
  * Perform a criticality search based  Pon a material
@@ -18,6 +19,10 @@ public:
 
 protected:
   virtual std::string units() const override { return "[degrees]"; }
+  virtual std::string quantity() const override
+  {
+    return "Rotation of UserObject " + _transform_name;
+  }
 
   // name of the OpenMCCellTransform UserObject used to control the criticality search
   const UserObjectName _transform_name;

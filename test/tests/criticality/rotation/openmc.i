@@ -26,6 +26,8 @@
     type = RotationSearch
     transform_name = 'RotateInnerCyl'
     rotation_axis = 'z'
+    minimum = '0.0'
+    maximum = '180.0'
   []
 []
 
@@ -34,7 +36,7 @@
     type = OpenMCCellTransform
     transform_type = 'rotation'
     cell_ids = '5'
-    vector_value = '0 0 drum_angle'
+    vector_value = '0.0 0.0 drum_angle'
     execute_on = 'timestep_begin'
   []
 []
@@ -66,6 +68,6 @@
 
 [Outputs]
   csv = true
-  hide = 'k k_residual critical_valu drum_angle'
+  hide = 'k k_residual critical_value drum_angle'
 []
 

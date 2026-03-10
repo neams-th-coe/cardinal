@@ -31,17 +31,10 @@ public:
 
   OpenMCCellTransform(const InputParameters & parameters);
 
-  /// Name of each postprocessor
-  const PostprocessorName _t0_pp_name;
-  const PostprocessorName _t1_pp_name;
-  const PostprocessorName _t2_pp_name;
-
   /// Transform type: "translation" or "rotation"
   const MooseEnum _transform_type;
 
-  void setTransformPPValues(std::tuple<PostprocessorName, Real> pp_name_value_tuple_0,
-                            std::tuple<PostprocessorName, Real> pp_name_value_tuple_1,
-                            std::tuple<PostprocessorName, Real> pp_name_value_tuple_2);
+  void setTransformPPValues(const Real t0_pp_value, const Real t1_pp_value, const Real t2_pp_value);
 
   virtual void initialize() override {}
   virtual void execute() override;

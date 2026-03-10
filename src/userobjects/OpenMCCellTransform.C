@@ -55,9 +55,6 @@ OpenMCCellTransform::validParams()
 OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     OpenMCBase(this, parameters),
-    _t0_pp_name(getPostprocessorName("vector_value", 0)),
-    _t1_pp_name(getPostprocessorName("vector_value", 1)),
-    _t2_pp_name(getPostprocessorName("vector_value", 2)),
     _transform_type(getParam<MooseEnum>("transform_type"))
 {
   const auto & ids = getParam<std::vector<int32_t>>("cell_ids");
@@ -79,18 +76,17 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
 }
 
 void
-OpenMCCellTransform::setTransformPPValues(
-    const std::tuple<PostprocessorName, Real> pp_name_value_tuple_0,
-    const std::tuple<PostprocessorName, Real> pp_name_value_tuple_1,
-    const std::tuple<PostprocessorName, Real> pp_name_value_tuple_2)
+OpenMCCellTransform::setTransformPPValues(const Real t0_pp_value,
+                                          const Real t1_pp_value,
+                                          const Real t2_pp_value)
 {
-  // each tuple contains the string name of the postprocessor and the value to set it
-  _openmc_problem->setPostprocessorValueByName(
-      std::get<0>(pp_name_value_tuple_0), std::get<1>(pp_name_value_tuple_0), 0);
-  _openmc_problem->setPostprocessorValueByName(
-      std::get<0>(pp_name_value_tuple_1), std::get<1>(pp_name_value_tuple_1), 0);
-  _openmc_problem->setPostprocessorValueByName(
-      std::get<0>(pp_name_value_tuple_2), std::get<1>(pp_name_value_tuple_2), 0);
+  PostprocessorName t0_pp_name = getPostprocessorName("vector_value", 0);
+  PostprocessorName t1_pp_name = getPostprocessorName("vector_value", 1);
+  PostprocessorName t2_pp_name = getPostprocessorName("vector_value", 2);
+
+  _openmc_problem->setPostprocessorValueByName(t0_pp_name, t0_pp_value, 0);
+  _openmc_problem->setPostprocessorValueByName(t1_pp_name, t1_pp_value, 0);
+  _openmc_problem->setPostprocessorValueByName(t2_pp_name, t2_pp_value, 0);
 }
 
 void

@@ -55,7 +55,7 @@ cylindrical_source = openmc.stats.CylindricalIndependent(r=radii, phi=angles, z=
 settings.source = openmc.IndependentSource(space=cylindrical_source)
 settings.output = {"summary": False}
 settings.temperature = {
-    "default": 600.0,
+    "default": 294.0,
     "method": "nearest",
     "range": (294.0, 1600.0),
 }
