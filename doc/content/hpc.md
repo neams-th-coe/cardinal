@@ -21,18 +21,25 @@ for more information.
 
 ## Improv
 
-Last updated on 01/15/2025
+Last updated on 03/06/2026
 
 [Improv](https://docs.lcrc.anl.gov/improv/getting-started-improv/)
 is an [!ac](HPC) system at [!ac](ANL) with 825 AMD EPYC dual-socket
-nodes (128 cores per node).
+nodes (128 cores per node). After loading the `miniforge3/25.3.0` module,
+you will need to pip install two python modules.
+
+```
+pip install pyaml
+pip install jinja2
+```
 
 !listing! language=bash caption=Sample `~/.bashrc` for Improv id=im1
 module purge
 module load gcc/11.4.0
-module load openmpi/5.0.0-gcc-11.4.0
+module load openmpi/4.1.6-gcc-11.4.0-pbs
 module load cmake/3.27.4
-module load anaconda3/2024.10
+module load perl/5.38.0-gcc-11.4.0
+module load miniforge3/25.3.0
 
 export CC=mpicc
 export CXX=mpicxx
