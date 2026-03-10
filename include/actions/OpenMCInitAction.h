@@ -33,8 +33,6 @@ public:
   virtual void act() override;
 
 protected:
-
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;
-
 };

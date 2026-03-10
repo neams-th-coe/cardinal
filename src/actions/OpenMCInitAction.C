@@ -37,8 +37,7 @@ OpenMCInitAction::validParams()
 }
 
 OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters),
-    _xml_directory(getParam<FileName>("xml_directory"))
+  : MooseObjectAction(parameters), _xml_directory(getParam<FileName>("xml_directory"))
 {
 }
 
@@ -79,7 +78,6 @@ OpenMCInitAction::act()
   elapsedTime += std::chrono::duration<double, std::milli>(timeStop - timeStart).count() / 1e3;
 
   _console << "OpenMC initialization took " << elapsedTime << " s" << std::endl;
-
 }
 
 #endif
