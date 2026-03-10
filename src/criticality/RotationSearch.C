@@ -25,9 +25,22 @@ RotationSearch::RotationSearch(const InputParameters & parameters)
     _rotation_axis_char(getParam<MooseEnum>("rotation_axis"))
 {
   // update the OpenMCCellTransform UserObject with the last iteration critical guess
+  try
+  {
+    &getUserObjectByName<OpenMCCellTransform>(_transform_name);
+  }
+  catch (const std::exception & e)
+  {
+    std::string s = e.what();
+    paramError(
+        "transform_name",
+        "In attempting to get the OpenMCCellTransform UserObject, the following error occurred: " +
+            s +
+            "\nThis likely means that the name provided either is incorrect or is not an "
+            "OpenMCCellTransform UserObject.");
+  }
   _t =
       const_cast<OpenMCCellTransform *>(&getUserObjectByName<OpenMCCellTransform>(_transform_name));
-
   // check that the specified transform is a rotational transform
   if (_t->_transform_type != "rotation")
     paramError("transform_name",
