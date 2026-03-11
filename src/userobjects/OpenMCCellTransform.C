@@ -20,6 +20,7 @@
 
 #include "OpenMCCellTransform.h"
 #include "UserErrorChecking.h"
+#include "MooseUtils.h"
 
 registerMooseObject("CardinalApp", OpenMCCellTransform);
 
@@ -64,8 +65,8 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   if (_cell_ids.size() != ids.size())
     paramError("cell_ids", "Duplicate OpenMC cell IDs were detected. Provide each ID only once.");
 
-  const auto & t = getParam<std::vector<PostprocessorName>>("vector_value");
-  if (t.size() != 3)
+  const auto & pp_name_vector = getParam<std::vector<PostprocessorName>>("vector_value");
+  if (pp_name_vector.size() != 3)
     paramError("vector_value",
                "Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translation"
                "transform or 'φ, θ, ψ' in degrees for rotation transform.");
@@ -80,13 +81,13 @@ OpenMCCellTransform::setTransformPPValues(const Real t0_pp_value,
                                           const Real t1_pp_value,
                                           const Real t2_pp_value)
 {
-  PostprocessorName t0_pp_name = getPostprocessorName("vector_value", 0);
-  PostprocessorName t1_pp_name = getPostprocessorName("vector_value", 1);
-  PostprocessorName t2_pp_name = getPostprocessorName("vector_value", 2);
-
-  _openmc_problem->setPostprocessorValueByName(t0_pp_name, t0_pp_value, 0);
-  _openmc_problem->setPostprocessorValueByName(t1_pp_name, t1_pp_value, 0);
-  _openmc_problem->setPostprocessorValueByName(t2_pp_name, t2_pp_value, 0);
+  const auto & pp_name_vector = getParam<std::vector<PostprocessorName>>("vector_value");
+  if (!MooseUtils::isFloat(pp_name_vector[0]))
+    _openmc_problem->setPostprocessorValueByName(pp_name_vector[0], t0_pp_value, 0);
+  if (!MooseUtils::isFloat(pp_name_vector[1]))
+    _openmc_problem->setPostprocessorValueByName(pp_name_vector[1], t1_pp_value, 0);
+  if (!MooseUtils::isFloat(pp_name_vector[2]))
+    _openmc_problem->setPostprocessorValueByName(pp_name_vector[2], t2_pp_value, 0);
 }
 
 void

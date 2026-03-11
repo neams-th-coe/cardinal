@@ -4,8 +4,8 @@
   [annulus]
     type = ConcentricCircleMeshGenerator
     radii = '${r_inner} ${r_outer}'
-    rings = '2 2'
-    num_sectors = '12'
+    rings = '1 1'
+    num_sectors = '4'
     has_outer_square = 'False'
     preserve_volumes = 'False'
   []

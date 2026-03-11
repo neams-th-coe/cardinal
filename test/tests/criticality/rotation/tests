@@ -4,7 +4,7 @@
     type = RunException
     input = wrong_UO_type.i
     expect_err = "In attempting to get the OpenMCCellTransform UserObject, the following error occurred:"
-    requirement = 'The system shall error if the UserObject that is passed to a RotationSearch is not an OpenMCCellTransform UO."
+    requirement = 'The system shall error if the UserObject that is passed to a RotationSearch is not an OpenMCCellTransform UO.'
     capabilities = 'openmc'
   []
   [rotation_search]
