@@ -24,29 +24,6 @@
     variable = temp
     value = '${T_AVG}'
   []
-  [temp_fluid]
-    type = FunctionIC
-    variable = 'temp'
-    function = 'T_fluid'
-    block = 'water'
-  []
-  [density_fluid]
-    type = FunctionIC
-    variable = 'density'
-    function = 'Rho_fluid'
-    block = 'water'
-  []
-[]
-
-[Functions]
-  [T_fluid]
-    type = ParsedFunction
-    expression = '${T_INLET} + ${fparse T_OUTLET - T_INLET} * ((z + ${fparse 0.5 * 1e-2 * HEIGHT}) / ${fparse 1e-2 * HEIGHT})'
-  []
-  [Rho_fluid]
-    type = ParsedFunction
-    expression = '${RHO_INLET} + ${fparse RHO_OUTLET - RHO_INLET} * ((z + ${fparse 0.5 * 1e-2 * HEIGHT}) / ${fparse 1e-2 * HEIGHT})'
-  []
 []
 
 [AuxKernels]
@@ -73,9 +50,7 @@
   skip_statepoint = true
 
   cell_level = 1
-  temperature_blocks = 'uo2_tri uo2 water'
-  density_blocks = 'water'
-  mgxs_reference_densities = '1002.0'
+  temperature_blocks = 'uo2_tri uo2'
 
   relaxation = 'constant'
   relaxation_factor = 0.5
