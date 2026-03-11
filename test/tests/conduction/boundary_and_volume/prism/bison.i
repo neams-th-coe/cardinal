@@ -15,6 +15,8 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [flux_projected]
+  []
   [source]
   []
   [nek_temp]
@@ -39,6 +41,11 @@
     component = normal
     diffusivity = thermal_conductivity
     boundary = '2'
+  []
+  [flux_projected]
+    type = ProjectionAux
+    variable = flux_projected
+    v = flux
   []
 []
 
@@ -102,6 +109,6 @@
   exodus = true
   print_linear_residuals = false
   execute_on = 'final'
-  interval = 30
+  time_step_interval = 30
   hide = 'flux_integral source_integral'
 []
