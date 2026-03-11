@@ -82,6 +82,10 @@ MoabSkinner::validParams()
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
+  params.addParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces",
+                                             "Sideset names/ids to assign vacuum BCs to");
+  params.addParam<std::vector<BoundaryName>>("reflective_bcs_surfaces",
+                                             "Sideset names/ids to assign reflective BCs to");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
   return params;
@@ -117,6 +121,17 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _set_implicit_complement_material = true;
     _implicit_complement_group_name =
         "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
+  }
+  if (isParamSetByUser("vacuum_bcs_surfaces"))
+  {
+    _set_bcs = true;
+    _vacuum_bcs_surfaces = getParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces");
+  }
+
+  if (isParamSetByUser("reflective_bcs_surfaces"))
+  {
+    _set_bcs = true;
+    _reflective_bcs_surfaces = getParam<std::vector<BoundaryName>>("reflective_bcs_surfaces");
   }
 
   // we can probably support this in the future, it's just not implemented yet
@@ -343,8 +358,7 @@ MoabSkinner::createMOABElems()
 {
   // Clear prior results
   _id_to_elem_handles.clear();
-
-  std::map<dof_id_type, moab::EntityHandle> node_id_to_handle;
+  _node_id_to_handle.clear();
 
   double coords[3];
 
@@ -361,7 +375,7 @@ MoabSkinner::createMOABElems()
     check(_moab->create_vertex(coords, ent));
 
     // Save mapping of libMesh IDs to MOAB vertex handles
-    node_id_to_handle[node->id()] = ent;
+    _node_id_to_handle[node->id()] = ent;
   }
 
   moab::Range all_elems;
@@ -384,7 +398,7 @@ MoabSkinner::createMOABElems()
       {
         // Get the elem node index of the ith node of the sub-tet
         unsigned int nodeIndex = nodeSet.at(i);
-        conn[i] = node_id_to_handle[conn_libmesh.at(nodeIndex)];
+        conn[i] = _node_id_to_handle[conn_libmesh.at(nodeIndex)];
       }
 
       // Create an element in MOAB database
@@ -766,9 +780,197 @@ MoabSkinner::findSurfaces()
     }
     check(_moab->add_entities(comp_group, &arbitray_volume, 1));
   }
+  if (_set_bcs)
+    addBoundaryConditionGroups();
 
   // Write MOAB volume and/or skin meshes to file
   write();
+}
+
+void
+MoabSkinner::addBoundaryConditionGroups()
+{
+  auto namesToSidesetIDs =
+      [&](const std::vector<BoundaryName> & names, const std::string & param_name)
+  {
+    std::set<BoundaryID> sidesetIDs;
+    for (const auto & n : names)
+    {
+      const BoundaryID id = getMooseMesh().getBoundaryID(n);
+      if (!getMooseMesh().meshSidesetIds().count(id))
+        mooseError("Boundary '", n, "' is not a sideset.");
+      sidesetIDs.insert(id);
+    }
+    return sidesetIDs;
+  };
+
+  const auto vac_ids = namesToSidesetIDs(_vacuum_bcs_surfaces, "vacuum_bcs_surfaces");
+  const auto ref_ids = namesToSidesetIDs(_reflective_bcs_surfaces, "reflective_bcs_surfaces");
+
+  for (auto id : vac_ids)
+    if (ref_ids.count(id))
+      mooseError(
+          "Same sideset ", id, " appears in both vacuum_bcs_surfaces and reflective_bcs_surfaces.");
+
+  moab::Range vac_tris, ref_tris;
+
+  const auto & boundary_info = getMooseMesh().getMesh().get_boundary_info();
+
+  for (const auto * elem : getMooseMesh().getMesh().active_element_ptr_range())
+  {
+    auto elem_to_moab_tets_it = _id_to_elem_handles.find(elem->id());
+    if (elem_to_moab_tets_it == _id_to_elem_handles.end())
+      continue;
+
+    for (unsigned int s = 0; s < elem->n_sides(); ++s)
+    {
+      std::vector<boundary_id_type> side_boundary_ids;
+      boundary_info.boundary_ids(elem, s, side_boundary_ids);
+      if (side_boundary_ids.empty())
+        continue;
+
+      bool want_vac = false;
+      bool want_ref = false;
+      for (auto boundary_id : side_boundary_ids)
+      {
+        if (vac_ids.count(boundary_id))
+          want_vac = true;
+        if (ref_ids.count(boundary_id))
+          want_ref = true;
+      }
+      if (!want_vac && !want_ref)
+        continue;
+
+      std::unique_ptr<const Elem> side_elem = elem->build_side_ptr(s);
+      std::set<moab::EntityHandle> side_verts;
+      for (unsigned int i = 0; i < side_elem->n_nodes(); ++i)
+        side_verts.insert(_node_id_to_handle[side_elem->node_id(i)]);
+
+      for (const auto tet : elem_to_moab_tets_it->second)
+      {
+        moab::Range tri_faces;
+        check(_moab->get_adjacencies(&tet, 1, 2, true, tri_faces));
+
+        for (const auto tri : tri_faces)
+        {
+          const moab::EntityHandle * conn = nullptr;
+          int nconn = 0;
+          check(_moab->get_connectivity(tri, conn, nconn));
+          if (nconn != 3)
+            continue;
+
+          if (side_verts.count(conn[0]) && side_verts.count(conn[1]) && side_verts.count(conn[2]))
+          {
+            if (want_vac)
+              vac_tris.insert(tri);
+            if (want_ref)
+              ref_tris.insert(tri);
+          }
+        }
+      }
+    }
+  }
+
+  if (vac_tris.empty() && ref_tris.empty())
+    return;
+
+  unsigned int next_surface_id = 1;
+  {
+    unsigned int max_surface_id = 0;
+    for (const auto & surface_entry : surfsToVols)
+    {
+      const moab::EntityHandle moab_surface_meshset = surface_entry.first;
+      unsigned int surface_id = 0;
+      check(_moab->tag_get_data(id_tag, &moab_surface_meshset, 1, &surface_id));
+      max_surface_id = std::max(max_surface_id, surface_id);
+    }
+    next_surface_id = max_surface_id + 1;
+  }
+
+  std::vector<moab::EntityHandle> surface_meshsets;
+  surface_meshsets.reserve(surfsToVols.size());
+  for (const auto & surface_entry : surfsToVols)
+    surface_meshsets.push_back(surface_entry.first);
+
+  for (const auto moab_surface_meshset : surface_meshsets)
+  {
+    moab::Range triangles_in_surface_meshset;
+    check(_moab->get_entities_by_handle(moab_surface_meshset, triangles_in_surface_meshset));
+    if (triangles_in_surface_meshset.empty())
+      continue;
+
+    const moab::Range vacuum_triangles_on_surface =
+        moab::intersect(triangles_in_surface_meshset, vac_tris);
+
+    const moab::Range reflective_triangles_on_surface =
+        moab::intersect(triangles_in_surface_meshset, ref_tris);
+
+    if (vacuum_triangles_on_surface.empty() || reflective_triangles_on_surface.empty())
+      continue;
+
+    const std::vector<VolData> & surface_volume_data = surfsToVols[moab_surface_meshset];
+
+    moab::Range remainder_triangles = triangles_in_surface_meshset;
+    for (const auto tri : vacuum_triangles_on_surface)
+      remainder_triangles.erase(tri);
+    for (const auto tri : reflective_triangles_on_surface)
+      remainder_triangles.erase(tri);
+
+    if (remainder_triangles.empty())
+    {
+      moab::Range triangles_to_remove_from_existing = triangles_in_surface_meshset;
+      for (const auto tri : vacuum_triangles_on_surface)
+        triangles_to_remove_from_existing.erase(tri);
+
+      if (!triangles_to_remove_from_existing.empty())
+        check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove_from_existing));
+
+      moab::EntityHandle new_reflective_surface_meshset = 0;
+      moab::Range reflective_part = reflective_triangles_on_surface;
+      createSurf(
+          next_surface_id++, new_reflective_surface_meshset, reflective_part, surface_volume_data);
+    }
+    else
+    {
+      moab::Range triangles_to_remove = vacuum_triangles_on_surface;
+      triangles_to_remove.merge(reflective_triangles_on_surface);
+      check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove));
+
+      moab::EntityHandle new_vacuum_surface_meshset = 0;
+      moab::Range vacuum_part = vacuum_triangles_on_surface;
+      createSurf(next_surface_id++, new_vacuum_surface_meshset, vacuum_part, surface_volume_data);
+
+      moab::EntityHandle new_reflective_surface_meshset = 0;
+      moab::Range reflective_part = reflective_triangles_on_surface;
+      createSurf(
+          next_surface_id++, new_reflective_surface_meshset, reflective_part, surface_volume_data);
+    }
+  }
+
+  unsigned int gid = nBins() + 2;
+  if (_build_graveyard)
+    gid += 1;
+  moab::EntityHandle vac_group = 0, ref_group = 0;
+  if (!vac_tris.empty())
+    createGroup(gid++, "boundary:vacuum", vac_group);
+  if (!ref_tris.empty())
+    createGroup(gid++, "boundary:Reflecting", ref_group);
+
+  for (const auto & surf_pair : surfsToVols)
+  {
+    const moab::EntityHandle surf_set = surf_pair.first;
+    moab::Range tris;
+    check(_moab->get_entities_by_handle(surf_set, tris));
+
+    const bool has_vacuum_tris = (!vac_tris.empty() && !moab::intersect(tris, vac_tris).empty());
+    const bool has_reflective_tris =
+        (!ref_tris.empty() && !moab::intersect(tris, ref_tris).empty());
+
+    if (has_vacuum_tris)
+      check(_moab->add_entities(vac_group, &surf_set, 1));
+    if (has_reflective_tris)
+      check(_moab->add_entities(ref_group, &surf_set, 1));
+  }
 }
 
 void
