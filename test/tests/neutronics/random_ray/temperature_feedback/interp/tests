@@ -1,0 +1,12 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [temp_interp]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall support temperature feedback to OpenMC's random ray solver with linear interpolation."
+    capabilities = 'openmc'
+  []
+[]
