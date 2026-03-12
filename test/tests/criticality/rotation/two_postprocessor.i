@@ -37,7 +37,7 @@
     type = OpenMCCellTransform
     transform_type = 'rotation'
     cell_ids = '5'
-    vector_value = '0.0 0.0 drum_angle'
+    vector_value = '0.0 drum_angle drum_angle'
   []
 []
 

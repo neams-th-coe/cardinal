@@ -48,8 +48,7 @@
 # This test will output a 1 to CSV if the timestep converges a criticality search
 [Postprocessors]
   [drum_angle]
-    type = ConstantPostprocessor
-    value = '90'
+    type = Receiver
   []
   [k]
     type = KEigenvalue

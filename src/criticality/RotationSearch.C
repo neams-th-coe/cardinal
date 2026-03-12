@@ -49,6 +49,8 @@ RotationSearch::RotationSearch(const InputParameters & parameters)
                    _transform_name +
                    ", which does not modify a cell rotation."
                    "Please select a transform that rotates a control drum cell.");
+  // confirm that rotation specified is valid for a criticality search
+  _t->checkTransformIsValidRotationForCriticalitySearch();
 }
 
 void

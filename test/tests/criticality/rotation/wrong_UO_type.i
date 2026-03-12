@@ -32,13 +32,18 @@
     type = RotationSearch
     transform_name = 'wrong_uo_type'
     rotation_axis = 'z'
+    minimum = '0.0'
+    maximum = '90.0'
+    tolerance = 1e-2
   []
 []
 
 [UserObjects]
   [wrong_uo_type]
     type = LayeredAverage
-    variable = z
+    variable = 'z'
+    num_layers = '1'
+    direction = 'z'
   []
 []
 

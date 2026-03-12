@@ -35,6 +35,8 @@ public:
 
   void setTransformPPValues(const std::vector<Real> pp_values);
 
+  void checkTransformIsValidRotationForCriticalitySearch() const;
+
   virtual void initialize() override {}
   virtual void execute() override;
   virtual void finalize() override {}
