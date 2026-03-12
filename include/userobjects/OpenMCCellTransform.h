@@ -31,10 +31,9 @@ public:
 
   OpenMCCellTransform(const InputParameters & parameters);
 
-  /// Transform type: "translation" or "rotation"
-  const MooseEnum _transform_type;
+  MooseEnum getTransformType() const;
 
-  void setTransformPPValues(const Real t0_pp_value, const Real t1_pp_value, const Real t2_pp_value);
+  void setTransformPPValues(const std::vector<Real> pp_values);
 
   virtual void initialize() override {}
   virtual void execute() override;
@@ -43,6 +42,9 @@ public:
 protected:
   /// OpenMC cell IDs to which the translation will be applied
   std::set<int32_t> _cell_ids;
+
+  /// Transform type: "translation" or "rotation"
+  const MooseEnum _transform_type;
 
   /// Postprocessor providing the first entry of the transform array
   const PostprocessorValue * _t0_pp;

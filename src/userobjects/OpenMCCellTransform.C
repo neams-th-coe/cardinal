@@ -76,18 +76,28 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
   _t2_pp = &getPostprocessorValue("vector_value", 2);
 }
 
-void
-OpenMCCellTransform::setTransformPPValues(const Real t0_pp_value,
-                                          const Real t1_pp_value,
-                                          const Real t2_pp_value)
+MooseEnum
+OpenMCCellTransform::getTransformType() const
 {
+  return _transform_type;
+}
+
+void
+OpenMCCellTransform::setTransformPPValues(const std::vector<Real> pp_values)
+{
+  size_t num_pp_values = pp_values.size();
+  if (num_pp_values != 3)
+  {
+    mooseError(
+        "Attempting to use OpenMCCellTransform::setTransformPPValues with a vector that has size " +
+        std::to_string(num_pp_values) + " but it must be exactly of size 3.");
+  }
   const auto & pp_name_vector = getParam<std::vector<PostprocessorName>>("vector_value");
-  if (!MooseUtils::isFloat(pp_name_vector[0]))
-    _openmc_problem->setPostprocessorValueByName(pp_name_vector[0], t0_pp_value, 0);
-  if (!MooseUtils::isFloat(pp_name_vector[1]))
-    _openmc_problem->setPostprocessorValueByName(pp_name_vector[1], t1_pp_value, 0);
-  if (!MooseUtils::isFloat(pp_name_vector[2]))
-    _openmc_problem->setPostprocessorValueByName(pp_name_vector[2], t2_pp_value, 0);
+  for (size_t pp_idx = 0; pp_idx < num_pp_values; pp_idx++)
+  {
+    if (!MooseUtils::isFloat(pp_name_vector[pp_idx]))
+      _openmc_problem->setPostprocessorValueByName(pp_name_vector[pp_idx], pp_values[pp_idx], 0);
+  }
 }
 
 void
@@ -117,8 +127,8 @@ OpenMCCellTransform::execute()
       // If a user tried to apply translation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_translation(index, vec);
-      _console << "Setting OpenMC cell translations for cell with ID " + std::to_string(cell_id) +
-                      " to ("
+      _console << "Setting OpenMC cell(s) translation for cell(s) with ID " +
+                      std::to_string(cell_id) + " to ("
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
     }
     else if (_transform_type == "rotation")
@@ -138,7 +148,7 @@ OpenMCCellTransform::execute()
       // If a user tried to apply rotation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_rotation(index, vec, 3);
-      _console << "Setting OpenMC cell rotations for cell with ID " + std::to_string(cell_id) +
+      _console << "Setting OpenMC cell rotation(s) for cell(s) with ID " + std::to_string(cell_id) +
                       "to ("
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
     }

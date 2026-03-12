@@ -43,7 +43,7 @@ RotationSearch::RotationSearch(const InputParameters & parameters)
   _t =
       const_cast<OpenMCCellTransform *>(&getUserObjectByName<OpenMCCellTransform>(_transform_name));
   // check that the specified transform is a rotational transform
-  if (_t->_transform_type != "rotation")
+  if (_t->getTransformType() != "rotation")
     paramError("transform_name",
                "You have attempted search for critical drum angle on the OpenMCCellTransform " +
                    _transform_name +
@@ -62,7 +62,8 @@ RotationSearch::updateOpenMCModel(const Real & angle)
       angle; // the enum default indices correspond to which vector component is non zero
 
   // set the transform values using the angle vector
-  _t->setTransformPPValues(angles[0], angles[1], angles[2]);
+  _t->setTransformPPValues(angles);
+  _t->execute();
 }
 
 #endif
