@@ -21,6 +21,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "GeneralUserObject.h"
+#include "PostprocessorInterface.h"
 #include "OpenMCBase.h"
 
 class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
@@ -29,6 +30,12 @@ public:
   static InputParameters validParams();
 
   OpenMCCellTransform(const InputParameters & parameters);
+
+  MooseEnum getTransformType() const;
+
+  void setTransformPPValues(const std::vector<Real> pp_values);
+
+  void checkTransformIsValidRotationForCriticalitySearch() const;
 
   virtual void initialize() override {}
   virtual void execute() override;
