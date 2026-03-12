@@ -30,9 +30,9 @@
   </geometry>
   <settings>
     <run_mode>eigenvalue</run_mode>
-    <particles>100000</particles>
-    <batches>300</batches>
-    <inactive>100</inactive>
+    <particles>10000</particles>
+    <batches>50</batches>
+    <inactive>10</inactive>
     <source type="independent" strength="1.0" particle="neutron">
       <space type="cylindrical" origin="0.0 0.0 0.0">
         <r type="uniform" parameters="0.0 20.0"/>

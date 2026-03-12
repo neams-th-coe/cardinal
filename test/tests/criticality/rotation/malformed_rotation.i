@@ -37,7 +37,7 @@
     type = OpenMCCellTransform
     transform_type = 'rotation'
     cell_ids = '5'
-    vector_value = '0.0 0.0 drum_angle'
+    vector_value = '1.0 2.0 drum_angle'
   []
 []
 
@@ -70,4 +70,3 @@
   csv = true
   hide = 'k k_residual critical_value drum_angle'
 []
-
