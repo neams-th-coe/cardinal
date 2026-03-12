@@ -402,8 +402,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
 
   // When running in multi-group mode, the user needs to provide a reference density if density
-  // feedback is specified (to convert to the dimensionless MGXS density).
-  // TODO: support density scaling per block.
+  // feedback is specified (to convert to the dimensionless MGXS density). In the future, it would
+  // be nice if OpenMC materials could store their own reference densities (in multi-group mode)
+  // as this is rather error prone.
   if (!openmc::settings::run_CE && _specified_density_feedback)
   {
     checkRequiredParam(params,
@@ -416,7 +417,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       density_vars.push_back(density_var);
 
     if (density_scales.size() != density_vars.size())
-      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!");
+      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_blocks'!");
 
     for (unsigned int i = 0; i < density_vars.size(); i++)
       _density_vars_to_ref_density[density_vars[i]] = density_scales[i];
