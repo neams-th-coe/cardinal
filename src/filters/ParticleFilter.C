@@ -40,6 +40,9 @@ ParticleFilter::validParams()
 
 ParticleFilter::ParticleFilter(const InputParameters & parameters) : FilterBase(parameters)
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("ParticleFilter is presently not supported when running the random ray solver!");
+
   for (const auto & m_enum : getParam<MultiMooseEnum>("particles"))
   {
     _particles.emplace_back(m_enum);

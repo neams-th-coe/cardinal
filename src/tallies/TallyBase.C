@@ -137,9 +137,24 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
-  for (const auto & score : _tally_score)
-    if (_openmc_problem.runRandomRay() && !_openmc_problem.validRandomRayScore(score))
-        paramError("score", "OpenMC's random ray solver currently doesn't support " + score + "! Please remove this score.");
+  if (_openmc_problem.runRandomRay())
+  {
+    bool found_invalid_rr_score = false;
+    std::string invalid_scores;
+    for (const auto & score : _tally_score)
+    {
+      if (!_openmc_problem.validRandomRayScore(score))
+      {
+        invalid_scores += score + ", ";
+        found_invalid_rr_score = true;
+      }
+    }
+    if (found_invalid_rr_score)
+    {
+      invalid_scores.erase(invalid_scores.length() - 2, 2);
+      paramError("score", "OpenMC's random ray solver currently doesn't support the following scores: " + invalid_scores + ". Please remove these scores.");
+    }
+  }
 
   const bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();

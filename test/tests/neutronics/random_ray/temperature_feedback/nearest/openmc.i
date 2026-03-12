@@ -28,6 +28,7 @@
   []
 []
 
+# Both of these temperatures will get nearest interpolated to 300 K.
 [Functions]
   [temperature]
     type = ParsedFunction
