@@ -14,7 +14,7 @@ RotationSearch::validParams()
       "The OpenMCCellTransform UserObject that will control the criticality search");
   params.addRequiredParam<MooseEnum>(
       "rotation_axis", MooseEnum("x y z"), "Axis about which to rotate the cell's fill.");
-  params.addClassDescription("Searches for criticality rotating a drum angle in degrees");
+  params.addClassDescription("Searches for criticality by modifying cell rotation(s) in degrees");
 
   return params;
 }
@@ -54,7 +54,7 @@ RotationSearch::RotationSearch(const InputParameters & parameters)
 void
 RotationSearch::updateOpenMCModel(const Real & angle)
 {
-  _console << "Searching for drum angle = " << angle << units() << std::endl;
+  _console << "OpenMC will run with next guess for rotation = " << angle << units() << std::endl;
 
   // make a vectorized version of the rotation angle with 0 for the non-rotating axes
   std::vector<Real> angles = {Real(0.0), Real(0.0), Real(0.0)};
