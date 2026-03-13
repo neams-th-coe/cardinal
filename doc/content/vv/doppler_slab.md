@@ -114,9 +114,9 @@ problem setup and results can be found in [!cite](doppler_slab_mc_cardinal).
 
 Input files for the linear temperature feedback case are included in Cardinal to verify the heat conduction module,
 Cardinal's OpenMC coupling, and different temperature interpolation schemes present in OpenMC. These input files
-can be found in `/test/tests/neutronics/mg/doppler_slab_lin`. The OpenMC and heat conduction inpute files for this
+can be found in `/test/tests/neutronics/mg/mc_doppler_slab_lin`. The OpenMC and heat conduction inpute files for this
 problem can be found below.
 
-!listing /test/tests/neutronics/mg/doppler_slab_lin/openmc_base.i
+!listing /test/tests/neutronics/mg/mc_doppler_slab_lin/openmc_base.i
 
-!listing /test/tests/neutronics/mg/doppler_slab_lin/solid.i
+!listing /test/tests/neutronics/mg/mc_doppler_slab_lin/solid.i
