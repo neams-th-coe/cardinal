@@ -78,7 +78,7 @@
   [err_volume_norm]
     type = RunException
     input = tallies.i
-    cli_args = "Problem/Tallies/cell/score='kappa_fission flux'"
+    cli_args = "Problem/Tallies/cell/score='kappa_fission flux' Problem/source_rate_normalization='kappa_fission'"
     expect_err = "Cardinal volume normalizes flux tallies with volumes computed with mesh elements"
     requirement = "The system shall error if the user requests flux volume normalization in their OpenMC model. "
                   "This prevents a double-divide by volume, which Cardinal cannot recover due to the random ray "

@@ -38,8 +38,8 @@ top = openmc.ZPlane(z0=50.0, boundary_type='reflective')
 bot = openmc.ZPlane(z0=-50.0, boundary_type='reflective')
 split = openmc.ZPlane(z0=0.0)
 
-cell1 = openmc.Cell(region=-prism & +bot & -top & -split, fill=a0)
-cell2 = openmc.Cell(region=-prism & +bot & -top & +split, fill=a1)
+cell1 = openmc.Cell(region=-prism & +bot & -split, fill=a0)
+cell2 = openmc.Cell(region=-prism & +split & -top, fill=a1)
 
 model.geometry = openmc.Geometry([cell1, cell2])
 
