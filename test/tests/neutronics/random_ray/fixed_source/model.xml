@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <cross_sections>/home/kevin/Projects/cardinal/test/tests/neutronics/random_ray/fixed_source/mgxs.h5</cross_sections>
+    <material id="1" name="material_1">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="material_1"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="1 -2 3 -4 6 -7" universe="1"/>
+    <cell id="2" material="1" region="1 -2 3 -4 7 -8" universe="1"/>
+    <cell id="3" material="1" region="1 -2 3 -4 8 -5" universe="1"/>
+    <surface id="1" name="minimum x" type="x-plane" boundary="reflective" coeffs="-25.0"/>
+    <surface id="2" name="maximum x" type="x-plane" boundary="reflective" coeffs="25.0"/>
+    <surface id="3" name="minimum y" type="y-plane" boundary="reflective" coeffs="-25.0"/>
+    <surface id="4" name="maximum y" type="y-plane" boundary="reflective" coeffs="25.0"/>
+    <surface id="5" type="z-plane" boundary="vacuum" coeffs="50.0"/>
+    <surface id="6" type="z-plane" boundary="vacuum" coeffs="-50.0"/>
+    <surface id="7" type="z-plane" coeffs="-1.0"/>
+    <surface id="8" type="z-plane" coeffs="1.0"/>
+  </geometry>
+  <settings>
+    <run_mode>fixed source</run_mode>
+    <particles>244</particles>
+    <batches>100</batches>
+    <inactive>10</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-25.0 -25.0 -1.0 25.0 25.0 1.0</parameters>
+      </space>
+      <energy type="discrete">
+        <parameters>1000.0 1.0</parameters>
+      </energy>
+      <constraints>
+        <domain_type>cell</domain_type>
+        <domain_ids>2</domain_ids>
+      </constraints>
+    </source>
+    <energy_mode>multi-group</energy_mode>
+    <ptables>true</ptables>
+    <temperature_default>650.0</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_multipole>true</temperature_multipole>
+    <temperature_range>300.0 2000.0</temperature_range>
+    <temperature_tolerance>5000.0</temperature_tolerance>
+    <random_ray>
+      <source type="independent" strength="1.0" particle="neutron">
+        <space type="box">
+          <parameters>-25.0 -25.0 -50.0 25.0 25.0 50.0</parameters>
+        </space>
+      </source>
+      <distance_inactive>122.47448713915891</distance_inactive>
+      <distance_active>612.3724356957946</distance_active>
+      <source_region_meshes>
+        <mesh id="2">
+          <domain id="1" type="cell"/>
+          <domain id="2" type="cell"/>
+        </mesh>
+      </source_region_meshes>
+    </random_ray>
+    <mesh id="2">
+      <dimension>10 10 10</dimension>
+      <lower_left>-25.0 -25.0 -50.0</lower_left>
+      <upper_right>25.0 25.0 50.0</upper_right>
+    </mesh>
+  </settings>
+  </model>
