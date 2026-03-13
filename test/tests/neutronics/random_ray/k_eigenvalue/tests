@@ -1,0 +1,12 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [random_ray_eigen]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall properly normalize scores when running the random ray solver in eigenvalue mode."
+    capabilities = 'openmc'
+  []
+[]
