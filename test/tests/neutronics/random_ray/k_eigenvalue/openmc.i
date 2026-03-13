@@ -60,6 +60,16 @@
 []
 
 [Postprocessors]
+  [k]
+    type = KEigenvalue
+    value_type = 'tracklength'
+  []
+  [k_std_dev]
+    type = KEigenvalue
+    value_type = 'tracklength'
+    output = 'std_dev'
+  []
+
   # Mean values of scores.
   [left_kappa_fission]
     type = PointValue
