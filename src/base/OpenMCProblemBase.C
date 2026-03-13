@@ -200,7 +200,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       else
         checkUnusedParam(params, "source_strength", "no tallies have been added");
 
-      checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+      if (!runRandomRay())
+        checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
       checkUnusedParam(params, "power", "running in fixed source mode");
       _reuse_source = false;
@@ -231,6 +232,12 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamValid("particles"))
     _particles = &getPostprocessorValue("particles");
+
+  if (!runRandomRay())
+  {
+    checkUnusedParam(params, "inactive_distance", "not running in random ray mode");
+    checkUnusedParam(params, "active_distance", "not running in random ray mode");
+  }
 
   if (isParamValid("inactive_distance"))
     openmc::RandomRay::distance_inactive_ = getParam<Real>("inactive_distance");
