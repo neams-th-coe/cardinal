@@ -12,8 +12,8 @@
     </material>
   </materials>
   <geometry>
-    <cell id="1" material="1" region="1 -2 3 -4 6 -5 -7" universe="1"/>
-    <cell id="2" material="2" region="1 -2 3 -4 6 -5 7" universe="1"/>
+    <cell id="1" material="1" region="1 -2 3 -4 6 -7" universe="1"/>
+    <cell id="2" material="2" region="1 -2 3 -4 7 -5" universe="1"/>
     <surface id="1" name="minimum x" type="x-plane" boundary="reflective" coeffs="-25.0"/>
     <surface id="2" name="maximum x" type="x-plane" boundary="reflective" coeffs="25.0"/>
     <surface id="3" name="minimum y" type="y-plane" boundary="reflective" coeffs="-25.0"/>
