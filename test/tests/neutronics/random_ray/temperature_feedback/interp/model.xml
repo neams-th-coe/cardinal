@@ -40,6 +40,7 @@
           <parameters>-25.0 -25.0 -50.0 25.0 25.0 50.0</parameters>
         </space>
       </source>
+      <volume_normalized_flux_tallies>true</volume_normalized_flux_tallies>
       <distance_inactive>122.47448713915891</distance_inactive>
       <distance_active>612.3724356957946</distance_active>
       <source_region_meshes>
