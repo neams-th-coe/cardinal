@@ -137,6 +137,14 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
+  const auto has_flux = std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
+  if (_openmc_problem.runRandomRay() && openmc::FlatSourceDomain::volume_normalized_flux_tallies_ && has_flux)
+    mooseError(
+      "Cardinal volume normalizes flux tallies with volumes computed with mesh "
+      "elements, and so normalizing flux tallies with the random ray volume "
+      "estimator will result in a double divide by volume. Please set "
+      "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC model.");
+
   if (_openmc_problem.runRandomRay())
   {
     bool found_invalid_rr_score = false;

@@ -10,15 +10,17 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-[]
 
-[UserObjects]
-  [filter_edit]
-    type = OpenMCDomainFilterEditor
-    create_filter = true
-    filter_id = 100
-    filter_type = 'cell'
-    bins = '1'
+  power = 1
+  cell_level = 0
+
+  [CriticalitySearch]
+    type = BoratedWater
+    absent_nuclides = 'O18'
+    material_id = 2
+    minimum = 1
+    maximum = 2
+    tolerance = 1e-2
   []
 []
 
