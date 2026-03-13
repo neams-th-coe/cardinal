@@ -417,7 +417,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       density_vars.push_back(density_var);
 
     if (density_scales.size() != density_vars.size())
-      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_blocks'!");
+      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!");
 
     for (unsigned int i = 0; i < density_vars.size(); i++)
       _density_vars_to_ref_density[density_vars[i]] = density_scales[i];

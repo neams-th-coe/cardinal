@@ -41,7 +41,7 @@
     type = RunException
     input = reference_densities.i
     cli_args = "Problem/mgxs_reference_densities='1.0 1.0'"
-    expect_err = "'mgxs_reference_densities' must have the same number of entries as rows in 'density_blocks'!"
+    expect_err = "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!"
     requirement = "The system shall error if the user provides more reference densities then density blocks/variables."
     capabilities = 'openmc'
   []

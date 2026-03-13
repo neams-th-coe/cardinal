@@ -8,8 +8,8 @@
     ymax = 25.0
     zmin = -50.0
     zmax = 50.0
-    nx = 10
-    ny = 10
+    nx = 1
+    ny = 1
     nz = 11
   []
   [split1]

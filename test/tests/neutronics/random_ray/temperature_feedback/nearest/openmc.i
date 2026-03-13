@@ -8,9 +8,9 @@
     ymax = 25.0
     zmin = -50.0
     zmax = 50.0
-    nx = 20
-    ny = 15
-    nz = 15
+    nx = 1
+    ny = 1
+    nz = 10
   []
   [split]
     type = ParsedSubdomainMeshGenerator
@@ -28,7 +28,7 @@
   []
 []
 
-# Both of these temperatures will get nearest interpolated to 300 K.
+# Both of these temperatures will get nearest interpolated to MGXS at 300 K.
 [Functions]
   [temperature]
     type = ParsedFunction
