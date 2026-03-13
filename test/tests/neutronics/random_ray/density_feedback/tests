@@ -1,0 +1,20 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [density_feedback]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall support density feedback to OpenMC's random ray solver."
+    capabilities = 'openmc'
+  []
+  [density_feedback_two_var]
+    type = CSVDiff
+    input = two_vars.i
+    csvdiff = two_vars_out.csv
+    requirement = "The system shall allow a reference density per variable when sending densities "
+                  "to OpenMC's random ray solver."
+    capabilities = 'openmc'
+  []
+[]
