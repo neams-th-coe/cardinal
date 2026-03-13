@@ -18,12 +18,12 @@
     requirement = "The system shall error if the user requests a collision estimator when running in random ray mode."
     capabilities = 'openmc'
   []
-  [err_k_analog]
+  [err_k_abs]
     type = RunException
     input = k_estimators.i
-    cli_args = "Postprocessors/k/value_type='analog'"
+    cli_args = "Postprocessors/k/value_type='absorption'"
     expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
-    requirement = "The system shall error if the user requests a analog estimator when running in random ray mode."
+    requirement = "The system shall error if the user requests an absorption estimator when running in random ray mode."
     capabilities = 'openmc'
   []
 
@@ -58,6 +58,33 @@
   []
 
   # Error check tallies.
+  [err_mesh_tally]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/type='MeshTally'"
+    expect_err = "Unstructured mesh tallies are not supported when using the random ray solver!"
+    requirement = "The system shall error if the user adds a MeshTally when running in random ray mode."
+    capabilities = 'openmc'
+  []
+  [err_check_tally_sum]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/check_tally_sum=true"
+    expect_err = "Cannot add global tallies when running in random ray mode! Please set "
+                 "'normalize_by_global_tally' and 'check_tally_sum' to false."
+    requirement = "The system shall error if global tallies are added when running in random ray mode."
+    capabilities = 'openmc'
+  []
+  [err_volume_norm]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission flux'"
+    expect_err = "Cardinal volume normalizes flux tallies with volumes computed with mesh elements"
+    requirement = "The system shall error if the user requests flux volume normalization in their OpenMC model. "
+                  "This prevents a double-divide by volume, which Cardinal cannot recover due to the random ray "
+                  "volume estimations being cleared after tallies are extracted."
+    capabilities = 'openmc'
+  []
   [invalid_scores]
     type = RunException
     input = tallies.i
@@ -179,5 +206,14 @@
                   "random ray solver."
     capabilities = 'openmc'
   []
-[]
 
+  # Criticality search errors.
+  [err_borated_water]
+    type = RunException
+    input = borated_water.i
+    expect_err = "The BoratedWater criticality search is not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds a BoratedWater criticality search when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+[]
