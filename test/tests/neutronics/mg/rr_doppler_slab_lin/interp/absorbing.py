@@ -2,9 +2,7 @@ from argparse import ArgumentParser
 import numpy as np
 import openmc
 import openmc.mgxs
-
-# The overall model container.
-doppler_slab_model = openmc.Model()
+import openmc.model
 
 # Parameters specified in the benchmark document
 sigma0 = 4.0     # barns
@@ -18,7 +16,7 @@ Tmin = T0        # Minimum temperature for data set
 Tmax = 1200.0    # Maximum temperature for data set
 height = 200.0   #Length in x direction
 ###############################################################
-# Axial subdivisions.
+#axial divisions
 ap = ArgumentParser()
 ap.add_argument('-n', dest='n_axial', type=int, default=20,
                 help='Number of axial cell divisions')
@@ -32,9 +30,6 @@ temps = list(np.arange(np.floor(T0), np.ceil(Tmax), dT))
 groups = openmc.mgxs.EnergyGroups(np.logspace(1, 20, 2))
 abs_xsdata = openmc.XSdata('abs', groups, temperatures=temps)
 abs_xsdata.order = 0
-
-void_xsdata = openmc.XSdata('void', groups, temperatures=temps)
-void_xsdata.order = 0
 
 # The scattering matrix is ordered with incoming groups as rows and outgoing groups as columns
 # (i.e., below the diagonal is up-scattering).
@@ -51,33 +46,27 @@ for i in range(len(temps)):
   abs_xsdata.set_absorption([E], temperature=temps[i])
   abs_xsdata.set_scatter_matrix(scatter_matrix, temperature=temps[i])
 
-  void_xsdata.set_total([0.0], temperature=temps[i])
-  void_xsdata.set_absorption([0.0], temperature=temps[i])
-  void_xsdata.set_scatter_matrix(scatter_matrix, temperature=temps[i])
-
-
 # Initialize the library
 mg_cross_sections_file = openmc.MGXSLibrary(groups)
 
-# Add the absorber data to it
+# Add the UO2 data to it
 mg_cross_sections_file.add_xsdata(abs_xsdata)
-mg_cross_sections_file.add_xsdata(void_xsdata)
 
 # And write to disk
 mg_cross_sections_file.export_to_hdf5('mgxs.h5')
 
 # For every cross section data set in the library, assign an openmc.Macroscopic object to a material
 materials = {}
-for xs in ['abs', 'void']:
+for xs in ['abs']:
     materials[xs] = openmc.Material(name=xs)
     materials[xs].set_density('macro', 1.)
     materials[xs].add_macroscopic(xs)
 
 # Instantiate a Materials collection, register all Materials, and export to XML
-doppler_slab_model.materials += materials.values()
+materials_file = openmc.Materials(materials.values())
 
 # Set the location of the cross sections file to our pre-written set
-doppler_slab_model.materials.cross_sections = 'mgxs.h5'
+materials_file.cross_sections = 'mgxs.h5'
 
 # geometry
 #number of axial coords
@@ -92,43 +81,63 @@ z_plane2 = openmc.ZPlane(2.0, boundary_type = 'vacuum')
 container = +y_plane1 & -y_plane2 & +z_plane1 & -z_plane2
 
 #x planes
-l_plane = openmc.XPlane(x0=-1.0, boundary_type = 'vacuum')
+sr_plane_1 = openmc.XPlane(x0=-2.0, boundary_type = 'vacuum')
+sr_plane_2 = openmc.XPlane(x0=-1.0)
 x_surfaces = [openmc.XPlane(x0=coord) for coord in axial_coords]
-x_surfaces[-1].boundary_type = 'vacuum'
+graveyard_plane = openmc.XPlane(x0 = height + 10, boundary_type = 'vacuum')
+#
 
 abs_cells = []
 for i in range(N):
    layer = +x_surfaces[i] & -x_surfaces[i + 1]
-   cell = openmc.Cell(fill = materials['abs'], region = layer & container)
-   cell.temperature = temps[min(i, len(temps) - 1)]
-   abs_cells.append(cell)
+   for material in materials.values():
+       cell = openmc.Cell(fill = material, region = layer & container)
+       cell.temperature = T0
+       abs_cells.append(cell)
 
-# A cell where particles spawn.
-src_cell = openmc.Cell(fill = materials['void'], region = +l_plane & -x_surfaces[0] & container)
+# A cell where rays are spawned.
+spawn_cell = openmc.Cell(fill = None, region = +sr_plane_1 & -sr_plane_2 & container)
+# A cell where rays accumulate a source.
+src_cell = openmc.Cell(fill = None, region = +sr_plane_2 & -x_surfaces[0] & container)
+# A cell where rays die.
+graveyard_cell = openmc.Cell(fill = None, region = +x_surfaces[-1] & -graveyard_plane & container)
+abs_cells.append(spawn_cell)
 abs_cells.append(src_cell)
+abs_cells.append(graveyard_cell)
 
 root = openmc.Universe(name = 'root')
 root.add_cells(abs_cells)
-doppler_slab_model.geometry = openmc.Geometry(root)
+geometry = openmc.Geometry(root)
 
 # settings
-doppler_slab_model.settings.energy_mode = 'multi-group'
-doppler_slab_model.settings.run_mode = 'fixed source'
+settings = openmc.Settings()
+settings.energy_mode = 'multi-group'
 
 # source in one side
+settings.run_mode = 'fixed source'
+
 source = openmc.IndependentSource(space=openmc.stats.Box((-1.0, 0.0, 0.0), (0.0, 2.0, 2.0)),
-                                  angle=openmc.stats.Monodirectional(reference_uvw = [1.0, 0.0, 0.0]))
-doppler_slab_model.settings.source = [source]
-doppler_slab_model.settings.temperature = {
-   'default': 300.0,
-   'method': 'interpolation',
-   'tolerance': 10.0,
-   'range': (Tmin, Tmax)
-}
+                                  energy=openmc.stats.Discrete(x = 1e3, p = 1.0),
+                                  constraints={'domains' : [src_cell]})
+settings.source = [source]
+settings.temperature = {'default': 300.0,
+                        'method': 'interpolation',
+                        'tolerance': 10.0,
+                        'range': (Tmin, Tmax)}
 
-doppler_slab_model.settings.batches = 1000
-doppler_slab_model.settings.inactive = 0
-doppler_slab_model.settings.particles = 5000
+settings.batches = 1000
+settings.inactive = 0
+settings.particles = 5000
 
-# Dump the full model to disk.
-doppler_slab_model.export_to_model_xml()
+settings.random_ray['distance_inactive'] = 0.0
+settings.random_ray['distance_active'] = 209.0
+settings.random_ray['ray_source'] = openmc.IndependentSource(space=openmc.stats.Box((-2.0, 0.0, 0.0), (-1.0, 2.0, 2.0)))
+settings.random_ray['source_shape'] = 'flat'
+settings.random_ray['sample_method'] = 's2'
+
+# model container
+model = openmc.model.Model()
+model.materials = materials_file
+model.geometry = geometry
+model.settings = settings
+model.export_to_model_xml()
