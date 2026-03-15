@@ -1,5 +1,8 @@
 # EnergyOutFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `EnergyOutFilter` object provides a thin wrapper around an OpenMC [EnergyoutFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.EnergyoutFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. Bins can be provided

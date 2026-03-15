@@ -13,6 +13,22 @@ same mapped volume on the `MooseMesh` (to a tolerance specified in `equal_tally_
 
 !include scores_triggers.md
 
+## Random Ray Restrictions
+
+If using OpenMC's [!ac](TRRM) solver, there are
+[several restrictions placed on tallies](https://docs.openmc.org/en/stable/usersguide/random_ray.html#tallies).
+Namely, filters are limited to [EnergyFilters](EnergyFilter.md) and scores are limited to the following:
+
+- `kappa_fission`
+- `flux`
+- `total`
+- `nu_fission`
+- `fission`
+
+In addition to restrictions on filters and scores, global tallies cannot be utilized as they do not apply a
+spatial filters; using [!ac](TRRM) requires `normalize_by_global_tally = false` and `check_tally_sum = false`.
+Finally, the only `estimator` that can be used with [!ac](TRRM) is the `tracklength` estimator.
+
 ## Example Input File Syntax
 
 As an example, this `CellTally` scores `kappa_fission` (the default tally score) on block `0` and stores

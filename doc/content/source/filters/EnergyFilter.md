@@ -8,6 +8,9 @@ on these group structures can be found in the [OpenMC multi-group cross section 
 The ordering of the bins in `EnergyFilter` can be reversed (set to be  descending in terms of energy)
 by setting `reverse_bins = true` if you wish to use the conventional multi-group radiation transport formalism.
 
+!alert note
+If running in multi-group mode (either Monte Carlo or random ray) `energy_boundaries` must match the energy group boundaries used for transport.
+
 ## Example Input File Syntax
 
 As an example, a [MeshTally](MeshTally.md) named `Flux` applies an `EnergyFilter` named `Energy` to break the total flux up

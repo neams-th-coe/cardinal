@@ -1,5 +1,8 @@
 # ParticleFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `ParticleFilter` object provides a thin wrapper around an OpenMC [ParticleFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.ParticleFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. This filter allows for events to
