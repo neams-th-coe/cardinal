@@ -1,10 +1,10 @@
 joule_per_ev = 1.60218e-19
 
-q      = ${fparse 1.0e6}       # Energy release per absorption (eV)
-Sigma0 = ${fparse 4.0 * 0.025} # Initial macroscopic XS, 1/cm
-T0     = 293.6                 # Surface temperature (K)
-Y0     = 6.65e11               # Source intensity (n / cm2-s)
-alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
+q      = ${fparse 1.0e6}                 # energy release per absorption (eV)
+Sigma0 = ${fparse 4.0 * 0.025}           # Initial macroscopic XS, 1/cm
+T0     = 293.6                           # surface temperature (K)
+Y0     = 6.65e11                         # source intensity (n / cm2-s)
+alpha  = -0.0001                         # Linear doppler Coefficient
 
 !include mesh.i
 
@@ -19,6 +19,10 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
     family = MONOMIAL
     order = CONSTANT
   []
+  [dummy_zero]
+    family = MONOMIAL
+    order = CONSTANT
+  []
 []
 
 [AuxKernels]
@@ -29,7 +33,7 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
 
   # Change the unit of the 'flux' (neutrons / m^2 / s) into a volumetric power. This is
   # based on Eq. (5b) in the paper, which shows the volumetric power is q * Sigma * flux
-  [compute_power]
+  [changing_units]
     type = ParsedAux
     variable = heat_source
     coupled_variables = 'flux temp'
@@ -37,6 +41,7 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
     execute_on = 'timestep_end'
   []
 []
+
 
 [ICs]
   [temp]
@@ -48,7 +53,7 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
 
 [Problem]
   type = OpenMCCellAverageProblem
-  verbose = true
+  verbose = false
   source_strength = ${fparse Y0 * 2.0 * 2.0} # multiply by the left area to get units of neutrons / s
 
   cell_level = 0
@@ -58,6 +63,9 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
   particles = 1000
   batches = 100
   inactive_batches = 0
+
+  inactive_distance = 0.0
+  active_distance = 209.0
 
   relaxation = 'constant'
 
@@ -122,5 +130,5 @@ alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
 
 [Outputs]
   csv = true
-  execute_on = 'TIMESTEP_END'
+  execute_on = 'FINAL'
 []
