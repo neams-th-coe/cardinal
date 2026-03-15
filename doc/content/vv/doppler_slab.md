@@ -115,8 +115,69 @@ problem setup and results can be found in [!cite](doppler_slab_mc_cardinal).
 Input files for the linear temperature feedback case are included in Cardinal to verify the heat conduction module,
 Cardinal's OpenMC coupling, and different temperature interpolation schemes present in OpenMC. These input files
 can be found in `/test/tests/neutronics/mg/mc_doppler_slab_lin`. The OpenMC and heat conduction inpute files for this
-problem can be found below.
+problem can be found below. Please note that these input decks run with fewer particles and Picard iterations to make
+them suitable for inclusion in Cardinal's test suite.
 
 !listing /test/tests/neutronics/mg/mc_doppler_slab_lin/openmc_base.i
 
 !listing /test/tests/neutronics/mg/mc_doppler_slab_lin/solid.i
+
+## Cardinal Random Ray Solutions
+
+In addition to solutions with OpenMC's Monte Carlo solver, Cardinal also includes input files for the Doppler slab
+problem solved with [!ac](TRRM). These solutions use the same spatial and temperature discretization parameters as
+the Monte Carlo solutions with a few modifications to support [!ac](TRRM). This includes the use of a cell where rays
+are sampled, a cell where they accumulate the specified source (as [!ac](TRRM) only supports volume sources),
+and a void cell at the end of the geometry right before the vacuum boundary condition. The inactive ray distance is set
+to zero (as there is no initialization bias), and the active ray length is set to 209 cm (such that they are guaranteed
+to terminate in the void region). Inactive batches are not required as there is no scattering or fission source to converge.
+The results for [linear_feedback] can be found in [doppler_linear_rr], and results for [inverse_root_feedback] can be
+found in [doppler_inv_root_rr]. Both of these solutions use 400 elements, 400 OpenMC cells, and linear temperature
+interpolation for cross sections.
+
+!media doppler_linear_rr.png
+  id=doppler_linear_rr
+  caption=Cardinal [!ac](TRRM) simulations of the Doppler slab problem with linear temperature feedback.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+!media doppler_inv_root_rr.png
+  id=doppler_inv_root_rr
+  caption=Cardinal [!ac](TRRM) simulations of the Doppler slab problem with inverse root temperature feedback.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+In addition to verification via direct temperature feedback, density feedback in Cardinal was verified using the analytic
+expression for the inverse square root cross section. The results for [inverse_root_feedback] using density feedback can
+be found in [doppler_inv_root_rr_density].
+
+!media doppler_inv_root_rr_density.png
+  id=doppler_inv_root_rr_density
+  caption=Cardinal [!ac](TRRM) simulations of the Doppler slab problem with inverse root temperature feedback using density feedback.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+Finally, the mesh resolution was varied between 10 and 400 elements/cells to determine the rate of convergence of the
+[!ac](TRRM) solutions. The results can be found in [doppler_rr_conv], which show the expected first order rate of convergence
+for both the linear and inverse square root cases. In the case where temperature feedback was used, it can be seen that
+the $L_{2}$ error in the solution plateaus after 100 elements due to error in the temperature interpolation scheme and the
+setting of cell averaged temperature values. Direct density feedback does not show the same behavior as the density update
+is computed analytically without any need for interpolation.
+
+!media doppler_rr_conv.png
+  id=doppler_rr_conv
+  caption=Solution error in the [!ac](TRRM) solutions as a function of the average mesh element size.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+The input files for the linear temperature feedback case can be found in `/test/tests/neutronics/mg/rr_doppler_slab_lin`, where
+they are used to regression test temperature feedback with [!ac](TRRM). These can be found below.
+
+!listing /test/tests/neutronics/mg/rr_doppler_slab_lin/openmc_base.i
+
+!listing /test/tests/neutronics/mg/rr_doppler_slab_lin/solid.i
+
+The input files for the invese root temperature feedback case can be found in `/test/tests/neutronics/mg/rr_doppler_slab_root`,
+where they are used to regression test density feedback with [!ac](TRRM). The input files can be found below,
+where slight modifications have been made (fewer Picard iterations and rays per batch) to make the problem
+amenable for inclusion in Cardinal's test suite.
+
+!listing /test/tests/neutronics/mg/rr_doppler_slab_root/openmc.i
+
+!listing /test/tests/neutronics/mg/rr_doppler_slab_root/solid.i
