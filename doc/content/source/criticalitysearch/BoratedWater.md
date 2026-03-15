@@ -1,5 +1,8 @@
 # BoratedWater
 
+!alert note
+This criticality search is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 `BoratedWater` is a [CriticalitySearch](AddCriticalitySearchAction.md) that

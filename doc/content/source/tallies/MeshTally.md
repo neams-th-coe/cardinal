@@ -1,6 +1,9 @@
 # MeshTally
   id=um
 
+!alert note
+Unstructured mesh tallies are not supported when running neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `MeshTally` class wraps an OpenMC tally with an unstructured libMesh filter to directly enable tallying on an unstructured mesh.
