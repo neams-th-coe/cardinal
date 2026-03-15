@@ -1,5 +1,8 @@
 # AngularLegendreFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `AngularLegendreFilter` object provides a thin wrapper around an OpenMC [LegendreFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.LegendreFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. This filter expands the change in particle direction in Legendre polynomials of an arbitrary order.

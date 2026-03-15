@@ -1,5 +1,8 @@
 # PolarAngleFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `PolarAngleFilter` object provides a thin wrapper around an OpenMC [PolarFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.PolarFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. Two
