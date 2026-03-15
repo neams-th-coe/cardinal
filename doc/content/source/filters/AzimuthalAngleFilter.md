@@ -1,5 +1,8 @@
 # AzimuthalAngleFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `AzimuthalAngleFilter` object provides a thin wrapper around an OpenMC [AzimuthalFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.AzimuthalFilter.html#openmc.AzimuthalFilter) which local tallies (added through the [tally system](AddTallyAction.md))
