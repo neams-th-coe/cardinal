@@ -59,14 +59,14 @@
     paired_block = 'water'
     new_boundary = 'clad_or'
   []
-  [Delete_Gap]
+  [Delete_Gap_Water]
     type = BlockDeletionGenerator
     input = 'Label_Clad_Outer'
-    block = 'gap'
+    block = 'gap water '
   []
   [To_Meters]
     type = TransformGenerator
-    input = 'Delete_Gap'
+    input = 'Delete_Gap_Water'
     transform = SCALE
     vector_value = '1e-2 1e-2 1e-2'
   []

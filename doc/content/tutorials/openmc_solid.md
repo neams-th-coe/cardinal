@@ -26,6 +26,7 @@ extend equally to coupling OpenMC to any of these other MOOSE thermal-fluid code
 Several examples are provided:
 
 - [LWR pincell](pincell1.md)
+- [Random ray LWR pincell](rr_lwr_pincell.md)
 - [Solid UO$_2$ pebbles](triso.md)
 - [TRISO compacts](gas_compact.md)
 - [TRISO fuel assembly](openmc_fluid.md)

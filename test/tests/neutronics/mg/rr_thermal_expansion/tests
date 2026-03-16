@@ -8,6 +8,6 @@
     csvdiff = 'openmc_out.csv'
     requirement = "The system shall be capable of solving the S2 thermal expansion benchmark "
                   "problem with OpenMC's random ray solver."
-    capabilities = 'openmc'
+    capabilities = 'dagmc'
   []
 []

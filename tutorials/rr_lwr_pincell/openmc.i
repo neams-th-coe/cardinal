@@ -8,29 +8,13 @@
 []
 
 [AuxVariables]
-  [cell_density]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
   []
 []
 
-[ICs]
-  [temp_fuel]
-    type = ConstantIC
-    variable = temp
-    value = '${T_AVG}'
-  []
-[]
-
 [AuxKernels]
-  [cell_density]
-    type = CellDensityAux
-    variable = cell_density
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
@@ -43,11 +27,9 @@
   inactive_batches = 400
   batches = 800
 
-  scaling = 1e2
+  scaling = 100.0
 
-  power = ${fparse 3000e6 / 273 / (18 * 18)}
-
-  skip_statepoint = true
+  power = ${P_PIN}
 
   cell_level = 1
   temperature_blocks = 'uo2_tri uo2'
@@ -62,6 +44,14 @@
     block = 'uo2 uo2_tri'
 
     normalize_by_global_tally = false
+  []
+[]
+
+[ICs]
+  [temp_fuel]
+    type = ConstantIC
+    variable = temp
+    value = '${T_AVG}'
   []
 []
 

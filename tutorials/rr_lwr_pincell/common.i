@@ -17,12 +17,19 @@ HEIGHT = 200.0
 ## The number of axial layers in the multiphysics model.
 AXIAL_LAYERS = 100
 
-## The inlet and outlet temperature of the coolant (K), alongside the average of the
-## inlet/outlet temperature.
+## The power of the pincell (W). Equal to 3000e6 / (273 * 264)
+P_PIN = 41625.0
+
+## The inlet and outlet temperature of the coolant, alongside the average of the
+## inlet/outlet temperature (K).
 T_INLET  = 573.0
 T_OUTLET = 623.0
 T_AVG    = 598
 
-## The inlet and outlet density of the coolant (kg/m3)
-RHO_INLET  = 1002.0
-RHO_OUTLET = 950.0
+## The convective heat transfer coefficient (W/m2/K)
+CONV_HT_COEFF = 1000.0
+
+## Thermal conductivity of the fuel, cladding, and gap (W/m/K).
+K_FUEL = 5.0
+K_CLAD = 50.0
+K_GAS = 1.0

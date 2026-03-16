@@ -407,6 +407,7 @@ with `ifp_generations` (an extra double and an extra integrer must be tracked pe
 for each generation). It is recommend that the number of IFP generations be minimized when possible.
 
 ## Random Ray Neutronics
+  id=random_ray
 
 Cardinal supports solving both fixed source and k-eigenvalue neutron transport problems with
 [!ac](TRRM) in OpenMC. First-class support is provided for temperature feedback, density feedback,

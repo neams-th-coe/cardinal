@@ -5,11 +5,6 @@
     type = FileMeshGenerator
     file = solid_mesh_in.e
   []
-  [Delete_Water]
-    type = BlockDeletionGenerator
-    input = 'File'
-    block = 'water'
-  []
 []
 
 [Variables]
@@ -52,30 +47,29 @@
     type = ConvectiveFluxFunction
     T_infinity = T_fluid
 
-    # W/m2/K
-    coefficient = 1000.0
+    coefficient = ${CONV_HT_COEFF}
     variable = temp
     boundary = 'clad_or'
   []
 []
 
 [Materials]
-  [k_clad]
-    type = GenericConstantMaterial
-    prop_values = '50.0'
-    prop_names = 'thermal_conductivity'
-    block = 'clad'
-  []
   [k_fuel]
     type = GenericConstantMaterial
-    prop_values = '5.0'
+    prop_values = '${K_FUEL}'
     prop_names = 'thermal_conductivity'
     block = 'uo2_tri uo2'
+  []
+  [k_clad]
+    type = GenericConstantMaterial
+    prop_values = '${K_CLAD}'
+    prop_names = 'thermal_conductivity'
+    block = 'clad'
   []
 []
 
 [ThermalContact]
-  # This adds boundary conditions bewteen the fuel and the cladding, which represents
+  # This adds boundary conditions between the fuel and the cladding, which represents
   # the heat flux in both directions as
   # q''= h * (T_1 - T_2)
   # where h is a conductance that accounts for conduction through a material and
@@ -96,7 +90,7 @@
     emissivity_secondary = 0.8
 
     # thermal conductivity of the gap material
-    gap_conductivity = 1.0
+    gap_conductivity = ${K_GAS}
 
     # geometric terms related to the gap
     gap_geometry_type = CYLINDER
