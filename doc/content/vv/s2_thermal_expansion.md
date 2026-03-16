@@ -88,7 +88,7 @@ Mass is conserved by ensuring that the following expression is satisfied:
 
 The analytical solutions to the coupled problem were derived by [!cite](s2_thermal_expansion)
 under the assumption that the temperature and neutron flux fields are proportional to each other.
-To ensure this assumption is valid, $\sigma_{t,0}$ and $h$ are manufactured based on other
+To ensure this assumption is not violated, $\sigma_{t,0}$ and $h$ are manufactured based on other
 benchmark parameters. For details regarding the derivation of the benchmark solution, readers
 are referred to [!cite](s2_thermal_expansion).
 
@@ -188,7 +188,7 @@ distributions can be found in [gk_rr_200].
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 The impact of the y-z induces source region gradients can be seen in the flux solution, resulting in
-reasonable (but not perfect) agreement with [flux_sln]. The thermomechanics problem uses a true
+reasonable (but not perfect) agreement with [neutron_flux_sln]. The thermomechanics problem uses a true
 1D mesh, resulting in better agreement between the numerical temperature predictions with
 [temperature_sln]. The [!ac](TRRM) solution predicts $k_{eff} = 0.29520$ ($\Delta k_{eff} = −37$ pcm)
 and an expanded slab length $L = 106.47$ cm. It is expected that the agreement in both the flux
