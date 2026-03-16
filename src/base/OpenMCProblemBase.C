@@ -673,8 +673,6 @@ OpenMCProblemBase::relativeError(const Real & sum,
                                  const Real & sum_sq,
                                  const int & n_realizations) const
 {
-  Real rel_err = 0.0;
-
   auto mean = sum / n_realizations;
   auto std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
   return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
