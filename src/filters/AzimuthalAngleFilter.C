@@ -53,7 +53,8 @@ AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
   : FilterBase(parameters)
 {
   if (_openmc_problem.runRandomRay())
-    mooseError("AzimuthalAngleFilter is presently not supported when running the random ray solver!");
+    mooseError(
+        "AzimuthalAngleFilter is presently not supported when running the random ray solver!");
 
   if (isParamValid("num_equal_divisions") == isParamValid("azimuthal_angle_boundaries"))
     mooseError(

@@ -41,7 +41,8 @@ AngularLegendreFilter::AngularLegendreFilter(const InputParameters & parameters)
   : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
   if (_openmc_problem.runRandomRay())
-    mooseError("AngularLegendreFilter is presently not supported when running the random ray solver!");
+    mooseError(
+        "AngularLegendreFilter is presently not supported when running the random ray solver!");
 
   auto legendre_filter = dynamic_cast<openmc::LegendreFilter *>(openmc::Filter::create("legendre"));
 

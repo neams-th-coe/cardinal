@@ -417,7 +417,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       density_vars.push_back(density_var);
 
     if (density_scales.size() != density_vars.size())
-      paramError("mgxs_reference_densities", "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!");
+      paramError("mgxs_reference_densities",
+                 "'mgxs_reference_densities' must have the same number of entries as rows in "
+                 "'density_variables'!");
 
     for (unsigned int i = 0; i < density_vars.size(); i++)
       _density_vars_to_ref_density[density_vars[i]] = density_scales[i];
@@ -2487,18 +2489,19 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
 
     if (_verbose)
       if (openmc::settings::run_CE)
-        _console << "Setting cell " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4)
-                << average_density << std::endl;
+        _console << "Setting cell " << printCell(cell_info)
+                 << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
       else
-        _console << "Setting cell " << printCell(cell_info) << " to MGXS density (-): " << std::setw(4)
-                << average_density << std::endl;
+        _console << "Setting cell " << printCell(cell_info)
+                 << " to MGXS density (-): " << std::setw(4) << average_density << std::endl;
 
     setCellDensity(average_density, cell_info);
   }
 
   if (!_verbose)
     if (openmc::settings::run_CE)
-      _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
+      _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum
+               << std::endl;
     else
       _console << " Sent cell-averaged min/max (-): " << minimum << ", " << maximum << std::endl;
 }
@@ -2549,7 +2552,8 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
 const Real
 OpenMCCellAverageProblem::getReferenceDensity(const Elem * elem) const
 {
-  return openmc::settings::run_CE || !elem ? 1.0 : _subdomain_to_ref_density.at(elem->subdomain_id());
+  return openmc::settings::run_CE || !elem ? 1.0
+                                           : _subdomain_to_ref_density.at(elem->subdomain_id());
 }
 
 void

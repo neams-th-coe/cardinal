@@ -105,15 +105,15 @@ OpenMCProblemBase::validParams()
 
   // Random ray settings. These are only valid if Cardinal is running the random ray solver.
   params.addRangeCheckedParam<Real>(
-    "inactive_distance",
-    "inactive_distance >= 0",
-    "The inactive length (distance a ray travels before beginning to accumulate tallies) used "
-    "for random ray; this overrides the setting in the XML files.");
+      "inactive_distance",
+      "inactive_distance >= 0",
+      "The inactive length (distance a ray travels before beginning to accumulate tallies) used "
+      "for random ray; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<Real>(
-    "active_distance",
-    "active_distance > 0",
-    "The active length (distance a ray travels while accumulating tallies) used "
-    "for random ray; this overrides the setting in the XML files.");
+      "active_distance",
+      "active_distance > 0",
+      "The active length (distance a ray travels while accumulating tallies) used "
+      "for random ray; this overrides the setting in the XML files.");
   return params;
 }
 
@@ -938,7 +938,7 @@ bool
 OpenMCProblemBase::validRandomRayScore(const std::string & score) const
 {
   const std::set<std::string> viable_scores = {
-    "flux", "total", "fission", "nu-fission", "kappa-fission"};
+      "flux", "total", "fission", "nu-fission", "kappa-fission"};
   return viable_scores.count(score);
 }
 
