@@ -128,7 +128,7 @@ OpenMCCellTransform::execute()
                << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees." << std::endl;
     }
     else
-      mooseError("Unhandled transform_type: " + _transform_type);
+      mooseError("Unhandled transform_type: " + std::to_string(_transform_type));
 
     catchOpenMCError(err, "transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id));
   }
