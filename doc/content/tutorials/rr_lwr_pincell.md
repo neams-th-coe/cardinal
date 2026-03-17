@@ -4,7 +4,7 @@ In this tutorial, you will learn:
 
 - How to convert a continuous energy Monte Carlo model to a multi-group [!ac](TRRM) model
 - How to couple OpenMC's [!ac](TRRM) solver to MOOSE with a fission heat source and temperature feedback
-- The advantages and disadvantages of [!ac](TRRM) method compared to continuous energy Monte Carlo
+- The advantages and disadvantages of [!ac](TRRM) compared to continuous energy Monte Carlo
 
 To access this tutorial,
 
@@ -25,7 +25,7 @@ This model consists of a single UO@2@ pincell from a continuous energy version o
 C5G7 benchmark in [!cite](c5g7). Instead of using the multi-group cross sections from the
 C5G7 benchmark specifications, the material properties in [!cite](c5g7_materials) are used
 to demonstrate one way to convert from a continuous energy model to a multi-group [!ac](TRRM)
-model. The pincel consists of a UO@2@ fuel pellet clad with Zr (with a He gap) surrounded by
+model. The pincell consists of a UO@2@ fuel pellet (with a He gap) clad with Zr surrounded by
 borated water. The relevant dimensions of the problem can be found in [table1].
 
 !table id=table1 caption=Geometric specifications for the [!ac](LWR) pincell
@@ -356,6 +356,51 @@ mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
 ```
 
 All of the above will use 2 MPI ranks and 2 OpenMP threads per rank. To run the simulation
-faster, you can increase the number of ranks/threads or decrease the number of particles. Bear
+faster, you can increase the number of ranks/threads or decrease the number of particles. Bare
 in mind that decreasing the number of particles may result in a failure to converge when running
 [!ac](TRRM) as fewer source regions will be hit on each power iteration.
+
+[table2] shows the resulting k-eigenvalues for each [!ac](TRRM) discretization approach compared
+against the continuous energy reference (10000 particles per batch. 1100 batches, 100 inactive batches)
+on the first Picard iteration before multiphysics feedback is applied. In general, the single physics
+[!ac](TRRM) calculations agree quite well with the continuous energy reference (within three standard
+deviations). [table3] shows the k-eigenvalues for each case on the final Picard iteration; the agreement
+is less then stellar and can be attributed to the use of isothermal temperature interpolation tables in
+the multiphysics model.
+
+!table id=table2 caption=k-eigenvalue predictions on the initial Picard iteration.
+| Method | $k_{eff}$ | $k_{CE} - k_{TRRM}$ (PCM) |
+| :- | :- | :- |
+| CE Monte Carlo | $1.33133$ | N/A |
+| Flat Source | $1.33098$ | $35$ |
+| Linear Source | $1.33229$ | $−96$ |
+
+!table id=table3 caption=k-eigenvalue predictions on the final Picard iteration.
+| Method | $k_{eff}$ | $k_{CE} - k_{TRRM}$ (PCM) |
+| :- | :- | :- |
+| CE Monte Carlo | $1.30300$ | N/A |
+| Flat Source | $1.28327$ | $1973$ |
+| Linear Source | $1.28473$ | $1827$ |
+
+[rr_lwr_radial_comp] plots the center-plane radial fission heating distribution for the different
+spatial discretization schemes and compares them with the continuous energy reference on the final
+Picard iteration. There is a fairly large discrepancy (up to 10%) which is caused by over-exaggerated
+Doppler broadening in the fuel, depressing the center plane power compared to the continuous energy
+result. We can confirm this trend by plotting the axial centerline power distribution in
+[rr_lwr_axial_comparison]. This shows a 10% under-prediction of power in the core center followed by
+an over-prediction as one moves from the core center towards the vaccum boundary condition. This showcases
+the need for reasonable [!ac](MGXS) temperature interpolation tables in multiphysics calculations; simple
+temperature isotherms will not suffice when there are large thermal gradients.
+[rr_lwr_axial_comparison] also demonstrates the advantage of [!ac](TRRM) - uniform statistical relative
+errors across the problem domain. This is advantageous for whole-core calculations where Monte Carlo transport
+struggles to steer particles to the core periphery.
+
+!media rr_lwr_radial_comp.png
+  id=rr_lwr_radial_comp
+  caption=Comparison of the different [!ac](TRRM) spatial discretization approaches against continuous energy Monte Carlo radially.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+!media rr_lwr_axial_comparison.png
+  id=rr_lwr_axial_comparison
+  caption=Comparison of the different [!ac](TRRM) spatial discretization approaches against continuous energy Monte Carlo axially. Left: fission heating. Right: fission heating statistical relative error.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
