@@ -23,10 +23,10 @@ protected:
   const Real & _value;
 
   /// upper limit of the range
-  const Real & _upper_limit;
+  const Real _upper_limit;
 
   /// lower limit of the range
-  const Real & _lower_limit;
+  const Real _lower_limit;
 
 private:
   /**
