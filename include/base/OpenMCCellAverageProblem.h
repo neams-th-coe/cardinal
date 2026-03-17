@@ -723,6 +723,7 @@ protected:
    * Compute the product of volume with a field across ranks and sum into a global map
    * @param[in] var_num variable to weight with volume, mapped by subdomain ID
    * @param[in] phase phases to compute the operation for
+   * @param[in] scaling a scaling factor to apply, mapped by subdomain ID
    * @return volume-weighted field for each cell, in a global sense
    */
   std::map<cellInfo, Real> computeVolumeWeightedCellInput(
