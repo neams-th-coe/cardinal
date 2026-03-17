@@ -137,13 +137,14 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
-  const auto has_flux = std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
-  if (_openmc_problem.runRandomRay() && openmc::FlatSourceDomain::volume_normalized_flux_tallies_ && has_flux)
-    mooseError(
-      "Cardinal volume normalizes flux tallies with volumes computed with mesh "
-      "elements, and so normalizing flux tallies with the random ray volume "
-      "estimator will result in a double divide by volume. Please set "
-      "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC model.");
+  const auto has_flux =
+      std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
+  if (_openmc_problem.runRandomRay() && openmc::FlatSourceDomain::volume_normalized_flux_tallies_ &&
+      has_flux)
+    mooseError("Cardinal volume normalizes flux tallies with volumes computed with mesh "
+               "elements, and so normalizing flux tallies with the random ray volume "
+               "estimator will result in a double divide by volume. Please set "
+               "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC model.");
 
   if (_openmc_problem.runRandomRay())
   {
@@ -160,7 +161,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
     if (found_invalid_rr_score)
     {
       invalid_scores.erase(invalid_scores.length() - 2, 2);
-      paramError("score", "OpenMC's random ray solver currently doesn't support the following scores: " + invalid_scores + ". Please remove these scores.");
+      paramError("score",
+                 "OpenMC's random ray solver currently doesn't support the following scores: " +
+                     invalid_scores + ". Please remove these scores.");
     }
   }
 
@@ -174,10 +177,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
     auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
 
     if (estimator != tally::tracklength && _openmc_problem.runRandomRay())
-      paramError(
-          "estimator",
-          "The random ray solver in OpenMC requires that tallies use "
-          "tracklength estimators! Please set 'estimator' to 'tracklength'.");
+      paramError("estimator",
+                 "The random ray solver in OpenMC requires that tallies use "
+                 "tracklength estimators! Please set 'estimator' to 'tracklength'.");
 
     // Photon heating tallies cannot use tracklength estimators.
     if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
@@ -199,7 +201,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
      */
     _estimator = openmc::TallyEstimator::TRACKLENGTH;
 
-    if (nu_scatter && !(heating && openmc::settings::photon_transport) && !_openmc_problem.runRandomRay())
+    if (nu_scatter && !(heating && openmc::settings::photon_transport) &&
+        !_openmc_problem.runRandomRay())
       _estimator = openmc::TallyEstimator::ANALOG;
     else if (nu_scatter && heating && openmc::settings::photon_transport)
       paramError(
