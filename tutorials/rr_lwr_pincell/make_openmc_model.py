@@ -122,6 +122,8 @@ def main() -> None:
   pin_top = openmc.ZPlane(z0 = 0.5 * specs.HEIGHT, boundary_type = 'vacuum')
 
   ## Create cells for the cladding, gap, and water.
+  ## The total cross section of the He gap hits the void guard in the random ray solver. We
+  ## model it as void to avoid numerical instabilities.
   gap_cell = openmc.Cell(fill = None, region = +fuel_pin_or & -fuel_gap_or, name = 'Gap Cell')
   clad_cell = openmc.Cell(fill = zr, region = +fuel_gap_or & -fuel_zr_or, name = 'Clad Cell')
   mod_cell = openmc.Cell(fill = h2o, region = +fuel_zr_or, name = 'Moderator Cell')
