@@ -12,6 +12,8 @@
     ny = 1
     nz = 1
   []
+
+  allow_renumbering = false
 []
 
 [Problem]
