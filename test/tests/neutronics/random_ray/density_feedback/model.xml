@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <model>
   <materials>
-    <cross_sections>/home/kevin/Projects/cardinal/test/tests/neutronics/random_ray/density_feedback/mgxs.h5</cross_sections>
+    <cross_sections>./mgxs.h5</cross_sections>
     <material id="1" name="material_1" depletable="true">
       <density value="1.0" units="macro"/>
       <macroscopic name="material_1"/>
