@@ -48,7 +48,8 @@ BoratedWater::validParams()
 BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialSearch(parameters)
 {
   if (_openmc_problem->runRandomRay())
-    mooseError("The BoratedWater criticality search is not supported when running the random ray solver!");
+    mooseError(
+        "The BoratedWater criticality search is not supported when running the random ray solver!");
 
   // apply additional checks on the minimum and maximum
   if (_minimum < 0)
