@@ -15,8 +15,7 @@ cd cardinal/tutorials/rr_lwr_pincell
 !alert! note title=Previous Experience
 In this tutorial, we assume that the user is familiar with coupling OpenMC to MOOSE in
 Cardinal for [!ac](LWR) problems. If you haven't done so already, we recommend that you
-complete the [continuous energy LWR pincell tutorial](pincell1.md) before going over
-this tutorial.
+complete the [continuous energy LWR pincell tutorial](pincell1.md) before continuing.
 !alert-end!
 
 ## Geometry and Computational Models id=model_1
@@ -24,9 +23,10 @@ this tutorial.
 This model consists of a single UO@2@ pincell from a continuous energy version of the 3D
 C5G7 benchmark in [!cite](c5g7). Instead of using the multi-group cross sections from the
 C5G7 benchmark specifications, the material properties in [!cite](c5g7_materials) are used
-to demonstrate one way to convert from a continuous energy model to a multi-group [!ac](TRRM)
-model. The pincell consists of a UO@2@ fuel pellet (with a He gap) clad with Zr surrounded by
-borated water. The relevant dimensions of the problem can be found in [table1].
+to demonstrate conversion from a continuous energy model to a multi-group [!ac](TRRM)
+model. The pincell consists of a UO@2@ fuel pellet clad with Zr. The pin is surrounded by
+borated water, and there is a He gap between the fuel and cladding. The relevant dimensions
+of the problem can be found in [table1].
 
 !table id=table1 caption=Geometric specifications for the [!ac](LWR) pincell
 | Parameter | Value (cm) |
@@ -38,8 +38,8 @@ borated water. The relevant dimensions of the problem can be found in [table1].
 | Fuel height | 200 |
 
 A total core power of 3000 MWth is assumed uniformly distributed among 273 rodded fuel assemblies,
-each with 264 pins (which do not have a uniform power distribution due to the control rods). The
-tallies added by Cardinal will therefore be normalized according to the per-pin power:
+each with 264 pins (which do not have a uniform power distribution due to the control rods and guide
+tubes). The tallies added by Cardinal will therefore be normalized according to the per-pin power:
 
 \begin{equation}
 \label{eq:1}
@@ -64,8 +64,8 @@ is applied to the outer surface of the cladding. The common parameters for the m
 ### Continuous Energy OpenMC Model id=openmc_ce
 
 OpenMC's Python [!ac](API) is used to generate the [!ac](CSG) model for this [!ac](LWR) pincell. We begin
-by defining a helper function, `build_sr_pin`, which we will use to subdivide the [!ac](CSG) region which
-represents the UO@2@ pellet portion of the pincell. This serves two purposes: i) to improve the resolution
+by defining a helper function, `build_sr_pin`, which we will use to subdivide the [!ac](CSG) region representing
+the UO@2@ pellet portion of the pincell. This serves two purposes: i) to improve the resolution
 of the temperature feedback sent to OpenMC, and ii) to apply spatial discretization for [!ac](TRRM). The
 function subdivides the radial dimension of a cylindrical region with equal-volume subdivisions, and the
 azimuthal dimension is discretized uniformely.
@@ -78,11 +78,11 @@ Afterwards, we define continuous energy material properties for the UO@2@ fuel (
 and borated water coolant (`h2o`). Once materials are defined, we create the surfaces and cells necessary
 to build the full pincell with [!ac](CSG) in the radial plane. `build_sr_pin` is then used to create a
 universe which is populated with the discretized pincell. In this problem the azimuthal dimension is
-symmetrical, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
-to a lattice to extrude it into 100 layers. The lattice (with 100 axial subdivisions) is placed in a cell
-which applies vacuum boundary conditions on the top and bottom of the pincell, which reflective boundary
+symmetric, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
+to a lattice to extrude it into 100 layers axially. The lattice is placed in a cell
+which applies vacuum boundary conditions on the top and bottom of the pincell, while reflective boundary
 conditions are applied on the remaining sides of the geometry. Finally, we add the materials and geometry
-to a model container and set some simulation settings for the continuous energy model. The final radial
+to a model container and set some simulation settings for the continuous energy model. The radial
 discretization of the OpenMC [!ac](CSG) geometry can be found in [rr_openmc_cells].
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
@@ -117,26 +117,28 @@ not be sufficient for most problems (without the use of transport equivalences).
 a list of temperatures to use when generating [!ac](MGXS). `convert_to_multigroup` will run a continuous energy
 OpenMC simulation for each provided temperature where every material in the model is set to that temperature
 (isothermal conditions). This proves to be a severe approximation for multiphysics calculations where large
-temperature gradients are experiences between different materials, such as [!ac](LWR) problems (where the
-coolant is on the order of ~600 K and the fuel is on the order of ~1400 K). We chose to use it in this tutorial
-to simplify the generation of [!ac](MGXS) - care should be exercised if using this option for production
-calculations. We recommend reading the
+temperature differences exist between different materials, such as [!ac](LWR) problems (where the
+coolant has a temperature of ~600 K and the fuel has a temperature of ~1400 K). We chose to use isothermal
+conditions in this tutorial to simplify the generation of [!ac](MGXS) - care should be exercised if using this
+option for production calculations. We recommend reading the
 [OpenMC user guide](https://docs.openmc.org/en/stable/usersguide/random_ray.html#generating-multigroup-cross-sections-mgxs)
 for generating [!ac](MGXS) to review the pros and cons of the autoconvert function. A final choice that we make
 for [!ac](MGXS) generation is the scattering treatment - we select a P@0@ transport correction (`correction="P0"`)
 to minimize bias introduced in the scattering source. This is often sufficient for [!ac](LWR) applications.
 
-Converting the model to a random ray model requires no user knowledge compared to the multi-group conversion.
+Converting to a random ray model requires minimal user knowledge compared to the multi-group conversion.
 OpenMC will examine the bounding box of our pincell to determine the maximum chord length, and set the inactive
 length to that distance. The maximum chord length is often larger then ten mean free paths in reactor applications,
-and so ray initialization bias is wiped away with this choice. The active distance is set to five times the maximum
-chord length. Unlike the conversion to multi-group where [!ac](MGXS) are generated, the selection of the inactive
-and active ray length can be set to different values if they are found to be insufficient. This function also sets
-the ray source to the geometric bounding box, and takes a guess as to how many rays will be required. The
-number of rays should be set by the user as this guess is almost never sufficient.
+and so
+[ray initialization bias](https://docs.openmc.org/en/stable/methods/random_ray.html#ray-starting-conditions-and-inactive-length)
+is wiped away with this choice. The active distance is set to five times the maximum chord length. Unlike the
+conversion to multi-group where [!ac](MGXS) are generated, the selection of the inactive and active ray length
+can be set to different values if they are found to be insufficient. This function also sets the ray source to
+the geometric bounding box, and takes a guess as to how many rays will be required. The number of rays should
+be set by the user as this guess is almost never sufficient.
 
 After converting to a [!ac](TRRM) model, we set some discretization parameters specific to our problem. This
-includes  further source region subdivision of the coolant region using a uniform mesh (known as
+includes further source region subdivision of the coolant region using a uniform mesh (known as
 [cell-under-voxel source region decomposition](https://docs.openmc.org/en/stable/usersguide/random_ray.html#subdivision-of-source-regions)).
 This discretization is easy to apply, however it can yield very small source regions near the intersection of the
 boundaries of a mesh voxel and a [!ac](CSG) cell (which is less likely to get hit by a ray). This may result in
@@ -144,11 +146,12 @@ stability issues in some cases and worse statistics for tallies. An additional d
 approach is that Cardinal cannot map to these regions as they are created on the fly during the simulation
 process; we recommend manual subdivision for most multiphysics simulations unless the regions do not require mapped
 tallies or temperature/density feedback. We also set the source region discretization to either: i) flat sources,
-or ii) linear sources (depending on command line arguments provide to the Python script). Linear sources will result
+or ii) linear sources (depending on command line arguments provided to the Python script). Linear sources will result
 in an increase in accuracy for a given geometric discretization at the cost of increasing computational time, and
-potentially introducing negative tally values. These negative values are a symptom of a very coarse source region
-discretization. Finally, we set `random_ray['diagonal_stabilization_rho'] = 1.0` to ensure our use of a transport
-correction doesn't destabilize the combined scattering source / power iteration used by [!ac](TRRM).
+potentially introducing negative source values (which OpenMC will set to zero). These negative values are a symptom
+of a very coarse source region discretization. Finally, we set `random_ray['diagonal_stabilization_rho'] = 1.0`
+to ensure our use of a transport correction doesn't destabilize the combined scattering source / power iteration
+used by [!ac](TRRM).
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
   start=## Create a mesh to do cell-under-voxel decomposition of the moderator
@@ -223,7 +226,7 @@ OpenMC will write the fission heat source:
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Mesh
 
-Next, we define an AuxVariable to use to visualize the temperature Cardinal is setting in OpenMC cells, and write
+Next, we define an `AuxVariable` to use to visualize the temperature Cardinal is setting in OpenMC cells, and write
 to it with a [CellTemperatureAux](CellTemperatureAux.md) (which queries the cell temperature in the OpenMC geometry):
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
@@ -239,12 +242,12 @@ must be converged. Fewer rays per batch (1000 in this case) are required as rays
 the end of the active length (unlike particles, which are killed on absorption). We then specify `scaling = 100.0`
 to convert from mesh units (m) to OpenMC units (cm). We also set the pin power used to normalize tally scores.
 Afterwards, we set the cell level of the cell to element mapping to the lowest level in the OpenMC geometry, and
-specify that we wish couple OpenMC to the fuel (`uo2` and `uo2_tri` blocks) with temperature feedback. To speed
+specify that we wish to couple OpenMC to the fuel (`uo2` and `uo2_tri` blocks) with temperature feedback. To speed
 up the rate of convergence and avoid the nonlinear feedback instabilities inherent to [!ac](LWR) multiphysics
 calculations, we use constant relaxation with a relaxation factor of 0.5. The final component of the OpenMC
-problem setup is to add a [CellTally](CellTally.md) which accumulates `kappa_fission` over `block = 'uo2 uo2_tri'`.
-In addition to the fission heating, we enable outputs for the standard deviation and relative error of the heating
-values. Finally, we disable tally global normalization as it is not supported by the [!ac](TRRM) wrapper.
+problem setup is to add a [CellTally](CellTally.md) which accumulates `kappa_fission` over `uo2` and `uo2_tri`.
+In addition to fission heating tally value, we enable outputs for the heating standard deviation and relative error.
+Finally, we disable tally global normalization as it is not supported by the [!ac](TRRM) wrapper.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Problem
@@ -290,7 +293,7 @@ Finally, we select Exodus and CSV output in the `[Outputs]` block.
 ### Solid Input File id=solid_input
 
 The heat conduction problem is setup in the `solid.i` input file, and is very similar to the
-[continuous energy LWR pincell tutorial](pincell1.md). It begins by loading   the previously
+[continuous energy LWR pincell tutorial](pincell1.md). It begins by loading the previously
 generated mesh.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
@@ -298,7 +301,7 @@ generated mesh.
 
 Afterwards, nonlinear and auxiliary variables are added for the temperature and heat source
 (respectively). This is followed by the addition of kernels to assemble the heat conduction
-equation over the fuel and cladding (where the fission heat source `CoupledForce` is block
+equation over the fuel and cladding (where the fission heat source `heat` is block
 restricted to the fuel).
 
 !listing /tutorials/rr_lwr_pincell/solid.i
@@ -336,7 +339,7 @@ To run the coupled calculation with [!ac](TRRM) and flat sources,
 ```bash
 python3 make_openmc_model -r
 cardinal-opt -i solid_mesh.i --mesh-only
-mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
+cardinal-opt -i openmc.i --n-threads=4
 ```
 
 To run with [!ac](TRRM)  and linear sources,
@@ -344,7 +347,7 @@ To run with [!ac](TRRM)  and linear sources,
 ```bash
 python3 make_openmc_model -r --linear
 cardinal-opt -i solid_mesh.i --mesh-only
-mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
+cardinal-opt -i openmc.i --n-threads=4
 ```
 
 and to run the continuous energy reference,
@@ -352,13 +355,16 @@ and to run the continuous energy reference,
 ```bash
 python3 make_openmc_model
 cardinal-opt -i solid_mesh.i --mesh-only
-mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
+cardinal-opt -i openmc.i --n-threads=4
 ```
 
-All of the above will use 2 MPI ranks and 2 OpenMP threads per rank. To run the simulation
-faster, you can increase the number of ranks/threads or decrease the number of particles. Bare
+All of the above will use 4 OpenMP threads. To run the simulation
+faster, you can increase the number of OpenMP threads or decrease the number of particles. Bear
 in mind that decreasing the number of particles may result in a failure to converge when running
-[!ac](TRRM) as fewer source regions will be hit on each power iteration.
+[!ac](TRRM) as fewer source regions will be hit on each power iteration. The [!ac](TRRM) solver
+[does not support distributed memory calculations yet](https://github.com/openmc-dev/openmc/pull/3333),
+and so adding extra MPI ranks will not speed up the neutronics calculation as all work is done by
+rank zero.
 
 [table2] shows the resulting k-eigenvalues for each [!ac](TRRM) discretization approach compared
 against the continuous energy reference (10000 particles per batch. 1100 batches, 100 inactive batches)
