@@ -17,9 +17,10 @@
 
 module purge
 module load gcc/11.4.0
-module load openmpi/5.0.0-gcc-11.4.0
+module load openmpi/4.1.6-gcc-11.4.0-pbs
 module load cmake/3.27.4
-module load anaconda3/2024.10
+module load perl/5.38.0-gcc-11.4.0
+module load miniforge3/25.3.0
 
 # Revise for your Cardinal repository location
 DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
