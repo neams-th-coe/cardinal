@@ -166,7 +166,7 @@
   []
   [err_xml]
     type = RunException
-    input = from_xml.i
+    input = fx.i
     expect_err = "FromXMLFilter is presently not supported when running the random ray solver!"
     requirement = "The system shall error if the user adds an FromXMLFilter when running the "
                   "random ray solver."
