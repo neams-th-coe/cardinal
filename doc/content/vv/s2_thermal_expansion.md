@@ -187,7 +187,7 @@ distributions can be found in [gk_rr_200].
   caption=Scalar flux and temperature distributions predicted with [!ac](TRRM) in Cardinal.
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
-The impact of the y-z induces source region gradients can be seen in the flux solution, resulting in
+The impact of the y-z induced source region gradients can be seen in the flux solution, resulting in
 reasonable (but not perfect) agreement with [neutron_flux_sln]. The thermomechanics problem uses a true
 1D mesh, resulting in better agreement between the numerical temperature predictions with
 [temperature_sln]. The [!ac](TRRM) solution predicts $k_{eff} = 0.29520$ ($\Delta k_{eff} = −37$ pcm)
