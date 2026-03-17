@@ -41,7 +41,8 @@ SphericalHarmonicsFilter::SphericalHarmonicsFilter(const InputParameters & param
   : FilterBase(parameters), _order(getParam<unsigned int>("order"))
 {
   if (_openmc_problem.runRandomRay())
-    mooseError("SphericalHarmonicsFilter is presently not supported when running the random ray solver!");
+    mooseError(
+        "SphericalHarmonicsFilter is presently not supported when running the random ray solver!");
 
   auto sh_filter = dynamic_cast<openmc::SphericalHarmonicsFilter *>(
       openmc::Filter::create("sphericalharmonics"));
