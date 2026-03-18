@@ -582,8 +582,6 @@ MoabSkinner::sortElemsByResults()
     if (!elem)
       continue;
 
-    Point p = elem->vertex_average();
-
     // bin by subdomain ID
     auto iMat = getSubdomainBin(elem);
     n_block_hits[iMat] += 1;
