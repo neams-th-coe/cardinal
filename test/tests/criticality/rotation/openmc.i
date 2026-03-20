@@ -24,20 +24,11 @@
 
   [CriticalitySearch]
     type = RotationSearch
-    transform_name = 'RotateInnerCyl'
+    cell_ids = '5'
     rotation_axis = 'z'
     minimum = '0.0'
     maximum = '90.0'
     tolerance = 1e-2
-  []
-[]
-
-[UserObjects]
-  [RotateInnerCyl]
-    type = OpenMCCellTransform
-    transform_type = 'rotation'
-    cell_ids = '5'
-    vector_value = '0.0 0.0 drum_angle'
   []
 []
 
@@ -47,9 +38,6 @@
 
 # This test will output a 1 to CSV if the timestep converges a criticality search
 [Postprocessors]
-  [drum_angle]
-    type = Receiver
-  []
   [k]
     type = KEigenvalue
   []
@@ -67,6 +55,6 @@
 
 [Outputs]
   csv = true
-  hide = 'k k_residual critical_value drum_angle'
+  hide = 'k k_residual critical_value'
 []
 

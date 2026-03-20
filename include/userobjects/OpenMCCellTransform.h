@@ -20,54 +20,27 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
+#include "OpenMCCellTransformBase.h"
 #include "GeneralUserObject.h"
-#include "PostprocessorInterface.h"
-#include "OpenMCBase.h"
 
-class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
+#include <array>
+
+class OpenMCCellTransform : public GeneralUserObject, public OpenMCCellTransformBase
 {
 public:
   static InputParameters validParams();
 
   OpenMCCellTransform(const InputParameters & parameters);
 
-  /** Returns whether the UserObject is a translation or rotation
-   * @return the transform type
-   */
-  MooseEnum getTransformType() const;
-
-  /** Returns a vector of PostprocessorNames corresponding to
-   * the entries in vector_value
-   * @return vector of PostprocessorName
-   */
-  std::vector<PostprocessorName> getVectorValue() const;
-
-  /** Given a std::vector<Real>, this function sets the Postprocessor
-   * associated in the order they are defined in vector_value if a
-   * Receiver postprocessor exists at the position correspondign to the value
-   * @param[in] std::vector of values to set
-   */
-  void setTransformPPValues(const std::vector<Real> pp_values);
-
   virtual void initialize() override {}
   virtual void execute() override;
   virtual void finalize() override {}
 
 protected:
-  /// OpenMC cell IDs to which the translation will be applied
-  std::set<int32_t> _cell_ids;
-
   /// Transform type: "translation" or "rotation"
-  const MooseEnum _transform_type;
-
-  /// Postprocessor providing the first entry of the transform array
-  const PostprocessorValue * _t0_pp;
-
-  /// Postprocessor providing the second entry of the transform array
-  const PostprocessorValue * _t1_pp;
-
-  /// Postprocessor providing the third entry of the transform array
-  const PostprocessorValue * _t2_pp;
+  const MooseEnum & _transform_type;
+  /// Postprocessor providing the entries of the transform array
+  std::array<const PostprocessorValue *, 3> _t_pp;
 };
 
 #endif

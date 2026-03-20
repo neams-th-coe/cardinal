@@ -16,39 +16,49 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#pragma once
+
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "AddCriticalitySearchAction.h"
-#include "OpenMCCellAverageProblem.h"
-#include "CriticalitySearchBase.h"
+#include "MooseTypes.h"
+#include "InputParameters.h"
 
-registerMooseAction("CardinalApp", AddCriticalitySearchAction, "add_criticality_search");
+class MooseEnum;
 
-InputParameters
-AddCriticalitySearchAction::validParams()
+class OpenMCCellAverageProblem;
+
+class OpenMCCellTransformBase
 {
-  auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a criticality search for OpenMC");
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-AddCriticalitySearchAction::AddCriticalitySearchAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters)
-{
-}
+  /// Enumeration for the transform type
+  static const MooseEnum transform_type;
+  /// The symbols for each dimension in the transform vector: ["φ", "θ", "ψ"]
+  static const std::array<std::string, 3> transform_vector_symbols;
+  /// The symbols for the transform vector in a list form: "φ, θ, ψ"
+  static const std::string transform_vector_symbols_list;
 
-void
-AddCriticalitySearchAction::act()
-{
-  if (_current_task == "add_criticality_search")
-  {
-    auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
+  OpenMCCellTransformBase(const MooseObject & moose_object);
 
-    if (!openmc_problem)
-      mooseError("The [CriticalitySearch] block can only be used with wrapped OpenMC cases! "
-                 "You need to change the [Problem] block to 'OpenMCCellAverageProblem'.");
+  /**
+   * Do a transformation on the given cells.
+   *
+   * @param transform_type The transform type (translation or rotation)
+   * @param transform_vector The vector by to transform
+   */
+  void transform(const MooseEnum & transform_type, const Point & transform_vector);
 
-    openmc_problem->addObject<CriticalitySearchBase>(_type, _name, _moose_object_pars, false);
-  }
-}
+protected:
+  /// OpenMC cell IDs to which the translation will be applied
+  const std::set<int32_t> _cell_ids;
+
+private:
+  /// The MooseObject owning this transform
+  const MooseObject & _moose_object;
+
+  /// The OpenMC problem; for calling the transforms
+  OpenMCCellAverageProblem & _openmc_problem;
+};
+
 #endif
