@@ -35,9 +35,9 @@ public:
   /// Enumeration for the transform type
   static const MooseEnum transform_type;
   /// The symbols for each dimension in the transform vector: ["φ", "θ", "ψ"]
-  static const std::array<std::string, 3> transform_vector_symbols;
+  static const std::array<std::string, 3> rotation_vector_symbols;
   /// The symbols for the transform vector in a list form: "φ, θ, ψ"
-  static const std::string transform_vector_symbols_list;
+  static const std::string rotation_vector_symbols_list;
 
   OpenMCCellTransformBase(const MooseObject & moose_object);
 

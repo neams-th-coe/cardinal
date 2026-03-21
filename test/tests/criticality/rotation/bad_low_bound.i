@@ -4,8 +4,8 @@
   [annulus]
     type = ConcentricCircleMeshGenerator
     radii = '${r_inner} ${r_outer}'
-    rings = '2 2'
-    num_sectors = '12'
+    rings = '1 1'
+    num_sectors = '4'
     has_outer_square = 'False'
     preserve_volumes = 'False'
   []
@@ -19,31 +19,16 @@
   []
 []
 
-[AuxVariables]
-  [z]
-    # variable to give to the UO
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
   [CriticalitySearch]
     type = RotationSearch
-    transform_name = 'wrong_uo_type'
+    cell_ids = '5'
     rotation_axis = 'z'
-    minimum = '0.0'
-    maximum = '90.0'
+    minimum = '-10.0'
+    maximum = '180.0'
     tolerance = 1e-2
-  []
-[]
-
-[UserObjects]
-  [wrong_uo_type]
-    type = LayeredAverage
-    variable = 'z'
-    num_layers = '1'
-    direction = 'z'
   []
 []
 
@@ -53,10 +38,6 @@
 
 # This test will output a 1 to CSV if the timestep converges a criticality search
 [Postprocessors]
-  [drum_angle]
-    type = ConstantPostprocessor
-    value = '90'
-  []
   [k]
     type = KEigenvalue
   []

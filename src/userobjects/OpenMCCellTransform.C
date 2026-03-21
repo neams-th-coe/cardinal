@@ -34,7 +34,7 @@ OpenMCCellTransform::validParams()
                              OpenMCCellTransformBase::transform_type,
                              "Type of transform to apply: 'translation' (dx,dy,dz) or 'rotation'"
                              "(" +
-                                 OpenMCCellTransformBase::transform_vector_symbols_list +
+                                 OpenMCCellTransformBase::rotation_vector_symbols_list +
                                  ") in degrees, where the angles are the rotations about the "
                                  "x, y, and z axes, respectively.");
 
@@ -43,7 +43,7 @@ OpenMCCellTransform::validParams()
       "An array of three values/postprocessors. For translation this array expects (dx, dy, dz) in "
       "mesh"
       " units. For rotation this array expects '" +
-          OpenMCCellTransformBase::transform_vector_symbols_list + "' in degrees.");
+          OpenMCCellTransformBase::rotation_vector_symbols_list + "' in degrees.");
 
   params.addClassDescription(
       "UserObject that applies either translation or rotation on one or more OpenMC cells. "
@@ -62,7 +62,7 @@ OpenMCCellTransform::OpenMCCellTransform(const InputParameters & parameters)
     paramError("vector_value",
                "Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translation"
                "transform or '" +
-                   OpenMCCellTransformBase::transform_vector_symbols_list +
+                   OpenMCCellTransformBase::rotation_vector_symbols_list +
                    "' in degrees for rotation transform.");
 
   for (const auto i : index_range(_t_pp))

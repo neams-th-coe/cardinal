@@ -41,8 +41,7 @@ public:
 
 protected:
   virtual std::string units() const override { return "[degrees]"; }
-  // TODO: logan doesn't know what to put here
-  virtual std::string quantity() const override { return "fixme"; }
+  virtual std::string quantity() const override { return "Rotation"; }
 
   /// the index of the rotational axis used to search for criticality
   const int _rotation_axis_idx;

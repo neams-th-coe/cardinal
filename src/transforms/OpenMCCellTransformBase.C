@@ -39,11 +39,11 @@ OpenMCCellTransformBase::validParams()
 }
 
 const MooseEnum OpenMCCellTransformBase::transform_type("translation rotation", "translation");
-const std::array<std::string, 3> OpenMCCellTransformBase::transform_vector_symbols{"φ", "θ", "ψ"};
-const std::string OpenMCCellTransformBase::transform_vector_symbols_list =
-    OpenMCCellTransformBase::transform_vector_symbols[0] + ", " +
-    OpenMCCellTransformBase::transform_vector_symbols[1] + ", " +
-    OpenMCCellTransformBase::transform_vector_symbols[2];
+const std::array<std::string, 3> OpenMCCellTransformBase::rotation_vector_symbols{"φ", "θ", "ψ"};
+const std::string OpenMCCellTransformBase::rotation_vector_symbols_list =
+    OpenMCCellTransformBase::rotation_vector_symbols[0] + ", " +
+    OpenMCCellTransformBase::rotation_vector_symbols[1] + ", " +
+    OpenMCCellTransformBase::rotation_vector_symbols[2];
 
 OpenMCCellTransformBase::OpenMCCellTransformBase(const MooseObject & moose_object)
   : _cell_ids(moose_object.getParam<std::vector<int32_t>>("cell_ids").begin(),
@@ -88,9 +88,9 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
       for (const auto i : index_range(vec))
         if (vec[i] < 0 || vec[i] >= 360)
           _moose_object.mooseError("Rotation transformation angle ",
-                                   transform_vector_symbols[i],
-                                   " must be in the range (0, 360] degrees. Got invalid",
-                                   transform_vector_symbols[i],
+                                   rotation_vector_symbols[i],
+                                   " must be in the range [0, 360) degrees. Got invalid",
+                                   rotation_vector_symbols[i],
                                    " = ",
                                    vec[i],
                                    " degrees.");
