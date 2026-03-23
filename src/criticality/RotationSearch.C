@@ -35,7 +35,8 @@ RotationSearch::RotationSearch(const InputParameters & parameters)
 void
 RotationSearch::updateOpenMCModel(const Real & angle)
 {
-  _console << "OpenMC will run with next guess for rotation = " << angle << units() << std::endl;
+  _console << "OpenMC will run with next guess for rotation = " << angle << " " << units()
+           << std::endl;
 
   // make a vectorized version of the rotation angle with 0 (default Point value) for the
   // non-rotating axes

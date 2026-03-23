@@ -89,7 +89,7 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
         if (vec[i] < 0 || vec[i] >= 360)
           _moose_object.mooseError("Rotation transformation angle ",
                                    rotation_vector_symbols[i],
-                                   " must be in the range [0, 360) degrees. Got invalid",
+                                   " must be in the range [0, 360) degrees. Got invalid ",
                                    rotation_vector_symbols[i],
                                    " = ",
                                    vec[i],
@@ -98,7 +98,7 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
       // OpenMC will return an error.
       err = openmc_cell_set_rotation(index, vec.data(), 3);
       _moose_object._console << "Setting OpenMC cell rotation for cell with ID " +
-                                    std::to_string(cell_id) + "to ("
+                                    std::to_string(cell_id) + " to ("
                              << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees."
                              << std::endl;
     }

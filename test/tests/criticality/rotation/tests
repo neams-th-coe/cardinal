@@ -13,7 +13,7 @@
     input = openmc.i
     cli_args = 'Problem/CriticalitySearch/maximum=370.0'
     expect_err = "The 'maximum' specified rotation"
-    requirement = 'The system shall error if the maximum search value passed to a RotationSearch is negative.'
+    requirement = 'The system shall error if the maximum search value passed to a RotationSearch is greater than 360 degrees.'
     capabilities = 'openmc'
   []
   [rotation_search]
