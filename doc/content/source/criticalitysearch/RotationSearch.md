@@ -1,12 +1,17 @@
-# OpenMCMaterialDensity
+# RotationSearch
 
 ## Description
+`RotationSearch` is a [CriticalitySearch](AddCriticalitySearchAction.md) that searches for a specified $k$-eigenvalue by updating an `openmc.Cell.rotation`, which can be applied to one or more cells in the OpenMC model. 
 
-`RotationSearch` is a [CriticalitySearch](AddCriticalitySearchAction.md) that searches for a critical configuration by updating the value of one or more `openmc.Cell.rotation`(s). This is done by relying on an existing [OpenMCCellTransform](OpenMCCellTransform.md) UserObject that can update the OpenMC model with some added restrictions. If the [OpenMCCellTransform](OpenMCCellTransform.md) modifies multiple cells, the same rotation angle will be applied to each cell during the search.
+!alert note
+The cells specified in the search must be filled with a universe. All cells included in the search will have the same rotation applied.
 
-Only axis aligned searches are allowed, i.e. you can only rotate cells around the `x`, `y`, or `z` axis. The main reason for this restriction is that it is very easy to create an OpenMC model with voids prone to lost particles by modifying multiple rotation angles at once. If you desire to apply more than one rotation to a cell, it's reccomended to instead build your model in such a way the the rotation that changes reactivity in the search is only around one principal axis.
+The actual rotation is handled internally using an [OpenMCCellTransform](OpenMCCellTransform.md) UserObject, so the user does not need to (and should not) define one related to the search.
 
-While a generic `OpenMCCellTransform` allows modifications to all components of an `openmc.Cell.rotation` tuple via the `vector_value` parameter, for performing a `RotationSearch`, the `vector_value` must contain exactly two `0.0` values and one name of a `Postprocessor`, typically a `Receiver` `Postrprocesor`.
+Only axis aligned searches are allowed, so the user needs to specify which rotation axis, i.e. `x`, `y`, or `z`, will be modified when searching for a critical configuration. The main reason for this restriction is that it is very easy to create an OpenMC model with voids prone to lost particles by modifying multiple rotation angles at once. 
+
+!alert tip
+If you desire to specify rotation about more than one axis to the cell(s) involved with the search, it's reccomended to instead build your model in such a way the the rotation that changes reactivity in the search is only around one principal axis.
 
 ## Example Input File Syntax
 Here is a valid `RotationSearch` which shows the corresponding `OpenMCCellTransform` that will be used in the search for a critical state.
