@@ -38,21 +38,21 @@
     type = RunException
     input = rotate_cells.i
     cli_args = 'UserObjects/rotate_cells/vector_value="361 0 0"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle φ must be in the range \(0, 360\] degrees. Got invalid φ = 361.000000 degrees.'
+    expect_err = 'Rotation angle φ must be in the range \[0, 360\) degrees'
     capabilities = 'openmc'
   []
   [invalid_theta]
     type = RunException
     input = rotate_cells.i
     cli_args = 'UserObjects/rotate_cells/vector_value="0 361 0"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle θ must be in the range \(0, 360\] degrees. Got invalid θ = 361.000000 degrees.'
+    expect_err = 'Rotation angle θ must be in the range \[0, 360\) degrees'
     capabilities = 'openmc'
   []
   [invalid_psi]
     type = RunException
     input = rotate_cells.i
     cli_args = 'UserObjects/rotate_cells/vector_value="0 0 361"'
-    expect_err = 'UserObjects/rotate_cells/vector_value: Rotation angle ψ must be in the range \(0, 360\] degrees. Got invalid ψ = 361.000000 degrees.'
+    expect_err = 'Rotation angle ψ must be in the range \[0, 360\) degrees'
     capabilities = 'openmc'
   []
   [empty_cell_ids]

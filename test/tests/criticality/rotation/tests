@@ -1,15 +1,17 @@
 [Tests]
   issues = '#1294'
-  [bad_bounds]
+  [bad_lower_bound]
     type = RunException
-    input = bad_low_bound.i
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=-10.0'
     expect_err = "The 'minimum' specified rotation"
     requirement = 'The system shall error if the minmum search value passed to a RotationSearch is negative.'
     capabilities = 'openmc'
   []
-  [bad_bounds]
+  [bad_upper_bound]
     type = RunException
-    input = bad_high_bound.i
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/maximum=370.0'
     expect_err = "The 'maximum' specified rotation"
     requirement = 'The system shall error if the maximum search value passed to a RotationSearch is negative.'
     capabilities = 'openmc'
