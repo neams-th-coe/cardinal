@@ -890,6 +890,7 @@ MoabSkinner::addBoundaryConditionGroups()
   for (const auto & surface_entry : surfsToVols)
     surface_meshsets.push_back(surface_entry.first);
 
+  // This splitting logic below to handle separation of vacuum, reflective, and transmission parts
   for (const auto moab_surface_meshset : surface_meshsets)
   {
     moab::Range triangles_in_surface_meshset;
@@ -903,45 +904,61 @@ MoabSkinner::addBoundaryConditionGroups()
     const moab::Range reflective_triangles_on_surface =
         moab::intersect(triangles_in_surface_meshset, ref_tris);
 
-    if (vacuum_triangles_on_surface.empty() || reflective_triangles_on_surface.empty())
+    if (vacuum_triangles_on_surface.empty() && reflective_triangles_on_surface.empty())
+      continue;
+
+    // No BC specified (defaults to transmission)
+    moab::Range transmission_triangles_on_surface = triangles_in_surface_meshset;
+    for (const auto tri : vacuum_triangles_on_surface)
+      transmission_triangles_on_surface.erase(tri);
+    for (const auto tri : reflective_triangles_on_surface)
+      transmission_triangles_on_surface.erase(tri);
+
+    const bool has_vacuum = !vacuum_triangles_on_surface.empty();
+    const bool has_reflective = !reflective_triangles_on_surface.empty();
+    const bool has_transmission = !transmission_triangles_on_surface.empty();
+
+    // No splitting needed unless:
+    //  - mixed vacuum+reflective, OR
+    //  - any transmission remainder exists (partial BC assignment)
+    if (!has_transmission && !(has_vacuum && has_reflective))
       continue;
 
     const std::vector<VolData> & surface_volume_data = surfsToVols[moab_surface_meshset];
 
-    moab::Range remainder_triangles = triangles_in_surface_meshset;
-    for (const auto tri : vacuum_triangles_on_surface)
-      remainder_triangles.erase(tri);
-    for (const auto tri : reflective_triangles_on_surface)
-      remainder_triangles.erase(tri);
-
-    if (remainder_triangles.empty())
+    enum Keep
     {
-      moab::Range triangles_to_remove_from_existing = triangles_in_surface_meshset;
-      for (const auto tri : vacuum_triangles_on_surface)
-        triangles_to_remove_from_existing.erase(tri);
+      KEEP_TRANSMISSION,
+      KEEP_VACUUM
+    };
 
-      if (!triangles_to_remove_from_existing.empty())
-        check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove_from_existing));
+    // Keep original for transmission if present; otherwise (vac+ref only) keep original as vacuum.
+    const Keep keep = has_transmission ? KEEP_TRANSMISSION : KEEP_VACUUM;
 
-      moab::EntityHandle new_reflective_surface_meshset = 0;
-      moab::Range reflective_part = reflective_triangles_on_surface;
-      createSurf(
-          next_surface_id++, new_reflective_surface_meshset, reflective_part, surface_volume_data);
+    moab::Range keep_triangles =
+        (keep == KEEP_TRANSMISSION) ? transmission_triangles_on_surface : vacuum_triangles_on_surface;
+
+    // Remove everything except keep_triangles from the existing surface meshset
+    moab::Range triangles_to_remove_from_original = triangles_in_surface_meshset;
+    for (const auto tri : keep_triangles)
+      triangles_to_remove_from_original.erase(tri);
+
+    if (!triangles_to_remove_from_original.empty())
+      check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove_from_original));
+
+    // Create new surfaces for parts we peeled off
+    if (has_vacuum && keep != KEEP_VACUUM)
+    {
+      moab::EntityHandle new_surface = 0;
+      moab::Range surface_tris = vacuum_triangles_on_surface;
+      createSurf(next_surface_id++, new_surface, surface_tris, surface_volume_data);
     }
-    else
+
+    if (has_reflective)
     {
-      moab::Range triangles_to_remove = vacuum_triangles_on_surface;
-      triangles_to_remove.merge(reflective_triangles_on_surface);
-      check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove));
-
-      moab::EntityHandle new_vacuum_surface_meshset = 0;
-      moab::Range vacuum_part = vacuum_triangles_on_surface;
-      createSurf(next_surface_id++, new_vacuum_surface_meshset, vacuum_part, surface_volume_data);
-
-      moab::EntityHandle new_reflective_surface_meshset = 0;
-      moab::Range reflective_part = reflective_triangles_on_surface;
-      createSurf(
-          next_surface_id++, new_reflective_surface_meshset, reflective_part, surface_volume_data);
+      moab::EntityHandle new_surface = 0;
+      moab::Range surface_tris = reflective_triangles_on_surface;
+      createSurf(next_surface_id++, new_surface, surface_tris, surface_volume_data);
     }
   }
 
