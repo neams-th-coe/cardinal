@@ -96,5 +96,8 @@
 []
 
 [Outputs]
-  exodus = true
+  exodus = false
+  [file]
+    type = CSV
+  []
 []
