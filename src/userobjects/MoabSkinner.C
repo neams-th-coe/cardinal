@@ -935,8 +935,8 @@ MoabSkinner::addBoundaryConditionGroups()
     // Keep original for transmission if present; otherwise (vac+ref only) keep original as vacuum.
     const Keep keep = has_transmission ? KEEP_TRANSMISSION : KEEP_VACUUM;
 
-    moab::Range keep_triangles =
-        (keep == KEEP_TRANSMISSION) ? transmission_triangles_on_surface : vacuum_triangles_on_surface;
+    moab::Range keep_triangles = (keep == KEEP_TRANSMISSION) ? transmission_triangles_on_surface
+                                                             : vacuum_triangles_on_surface;
 
     // Remove everything except keep_triangles from the existing surface meshset
     moab::Range triangles_to_remove_from_original = triangles_in_surface_meshset;
