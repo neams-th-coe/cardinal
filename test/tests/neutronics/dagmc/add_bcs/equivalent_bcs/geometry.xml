@@ -1,11 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <geometry>
   <cell id="24" fill="2" region="20 -21 22 -23 24 -25" universe="1" />
-  <surface boundary="reflective" coeffs="-12.5" id="20" type="x-plane" />
-  <surface boundary="reflective" coeffs="87.5" id="21" type="x-plane" />
-  <surface boundary="vacuum" coeffs="-12.5" id="22" type="y-plane" />
-  <surface boundary="vacuum" coeffs="37.5" id="23" type="y-plane" />
-  <surface boundary="vacuum" coeffs="-12.5" id="24" type="z-plane" />
-  <surface boundary="vacuum" coeffs="12.5" id="25" type="z-plane" />
+  <cell id="25" material="3" region="26 -27 28 -29 30 -31" universe="1" />
+  <surface boundary="vacuum" coeffs="-12.5" id="20" type="x-plane" />
+  <surface boundary="vacuum" coeffs="87.5" id="21" type="x-plane" />
+  <surface boundary="reflective" coeffs="-12.5" id="22" type="y-plane" />
+  <surface boundary="reflective" coeffs="37.5" id="23" type="y-plane" />
+  <surface boundary="reflective" coeffs="-12.5" id="24" type="z-plane" />
+  <surface boundary="reflective" coeffs="12.5" id="25" type="z-plane" />
   <dagmc_universe filename="../../mesh_tallies/slab.h5m" id="2"/>
+  <surface boundary="vacuum" coeffs="-13" id="26" type="x-plane" />
+  <surface boundary="vacuum" coeffs="88" id="27" type="x-plane" />
+  <surface boundary="vacuum" coeffs="-12.75" id="28" type="y-plane" />
+  <surface boundary="vacuum" coeffs="37.75" id="29" type="y-plane" />
+  <surface boundary="vacuum" coeffs="-12.625" id="30" type="z-plane" />
+  <surface boundary="vacuum" coeffs="12.625" id="31" type="z-plane" />
 </geometry>
