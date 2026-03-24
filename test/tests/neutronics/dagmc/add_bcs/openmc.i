@@ -23,18 +23,6 @@
     old_block = '1 2'
     new_block = 'block_1 block_2'
   []
-  # [vacuum_sideset]
-  #   type = RenameBoundaryGenerator
-  #   input = name
-  #   old_boundary = '0 1 3 5'
-  #   new_boundary = 'vacuum_boundary vacuum_boundary vacuum_boundary vacuum_boundary'
-  # []
-  # [reflective_sideset]
-  #   type = RenameBoundaryGenerator
-  #   input = vacuum_sideset
-  #   old_boundary = '2 4'
-  #   new_boundary = 'reflective_boundary reflective_boundary'
-  # []
   [hextotet]
     type = ElementsToTetrahedronsConverter
     input = name
@@ -86,6 +74,7 @@
 
 [UserObjects]
   [moab]
+    # BCs are added in tests as cli_args to use this file in all different cases
     type = MoabSkinner
     verbose = true
     temperature_min = 0.0
