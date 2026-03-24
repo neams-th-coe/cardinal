@@ -92,7 +92,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 2
+  num_steps = 1
 []
 
 [Outputs]

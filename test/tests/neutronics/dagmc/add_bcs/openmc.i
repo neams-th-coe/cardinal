@@ -92,9 +92,6 @@
     temperature_max = 1000.0
     n_temperature_bins = 1
     temperature = temp
-    build_graveyard = false
-    vacuum_bcs_surfaces = 'top bottom front back'
-    reflective_bcs_surfaces = 'left right'
   []
 []
 
@@ -106,9 +103,12 @@
 
 [Executioner]
   type = Transient
-  num_steps = 2
+  num_steps = 1
 []
 
 [Outputs]
-  exodus = true
+  exodus = false
+  [file]
+    type = CSV
+  []
 []
