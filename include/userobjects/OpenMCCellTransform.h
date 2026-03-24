@@ -25,6 +25,11 @@
 
 #include <array>
 
+/**
+ * Transforms one or more OpenMC cells filled with universes based on user input.
+ * The user can either specify a single translation or rotation per OpenMCCellTransform,
+ * which is applied to all cells.
+ */
 class OpenMCCellTransform : public GeneralUserObject, public OpenMCCellTransformBase
 {
 public:

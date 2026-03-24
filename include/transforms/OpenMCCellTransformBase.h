@@ -27,6 +27,9 @@ class MooseEnum;
 
 class OpenMCCellAverageProblem;
 
+/**
+ * Base class for applications of transforms to a OpenMC cells.
+ */
 class OpenMCCellTransformBase
 {
 public:
