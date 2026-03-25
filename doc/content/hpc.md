@@ -56,7 +56,9 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
-!listing scripts/job_improv language=bash caption=Sample job script for Improv with the `startup` project code id=im2
+!listing scripts/job_improv_nek language=bash caption=Sample job script for Improv with the `startup` project code for a NekRS job id=im2
+
+!listing scripts/job_improv_openmc language=bash caption=Sample job script for Improv with the `startup` project code for an OpenMC job id=im2
 
 ## Bebop
 

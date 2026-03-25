@@ -6,14 +6,19 @@
 # 3. qsub job_improv
 
 #PBS -A startup
-#PBS -l select=1:ncpus=128:mpiprocs=128
-#PBS -l walltime=00:10:00
+#PBS -l select=10:ncpus=128:mpiprocs=8:ompthreads=16
+#PBS -l walltime=01:00:00
 #PBS -q compute
 #PBS -j oe
 #PBS -N cardinal
 
 #PBS -m bea
-#PBS -M <your_email_address>
+
+nodes=10
+num_numa=8
+cores_per_numa=8
+let threads_per_numa=$cores_per_numa*2
+let ntasks=$num_numa*$nodes
 
 module purge
 module load gcc/11.4.0
@@ -32,14 +37,8 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 # Revise for your cross sections location
 export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 
-export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
-
-# The name of the input file you want to run
-input_file=openmc.i
-
 # Moving into the working directory (where the job script was launched).
 echo "Working directory: $PBS_O_WORKDIR"
-cd $PBS_O_WORKDIR
 
 # Run a Cardinal case
-mpirun -np 128 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
+mpirun -np $ntasks --bind-to numa --map-by numa cardinal-opt -i openmc.i --n-threads=$threads_per_numa > logfile
