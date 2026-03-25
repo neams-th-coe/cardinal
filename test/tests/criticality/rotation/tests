@@ -1,4 +1,5 @@
 [Tests]
+  design = 'RotationSearch.md'
   issues = '#1294'
   [bad_lower_bound]
     type = RunException

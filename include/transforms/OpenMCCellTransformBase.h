@@ -18,8 +18,6 @@
 
 #pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-
 #include "MooseTypes.h"
 #include "InputParameters.h"
 
@@ -63,5 +61,3 @@ private:
   /// The OpenMC problem; for calling the transforms
   OpenMCCellAverageProblem & _openmc_problem;
 };
-
-#endif
