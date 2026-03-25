@@ -2,8 +2,6 @@
 
 #include "CriticalitySearchBase.h"
 #include "OpenMCCellTransformBase.h"
-#include "CardinalEnums.h"
-#include "UserObjectInterface.h"
 
 /**
  * Perform a criticality search based on a rotation angle
@@ -15,10 +13,9 @@ public:
 
   RotationSearch(const InputParameters & parameters);
 
-  /** Verifies that the definition of the OpenMCCellTransform
-   * UserObject is valid for a rotational criticality search
+  /** Update OpenMC model with the next guess for critical.
+   * @param[in] angle guess to pass to the next iteration
    */
-
   virtual void updateOpenMCModel(const Real & angle) override;
 
 protected:

@@ -44,9 +44,8 @@ public:
 
   /**
    * Do a transformation on the given cells.
-   *
-   * @param transform_type The transform type (translation or rotation)
-   * @param transform_vector The vector by to transform
+   * @param[in] transform_type The transform type (translation or rotation)
+   * @param[in] transform_vector The vector by to transform
    */
   void transform(const MooseEnum & transform_type, const Point & transform_vector);
 

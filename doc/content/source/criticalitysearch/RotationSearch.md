@@ -11,7 +11,7 @@ Only axis aligned searches are allowed, so the user needs to specify which rotat
 
 ## Example Input File Syntax
 
-Here is a valid `RotationSearch` which shows the corresponding `CriticalitySearch` block used to defines the search which will happen on each iteration.
+Here is a valid `RotationSearch` which shows the corresponding `CriticalitySearch` block used to define the search which will happen on each iteration.
 
 !listing test/tests/criticality/rotation/openmc.i
   block=Problem
