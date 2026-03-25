@@ -79,9 +79,9 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
       // If a user tried to apply translation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_translation(index, vec.data());
-      _moose_object._console << "Setting OpenMC cell translation for cell with ID " +
-                                    std::to_string(cell_id) + " to ("
-                             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm." << std::endl;
+      _moose_object._console << "Setting OpenMC cell translation for cell with ID " << cell_id
+                             << " to (" << vec[0] << ", " << vec[1] << ", " << vec[2] << ") cm."
+                             << std::endl;
     }
     else if (transform_type == "rotation")
     {
@@ -97,10 +97,9 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
       // If a user tried to apply rotation on a cell that doesn't contain a filled universe,
       // OpenMC will return an error.
       err = openmc_cell_set_rotation(index, vec.data(), 3);
-      _moose_object._console << "Setting OpenMC cell rotation for cell with ID " +
-                                    std::to_string(cell_id) + " to ("
-                             << vec[0] << ", " << vec[1] << ", " << vec[2] << ") degrees."
-                             << std::endl;
+      _moose_object._console << "Setting OpenMC cell rotation for cell with ID " << cell_id
+                             << " to (" << vec[0] << ", " << vec[1] << ", " << vec[2]
+                             << ") degrees." << std::endl;
     }
     else
       _moose_object.mooseError("In transformation, unknown transformation type: " + transform_type);

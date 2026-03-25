@@ -7,7 +7,7 @@
 !alert note
 The cells specified in the search must be filled with a universe. All cells included in the search will have the same rotation applied.
 
-Only axis aligned searches are allowed, so the user needs to specify which rotation axis ( `x`, `y`, or `z`) will be modified when searching for a critical configuration. The main reason for this restriction is that it is very easy to create an OpenMC model with voids prone to lost particles by modifying multiple rotation angles at once. If your model desires to rotate around a non-principal axis or rotate around multiple axes, it is advised to instead build a version in a different reference frame that searches by rotating along one of the three available axes.
+Only axis aligned searches are allowed, so the user needs to specify which rotation axis ( `x`, `y`, or `z`) will be modified via the [!param](/Problem/CriticalitySearch/RotationSearch/rotation_axis) parameter when searching for a critical configuration. The main reason for this restriction is that it is very easy to create an OpenMC model with voids prone to lost particles by modifying multiple rotation angles at once. If your model desires to rotate around a non-principal axis or rotate around multiple axes, it is advised to instead build a version in a different reference frame that searches by rotating along one of the three available axes.
 
 ## Example Input File Syntax
 
