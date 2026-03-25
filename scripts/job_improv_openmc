@@ -14,6 +14,7 @@
 
 #PBS -m bea
 
+# Modify this variable in addition to 'select=10'  on line 9 if running with a different number of nodes.
 nodes=10
 num_numa=8
 cores_per_numa=8

@@ -38,5 +38,6 @@ input_file=openmc.i
 echo "Working directory: $PBS_O_WORKDIR"
 cd $PBS_O_WORKDIR
 
-# Run a Cardinal case
+# Run a Cardinal case. mpirun should be launched with 128 * (NUM_NODES) ranks. In this case, 
+# two nodes are requested and so mpirun launches with 256 ranks to fill out both nodes.
 mpirun -np 256 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
