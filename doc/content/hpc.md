@@ -58,7 +58,7 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 
 !listing scripts/job_improv_nek language=bash caption=Sample job script for Improv with the `startup` project code for a NekRS job id=im2
 
-!listing scripts/job_improv_openmc language=bash caption=Sample job script for Improv with the `startup` project code for an OpenMC job. When using this script, you must modify the PBS selection directive (`select=10`) and the value of the `nodes=10` to change the number of nodes you're requesting id=im2
+!listing scripts/job_improv_openmc language=bash caption=Sample job script for Improv with the `startup` project code for an OpenMC job. When using this script, you must modify the PBS selection directive (`select`) and the value of `nodes` to change the number of nodes you're requesting id=im2
 
 ## Bebop
 
