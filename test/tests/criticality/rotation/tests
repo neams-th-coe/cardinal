@@ -1,0 +1,29 @@
+[Tests]
+  design = 'RotationSearch.md'
+  issues = '#1294'
+  [bad_lower_bound]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=-10.0'
+    expect_err = "The 'minimum' specified rotation"
+    requirement = 'The system shall error if the minmum search value passed to a RotationSearch is negative.'
+    capabilities = 'openmc'
+  []
+  [bad_upper_bound]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/maximum=370.0'
+    expect_err = "The 'maximum' specified rotation"
+    requirement = 'The system shall error if the maximum search value passed to a RotationSearch is greater than 360 degrees.'
+    capabilities = 'openmc'
+  []
+  [rotation_search]
+    type = CSVDiff
+    input = openmc.i
+    min_parallel = 6
+    csvdiff = openmc_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall conduct a criticality search by modifying a cell rotation. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
+    capabilities = 'openmc'
+  []
+[]
