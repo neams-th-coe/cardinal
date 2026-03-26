@@ -2,7 +2,7 @@
   [incorrect_problem]
     type = RunException
     input = openmc.i
-    expect_err = "TallyRelativeError can only be used with problems of type 'OpenMCCellAverageProblem'!"
+    expect_err = "This object can only be used with problems of type 'OpenMCCellAverageProblem'!"
     requirement = "The system shall error if an OpenMC object is used without the correct "
                   "OpenMC wrapped problem."
     capabilities = 'openmc'
