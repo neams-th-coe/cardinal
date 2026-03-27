@@ -24,6 +24,10 @@
 #include "CardinalAppTypes.h"
 #include "CardinalRevision.h"
 
+#ifdef ENABLE_OPENMC_COUPLING
+#include "OpenMCSyntax.h"
+#endif
+
 #ifdef ENABLE_NEK_COUPLING
 #include "NekSyntax.h"
 #endif
@@ -130,6 +134,10 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   /* register custom execute flags, action syntax, etc. here */
 #ifdef ENABLE_NEK_COUPLING
   Nek::associateSyntax(s, af);
+#endif
+
+#ifdef ENABLE_OPENMC_COUPLING
+  OpenMC::associateSyntax(s, af);
 #endif
 
   associateSyntaxInner(s, af);
