@@ -1,5 +1,5 @@
 [Mesh]
-  [./cmg]
+  [cmg]
     type = CartesianMeshGenerator
     dim = 3
     dx = '200.0'
@@ -9,5 +9,5 @@
     iy = '1'
     iz = '1'
     subdomain_id = '0'
-  [../]
+  []
 []

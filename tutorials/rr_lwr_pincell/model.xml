@@ -1,0 +1,281 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <cross_sections>./mgxs.h5</cross_sections>
+    <material id="1" name="UO2_Fuel" depletable="true">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="UO2_Fuel"/>
+    </material>
+    <material id="2" name="Zr_Cladding">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="Zr_Cladding"/>
+    </material>
+    <material id="3" name="H2O_Moderator">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="H2O_Moderator"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" name="Gap Cell" material="void" region="1 -2" universe="1"/>
+    <cell id="2" name="Clad Cell" material="2" region="2 -3" universe="1"/>
+    <cell id="3" name="Moderator Cell" material="3" region="3" universe="1"/>
+    <cell id="4" name="Fuel cell 0" material="1" region="-10" universe="1"/>
+    <cell id="5" name="Fuel cell 1" material="1" region="-11 10" universe="1"/>
+    <cell id="6" name="Fuel cell 2" material="1" region="-1 11" universe="1"/>
+    <cell id="7" fill="2" region="4 -5 6 -7 8 -9" universe="3"/>
+    <lattice id="2" name="Lattice">
+      <pitch>1.26 1.26 2.0</pitch>
+      <dimension>1 1 100</dimension>
+      <lower_left>-0.63 -0.63 -100.0</lower_left>
+      <universes>
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1 </universes>
+    </lattice>
+    <surface id="1" type="z-cylinder" coeffs="0.0 0.0 0.4095"/>
+    <surface id="2" type="z-cylinder" coeffs="0.0 0.0 0.418"/>
+    <surface id="3" type="z-cylinder" coeffs="0.0 0.0 0.475"/>
+    <surface id="4" name="minimum x" type="x-plane" boundary="reflective" coeffs="-0.63"/>
+    <surface id="5" name="maximum x" type="x-plane" boundary="reflective" coeffs="0.63"/>
+    <surface id="6" name="minimum y" type="y-plane" boundary="reflective" coeffs="-0.63"/>
+    <surface id="7" name="maximum y" type="y-plane" boundary="reflective" coeffs="0.63"/>
+    <surface id="8" type="z-plane" boundary="vacuum" coeffs="-100.0"/>
+    <surface id="9" type="z-plane" boundary="vacuum" coeffs="100.0"/>
+    <surface id="10" type="z-cylinder" coeffs="0 0 0.23642493523315175"/>
+    <surface id="11" type="z-cylinder" coeffs="0 0 0.3343553498899038"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>400</particles>
+    <batches>100</batches>
+    <inactive>10</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-0.63 -0.63 -100.0 0.63 0.63 100.0</parameters>
+      </space>
+    </source>
+    <energy_mode>multi-group</energy_mode>
+    <temperature_default>598.0</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_multipole>true</temperature_multipole>
+    <temperature_range>294.0 3000.0</temperature_range>
+    <temperature_tolerance>5000.0</temperature_tolerance>
+    <random_ray>
+      <source type="independent" strength="1.0" particle="neutron">
+        <space type="box">
+          <parameters>-0.63 -0.63 -100.0 0.63 0.63 100.0</parameters>
+        </space>
+      </source>
+      <distance_inactive>200.00793784247665</distance_inactive>
+      <distance_active>1000.0396892123832</distance_active>
+      <source_region_meshes>
+        <mesh id="2">
+          <domain id="3" type="cell"/>
+        </mesh>
+      </source_region_meshes>
+      <diagonal_stabilization_rho>1.0</diagonal_stabilization_rho>
+      <source_shape>flat</source_shape>
+    </random_ray>
+    <mesh id="2">
+      <dimension>10 10 1</dimension>
+      <lower_left>-0.63 -0.63 -100.0</lower_left>
+      <upper_right>0.63 0.63 100.0</upper_right>
+    </mesh>
+  </settings>
+  </model>

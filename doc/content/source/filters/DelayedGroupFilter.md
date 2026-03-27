@@ -1,5 +1,8 @@
 # DelayedGroupFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `DelayedGroupFilter` object provides a thin wrapper around an OpenMC [DelayedGroupFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.DelayedGroupFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. The delayed groups tallied over can be

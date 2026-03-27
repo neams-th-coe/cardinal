@@ -1,0 +1,220 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  # Error checks for the KEigenvalue post-processor.
+  [err_k_combined]
+    type = RunException
+    input = k_estimators.i
+    expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
+    requirement = "The system shall error if the user requests a combined estimator when running in random ray mode."
+    capabilities = 'openmc'
+  []
+  [err_k_collision]
+    type = RunException
+    input = k_estimators.i
+    cli_args = "Postprocessors/k/value_type='collision'"
+    expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
+    requirement = "The system shall error if the user requests a collision estimator when running in random ray mode."
+    capabilities = 'openmc'
+  []
+  [err_k_abs]
+    type = RunException
+    input = k_estimators.i
+    cli_args = "Postprocessors/k/value_type='absorption'"
+    expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
+    requirement = "The system shall error if the user requests an absorption estimator when running in random ray mode."
+    capabilities = 'openmc'
+  []
+
+  # Error checks for density feedback specific to random ray / multi-group Monte Carlo.
+  [err_no_reference_densities]
+    type = RunException
+    input = reference_densities.i
+    expect_err = "When running in multi-group mode and using density feedback, the 'mgxs_reference_densities' "
+                 "parameter is required!"
+    requirement = "The system shall error if the user doesn't provide reference densities when running in "
+                  "multi-group mode with density feedback."
+    capabilities = 'openmc'
+  []
+  [err_mismatching_reference_densities]
+    type = RunException
+    input = reference_densities.i
+    cli_args = "Problem/mgxs_reference_densities='1.0 1.0'"
+    expect_err = "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!"
+    requirement = "The system shall error if the user provides more reference densities then density blocks/variables."
+    capabilities = 'openmc'
+  []
+
+  # Error check to make sure IFP parameter calculation is disabled.
+  [err_ifp]
+    type = RunException
+    input = reference_densities.i
+    cli_args = "Problem/mgxs_reference_densities='1.0' Problem/calc_kinetics_params=true Problem/ifp_generations=5"
+    expect_err = "Kinetic parameters cannot be calculated when using the random ray solver!"
+    requirement = "The system shall error if the user requests the calculation of kinetics "
+                  "parameters when running in random ray mode."
+    capabilities = 'openmc'
+  []
+
+  # Error check tallies.
+  [err_mesh_tally]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/type='MeshTally'"
+    expect_err = "Unstructured mesh tallies are not supported when using the random ray solver!"
+    requirement = "The system shall error if the user adds a MeshTally when running in random ray mode."
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [err_check_tally_sum]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/check_tally_sum=true"
+    expect_err = "Cannot add global tallies when running in random ray mode! Please set "
+                 "'normalize_by_global_tally' and 'check_tally_sum' to false."
+    requirement = "The system shall error if global tallies are added when running in random ray mode."
+    capabilities = 'openmc'
+  []
+  [err_volume_norm]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission flux' Problem/source_rate_normalization='kappa_fission'"
+    expect_err = "Cardinal volume normalizes flux tallies with volumes computed with mesh elements"
+    requirement = "The system shall error if the user requests flux volume normalization in their OpenMC model. "
+                  "This prevents a double-divide by volume, which Cardinal cannot recover due to the random ray "
+                  "volume estimations being cleared after tallies are extracted."
+    capabilities = 'openmc'
+  []
+  [invalid_scores]
+    type = RunException
+    input = tallies.i
+    expect_err = "OpenMC's random ray solver currently doesn't support the following scores: "
+                 "heating, heating-local, fission-q-prompt, fission-q-recoverable, damage-energy, "
+                 "H3-production, absorption, scatter, nu-scatter, prompt-nu-fission, delayed-nu-fission, "
+                 "decay-rate, inverse-velocity. Please remove these scores."
+    requirement = "The system shall error if the user provides a score to a tally that is "
+                  "not supported by OpenMC's random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_tally_collision]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/estimator='collision'"
+    expect_err = "The random ray solver in OpenMC requires that tallies use tracklength estimators! "
+                 "Please set 'estimator' to 'tracklength'."
+    requirement = "The system shall error if the user requests a collision estimator for a tally."
+    capabilities = 'openmc'
+  []
+  [err_tally_analog]
+    type = RunException
+    input = tallies.i
+    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/estimator='analog'"
+    expect_err = "The random ray solver in OpenMC requires that tallies use tracklength estimators! "
+                 "Please set 'estimator' to 'tracklength'."
+    requirement = "The system shall error if the user requests a analog estimator for a tally."
+    capabilities = 'openmc'
+  []
+
+  # Error check filters.
+  [err_angular_legendre]
+    type = RunException
+    input = angular_legendre.i
+    expect_err = "AngularLegendreFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an AngularLegendreFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_azimuthal]
+    type = RunException
+    input = azimuthal_angular.i
+    expect_err = "AzimuthalAngleFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an AzimuthalAngleFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_delayed]
+    type = RunException
+    input = delayed.i
+    expect_err = "DelayedGroupFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an DelayedGroupFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_e_out]
+    type = RunException
+    input = e_out.i
+    expect_err = "EnergyOutFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an EnergyOutFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_sph]
+    type = RunException
+    input = sph.i
+    expect_err = "SphericalHarmonicsFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an SphericalHarmonicsFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_polar]
+    type = RunException
+    input = polar_angular.i
+    expect_err = "PolarAngleFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an PolarAngleFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_xml]
+    type = RunException
+    input = fx.i
+    expect_err = "FromXMLFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an FromXMLFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_particle]
+    type = RunException
+    input = particle.i
+    expect_err = "ParticleFilter is presently not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an ParticleFilter when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+
+  # Error check filter/tally/material editors.
+  [err_tally_editor]
+    type = RunException
+    input = tally_editor.i
+    expect_err = "OpenMCTallyEditor is not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an OpenMCTallyEditor when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_density_editor]
+    type = RunException
+    input = nuclide_density_editor.i
+    expect_err = "OpenMCNuclideDensities is not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an OpenMCNuclideDensities when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+  [err_filter_editor]
+    type = RunException
+    input = filter_editor.i
+    expect_err = "OpenMCDomainFilterEditor is not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds an OpenMCDomainFilterEditor when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+
+  # Criticality search errors.
+  [err_borated_water]
+    type = RunException
+    input = borated_water.i
+    expect_err = "The BoratedWater criticality search is not supported when running the random ray solver!"
+    requirement = "The system shall error if the user adds a BoratedWater criticality search when running the "
+                  "random ray solver."
+    capabilities = 'openmc'
+  []
+[]

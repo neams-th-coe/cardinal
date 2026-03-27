@@ -1,5 +1,8 @@
 # SphericalHarmonicsFilter
 
+!alert note
+This filter is not supported when solving neutronics with OpenMC's random ray solver.
+
 ## Description
 
 The `SphericalHarmonicsFilter` object provides a thin wrapper around an OpenMC [SphericalHarmonicsFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.SphericalHarmonicsFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. You can add a spherical harmonics expansion of up to order 10, which is the maximum order supported by OpenMC.

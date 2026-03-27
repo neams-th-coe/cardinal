@@ -1,0 +1,2 @@
+time,left_flux,left_flux_rel_error,left_flux_std_dev,left_total,left_total_rel_error,left_total_std_dev,right_flux,right_flux_rel_error,right_flux_std_dev,right_total,right_total_rel_error,right_total_std_dev
+1,8450.4174299398,0.047746083127017,403.4743330679,15326.789373306,0.047746083127017,731.79415948814,9339.2077027573,0.049394123481883,461.30197849294,16938.816402912,0.049394123481883,836.67798904236

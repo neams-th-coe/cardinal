@@ -51,6 +51,9 @@ OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
     OpenMCBase(this, parameters),
     _tally_id(getParam<int32_t>("tally_id"))
 {
+  if (_openmc_problem->runRandomRay())
+    mooseError("OpenMCTallyEditor is not supported when running the random ray solver!");
+
   bool create_tally = getParam<bool>("create_tally");
 
   if (create_tally)

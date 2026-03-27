@@ -406,6 +406,30 @@ The memory cost of a simulation running with iterated fission probabilities scal
 with `ifp_generations` (an extra double and an extra integrer must be tracked per particle
 for each generation). It is recommend that the number of IFP generations be minimized when possible.
 
+## Random Ray Neutronics
+  id=random_ray
+
+Cardinal supports solving both fixed source and k-eigenvalue neutron transport problems with
+[!ac](TRRM) in OpenMC. First-class support is provided for temperature feedback, density feedback,
+and deforming geometry when using [!ac](TRRM). When using density feedback with either [!ac](TRRM)
+or multi-group Monte Carlo, `mgxs_reference_densities` must be provided. This is required to
+convert the field variables provided (which have units of kg m^-3^) to the unitless density
+multiplier expected by OpenMC. This should be the same density that was used to generate
+the [!ac](MGXS) for the materials filling the cells where density feedback is applied.
+`OpenMCCellAverageProblem` allows for the control of the inactive and active ray length
+from the Cardinal input file by setting `inactive_distance` and `active_distance` (overriding the
+values provided in the `settings.xml` file). An `OpenMCCellAverageProblem` block using [!ac](TRRM)
+will look quite similar to the equivalent continuous energy simulation,
+
+!listing test/tests/neutronics/mg/rr_doppler_slab_root/openmc.i
+  block=Problem
+
+Several features supported in continuous energy Monte Carlo neutron transport are not supported when
+using [!ac](TRRM). These include the calculation of kinetics parameters, the use of tally/filter/material
+editors, and the [BoratedWater](BoratedWater.md) criticality search. Finally, tally/filter/score support is limited to
+the [supported set in OpenMC](https://docs.openmc.org/en/stable/usersguide/random_ray.html#tallies).
+See [CellTally](CellTally.md) for more information regarding the use of tallies with [!ac](TRRM).
+
 ## Other Features
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of

@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 #include "EnergyOutFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
 #include "EnergyGroupStructures.h"
 #include "EnergyFilter.h"
 #include "CardinalEnums.h"
@@ -43,6 +44,9 @@ EnergyOutFilter::validParams()
 EnergyOutFilter::EnergyOutFilter(const InputParameters & parameters)
   : FilterBase(parameters), EnergyBinBase(this, parameters)
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("EnergyOutFilter is presently not supported when running the random ray solver!");
+
   // Initialize the OpenMC EnergyoutFilter.
   _filter_index = openmc::model::tally_filters.size();
 
