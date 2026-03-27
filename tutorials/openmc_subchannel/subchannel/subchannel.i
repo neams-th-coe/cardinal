@@ -83,6 +83,9 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   [displacement]
     block = fuel_pins
   []
+  [ff]
+    block = subchannel
+  []
 []
 
 [ICs]
@@ -134,10 +137,21 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   compute_power = true
   implicit = true
   segregated = false
+  friction_closure = 'cheng'
+  pin_HTC_closure = 'Dittus-Boelter'
   staggered_pressure = false
   monolithic_thermal = false
   P_tol = 1.0e-5
   T_tol = 1.0e-5
+[]
+
+[SCMClosures]
+  [cheng]
+    type = SCMFrictionUpdatedChengTodreas
+  []
+  [Dittus-Boelter]
+    type = SCMHTCDittusBoelter
+  []
 []
 
 [AuxKernels]

@@ -12,8 +12,7 @@
     prereq = output_mesh
     command = '../../../../../install/bin/mbconvert moab_mesh_0.h5m mesh.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
-    capabilities = 'dagmc'
-    installation_type = in_tree
+    capabilities = 'dagmc & installation_type=in_tree'
     use_shell = True
   []
   [check_volume0]
