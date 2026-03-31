@@ -2,7 +2,7 @@
   # This test needs to be in its own directory to prevent a false positive if another test
   # writes a statepoint.50.h5 file
   issues = '#1261'
-  design = 'OpenMCCellAverageProblem.md'
+  design = 'OpenMCProblemBase.md'
   [check_statepoint_exists]
     type = CheckFiles
     input = openmc.i
@@ -18,12 +18,11 @@
   [check_statepoint_exists_custom_dir]
     type = CheckFiles
     input = openmc_user_dir.i
-    check_files = 'my_statepoints_ts_1/statepoint.50.h5, my_statepoints_ts_2/statepoint.50.h5'
+    check_files = 'mystatepoints_ts_1/statepoint.50.h5, mystatepoints_ts_2/statepoint.50.h5'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
-    requirement = "A statepoint file must be written for each timestep into the correct user defined directory when the batches parameter matches the batches "
-                  "in settings.xml and they are both specified."
+    requirement = "A statepoint file must be written for each timestep into the correct user defined directory."
     capabilities = 'openmc'
   []
 []
