@@ -8,7 +8,7 @@
 [Problem]
   type = OpenMCCellAverageProblem
   keep_transient_statepoint = true
-  statepoint_directory = "./lolxs/"
+  statepoint_directory = "./mystatepoints/"
 []
 
 [Executioner]
