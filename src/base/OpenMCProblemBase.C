@@ -1059,30 +1059,34 @@ OpenMCProblemBase::transientStatepointPath()
   {
     mooseWarning("keep_transient_statepoint is set to True, but selected Executioner is Steady. "
                  "Keeping original statepoint path.");
+    return openmc::settings::path_output;
   }
 
+  // Get path of current input file
+  std::filesystem::path running_path = std::filesystem::absolute(
+      std::filesystem::path(getMooseApp().getLastInputFileName()).parent_path());
+
   std::filesystem::path transient_statepoint_path;
-  if (isParamSetByUser("statepoint_directory"))
+
+  // If user has not defined a statepoint_directory, or has defined it as the input file directory,
+  // use a default set default
+  if (std::filesystem::equivalent(_statepoint_directory, running_path))
   {
-    transient_statepoint_path += _statepoint_directory;
+    transient_statepoint_path = running_path.string() + "/statepoint_folder/";
   }
   else
   {
-    transient_statepoint_path = "statepoint_folder/";
+    transient_statepoint_path = _statepoint_directory;
   }
-  _console << "Trans statepoint path: " << transient_statepoint_path;
 
-  std::filesystem::path input_file_path = getMooseApp().getLastInputFileName();
-  std::filesystem::path parent = input_file_path.parent_path();
+  // Removes trailing "/" from transient_statepoint_path, ready to append suffix
+  transient_statepoint_path = transient_statepoint_path.filename().empty()
+                                  ? transient_statepoint_path.parent_path()
+                                  : transient_statepoint_path;
 
-  std::filesystem::path dir_name = transient_statepoint_path.filename().empty()
-                                       ? transient_statepoint_path.parent_path().filename()
-                                       : transient_statepoint_path.filename();
+  std::string timestep_suffix = "_ts_" + std::to_string(timeStep()) + "/";
 
-  dir_name = dir_name.lexically_normal();
-  std::string suffix = "_ts_" + std::to_string(timeStep()) + "/";
-
-  transient_statepoint_path = parent / (dir_name.string() + suffix);
+  transient_statepoint_path = transient_statepoint_path.string() + timestep_suffix;
 
   std::filesystem::create_directories(transient_statepoint_path.string());
 
