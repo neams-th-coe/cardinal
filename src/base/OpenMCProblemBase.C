@@ -16,9 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "openmc/settings.h"
-#include <filesystem>
-#include <string>
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
