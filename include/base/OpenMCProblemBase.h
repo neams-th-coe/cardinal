@@ -569,7 +569,7 @@ protected:
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;
 
-  /// Directory to write statepoint file in
+  /// Directory to write statepoint file to
   const std::string & _statepoint_directory;
 
   /// Parameter determines whether statepoints from all timesteps should be saved in separtate directories to avoid them being overwritten
