@@ -447,6 +447,8 @@ protected:
 
   const std::string transientStatepointPath();
 
+  const std::string formattedOutputPath(const std::string & path_output);
+
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
 

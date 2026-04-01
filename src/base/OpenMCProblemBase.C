@@ -249,9 +249,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     catchOpenMCError(err, "set the number of batches");
   }
 
-  if (isParamSetByUser("statepoint_directory"))
+  if (isParamSetByUser("statepoint_directory") && !_keep_transient_statepoint)
   {
-    openmc::settings::path_output = _statepoint_directory;
+    openmc::settings::path_output = formattedOutputPath(_statepoint_directory);
+    std::filesystem::create_directory(openmc::settings::path_output);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -399,6 +400,7 @@ OpenMCProblemBase::externalSolve()
   if (_keep_transient_statepoint)
   {
     openmc::settings::path_output = transientStatepointPath();
+    std::filesystem::create_directories(openmc::settings::path_output);
   }
 
   if (_reset_seed)
@@ -1076,25 +1078,52 @@ OpenMCProblemBase::transientStatepointPath()
   // use a default
   if (std::filesystem::equivalent(_statepoint_directory, running_path))
   {
-    transient_statepoint_path = running_path.string() + "/statepoint_folder";
+    transient_statepoint_path = "./statepoint_folder";
   }
   else
   {
-    transient_statepoint_path = _statepoint_directory;
-  }
 
-  // Removes trailing "/" from transient_statepoint_path, ready to append suffix
-  transient_statepoint_path = transient_statepoint_path.filename().empty()
-                                  ? transient_statepoint_path.parent_path()
-                                  : transient_statepoint_path;
+    transient_statepoint_path = _statepoint_directory;
+
+    // Removes trailing "/" from transient_statepoint_path, if user has left any, ready to append
+    // suffix
+    transient_statepoint_path = transient_statepoint_path.filename().empty()
+                                    ? transient_statepoint_path.parent_path()
+                                    : transient_statepoint_path;
+  }
 
   std::string timestep_suffix = "_ts_" + std::to_string(timeStep()) + "/";
 
-  transient_statepoint_path = transient_statepoint_path.string() + timestep_suffix;
+  // std::string transient_statepoint_path_str = transient_statepoint_path.string() +
+  // timestep_suffix;
 
-  std::filesystem::create_directories(transient_statepoint_path.string());
+  transient_statepoint_path += timestep_suffix;
 
-  return transient_statepoint_path.string();
+  const std::string transient_statepoint_path_str =
+      formattedOutputPath(transient_statepoint_path.string());
+
+  return transient_statepoint_path_str;
+}
+
+const std::string
+OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
+{
+  std::filesystem::path p = std::filesystem::weakly_canonical(output_path);
+  p = p.lexically_normal();
+
+  if (p.is_relative())
+  {
+    std::filesystem::path input_file_path = std::filesystem::absolute(
+        std::filesystem::path(getMooseApp().getLastInputFileName()).parent_path());
+
+    p = std::filesystem::weakly_canonical(input_file_path / p);
+  }
+
+  if (p.string().back() != '/')
+  {
+    p += "/";
+  }
+  return p.string();
 }
 
 #endif
