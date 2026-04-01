@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#include "openmc/settings.h"
+#include <filesystem>
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
@@ -249,7 +251,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   if (isParamSetByUser("statepoint_directory") && !_keep_transient_statepoint)
   {
     openmc::settings::path_output = formattedOutputPath(_statepoint_directory);
-    std::filesystem::create_directory(openmc::settings::path_output);
+    if (!std::filesystem::is_directory(openmc::settings::path_output))
+    {
+      std::filesystem::create_directory(openmc::settings::path_output);
+    }
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
