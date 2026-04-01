@@ -121,10 +121,14 @@ OpenMCProblemBase::validParams()
       "for random ray; this overrides the setting in the XML files.");
 
   params.addParam<FileName>(
-      "statepoint_directory", "./", "The directory to write statepoint files to.");
+      "statepoint_directory",
+      "./",
+      "The directory to write statepoint files to. Sets openmc::settings::path_output.");
 
-  params.addParam<bool>(
-      "keep_transient_statepoint", false, "Do we keep statepoints from all timesteps.");
+  params.addParam<bool>("keep_transient_statepoint",
+                        false,
+                        "Whether or not statepoints from all timesteps should be kept, and written "
+                        "to seperate directories.");
 
   return params;
 }
@@ -405,6 +409,11 @@ OpenMCProblemBase::externalSolve()
 
   // update tallies as needed before starting the OpenMC run
   executeEditors();
+
+  if (_keep_transient_statepoint)
+  {
+    openmc::settings::path_output = transientStatepointPath();
+  }
 
   if (_reset_seed)
   {
@@ -1118,11 +1127,11 @@ OpenMCProblemBase::transientStatepointPath()
 
   std::filesystem::path transient_statepoint_path;
 
-  // If user has not defined a statepoint_directory, or has defined it as the input file directory,
-  // use a default set default
+  // If user has not set statepoint_directory parameter, or has defined it as './',
+  // use a default
   if (std::filesystem::equivalent(_statepoint_directory, running_path))
   {
-    transient_statepoint_path = running_path.string() + "/statepoint_folder/";
+    transient_statepoint_path = running_path.string() + "/statepoint_folder";
   }
   else
   {
