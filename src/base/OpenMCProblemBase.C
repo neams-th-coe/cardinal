@@ -260,9 +260,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   {
     openmc::settings::path_output = formattedOutputPath(_statepoint_directory);
     if (!std::filesystem::is_directory(openmc::settings::path_output))
-    {
+
       std::filesystem::create_directory(openmc::settings::path_output);
-    }
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -1138,12 +1137,9 @@ OpenMCProblemBase::transientStatepointPath()
   // If user has not set statepoint_directory parameter, or has defined it as './',
   // use a default
   if (std::filesystem::equivalent(_statepoint_directory, running_path))
-  {
     transient_statepoint_path = "./statepoint_folder";
-  }
   else
   {
-
     transient_statepoint_path = _statepoint_directory;
 
     // Removes trailing "/" from transient_statepoint_path, if user has left any, ready to append
@@ -1154,9 +1150,6 @@ OpenMCProblemBase::transientStatepointPath()
   }
 
   std::string timestep_suffix = "_ts_" + std::to_string(timeStep()) + "/";
-
-  // std::string transient_statepoint_path_str = transient_statepoint_path.string() +
-  // timestep_suffix;
 
   transient_statepoint_path += timestep_suffix;
 
@@ -1169,8 +1162,11 @@ OpenMCProblemBase::transientStatepointPath()
 const std::string
 OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
 {
-  std::filesystem::path p = std::filesystem::weakly_canonical(output_path);
+  std::filesystem::path p = output_path;
+  _console << p.string() << std::endl;
   p = p.lexically_normal();
+
+  _console << p.string() << std::endl;
 
   if (p.is_relative())
   {
@@ -1181,9 +1177,8 @@ OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
   }
 
   if (p.string().back() != '/')
-  {
     p += "/";
-  }
+
   return p.string();
 }
 
