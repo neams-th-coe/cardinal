@@ -3,19 +3,21 @@
   numSteps = 5
   dt = 2e-02
   timeStepper = tombo2
-  checkpointInterval = -1
+  checkpointInterval = 100
+  scalars = temperature
 
 [FLUID PRESSURE]
   residualTol = 1e-06
 
 [FLUID VELOCITY]
-  boundaryTypeMap = v, O, W
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet
   residualTol = 1e-08
   density = 1.0
   viscosity = 0.001
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = t, O, I
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann
   residualTol = 1e-08
-  rhoCp = 1.0
-  conductivity = 0.001
+  transportCoeff = 1.0
+  diffusionCoeff = 0.001
+  mesh = fluid + solid

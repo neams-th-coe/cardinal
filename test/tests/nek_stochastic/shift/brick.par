@@ -8,6 +8,7 @@
   polynomialOrder = 3
   checkpointControl = steps
   checkpointInterval = 2
+  scalars = temperature, 01, 02, 03
 
 [MESH]
   file = ../../common_inputs/brick2.re2
@@ -21,13 +22,13 @@
 [SCALAR TEMPERATURE]
   solver = none
 
-[SCALAR01]
+[SCALAR 01]
   boundaryTypeMap = t, t, t, t, t, f
   residualTol = 1e-6
-  diffusivity = 1000.0
+  diffusionCoeff = 1000.0
 
-[SCALAR02]
+[SCALAR 02]
   solver = none
 
-[SCALAR03]
+[SCALAR 03]
   solver = none

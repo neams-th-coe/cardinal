@@ -13,6 +13,3 @@
   solver = none
 
 [FLUID PRESSURE]
-
-[SCALAR TEMPERATURE]
-  solver = none

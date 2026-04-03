@@ -1,3 +1,5 @@
+userSections = CASEDATA
+
 [GENERAL] 
 polynomialOrder = 7 
 stopAt = numSteps
@@ -6,16 +8,18 @@ dt = 1e-03
 timeStepper = tombo2
 checkpointInterval = 100
 
+scalars = TEMPERATURE
+
 [FLUID PRESSURE]
 residualTol = 1e-08
 initialGuess = previous
 
 [FLUID VELOCITY]
-boundaryTypeMap = codedFixedValue
+boundaryTypeMap = udfDirichlet 
 residualTol = 1e-12
 
 [SCALAR TEMPERATURE] 
-boundaryTypeMap = codedFixedValue
+boundaryTypeMap = udfDirichlet 
 residualTol = 1e-12
 
 [CASEDATA]

@@ -9,6 +9,7 @@
   checkpointControl = steps
   checkpointInterval = 5
   polynomialOrder = 1
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
@@ -16,7 +17,7 @@
 [FLUID PRESSURE]
 
 [SCALAR TEMPERATURE]
-  conductivity = 0.1
-  rhoCp = 1.0
-  boundaryTypeMap = f, t, I
+  diffusionCoeff = 0.1
+  transportCoeff = 1.0
+  boundaryTypeMap = udfNeumann, udfDirichlet, zeroNeumann
   residualTol = 1.0e-6

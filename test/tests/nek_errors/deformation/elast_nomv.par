@@ -7,11 +7,14 @@ timeStepper = tombo2
 checkpointInterval = 100
 oudf = "nekbox_elast.oudf"
 udf = "nekbox.udf"
+scalars = temperature
 
 [MESH]
-boundaryTypeMap = zeroValue,zeroValue,zeroValue,zeroValue,zeroValue,zeroValue
-solver = pcg+block
 file = "nekbox.re2"
+
+[GEOM]
+boundaryTypeMap = zeroDirichlet,zeroDirichlet,zeroDirichlet,zeroDirichlet,zeroDirichlet,zeroDirichlet
+solver = pcg+block
 
 [PROBLEMTYPE]
 stressFormulation = true
@@ -22,7 +25,7 @@ residualTol = 1e-4
 [FLUID VELOCITY]
 density = 1.0
 viscosity = -100.0
-boundaryTypeMap = zeroValue,codedFixedValue,zeroValue,zeroValue,zeroValue,zeroGradient
+boundaryTypeMap = zeroDirichlet,udfDirichlet,zeroDirichlet,zeroDirichlet,zeroDirichlet,zeroNeumann
 residualTol = 1e-5
 
 [SCALAR TEMPERATURE]

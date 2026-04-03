@@ -111,7 +111,7 @@ The remaining NekRS input files are:
   source terms
 
 In `channel.par`, we specify that we want to solve for temperature while disabling
-the fluid solve by setting `solver = none` in the `[VELOCITY]` block. The default
+the fluid solve by setting `solver = none` in the `[FLUID VELOCITY]` block. The default
 initial condition for velocity is a zero value, so this input file is essentially
 solving for solid heat conduction,
 
@@ -121,7 +121,7 @@ solving for solid heat conduction,
 
 where $\rho C_p=50$ and $k_n$ will be specified by MOOSE. Normally, all that
 you need to do to set thermal conductivity in NekRS is to set the
-`conductivity` parameter in the `[TEMPERATURE]` block. Here, we will instead
+`conductivity` parameter in the `[SCALAR TEMPERATURE]` block. Here, we will instead
 retrieve this value from MOOSE through the `.udf`.
 
 !alert warning

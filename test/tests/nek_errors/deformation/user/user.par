@@ -10,9 +10,12 @@
   checkpointInterval = 1
   oudf = "../nekbox.oudf"
   udf = "../nekbox.udf"
+  scalars = temperature
+
+[GEOM]
+  solver = user
 
 [MESH]
-  solver = user
   file = "../nekbox.re2"
 
 [FLUID VELOCITY]

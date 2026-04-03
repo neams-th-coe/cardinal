@@ -38,21 +38,22 @@ NekInitAction::validParams()
       "Case name for the NekRS input files; "
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
+  params.addParam<bool>("initialize_usrwrk", true, "Whether Cardinal should allocate space for the urswrk array; if false, the user is responsible for allocating this array for their usage in the .udf file");
   params.addParam<unsigned int>(
       "n_usrwrk_slots",
       0,
-      "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
-      "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
-      "calculation");
+      "If initialize_usrwrk is true, the number of slots that Cardinal will allocate in nrs->usrwrk. These entries can be used to hold fields related to coupling (which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 
   return params;
 }
 
 NekInitAction::NekInitAction(const InputParameters & parameters)
   : MooseObjectAction(parameters),
-    _specified_scratch(parameters.isParamSetByUser("n_usrwrk_slots")),
+    _initialize_usrwrk(getParam<bool>("initialize_usrwrk")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots"))
 {
+  if (!_initialize_usrwrk)
+    checkUnusedParam(parameters, "n_usrwrk_slots", "'initialize_usrwrk' is false");
 }
 
 void
@@ -88,6 +89,8 @@ NekInitAction::act()
     if (fail)
       mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
   }
+
+  setup_file = casename;
 
   const int size_target =
       _app.isParamValid("nekrs_build_only") ? _app.getParam<int>("nekrs_build_only") : 0;
@@ -155,18 +158,19 @@ NekInitAction::act()
 
   _console << "initialization took " << elapsedTime << " s" << std::endl;
 
-  if (!nekrs::scratchAvailable())
-    mooseError(
-        "The nrs->usrwrk and nrs->bc->o_usrwrk arrays are automatically allocated by Cardinal, "
-        "but you have tried allocating them separately inside your case files. Please remove the "
-        "manual allocation of the space in your user files, and be sure to only write such that"
-        "the space reserved for coupling data is untouched.");
-
   // Initialize host Nek arrays
   nekrs::initializeNekHostArrays();
 
-  // Initialize scratch space in NekRS to write data incoming data from MOOSE
-  nekrs::initializeScratch(_n_usrwrk_slots);
+  if (_initialize_usrwrk)
+  {
+    if (!nekrs::scratchAvailable())
+      mooseError(
+          "Because 'initialize_usrwrk' is true, the platform->app->bc->o_usrwrk array is allocated by Cardinal, but you have tried allocating it separately inside your case files. Please remove the manual allocation of this array in your case files, and be sure to only write such that the space reserved for Cardinal coupling data is untouched. Cardinal can allocate the size of this array by providing the 'n_usrwrk_slots' parameter for NekRSProblem.\n\nIf you prefer to initialize the usrwrk array manually, set 'initialize_usrwrk' to false.");
+
+
+    // Initialize scratch space in NekRS to write data incoming data from MOOSE
+    nekrs::initializeScratch(_n_usrwrk_slots);
+  }
 }
 
 std::map<std::string, std::map<std::string, std::string>>

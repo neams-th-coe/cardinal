@@ -1,81 +1,135 @@
-#include "udf.hpp"
-#include "plugins/lowMach.hpp"
+#include "lowMach.hpp"
+#include "ci.inc"
 
 static dfloat P_DELTA;
 
 static dfloat alphaRef;
 static dfloat P_GAMMA;
-occa::memory o_beta;
-occa::memory o_kappa;
+static deviceMemory<dfloat> o_beta;
+static deviceMemory<dfloat> o_kappa;
 
 #ifdef __okl__
 
-#include "lowMach.oudf"
+void udfDirichlet(bcData *bc)
+{
+  if (isField("fluid velocity")) {
+    bc->uxFluid = 0.5 * (3.0 + tanh(bc->x / p_DELTA));
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 0.0;
+  } else if (isField("scalar temperature")) {
+    bc->sScalar = 0.5 * (3.0 + tanh(bc->x / p_DELTA));
+  }
+}
+
+@kernel void fillQ(const dlong Nelements, @ restrict const dfloat *X, @ restrict dfloat *QVOL)
+{
+  for (dlong e = 0; e < Nelements; ++e; @outer(0)) {
+    for (int n = 0; n < p_Np; ++n; @inner(0)) {
+      const int id = e * p_Np + n;
+      const dfloat xd = X[id] / p_DELTA;
+      const dfloat sech = 1 / cosh(xd);
+      QVOL[id] = sech * sech / p_DELTA * (0.5 + tanh(xd) / p_DELTA);
+    }
+  }
+}
+
+@kernel void fillProp(const dlong Nelements,
+                      const dlong uOffset,
+                      const dlong sOffset,
+                      const double p0th,
+                      @ restrict const dfloat *TEMP,
+                      @ restrict dfloat *UPROP,
+                      @ restrict dfloat *SPROP,
+                      @ restrict dfloat *BETA,
+                      @ restrict dfloat *KAPPA)
+{
+  for (dlong e = 0; e < Nelements; ++e; @outer(0)) {
+    for (int n = 0; n < p_Np; ++n; @inner(0)) {
+      const int id = e * p_Np + n;
+      const dfloat rcpTemp = 1 / TEMP[id];
+
+      UPROP[id + 0 * uOffset] = 1.0;
+      SPROP[id + 0 * sOffset] = 1.0;
+      UPROP[id + 1 * uOffset] = rcpTemp;
+      SPROP[id + 1 * sOffset] = rcpTemp;
+
+      BETA[id] = rcpTemp;
+      KAPPA[id] = 1 / p0th;
+    }
+  }
+}
 
 #endif
 
-void qtl(nrs_t *nrs, double time, occa::memory o_div)
+void qtl(double time)
 {
-  lowMach::qThermalSingleComponent(time, o_div);
+  lowMach::qThermalSingleComponent(time);
 }
 
-void userq(nrs_t *nrs, double time, occa::memory o_S, occa::memory o_FS)
+void userq(double time)
 {
-  cds_t *cds = nrs->cds;
-  mesh_t *mesh = cds->mesh[0];
-
-  fillQ(mesh->Nelements, mesh->o_x, o_FS);
+  auto mesh = nrs->scalar->mesh(0);
+  fillQ(mesh->Nelements, mesh->o_x, nrs->scalar->o_EXT);
 }
 
-void uservp(nrs_t *nrs,
-            double time,
-            occa::memory o_U,
-            occa::memory o_S,
-            occa::memory o_UProp,
-            occa::memory o_SProp)
+void uservp(double time)
 {
-  mesh_t *mesh = nrs->meshV;
+  auto mesh = nrs->meshV;
 
   fillProp(mesh->Nelements,
            nrs->fieldOffset,
-           nrs->cds->fieldOffset[0],
+           nrs->scalar->fieldOffset(),
            nrs->p0th[0],
-           o_S,
-           o_UProp,
-           o_SProp,
+           nrs->scalar->o_S,
+           nrs->fluid->o_prop,
+           nrs->scalar->o_prop,
            o_beta,
            o_kappa);
 }
 
-void UDF_LoadKernels(occa::properties &kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties& kernelInfo)
 {
-  kernelInfo["defines/p_DELTA"] = P_DELTA;
+  kernelInfo.define("p_DELTA") = P_DELTA;
 }
 
 void UDF_Setup0(MPI_Comm comm, setupAide &options)
 {
+  options.getArgs("CI-MODE", ciMode);
+  if (ciMode) {
+    ciSetup(comm, options);
+  }
   platform->par->extract("casedata", "p_delta", P_DELTA);
   platform->par->extract("casedata", "p_gamma", P_GAMMA);
 
-  double *const nek_cb_scnrs = (double *)nek::ptr("cb_scnrs");
-  nek_cb_scnrs[0] = P_DELTA;
-  nek_cb_scnrs[1] = P_GAMMA;
+  if (platform->options.compareArgs("BUILD ONLY", "FALSE")) {
+    *nek::ptr<double>("p_delta") = P_DELTA;
+    *nek::ptr<double>("p_gamma") = P_GAMMA;
+  }
 }
 
 void UDF_Setup()
 {
-  udf.sEqnSource = &userq;
-  udf.properties = &uservp;
+  nrs->userSource = &userq;
+  nrs->userProperties = &uservp;
 
-  o_beta = platform->device.malloc<dfloat>(nrs->fieldOffset);
-  o_kappa = platform->device.malloc<dfloat>(nrs->fieldOffset);
+  o_beta.resize(nrs->fieldOffset);
+  o_kappa.resize(nrs->fieldOffset);
 
+  // alphaRef := p0thRef/(rhoRef * cpRef * TRef)
+  // translates to (gammaRef - 1)/gammaRef in case of an ideal gas
   alphaRef = (P_GAMMA - 1.0) / P_GAMMA;
 
-  lowMach::setup(nrs, alphaRef, o_beta, o_kappa);
-  udf.div = &qtl;
+  lowMach::setup(alphaRef, o_beta, o_kappa);
+  nrs->userDivergence = &qtl;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
+  if (nrs->checkpointStep) {
+    nrs->copyToNek(time, tstep);
+    nek::userchk();
+  }
+  if (ciMode) {
+    ciTestErrors(nrs, time, tstep);
+  }
 }

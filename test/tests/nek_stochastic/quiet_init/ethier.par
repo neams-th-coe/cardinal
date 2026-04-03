@@ -23,8 +23,8 @@ viscosity = -100
 [SCALAR TEMPERATURE]
 boundaryTypeMap = flux
 residualTol = 1e-12
-rhoCp = 1.0
-conductivity = -100
+transportCoeff = 1.0
+diffusionCoeff = -100
 
 [SCALAR01]
 boundaryTypeMap = flux

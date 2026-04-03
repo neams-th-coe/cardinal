@@ -8,11 +8,9 @@
   polynomialOrder = 2
   checkpointControl = steps
   checkpointInterval = 5
+  udf="../nek_as_sub_even/pyramid.udf"
 
 [FLUID VELOCITY]
   solver = none
 
 [FLUID PRESSURE]
-
-[SCALAR TEMPERATURE]
-  solver = none

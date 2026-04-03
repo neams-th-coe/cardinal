@@ -113,10 +113,10 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
 
   const auto outXYZ = platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE");
 
-  if (!checkpointWriter->isInitialized()) {
-    auto visMesh = entireMesh();
-    checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
+  auto visMesh = entireMesh();
+  checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
 
+  if (!checkpointWriter->isInitialized()) {
     if (nrs->fluid) {
       if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE")) {
         std::vector<occa::memory> o_V;
@@ -203,13 +203,13 @@ hasVariableDt()
 bool
 hasBlendingSolver()
 {
-  return !platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return !platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
 hasUserMeshSolver()
 {
-  return platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
@@ -789,8 +789,7 @@ centroidFace(int local_elem_id, int local_face_id)
   double mass = 0.0;
 
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
-
-  for (int v = 0; v < mesh->Np; ++v)
+  for (int v = 0; v < mesh->Nfp; ++v)
   {
     int id = mesh->vmapM[offset + v];
     double mass_matrix = sgeo[mesh->Nsgeo * (offset + v) + WSJID];
@@ -1282,7 +1281,7 @@ isHeatFluxBoundary(const int boundary)
 bool
 isMovingMeshBoundary(const int boundary)
 {
-  auto bcType = platform->app->bc->typeId(boundary, "mesh");
+  auto bcType = platform->app->bc->typeId(boundary, "geom");
   return bcType == bdryBase::bcType_udfDirichlet;
 }
 
