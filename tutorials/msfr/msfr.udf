@@ -1,44 +1,69 @@
 #include <math.h>
-#include "udf.hpp"
+#include "planarCopy.hpp"
 
-static occa::kernel mooseHeatSourceKernel;
+deviceMemory<int> o_bID;
+planarCopy* recyc = nullptr;
+dfloat area, uBulk;
 
-void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
+bool setupRecyc = false;
+
+#ifdef __okl__
+
+#include "msfr.oudf"
+
+#endif
+
+void userq(double time)
 {
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  auto mesh = nrs->cds->mesh[0];
-  mooseHeatSourceKernel(mesh->Nelements, 0, nrs->o_usrwrk, o_FS);
+  auto mesh = nrs->scalar->mesh(0);
+  mooseHeatSource(mesh->Nelements, 0, platform->app->bc->o_usrwrk, nrs->fluid->o_EXT);
 }
 
-void UDF_LoadKernels(occa::properties& kernelInfo)
+void UDF_Setup()
 {
-   mooseHeatSourceKernel = oudfBuildKernel(kernelInfo, "mooseHeatSource");
+  nrs->userSource = &userq;
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_ExecuteStep(double time, int tstep)
 {
-  udf.sEqnSource = &userq;
-}
+  auto mesh = nrs->meshV;
+  auto o_usrvel = platform->app->bc->o_usrwrk + 2 * nrs->fieldOffset;
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
-{
-  // call userchk every step for recycle inlet
-  nek::ocopyToNek(time, tstep);
-  nek::userchk();
+  if(!setupRecyc) {
+    uBulk = 1.54261473197;
+    const dfloat xOffset = 0.0;
+    const dfloat yOffset = -0.8;
+    const dfloat zOffset = 0.0;
 
- 	mesh_t *mesh = nrs->meshV;
-  if (tstep == 0)
-  {
-    double *uin= (double *) nek::scPtr(2);
-    nrs->o_usrwrk.copyFrom(uin, mesh->Nelements * mesh->Np * sizeof(dfloat), 2*nrs->fieldOffset*sizeof(dfloat));
+    std::vector<int> bID;
+    bID.push_back(1);
+    o_bID.resize(bID.size());
+    o_bID.copyFrom(bID);
 
-    double *vin= (double *) nek::scPtr(3);
-    nrs->o_usrwrk.copyFrom(vin, mesh->Nelements * mesh->Np * sizeof(dfloat), 3*nrs->fieldOffset*sizeof(dfloat));
+    deviceMemory<dfloat> o_tmp(mesh->Nlocal);
+    platform->linAlg->fill(o_tmp.size(), 1.0, o_tmp);
+    area = mesh->surfaceAreaMultiplyIntegrate(o_bID, o_tmp);
 
-    double *win= (double *) nek::scPtr(4);
-    nrs->o_usrwrk.copyFrom(win, mesh->Nelements * mesh->Np * sizeof(dfloat), 4*nrs->fieldOffset*sizeof(dfloat));
+    int usrsize = platform->app->bc->o_usrwrk.size();
+    printf("Size of usrwrk %d %d\n", usrsize, usrsize/nrs->fieldOffset);
+    recyc = new planarCopy(mesh,
+        nrs->fluid->o_solution(),
+        mesh->dim,
+        nrs->fluid->fieldOffset,
+        xOffset,
+        yOffset,
+        zOffset,
+        bID[0],
+        o_usrvel);
+    setupRecyc = true;
   }
+
+  recyc->execute();
+
+  const auto flux = mesh->surfaceAreaNormalMultiplyVectorIntegrate(nrs->fluid->fieldOffset, o_bID, o_usrvel);
+  platform->linAlg->scale(nrs->fluid->fieldOffsetSum, -uBulk * area / flux, o_usrvel);
 }

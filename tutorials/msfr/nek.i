@@ -32,7 +32,7 @@ rho = 4147.3                            # kg/m3
     U = ${fparse Re * mu / rho}
     T = ${fparse 625.0 + 273.15}
     dT = 100.0
-    rho = ${rho}
+    rho = 4147.3
     Cp = 1524.86 # J/kg/K
   []
 

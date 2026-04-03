@@ -62,7 +62,7 @@
 
   power = 300.0e6
 
-  relaxation = dufek_gudowski
+  #relaxation = dufek_gudowski
   first_iteration_particles = 5000
 
   skinner = moab
