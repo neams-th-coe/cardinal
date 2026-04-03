@@ -1,0 +1,10 @@
+[Tests]
+  issues ='#1317'
+  [nearest]
+    type = CSVDiff
+    input = 'openmc.i'
+    csvdiff = 'openmc_out.csv'
+    requirement = 'The system shall support void regions when running in multi-group mode.'
+    capabilities = 'openmc'
+  []
+[]
