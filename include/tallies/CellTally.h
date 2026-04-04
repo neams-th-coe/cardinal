@@ -37,6 +37,12 @@ public:
    */
   virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 
+  /**
+   * CellTally overrides 'setRelaxation' to ensure relaxation is not being applied when skinning
+   * is used.
+   */
+  virtual void setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor) override;
+
 protected:
   /**
    * A function which stores the results of this tally into the created
