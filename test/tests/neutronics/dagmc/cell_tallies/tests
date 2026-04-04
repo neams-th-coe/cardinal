@@ -60,3 +60,15 @@
     capabilities = 'dagmc'
   []
 []
+
+[Tests]
+  issues = '#1318'
+  design = 'CellTally.md OpenMCCellAverageProblem.md'
+
+  [cell_tally_relaxation_skin]
+    type = RunException
+    input = with_relaxation.i
+    expect_err = "Relaxation is not supported when using cell tallies with the MoabSkinner!"
+    capabilities = 'dagmc'
+  []
+[]

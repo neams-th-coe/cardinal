@@ -66,7 +66,7 @@
 
 [Tests]
   issues = '#1318'
-  design = 'MeshTally.md'
+  design = 'MeshTally.md OpenMCCellAverageProblem.md'
 
   [mesh_tally_relaxation_skin]
     type = CSVDiff
