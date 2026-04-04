@@ -1,6 +1,6 @@
 [Tests]
   issues = '#567'
-  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md CellTally.md'
 
   [null_skin]
     type = Exodiff
