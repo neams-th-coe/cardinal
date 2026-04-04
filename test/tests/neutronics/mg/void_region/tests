@@ -1,5 +1,6 @@
 [Tests]
   issues ='#1317'
+  design = 'OpenMCCellAverageProblem.md'
   [nearest]
     type = CSVDiff
     input = 'openmc.i'
