@@ -63,3 +63,17 @@
     capabilities = 'dagmc'
   []
 []
+
+[Tests]
+  issues = '#1318'
+  design = 'MeshTally.md'
+
+  [mesh_tally_relaxation_skin]
+    type = CSVDiff
+    input = with_relaxation.i
+    csvdiff = with_relaxation_out.csv
+    requirement = "The system shall allow for the use of relaxation with a MeshTally and a MoabSkinner."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]
