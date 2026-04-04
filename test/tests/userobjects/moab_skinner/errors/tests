@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md'
+
   [invalid_max_temp]
     type = RunException
     input = skinner.i
