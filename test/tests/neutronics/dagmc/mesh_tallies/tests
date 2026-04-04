@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+
   [null_skin]
     type = Exodiff
     input = one_bin.i
