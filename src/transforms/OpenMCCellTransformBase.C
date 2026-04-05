@@ -25,8 +25,6 @@
 #include "OpenMCBase.h"
 #include "UserErrorChecking.h"
 
-registerMooseObject("CardinalApp", OpenMCCellTransformBase);
-
 InputParameters
 OpenMCCellTransformBase::validParams()
 {
