@@ -7,7 +7,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  statepoint_directory = "./custom_dir///"
+  statepoint_directory = "./custom_dir"
   batches = 50 
 []
 
