@@ -1068,8 +1068,8 @@ OpenMCProblemBase::transientStatepointPath()
   }
 
   // Get path of current input file
-  std::filesystem::path running_path = std::filesystem::absolute(
-      std::filesystem::path(getMooseApp().getLastInputFileName()).parent_path());
+  std::filesystem::path running_path =
+      std::filesystem::absolute(getMooseApp().getLastInputFileName()).parent_path();
 
   std::filesystem::path transient_statepoint_path;
 
@@ -1109,8 +1109,8 @@ OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
 
   if (p.is_relative())
   {
-    std::filesystem::path input_file_path = std::filesystem::absolute(
-        std::filesystem::path(getMooseApp().getLastInputFileName()).parent_path());
+    std::filesystem::path input_file_path =
+        std::filesystem::absolute(getMooseApp().getLastInputFileName()).parent_path();
 
     p = std::filesystem::weakly_canonical(input_file_path / p);
   }
