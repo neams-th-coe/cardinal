@@ -16,6 +16,7 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#include <filesystem>
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
@@ -1075,7 +1076,8 @@ OpenMCProblemBase::transientStatepointPath()
 
   // If user has not set statepoint_directory parameter, or has defined it as './',
   // use a default
-  if (std::filesystem::equivalent(_statepoint_directory, running_path))
+  if (std::filesystem::weakly_canonical(_statepoint_directory) ==
+      std::filesystem::weakly_canonical(running_path))
     transient_statepoint_path = "./statepoint_folder";
   else
   {
