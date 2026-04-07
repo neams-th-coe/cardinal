@@ -6,7 +6,7 @@
   [check_statepoint_exists]
     type = CheckFiles
     input = openmc.i
-    check_files = 'statepoint_folder_ts_1/statepoint.50.h5, statepoint_folder_ts_2/statepoint.50.h5'
+    check_files = 'statepoint_folder_ts_1/statepoint.50.h5 statepoint_folder_ts_2/statepoint.50.h5'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -18,7 +18,7 @@
   [check_statepoint_exists_custom_dir]
     type = CheckFiles
     input = openmc_user_dir.i
-    check_files = 'mystatepoints_ts_1/statepoint.50.h5, mystatepoints_ts_2/statepoint.50.h5'
+    check_files = 'mystatepoints_ts_1/statepoint.50.h5 mystatepoints_ts_2/statepoint.50.h5'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
