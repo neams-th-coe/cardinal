@@ -41,7 +41,8 @@ public:
    * CellTally overrides 'setRelaxation' to ensure relaxation is not being applied when skinning
    * is used.
    */
-  virtual void setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor) override;
+  virtual void setRelaxation(relaxation::RelaxationEnum relaxation_type,
+                             const Real & relaxation_factor) override;
 
 protected:
   /**
