@@ -16,7 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include <filesystem>
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
@@ -249,10 +248,18 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (isParamSetByUser("statepoint_directory") && !_keep_transient_statepoint)
   {
+    /// path_output must end with a "/", otherwise statepoint will not output correctly
     openmc::settings::path_output = formattedOutputPath(_statepoint_directory);
-    if (!std::filesystem::is_directory(openmc::settings::path_output))
 
-      std::filesystem::create_directory(openmc::settings::path_output);
+    /// Need to remove trailing "/" to do "is_regular_file"
+    std::filesystem::path p = openmc::settings::path_output;
+    p = p.filename().empty() ? p.parent_path() : p;
+
+    if (std::filesystem::is_regular_file(p))
+      mooseError("Cannot create directory " + openmc::settings::path_output +
+                 ", as a file with the same name already exists");
+
+    std::filesystem::create_directory(openmc::settings::path_output);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -400,7 +407,14 @@ OpenMCProblemBase::externalSolve()
   if (_keep_transient_statepoint)
   {
     openmc::settings::path_output = transientStatepointPath();
-    std::filesystem::create_directories(openmc::settings::path_output);
+
+    /// Need to remove trailing "/" to do "is_regular_file"
+    std::filesystem::path p = openmc::settings::path_output;
+    p = p.filename().empty() ? p.parent_path() : p;
+    if (std::filesystem::is_regular_file(p))
+      mooseError("Cannot create directory " + openmc::settings::path_output +
+                 ", as a file with the same name already exists");
+    std::filesystem::create_directory(openmc::settings::path_output);
   }
 
   if (_reset_seed)
@@ -1104,10 +1118,7 @@ const std::string
 OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
 {
   std::filesystem::path p = output_path;
-  _console << p.string() << std::endl;
   p = p.lexically_normal();
-
-  _console << p.string() << std::endl;
 
   if (p.is_relative())
   {
