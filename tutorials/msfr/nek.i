@@ -20,6 +20,8 @@ rho = 4147.3                            # kg/m3
       type = NekVolumetricSource
       direction = to_nek
       usrwrk_slot = 0
+      normalization_abs_tol = 1e6
+      normalization_rel_tol = 1e-3
     []
     [temperature]
       type = NekFieldVariable
@@ -35,9 +37,6 @@ rho = 4147.3                            # kg/m3
     rho = 4147.3
     Cp = 1524.86 # J/kg/K
   []
-
-  normalization_abs_tol = 1e6
-  normalization_rel_tol = 1e-3
 []
 
 [Executioner]

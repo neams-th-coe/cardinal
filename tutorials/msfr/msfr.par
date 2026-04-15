@@ -1,3 +1,7 @@
+#[OCCA]
+#  deviceNumber = 0
+#  backend = HIP
+
 [GENERAL]
   polynomialOrder = 7
   startFrom = restart.fld

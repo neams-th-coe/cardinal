@@ -49,7 +49,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  verbose = true
+  verbose = false
 
   # this will start each Picard iteration from the fission source from the previous one
   reuse_source = true
@@ -63,7 +63,8 @@
   power = 300.0e6
 
   #relaxation = dufek_gudowski
-  first_iteration_particles = 5000
+  #first_iteration_particles = 5000
+  skip_statepoint = true
 
   skinner = moab
 
@@ -77,8 +78,8 @@
 []
 
 nb = 15.0
-tmin = 800.0
-tmax = 1150.0
+tmin = 700.0            # Moab skinner gives an error because of max density -> Minimum temperature below 800K --> This might be an NekRS error that gives negatives nondimensional temperature?
+tmax = 1250.0
 
 [UserObjects]
   [moab]
@@ -101,6 +102,7 @@ tmax = 1150.0
 [MultiApps]
   [nek]
     type = TransientMultiApp
+    app_type = CardinalApp
     input_files = 'nek.i'
     sub_cycling = true
     execute_on = timestep_end
