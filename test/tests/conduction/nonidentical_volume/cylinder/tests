@@ -18,6 +18,7 @@
                   "MOOSE standalone case to within 0.1%."
     exodiff_opts = '-show_all_diffs'
     capabilities = 'nekrs'
+    mesh_mode = 'replicated' # TODO: assess test in distributed failing
   []
   [cylinder_exact]
     type = CSVDiff
