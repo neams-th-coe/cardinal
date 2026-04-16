@@ -63,7 +63,7 @@ o=0.15
   [source]
     type = ParsedAux
     variable = source
-    function = 'axial+nek_temp'
+    expression = 'axial+nek_temp'
     coupled_variables = 'axial nek_temp'
     execute_on = 'linear'
   []

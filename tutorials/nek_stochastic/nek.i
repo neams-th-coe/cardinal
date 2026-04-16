@@ -49,7 +49,7 @@
   []
   [expect_max_T]
     type = ParsedPostprocessor
-    function = '1000.0 / k_from_stm + 500.0'
+    expression = '1000.0 / k_from_stm + 500.0'
     pp_names = k_from_stm
   []
 []

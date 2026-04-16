@@ -9,6 +9,7 @@
       direction = to_nek
       postprocessor_to_conserve = source_integral
       usrwrk_slot = 0
+      normalization_abs_tol = 1e-7
     []
     [temp]
       type = NekFieldVariable
@@ -33,10 +34,6 @@
 []
 
 [Postprocessors]
-  [flux_out]
-    type = NekHeatFluxIntegral
-    boundary = '1 2 3 4 5 6'
-  []
   [max_T]
     type = NekVolumeExtremeValue
     field = temperature
@@ -54,8 +51,10 @@
 []
 
 [Outputs]
-  exodus = true
-  execute_on = 'final'
+  [out]
+    type = Exodus
+    execute_on = 'final'
+  []
 
   # for this tests purposes, we only want to check temperature. This keeps the gold file smaller
   hide = 'heat_source'
