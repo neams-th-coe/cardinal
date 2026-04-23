@@ -42,6 +42,7 @@
                   "also splits tests this way. This test runs OpenMC and heat conduction for one step."
     prereq = 'solid_mesh fluid_mesh_to_hex20'
     capabilities = 'openmc'
+    mesh_mode = 'replicated'
   []
   [nek]
     type = RunApp
