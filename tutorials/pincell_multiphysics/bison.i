@@ -190,8 +190,10 @@ M = 25
   dt = ${fparse M * t_nek * dt0}
   num_steps = 100
 
-  nl_abs_tol = 1e-8
+  nl_abs_tol = 1e-10
   nl_rel_tol = 1e-16
+  l_tol = 1e-10
+  l_abs_tol = 1e-10
   petsc_options_value = 'hypre boomeramg'
   petsc_options_iname = '-pc_type -pc_hypre_type'
 []
