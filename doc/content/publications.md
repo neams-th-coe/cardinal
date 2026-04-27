@@ -192,6 +192,14 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 
 # Space Nuclear Reactors
 
+M.A. Mendes, M. Eltawila, K.C. Sawatzky, A.J. Novak, and R.C. Martineau,
+["Validation of Cardinal Coupled Neutronics and Thermomechanics Using the KRUSTY Experiments"](https://www.ans.org/meetings/nets2026/session/view-3632/#paper_11427)
+*Proceedings of NETS* (2026)
+
+C. Eck, J. Stonehill, and C. Smith,
+["A High-Fidelity Modeling Approach for Coupling Thermal, Fluid, and Neutronic Analysis in a Nuclear Thermal Propulsion Engine"](https://www.ans.org/meetings/nets2026/session/view-3628/)
+*Proceedings of NETS* (2026)
+
 M. Dalinger, E. Merzari, T. Nguyen, and R. Martineau, ["High-Fidelity Multiphysics Modeling of the SNAP 10/A Space Reactor Using Cardinal"](https://www.tandfonline.com/doi/full/10.1080/00295639.2026.2639917)
 *Nuclear Science and Engineering* (2026)
 
