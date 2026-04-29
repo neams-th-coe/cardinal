@@ -209,7 +209,7 @@ M. Dalinger, E. Merzari, T. Nguyen, M. Seneca, and R. Martineau, ["Multiphysics 
 # Fusion Devices and Components
 
 W. Ellis, H. Brooks, A. Davis, and D. Foster,
-["An Integrated MOOSE Workflow for Activation Modelling Using FISPACT-II and Cardinal"]
+"An Integrated MOOSE Workflow for Activation Modelling Using FISPACT-II and Cardinal"
 *Proceedings of PHYSOR* (2026)
 
 K.A. Damm, M. Falcone, R.W. Eardley-Brunt, A. Dubas, and A. Davis,
@@ -248,9 +248,23 @@ A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Broo
 
 # Adaptive Mesh Refinement
 
+E.W. Ahammed, K. Sawatzky, L. Gross, A. Novak, P. Shriwise, P. Romano, and P. Wilson,
+"Development of Mesh Tally Amalgamation Algorithm for Coupled High Fidelity Multiphysics Simulation"
+*Proceedings of Physor* (2026)
+
+K.C. Sawatzky, E.W. Ahammed, P.P.H. Wilson, P.C. Shriwise, P.K. Romano, A.J. Novak,
+"Mesh Tally Adaptive Mesh Refinement Strategies for Spatial Gradients Driven by Material Heterogeneities"
+*Proceedings of Physor* (2026)
+
 K. C. Sawatzky, E. W. Ahammed, P. P.H. Wilson, P. C. Shriwise, P. K. Romano, A. J. Novak,
 ["Adaptive Mesh Refinement Applied to Unstructured Mesh Tallies in Cardinal-OpenMC"](https://www.ans.org/meetings/ac2025/sessions/attachment/paper-12816/)
 *Proceedings of the ANS Annual Meeting* (2025)
+
+# Multigroup Cross Sections
+
+C.H.H. Moore, K.C. Sawatzky, A.J. Novak, and K.D. Atkinson,
+"Validation of a Two-Step Neutronics Workflow using Gnat and OpenMC with the ZED-2 Research Reactor"
+*Proceedings of Physor* (2026)
 
 # AI/ML
 
