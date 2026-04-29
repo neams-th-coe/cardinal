@@ -74,7 +74,7 @@ CardinalApp::validParams()
   params.addCommandLineParam<std::string>(
       "nekrs_backend",
       "--nekrs-backend",
-      "Backend to use for NekRS parallelism; options: CPU, CUDA, HIP, OPENCL, OPENMP");
+      "Backend to use for NekRS parallelism; example options: CPU, CUDA, DPCPP, HIP, OPENCL, OPENMP; if there is an option not listed, this parameter gets parsed as a string do you can use other options");
   params.addCommandLineParam<std::string>(
       "nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
 
