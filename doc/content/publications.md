@@ -107,7 +107,7 @@ A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Ke
 # Heat Pipe Reactors
 
 C. Genoni T. Hallam, F. Franceschini, W. Walters, C. Liping, N. Roskoff, M. Boychenko, V. Kukucboyaci, P. Khambatta, and C. Fiorina,
-["Benchmarking of Serpent2/OFFBEAT and Cardinal for Coupling Neutron Transport and Thermo-Mechanics of an eVinci-like Microreactor"]
+"Benchmarking of Serpent2/OFFBEAT and Cardinal for Coupling Neutron Transport and Thermo-Mechanics of an eVinci-like Microreactor"
 *Proceedings of PHYSOR* (2026)
 
 M. Eltawila, A.J. Novak, and Y. Miao,
