@@ -38,7 +38,7 @@ SkinnedBins::SkinnedBins(const InputParameters & parameters) :
   AuxKernel(parameters),
   _skin_by(getParam<MooseEnum>("skin_by"))
 {
-  const UserObject & base = getUserObjectBase("skinner");
+  const UserObjectBase & base = getUserObjectBase("skinner");
   _skinner = dynamic_cast<const MoabSkinner *>(&base);
   if (!_skinner)
     paramError("skinner", "This userobject must be of type MoabSkinner!");

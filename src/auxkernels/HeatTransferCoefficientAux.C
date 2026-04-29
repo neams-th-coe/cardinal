@@ -17,6 +17,7 @@
 /********************************************************************/
 
 #include "HeatTransferCoefficientAux.h"
+#include "UserObject.h"
 
 registerMooseObject("CardinalApp", HeatTransferCoefficientAux);
 
@@ -37,9 +38,9 @@ HeatTransferCoefficientAux::validParams()
 
 HeatTransferCoefficientAux::HeatTransferCoefficientAux(const InputParameters & parameters)
   : AuxKernel(parameters),
-    _heat_flux(getUserObjectBase("heat_flux")),
-    _wall_T(getUserObjectBase("wall_T")),
-    _bulk_T(getUserObjectBase("bulk_T"))
+    _heat_flux(getUserObject<UserObject>("heat_flux")),
+    _wall_T(getUserObject<UserObject>("wall_T")),
+    _bulk_T(getUserObject<UserObject>("bulk_T"))
 {
 }
 
