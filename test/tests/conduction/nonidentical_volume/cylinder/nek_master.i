@@ -63,7 +63,7 @@ o=0.15
   [source]
     type = ParsedAux
     variable = source
-    function = 'axial+nek_temp'
+    expression = 'axial+nek_temp'
     coupled_variables = 'axial nek_temp'
     execute_on = 'linear'
   []
@@ -102,16 +102,22 @@ o=0.15
 
 [Transfers]
   [temperature]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    search_value_conflicts = true
+    greedy_search = true
+    value_conflicts_output = '2000'
   []
   [source]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = source
     to_multi_app = nek
     variable = heat_source
+    search_value_conflicts = true
+    greedy_search = true
+    value_conflicts_output = '2000'
   []
   [source_integral]
     type = MultiAppPostprocessorTransfer

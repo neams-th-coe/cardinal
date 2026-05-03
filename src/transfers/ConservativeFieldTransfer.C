@@ -68,7 +68,7 @@ ConservativeFieldTransfer::normalizationHint() const
        "- You forgot to add a transfer from another app to write into the " +
        _variable + "\n\n- You forgot to add a transfer from another app to write into the " +
        _postprocessor_name +
-       "postprocessor, in which case the value of the postprocessor will always be zero.\n\n" +
+       " postprocessor, in which case the value of the postprocessor will always be zero.\n\n" +
        "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the "
        "meshes in Paraview by running your input files with the --mesh-only flag.\n\n" +
        "- Your tolerances for comparing the re-normalized value with the incoming data are too "

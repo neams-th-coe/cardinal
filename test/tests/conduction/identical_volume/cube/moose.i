@@ -1,9 +1,10 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 30
-  ny = 30
-  nz = 30
+  nx = 10
+  ny = 10
+  nz = 10
+  uniform_refine = 2
 []
 
 [Variables]
@@ -33,7 +34,7 @@
   [source]
     type = ParsedAux
     variable = source
-    function = 'temperature*7'
+    expression = 'temperature*7'
     coupled_variables = 'temperature'
     execute_on = 'linear'
   []
@@ -116,5 +117,6 @@
   exodus = true
   print_linear_residuals = false
   execute_on = 'final'
+  hide = 'source'
 []
 
