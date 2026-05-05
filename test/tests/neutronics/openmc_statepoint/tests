@@ -1,11 +1,11 @@
 [Tests]
   # This test needs to be in its own directory to prevent a false positive if another test
   # writes a statepoint.50.h5 file
-  issues = '#1261'
-  design = 'OpenMCCellAverageProblem.md'
   [check_statepoint_exists]
     type = CheckFiles
     input = openmc.i
+    issues = '#1261'
+    design = 'OpenMCCellAverageProblem.md'
     check_files = 'statepoint.50.h5'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
@@ -18,6 +18,8 @@
   [check_statepoint_exists_in_directory]
     type = CheckFiles
     input = openmc_custom_dir.i
+    issues = '#1312'
+    design = 'OpenMCCellAverageProblem.md'
     check_files = 'custom_dir/statepoint.50.h5'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
@@ -31,6 +33,8 @@
   [check_statepoint_exists_in_directory_w_existing_filename]
     type = RunException
     input = openmc_custom_dir_filename.i
+    issues = '#1312'
+    design = 'OpenMCCellAverageProblem.md'
     expect_err = 'a file with the same name already exists'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
