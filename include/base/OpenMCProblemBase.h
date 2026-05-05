@@ -585,7 +585,7 @@ protected:
   const std::string & _statepoint_directory;
 
   /// Parameter determines whether statepoints from all timesteps should be saved in separtate directories to avoid them being overwritten
-  const bool _keep_transient_statepoint;
+  const bool & _keep_transient_statepoint;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};

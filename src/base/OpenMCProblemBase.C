@@ -107,7 +107,7 @@ OpenMCProblemBase::validParams()
   params.addParam<bool>("keep_transient_statepoint",
                         false,
                         "Whether or not statepoints from all timesteps should be kept, and written "
-                        "to seperate directories.");
+                        "to separate directories.");
 
   return params;
 }
