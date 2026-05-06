@@ -28,7 +28,8 @@
     rotation_axis = 'z'
     minimum = '0.0'
     maximum = '90.0'
-    tolerance = 1e-2
+    root_tol = '1e-2'
+    k_tol = '1e-2'
   []
 []
 
