@@ -124,7 +124,8 @@ CriticalitySearchBase::searchForCriticality()
   if (abs(kMean(_estimator) - _target) >= _k_tol)
     mooseWarning("The eigenvalue produced by the criticality search was not within "
                  "specified k_tol of the target! This could occur if k_tol is too "
-                 "tight for simulation's statistical error.");
+                 "tight for simulation's statistical error. It can also occur if "
+                 "`root_tol` is too loose and the worth curve is steep near the target");
 
   // fill the converged value into a postprocessor
   _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());
