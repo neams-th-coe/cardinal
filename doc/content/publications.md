@@ -166,11 +166,6 @@ D.R. Shaver, A. Kraus, A. Obabko, S. Harper, M. Pham, and S. Yoon,
 *NURETH* (2025)
 
 A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
-["CFD Simulation of Interassembly Bypass Flow in Sodium Fast Reactors"](https://www.sciencedirect.com/science/article/pii/S0029549325002213)
-439 (114044)
-*Nuclear Engineering and Design* (2025)
-
-A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
 ["CFD Simulations of Interassembly Bypass Flow in Sodium Fast Reactors"](https://www.sciencedirect.com/science/article/pii/S0029549325002213)
 *Nuclear Engineering and Design* (2025)
 
@@ -241,6 +236,10 @@ A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 *Proceedings of Nureth* (2022)
 
 # Fluid-Structure Interaction
+
+B.W. Spencer, Y. Yu, W.M. Hoffman, D.R. Shaver, and E. Merzari,
+["3D Probabilistic Fracture Mechanics / Computational Fluid Dynamics Simulation of a Reactor Pressure Vessel Under Transient Conditions"](https://www.sciencedirect.com/science/article/pii/S002954932600097X)
+*Nuclear Engineering and Design* (2026)
 
 A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Brooks,
 ["A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"](https://ui.adsabs.harvard.edu/abs/2023arXiv230811777C/abstract)
