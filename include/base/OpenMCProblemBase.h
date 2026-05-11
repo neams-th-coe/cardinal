@@ -445,6 +445,20 @@ protected:
            std::to_string(_fixed_point_iteration) + ".h5";
   }
 
+  /**
+   * Return path to write current timestep's statepoint to in transient solves.
+   * @return statepoint path
+   */
+  const std::string transientStatepointPath();
+
+  /**
+   * Formats `path_output` so that it is ready to be passed to
+   * openmc::settings::path_output
+   * @param[in] path_output unformatted path
+   * @return formatted absolute path
+   */
+  const std::string formattedOutputPath(const std::string & path_output);
+
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
 
@@ -566,6 +580,12 @@ protected:
 
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;
+
+  /// Directory to write statepoint file to
+  const std::string & _statepoint_directory;
+
+  /// Parameter determines whether statepoints from all timesteps should be saved in separtate directories to avoid them being overwritten
+  const bool & _keep_transient_statepoint;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};
