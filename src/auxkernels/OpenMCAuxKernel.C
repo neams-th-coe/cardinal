@@ -54,7 +54,7 @@ OpenMCAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(const std::str
   if (this->isCoupled(param_name))
     if (this->getFieldVar(param_name, 0)->feType() != FEType(libMesh::CONSTANT, libMesh::MONOMIAL))
       this->paramError(param_name,
-                       this->name() + " only supports CONSTANT MONOMIAL shape functions. Please "
+                       "Only CONSTANT MONOMIAL shape functions are supported. Please "
                        "ensure that '" + param_name + "' is of type MONOMIAL and order CONSTANT.");
 }
 

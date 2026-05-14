@@ -1,0 +1,43 @@
+[Tests]
+  issues = '#1333'
+  design = 'FoMAux.md'
+
+  [const_mono_tally_val]
+    type = RunException
+    input = 'amr.i'
+    cli_args = 'AuxKernels/AMR_fom/tally_value=ll'
+    expect_err = "Only CONSTANT MONOMIAL shape functions are supported."
+    requirement = "The system shall ensure the provided tally values are constant monomials."
+    capabilities = 'openmc'
+  []
+  [const_mono_tally_val_init]
+    type = RunException
+    input = 'amr.i'
+    cli_args = 'AuxKernels/AMR_fom/tally_value_init=ll'
+    expect_err = "Only CONSTANT MONOMIAL shape functions are supported."
+    requirement = "The system shall ensure the provided initial tally values are constant monomials."
+    capabilities = 'openmc'
+  []
+  [const_mono_rel_err]
+    type = RunException
+    input = 'amr.i'
+    cli_args = 'AuxKernels/AMR_fom/tally_rel_error=ll'
+    expect_err = "Only CONSTANT MONOMIAL shape functions are supported."
+    requirement = "The system shall ensure the provided stochastic relative errors are constant monomials."
+    capabilities = 'openmc'
+  []
+  [vr_fom]
+    type = CSVDiff
+    input = vr.i
+    csvdiff = 'vr_out.csv'
+    requirement = "The system shall allow for the calculation of the variance reduction figure of merit."
+    capabilities = 'openmc'
+  []
+  [amr_fom]
+    type = CSVDiff
+    input = amr.i
+    csvdiff = 'amr_out.csv'
+    requirement = "The system shall allow for the calculation of the AMR figure of merit."
+    capabilities = 'openmc'
+  []
+[]
