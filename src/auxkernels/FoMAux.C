@@ -27,10 +27,9 @@ FoMAux::validParams()
 {
   auto params = OpenMCAuxKernel::validParams();
   params.addClassDescription("An auxkernel which computes a figure of merit for a tally.");
-  params.addCoupledVar(
-      "tally_value",
-      "The variable containing the value of the tally. FoMAux "
-      "assumes this is a volumetric quantity.");
+  params.addCoupledVar("tally_value",
+                       "The variable containing the value of the tally. FoMAux "
+                       "assumes this is a volumetric quantity.");
   params.addCoupledVar(
       "tally_value_init",
       "The variable containing the tally value on the initial adaptivity step. FoMAux "
@@ -76,8 +75,7 @@ FoMAux::FoMAux(const InputParameters & parameters)
       break;
     case FoMType::AMR:
       if (!_tally_val)
-        paramError("tally_value",
-                   "A tally value must be provided when using the AMR FoM.");
+        paramError("tally_value", "A tally value must be provided when using the AMR FoM.");
       if (!_tally_val_init)
         paramError("tally_value_init",
                    "An initial tally value must be provided when using the AMR FoM.");
@@ -98,7 +96,8 @@ FoMAux::computeValue()
     case FoMType::VR:
       return 1.0 / _sim_time / _tally_val_rel_err[0] / _tally_val_rel_err[0];
     case FoMType::AMR:
-      return std::abs((*_tally_val)[0] - (*_tally_val_init)[0]) / _sim_time / _tally_val_rel_err[0] / (*_tally_val_init)[0];
+      return std::abs((*_tally_val)[0] - (*_tally_val_init)[0]) / _sim_time /
+             _tally_val_rel_err[0] / (*_tally_val_init)[0];
     default:
       return 0.0;
   }

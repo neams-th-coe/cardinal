@@ -52,9 +52,5 @@ protected:
   const Real & _sim_time;
 
   /// The type of FoM to compute.
-  const enum class FoMType
-  {
-    VR  = 0,
-    AMR = 1
-  } _fom_type;
+  const enum class FoMType { VR = 0, AMR = 1 } _fom_type;
 };
