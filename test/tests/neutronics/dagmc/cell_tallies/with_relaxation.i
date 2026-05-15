@@ -6,19 +6,11 @@
   allow_renumbering = false
 []
 
-[Functions]
+[ICs]
   [temp]
-    type = ParsedFunction
-    expression = '500.0 + 10.0*x'
-  []
-[]
-
-[AuxKernels]
-  [temp]
-    type = FunctionAux
+    type = ConstantIC
     variable = temp
-    function = temp
-    execute_on = timestep_begin
+    value = 500.0
   []
 []
 
@@ -46,7 +38,7 @@
     type = MoabSkinner
     temperature_min = 300.0
     temperature_max = 1500.0
-    n_temperature_bins = 10
+    n_temperature_bins = 1
     temperature = temp
     build_graveyard = true
   []

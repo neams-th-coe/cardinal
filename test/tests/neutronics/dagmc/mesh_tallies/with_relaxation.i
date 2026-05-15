@@ -5,20 +5,6 @@
   []
 []
 
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
-[]
-
 [Functions]
   [temp]
     type = ParsedFunction
@@ -51,6 +37,7 @@
     [Mesh]
       type = MeshTally
       mesh_template = slab.e
+      output = 'unrelaxed_tally'
     []
   []
 []
@@ -67,9 +54,15 @@
 []
 
 [Postprocessors]
-  [avg_heating]
-    type = ElementAverageValue
+  [heating]
+    type = PointValue
     variable = kappa_fission
+    point = '47 15 5'
+  []
+  [heating_raw]
+    type = PointValue
+    variable = kappa_fission_raw
+    point = '47 15 5'
   []
 []
 

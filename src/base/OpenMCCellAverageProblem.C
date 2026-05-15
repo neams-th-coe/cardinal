@@ -191,6 +191,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _using_skinner(isParamValid("skinner")),
+    // 'used_displaced' is added to '_need_to_reinit_coupling' later in the ctor.
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
