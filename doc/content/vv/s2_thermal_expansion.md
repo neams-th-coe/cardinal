@@ -18,8 +18,8 @@ with the following Marshak boundary condition:
 !equation id=transport_bc
 \frac{d\phi(x)}{dx} + \Sigma_{t}(x)\phi(x),\,\,\,\, x = \pm \frac{L}{2}\text{.}
 
-$\phi(x)$ is the scalar neutron flux (cm^-2^ s^-1^). $\Sigma_{t}(x)$ is the total cross
-section (cm^-1^), which has an inverse dependence on temperature:
+$\phi(x)$ is the scalar neutron flux (cm$^{-2}$ $s^{-1}$). $\Sigma_{t}(x)$ is the total cross
+section (cm$^{-1}$), which has an inverse dependence on temperature:
 
 !equation id=total_xs
 \Sigma_{t}(x) = \Sigma_{t,0}\frac{T_{0}}{T(x)}\text{,}
@@ -39,9 +39,9 @@ as:
 !equation id=total_xs_0
 \Sigma_{t,0} = \frac{N_{A}}{A}\rho_{0}\sigma_{t,0}\text{,}
 
-where $N_{A}$ is Avogadro's number, $A$ is the molar mass of the slab (g mol^-1^), $\rho_{0}$
-is the unheated slab density (g cm^-3^), and $\sigma_{t,0}$ is the reference microscopic total
-cross section (cm). The neutron flux solution is normalized to a chosen power $P$ (eV s^-1^):
+where $N_{A}$ is Avogadro's number, $A$ is the molar mass of the slab (g mol$^{-1}$), $\rho_{0}$
+is the unheated slab density (g cm$^{-3}$), and $\sigma_{t,0}$ is the reference microscopic total
+cross section (cm$^2$). The neutron flux solution is normalized to a chosen power $P$ (eV s$^{-1}$):
 
 !equation id=normalization
 P = \int_{-L/2}^{L/2}q\Sigma_{t}(x)\phi(x)\,dx
@@ -57,14 +57,14 @@ with the following convection boundary condition:
 !equation id=conduction_bc
 \kappa(x)\frac{dT(x)}{dx} + h\left(T(x) - T_{0}\right),\,\,\,\, x = \pm \frac{L}{2}\text{.}
 
-$\kappa(x)$ is the thermal conductivity of the material (eV s^-1^ cm^-1^ K^-1^), which has a
+$\kappa(x)$ is the thermal conductivity of the material (eV s$^{-1}$ cm^${-1}$ K^${-1}$), which has a
 linear dependence on temperature:
 
 !equation id=thermal_conduct
 \kappa(x) = \kappa_{0}T(x)
 
-where $\kappa_{0}$ is the reference thermal conductivity (eV s^-1^ cm^-1^ K^-2^). $h$ is a convective heat
-transfer coefficient (eV s^-1^ cm^-2^ K^-1^). The final set of physics considered in this problem is
+where $\kappa_{0}$ is the reference thermal conductivity (eV s$^{-1}$ cm$^{-1}$ K${^-2}$). $h$ is a convective heat
+transfer coefficient (eV s$^{-1}$ cm^${-2}$ K${^-1}$). The final set of physics considered in this problem is
 thermal expansion, where the differential slab length $\ell(x)$ (cm) expands according to the local
 thermal strain $\epsilon_{x}(x)$:
 
@@ -74,7 +74,7 @@ thermal strain $\epsilon_{x}(x)$:
 !equation id=thermal_strain
 \epsilon_{x}(x) = \int_{T_{0}}^{T(x)}\alpha(\tau)\, d\tau\text{,}
 
-where $\ell_{0}$ is the initial slab length, and the linear expansion coefficient $\alpha(T)$ (K^-1^) is:
+where $\ell_{0}$ is the initial slab length, and the linear expansion coefficient $\alpha(T)$ (K${^-1}$) is:
 
 !equation id=linear_expansion
 \alpha(T) = \frac{1}{\sqrt{2T_{0}T(x)}}\text{.}
@@ -131,7 +131,7 @@ To ensure positivity of the solution, the power must be chosen such that:
 !equation id=power_constraint
 P \geq \frac{\lambda \kappa_{0}T_{0}^2}{L(\lambda - 1)}\text{.}
 
-The cannonical parameters of the benchmark proposed by [!cite](s2_thermal_expansion) can be
+The canonical parameters of the benchmark proposed by [!cite](s2_thermal_expansion) can be
 found in [benchmark_params]. These parameters result in an expanded slab length of $L = 106.47$
 cm and a slab k-eigenvalue of $k_{eff} = 0.29557$.
 
@@ -151,8 +151,8 @@ cm and a slab k-eigenvalue of $k_{eff} = 0.29557$.
 
 ## Cardinal Multi-Group Monte Carlo Results
 
-[!cite](eltawila_thermo) used the Griesheimer and Kooreman problem benchmark problem to verify Cardinal's
-thermomechanic-neutronics coupling to OpenMC. Those benchmark results requried substantial modifications
+[!cite](eltawila_thermo) used the Griesheimer and Kooreman benchmark problem to verify Cardinal's
+thermomechanical-neutronics coupling to OpenMC. Those benchmark results required substantial modifications
 to OpenMC's multi-group Monte Carlo solver to enable S@2@ neutron transport, precluding the inclusion of
 input files in Cardinal's regression suite. Readers interested in these results are referred to
 [!cite](eltawila_thermo) for more information.
@@ -165,9 +165,9 @@ discretized into 200 slab regions, which are further subdivided into 31 tetrahed
 slab subregion (for a total of 6200 flat source regions). The conversion to tetrahedral elements is
 necessary to use on-the-fly geometry skinning in Cardinal for material deformation.
 Unfortunately, this conversion introduces non-physical source region gradients in
-the y and z direction which bias the [!ac](TRRM) solution. It is important to note that this bias
+the y and z directions which bias the [!ac](TRRM) solution. It is important to note that this bias
 only exists for solutions using [!ac](TRRM); multi-group Monte Carlo solutions in Cardinal do not
-experience any solution bias as the fission source is continuous. 100 inactive batches are used to
+experience any bias as the fission source is continuous. 100 inactive batches are used to
 converge the scattering and fission sources, and 100 active batches are used to accumulate tally results.
 An inactive ray length of $150$ cm is used to ensure rays reach a vacuum boundary condition (to
 remove initialization bias), which is followed by an active length of $7500$ cm. Temperature
@@ -179,7 +179,7 @@ Temperatures and displacements are solved on a 1D mesh with linear Lagrange basi
 quasi-static finite strain formulation is used, and a time derivative is included in the temperature
 model to act as physics-based relaxation. The solution is iterated between neutronics and thermomechanics
 with Picard iterations; it is considered to be converged when the relative difference between neutronics
-field variables between Picard iterations is less then $10^{-8}$. The resulting flux and temperature
+field variables between Picard iterations is less than $10^{-8}$. The resulting flux and temperature
 distributions can be found in [gk_rr_200].
 
 !media gk_rr_200.png
@@ -189,7 +189,7 @@ distributions can be found in [gk_rr_200].
 
 The impact of the y-z induced source region gradients can be seen in the flux solution, resulting in
 reasonable (but not perfect) agreement with [neutron_flux_sln]. The thermomechanics problem uses a true
-1D mesh, resulting in better agreement between the numerical temperature predictions with
+1D mesh, resulting in better agreement between the numerical temperature predictions and
 [temperature_sln]. The [!ac](TRRM) solution predicts $k_{eff} = 0.29520$ ($\Delta k_{eff} = −37$ pcm)
 and an expanded slab length $L = 106.47$ cm. It is expected that the agreement in both the flux
 and eigenvalue solutions will improve when hexahedral element support is added to the [MoabSkinner.md],
