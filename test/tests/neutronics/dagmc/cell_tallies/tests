@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md CellTally.md'
+
   [null_skin]
     type = Exodiff
     input = one_bin.i
@@ -54,6 +57,18 @@
                  " model maps one to one to the mesh mirror; if that is not the case the skinner may delete some parts of your "
                  "OpenMC model when the underlying geometry is regenerated. You have 1 unmapped DAGMC cells out of 3 DAGMC cells."
     requirement = "The system shall warn the user when there is a mismatch between the mesh mirror and the initial OpenMC DAGMC geometry."
+    capabilities = 'dagmc'
+  []
+[]
+
+[Tests]
+  issues = '#1318'
+  design = 'CellTally.md OpenMCCellAverageProblem.md'
+
+  [cell_tally_relaxation_skin]
+    type = RunException
+    input = with_relaxation.i
+    expect_err = "Relaxation is not supported when using cell tallies with the MoabSkinner!"
     capabilities = 'dagmc'
   []
 []
