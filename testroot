@@ -1,2 +1,3 @@
 app_name = cardinal
 allow_warnings = true
+known_capabilities = "bisonapp griffinapp sockeyeapp samapp sodiumapp potassiumapp iapws95app"
