@@ -3,11 +3,6 @@
     type = FileMeshGenerator
     file = ../meshes/sphere.e
   []
-  [solid1]
-    type = SubdomainIDGenerator
-    input = sphere
-    subdomain_id = '100'
-  []
 
   allow_renumbering = false
 []
@@ -42,6 +37,8 @@
     variable = 'vr_fom'
     fom_type = 'VR'
     tally_rel_error = 'kappa_fission_rel_error'
+    # A constant value is used as a proxy for simulation time to
+    # ensure the test results match the gold file.
     sim_time = 2.0
   []
 []

@@ -51,11 +51,15 @@ void
 OpenMCAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(const std::string & param_name)
 {
   if (this->isCoupled(param_name))
+  {
     if (this->getFieldVar(param_name, 0)->feType() != FEType(libMesh::CONSTANT, libMesh::MONOMIAL))
       this->paramError(param_name,
                        "Only CONSTANT MONOMIAL shape functions are supported. Please "
                        "ensure that '" +
                            param_name + "' is of type MONOMIAL and order CONSTANT.");
+  }
+  else
+    this->paramError(param_name, param_name + " is uncoupled!");
 }
 
 // Explicitly instantiates the three versions of the OpenMCAuxKernelTempl class

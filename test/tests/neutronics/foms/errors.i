@@ -48,8 +48,6 @@
     type = FoMAux
     variable = 'AMR_fom'
     fom_type = 'AMR'
-    tally_value = 'kappa_fission'
-    tally_value_init = 'kappa_fission_init'
     tally_rel_error = 'kappa_fission_rel_error'
     # A constant value is used as a proxy for simulation time to
     # ensure the test results match the gold file.

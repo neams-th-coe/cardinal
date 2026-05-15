@@ -29,16 +29,16 @@ FoMAux::validParams()
   params.addClassDescription("An auxkernel which computes a figure of merit for a tally.");
   params.addCoupledVar("tally_value",
                        "The variable containing the value of the tally. FoMAux "
-                       "assumes this is a volumetric quantity.");
+                       "assumes this has units of the tally score divided by "
+                       "volume. This is required for the AMR figure of merit.");
   params.addCoupledVar(
       "tally_value_init",
       "The variable containing the tally value on the initial adaptivity step. FoMAux "
-      "assumes this is a volumetric quantity. This is required for the AMR "
-      "figure of merit.");
+      "assumes this has units of the tally score divided by volume. This is required "
+      "for the AMR figure of merit.");
   params.addRequiredCoupledVar(
       "tally_rel_error",
-      "The variable containing the statistical relative error of the tally. FoMAux "
-      "assumes this is a volumetric quantity.");
+      "The variable containing the statistical relative error of the tally.");
 
   params.addRequiredParam<PostprocessorName>("sim_time", "The cumulative simulation time.");
 
@@ -64,27 +64,13 @@ FoMAux::FoMAux(const InputParameters & parameters)
                "FoMAux only supports CONSTANT MONOMIAL shape functions. Please "
                "ensure that 'variable' is of type MONOMIAL and order CONSTANT.");
 
-  errorCoupledConstMonomial("tally_value");
-  errorCoupledConstMonomial("tally_value_init");
   errorCoupledConstMonomial("tally_rel_error");
 
   // Error-check the different FoM options.
-  switch (_fom_type)
+  if (_fom_type == FoMType::AMR)
   {
-    case FoMType::VR:
-      break;
-    case FoMType::AMR:
-      if (!_tally_val)
-        paramError("tally_value", "A tally value must be provided when using the AMR FoM.");
-      if (!_tally_val_init)
-        paramError("tally_value_init",
-                   "An initial tally value must be provided when using the AMR FoM.");
-      break;
-    default:
-    {
-      mooseError("Unhandled FoMType enum in TallyFoMAux!");
-      break;
-    }
+    errorCoupledConstMonomial("tally_value");
+    errorCoupledConstMonomial("tally_value_init");
   }
 }
 
@@ -99,7 +85,10 @@ FoMAux::computeValue()
       return std::abs((*_tally_val)[0] - (*_tally_val_init)[0]) / _sim_time /
              _tally_val_rel_err[0] / (*_tally_val_init)[0];
     default:
+    {
+      mooseError("Unhandled FoMType enum in FoMAux!");
       return 0.0;
+    }
   }
 }
 
