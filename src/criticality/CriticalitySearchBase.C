@@ -37,7 +37,9 @@ CriticalitySearchBase::validParams()
   params.addRangeCheckedParam<Real>(
       "target", 1.0, "target > 0.0", "Target value of k effective to search for");
   params.addRequiredRangeCheckedParam<Real>(
-      "root_tol", "root_tol > 0", "Absolute tolerance to converge root that yields target.");
+      "root_tol",
+      "root_tol > 0",
+      "Absolute tolerance to converge root that yields target value of the multiplication factor.");
   params.addRangeCheckedParam<Real>(
       "k_tol",
       1e-3,
@@ -123,9 +125,9 @@ CriticalitySearchBase::searchForCriticality()
   // check if the method converged
   if (abs(kMean(_estimator) - _target) >= _k_tol)
     mooseWarning("The eigenvalue produced by the criticality search was not within "
-                 "specified k_tol of the target! This could occur if k_tol is too "
+                 "specified 'k_tol' of the target! This could occur if 'k_tol' is too "
                  "tight for simulation's statistical error. It can also occur if "
-                 "`root_tol` is too loose and the worth curve is steep near the target");
+                 "'root_tol' is too loose and the worth curve is steep near the target");
 
   // fill the converged value into a postprocessor
   _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());

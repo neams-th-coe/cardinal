@@ -28,7 +28,7 @@
     type = RunException
     input = openmc.i
     cli_args = 'Problem/CriticalitySearch/k_tol=2e-3 Problem/particles=100000 --error'
-    expect_err = "The eigenvalue produced by the criticality search was not within specified k_tol of the target!"
+    expect_err = "The eigenvalue produced by the criticality search was not within specified 'k_tol' of the target!"
     requirement = 'The system shall error if the criticality search does not converge.'
     capabilities = 'openmc'
   []
