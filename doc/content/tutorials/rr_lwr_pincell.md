@@ -37,7 +37,7 @@ of the problem can be found in [table1].
 | Pin pitch | 1.26 |
 | Fuel height | 200 |
 
-A total core power of 3000 MWth is assumed uniformly distributed among 273 rodded fuel assemblies,
+A total core power of 3000 MWth is assumed to be uniformly distributed among 273 rodded fuel assemblies,
 each with 264 pins (which do not have a uniform power distribution due to the control rods and guide
 tubes). The tallies added by Cardinal will therefore be normalized according to the per-pin power:
 
@@ -48,7 +48,7 @@ q_{pin}=\frac{3000\text{\ MWth}}{n_a n_p}
 
 where $n_a=273$ is the number of fuel assemblies in the core and $n_p=264$ is the number of pins per
 assembly. This tutorial considers heat conduction within the fuel and the cladding, but does not model
-heat transport in the coolant. Instead, a convective heat flux boundary condition ($h = 1000$ W m^-2^ K)
+heat transport in the coolant. Instead, a convective heat flux boundary condition ($h = 1000$ W m$^{-2}$ K$^{-1}$)
 with the following fluid temperature
 
 \begin{equation}
@@ -68,7 +68,7 @@ by defining a helper function, `build_sr_pin`, which we will use to subdivide th
 the UO@2@ pellet portion of the pincell. This serves two purposes: i) to improve the resolution
 of the temperature feedback sent to OpenMC, and ii) to apply spatial discretization for [!ac](TRRM). The
 function subdivides the radial dimension of a cylindrical region with equal-volume subdivisions, and the
-azimuthal dimension is discretized uniformely.
+azimuthal dimension is discretized uniformly.
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
   start=build_sr_pin
@@ -112,7 +112,7 @@ autoconversion function, taking into account both self-shielding and element-shi
 `material_wise` is the only option which supports the generation of [!ac](MGXS) for k-eigenvalue problems (the
 other options run fixed source calculations). We select the `CASMO-2` group structure for the energy
 discretization to reduce the runtime of this tutorial. This is a fairly coarse group structure; we recommend
-using more energy groups to minimize bias on power distributions and integral quantities as two groups will
+using more energy groups to minimize bias in power distributions and integral quantities as two groups will
 not be sufficient for most problems (without the use of transport equivalences). Finally, we specify
 a list of temperatures to use when generating [!ac](MGXS). `convert_to_multigroup` will run a continuous energy
 OpenMC simulation for each provided temperature where every material in the model is set to that temperature
@@ -128,7 +128,7 @@ to minimize bias introduced in the scattering source. This is often sufficient f
 
 Converting to a random ray model requires minimal user knowledge compared to the multi-group conversion.
 OpenMC will examine the bounding box of our pincell to determine the maximum chord length, and set the inactive
-length to that distance. The maximum chord length is often larger then ten mean free paths in reactor applications,
+length to that distance. The maximum chord length is often larger than ten mean free paths in reactor applications,
 and so
 [ray initialization bias](https://docs.openmc.org/en/stable/methods/random_ray.html#ray-starting-conditions-and-inactive-length)
 is wiped away with this choice. The active distance is set to five times the maximum chord length. Unlike the
@@ -147,10 +147,10 @@ approach is that Cardinal cannot map to these regions as they are created on the
 process; we recommend manual subdivision for most multiphysics simulations unless the regions do not require mapped
 tallies or temperature/density feedback. We also set the source region discretization to either: i) flat sources,
 or ii) linear sources (depending on command line arguments provided to the Python script). Linear sources will result
-in an increase in accuracy for a given geometric discretization at the cost of increasing computational time, and
+in an increase in accuracy for a given geometric discretization at the cost of increased computational time, and
 potentially introducing negative source values (which OpenMC will set to zero). These negative values are a symptom
 of a very coarse source region discretization. Finally, we set `random_ray['diagonal_stabilization_rho'] = 1.0`
-to ensure our use of a transport correction doesn't destabilize the combined scattering source / power iteration
+to ensure our use of a transport correction doesn't destabilize the combined scattering source/power iteration
 used by [!ac](TRRM).
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
@@ -201,7 +201,7 @@ to avoid warping tallies. The mesh is then extruded axially with an [AdvancedExt
 We label the boundary between the fuel and the gap (`fuel_or`), the boundary between the clad and the gap (`clad_ir`),
 and the boundary between the clad and the coolant (`clad_or`). These sidesets are used to apply the gap conductance
 model and the convective boundary condition in the heat conduction input file. We then delete the gap and coolant blocks
-as they are unused in both the heat conduction application and OpenMC application. Finally, we scale the mesh such that
+as they are unused in both the heat conduction and OpenMC applications. Finally, we scale the mesh such that
 it is in meters (to match the provided thermal properties). The resulting mesh can be found in [rr_solid_mesh]. Note
 that this mesh is coarse for the purpose of reducing the computational burden in this tutorial, and requires additional
 refinement to improve temperature predictions.
@@ -226,7 +226,7 @@ OpenMC will write the fission heat source:
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Mesh
 
-Next, we define an `AuxVariable` to use to visualize the temperature Cardinal is setting in OpenMC cells, and write
+Next, we define an `AuxVariable` to visualize the temperature Cardinal is setting in OpenMC cells, and write
 to it with a [CellTemperatureAux](CellTemperatureAux.md) (which queries the cell temperature in the OpenMC geometry):
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
@@ -260,7 +260,7 @@ variable to the average fluid temperature:
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=ICs
 
-The next set of blocks we add setup the coupling scheme. We add a [TransientMultiApp](TransientMultiApp.md) for
+The next set of blocks we add sets up the coupling scheme. We add a [TransientMultiApp](TransientMultiApp.md) for
 the heat conduction solve, which receives fission heating from `heat_source_to_solid` (a
 [MultiAppGeneralFieldShapeEvaluationTransfer](MultiAppGeneralFieldShapeEvaluationTransfer.md)) and sends the fuel
 temperature to `temp` via `temp_to_openmc` (another
@@ -282,7 +282,7 @@ The final portion of the input file deals with execution, post-processing, and o
 the OpenMC main application and the heat conduction sub-application. In this problem, 5 iterations
 are sufficient to converge tally statistics and $k_{eff}$ due to the low variance of [!ac](TRRM).
 It should be noted that the problem OpenMC is solving is still a quasi-static k-eigenvalue
-calculation, and the heat conduction simulation is steady-state event with the use of a
+calculation, and the heat conduction simulation is a steady-state event with the use of a
 [Transient](Transient.md) executioner. We add a series of post-processors to monitor the relative
 errors of tally variables and report the k-eigenvalue (and its associated standard deviation).
 Finally, we select Exodus and CSV output in the `[Outputs]` block.
@@ -326,7 +326,7 @@ thermal conductivity of the fuel and cladding, which is followed by the addition
 
 Finally, the `[Executioner]` is set to [Transient](Transient.md). As no timestepping parameters
 are provided, the heat conduction simulation will execute in lock-step with the OpenMC simulation.
-We add several post-processors to monitor the maximum fueld and cladding temperature, and select
+We add several post-processors to monitor the maximum fuel and cladding temperatures, and select
 Exodus and CSV output in the `[Outputs]` block.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
@@ -367,11 +367,11 @@ and so adding extra MPI ranks will not speed up the neutronics calculation as al
 rank zero.
 
 [table2] shows the resulting k-eigenvalues for each [!ac](TRRM) discretization approach compared
-against the continuous energy reference (10000 particles per batch. 1100 batches, 100 inactive batches)
+against the continuous energy reference (10000 particles per batch, 1100 batches, 100 inactive batches)
 on the first Picard iteration before multiphysics feedback is applied. In general, the single physics
 [!ac](TRRM) calculations agree quite well with the continuous energy reference (within three standard
 deviations). [table3] shows the k-eigenvalues for each case on the final Picard iteration; the agreement
-is less then stellar and can be attributed to the use of isothermal temperature interpolation tables in
+is less than stellar and can be attributed to the use of isothermal temperature interpolation tables in
 the multiphysics model.
 
 !table id=table2 caption=k-eigenvalue predictions on the initial Picard iteration.
@@ -394,7 +394,7 @@ Picard iteration. There is a fairly large discrepancy (up to 10%) which is cause
 Doppler broadening in the fuel, depressing the center plane power compared to the continuous energy
 result. We can confirm this trend by plotting the axial centerline power distribution in
 [rr_lwr_axial_comparison]. This shows a 10% under-prediction of power in the core center followed by
-an over-prediction as one moves from the core center towards the vaccum boundary condition. This showcases
+an over-prediction as one moves from the core center towards the vacuum boundary condition. This showcases
 the need for reasonable [!ac](MGXS) temperature interpolation tables in multiphysics calculations; simple
 temperature isotherms will not suffice when there are large thermal gradients.
 [rr_lwr_axial_comparison] also demonstrates the advantage of [!ac](TRRM) - uniform statistical relative
