@@ -1,4 +1,3 @@
-import os
 from argparse import ArgumentParser
 import numpy as np
 import openmc
@@ -122,7 +121,7 @@ source = openmc.IndependentSource(space=openmc.stats.Box((-1.0, 0.0, 0.0), (0.0,
 doppler_slab_model.settings.source = [source]
 doppler_slab_model.settings.temperature = {
    'default': 300.0,
-   'method': 'nearest',
+   'method': 'interpolation',
    'tolerance': 10.0,
    'range': (Tmin, Tmax)
 }

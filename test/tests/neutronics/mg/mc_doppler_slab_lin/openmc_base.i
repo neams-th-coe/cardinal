@@ -5,7 +5,6 @@ Sigma0 = ${fparse 4.0 * 0.025} # Initial macroscopic XS, 1/cm
 T0     = 293.6                 # Surface temperature (K)
 Y0     = 6.65e11               # Source intensity (n / cm2-s)
 alpha  = -0.0001               # Linear doppler Coefficient (1 / K)
-k      = 0.006                 # Thermal conductivity (W / cm-K)
 
 !include mesh.i
 
@@ -29,7 +28,7 @@ k      = 0.006                 # Thermal conductivity (W / cm-K)
   []
 
   # Change the unit of the 'flux' (neutrons / m^2 / s) into a volumetric power. This is
-  # based on Eq. (5b) in the paper, which shows the volumetric power is q / k * Sigma * flux
+  # based on Eq. (5b) in the paper, which shows the volumetric power is q * Sigma * flux
   [compute_power]
     type = ParsedAux
     variable = heat_source
