@@ -1079,7 +1079,7 @@ protected:
   std::map<std::string, std::vector<SubdomainName>> _density_vars_to_blocks;
 
   /**
-   * Mapping from density variable numbers to the reference density to use when rescaling
+   * Mapping from density variable name to the reference density to use when rescaling
    * the density value in multi-group mode.
    */
   std::map<std::string, Real> _density_vars_to_ref_density;

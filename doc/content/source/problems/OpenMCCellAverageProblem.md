@@ -413,7 +413,7 @@ Cardinal supports solving both fixed source and k-eigenvalue neutron transport p
 [!ac](TRRM) in OpenMC. First-class support is provided for temperature feedback, density feedback,
 and deforming geometry when using [!ac](TRRM). When using density feedback with either [!ac](TRRM)
 or multi-group Monte Carlo, `mgxs_reference_densities` must be provided. This is required to
-convert the field variables provided (which have units of kg m^-3^) to the unitless density
+convert the field variables provided (which have units of kg m$^{-3}$) to the unitless density
 multiplier expected by OpenMC. This should be the same density that was used to generate
 the [!ac](MGXS) for the materials filling the cells where density feedback is applied.
 `OpenMCCellAverageProblem` allows for the control of the inactive and active ray length
