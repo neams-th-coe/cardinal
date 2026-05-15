@@ -37,8 +37,7 @@ FoMAux::validParams()
       "assumes this has units of the tally score divided by volume. This is required "
       "for the AMR figure of merit.");
   params.addRequiredCoupledVar(
-      "tally_rel_error",
-      "The variable containing the statistical relative error of the tally.");
+      "tally_rel_error", "The variable containing the statistical relative error of the tally.");
 
   params.addRequiredParam<PostprocessorName>("sim_time", "The cumulative simulation time.");
 
