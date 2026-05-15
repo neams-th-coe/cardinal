@@ -27,7 +27,7 @@ tally value at [!ac](AMR) cycle $j$ in tally bin $i$, $u_{0,i}$ is the tally val
 $j$ in tally bin $i$.
 
 The [!ac](FoM) computed can be selected by setting [!param](/AuxKernels/FoMAux/fom_type).
-When computing the [!ac](VR), [!param](/AuxKernels/FoMAux/sim_time) and
+When computing the [!ac](VR) [!ac](FoM), [!param](/AuxKernels/FoMAux/sim_time) and
 [!param](/AuxKernels/FoMAux/tally_rel_error) must be provided. When computing the [!ac](AMR) [!ac](FoM),
 [!param](/AuxKernels/FoMAux/sim_time), [!param](/AuxKernels/FoMAux/tally_rel_error),
 [!param](/AuxKernels/FoMAux/tally_value_init), and [!param](/AuxKernels/FoMAux/tally_value) must be
