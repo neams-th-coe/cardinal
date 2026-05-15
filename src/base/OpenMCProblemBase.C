@@ -115,34 +115,11 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _run_on_adaptivity_cycle(true),
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
-    _initial_seed(openmc::openmc_get_seed()),
-    _xml_directory(getParam<FileName>("xml_directory"))
+    _initial_seed(openmc::openmc_get_seed())
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
-
-  // Suppress OpenMC output when the language server is active by
-  // decreasing the verbosity to level 1 (the lowest).
-  std::vector<std::string> argv_vec = {"openmc"};
-  if (_app.isParamValid("language_server") && _app.getParam<bool>("language_server"))
-  {
-    argv_vec.push_back("-q");
-    argv_vec.push_back("1");
-  }
-  // Add the parameter for the XML directory at the end.
-  argv_vec.push_back(_xml_directory);
-
-  std::vector<char *> argv;
-
-  for (const auto & arg : argv_vec)
-  {
-    argv.push_back(const_cast<char *>(arg.data()));
-  }
-  // Add terminating nullptr
-  argv.push_back(nullptr);
-
-  openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 
   // ensure that any mapped cells have their distribcell indices generated in OpenMC
   if (!openmc::settings::material_cell_offsets)

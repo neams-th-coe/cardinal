@@ -564,9 +564,6 @@ protected:
   /// The global tally used to accumulate the score required for \beta_eff.
   openmc::Tally * _ifp_mg_beta_tally = nullptr;
 
-  /// Directory in which OpenMC settings xml files are located
-  const std::string & _xml_directory;
-
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};
 
