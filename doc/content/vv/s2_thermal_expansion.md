@@ -63,8 +63,8 @@ linear dependence on temperature:
 !equation id=thermal_conduct
 \kappa(x) = \kappa_{0}T(x)
 
-where $\kappa_{0}$ is the reference thermal conductivity (eV s$^{-1}$ cm$^{-1}$ K${^-2}$). $h$ is a convective heat
-transfer coefficient (eV s$^{-1}$ cm^${-2}$ K${^-1}$). The final set of physics considered in this problem is
+where $\kappa_{0}$ is the reference thermal conductivity (eV s$^{-1}$ cm$^{-1}$ K$^{-2}$). $h$ is a convective heat
+transfer coefficient (eV s$^{-1}$ cm^${-2}$ K$^{-1}$). The final set of physics considered in this problem is
 thermal expansion, where the differential slab length $\ell(x)$ (cm) expands according to the local
 thermal strain $\epsilon_{x}(x)$:
 
@@ -74,7 +74,7 @@ thermal strain $\epsilon_{x}(x)$:
 !equation id=thermal_strain
 \epsilon_{x}(x) = \int_{T_{0}}^{T(x)}\alpha(\tau)\, d\tau\text{,}
 
-where $\ell_{0}$ is the initial slab length, and the linear expansion coefficient $\alpha(T)$ (K${^-1}$) is:
+where $\ell_{0}$ is the initial slab length, and the linear expansion coefficient $\alpha(T)$ (K$^{-1}$) is:
 
 !equation id=linear_expansion
 \alpha(T) = \frac{1}{\sqrt{2T_{0}T(x)}}\text{.}
