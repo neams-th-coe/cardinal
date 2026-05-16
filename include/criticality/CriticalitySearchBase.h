@@ -45,6 +45,12 @@ public:
    */
   virtual void searchForCriticality(std::function<void()> step_callback);
 
+  /**
+   * Whether this criticality search is modifying the OpenMC geometry.
+   * @return if the OpenMC geometry is changing during a search.
+   */
+  virtual bool changingGeometry() const = 0;
+
 protected:
   /// The quantity being varied in the search for criticality, for console prints
   virtual std::string quantity() const = 0;

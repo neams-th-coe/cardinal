@@ -28,6 +28,7 @@
 #include "SetupMGXSAction.h"
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
+#include "CriticalitySearchBase.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -526,6 +527,9 @@ OpenMCCellAverageProblem::initialSetup()
   // Coupling re-initialization should be triggered if we have cells transforms which can happen
   // even if the mesh isn't moving or adaptive.
   _need_to_reinit_coupling |= hasCellTransform();
+  // The criticality search may modify the geometry.
+  if (_criticality_search)
+    _need_to_reinit_coupling |= _criticality_search->changingGeometry();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
