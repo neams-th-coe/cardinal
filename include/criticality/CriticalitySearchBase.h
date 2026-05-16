@@ -41,7 +41,8 @@ public:
 
   /**
    * Use Brent's method to search for criticality
-   * @param[in] step_callback a callback to execute after the OpenMC model has been updated prior to running the OpenMC solve.
+   * @param[in] step_callback a callback to execute after the OpenMC model has been updated prior to
+   * running the OpenMC solve.
    */
   virtual void searchForCriticality(std::function<void()> step_callback);
 
