@@ -8,6 +8,7 @@ criticality search include:
 
 - [OpenMCMaterialDensity](OpenMCMaterialDensity.md), to change a material's total density
 - [BoratedWater](BoratedWater.md), to change the boron weight ppm in water
+- [RotationSearch](RotationSearch.md), to change the rotation of a cell
 
 The converged value of the criticality search will automatically be populated into
 a postprocessor named `critical_value`.
