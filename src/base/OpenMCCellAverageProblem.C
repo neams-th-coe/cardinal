@@ -2638,7 +2638,7 @@ OpenMCCellAverageProblem::reinitCoupling()
         // we don't need to send anything in to OpenMC, so we can leave.
         importProperties();
         _console << "Skipping " << incoming_transfer
-                  << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
+                 << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
         return;
       }
       case coupling::moose:
@@ -2651,7 +2651,7 @@ OpenMCCellAverageProblem::reinitCoupling()
         // if we're just using whatever temperature and density are already in the XML
         // files, we don't need to send anything in to OpenMC, so we can leave.
         _console << "Skipping " << incoming_transfer
-                  << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
+                 << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
         return;
       }
       default:
