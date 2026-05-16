@@ -23,6 +23,9 @@
 #include "VariadicTable.h"
 #include "BrentsMethod.h"
 
+// To disable tallies
+#include "openmc/tallies/tally.h"
+
 InputParameters
 CriticalitySearchBase::validParams()
 {
@@ -44,6 +47,17 @@ CriticalitySearchBase::validParams()
       "are used, statistical noise may require many criticality calculations to converge.");
   params.addParam<MooseEnum>(
       "estimator", getEigenvalueEnum(), "Type of eigenvalue estimator to use");
+  params.addParam<bool>(
+      "run_critical_state",
+      true,
+      "Whether a final k-eigenvalue calculation should be performed on the critical model state.");
+  params.addParam<bool>(
+      "tally_during_search",
+      false,
+      "Whether non-eigenvalue tallies should be disabled during the search process. If "
+      "'run_critical_state' is set to true, tallies will be re-enabled on the critical "
+      "state k-eigenvalue calculation.");
+
   params.addClassDescription(
       "Base class for defining parameters used in a criticality search in OpenMC.");
   params.registerBase("CriticalitySearch");
@@ -59,6 +73,8 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     _minimum(getParam<Real>("minimum")),
     _tolerance(getParam<Real>("tolerance")),
     _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>()),
+    _run_critical_state(getParam<bool>("run_critical_state")),
+    _tally_during_search(getParam<bool>("tally_during_search")),
     _target(getParam<Real>("target"))
 {
   if (_minimum >= _maximum)
@@ -71,7 +87,7 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
 }
 
 void
-CriticalitySearchBase::searchForCriticality()
+CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
 {
   _console << "Running criticality search in OpenMC for " << quantity() << " in range "
            << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " " << units() << " "
@@ -90,6 +106,20 @@ CriticalitySearchBase::searchForCriticality()
     // update the OpenMC model with a new parameter
     updateOpenMCModel(x);
     _inputs.push_back(x);
+
+    // Execute the callback after updating the model prior to running the OpenMC problem.
+    // This is used by OpenMCProblemBase to update the multiphysics problem, where we need to
+    // ensure the correct temperatures and densities are applied to OpenMC cells to maintain
+    // a critical state on the final solve. This also ensures that cell tallies are extracted
+    // using the correct cell->element maps.
+    step_callback();
+
+    if (!_tally_during_search)
+    {
+      _console << "Disabling tallies" << std::endl;
+      for (auto & t : openmc::model::tallies)
+        t->set_active(false);
+    }
 
     // re-run the model
     int err = openmc_run();
@@ -121,6 +151,23 @@ CriticalitySearchBase::searchForCriticality()
   if (abs(kMean(_estimator) - _target) >= _tolerance)
     mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
                "tight given the statistical error in the computation of k.");
+
+  // Run the critical state calculation, if requested.
+  if (_run_critical_state)
+  {
+    _console << "Running the critical state calculation" << std::endl;
+    if (!_tally_during_search)
+    {
+      _console << "Re-enabling tallies" << std::endl;
+      for (auto & t : openmc::model::tallies)
+        t->set_active(true);
+    }
+
+    // Run the critical state model.
+    int err = openmc_run();
+    if (err)
+      mooseError(openmc_err_msg);
+  }
 
   // fill the converged value into a postprocessor
   _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());

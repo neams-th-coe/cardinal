@@ -383,7 +383,10 @@ OpenMCProblemBase::externalSolve()
 
   int err;
   if (_criticality_search)
-    _criticality_search->searchForCriticality();
+  {
+    std::function<void()> step_callback = [&]() { this->critSearchStep(); };
+    _criticality_search->searchForCriticality(step_callback);
+  }
   else
   {
     err = openmc_run();
