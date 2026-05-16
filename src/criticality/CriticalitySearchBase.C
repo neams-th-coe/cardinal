@@ -121,12 +121,11 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
     // are extracted using the correct cell->element maps.
     step_callback();
 
+    // Disable tallies during the search. We need to run this on each step as Cardinal wrapped
+    // tallies have been reset.
     if (!_tally_during_search)
-    {
-      _console << "Disabling tallies" << std::endl;
       for (auto & t : openmc::model::tallies)
         t->set_active(false);
-    }
 
     // re-run the model
     int err = openmc_run();
@@ -163,14 +162,12 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
   if (_run_critical_state)
   {
     _console << "Running the critical state calculation" << std::endl;
+
+    // Re-enable tallies.
     if (!_tally_during_search)
-    {
-      _console << "Re-enabling tallies" << std::endl;
       for (auto & t : openmc::model::tallies)
         t->set_active(true);
-    }
 
-    // Run the critical state model.
     int err = openmc_run();
     if (err)
       mooseError(openmc_err_msg);

@@ -383,14 +383,7 @@ OpenMCProblemBase::externalSolve()
 
   int err;
   if (_criticality_search)
-  {
-    std::function<void()> step_callback = [&]()
-    {
-      _console << "Updating coupling..." << std::endl;
-      this->critSearchStep();
-    };
-    _criticality_search->searchForCriticality(step_callback);
-  }
+    _criticality_search->searchForCriticality([&](){ this->critSearchStep(); });
   else
   {
     err = openmc_run();

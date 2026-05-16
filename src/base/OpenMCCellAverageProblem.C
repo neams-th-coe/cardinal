@@ -2690,7 +2690,8 @@ OpenMCCellAverageProblem::critSearchStep()
 {
   _aux->serializeSolution();
 
-  // Reinitialize the OpenMC coupling after the
+  // Reinitialize the OpenMC coupling prior to the execution of
+  // a criticality search step.
   reinitCoupling();
 
   _aux->solution().close();
