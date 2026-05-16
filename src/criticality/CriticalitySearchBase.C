@@ -90,7 +90,7 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
   if (!_tally_during_search && !_run_critical_state)
     paramError(
         "tally_during_search",
-        "When disabling tallies during the intermediate calculations in the criticality search, "
+        "When disabling tallies during intermediate calculations in the criticality search, "
         "you must set 'run_critical_state' to 'true'! This ensures you get tallies on the final "
         "iteration.");
 
@@ -120,10 +120,10 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
     _inputs.push_back(x);
 
     // Execute the callback after updating the model prior to running the OpenMC problem.
-    // This is used by OpenMCProblemBase to update the multiphysics problem, where we need to
-    // ensure the correct temperatures and densities are applied to OpenMC cells to maintain
-    // a critical state on the final solve. This also ensures that cell tallies are extracted
-    // using the correct cell->element maps.
+    // This is used by OpenMCCellAverageProblem to update the MOOSE->OpenMC coupling, where
+    // we need to ensure the correct temperatures and densities are applied to OpenMC cells
+    // to maintain a critical state on the final solve. This also ensures that cell tallies
+    // are extracted using the correct cell->element maps.
     step_callback();
 
     if (!_tally_during_search)
