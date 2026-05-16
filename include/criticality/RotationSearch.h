@@ -17,6 +17,7 @@ public:
    * @param[in] angle guess to pass to the next iteration
    */
   virtual void updateOpenMCModel(const Real & angle) override;
+  virtual bool changingGeometry() const override { return true; }
 
 protected:
   virtual std::string units() const override { return "[degrees]"; }

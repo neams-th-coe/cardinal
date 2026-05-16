@@ -479,7 +479,7 @@ protected:
   void reinitCoupling();
 
   /**
-   * Implement postCritSearchStep() to re-generate the cell-to-element (and dual)
+   * Implement critSearchStep() to re-generate the cell-to-element (and dual)
    * mapping. This sends new temperatures and densities to OpenMC from the
    * re-mapped elements to ensure the state remains critical under changes to the
    * model with feedbacks.

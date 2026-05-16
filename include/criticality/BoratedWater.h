@@ -31,6 +31,7 @@ public:
   BoratedWater(const InputParameters & parameters);
 
   virtual void updateOpenMCModel(const Real & input) override;
+  virtual bool changingGeometry() const override { return false; }
 
 protected:
   virtual std::string quantity() const override
