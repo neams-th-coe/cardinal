@@ -54,9 +54,9 @@ CriticalitySearchBase::validParams()
   params.addParam<bool>(
       "tally_during_search",
       false,
-      "Whether non-eigenvalue tallies should be disabled during the search process. If "
-      "'run_critical_state' is set to true, tallies will be re-enabled on the critical "
-      "state k-eigenvalue calculation.");
+      "Whether non-eigenvalue tallies should be disabled during the search process as a "
+      "performance optimization. If set to 'false', `run_critical_state` must be set to 'true' "
+      "to ensure tallies are computed on the last iteration.");
 
   params.addClassDescription(
       "Base class for defining parameters used in a criticality search in OpenMC.");
@@ -81,6 +81,13 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     paramError("minimum",
                "The 'minimum' value (" + std::to_string(_minimum) +
                    ") must be less than the 'maximum' value (" + std::to_string(_maximum) + ").");
+
+  if (!_tally_during_search && !_run_critical_state)
+    paramError(
+        "tally_during_search",
+        "When disabling tallies during the intermediate calculations in the criticality search, "
+        "you must set 'run_critical_state' to 'true'! This ensures you get tallies on the final "
+        "iteration.");
 
   auto pp_params = _factory.getValidParams("Receiver");
   _openmc_problem->addPostprocessor("Receiver", _pp_name, pp_params);
