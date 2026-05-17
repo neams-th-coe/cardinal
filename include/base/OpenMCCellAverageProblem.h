@@ -464,6 +464,29 @@ public:
 
 protected:
   /**
+   * A function to re-initialize coupling to the OpenMC problem. Applied before
+   * OpenMC is executed in either: i) normal Picard iterations, or ii) criticality
+   * searches. This function performs these operations in the following order:
+   * 1. Updates the OpenMC geometry using the skinner;
+   * 2. Resets tallies and the cell->element maps to take into account
+   *    mesh/geometry changes;
+   * 3. Updates the nuclide composition of OpenMC materials;
+   * 4. Sets cell temperatures and densities;
+   * 5. Exports OpenMC properties;
+   * 6. Reinitializes multi-group cross sections to take into account changing
+   *    temperatures and densities.
+   */
+  void reinitCoupling();
+
+  /**
+   * Implement critSearchStep() to re-generate the cell-to-element (and dual)
+   * mapping. This sends new temperatures and densities to OpenMC from the
+   * re-mapped elements to ensure the state remains critical under changes to the
+   * model with feedbacks.
+   */
+  virtual void critSearchStep() override;
+
+  /**
    * Get the cell level in OpenMC to use for coupling
    * @param[in] c point
    * @return cell level
