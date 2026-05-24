@@ -9,7 +9,12 @@
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
-    requirement = "The system shall allow for the output of different timing statistics from OpenMC."
+    requirement = "The system shall allow for the output of different timing statistics from OpenMC. "
+                  "Golding execution times is non-deterministic due to the difference in testing "
+                  "hardware and hardware utilization. To avoid indeterminism, this test checks each "
+                  "post-processor for any non-zero ouput and compared those results to the gold file. "
+                  "The output of each post-processor has been manually checked against OpenMC console "
+                  "output to ensure the correct timing statistic is selected by the post-processor."
     capabilities = 'openmc'
   []
   [only_timestep_end]

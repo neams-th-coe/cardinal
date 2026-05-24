@@ -68,5 +68,6 @@ protected:
     TotalTime = 8
   } _openmc_time;
 
+  /// The accumulate or step walltime.
   Real _walltime;
 };

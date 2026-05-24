@@ -38,7 +38,7 @@ OpenMCWallTime::validParams()
     "initialization_time total_simulation_time transport_time "
     "inactive_batch_time active_batch_time fission_bank_time "
     "tally_accumulation_time finalization_time total_time_elapsed");
-  params.addParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
+  params.addRequiredParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
 
   return params;
 }
