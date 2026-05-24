@@ -49,7 +49,20 @@ OpenMCWallTime::OpenMCWallTime(const InputParameters & parameters)
     _accumulate_time(getParam<bool>("accumulate_time")),
     _openmc_time(getParam<MooseEnum>("time_type").getEnum<OpenMCTime>()),
     _walltime(0.0)
-{ }
+{
+  // We only get timing information when the OpenMC simulation ends. Need to restrict execution
+  // to TIMESTEP_END.
+  for (const auto & flag : getParam<ExecFlagEnum>("execute_on"))
+  {
+    if (flag != "TIMESTEP_END")
+    {
+      paramError("execute_on",
+                 "Timing information is only available in OpenMC once a "
+                 "simulation has finished running. Please ensure "
+                 "'execute_on' is set to 'TIMESTEP_END'.");
+    }
+  }
+}
 
 void
 OpenMCWallTime::execute()
