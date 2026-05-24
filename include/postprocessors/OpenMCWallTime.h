@@ -55,8 +55,7 @@ protected:
   const bool & _accumulate_time;
 
   /// The type of time to report from OpenMC.
-  const enum class OpenMCTime
-  {
+  const enum class OpenMCTime {
     TotalInitTime = 0,
     TotalSimTime = 1,
     TransportTime = 2,

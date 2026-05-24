@@ -30,14 +30,13 @@ OpenMCWallTime::validParams()
   auto params = GeneralPostprocessor::validParams();
   params += OpenMCBase::validParams();
   params.addClassDescription("A post-processor which reports OpenMC walltime.");
-  params.addParam<bool>(
-    "accumulate_time",
-    true,
-    "Whether the simulation time should be acumulated over all simulation steps (selected by default) or not.");
-  MooseEnum time_type(
-    "initialization_time total_simulation_time transport_time "
-    "inactive_batch_time active_batch_time fission_bank_time "
-    "tally_accumulation_time finalization_time total_time_elapsed");
+  params.addParam<bool>("accumulate_time",
+                        true,
+                        "Whether the simulation time should be acumulated over all simulation "
+                        "steps (selected by default) or not.");
+  MooseEnum time_type("initialization_time total_simulation_time transport_time "
+                      "inactive_batch_time active_batch_time fission_bank_time "
+                      "tally_accumulation_time finalization_time total_time_elapsed");
   params.addRequiredParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
 
   return params;
@@ -76,7 +75,8 @@ OpenMCWallTime::execute()
       _walltime += openmc::simulation::time_initialize.elapsed();
       break;
     case OpenMCTime::TotalSimTime:
-      _walltime += (openmc::simulation::time_inactive.elapsed() + openmc::simulation::time_active.elapsed());
+      _walltime +=
+          (openmc::simulation::time_inactive.elapsed() + openmc::simulation::time_active.elapsed());
       break;
     case OpenMCTime::TransportTime:
       _walltime += openmc::simulation::time_transport.elapsed();
