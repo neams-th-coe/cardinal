@@ -191,6 +191,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _using_skinner(isParamValid("skinner")),
+    // 'used_displaced' is added to '_need_to_reinit_coupling' later in the ctor.
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
@@ -275,7 +276,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // guarantee that the tallies from iteration to iteration correspond to exactly
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
-  if (_need_to_reinit_coupling && _relaxation != relaxation::none)
+  if ((_use_displaced || _has_adaptivity) && _relaxation != relaxation::none)
     paramError(
         "relaxation",
         "When adaptivity is requested or a displaced problem is used, the mapping from the "

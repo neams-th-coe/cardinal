@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+
   [wrong_uo]
     type = RunException
     input = wrong_uo.i

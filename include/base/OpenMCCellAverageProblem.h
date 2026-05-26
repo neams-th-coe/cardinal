@@ -444,6 +444,12 @@ public:
    */
   bool hasAdaptivity() const { return _has_adaptivity; }
 
+  /**
+   * Checks if the problem is using a MoabSkinner or not.
+   * @return if the problem uses skinning
+   */
+  bool hasSkinner() const { return _using_skinner; }
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
 

@@ -8,14 +8,13 @@ criticality search include:
 
 - [OpenMCMaterialDensity](OpenMCMaterialDensity.md), to change a material's total density
 - [BoratedWater](BoratedWater.md), to change the boron weight ppm in water
+- [RotationSearch](RotationSearch.md), to rotate OpenMC cell(s) fill
 
 The converged value of the criticality search will automatically be populated into
 a postprocessor named `critical_value`.
 
 !alert warning
-If the convergence `tolerance` is too small (on the order of or smaller than the statistical standard deviation),
-convergence may not be possible. If the search fails to converge, use a looser `tolerance` or
-increase the number of particles.
+There are two tolerances that must be specified `root_tol` (the tolerance on the root the search is looking for, e.g. a critical drum angle or boron appm concentration) and `k_tol`(the tolerance on the actual tallied k-eigenvalue).  If the `root_tol` is too large, the solver might stop short of the actual critical value. If the `k_tol` is too small (on the order of or smaller than the statistical standard deviation), convergence may not be possible. If the search fails to converge, use a looser `k_tol` or increase the number of particles. Both of these tolerances are absolute tolerances, so it is important, especially on `root_tol` to input something reasonable for the problem at hand. For example, specifying a `root_tol = 0.001` is a very strict tolerance for finding a critical drum angle, which may span from 0 to 180. Conversely, a `root_tol` of 50 would likely be too large of a tolerance for drum angle but may be acceptable for critical boron concentration.
 
 ## Example Input File Syntax
 

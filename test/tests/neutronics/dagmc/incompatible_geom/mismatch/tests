@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+
   [mismatch]
     type = RunException
     input = openmc.i
