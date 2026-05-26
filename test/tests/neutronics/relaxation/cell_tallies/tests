@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#241 #249'
+  design = 'CellTally.md'
+
   [global_with_alignment_unity_relax]
     type = CSVDiff
     input = openmc.i

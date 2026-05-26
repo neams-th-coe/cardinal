@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#241 #249'
+  design = 'MeshTally.md'
+
   [global_without_alignment_unity_relax]
     type = Exodiff
     input = openmc.i

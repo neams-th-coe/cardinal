@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md MeshTally.md'
+
   [null_skin]
     type = Exodiff
     input = one_bin.i
@@ -56,6 +59,20 @@
     prereq = scale_mesh
     cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall give identical results when scaling the Mesh by an arbitrary multiplier. The gold file was compared against a case with no scaling (scaling = 1) to get identical results."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]
+
+[Tests]
+  issues = '#1318'
+  design = 'MeshTally.md OpenMCCellAverageProblem.md'
+
+  [mesh_tally_relaxation_skin]
+    type = CSVDiff
+    input = with_relaxation.i
+    csvdiff = with_relaxation_out.csv
+    requirement = "The system shall allow for the use of relaxation with a MeshTally and a MoabSkinner."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
