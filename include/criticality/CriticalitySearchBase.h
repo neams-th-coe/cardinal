@@ -55,8 +55,11 @@ protected:
   /// Minimum range of value to explore
   const Real & _minimum;
 
-  /// Absolute tolerance for finding a critical configuration
-  const Real & _tolerance;
+  /// Absolute tolerance on the eigenvalue of the search
+  const Real & _k_tol;
+
+  /// Absolute tolerance on the solved root of the search
+  const Real & _root_tol;
 
   /// Estimator to use for k
   const eigenvalue::EigenvalueEnum _estimator;

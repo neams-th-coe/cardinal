@@ -36,10 +36,14 @@ CriticalitySearchBase::validParams()
       "Maximum for values to search over; the root must occur at a value smaller than the maximum");
   params.addRangeCheckedParam<Real>(
       "target", 1.0, "target > 0.0", "Target value of k effective to search for");
+  params.addRequiredRangeCheckedParam<Real>(
+      "root_tol",
+      "root_tol > 0",
+      "Absolute tolerance to converge root that yields target value of the multiplication factor.");
   params.addRangeCheckedParam<Real>(
-      "tolerance",
+      "k_tol",
       1e-3,
-      "tolerance > 0",
+      "k_tol > 0",
       "Absolute tolerance to converge multiplication factor; be aware that if too few particles "
       "are used, statistical noise may require many criticality calculations to converge.");
   params.addParam<MooseEnum>(
@@ -57,7 +61,8 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     OpenMCBase(this, parameters),
     _maximum(getParam<Real>("maximum")),
     _minimum(getParam<Real>("minimum")),
-    _tolerance(getParam<Real>("tolerance")),
+    _k_tol(getParam<Real>("k_tol")),
+    _root_tol(getParam<Real>("root_tol")),
     _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>()),
     _target(getParam<Real>("target"))
 {
@@ -105,22 +110,24 @@ CriticalitySearchBase::searchForCriticality()
     vt.addRow(_k_values.size() - 1, x, k, k_std_dev);
     vt.print(_console);
 
-    if (_tolerance < 3 * k_std_dev)
+    if (_k_tol < 3 * k_std_dev)
       mooseDoOnce(mooseWarning(
-          "The 'tolerance' for the criticality search (" + std::to_string(_tolerance) +
+          "The 'k_tol' for the criticality search (" + std::to_string(_k_tol) +
           ") is smaller than 3-sigma standard deviation in k (" + std::to_string(3 * k_std_dev) +
-          "); you may have to run a lot of criticality search points to converge to this "
-          "tolerance. You may want to loosen 'tolerance' or increase the number of particles."));
+          "), which may require many search iterations to converge to this tolerance "
+          "Consider a looser 'k_tol' or increase the number of particles."));
 
     return k - _target;
   };
 
-  BrentsMethod::root(func, _minimum, _maximum, _tolerance);
+  BrentsMethod::root(func, _minimum, _maximum, _root_tol);
 
   // check if the method converged
-  if (abs(kMean(_estimator) - _target) >= _tolerance)
-    mooseError("Failed to converge criticality search! This may happen if your tolerance is too "
-               "tight given the statistical error in the computation of k.");
+  if (abs(kMean(_estimator) - _target) >= _k_tol)
+    mooseWarning("The eigenvalue produced by the criticality search was not within "
+                 "specified 'k_tol' of the target! This could occur if 'k_tol' is too "
+                 "tight for simulation's statistical error. It can also occur if "
+                 "'root_tol' is too loose and the worth curve is steep near the target");
 
   // fill the converged value into a postprocessor
   _openmc_problem->setPostprocessorValueByName(_pp_name, _inputs.back());
