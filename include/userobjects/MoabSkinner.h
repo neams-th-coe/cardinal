@@ -162,6 +162,14 @@ public:
   const std::shared_ptr<moab::Interface> & moabPtr() const { return _moab; }
 
 protected:
+  /// Boundary condition types that can be assigned to DAGMC surfaces
+  enum class BoundaryConditionType
+  {
+    None,
+    Vacuum,
+    Reflective
+  };
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// MOAB interface
@@ -380,14 +388,6 @@ protected:
 
   /// Group the binned elems into local temperature regions and find their surfaces
   void findSurfaces();
-
-  /// Boundary condition types that can be assigned to DAGMC surfaces
-  enum class BoundaryConditionType
-  {
-    None,
-    Vacuum,
-    Reflective
-  };
 
   /**
    * Convert sideset names or numeric IDs to mesh BoundaryIDs and validate that each
