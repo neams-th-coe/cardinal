@@ -729,9 +729,9 @@ NekRSMesh::faceVertices()
     Nfp_mirror = mesh->Nfp;
   }
 
-  std::vector<dfloat> x_mirror(mesh->Nlocal); 
-  std::vector<dfloat> y_mirror(mesh->Nlocal); 
-  std::vector<dfloat> z_mirror(mesh->Nlocal); 
+  std::vector<dfloat> x_mirror(mesh->Nlocal);
+  std::vector<dfloat> y_mirror(mesh->Nlocal);
+  std::vector<dfloat> z_mirror(mesh->Nlocal);
   mesh->o_x.copyTo(x_mirror.data(), x_mirror.size());
   mesh->o_y.copyTo(y_mirror.data(), y_mirror.size());
   mesh->o_z.copyTo(z_mirror.data(), z_mirror.size());
@@ -824,9 +824,9 @@ NekRSMesh::volumeVertices()
     Np_mirror = mesh->Np;
   }
 
-  std::vector<dfloat> x_mirror(mesh->Nlocal); 
-  std::vector<dfloat> y_mirror(mesh->Nlocal); 
-  std::vector<dfloat> z_mirror(mesh->Nlocal); 
+  std::vector<dfloat> x_mirror(mesh->Nlocal);
+  std::vector<dfloat> y_mirror(mesh->Nlocal);
+  std::vector<dfloat> z_mirror(mesh->Nlocal);
   mesh->o_x.copyTo(x_mirror.data(), x_mirror.size());
   mesh->o_y.copyTo(y_mirror.data(), y_mirror.size());
   mesh->o_z.copyTo(z_mirror.data(), z_mirror.size());

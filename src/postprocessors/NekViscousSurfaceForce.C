@@ -56,14 +56,16 @@ NekViscousSurfaceForce::getValue() const
   auto nrs = nekrs::nrsPtr();
   auto mesh = nekrs::flowMesh();
 
-  auto o_Sij   = nrs->strainRate();
+  auto o_Sij = nrs->strainRate();
   auto o_bID = platform->device.malloc<int>(_boundary.size(), _boundary.data());
 
-  auto o_tangentialViscousTraction = nrs->viscousShearStress(o_bID, o_Sij); // tau dot n - ((tau dot n) dot n) * n
+  auto o_tangentialViscousTraction =
+      nrs->viscousShearStress(o_bID, o_Sij); // tau dot n - ((tau dot n) dot n) * n
   auto o_normalViscousTraction = nrs->viscousNormalStress(o_bID, o_Sij); // ((tau dot n) dot n) * n
 
   const dlong Ntotal = o_tangentialViscousTraction.size() / mesh->dim;
-  auto fvT = mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_tangentialViscousTraction);
+  auto fvT =
+      mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_tangentialViscousTraction);
   auto fvN = mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_normalViscousTraction);
 
   auto fx = fvT[0] + fvN[0];
@@ -74,7 +76,7 @@ NekViscousSurfaceForce::getValue() const
   o_bID.free();
 
   if (_component == "total")
-    return std::sqrt(fx*fx + fy*fy + fz*fz);
+    return std::sqrt(fx * fx + fy * fy + fz * fz);
   else if (_component == "x")
     return fx;
   else if (_component == "y")
