@@ -253,7 +253,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
     /// Need to remove trailing "/" to do "is_regular_file"
     std::filesystem::path p = openmc::settings::path_output;
-    p = p.filename().empty() ? p.parent_path() : p;
+    changeDirectoryToFile(p);
 
     if (std::filesystem::is_regular_file(p))
       mooseError("Cannot create directory " + openmc::settings::path_output +
@@ -408,9 +408,11 @@ OpenMCProblemBase::externalSolve()
   {
     openmc::settings::path_output = transientStatepointPath();
 
-    /// Need to remove trailing "/" to do "is_regular_file"
     std::filesystem::path p = openmc::settings::path_output;
-    p = p.filename().empty() ? p.parent_path() : p;
+
+    /// Need to remove trailing "/" to do "is_regular_file"
+    changeDirectoryToFile(p);
+
     if (std::filesystem::is_regular_file(p))
       mooseError("Cannot create directory " + openmc::settings::path_output +
                  ", as a file with the same name already exists");
@@ -1132,6 +1134,12 @@ OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
     p += "/";
 
   return p.string();
+}
+
+void
+OpenMCProblemBase::changeDirectoryToFile(std::filesystem::path & input_path)
+{
+  input_path = input_path.filename().empty() ? input_path.parent_path() : input_path;
 }
 
 #endif

@@ -457,7 +457,15 @@ protected:
    * @param[in] path_output unformatted path
    * @return formatted absolute path
    */
-  const std::string formattedOutputPath(const std::string & path_output);
+  const std::string formattedOutputPath(const std::string & output_path);
+
+  /**
+   * Take an input path, and if it's currently formatted as a directory (i.e. ending with "/") then
+   * the final slash is removed, formatting it as a file. If it is already formatted as a file
+   * nothing is done.
+   * @param[in] input_path Path that may or may not be formatted as a directory.
+   */
+  void changeDirectoryToFile(std::filesystem::path & input_path);
 
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
