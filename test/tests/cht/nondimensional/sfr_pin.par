@@ -14,34 +14,25 @@
   backend = CPU
 
 [GENERAL]
-  stopAt = numSteps
   numSteps = 2000
   dt = 0.05233843612334802
-  timeStepper = tombo2
-  checkpointControl = steps
   checkpointInterval = 100
   polynomialOrder = 4
-
-[PROBLEMTYPE]
-  stressFormulation = true
+  scalars = temperature
 
 [FLUID VELOCITY]
-
   # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
   viscosity = -3038.7881869873413
-
   density = 1.0
-  boundaryTypeMap = W, W, v, O
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, udfDirichlet, zeroNeumann
   residualTol = 1.0e-6
 
 [FLUID PRESSURE]
   residualTol = 1.0e-6
 
 [SCALAR TEMPERATURE]
-
   # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
-  conductivity = -13.773505042642078
-
-  rhoCp = 1.0
-  boundaryTypeMap = f, I, t, O
+  diffusionCoeff = -13.773505042642078
+  transportCoeff = 1.0
+  boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet, zeroNeumann
   residualTol = 1.0e-5
