@@ -14,7 +14,7 @@
     type = MonteCarlo
     num_rows = 3
     distributions = 'uniform'
-    execute_on = timestep_begin
+    execute_on = 'initial timestep_begin'
   []
 []
 
