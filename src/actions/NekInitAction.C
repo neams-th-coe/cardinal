@@ -38,11 +38,17 @@ NekInitAction::validParams()
       "Case name for the NekRS input files; "
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
-  params.addParam<bool>("initialize_usrwrk", true, "Whether Cardinal should allocate space for the urswrk array; if false, the user is responsible for allocating this array for their usage in the .udf file");
+  params.addParam<bool>(
+      "initialize_usrwrk",
+      true,
+      "Whether Cardinal should allocate space for the urswrk array; if false, the user is "
+      "responsible for allocating this array for their usage in the .udf file");
   params.addParam<unsigned int>(
       "n_usrwrk_slots",
       0,
-      "If initialize_usrwrk is true, the number of slots that Cardinal will allocate in nrs->usrwrk. These entries can be used to hold fields related to coupling (which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+      "If initialize_usrwrk is true, the number of slots that Cardinal will allocate in "
+      "nrs->usrwrk. These entries can be used to hold fields related to coupling (which will be "
+      "populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 
   return params;
 }
@@ -164,9 +170,13 @@ NekInitAction::act()
   if (_initialize_usrwrk)
   {
     if (!nekrs::scratchAvailable())
-      mooseError(
-          "Because 'initialize_usrwrk' is true, the platform->app->bc->o_usrwrk array is allocated by Cardinal, but you have tried allocating it separately inside your case files. Please remove the manual allocation of this array in your case files, and be sure to only write such that the space reserved for Cardinal coupling data is untouched. Cardinal can allocate the size of this array by providing the 'n_usrwrk_slots' parameter for NekRSProblem.\n\nIf you prefer to initialize the usrwrk array manually, set 'initialize_usrwrk' to false.");
-
+      mooseError("Because 'initialize_usrwrk' is true, the platform->app->bc->o_usrwrk array is "
+                 "allocated by Cardinal, but you have tried allocating it separately inside your "
+                 "case files. Please remove the manual allocation of this array in your case "
+                 "files, and be sure to only write such that the space reserved for Cardinal "
+                 "coupling data is untouched. Cardinal can allocate the size of this array by "
+                 "providing the 'n_usrwrk_slots' parameter for NekRSProblem.\n\nIf you prefer to "
+                 "initialize the usrwrk array manually, set 'initialize_usrwrk' to false.");
 
     // Initialize scratch space in NekRS to write data incoming data from MOOSE
     nekrs::initializeScratch(_n_usrwrk_slots);

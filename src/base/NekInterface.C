@@ -78,24 +78,36 @@ setStartTime(const double & start)
 }
 
 void
-write_usrwrk_field_file(const int & usrWriterSize, const int & usrWriterIndex, const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
+write_usrwrk_field_file(const int & usrWriterSize,
+                        const int & usrWriterIndex,
+                        const int & slot,
+                        const std::string & prefix,
+                        const dfloat & time,
+                        const int & step,
+                        const bool & write_coords)
 {
   static std::vector<std::unique_ptr<iofld>> usrWriterVector(usrWriterSize);
 
-  auto &usrWriter = usrWriterVector[usrWriterIndex];
+  auto & usrWriter = usrWriterVector[usrWriterIndex];
 
-  if(!usrWriter) {
+  if (!usrWriter)
+  {
     usrWriter = iofldFactory::create();
     auto mesh = entireMesh();
 
     usrWriter->open(mesh, iofld::mode::write, prefix.c_str());
 
-    if (platform->options.compareArgs("CHECKPOINT PRECISION", "FP32")) {
+    if (platform->options.compareArgs("CHECKPOINT PRECISION", "FP32"))
+    {
       usrWriter->writeAttribute("precision", "32");
-    } else {
+    }
+    else
+    {
       usrWriter->writeAttribute("precision", "64");
     }
-    usrWriter->addVariable("scalar00", std::vector<deviceMemory<dfloat>>{platform->app->bc->o_usrwrk.slice(slot * fieldOffset(), mesh->Nlocal)});
+    usrWriter->addVariable("scalar00",
+                           std::vector<deviceMemory<dfloat>>{platform->app->bc->o_usrwrk.slice(
+                               slot * fieldOffset(), mesh->Nlocal)});
   }
 
   usrWriter->writeAttribute("outputmesh", write_coords ? "true" : "false");
@@ -107,7 +119,8 @@ void
 write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
   static std::unique_ptr<iofld> checkpointWriter;
-  if (!checkpointWriter) {
+  if (!checkpointWriter)
+  {
     checkpointWriter = iofldFactory::create();
   }
 
@@ -116,11 +129,15 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   auto visMesh = entireMesh();
   checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
 
-  if (!checkpointWriter->isInitialized()) {
-    if (nrs->fluid) {
-      if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE")) {
+  if (!checkpointWriter->isInitialized())
+  {
+    if (nrs->fluid)
+    {
+      if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE"))
+      {
         std::vector<occa::memory> o_V;
-        for (int i = 0; i < flowMesh()->dim; i++) {
+        for (int i = 0; i < flowMesh()->dim; i++)
+        {
           o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
         }
         checkpointWriter->addVariable("velocity", o_V);
@@ -131,13 +148,20 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
     }
 
     int ns = Nscalar();
-    for (int i = 0; i < ns; i++) {
-      if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE")) {
-        const auto temperatureExists = nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
-        std::vector<occa::memory> o_Si = {nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
-        if (i == 0 && temperatureExists) {
+    for (int i = 0; i < ns; i++)
+    {
+      if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE"))
+      {
+        const auto temperatureExists =
+            nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
+        std::vector<occa::memory> o_Si = {
+            nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+        if (i == 0 && temperatureExists)
+        {
           checkpointWriter->addVariable("temperature", o_Si);
-        } else {
+        }
+        else
+        {
           const auto is = (temperatureExists) ? i - 1 : i;
           checkpointWriter->addVariable("scalar" + scalarDigitStr(is), o_Si);
         }
@@ -155,7 +179,8 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   checkpointWriter->writeAttribute("outputMesh", (outXYZ) ? "true" : "false");
 
   std::string hSchedule;
-  if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule)) {
+  if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule))
+  {
     checkpointWriter->writeAttribute("hSchedule", hSchedule);
   }
   checkpointWriter->addVariable("time", const_cast<double &>(time));
@@ -598,11 +623,11 @@ limitTemperature(const double * min_T, const double * max_T)
 void
 copySolutionToHost()
 {
-  nrs->fluid->o_U.copyTo(U.data(),U.size());
-  nrs->fluid->o_P.copyTo(P.data(),P.size());
+  nrs->fluid->o_U.copyTo(U.data(), U.size());
+  nrs->fluid->o_P.copyTo(P.data(), P.size());
 
   if (Nscalar())
-    nrs->scalar->o_S.copyTo(S.data(),S.size());
+    nrs->scalar->o_S.copyTo(S.data(), S.size());
 }
 
 void
@@ -2149,9 +2174,10 @@ nrsPtr()
   return nrs;
 }
 
-mesh_t *createMesh2(mesh_t *_mesh, int Nc)
+mesh_t *
+createMesh2(mesh_t * _mesh, int Nc)
 {
-  mesh_t *mesh = new mesh_t();
+  mesh_t * mesh = new mesh_t();
   memcpy(mesh, _mesh, sizeof(mesh_t));
 
   const int cubN = 0;
@@ -2163,9 +2189,11 @@ mesh_t *createMesh2(mesh_t *_mesh, int Nc)
 
   mesh->o_D = platform->device.malloc<dfloat>(mesh->Nq * mesh->Nq, mesh->D);
 
-  dfloat *DT = (dfloat *)calloc(mesh->Nq * mesh->Nq, sizeof(dfloat));
-  for (int j = 0; j < mesh->Nq; j++) {
-    for (int i = 0; i < mesh->Nq; i++) {
+  dfloat * DT = (dfloat *)calloc(mesh->Nq * mesh->Nq, sizeof(dfloat));
+  for (int j = 0; j < mesh->Nq; j++)
+  {
+    for (int i = 0; i < mesh->Nq; i++)
+    {
       DT[j * mesh->Nq + i] = mesh->D[i * mesh->Nq + j];
     }
   }
@@ -2178,7 +2206,8 @@ mesh_t *createMesh2(mesh_t *_mesh, int Nc)
 
   meshGlobalIds(mesh);
 
-  meshParallelGatherScatterSetup(mesh, mesh->Nlocal, mesh->globalIds, platform->comm.mpiComm(), OOGS_AUTO, 0);
+  meshParallelGatherScatterSetup(
+      mesh, mesh->Nlocal, mesh->globalIds, platform->comm.mpiComm(), OOGS_AUTO, 0);
 
   return mesh;
 }

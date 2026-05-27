@@ -55,7 +55,8 @@ NekVolumetricData::sendDataToNek()
   auto a = 0.0;
   for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
   {
-    // We can only write into the nekRS scratch space if that element is "owned" by the current process
+    // We can only write into the nekRS scratch space if that element is "owned" by the current
+    // process
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
