@@ -312,7 +312,7 @@ MoabSkinner::initialize()
   createMOABElems();
 
   // Resolve sideset names/IDs and check for overlaps (The check in the constructor use the string
-  // which might not be foolproof).
+  // which might not be correct).
   if (_set_bcs)
   {
     if (isParamSetByUser("vacuum_bcs_surfaces"))
