@@ -1272,15 +1272,6 @@ MoabSkinner::createSurfaces(moab::Range & faces,
   }
 }
 
-if (!faces.empty())
-{
-  moab::EntityHandle surface_set;
-  std::vector<VolData> voldatavec(1, voldata);
-  surf_id++;
-  createSurf(surf_id, surface_set, faces, voldatavec);
-}
-}
-
 void
 MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
 {
