@@ -94,10 +94,16 @@ MoabSkinner::validParams()
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
-  params.addParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces",
-                                             "Sideset names/ids to assign vacuum BCs to");
-  params.addParam<std::vector<BoundaryName>>("reflective_bcs_surfaces",
-                                             "Sideset names/ids to assign reflective BCs to");
+  params.addParam<std::vector<BoundaryName>>(
+      "vacuum_bcs_surfaces",
+      "Mesh sideset names or numeric sideset IDs to assign DAGMC vacuum boundary conditions to. "
+      "Both string names and integer IDs (as strings) are accepted. "
+      "Sides not listed here default to transmission.");
+  params.addParam<std::vector<BoundaryName>>(
+      "reflective_bcs_surfaces",
+      "Mesh sideset names or numeric sideset IDs to assign DAGMC reflective boundary conditions "
+      "to. Both string names and integer IDs (as strings) are accepted. "
+      "Sides not listed here default to transmission.");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
   return params;
@@ -136,15 +142,26 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
         "mat:" + getParam<std::string>("implicit_complement_material") + "_comp";
   }
   if (isParamSetByUser("vacuum_bcs_surfaces"))
-  {
     _set_bcs = true;
-    _vacuum_bcs_surfaces = getParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces");
-  }
 
   if (isParamSetByUser("reflective_bcs_surfaces"))
-  {
     _set_bcs = true;
-    _reflective_bcs_surfaces = getParam<std::vector<BoundaryName>>("reflective_bcs_surfaces");
+
+  if (_set_bcs)
+  {
+    const auto vac_names = isParamSetByUser("vacuum_bcs_surfaces")
+                               ? getParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces")
+                               : std::vector<BoundaryName>{};
+    const auto ref_names = isParamSetByUser("reflective_bcs_surfaces")
+                               ? getParam<std::vector<BoundaryName>>("reflective_bcs_surfaces")
+                               : std::vector<BoundaryName>{};
+
+    std::set<BoundaryName> vac_name_set(vac_names.begin(), vac_names.end());
+    for (const auto & name : ref_names)
+      if (vac_name_set.count(name))
+        mooseError("Boundary '",
+                   name,
+                   "' appears in both 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'.");
   }
 
   // we can probably support this in the future, it's just not implemented yet
@@ -409,6 +426,20 @@ MoabSkinner::initialize()
   createTags();
 
   createMOABElems();
+
+  // Resolve sideset names/IDs and check for overlaps (The check in the constructor use the string
+  // which might not be foolproof).
+  if (_set_bcs)
+  {
+    if (isParamSetByUser("vacuum_bcs_surfaces"))
+      _vacuum_bcs_surface_ids = boundaryNamesToIDs(
+          getParam<std::vector<BoundaryName>>("vacuum_bcs_surfaces"), "vacuum_bcs_surfaces");
+    if (isParamSetByUser("reflective_bcs_surfaces"))
+      _reflective_bcs_surface_ids =
+          boundaryNamesToIDs(getParam<std::vector<BoundaryName>>("reflective_bcs_surfaces"),
+                             "reflective_bcs_surfaces");
+    checkBoundaryConditionOverlap();
+  }
 }
 
 void
@@ -478,6 +509,7 @@ MoabSkinner::createMOABElems()
   // Clear prior results
   _id_to_elem_handles.clear();
   _node_id_to_handle.clear();
+  _elem_handle_to_id.clear();
 
   double coords[3];
 
@@ -532,6 +564,7 @@ MoabSkinner::createMOABElems()
         _id_to_elem_handles[id] = std::vector<moab::EntityHandle>();
 
       _id_to_elem_handles[id].push_back(ent);
+      _elem_handle_to_id[ent] = id;
 
       // Save the handle for adding to entity sets
       all_elems.insert(ent);
@@ -629,7 +662,8 @@ void
 MoabSkinner::createSurf(const unsigned int & id,
                         moab::EntityHandle & surface_set,
                         moab::Range & faces,
-                        const std::vector<VolData> & voldata)
+                        const std::vector<VolData> & voldata,
+                        BoundaryConditionType bc_type)
 {
   // Create meshset
   check(_moab->create_meshset(moab::MESHSET_SET, surface_set));
@@ -646,6 +680,8 @@ MoabSkinner::createSurf(const unsigned int & id,
   // Add volume to list associated with this surface
   for (const auto & data : voldata)
     updateSurfData(surface_set, data);
+
+  recordBoundaryConditionSurface(surface_set, bc_type);
 }
 
 void
@@ -887,9 +923,247 @@ MoabSkinner::materialName(const unsigned int & block,
   return "";
 }
 
+std::set<BoundaryID>
+MoabSkinner::boundaryNamesToIDs(const std::vector<BoundaryName> & names,
+                                const std::string & param_name)
+{
+  std::set<BoundaryID> ids;
+  for (const auto & name : names)
+  {
+    const BoundaryID id = getMooseMesh().getBoundaryID(name);
+    if (!getMooseMesh().meshSidesetIds().count(id))
+      paramError(param_name, "Boundary '", name, "' is not a sideset.");
+    ids.insert(id);
+  }
+  return ids;
+}
+
+void
+MoabSkinner::checkBoundaryConditionOverlap() const
+{
+  std::set<BoundaryID> overlap;
+  std::set_intersection(_vacuum_bcs_surface_ids.begin(),
+                        _vacuum_bcs_surface_ids.end(),
+                        _reflective_bcs_surface_ids.begin(),
+                        _reflective_bcs_surface_ids.end(),
+                        std::inserter(overlap, overlap.begin()));
+  if (overlap.empty())
+    return;
+
+  std::string ids_str;
+  for (const auto id : overlap)
+    ids_str += (ids_str.empty() ? "" : ", ") + std::to_string(id);
+
+  mooseError("The following sideset ID(s) appear in both 'vacuum_bcs_surfaces' and "
+             "'reflective_bcs_surfaces': ",
+             ids_str);
+}
+
+MoabSkinner::BoundaryConditionType
+MoabSkinner::boundaryConditionType(const std::vector<boundary_id_type> & side_boundary_ids) const
+{
+  bool want_vacuum = false;
+  bool want_reflective = false;
+  for (const auto bid : side_boundary_ids)
+  {
+    want_vacuum = want_vacuum || _vacuum_bcs_surface_ids.count(bid);
+    want_reflective = want_reflective || _reflective_bcs_surface_ids.count(bid);
+  }
+  if (want_vacuum && want_reflective)
+    mooseError("A mesh side is assigned both vacuum and reflective boundary conditions. "
+               "Check 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'.");
+  if (want_vacuum)
+    return BoundaryConditionType::Vacuum;
+  if (want_reflective)
+    return BoundaryConditionType::Reflective;
+  return BoundaryConditionType::None;
+}
+
+void
+MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
+                                          const moab::Range & skin,
+                                          moab::Range & transmission_tris,
+                                          moab::Range & vacuum_tris,
+                                          moab::Range & reflective_tris)
+{
+  // all triangles have transmission BC until classified otherwise
+  transmission_tris = skin;
+
+  if (!_set_bcs || skin.empty())
+    return;
+
+  const auto & boundary_info = getMooseMesh().getMesh().get_boundary_info();
+
+  // Number of entities passed to get_adjacencies per call
+  constexpr int num_entities = 1;
+  // Topological dimension of the faces we want (2 = triangles for a 3D tet mesh)
+  constexpr int surface_dimension = 2;
+  // MOAB skin triangles are first-order (TRI3): exactly 3 vertex handles in connectivity
+  constexpr int vertices_per_triangle = 3;
+
+  for (const auto tet : region)
+  {
+    const auto elem_id_it = _elem_handle_to_id.find(tet);
+    if (elem_id_it == _elem_handle_to_id.end())
+      mooseError("Could not map a MOAB tet back to a libMesh element while assigning "
+                 "DAGMC boundary conditions.");
+
+    const Elem * const elem = getMooseMesh().queryElemPtr(elem_id_it->second);
+    if (!elem)
+      mooseError("Could not find libMesh element ",
+                 elem_id_it->second,
+                 " while assigning DAGMC boundary conditions.");
+
+    for (unsigned int side = 0; side < elem->n_sides(); ++side)
+    {
+      std::vector<boundary_id_type> side_bids;
+      boundary_info.boundary_ids(elem, side, side_bids);
+
+      const auto bc_type = boundaryConditionType(side_bids);
+      if (bc_type == BoundaryConditionType::None)
+        continue;
+
+      // Build the set of MOAB vertex handles covering this libMesh side
+      std::unique_ptr<const Elem> side_elem = elem->build_side_ptr(side);
+      std::set<moab::EntityHandle> side_verts;
+      for (unsigned int i = 0; i < side_elem->n_nodes(); ++i)
+      {
+        const auto node_it = _node_id_to_handle.find(side_elem->node_id(i));
+        if (node_it == _node_id_to_handle.end())
+          mooseError("Could not map libMesh node ",
+                     side_elem->node_id(i),
+                     " to a MOAB vertex while assigning DAGMC boundary conditions.");
+        side_verts.insert(node_it->second);
+      }
+
+      // Retrieve the MOAB triangle faces adjacent to this tet
+      moab::Range tri_faces;
+      check(_moab->get_adjacencies(&tet, num_entities, surface_dimension, true, tri_faces));
+
+      for (const auto tri : tri_faces)
+      {
+        if (skin.find(tri) == skin.end())
+          continue;
+
+        const moab::EntityHandle * conn = nullptr;
+        int nconn = 0;
+        check(_moab->get_connectivity(tri, conn, nconn));
+
+        if (nconn != vertices_per_triangle)
+          mooseError("Expected a MOAB skin triangle to have ",
+                     vertices_per_triangle,
+                     " vertices, but found ",
+                     nconn,
+                     ".");
+
+        // A skin triangle lies on this libMesh side if all three of its MOAB vertices
+        // are contained in the side's vertex set.
+        if (!side_verts.count(conn[0]) || !side_verts.count(conn[1]) || !side_verts.count(conn[2]))
+          continue;
+
+        transmission_tris.erase(tri);
+        if (bc_type == BoundaryConditionType::Vacuum)
+          vacuum_tris.insert(tri);
+        else
+          reflective_tris.insert(tri);
+      }
+    }
+  }
+}
+
+void
+MoabSkinner::createSurfacesFromSkin(const moab::Range & region,
+                                    moab::Range & skin,
+                                    VolData & voldata,
+                                    unsigned int & surf_id)
+{
+  moab::Range transmission_tris, vacuum_tris, reflective_tris;
+  splitSkinByBoundaryCondition(region, skin, transmission_tris, vacuum_tris, reflective_tris);
+
+  // Create surfaces for each BC class separately so every surface meshset carries
+  //  one BC type. Transmission is the DAGMC default and needs no group.
+  createSurfaces(transmission_tris, voldata, surf_id, BoundaryConditionType::None);
+  createSurfaces(vacuum_tris, voldata, surf_id, BoundaryConditionType::Vacuum);
+  createSurfaces(reflective_tris, voldata, surf_id, BoundaryConditionType::Reflective);
+}
+
+void
+MoabSkinner::recordBoundaryConditionSurface(moab::EntityHandle surface_set,
+                                            BoundaryConditionType bc_type)
+{
+  if (bc_type == BoundaryConditionType::None)
+    return;
+
+  if (bc_type == BoundaryConditionType::Vacuum)
+  {
+    if (_reflective_bc_surface_sets.count(surface_set))
+      mooseError("A DAGMC surface was assigned both vacuum and reflective boundary conditions.");
+    _vacuum_bc_surface_sets.insert(surface_set);
+    return;
+  }
+
+  if (bc_type == BoundaryConditionType::Reflective)
+  {
+    if (_vacuum_bc_surface_sets.count(surface_set))
+      mooseError("A DAGMC surface was assigned both vacuum and reflective boundary conditions.");
+    _reflective_bc_surface_sets.insert(surface_set);
+  }
+}
+
+unsigned int
+MoabSkinner::firstBoundaryConditionGroupID() const
+{
+  // IDs 1..nBins() are used by material groups.
+  // buildGraveyard() and the implicit complement each consume one additional ID when enabled.
+  unsigned int gid = nBins() + 1;
+  if (_build_graveyard)
+    ++gid;
+  if (_set_implicit_complement_material)
+    ++gid;
+  return gid;
+}
+
+void
+MoabSkinner::createBoundaryConditionGroups()
+{
+  if (!_set_bcs)
+    return;
+
+  if (!_vacuum_bcs_surface_ids.empty() && _vacuum_bc_surface_sets.empty())
+    mooseError("'vacuum_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned "
+               "vacuum boundary conditions. Verify the sideset names or IDs correspond to "
+               "boundary faces of the mesh.");
+
+  if (!_reflective_bcs_surface_ids.empty() && _reflective_bc_surface_sets.empty())
+    mooseError("'reflective_bcs_surfaces' was specified but no skinned DAGMC surfaces were "
+               "assigned reflective boundary conditions. Verify the sideset names or IDs "
+               "correspond to boundary faces of the mesh.");
+
+  unsigned int gid = firstBoundaryConditionGroupID();
+
+  if (!_vacuum_bc_surface_sets.empty())
+  {
+    moab::EntityHandle vac_group = 0;
+    createGroup(gid++, "boundary:vacuum", vac_group);
+    for (const auto surf_set : _vacuum_bc_surface_sets)
+      check(_moab->add_entities(vac_group, &surf_set, 1));
+  }
+
+  if (!_reflective_bc_surface_sets.empty())
+  {
+    moab::EntityHandle ref_group = 0;
+    createGroup(gid++, "boundary:Reflecting", ref_group);
+    for (const auto surf_set : _reflective_bc_surface_sets)
+      check(_moab->add_entities(ref_group, &surf_set, 1));
+  }
+}
+
 void
 MoabSkinner::findSurfaces()
 {
+  _vacuum_bc_surface_sets.clear();
+  _reflective_bc_surface_sets.clear();
+
   // Find all neighbours in mesh
   getDAGMCGeometryMesh().find_neighbors();
 
@@ -951,214 +1225,11 @@ MoabSkinner::findSurfaces()
     }
     check(_moab->add_entities(comp_group, &arbitray_volume, 1));
   }
-  if (_set_bcs)
-    addBoundaryConditionGroups();
+
+  createBoundaryConditionGroups();
 
   // Write MOAB volume and/or skin meshes to file
   write();
-}
-
-void
-MoabSkinner::addBoundaryConditionGroups()
-{
-  auto namesToSidesetIDs =
-      [&](const std::vector<BoundaryName> & names, const std::string & param_name)
-  {
-    std::set<BoundaryID> sidesetIDs;
-    for (const auto & n : names)
-    {
-      const BoundaryID id = getMooseMesh().getBoundaryID(n);
-      if (!getMooseMesh().meshSidesetIds().count(id))
-        mooseError("Boundary '", n, "' is not a sideset.");
-      sidesetIDs.insert(id);
-    }
-    return sidesetIDs;
-  };
-
-  const auto vac_ids = namesToSidesetIDs(_vacuum_bcs_surfaces, "vacuum_bcs_surfaces");
-  const auto ref_ids = namesToSidesetIDs(_reflective_bcs_surfaces, "reflective_bcs_surfaces");
-
-  for (auto id : vac_ids)
-    if (ref_ids.count(id))
-      mooseError(
-          "Same sideset ", id, " appears in both vacuum_bcs_surfaces and reflective_bcs_surfaces.");
-
-  moab::Range vac_tris, ref_tris;
-
-  const auto & boundary_info = getMooseMesh().getMesh().get_boundary_info();
-
-  for (const auto * elem : getMooseMesh().getMesh().active_element_ptr_range())
-  {
-    auto elem_to_moab_tets_it = _id_to_elem_handles.find(elem->id());
-    if (elem_to_moab_tets_it == _id_to_elem_handles.end())
-      continue;
-
-    for (unsigned int s = 0; s < elem->n_sides(); ++s)
-    {
-      std::vector<boundary_id_type> side_boundary_ids;
-      boundary_info.boundary_ids(elem, s, side_boundary_ids);
-      if (side_boundary_ids.empty())
-        continue;
-
-      bool want_vac = false;
-      bool want_ref = false;
-      for (auto boundary_id : side_boundary_ids)
-      {
-        if (vac_ids.count(boundary_id))
-          want_vac = true;
-        if (ref_ids.count(boundary_id))
-          want_ref = true;
-      }
-      if (!want_vac && !want_ref)
-        continue;
-
-      std::unique_ptr<const Elem> side_elem = elem->build_side_ptr(s);
-      std::set<moab::EntityHandle> side_verts;
-      for (unsigned int i = 0; i < side_elem->n_nodes(); ++i)
-        side_verts.insert(_node_id_to_handle[side_elem->node_id(i)]);
-
-      for (const auto tet : elem_to_moab_tets_it->second)
-      {
-        moab::Range tri_faces;
-        check(_moab->get_adjacencies(&tet, 1, 2, true, tri_faces));
-
-        for (const auto tri : tri_faces)
-        {
-          const moab::EntityHandle * conn = nullptr;
-          int nconn = 0;
-          check(_moab->get_connectivity(tri, conn, nconn));
-          if (nconn != 3)
-            continue;
-
-          if (side_verts.count(conn[0]) && side_verts.count(conn[1]) && side_verts.count(conn[2]))
-          {
-            if (want_vac)
-              vac_tris.insert(tri);
-            if (want_ref)
-              ref_tris.insert(tri);
-          }
-        }
-      }
-    }
-  }
-
-  if (vac_tris.empty() && ref_tris.empty())
-    return;
-
-  unsigned int next_surface_id = 1;
-  {
-    unsigned int max_surface_id = 0;
-    for (const auto & surface_entry : surfsToVols)
-    {
-      const moab::EntityHandle moab_surface_meshset = surface_entry.first;
-      unsigned int surface_id = 0;
-      check(_moab->tag_get_data(id_tag, &moab_surface_meshset, 1, &surface_id));
-      max_surface_id = std::max(max_surface_id, surface_id);
-    }
-    next_surface_id = max_surface_id + 1;
-  }
-
-  std::vector<moab::EntityHandle> surface_meshsets;
-  surface_meshsets.reserve(surfsToVols.size());
-  for (const auto & surface_entry : surfsToVols)
-    surface_meshsets.push_back(surface_entry.first);
-
-  // This splitting logic below to handle separation of vacuum, reflective, and transmission parts
-  for (const auto moab_surface_meshset : surface_meshsets)
-  {
-    moab::Range triangles_in_surface_meshset;
-    check(_moab->get_entities_by_handle(moab_surface_meshset, triangles_in_surface_meshset));
-    if (triangles_in_surface_meshset.empty())
-      continue;
-
-    const moab::Range vacuum_triangles_on_surface =
-        moab::intersect(triangles_in_surface_meshset, vac_tris);
-
-    const moab::Range reflective_triangles_on_surface =
-        moab::intersect(triangles_in_surface_meshset, ref_tris);
-
-    if (vacuum_triangles_on_surface.empty() && reflective_triangles_on_surface.empty())
-      continue;
-
-    // No BC specified (defaults to transmission)
-    moab::Range transmission_triangles_on_surface = triangles_in_surface_meshset;
-    for (const auto tri : vacuum_triangles_on_surface)
-      transmission_triangles_on_surface.erase(tri);
-    for (const auto tri : reflective_triangles_on_surface)
-      transmission_triangles_on_surface.erase(tri);
-
-    const bool has_vacuum = !vacuum_triangles_on_surface.empty();
-    const bool has_reflective = !reflective_triangles_on_surface.empty();
-    const bool has_transmission = !transmission_triangles_on_surface.empty();
-
-    // No splitting needed unless:
-    //  - mixed vacuum+reflective, OR
-    //  - any transmission remainder exists (partial BC assignment)
-    if (!has_transmission && !(has_vacuum && has_reflective))
-      continue;
-
-    const std::vector<VolData> & surface_volume_data = surfsToVols[moab_surface_meshset];
-
-    enum Keep
-    {
-      KEEP_TRANSMISSION,
-      KEEP_VACUUM
-    };
-
-    // Keep original for transmission if present; otherwise (vac+ref only) keep original as vacuum.
-    const Keep keep = has_transmission ? KEEP_TRANSMISSION : KEEP_VACUUM;
-
-    moab::Range keep_triangles = (keep == KEEP_TRANSMISSION) ? transmission_triangles_on_surface
-                                                             : vacuum_triangles_on_surface;
-
-    // Remove everything except keep_triangles from the existing surface meshset
-    moab::Range triangles_to_remove_from_original = triangles_in_surface_meshset;
-    for (const auto tri : keep_triangles)
-      triangles_to_remove_from_original.erase(tri);
-
-    if (!triangles_to_remove_from_original.empty())
-      check(_moab->remove_entities(moab_surface_meshset, triangles_to_remove_from_original));
-
-    // Create new surfaces for parts we peeled off
-    if (has_vacuum && keep != KEEP_VACUUM)
-    {
-      moab::EntityHandle new_surface = 0;
-      moab::Range surface_tris = vacuum_triangles_on_surface;
-      createSurf(next_surface_id++, new_surface, surface_tris, surface_volume_data);
-    }
-
-    if (has_reflective)
-    {
-      moab::EntityHandle new_surface = 0;
-      moab::Range surface_tris = reflective_triangles_on_surface;
-      createSurf(next_surface_id++, new_surface, surface_tris, surface_volume_data);
-    }
-  }
-
-  unsigned int gid = nBins() + 2;
-  if (_build_graveyard)
-    gid += 1;
-  moab::EntityHandle vac_group = 0, ref_group = 0;
-  if (!vac_tris.empty())
-    createGroup(gid++, "boundary:vacuum", vac_group);
-  if (!ref_tris.empty())
-    createGroup(gid++, "boundary:Reflecting", ref_group);
-
-  for (const auto & surf_pair : surfsToVols)
-  {
-    const moab::EntityHandle surf_set = surf_pair.first;
-    moab::Range tris;
-    check(_moab->get_entities_by_handle(surf_set, tris));
-
-    const bool has_vacuum_tris = (!vac_tris.empty() && !moab::intersect(tris, vac_tris).empty());
-    const bool has_reflective_tris =
-        (!ref_tris.empty() && !moab::intersect(tris, ref_tris).empty());
-
-    if (has_vacuum_tris)
-      check(_moab->add_entities(vac_group, &surf_set, 1));
-    if (has_reflective_tris)
-      check(_moab->add_entities(ref_group, &surf_set, 1));
-  }
 }
 
 void
@@ -1306,17 +1377,20 @@ MoabSkinner::findSurface(const moab::Range & region,
   moab::Range rtris; // The tris which are reversed with respect to their surfaces
   skinner->find_skin(0, region, false, tris, &rtris);
 
-  // Create surface sets for the forwards tris
+  // Classify and create surfaces. BC classification happens here, while the current
+  // region and its skin result are in hand, rather than in a separate post-processing pass.
   VolData vdata = {volume_set, Sense::FORWARDS};
-  createSurfaces(tris, vdata, surf_id);
+  createSurfacesFromSkin(region, tris, vdata, surf_id);
 
-  // Create surface sets for the reversed tris
   vdata.sense = Sense::BACKWARDS;
-  createSurfaces(rtris, vdata, surf_id);
+  createSurfacesFromSkin(region, rtris, vdata, surf_id);
 }
 
 void
-MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int & surf_id)
+MoabSkinner::createSurfaces(moab::Range & faces,
+                            VolData & voldata,
+                            unsigned int & surf_id,
+                            BoundaryConditionType bc_type)
 {
   if (faces.empty())
     return;
@@ -1339,22 +1413,21 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
       // Check if the tris are a subset or the entire surf
       if (tris.size() == overlap.size())
       {
-        // Whole surface -> Just need to update the volume relationships
+        // Whole surface -> just update the volume relationships and BC record
         updateSurfData(surf, voldata);
+        recordBoundaryConditionSurface(surf, bc_type);
       }
       else
       {
-        // If overlap is subset, subtract shared tris from this surface and create a new shared
-        // surface
+        // Overlap is a subset: remove shared tris from this surface and create a new
+        // shared surface carrying both volume relationships and the BC type
         check(_moab->remove_entities(surf, overlap));
 
-        // Append our new volume to the list that share this surf
         vols.push_back(voldata);
 
-        // Create a new shared surface
         moab::EntityHandle shared_surf;
         surf_id++;
-        createSurf(surf_id, shared_surf, overlap, vols);
+        createSurf(surf_id, shared_surf, overlap, vols, bc_type);
       }
 
       // Subtract from the input list
@@ -1371,8 +1444,17 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
     moab::EntityHandle surface_set;
     std::vector<VolData> voldatavec(1, voldata);
     surf_id++;
-    createSurf(surf_id, surface_set, faces, voldatavec);
+    createSurf(surf_id, surface_set, faces, voldatavec, bc_type);
   }
+}
+
+if (!faces.empty())
+{
+  moab::EntityHandle surface_set;
+  std::vector<VolData> voldatavec(1, voldata);
+  surf_id++;
+  createSurf(surf_id, surface_set, faces, voldatavec);
+}
 }
 
 void
