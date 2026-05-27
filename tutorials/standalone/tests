@@ -5,12 +5,13 @@
     requirement = "The system shall run nekRS as a standalone run with the NekRS executable."
     capabilities = 'nekrs'
     use_shell = True
-    min_slots = 6
+    min_slots = 16 # memory heavy
   []
   [standalone]
     type = RunApp
     input = nek.i
     min_parallel = 4
+    min_slots = 16 # memory heavy
     requirement = 'Cardinal shall be able to run a NekRS standalone simulation.'
     capabilities = 'nekrs'
   []
