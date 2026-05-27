@@ -35,64 +35,21 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   []
 []
 
-[AuxVariables]
-  [mdot]
-    block = subchannel
-  []
-  [SumWij]
-    block = subchannel
-  []
-  [P]
-    block = subchannel
-    initial_condition = ${P_out}
-  []
-  [DP]
-    block = subchannel
-  []
-  [h]
-    block = subchannel
-  []
-  [T]
-    block = subchannel
-    initial_condition = 500
-  []
-  [rho]
-    block = subchannel
-  []
-  [S]
-    block = subchannel
-  []
-  [w_perim]
-    block = subchannel
-  []
-  [mu]
-    block = subchannel
-  []
-  [Tpin]
-    block = fuel_pins
-    initial_condition = ${inlet_temperature}
-  []
-  [q_prime]
-    block = fuel_pins
-    initial_condition = ${fparse power/61/(height*1e-2)}
-  []
-  [Dpin]
-    block = fuel_pins
-    initial_condition = ${fparse 1e-2 * outer_clad_diameter}
-  []
-  [displacement]
-    block = fuel_pins
-  []
-[]
-
 [ICs]
-  [S_IC]
-    type = SCMTriFlowAreaIC
-    variable = S
+  [T_IC]
+    type = ConstantIC
+    variable = T
+    value = 500
   []
-  [w_perim_IC]
-    type = SCMTriWettedPerimIC
-    variable = w_perim
+  [Dpin_IC]
+    type = ConstantIC
+    variable = Dpin
+    value = ${fparse 1e-2 * outer_clad_diameter}
+  []
+  [q_prime_IC]
+    type = ConstantIC
+    variable = q_prime
+    value = ${fparse power/61/(height*1e-2)}
   []
   [Viscosity_ic]
     type = ViscosityIC
@@ -123,21 +80,33 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   []
 []
 
-[Problem]
+[SubChannel]
   type = TriSubChannel1PhaseProblem
   fp = sodium
   n_blocks = 1
   P_out = ${P_out}
-  CT = 1.0
   compute_density = true
   compute_viscosity = true
   compute_power = true
   implicit = true
   segregated = false
+  friction_closure = 'cheng_friction'
+  mixing_closure = 'cheng_mixing'
   staggered_pressure = false
-  monolithic_thermal = false
   P_tol = 1.0e-5
   T_tol = 1.0e-5
+[]
+
+[SCMClosures]
+  [cheng_friction]
+    type = SCMFrictionUpdatedChengTodreas
+  []
+  [cheng_mixing]
+    type = SCMMixingChengTodreas
+  []
+  [Dittus-Boelter]
+    type = SCMHTCDittusBoelter
+  []
 []
 
 [AuxKernels]
