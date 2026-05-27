@@ -1,8 +1,16 @@
 [Tests]
-  [subchannel]
+  [mesh]
     type = RunApp
-    input = subchannel.i
-    max_parallel = 1
-    requirement = 'The system shall be able to solve for subchannel flow in a sodium fast reactor assembly.'
+    input = '../meshes/mesh.i'
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh of a sodium fast reactor assembly.'
+  []
+  [all_coupled]
+    type = RunApp
+    input = 'openmc.i'
+    cli_args = 'Executioner/num_steps=1 Problem/inactive_batches=5 Problem/batches=10 Mesh/file/file=mesh_in.e MultiApps/conduction/cli_args="Mesh/file/file=mesh_in.e"'
+    requirement = 'The system shall run a coupled multiphysics simulation of OpenMC, MOOSE heat conduction, and MOOSE subchannel for a sodium fast reactor fuel assembly.'
+    prereq = mesh
+    capabilities = 'openmc'
   []
 []

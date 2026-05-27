@@ -92,6 +92,7 @@ mass_flux_in = ${fparse total_mdot / flow_area}
   segregated = false
   friction_closure = 'cheng_friction'
   mixing_closure = 'cheng_mixing'
+  pin_HTC_closure = 'Dittus-Boelter'
   staggered_pressure = false
   P_tol = 1.0e-5
   T_tol = 1.0e-5
@@ -129,7 +130,7 @@ mass_flux_in = ${fparse total_mdot / flow_area}
 
 [Postprocessors]
   [power]
-    type = SCMPowerPostprocessor
+    type = SCMPinPowerPostprocessor
   []
   [inlet_temp]
     type = SCMPlanarMean
