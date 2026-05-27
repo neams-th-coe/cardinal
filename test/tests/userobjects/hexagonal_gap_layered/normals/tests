@@ -7,6 +7,7 @@
                   "binning and demonstrate correct results for side integrals and averages in directions "
                   "normal to the gap planes."
     capabilities = 'nekrs'
+    min_slots = 4 # memory heavy
     max_time = 400
   []
   [normal_component_aux]
@@ -14,6 +15,7 @@
     input = nek_axial.i
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "The correct unit normals shall be formed for a layered Cartesian gap bin."
+    min_slots = 4 # memory heavy
     capabilities = 'nekrs'
   []
 []

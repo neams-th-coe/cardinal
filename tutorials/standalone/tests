@@ -1,10 +1,11 @@
 [Tests]
   [standalone_nek]
     type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrsmpi turbPipe 4'
+    command = '${NEKRS_HOME}/bin/nrsmpi turbPipe 6'
     requirement = "The system shall run nekRS as a standalone run with the NekRS executable."
     capabilities = 'nekrs'
     use_shell = True
+    min_slots = 6
   []
   [standalone]
     type = RunApp

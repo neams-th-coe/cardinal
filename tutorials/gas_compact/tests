@@ -19,6 +19,7 @@
     min_parallel = 2
     requirement = 'The system shall couple OpenMC to a solid heat conduction model for a TRISO compact. This run creates an output file without the identical-cell-fills optimization, for later user in the gas_compact test.'
     capabilities = 'openmc'
+    min_slots = 3 # memory heavy
   []
   [gas_compact]
     type = CSVDiff
@@ -32,5 +33,6 @@
                   'files were created for an input that did not leverage the TRISO optimization, so here we also '
                   'prove that the identical_cell_fills option works properly.'
     capabilities = 'openmc'
+    min_slots = 3 # memory heavy
   []
 []
