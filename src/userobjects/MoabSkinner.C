@@ -813,7 +813,7 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
                                           moab::Range & vacuum_tris,
                                           moab::Range & reflective_tris)
 {
-  // all triangles have transmission BC until classified otherwise
+  // all triangles have transmission BC until sorted
   transmission_tris = skin;
 
   if (!_set_bcs || skin.empty())
@@ -1201,7 +1201,7 @@ MoabSkinner::findSurface(const moab::Range & region,
   moab::Range rtris; // The tris which are reversed with respect to their surfaces
   skinner->find_skin(0, region, false, tris, &rtris);
 
-  // Classify and create surfaces. BC classification happens here, while the current
+  // Classify and create surfaces. BC sorting happens here, while the current
   // region and its skin result are in hand, rather than in a separate post-processing pass.
   VolData vdata = {volume_set, Sense::FORWARDS};
   createSurfacesFromSkin(region, tris, vdata, surf_id);
