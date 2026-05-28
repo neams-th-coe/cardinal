@@ -5,10 +5,9 @@
 [GENERAL]
   stopAt = numSteps
   numSteps = 4
-  dt = 5e-3
-  timeStepper = tombo2
+  dt = 0.1
   checkpointControl = steps
-  checkpointInterval = 100
+  checkpointInterval = 200
   polynomialOrder = 4
   scalars = temperature
 
@@ -25,4 +24,4 @@
   diffusionCoeff = 64.21
   transportCoeff = 1024766.0
   boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet, zeroNeumann
-  residualTol = 1.0e-3
+  residualTol = 1.0e-5
