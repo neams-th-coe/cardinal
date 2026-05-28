@@ -8,13 +8,6 @@
   polynomialOrder = 7
   checkpointControl = steps
   checkpointInterval = 10
-  scalars = temperature
 
 [FLUID VELOCITY]
-  #solver = none    #fluid must be solved to read in bIDs
-  boundaryTypeMap = w,w,w,w,w,w
-  rho =1.0
-  viscosity = -100
-
-[SCALAR TEMPERATURE]
   solver = none
