@@ -60,10 +60,9 @@
     execute_on = initial
   []
 
-  # postprocessors for comparing against non-dimensional version in ../nondimensional
+  # postprocessors for comparing against the non-dimensional version in ../nondimensional
   # --> uncomment in order to get the reference values that the nondimensional boundary coupling
   #     was verified against
-  #
   # # side integral
   # [area_1]
   #   type = NekSideIntegral
@@ -126,19 +125,7 @@
   #   field = temperature
   # []
 
-  # # heat flux integral
-  # [nek_flux]
-  #   type = NekHeatFluxIntegral
-  #   boundary = '1'
-  # []
-
   # # mass flux weighted integral
-  # [inlet_mdot]
-  #   type = NekMassFluxWeightedSideIntegral
-  #   field = unity
-  #   boundary = '3'
-  #   execute_on = initial
-  # []
   # [outlet_T]
   #   type = NekMassFluxWeightedSideIntegral
   #   field = temperature
