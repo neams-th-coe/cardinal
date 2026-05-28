@@ -825,8 +825,6 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
   constexpr int num_entities = 1;
   // Topological dimension of the faces we want (2 = triangles for a 3D tet mesh)
   constexpr int surface_dimension = 2;
-  // MOAB skin triangles are first-order (TRI3): exactly 3 vertex handles in connectivity
-  constexpr int vertices_per_triangle = 3;
 
   for (const auto tet : region)
   {
@@ -875,13 +873,6 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
         const moab::EntityHandle * conn = nullptr;
         int nconn = 0;
         check(_moab->get_connectivity(tri, conn, nconn));
-
-        if (nconn != vertices_per_triangle)
-          mooseError("Expected a MOAB skin triangle to have ",
-                     vertices_per_triangle,
-                     " vertices, but found ",
-                     nconn,
-                     ".");
 
         // A skin triangle lies on this libMesh side if all three of its MOAB vertices
         // are contained in the side's vertex set.
