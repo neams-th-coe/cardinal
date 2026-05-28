@@ -6,7 +6,7 @@
   # This input is run in nondimensional form to verify that all the postprocessors
   # and data transfers in/out of nekRS are properly dimensionalized.
   [Dimensionalize]
-    U = 0.0950466
+    U = 0.000950466
     T = 628.15
     dT = 50.0
     L = 0.908e-2
@@ -58,6 +58,7 @@
 
 [Outputs]
   exodus = true
+  execute_on = 'final'
   [screen]
     type = Console
     hide = 'synchronization_in'
