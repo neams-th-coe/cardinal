@@ -17,4 +17,4 @@
   diffusionCoeff = 10.5
   transportCoeff = 1.0
   residualTol = 1.0e-6
-  boundaryTypeMap = t, f, I, I, I, I
+  boundaryTypeMap = udfDirichlet, udfNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann
