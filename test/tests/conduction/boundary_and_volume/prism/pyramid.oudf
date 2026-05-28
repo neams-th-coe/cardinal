@@ -1,7 +1,6 @@
 void udfDirichlet(bcData *bc)
 {
-  if (bc->id == 1)
-    bc->sScalar = 600.0 + 500.0 * exp(bc->y);
+  bc->sScalar = 600.0 + 500.0 * exp(bc->y);
 }
 
 void udfNeumann(bcData *bc)
@@ -10,8 +9,7 @@ void udfNeumann(bcData *bc)
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  if (bc->id == 2)
-    bc->fluxScalar = bc->usrwrk[bc->idxVol];
+  bc->fluxScalar = bc->usrwrk[bc->idxVol];
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
