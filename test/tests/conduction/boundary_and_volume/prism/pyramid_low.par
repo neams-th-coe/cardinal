@@ -9,6 +9,7 @@
   checkpointControl = steps
   checkpointInterval = 9
   scalars = temperature
+  udf = "pyramid.udf"
 
 [MESH]
   file=pyramid.re2

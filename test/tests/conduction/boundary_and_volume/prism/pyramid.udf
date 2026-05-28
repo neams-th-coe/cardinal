@@ -8,7 +8,7 @@
 void userq(double time)
 {
   auto mesh = nrs->meshV;
-  mooseHeatSource(mesh->Nelements, 0, platform->app->bc->o_usrwrk, nrs->scalar->o_EXT);
+  mooseHeatSource(mesh->Nelements, nrs->fieldOffset, platform->app->bc->o_usrwrk, nrs->scalar->o_EXT);
 }
 
 void UDF_Setup()
@@ -16,20 +16,7 @@ void UDF_Setup()
   nrs->userSource = &userq;
   auto mesh = nrs->meshV;
 
-  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
-  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
-
-  auto [x, y, z] = mesh->xyzHost();
-
-  for (int n = 0; n < mesh->Nlocal; n++)
-  {
-    U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
-
-    temp[n] = 500.0;
-  }
-  nrs->fluid->o_U.copyFrom(U.data(), U.size());
+  std::vector<dfloat> temp(mesh->Nlocal, 500.0);
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
