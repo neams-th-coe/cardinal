@@ -1,7 +1,4 @@
 #ifdef __okl__
-
-#include "pyramid.oudf"
-
 #endif
 
 void UDF_Setup()
