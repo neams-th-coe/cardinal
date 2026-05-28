@@ -48,6 +48,7 @@
     input = bison.i
     cli_args = '-w Executioner/num_steps=1 Executioner/dt=0.01'
     min_parallel = 4
+    min_slots = 6 # memory heavy
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way. This test runs heat conduction and NekRS for one step."

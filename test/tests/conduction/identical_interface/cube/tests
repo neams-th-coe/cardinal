@@ -4,6 +4,7 @@
     input = nek_master.i
     exodiff = 'nek_master_out.e'
     min_parallel = 6
+    min_slots = 12 # memory heavy
     custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall predict "
                   "the correct interface and volume temperatures based on an analytic solution. "

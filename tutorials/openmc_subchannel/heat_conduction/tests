@@ -1,0 +1,15 @@
+[Tests]
+  [mesh]
+    type = RunApp
+    input = '../meshes/mesh.i'
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh of a sodium fast reactor assembly.'
+  []
+  [heat_conduction]
+    type = RunApp
+    input = conduction.i
+    cli_args = 'Mesh/file/file=mesh_in.e'
+    requirement = 'The system shall run a heat conduction calculation for a sodium fast reactor fuel assembly.'
+    prereq = mesh
+  []
+[]
