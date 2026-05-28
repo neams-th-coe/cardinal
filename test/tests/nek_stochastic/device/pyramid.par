@@ -8,6 +8,7 @@
   polynomialOrder = 5
   checkpointControl = steps
   checkpointInterval = 2
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none
@@ -16,4 +17,4 @@
 
 [SCALAR TEMPERATURE]
   residualTol = 1.0e-5
-  boundaryTypeMap = t, t, t, t, t, t, t, t
+  boundaryTypeMap = udfDirichlet, udfDirichlet, udfDirichlet, udfDirichlet, udfDirichlet, udfDirichlet, udfDirichlet, udfDirichlet
