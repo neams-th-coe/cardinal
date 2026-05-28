@@ -54,7 +54,7 @@
       # 'right' is the only surface that is not assigned a BC (transmission by default)
       cli_args = 'UserObjects/moab/vacuum_bcs_surfaces="left" UserObjects/moab/reflective_bcs_surfaces="front back top bottom" Outputs/file/file_base="transmission_surface"'
       requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
-                    "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' where one surface defaults to transmission BC as it's not
+                    "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' where one surface defaults to transmission BC"
                     " as it is not assigned a BC explicitly compared to applying the same BCs on a CSG cell that contains the DAGMC geometry in /equivalent_bcs."
       mesh_mode = 'replicated'
       capabilities = 'dagmc'
