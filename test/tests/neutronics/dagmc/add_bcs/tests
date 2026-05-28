@@ -2,7 +2,7 @@
   [sideset_added_twice]
     type = RunException
     input = conflicting_bcs.i
-    expect_err = "Same sideset 4 appears in both vacuum_bcs_surfaces and reflective_bcs_surfaces."
+    expect_err = "Boundary 'left' appears in both 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'."
     requirement = "The system shall error if a sideset is assigned both vacuum and reflective BCs."
     capabilities = 'dagmc'
   []
