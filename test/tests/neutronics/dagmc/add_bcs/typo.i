@@ -23,25 +23,12 @@
     old_block = '1 2'
     new_block = 'block_1 block_2'
   []
-  # [vacuum_sideset]
-  #   type = RenameBoundaryGenerator
-  #   input = name
-  #   old_boundary = '0 1 3 5'
-  #   new_boundary = 'vacuum_boundary vacuum_boundary vacuum_boundary vacuum_boundary'
-  # []
-  # [reflective_sideset]
-  #   type = RenameBoundaryGenerator
-  #   input = vacuum_sideset
-  #   old_boundary = '2 4'
-  #   new_boundary = 'reflective_boundary reflective_boundary'
-  # []
   [hextotet]
     type = ElementsToTetrahedronsConverter
     input = name
   []
 
   allow_renumbering = false
-  parallel_type = replicated
 []
 
 [AuxVariables]

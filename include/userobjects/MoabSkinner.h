@@ -430,11 +430,7 @@ protected:
   void recordBoundaryConditionSurface(moab::EntityHandle surface_set,
                                       BoundaryConditionType bc_type);
 
-  /**
-   * Return the first group ID available after material, graveyard, and implicit-complement
-   * groups. Material groups occupy IDs 1..nBins(). Graveyard and implicit complement each
-   * consume one additional ID when enabled.
-   */
+  /// Return the first group ID available after material, graveyard, and implicit-complement groups.
   unsigned int firstBoundaryConditionGroupID() const;
 
   /// Create the DAGMC BC group entity sets from the surfaces recorded
@@ -488,12 +484,7 @@ protected:
   /// DAGMC surface meshsets assigned reflective BCs, recorded during skinning
   std::set<moab::EntityHandle> _reflective_bc_surface_sets;
 
-  /**
-   * Reverse map from MOAB tet entity handle to libMesh element ID. Populated in
-   * createMOABElems() alongside _id_to_elem_handles and used in
-   * splitSkinByBoundaryCondition() to classify skin triangles without a second
-   * full-mesh traversal.
-   */
+  /// Reverse map from MOAB tet entity handle to libMesh element ID. Populated in createMOABElems()
   std::map<moab::EntityHandle, dof_id_type> _elem_handle_to_id;
 
   /// Whether to assign boundary conditions to surfaces
