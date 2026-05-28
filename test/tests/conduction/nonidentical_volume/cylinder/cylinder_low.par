@@ -9,6 +9,7 @@
   checkpointControl = steps
   checkpointInterval = 2
   scalars = temperature
+  udf = "cylinder.udf"
 
 [MESH]
   file=cylinder.re2
