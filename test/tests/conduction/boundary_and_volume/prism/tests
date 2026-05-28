@@ -10,6 +10,7 @@
                   "flux is imposed in nekRS through a boundary. The same problem is created in a standalone "
                   "MOOSE simulation, in moose.i. Temperatures agree to within 0.2%, and the agreement "
                   "can be made better by using finer meshes in the coupled Cardinal case."
+    min_slots = 12 # memory heavy
     capabilities = 'nekrs'
   []
   [pyramid_exact]
@@ -32,6 +33,7 @@
     cli_args = "AuxVariables/heat_source/order=FIRST"
     expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source' through the FieldTransfer system"
     requirement = "The system shall error if the user specifies a duplicate variable with a name overlapping with special names reserved for Cardinal data transfers."
+    min_slots = 6 # memory heavy
     capabilities = 'nekrs'
   []
 []

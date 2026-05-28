@@ -215,6 +215,9 @@ python/peacock/tests/postprocessor_tab/TestPostprocessorPluginManager_test_scrip
 peacock_tmp_diff.exo
 *.e.diff
 
+# TestHarness output
+*.testharness_time
+
 # Cardinal
 bin/**
 share/**

@@ -26,7 +26,7 @@ coupling_boundaries = '2'
 [Functions]
   [bottom]
     type = ParsedFunction
-    value = 1500+2000*x
+    expression = 1500+2000*x
   []
 []
 

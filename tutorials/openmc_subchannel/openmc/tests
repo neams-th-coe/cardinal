@@ -1,0 +1,16 @@
+[Tests]
+  [mesh]
+    type = RunApp
+    input = '../meshes/mesh.i'
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh of a sodium fast reactor assembly.'
+  []
+  [openmc]
+    type = RunApp
+    input = openmc.i
+    cli_args = 'Mesh/file/file=mesh_in.e'
+    requirement = 'The system shall run an OpenMC k-eigenvalue calculation for a sodium fast reactor fuel assembly.'
+    prereq = mesh
+    capabilities = 'openmc'
+  []
+[]
