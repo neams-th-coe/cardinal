@@ -15,7 +15,7 @@ select with [!param](/Postprocessors/OpenMCWallTime/time_type). Options are:
 - `fission_bank_time`: the total time spent synchronizing the fission bank
 - `tally_accumulation_time`: the total time spent accumulating tally statistics across MPI ranks
 - `finalization_time`: the total time spent finalizing the OpenMC simulation
-- `total_time_elapsed`: the total time spent executing OpenMC
+- `total_elapsed_time`: the total time spent executing OpenMC
 
 Either the cumulative simulation time (over all time steps / Picard iterations / adaptivity steps) or the per-step
 walltime may be selected by setting [!param](/Postprocessors/OpenMCWallTime/accumulate_time).

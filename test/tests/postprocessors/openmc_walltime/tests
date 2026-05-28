@@ -22,7 +22,7 @@
     input = openmc.i
     cli_args = 'Postprocessors/step_initialization_time/execute_on="TIMESTEP_BEGIN"'
     expect_err = "Timing information is only available in OpenMC once a simulation has finished running."
-    requirement = "The system shall error if the user selects an output enum other than TIMESTEP_END when using OpenMCWallTime."
+    requirement = "The system shall error if the user selects an execute_on enum other than TIMESTEP_END when using OpenMCWallTime."
     capabilities = 'openmc'
   []
 []

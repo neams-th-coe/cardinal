@@ -32,12 +32,17 @@ OpenMCWallTime::validParams()
   params.addClassDescription("A post-processor which reports OpenMC walltime.");
   params.addParam<bool>("accumulate_time",
                         true,
-                        "Whether the simulation time should be acumulated over all simulation "
+                        "Whether the simulation time should be accumulated over all simulation "
                         "steps (selected by default) or not.");
   MooseEnum time_type("initialization_time total_simulation_time transport_time "
                       "inactive_batch_time active_batch_time fission_bank_time "
-                      "tally_accumulation_time finalization_time total_time_elapsed");
-  params.addRequiredParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
+                      "tally_accumulation_time finalization_time total_elapsed_time",
+                      "total_elapsed_time");
+  params.addParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
+
+  // We only get timing information after running OpenMC, so we force execution on TIMESTEP_END.
+  params.set<ExecFlagEnum>("execute_on").addValidName("TIMESTEP_END");
+  params.suppressParameter("execute_on");
 
   return params;
 }
@@ -48,20 +53,7 @@ OpenMCWallTime::OpenMCWallTime(const InputParameters & parameters)
     _accumulate_time(getParam<bool>("accumulate_time")),
     _openmc_time(getParam<MooseEnum>("time_type").getEnum<OpenMCTime>()),
     _walltime(0.0)
-{
-  // We only get timing information when the OpenMC simulation ends. Need to restrict execution
-  // to TIMESTEP_END.
-  for (const auto & flag : getParam<ExecFlagEnum>("execute_on"))
-  {
-    if (flag != "TIMESTEP_END")
-    {
-      paramError("execute_on",
-                 "Timing information is only available in OpenMC once a "
-                 "simulation has finished running. Please ensure "
-                 "'execute_on' is set to 'TIMESTEP_END'.");
-    }
-  }
-}
+{ }
 
 void
 OpenMCWallTime::execute()
@@ -76,7 +68,7 @@ OpenMCWallTime::execute()
       break;
     case OpenMCTime::TotalSimTime:
       _walltime +=
-          (openmc::simulation::time_inactive.elapsed() + openmc::simulation::time_active.elapsed());
+          openmc::simulation::time_inactive.elapsed() + openmc::simulation::time_active.elapsed();
       break;
     case OpenMCTime::TransportTime:
       _walltime += openmc::simulation::time_transport.elapsed();
