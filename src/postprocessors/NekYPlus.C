@@ -33,8 +33,7 @@ NekYPlus::validParams()
 }
 
 NekYPlus::NekYPlus(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters),
-    _value_type(getParam<MooseEnum>("value_type"))
+  : NekSidePostprocessor(parameters), _value_type(getParam<MooseEnum>("value_type"))
 {
   if (_pp_mesh != nek_mesh::fluid)
     mooseError("The 'NekYPlus' postprocessor can only be applied to the fluid mesh "
