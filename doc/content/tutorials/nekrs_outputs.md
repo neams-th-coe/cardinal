@@ -34,7 +34,7 @@ cd test/tests/nek_mesh/exact
 cardinal-opt -i exact.i --mesh-only
 ```
 
-## Loading a NekRS Time History into Exodus
+## Loading a NekRS Time History into MOOSE
 
 To access this tutorial,
 
@@ -46,7 +46,7 @@ cd cardinal/tutorials/load_from_exodus
 For applications with "one-way" coupling of NekRS to MOOSE, you may wish
 to use a time history of the NekRS solution as a boundary condition/source
 term in another MOOSE application.
-For instance, for thermal striping applications, it is often a reasonable
+For instance, for thermal striping applications [!cite](spencer_striping), it is often a reasonable
 approximation to solve a NekRS CFD simulation as a standalone case, and then
 apply a time history of NekRS's wall temperature as a boundary condition to a solid mechanics solve.
 Cardinal allows you to
@@ -105,11 +105,13 @@ and place it into the new variable we have named `nek_temp`.
 Finally, we "run" this application by specifying a [Transient](Transient.md)
 executioner. The time stepping scheme we specify here just indicates at which time
 step the data in the `nek_out.e` file should be interpolated to. For instance, if you ran
-NekRS with a time step of 1e-3 seconds, but only want to couple NekRS's temperature to a
-solid mechanics solve on a resolution of 1e-2 seconds, then simply set the time step size
-in this file to `dt = 1e-2`. Finally, we specify a Exodus output in this file, which you can
+NekRS with a time step of 0.2 seconds, but only want to couple NekRS's temperature to a
+solid mechanics solve on a resolution of 0.3 seconds, then simply set the time step size
+in this file to `dt = 0.3`. Finally, we specify a Exodus output in this file, which you can
 use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp` in
-`load_nek_out.e` matches `temperature` in `nek_out.e`).
+`load_nek_out.e` matches `temperature` in `nek_out.e`). You can run this test by increasing
+the number of time steps in the `sfr_pin.par` to see the temperature solution evolve in time
+over a longer duration.
 
 !listing /tutorials/load_from_exodus/load_nek.i
   start=Executioner
