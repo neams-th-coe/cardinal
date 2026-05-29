@@ -16,22 +16,16 @@ void uservp(double time)
   platform->linAlg->fill(mesh->Nlocal, k, nrs->scalar->o_diffusionCoeff("temperature"));
 }
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
   nrs->userProperties = &uservp;
-
   auto mesh = nrs->meshV;
 
-  std::vector<dfloat> temp(mesh->Nlocal, 0.0);
-
-  for (int n = 0; n < mesh->Nlocal; n++)
-  {
-    temp[n] = 500.0; // temperature
-  }
+  std::vector<dfloat> temp(mesh->Nlocal, 500.0);
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }
 
