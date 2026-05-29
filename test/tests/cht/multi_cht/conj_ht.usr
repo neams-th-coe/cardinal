@@ -1,41 +1,3 @@
-c-----------------------------------------------------------------------
-c   
-c   The domain consists of two plates of finite thickness (h=0.5) 
-c   with plane Poiseiulle flow moving between the plates from left 
-c   to right (x=0 to 8).
-c   
-c   The gap height is 1.0 (y=0 to 1).
-c   
-c   The flow inlet temperature is T=0 and the plates are heated
-c   with volumetric heat source, qvol = 1.
-c
-c   Insulated boundary conditions are applied on the solid
-c   surfaces that are not interior to the computational domain,
-c   so heat leaves only through advection at the flow outlet.
-c
-c-----------------------------------------------------------------------
-      subroutine userchk
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine useric (ix,iy,iz,ieg)
-
-C     Set initial conditions
-
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-
-      return
-      end
-c-----------------------------------------------------------------------
-      subroutine usrdat
-      include 'SIZE'
-      include 'TOTAL'
-      return
-      end
-c-----------------------------------------------------------------------
       subroutine usrdat2
       include 'SIZE'
       include 'TOTAL'
@@ -61,8 +23,3 @@ c-----------------------------------------------------------------------
 
       return
       end
-c-----------------------------------------------------------------------
-      subroutine usrdat3
-      return
-      end
-c-----------------------------------------------------------------------
