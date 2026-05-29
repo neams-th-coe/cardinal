@@ -81,10 +81,9 @@ void copyDeviceToHost();
 /**
  * Compute y+ on the NekRS mesh
  * @param[in] boundary_id boundary(s) on which to compute y+
- * @param[in] index index into nek::scPtr where the wall distance is stored
  * @return max, min, average y+
  */
-std::vector<dfloat> yPlus(const std::vector<int> & boundary_id, const unsigned int & index);
+std::vector<dfloat> yPlus(const std::vector<int> & boundary_id);
 
 /**
  * Compute the three components of the viscous drag along a given boundary
