@@ -144,7 +144,7 @@ These user objects can be used for operations such as:
 
 - Averaging the solution over $\theta$ for axisymmetric geometries
 - Extracting homogenized solutions, such as for
-  feeding volume-averaged quantities to a 3-D Pronghorn model
+  feeding volume-averaged quantities to the [MOOSE subchannel module](https://mooseframework.inl.gov/modules/subchannel/index.html)
 - Representing the solution in a different discretization form, such as
   a finite volume discretization of a subchannel geometry
 
@@ -152,7 +152,6 @@ An example of averaging over axisymmetric geometries was provided in
 [Tutorial 1](nekrs_standalone.md). Here, we will demonstrate
 averaging the NekRS solution in a fuel bundle geometry according to a subchannel
 discretization.
-
 The model consists of a 7-pin
 [!ac](SFR) fuel bundle; the mesh is shown in [bundle]. Our goal is to obtain
 subchannel-averaged and gap-averaged temperatures and velocities on a mesh that reflects a subchannel discretization.
@@ -188,7 +187,6 @@ T=x+y+3z
 
 while the velocity is set to a swirl velocity with an angular component that increases
 with $r$ and zero radial component.
-
 We will run this NekRS case with a thin wrapper input file, shown below.
 
 !listing /tutorials/subchannel/nek.i
@@ -196,8 +194,8 @@ We will run this NekRS case with a thin wrapper input file, shown below.
 Of note are the user objects, multiapps, and transfers. In this file, we will compute
 three different postprocessing operations:
 
-- **Average temperature over subchannel volumes**:
-  We will use a user object to
+- *Average temperature over subchannel volumes*:
+  We use a user object to
   conduct a binned spatial average of the NekRS temperature. We first form these bins
   as the product of unique indices for each subchannel with unique indices for each
   axial layer. The [HexagonalSubchannelBin](HexagonalSubchannelBin.md)
@@ -216,7 +214,7 @@ three different postprocessing operations:
   some of the axial bins not mapping to any elements, since the NekRS mesh is coarser
   than the specified number of bins).
 
-- **Average temperature over subchannel gaps**:
+- *Average temperature over subchannel gaps*:
   We form the bins as the product of unique
   indices for each subchannel gap with unique indices for each axial layers.
   The [HexagonalSubchannelGapBin](HexagonalSubchannelGapBin.md)
@@ -229,7 +227,7 @@ three different postprocessing operations:
   only requirement being that one and only one of these distribution is a "side" distribution, which
   for this example is the `HexagonalSubchannelGapBin`).
 
-- **Average the normal velocity over subchannel gaps**:
+- *Average the normal velocity over subchannel gaps*:
   We reuse the same previous bins, but set
   `field = velocity_component` for a [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md).
 
@@ -242,15 +240,14 @@ Recall that the NekRS mesh does *not* respect the subchannel discretization,
 or the desired number of axial averaging layers. Therefore, if we want to properly
 visualize the results of the user object, we transfer the user object to two
 different sub-applications
-which serve the sole purpose of user object visualization. We use two different
-sub-applications because one sub-app will use a mesh that perfectly represents
+which serve the sole purpose of visualization.
+One sub-app will use a mesh that perfectly represents
 the *volumes* of the channels, while the second sub-app will use a mesh that perfectly
 represents the *gaps* between the channels.
 
-The application that will be used
+The application used
 to view the volume results on the channels is shown below.
-This sub-application
-constructs a subchannel mesh with the [HexagonalSubchannelMesh](HexagonalSubchannelMesh.md)
+We construct a subchannel mesh with the [HexagonalSubchannelMesh](HexagonalSubchannelMesh.md)
 to receive the user object into a variable named `average_T`
 and the three components of the gap normal velocity as `uo_x`,
 `uo_y`, and `uo_z`. We set `solve = false` so that
@@ -258,11 +255,9 @@ no physics solve occurs.
 
 !listing /tutorials/subchannel/subchannel.i
 
-The application that will be used to view the gap results is shown below.
-This sub-application
-constructs a subchannel mesh with the [HexagonalSubchannelGapMesh](HexagonalSubchannelGapMesh.md)
-to receive the user object into a variable named `average_T`. We set `solve = false` so that
-no physics solve occurs.
+The application used to view the gap results is shown below.
+We construct a subchannel mesh with the [HexagonalSubchannelGapMesh](HexagonalSubchannelGapMesh.md)
+to receive the user object into a variable named `average_T`.
 
 !listing /tutorials/subchannel/subchannel_gap.i
 
