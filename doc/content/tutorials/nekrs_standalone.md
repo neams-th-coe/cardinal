@@ -38,12 +38,12 @@ To access this tutorial:
 cd cardinal/tutorials/standalone
 ```
 
-To contrast with the previous example, you can achieve the same "standalone"
+You can achieve the same "standalone"
 calculations via Cardinal, which you might be interested in to leverage Cardinal's
 postprocessing and data I/O features. Some useful features include:
 
 - Query the solution, evaluate heat balances and pressure drops,
-  or evaluate solution convergence
+  or evaluate solution convergence/approaches to steady state
 - Providing one-way coupling to other MOOSE applications, such as for
   transporting scalars based on NekRS's velocity solution or for projecting
   NekRS turbulent viscosity closure terms onto another MOOSE application's mesh
