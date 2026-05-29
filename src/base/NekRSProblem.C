@@ -419,12 +419,7 @@ NekRSProblem::initialSetup()
     }
   }
 
-  if (_n_usrwrk_slots == 0)
-  {
-    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n"
-             << std::endl;
-  }
-  else
+  if (_n_usrwrk_slots > 0)
   {
     _console
         << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n"
@@ -627,11 +622,10 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
 
+      // update any user-defined properties (could be used for UQ)
       auto nrs = nekrs::nrsPtr();
       if (nrs->userProperties)
-      {
         nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
-      }
 
       // copy host-side arrays which were filled to the device
       copyHostToDevice();
