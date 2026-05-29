@@ -1,9 +1,9 @@
 [Tests]
   [postprocessing]
-    type = RunApp
+    type = CSVDiff
     input = nek.i
-    min_parallel = 4
-    min_slots = 10 # memory heavy
+    min_slots = 4 # memory heavy
+    csvdiff = 'nek_out_avg_T_0001.csv nek_out_avg_T_gaps_0001.csv nek_out_avg_v_gaps_0001.csv'
     requirement = "The NekRS wrapping shall provide subchannel postprocessing features."
     capabilities = 'nekrs'
   []
