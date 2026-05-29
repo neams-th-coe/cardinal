@@ -1,11 +1,4 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nekrs --build-only 1 sfr_7pin'
-    requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
-    capabilities = 'nekrs'
-    use_shell = True
-  []
   [nondim]
     type = Exodiff
     input = nek.i
@@ -13,7 +6,6 @@
     requirement = "Spatially-binned side integrals and averages shall be correctly dimensionalized for "
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."
-    prereq = precompile
     capabilities = 'nekrs'
   []
 []
