@@ -1020,7 +1020,7 @@ yPlus(const std::vector<int> & boundary_id)
   // because at present it will be called on every time step
   auto o_wbID = platform->device.malloc<int>(boundary_id.size(), boundary_id.data());
   auto o_ywd = mesh->minDistance(boundary_id.size(), o_wbID, "cheap_dist");
-  dfloat * wall_distance = (dfloat *) calloc(o_ywd.size(), sizeof(dfloat));
+  dfloat * wall_distance = (dfloat *)calloc(o_ywd.size(), sizeof(dfloat));
   o_ywd.copyTo(wall_distance);
   o_ywd.free();
   o_wbID.free();
