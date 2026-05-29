@@ -13,8 +13,7 @@
                   "taken directly on the NekRS solution arrays (for instance, a NekVolumeAverage) "
                   "and directly on the extracted solution (for instance, an ElementAverageValue). We "
                   "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
+                  "solution (on the GLL points versus on the mesh mirror)."
     capabilities = 'nekrs'
   []
   [boundary]
@@ -30,8 +29,7 @@
                   "taken directly on the NekRS solution arrays (for instance, a NekSideAverage) "
                   "and directly on the extracted solution (for instance, an ElementAverageValue). We "
                   "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
+                  "solution (on the GLL points versus on the mesh mirror)."
     capabilities = 'nekrs'
   []
 []
