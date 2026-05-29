@@ -54,7 +54,8 @@ Like with all Cardinal simulations, Picard iterations are achieved "in time." We
 greatly upon this notion in previous tutorials, so we dedicate some space here.
 The overall Cardinal simulation has a notion of "time" and a time step index,
 because all code applications will use a [Transient](Transient.md) executioner. However,
-usually only NekRS is solved with non-zero time derivatives. The notion of time-stepping is then used to
+usually only NekRS is solved with an actual time derivative term in the governing equations.
+The notion of time-stepping is then used to
 customize how frequently (i.e., in units of time steps) data is exchanged.
 To help explain the strategy, represent the time step sizes in NekRS, MOOSE, and OpenMC as
 $\Delta t_{nek}$, $\Delta t_{bison}=M\Delta t_{nek}$, and $\Delta t_{openmc}=NM\Delta t_{nek}$, respectively.
@@ -92,17 +93,17 @@ and density feedback from the coupled MOOSE-NekRS simulation.
 First, we create a number of materials to represent
 the fuel pellet and cladding. Because these materials will only receive temperature updates (i.e.
 we will not change their density, because doing so would require us to move cell boundaries in
-order to preserve mass), we can simply create one material that we will use on all axial layers.
+order to preserve solid mass), we can simply create one material that we will use on all axial layers.
 Similar to temperature, a unique value of density can also be specified for each cell instance,
 and so we create a single sodium material for all of the coolant cells that will receive density
 and temperature feedback from NekRS.
 
 Next, we divide the geometry into a number of axial layers, where on each
 layer we set up cells to represent the pellet, cladding, and sodium. Each layer is then
-described by lying between two $z$-planes. The boundary condition on the top and bottom
+described by lying between two $z$-planes. The boundary conditions on the top and bottom
 faces of the OpenMC model are set to vacuum.
 Finally, we declare a number of
-settings related to the initial fission source (uniform over the fissionale regions)
+settings related to the initial fission source (uniform over the fissionable regions)
 and how temperature feedback is applied, and then export all files to XML.
 
 !listing /tutorials/pincell_multiphysics/pincell.py
@@ -217,7 +218,7 @@ and temperature to a linear variation from 0 at the inlet to 1 at the outlet.
 
 In the `.oudf` file, we define boundary conditions. On the flux boundary, we will
 be sending a heat flux from MOOSE into NekRS, so we set the flux equal to the scratch
-space array, `bc->usrwrk[bc->idM]`.
+space array, `bc->usrwrk[bc->idxVol]`.
 
 !listing /tutorials/pincell_multiphysics/fluid.oudf language=cpp
 
@@ -364,7 +365,7 @@ expected by our solid and OpenMC input files.
 The bulk of the NekRS wrapping is specified with
 [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
-use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
+use dimensional units. The parameters inside the `[Dimensionalize]` block indicate the characteristic
 scales that were used to non-dimensionalize the NekRS input. We add a [NekBoundaryFlux](NekBoundaryFlux.md) to pass heat flux into NekRS, and a [NekFieldVariable](NekFieldVariable.md) to read temperature out.
 
 !listing /tutorials/pincell_multiphysics/nek.i
