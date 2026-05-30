@@ -67,7 +67,7 @@ first slice and volumetric heat source values will exist in the second slice.
 For instance, the heat flux is then used in a boundary condition on the device in the `.oudf` file.
 
 !listing /tests/conduction/boundary_and_volume/prism/pyramid.oudf language=cpp
-  re=void\sscalarNeumannConditions.*?^
+  re=void\sudfNeumann.*?^
 
 
 !syntax list /Problem/FieldTransfers actions=false subsystems=false heading=Available FieldTransfer Objects

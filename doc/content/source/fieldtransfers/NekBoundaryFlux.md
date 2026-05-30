@@ -127,12 +127,12 @@ writing this heat flux into usrwrk slot 0.
   block=Problem
 
 Then, all that is required to actually _apply_ this heat flux to the NekRS model is to use
-it in the `scalarNeumannConditions` boundary condition.
+it in the `udfNeumann` boundary condition.
 Below, `bc->usrwrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
 device; this function applies the heat flux computed by MOOSE to the flux boundaries.
 
 !listing /test/tests/cht/pebble/onepebble2.oudf language=cpp
-  re=void\sscalarNeumannConditions.*?^}
+  re=void\sudfNeumann.*?^}
 
 !syntax parameters /Problem/FieldTransfers/NekBoundaryFlux
 

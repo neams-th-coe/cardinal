@@ -117,7 +117,7 @@ which will run with 4 MPI ranks. This will create a number of output files:
 
 - `nek_out.e` shows the NekRS solution mapped to a MOOSE mesh (since `exodus = true` was specified in the `[Outputs]` block of the `nek.i` input). This is the output file of the `nek.i` input.
 - `nek_out_sub0.e` shows the result of a postprocessing operation, mapped to a
-  different MOOSE mesh (where `sub` refers to the name of the [MultiApp](MultiApp.md) block in the `nek.i`). This is the output file of the `sub.i` input, which is run as a sub-application on `nek.i`.
+  different MOOSE mesh (where `sub` refers to the name of the `MultiApp` block in the `nek.i`). This is the output file of the `sub.i` input, which is run as a sub-application on `nek.i`.
 - `nek_out.csv` shows the CSV postprocessor values (since `csv = true` was specified in the `[Outputs]` block of the `nek.i` input)
 - `turbPipe0.f<n>` are the NekRS output files, where `<n>` is an integer representing output step index in NekRS
 
