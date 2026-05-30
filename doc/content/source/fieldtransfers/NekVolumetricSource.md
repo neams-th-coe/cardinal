@@ -10,7 +10,7 @@ the volumetric source which NekRS reads (for `direction = to_nek`) or will be wr
 `direction = from_nek`).
 
 The internal NekRS mesh is based on the spectral element method (with Guass-Lobatto
-quadrature), whereas a coupled MOOSE applcation which wants to write/use a boundary flux will
+quadrature), whereas a coupled MOOSE applcation which wants to write/use a volumetric source will
 likely be using a different quadrature rule. In order to ensure perfect conservation of the
 volumetric source as it is exchanged between NekRS and MOOSE, a [Receiver](Receiver.md) postprocessor is automatically added with
 name taken as `<name of the object>_integral`. For `direction = to_nek`, this postprocessor
