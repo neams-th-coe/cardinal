@@ -5,7 +5,6 @@ import os
 from argparse import ArgumentParser
 
 ap = ArgumentParser()
-ap.add_argument('--case', dest='case', type=str, required=True, help='NekRS casename')
 ap.add_argument('--reset', action='store_true', dest='reset', help='Whether to undo time modifications to go back to the original times written by NekRS')
 args = ap.parse_args()
 
@@ -17,7 +16,7 @@ args = ap.parse_args()
 
 os.chdir(os.getcwd())
 
-fnek5000 = 'tavg.nek5000'
+fnek5000 = 'avg.nek5000'
 
 try:
     print('Reading '+fnek5000,end='')
