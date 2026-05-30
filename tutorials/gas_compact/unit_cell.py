@@ -1,21 +1,21 @@
 #!/bin/env python
-#********************************************************************/
-#*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
-#*                             Cardinal                             */
-#*                                                                  */
-#*                  (c) 2021 UChicago Argonne, LLC                  */
-#*                        ALL RIGHTS RESERVED                       */
-#*                                                                  */
-#*                 Prepared by UChicago Argonne, LLC                */
-#*               Under Contract No. DE-AC02-06CH11357               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*             Prepared by Battelle Energy Alliance, LLC            */
-#*               Under Contract No. DE-AC07-05ID14517               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*                 See LICENSE for full restrictions                */
-#********************************************************************/
+#####################################################################
+#                  SOFTWARE COPYRIGHT NOTIFICATION                  #
+#                             Cardinal                              #
+#                                                                   #
+#                  (c) 2021 UChicago Argonne, LLC                   #
+#                        ALL RIGHTS RESERVED                        #
+#                                                                   #
+#                 Prepared by UChicago Argonne, LLC                 #
+#               Under Contract No. DE-AC02-06CH11357                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#             Prepared by Battelle Energy Alliance, LLC             #
+#               Under Contract No. DE-AC07-05ID14517                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#                 See LICENSE for full restrictions                 #
+#####################################################################
 
 from argparse import ArgumentParser
 import math
@@ -23,27 +23,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 import openmc
 
-outlet_P = 7.1e6                         # fluid outlet pressure (Pa)
-inlet_T = 598.0                          # inlet fluid temperature (K)
-power = 30e3                             # unit cell power (W)
-mdot = 0.011                             # fluid mass flowrate (kg/s)
-fluid_Cp = 5189.0                        # fluid isobaric specific heat (J/kg/K)
-channel_diameter = 0.016                 # diameter of the coolant channels (m)
-compact_diameter = 0.0127                # diameter of fuel compacts (m)
-fuel_to_coolant_distance = 0.01628       # distance between center of fuel compact and coolant channel (m)
-height = 1.60                            # height of the unit cell (m)
-triso_pf = 0.15                          # TRISO packing fraction (%)
-kernel_radius = 214.85e-6                # fissile kernel outer radius (m)
-buffer_radius = 314.85e-6                # buffer outer radius (m)
-iPyC_radius = 354.85e-6                  # inner PyC outer radius (m)
-SiC_radius = 389.85e-6                   # SiC outer radius (m)
-oPyC_radius = 429.85e-6                  # outer PyC outer radius (m)
-enrichment = 0.155                       # fuel enrichment (weight percent)
-kernel_density = 10820                   # fissile kernel density (kg/m3)
-buffer_density = 1050                    # buffer density (kg/m3)
-PyC_density = 1900                       # PyC density (kg/m3)
-SiC_density = 3203                       # SiC density (kg/m3)
-matrix_density = 1700                    # graphite matrix density (kg/m3)
+outlet_P = 7.1e6  # fluid outlet pressure (Pa)
+inlet_T = 598.0  # inlet fluid temperature (K)
+power = 30e3  # unit cell power (W)
+mdot = 0.011  # fluid mass flowrate (kg/s)
+fluid_Cp = 5189.0  # fluid isobaric specific heat (J/kg/K)
+channel_diameter = 0.016  # diameter of the coolant channels (m)
+compact_diameter = 0.0127  # diameter of fuel compacts (m)
+fuel_to_coolant_distance = (
+    0.01628  # distance between center of fuel compact and coolant channel (m)
+)
+height = 1.60  # height of the unit cell (m)
+triso_pf = 0.15  # TRISO packing fraction (%)
+kernel_radius = 214.85e-6  # fissile kernel outer radius (m)
+buffer_radius = 314.85e-6  # buffer outer radius (m)
+iPyC_radius = 354.85e-6  # inner PyC outer radius (m)
+SiC_radius = 389.85e-6  # SiC outer radius (m)
+oPyC_radius = 429.85e-6  # outer PyC outer radius (m)
+enrichment = 0.155  # fuel enrichment (weight percent)
+kernel_density = 10820  # fissile kernel density (kg/m3)
+buffer_density = 1050  # buffer density (kg/m3)
+PyC_density = 1900  # PyC density (kg/m3)
+SiC_density = 3203  # SiC density (kg/m3)
+matrix_density = 1700  # graphite matrix density (kg/m3)
+
 
 def coolant_temp(t_in, t_out, l, z):
     """
@@ -86,28 +89,30 @@ def coolant_temp(t_in, t_out, l, z):
 
     return t
 
+
 def coolant_density(t):
-  """
-    THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
-    the coolant density will be applied from MOOSE, we just set an initial
-    value here in case you want to run these files in standalone mode (i.e. with
-    the "openmc" executable).
+    """
+      THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
+      the coolant density will be applied from MOOSE, we just set an initial
+      value here in case you want to run these files in standalone mode (i.e. with
+      the "openmc" executable).
 
-  Computes the helium density (kg/m3) from temperature assuming a fixed operating pressure.
+    Computes the helium density (kg/m3) from temperature assuming a fixed operating pressure.
 
-  Parameters
-  ----------
+    Parameters
+    ----------
 
-  t : float
-    Fluid temperature
+    t : float
+      Fluid temperature
 
-  Returns
-  _______
-    float or 1-D numpy array of float depending on t
-  """
+    Returns
+    _______
+      float or 1-D numpy array of float depending on t
+    """
 
-  p_in_bar = outlet_P * 1.0e-5
-  return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2))
+    p_in_bar = outlet_P * 1.0e-5
+    return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2))
+
 
 # -------------- Unit Conversions: OpenMC requires cm -----------
 m = 100.0
@@ -129,7 +134,8 @@ reactor_top = reactor_bottom + reactor_height
 cell_pitch = fuel_to_coolant_distance * m
 fuel_channel_diam = compact_diameter * m
 
-hex_orientation = 'x'
+hex_orientation = "x"
+
 
 def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     axial_section_height = reactor_height / n_ax_zones
@@ -137,21 +143,21 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     # superimposed search lattice
     triso_lattice_shape = (4, 4, int(axial_section_height / 0.125))
 
-    lattice_orientation = 'x'
+    lattice_orientation = "x"
     cell_edge_length = cell_pitch
 
     model = openmc.model.Model()
 
     ### Materials ###
-    enrichment_234        = 2e-3
+    enrichment_234 = 2e-3
 
     # TRISO Materials
 
-    m_fuel = openmc.Material(name='fuel')
+    m_fuel = openmc.Material(name="fuel")
     enrichment_uranium = enrichment
-    mass_234 = openmc.data.atomic_mass('U234')
-    mass_235 = openmc.data.atomic_mass('U235')
-    mass_238 = openmc.data.atomic_mass('U238')
+    mass_234 = openmc.data.atomic_mass("U234")
+    mass_235 = openmc.data.atomic_mass("U235")
+    mass_238 = openmc.data.atomic_mass("U238")
 
     # number of atoms in one gram of uranium mixture
     n_234 = enrichment_234 / mass_234
@@ -159,55 +165,74 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     n_238 = (1.0 - enrichment_uranium - enrichment_234) / mass_238
     total_n = n_234 + n_235 + n_238
 
-    m_fuel.add_nuclide('U234', n_234 / total_n)
-    m_fuel.add_nuclide('U235', n_235 / total_n)
-    m_fuel.add_nuclide('U238', n_238 / total_n)
-    m_fuel.add_element('C'   , 1.50)
-    m_fuel.add_element('O'   , 0.50)
-    m_fuel.set_density('kg/m3', kernel_density)
+    m_fuel.add_nuclide("U234", n_234 / total_n)
+    m_fuel.add_nuclide("U235", n_235 / total_n)
+    m_fuel.add_nuclide("U238", n_238 / total_n)
+    m_fuel.add_element("C", 1.50)
+    m_fuel.add_element("O", 0.50)
+    m_fuel.set_density("kg/m3", kernel_density)
     #
-    m_graphite_c_buffer = openmc.Material(name='buffer')
-    m_graphite_c_buffer.add_element('C', 1.0)
-    m_graphite_c_buffer.add_s_alpha_beta('c_Graphite')
-    m_graphite_c_buffer.set_density('kg/m3', buffer_density)
+    m_graphite_c_buffer = openmc.Material(name="buffer")
+    m_graphite_c_buffer.add_element("C", 1.0)
+    m_graphite_c_buffer.add_s_alpha_beta("c_Graphite")
+    m_graphite_c_buffer.set_density("kg/m3", buffer_density)
     #
-    m_graphite_pyc = openmc.Material(name='pyc')
-    m_graphite_pyc.add_element('C', 1.0)
-    m_graphite_pyc.add_s_alpha_beta('c_Graphite')
-    m_graphite_pyc.set_density('kg/m3', PyC_density)
+    m_graphite_pyc = openmc.Material(name="pyc")
+    m_graphite_pyc.add_element("C", 1.0)
+    m_graphite_pyc.add_s_alpha_beta("c_Graphite")
+    m_graphite_pyc.set_density("kg/m3", PyC_density)
     #
-    m_sic = openmc.Material(name='sic')
-    m_sic.add_element('C' , 1.0)
-    m_sic.add_element('Si', 1.0)
-    m_sic.set_density('kg/m3', SiC_density)
+    m_sic = openmc.Material(name="sic")
+    m_sic.add_element("C", 1.0)
+    m_sic.add_element("Si", 1.0)
+    m_sic.set_density("kg/m3", SiC_density)
 
     # Graphite moderator
-    m_graphite_matrix = openmc.Material(name='graphite moderator')
-    m_graphite_matrix.add_element('C', 1.0)
-    m_graphite_matrix.add_s_alpha_beta('c_Graphite')
-    m_graphite_matrix.set_density('kg/m3', matrix_density)
+    m_graphite_matrix = openmc.Material(name="graphite moderator")
+    m_graphite_matrix.add_element("C", 1.0)
+    m_graphite_matrix.add_s_alpha_beta("c_Graphite")
+    m_graphite_matrix.set_density("kg/m3", matrix_density)
 
     # Coolant
-    m_coolant = openmc.Material(name='Helium coolant')
-    m_coolant.add_element('He', 1.0, 'ao')
+    m_coolant = openmc.Material(name="Helium coolant")
+    m_coolant.add_element("He", 1.0, "ao")
 
     ### Geometry ###
 
     # TRISO particle
-    radius_pyc_outer       = oPyC_radius * m
+    radius_pyc_outer = oPyC_radius * m
 
-    s_fuel             = openmc.Sphere(r=kernel_radius*m)
-    s_c_buffer         = openmc.Sphere(r=buffer_radius*m)
-    s_pyc_inner        = openmc.Sphere(r=iPyC_radius*m)
-    s_sic              = openmc.Sphere(r=SiC_radius*m)
-    s_pyc_outer        = openmc.Sphere(r=radius_pyc_outer)
-    c_triso_fuel       = openmc.Cell(name='c_triso_fuel'     , fill=m_fuel,              region=-s_fuel)
-    c_triso_c_buffer   = openmc.Cell(name='c_triso_c_buffer' , fill=m_graphite_c_buffer, region=+s_fuel      & -s_c_buffer)
-    c_triso_pyc_inner  = openmc.Cell(name='c_triso_pyc_inner', fill=m_graphite_pyc,      region=+s_c_buffer  & -s_pyc_inner)
-    c_triso_sic        = openmc.Cell(name='c_triso_sic'      , fill=m_sic,               region=+s_pyc_inner & -s_sic)
-    c_triso_pyc_outer  = openmc.Cell(name='c_triso_pyc_outer', fill=m_graphite_pyc,      region=+s_sic       & -s_pyc_outer)
-    c_triso_matrix     = openmc.Cell(name='c_triso_matrix'   , fill=m_graphite_matrix,   region=+s_pyc_outer)
-    u_triso            = openmc.Universe(cells=[c_triso_fuel, c_triso_c_buffer, c_triso_pyc_inner, c_triso_sic, c_triso_pyc_outer, c_triso_matrix])
+    s_fuel = openmc.Sphere(r=kernel_radius * m)
+    s_c_buffer = openmc.Sphere(r=buffer_radius * m)
+    s_pyc_inner = openmc.Sphere(r=iPyC_radius * m)
+    s_sic = openmc.Sphere(r=SiC_radius * m)
+    s_pyc_outer = openmc.Sphere(r=radius_pyc_outer)
+    c_triso_fuel = openmc.Cell(name="c_triso_fuel", fill=m_fuel, region=-s_fuel)
+    c_triso_c_buffer = openmc.Cell(
+        name="c_triso_c_buffer", fill=m_graphite_c_buffer, region=+s_fuel & -s_c_buffer
+    )
+    c_triso_pyc_inner = openmc.Cell(
+        name="c_triso_pyc_inner", fill=m_graphite_pyc, region=+s_c_buffer & -s_pyc_inner
+    )
+    c_triso_sic = openmc.Cell(
+        name="c_triso_sic", fill=m_sic, region=+s_pyc_inner & -s_sic
+    )
+    c_triso_pyc_outer = openmc.Cell(
+        name="c_triso_pyc_outer", fill=m_graphite_pyc, region=+s_sic & -s_pyc_outer
+    )
+    c_triso_matrix = openmc.Cell(
+        name="c_triso_matrix", fill=m_graphite_matrix, region=+s_pyc_outer
+    )
+    u_triso = openmc.Universe(
+        cells=[
+            c_triso_fuel,
+            c_triso_c_buffer,
+            c_triso_pyc_inner,
+            c_triso_sic,
+            c_triso_pyc_outer,
+            c_triso_matrix,
+        ]
+    )
 
     # Channel surfaces
     fuel_cyl = openmc.ZCylinder(r=0.5 * fuel_channel_diam)
@@ -221,17 +246,27 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     # region in which TRISOs are generated
     r_triso = -fuel_cyl & +min_z & -max_z
 
-    rand_spheres = openmc.model.pack_spheres(radius=radius_pyc_outer, region=r_triso, pf=triso_pf, seed=1.0)
-    random_trisos = [openmc.model.TRISO(radius_pyc_outer, u_triso, i) for i in rand_spheres]
+    rand_spheres = openmc.model.pack_spheres(
+        radius=radius_pyc_outer, region=r_triso, pf=triso_pf, seed=1.0
+    )
+    random_trisos = [
+        openmc.model.TRISO(radius_pyc_outer, u_triso, i) for i in rand_spheres
+    ]
 
     llc, urc = r_triso.bounding_box
     pitch = (urc - llc) / triso_lattice_shape
     # insert TRISOs into a lattice to accelerate point location queries
-    triso_lattice = openmc.model.create_triso_lattice(random_trisos, llc, pitch, triso_lattice_shape, m_graphite_matrix)
+    triso_lattice = openmc.model.create_triso_lattice(
+        random_trisos, llc, pitch, triso_lattice_shape, m_graphite_matrix
+    )
 
     # create a hexagonal lattice for the coolant and fuel channels
-    fuel_univ = openmc.Universe(cells=[openmc.Cell(region=-fuel_cyl, fill=triso_lattice),
-                                    openmc.Cell(region=+fuel_cyl, fill=m_graphite_matrix)])
+    fuel_univ = openmc.Universe(
+        cells=[
+            openmc.Cell(region=-fuel_cyl, fill=triso_lattice),
+            openmc.Cell(region=+fuel_cyl, fill=m_graphite_matrix),
+        ]
+    )
 
     # extract the coolant cell and set temperatures based on the axial profile
     coolant_cell = openmc.Cell(region=-coolant_cyl, fill=m_coolant)
@@ -247,10 +282,10 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
         # create a new coolant universe for each axial zone in the coolant channel;
         # this generates a new material as well (we only need to do this for all
         # cells except the first cell)
-        if (i == 0):
-          c_cell = coolant_cell
+        if i == 0:
+            c_cell = coolant_cell
         else:
-          c_cell = coolant_cell.clone()
+            c_cell = coolant_cell.clone()
 
         i += 1
 
@@ -258,7 +293,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
         ax_pos = 0.5 * (z_min + z_max)
         t = coolant_temp(inlet_T, coolant_outlet_temp, reactor_height, ax_pos)
         c_cell.temperature = t
-        coolant_cell.fill.set_density('kg/m3', coolant_density(t))
+        coolant_cell.fill.set_density("kg/m3", coolant_density(t))
 
         # set the solid cells and their temperatures
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=m_graphite_matrix)
@@ -287,7 +322,9 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     hex_lattice.outer = inf_graphite_univ
 
     # hexagonal bounding cell
-    hex = openmc.model.HexagonalPrism(cell_edge_length, hex_orientation, boundary_type='periodic')
+    hex = openmc.model.HexagonalPrism(
+        cell_edge_length, hex_orientation, boundary_type="periodic"
+    )
 
     hex_cell_vol = 6.0 * (math.sqrt(3) / 4.0) * cell_edge_length**2 * reactor_height
 
@@ -295,9 +332,9 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     axial_planes = [openmc.ZPlane(z0=coord) for coord in axial_coords]
     # axial planes
     min_z = axial_planes[0]
-    min_z.boundary_type = 'vacuum'
+    min_z.boundary_type = "vacuum"
     max_z = axial_planes[-1]
-    max_z.boundary_type = 'vacuum'
+    max_z.boundary_type = "vacuum"
 
     # fill the unit cell with the hex lattice
     hex_cell = openmc.Cell(region=-hex & +min_z & -max_z, fill=hex_lattice)
@@ -314,9 +351,9 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     # the only reason we use 'nearest' here is to be sure we have a robust test for CI;
     # otherwise, 1e-16 differences in temperature (due to numerical roundoff when using
     # different MPI ranks) do change the tracking do to the stochastic interpolation
-    settings.temperature['method'] = 'nearest'
-    settings.temperature['range'] = (294.0, 1500.0)
-    settings.temperature['tolerance'] = 200.0
+    settings.temperature["method"] = "nearest"
+    settings.temperature["range"] = (294.0, 1500.0)
+    settings.temperature["tolerance"] = 200.0
 
     hexagon_half_flat = math.sqrt(3.0) / 2.0 * cell_edge_length
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
@@ -325,41 +362,48 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
-    if (add_entropy_mesh):
-      entropy_mesh = openmc.RegularMesh()
-      entropy_mesh.lower_left = lower_left
-      entropy_mesh.upper_right = upper_right
-      entropy_mesh.dimension = (5, 5, 20)
-      settings.entropy_mesh = entropy_mesh
+    if add_entropy_mesh:
+        entropy_mesh = openmc.RegularMesh()
+        entropy_mesh.lower_left = lower_left
+        entropy_mesh.upper_right = upper_right
+        entropy_mesh.dimension = (5, 5, 20)
+        settings.entropy_mesh = entropy_mesh
 
     model.settings = settings
 
-    m_colors = {m_coolant: 'royalblue', m_fuel: 'red', m_graphite_c_buffer: 'black', m_graphite_pyc: 'orange', m_sic: 'yellow', m_graphite_matrix: 'silver'}
+    m_colors = {
+        m_coolant: "royalblue",
+        m_fuel: "red",
+        m_graphite_c_buffer: "black",
+        m_graphite_pyc: "orange",
+        m_sic: "yellow",
+        m_graphite_matrix: "silver",
+    }
 
-    plot1          = openmc.Plot()
-    plot1.filename = 'plot1'
-    plot1.width    = (2 * cell_pitch, 4 * axial_section_height)
-    plot1.basis    = 'xz'
-    plot1.origin   = (0.0, 0.0, reactor_height/2.0)
-    plot1.pixels   = (int(800 * 2 * cell_pitch), int(800 * 4 * axial_section_height))
-    plot1.color_by = 'cell'
+    plot1 = openmc.Plot()
+    plot1.filename = "plot1"
+    plot1.width = (2 * cell_pitch, 4 * axial_section_height)
+    plot1.basis = "xz"
+    plot1.origin = (0.0, 0.0, reactor_height / 2.0)
+    plot1.pixels = (int(800 * 2 * cell_pitch), int(800 * 4 * axial_section_height))
+    plot1.color_by = "cell"
 
-    plot2          = openmc.Plot()
-    plot2.filename = 'plot2'
-    plot2.width    = (3 * cell_pitch, 3 * cell_pitch)
-    plot2.basis    = 'xy'
-    plot2.origin   = (0.0, 0.0, axial_section_height / 2.0)
-    plot2.pixels   = (int(800 * cell_pitch), int(800 * cell_pitch))
-    plot2.color_by = 'material'
-    plot2.colors   = m_colors
+    plot2 = openmc.Plot()
+    plot2.filename = "plot2"
+    plot2.width = (3 * cell_pitch, 3 * cell_pitch)
+    plot2.basis = "xy"
+    plot2.origin = (0.0, 0.0, axial_section_height / 2.0)
+    plot2.pixels = (int(800 * cell_pitch), int(800 * cell_pitch))
+    plot2.color_by = "material"
+    plot2.colors = m_colors
 
-    plot3          = openmc.Plot()
-    plot3.filename = 'plot3'
-    plot3.width    = plot2.width
-    plot3.basis    = plot2.basis
-    plot3.origin   = plot2.origin
-    plot3.pixels   = plot2.pixels
-    plot3.color_by = 'cell'
+    plot3 = openmc.Plot()
+    plot3.filename = "plot3"
+    plot3.width = plot2.width
+    plot3.basis = plot2.basis
+    plot3.origin = plot2.origin
+    plot3.pixels = plot2.pixels
+    plot3.color_by = "cell"
 
     model.plots = openmc.Plots([plot1, plot2, plot3])
 
@@ -369,19 +413,31 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
 def main():
 
     ap = ArgumentParser()
-    ap.add_argument('-n', dest='n_axial', type=int, default=30,
-                    help='Number of axial cell divisions (defaults to value in common_input.i)')
-    ap.add_argument('-s', '--entropy', action='store_true',
-                    help='Whether to add a Shannon entropy mesh')
-    ap.add_argument('-i', dest='n_inactive', type=int, default=25,
-                    help='Number of inactive cycles')
-    ap.add_argument('-a', dest='n_active', type=int, default=200,
-                    help='Number of active cycles')
+    ap.add_argument(
+        "-n",
+        dest="n_axial",
+        type=int,
+        default=30,
+        help="Number of axial cell divisions (defaults to value in common_input.i)",
+    )
+    ap.add_argument(
+        "-s",
+        "--entropy",
+        action="store_true",
+        help="Whether to add a Shannon entropy mesh",
+    )
+    ap.add_argument(
+        "-i", dest="n_inactive", type=int, default=25, help="Number of inactive cycles"
+    )
+    ap.add_argument(
+        "-a", dest="n_active", type=int, default=200, help="Number of active cycles"
+    )
 
     args = ap.parse_args()
 
     model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.entropy)
     model.export_to_xml()
+
 
 if __name__ == "__main__":
     main()

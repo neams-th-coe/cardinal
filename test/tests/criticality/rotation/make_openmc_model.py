@@ -3,7 +3,6 @@ import numpy as np
 from argparse import ArgumentParser
 import common_input as specs
 
-
 model = openmc.Model()
 # materials
 fuel = openmc.Material(name="fuel")

@@ -1,37 +1,37 @@
-#********************************************************************/
-#*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
-#*                             Cardinal                             */
-#*                                                                  */
-#*                  (c) 2021 UChicago Argonne, LLC                  */
-#*                        ALL RIGHTS RESERVED                       */
-#*                                                                  */
-#*                 Prepared by UChicago Argonne, LLC                */
-#*               Under Contract No. DE-AC02-06CH11357               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*             Prepared by Battelle Energy Alliance, LLC            */
-#*               Under Contract No. DE-AC07-05ID14517               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*                 See LICENSE for full restrictions                */
-#********************************************************************/
+#####################################################################
+#                  SOFTWARE COPYRIGHT NOTIFICATION                  #
+#                             Cardinal                              #
+#                                                                   #
+#                  (c) 2021 UChicago Argonne, LLC                   #
+#                        ALL RIGHTS RESERVED                        #
+#                                                                   #
+#                 Prepared by UChicago Argonne, LLC                 #
+#               Under Contract No. DE-AC02-06CH11357                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#             Prepared by Battelle Energy Alliance, LLC             #
+#               Under Contract No. DE-AC07-05ID14517                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#                 See LICENSE for full restrictions                 #
+#####################################################################
 
 import openmc
 
 a = openmc.Material()
-a.set_density('g/cc', 11.0)
-a.add_nuclide('U235', 1.0)
+a.set_density("g/cc", 11.0)
+a.add_nuclide("U235", 1.0)
 
 b = openmc.Material()
-b.set_density('g/cc', 11.0)
-b.add_nuclide('U235', 0.5)
-b.add_nuclide('U238', 0.5)
+b.set_density("g/cc", 11.0)
+b.add_nuclide("U235", 0.5)
+b.add_nuclide("U238", 0.5)
 
 water = openmc.Material(name="h2o")
-water.add_nuclide('H1', 2.0)
-water.add_nuclide('O16', 1.0)
-water.set_density('g/cm3', 1.0)
-water.add_s_alpha_beta('c_H_in_H2O')
+water.add_nuclide("H1", 2.0)
+water.add_nuclide("O16", 1.0)
+water.set_density("g/cm3", 1.0)
+water.add_s_alpha_beta("c_H_in_H2O")
 
 mats = openmc.Materials([a, b, water])
 mats.export_to_xml()
@@ -48,7 +48,7 @@ xmin = openmc.XPlane(x0=-12.5)
 xmax = openmc.XPlane(x0=87.5)
 ymin = openmc.YPlane(y0=-12.5)
 ymax = openmc.YPlane(y0=37.5)
-ymid = openmc.YPlane(y0=(-12.5+25.0))
+ymid = openmc.YPlane(y0=(-12.5 + 25.0))
 zmin = openmc.ZPlane(z0=-12.5)
 zmax = openmc.ZPlane(z0=12.5)
 
@@ -83,9 +83,11 @@ cell6.temperature = 600.0
 cell7.temperature = 650.0
 cell8.temperature = 700.0
 
-inner_box = (+xmin & -xmax & +ymin & -ymax & +zmin & -zmax)
-outer_box = (+xmin_bc & -xmax_bc & +ymin_bc & -ymax_bc & +zmin_bc & -zmax_bc)
+inner_box = +xmin & -xmax & +ymin & -ymax & +zmin & -zmax
+outer_box = +xmin_bc & -xmax_bc & +ymin_bc & -ymax_bc & +zmin_bc & -zmax_bc
 water_shell = openmc.Cell(region=outer_box & ~inner_box, fill=water)
 
-geom = openmc.Geometry([cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8, water_shell])
+geom = openmc.Geometry(
+    [cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8, water_shell]
+)
 geom.export_to_xml()
