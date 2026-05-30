@@ -1,29 +1,44 @@
-#include "udf.hpp"
-#include "plugins/tavg.hpp"
-
-static occa::kernel periodicSourceKernel;
-
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#ifdef __okl__
+void udfNeumann(bcData * bc)
 {
-  periodicSourceKernel = oudfBuildKernel(kernelInfo, "periodicSource");
-  tavg::buildKernel(kernelInfo);
+  bc->fluxScalar = 1.0; // heat flux
 }
 
-void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
+@kernel void periodicSource(const dlong Nelements, const dlong offset, const dfloat gamma, @restrict const dfloat * vel_z, @restrict dfloat * QVOL)
 {
-  auto mesh = nrs->cds->mesh[0];
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = - 1.0 * vel_z[id + 2 * offset] * gamma;
+    }
+  }
+}
+
+#endif
+
+std::unique_ptr<nrs_t::tavgLegacy_t> avg;
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+}
+
+void userq(double time)
+{
+  auto mesh = nrs->meshV;
   dfloat R = 0.5;
   dfloat q_dagger = 1.0;
-  periodicSourceKernel(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->o_U, o_FS);
+  periodicSource(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->fluid->o_U, nrs->scalar->o_EXT);
 
   // prevent any numerical drift by subtracting out the volume-average temperature
   const dfloat Tbar =
-    platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm) / mesh->volume;
-  platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
+    platform->linAlg->innerProd(mesh->Nlocal, nrs->scalar->o_solution("temperature"), mesh->o_LMM, platform->comm.mpiComm()) / mesh->volume;
+  platform->linAlg->add(mesh->Nlocal, -Tbar, nrs->scalar->o_solution("temperature"));
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
+  avg = std::make_unique<nrs_t::tavgLegacy_t>();
+
   auto mesh = nrs->meshV;
 
   std::string name;
@@ -33,33 +48,41 @@ void UDF_Setup(nrs_t *nrs)
   // only set initial conditions if there is no restart file
   if (name == "")
   {
-    int n_gll_points = mesh->Np * mesh->Nelements;
-    for (int n = 0; n < n_gll_points; ++n)
+    std::cout << "Applying initial condition" << std::endl;
+    // arbitrary arrays on the host where we will fill some initial data
+    std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
+
+    auto [x, y, z] = mesh->xyzHost();
+    for (int n = 0; n < mesh->Nlocal; ++n)
     {
       // comment out to see flow if no initial perturbation is applied to the x, y velocity components
-      nrs->U[n + 0 * nrs->fieldOffset] = 0.2 * std::cos(mesh->z[n]); // x-velocity
-      nrs->U[n + 1 * nrs->fieldOffset] = 0.2 * std::sin(mesh->z[n]); // y-velocity
+      U[n + 0 * nrs->fieldOffset] = 0.2 * std::cos(z[n]); // x-velocity
+      U[n + 1 * nrs->fieldOffset] = 0.2 * std::sin(z[n]); // y-velocity
 
-      dfloat r = std::sqrt(mesh->x[n] * mesh->x[n] + mesh->y[n] * mesh->y[n]) * 2.0;
-      nrs->U[n + 2 * nrs->fieldOffset] = -2 * (r * r - 1); // z-velocity
-
-      nrs->P[n] = 0.0; // pressure
-
-      nrs->cds->S[n + 0 * nrs->fieldOffset] = 0.0; // temperature
+      dfloat r = std::sqrt(x[n] * x[n] + y[n] * y[n]) * 2.0;
+      U[n + 2 * nrs->fieldOffset] = -2 * (r * r - 1); // z-velocity
     }
+
+    // copy host data into the device data
+    nrs->fluid->o_U.copyFrom(U.data(), U.size());
   }
 
-  // this will call userchk in the fortran file, which does the time averaging
+  // this will call userchk in the fortran file, which does the time averaging of the time-averaged
+  // field files
   nek::userchk();
 
-  tavg::setup(nrs);
-  udf.sEqnSource = &userq;
+  nrs->userSource = &userq;
 }
 
-void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
-  tavg::run(time);
+  auto mesh = nrs->meshV;
 
-  if (nrs->isOutputStep)
-    tavg::outfld();
+  if (nrs->timeStepConverged)
+    avg->run(time);
+
+  if (nrs->checkpointStep) {
+    avg->writeToFile(mesh);
+    avg->reset(); // reset time window
+  }
 }
