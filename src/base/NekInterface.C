@@ -34,6 +34,7 @@ static dfloat * z;
 static std::vector<dfloat> U;
 static std::vector<dfloat> P;
 static std::vector<dfloat> S;
+static dfloat * wall_distance;
 
 dfloat * usrwrk = nullptr;
 
@@ -392,6 +393,7 @@ freeScratch()
   freePointer(sgeo);
   freePointer(vgeo);
   freePointer(usrwrk);
+  freePointer(wall_distance);
 }
 
 double
@@ -999,6 +1001,19 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
   return total_integral;
 }
 
+void
+computeWallDistance(const std::vector<int> & boundary_id)
+{
+  mesh_t * mesh = getMesh(nek_mesh::fluid);
+  freePointer(wall_distance);
+  auto o_wbID = platform->device.malloc<int>(boundary_id.size(), boundary_id.data());
+  auto o_ywd = mesh->minDistance(boundary_id.size(), o_wbID, "cheap_dist");
+  wall_distance = (dfloat *)calloc(o_ywd.size(), sizeof(dfloat));
+  o_ywd.copyTo(wall_distance);
+  o_ywd.free();
+  o_wbID.free();
+}
+
 std::vector<dfloat>
 yPlus(const std::vector<int> & boundary_id)
 {
@@ -1015,15 +1030,6 @@ yPlus(const std::vector<int> & boundary_id)
   dfloat * Sij = (dfloat *)calloc(o_Sij.size(), sizeof(dfloat));
   o_Sij.copyTo(Sij);
   o_Sij.free();
-
-  // compute the distance from the wall: TODO should make this a do-once calculation for performance
-  // because at present it will be called on every time step
-  auto o_wbID = platform->device.malloc<int>(boundary_id.size(), boundary_id.data());
-  auto o_ywd = mesh->minDistance(boundary_id.size(), o_wbID, "cheap_dist");
-  dfloat * wall_distance = (dfloat *)calloc(o_ywd.size(), sizeof(dfloat));
-  o_ywd.copyTo(wall_distance);
-  o_ywd.free();
-  o_wbID.free();
 
   // TODO: This function only works correctly if the viscosity and rho is constant, because
   // otherwise we need to copy the viscosity and rho from device to host

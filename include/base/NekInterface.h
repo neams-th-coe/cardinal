@@ -79,6 +79,12 @@ void checkFieldValidity(const field::NekWriteEnum & field);
 void copyDeviceToHost();
 
 /**
+ * Compute the minimum distance to a wall as a mesh field
+ * @param[in] boundary_id boundary(s) on which to compute the distance to the wall
+ */
+void computeWallDistance(const std::vector<int> & boundary_id);
+
+/**
  * Compute y+ on the NekRS mesh
  * @param[in] boundary_id boundary(s) on which to compute y+
  * @return max, min, average y+
