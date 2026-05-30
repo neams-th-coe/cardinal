@@ -39,6 +39,10 @@ NekYPlus::NekYPlus(const InputParameters & parameters)
     mooseError("The 'NekYPlus' postprocessor can only be applied to the fluid mesh "
                "boundaries!\n"
                "Please change 'mesh' to 'fluid'.");
+
+  // TODO: for moving mesh features, we will need to re-compute the wall distance
+  // on every time step. This call here assumes the mesh is not moving.
+  nekrs::computeWallDistance(_boundary);
 }
 
 Real
