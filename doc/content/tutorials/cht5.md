@@ -239,7 +239,7 @@ This is why an integral postprocessor must explicitly be passed.
 
 Next, postprocessors are used to compute the integral heat flux as a
 [SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md) and also monitor
-the maximum solid temperature with a [NodalExtremeValue](NodalExtremeValud.md).
+the maximum solid temperature with a [NodalExtremeValue](NodalExtremeValue.md).
 
 !listing /tutorials/pebble_cht/solid.i
   block=Postprocessors
