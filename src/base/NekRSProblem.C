@@ -40,7 +40,7 @@ NekRSProblem::validParams()
   params.addParam<unsigned int>(
       "n_usrwrk_slots",
       0,
-      "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+      "Number of slots to allocate in platform->app->bc->o_usrwrk to hold fields either related to coupling "
       "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
       "calculation (which will be populated by the user from the case files)");
 
@@ -410,7 +410,7 @@ NekRSProblem::initialSetup()
           vt.addRow(i,
                     top,
                     "bc->usrwrk[" + slot + "*bc->fieldOffset+" + count + "]",
-                    "nrs->usrwrk[" + slot + "*nrs->fieldOffset+" + count + "]");
+                    "platform->app->bc->o_usrwrk[" + slot + "*nrs->fieldOffset+" + count + "]");
         }
       }
 
