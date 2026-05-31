@@ -64,7 +64,7 @@ linear dependence on temperature:
 \kappa(x) = \kappa_{0}T(x)
 
 where $\kappa_{0}$ is the reference thermal conductivity (eV s$^{-1}$ cm$^{-1}$ K$^{-2}$). $h$ is a convective heat
-transfer coefficient (eV s$^{-1}$ cm^${-2}$ K$^{-1}$). The final set of physics considered in this problem is
+transfer coefficient (eV s$^{-1}$ cm$^{-2}$ K$^{-1}$). The final set of physics considered in this problem is
 thermal expansion, where the differential slab length $\ell(x)$ (cm) expands according to the local
 thermal strain $\epsilon_{x}(x)$:
 
