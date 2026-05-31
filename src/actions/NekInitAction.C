@@ -47,7 +47,7 @@ NekInitAction::validParams()
       "n_usrwrk_slots",
       0,
       "If initialize_usrwrk is true, the number of slots that Cardinal will allocate in "
-      "nrs->usrwrk. These entries can be used to hold fields related to coupling (which will be "
+      "platform->app->bc->o_usrwrk. These entries can be used to hold fields related to coupling (which will be "
       "populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 
   return params;
