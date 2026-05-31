@@ -1,5 +1,5 @@
 !alert warning
-Allocation of `nrs->usrwrk` and `nrs->o_usrwrk` is done automatically.
+Allocation of `platform->app->bc->o_usrwrk` is done automatically.
 If you attempt to run a NekRS input file that accesses `bc->usrwrk` in the
 `.oudf` file *without* a Cardinal executable (e.g. like
 `nrsmpi case 4`), then that scratch space will have to be manually allocated in
