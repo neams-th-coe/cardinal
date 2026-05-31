@@ -116,16 +116,16 @@ click on the links to learn more.
 
 ## Outputting the Scratch Array
 
-This class allows you to write slots in the `nrs->usrwrk` scratch space array
+This class allows you to write slots in the `platform->app->bc->o_usrwrk` scratch space array
 to NekRS field files. This can be useful for viewing the data sent from MOOSE
 to NekRS on the actual spectral mesh where they are ultimately used. This
 feature can also be used to write field files for other quantities in the scratch
 space, such as a wall distance computation
 from the Nek5000 backend. To write the scratch space to a field file,
-set `usrwrk_output` to an array with each "slot" in the `nrs->usrwrk` array that
+set `usrwrk_output` to an array with each "slot" in the `platform->app->bc->o_usrwrk` array that
 you want to write. Then, specify a filename prefix to use to name each field file.
 
-In the example below, the first two "slots" in the `nrs->usrwrk` array will be
+In the example below, the first two "slots" in the `platform->app->bc->o_usrwrk` array will be
 written to field files on the same interval that NekRS writes its usual field files.
 These files will be named `aaabrick0.f00000`, etc. and `cccbrick0.f00000`, etc.
 Based on limitations in how NekRS writes its files, the fields written to these
@@ -150,7 +150,7 @@ the master application time step. The calculation procedure involves:
 1. Solve the master application from $t$ to $t+1$ seconds.
 1. Transfer an auxvariable representing flux (and a postprocessor representing its integral) from the master
   application to the NekRS sub-application) at $t$.
-1. Read from the auxvariable and write into the `nrs->usrwrk` array using a [NekBoundaryFlux](NekBoundaryFlux.md) object. Normalize the flux and then copy it from host to device.
+1. Read from the auxvariable and write into the `platform->app->bc->o_usrwrk` array using a [NekBoundaryFlux](NekBoundaryFlux.md) object. Normalize the flux and then copy it from host to device.
 1. Run a NekRS time step from $t$ to $t+0.4$ seconds.
 1. Copy the temperature from device to host and then interpolate NekRS's
   temperature from NekRS's [!ac](GLL) points to the `NekRSMesh` using a [NekFieldVariable](NekFieldVariable.md).

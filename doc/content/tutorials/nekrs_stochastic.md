@@ -280,7 +280,7 @@ solve which shows:
 | Slot | Data |           How to Access (.oudf)          |               How to Access (.udf)                |
 --------------------------------------------------------------------------------------------------------------
 |    0 | flux | bc->usrwrk[0*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+n] |
-|    1 | k    | bc->usrwrk[1*bc->fieldOffset+0]          | nrs->usrwrk[1*nrs->fieldOffset+0]                 |
+|    1 | k    | bc->usrwrk[1*bc->fieldOffset+0]          | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+0] |
 --------------------------------------------------------------------------------------------------------------
 ```
 
