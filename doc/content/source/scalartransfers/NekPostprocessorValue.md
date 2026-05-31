@@ -20,17 +20,12 @@ A sub-application sends data into the `inlet_V` and `inlet_T` postprocessors.
 When running the input file, you will then see a table like the following print:
 
 ```
------------------------------------------------------------------------------------------------------------
-| Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
------------------------------------------------------------------------------------------------------------
-|    0 | inlet_V        | bc->usrwrk[0 * bc->fieldOffset + 0]     | nrs->usrwrk[0 * nrs->fieldOffset + 0] |
-|    1 | inlet_T        | bc->usrwrk[1 * bc->fieldOffset + 0]     | nrs->usrwrk[1 * nrs->fieldOffset + 0] |
-|    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
-|    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
-|    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
-|    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
-|    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
+| Slot |  Data   |      How to Access (.oudf)      |               How to Access (.udf)                |
+--------------------------------------------------------------------------------------------------------
+|    0 | inlet_V | bc->usrwrk[0*bc->fieldOffset+0] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+0] |
+|    1 | inlet_T | bc->usrwrk[1*bc->fieldOffset+0] | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+0] |
+--------------------------------------------------------------------------------------------------------
 ```
 
 Suppose we want to use these two scalar values to set a Dirichlet temperature

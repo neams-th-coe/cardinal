@@ -43,7 +43,7 @@ the `mooseHeatSource` function.
 !listing /test/tests/conduction/nonidentical_volume/cylinder/cylinder.oudf language=cpp
   re=\@kernel void\smooseHeatSource.*?^}
 
-The actual passing of the `nrs->usrwrk` scratch space (that `NekRSProblem` writes into)
+The actual passing of the `platform->app->bc->o_usrwrk` scratch space (that `NekRSProblem` writes into)
 into this custom kernel
 occurs in the `.udf` file. In the `.udf` file, you need to define a custom function,
 named artbirarily here to `userq`, with a signature that matches the user-defined source

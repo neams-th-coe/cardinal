@@ -12,14 +12,14 @@ Examples of field transfers which can be added include:
 
 ## Usrwrk Array
 
-When `direction = to_nek`, data is "sent" into NekRS by writing into the `nrs->usrwrk` scratch space array and also copying from this array into its corresponding array on the host (`nrs->o_usrwrk`)
+When `direction = to_nek`, data is "sent" into NekRS by writing into the `platform->app->bc->o_usrwrk` scratch space array (on device) and also copying this array to the host
 so that the data is accessible both on host and device within NekRS. You must indicate
 which slot in the array to write the scalar value using `usrwrk_slot`. For memory
 efficiency, the same slot can be used for many different `ScalarTransfers`, since
 each transfer only needs a single entry (one double number) in the array. An offset
 in the array is automatically computed so that different `ScalarTransfers` don't
 overwrite one another. Note that Cardinal automatically
-allocates the `nrs->usrwrk` array, but you can control the size of it by setting `n_usrwrk_slots`
+allocates the `platform->app->bc->o_usrwrk` array, but you can control the size of it by setting `n_usrwrk_slots`
 in [NekRSProblem](NekRSProblem.md).
 
 !include seg_fault_warning.md
@@ -38,14 +38,14 @@ occupying the various slots in the usrwrk arrays and how they can be accessed. T
 for the above example is listed below, which shows how the two numbers can be accessed.
 
 ```
------------------------------------------------------------------------------------------------------------
-| Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
------------------------------------------------------------------------------------------------------------
-|    0 | unused         | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
-|    1 | s2             | bc->usrwrk[1 * bc->fieldOffset + 0]     | nrs->usrwrk[1 * nrs->fieldOffset + 0] |
-|    1 | s3             | bc->usrwrk[1 * bc->fieldOffset + 1]     | nrs->usrwrk[1 * nrs->fieldOffset + 1] |
-|    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+| Slot |  Data  |           How to Access (.oudf)          |               How to Access (.udf)                |
+----------------------------------------------------------------------------------------------------------------
+|    0 | unused | bc->usrwrk[0*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+n] |
+|    1 | s2     | bc->usrwrk[1*bc->fieldOffset+0]          | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+0] |
+|    1 | s3     | bc->usrwrk[1*bc->fieldOffset+1]          | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+1] |
+|    2 | unused | bc->usrwrk[2*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[2*nrs->fieldOffset+n] |
+----------------------------------------------------------------------------------------------------------------
 ```
 
 For instance, this passed data is then used in the `brick.udf` file to set
