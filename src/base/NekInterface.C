@@ -119,53 +119,37 @@ write_usrwrk_field_file(const int & usrWriterSize,
 void
 write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
-  static std::unique_ptr<iofld> checkpointWriter;
-  if (!checkpointWriter)
-  {
-    checkpointWriter = iofldFactory::create();
-  }
+  auto checkpointWriter = iofldFactory::create();
 
-  const auto outXYZ = platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE");
-
-  auto visMesh = entireMesh();
+  auto visMesh = nrs->meshT;
   checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
 
-  if (!checkpointWriter->isInitialized())
+  if (nrs->fluid &&
+      platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE"))
   {
-    if (nrs->fluid)
-    {
-      if (platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE"))
-      {
-        std::vector<occa::memory> o_V;
-        for (int i = 0; i < flowMesh()->dim; i++)
-        {
-          o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
-        }
-        checkpointWriter->addVariable("velocity", o_V);
-
-        auto o_p = std::vector<occa::memory>{nrs->fluid->o_P.slice(0, visMesh->Nlocal)};
-        checkpointWriter->addVariable("pressure", o_p);
-      }
+    std::vector<occa::memory> o_V;
+    for (int i = 0; i < nrs->meshV->dim; i++) {
+      o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
     }
+    checkpointWriter->addVariable("velocity", o_V);
 
-    int ns = Nscalar();
-    for (int i = 0; i < ns; i++)
+    std::vector<occa::memory> o_p = {nrs->fluid->o_P.slice(0, visMesh->Nlocal)};
+    checkpointWriter->addVariable("pressure", o_p);
+  }
+
+  for (int i = 0; i < nrs->Nscalar; i++)
+  {
+    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE"))
     {
-      if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE"))
-      {
-        const auto temperatureExists =
-            nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
-        std::vector<occa::memory> o_Si = {
-            nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
-        if (i == 0 && temperatureExists)
-        {
-          checkpointWriter->addVariable("temperature", o_Si);
-        }
-        else
-        {
-          const auto is = (temperatureExists) ? i - 1 : i;
-          checkpointWriter->addVariable("scalar" + scalarDigitStr(is), o_Si);
-        }
+      const auto temperatureExists = nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
+
+      std::vector<occa::memory> o_Si = {nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+
+      if (i == 0 && temperatureExists) {
+        checkpointWriter->addVariable("temperature", o_Si);
+      }
+      else {
+        checkpointWriter->addVariable("scalar" + scalarDigitStr(temperatureExists ? i - 1 : i), o_Si);
       }
     }
   }
@@ -174,18 +158,15 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   platform->options.getArgs("POLYNOMIAL DEGREE", N);
   checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
 
-  auto FP64 = platform->options.compareArgs("CHECKPOINT PRECISION", "FP64");
+  checkpointWriter->writeAttribute("precision",
+      platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
 
-  checkpointWriter->writeAttribute("precision", (FP64) ? "64" : "32");
-  checkpointWriter->writeAttribute("outputMesh", (outXYZ) ? "true" : "false");
+  checkpointWriter->writeAttribute("outputMesh",
+      platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
 
-  std::string hSchedule;
-  if (platform->options.getArgs("MESH HREFINEMENT SCHEDULE", hSchedule))
-  {
-    checkpointWriter->writeAttribute("hSchedule", hSchedule);
-  }
   checkpointWriter->addVariable("time", const_cast<double &>(time));
   checkpointWriter->process();
+  checkpointWriter->close();
 }
 
 void
