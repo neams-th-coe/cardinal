@@ -100,7 +100,7 @@ OpenMCCellTransformBase::transform(const MooseEnum & transform_type, const Point
                              << ") degrees." << std::endl;
     }
     else
-      _moose_object.mooseError("In transformation, unknown transformation type: " + transform_type);
+      _moose_object.mooseError("In transformation, unknown transformation type: ", transform_type);
 
     catchOpenMCError(err, "transform OpenMC cell OpenMC cell with ID " + std::to_string(cell_id));
   }
