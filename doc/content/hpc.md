@@ -192,6 +192,13 @@ need to pass some additional settings to libMesh.
 ./contrib/moose/scripts/update_and_rebuild_wasp.sh
 ```
 
+You'll also then edit the `cardinal/config/nekrs.mk` file to disable HYPRE GPU support.
+Add this line to the CMake flags:
+
+```
+  -DENABLE_HYPRE_GPU=OFF \
+```
+
 !listing! language=bash caption=Sample `~/.bashrc` for Frontier id=fr1
 if [ $LMOD_SYSTEM_NAME = frontier ]; then
     module reset
