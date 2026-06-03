@@ -252,7 +252,10 @@ hasTemperatureSolve()
 bool
 hasScalarVariable(int scalarId)
 {
-  return (scalarId < nrs->Nscalar);
+  if (hasTemperatureVariable())
+    return scalarId < nrs->Nscalar;
+  else
+    return scalarId <= nrs->Nscalar;
 }
 
 bool
@@ -1516,19 +1519,28 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 double
 get_scalar01(const int id, const int surf_offset = 0)
 {
-  return S[id + 1 * scalarFieldOffset()];
+  if (hasTemperatureVariable())
+    return S[id + 1 * scalarFieldOffset()];
+  else
+    return S[id + 0 * scalarFieldOffset()];
 }
 
 double
 get_scalar02(const int id, const int surf_offset = 0)
 {
-  return S[id + 2 * scalarFieldOffset()];
+  if (hasTemperatureVariable())
+    return S[id + 2 * scalarFieldOffset()];
+  else
+    return S[id + 1 * scalarFieldOffset()];
 }
 
 double
 get_scalar03(const int id, const int surf_offset = 0)
 {
-  return S[id + 3 * scalarFieldOffset()];
+  if (hasTemperatureVariable())
+    return S[id + 3 * scalarFieldOffset()];
+  else
+    return S[id + 2 * scalarFieldOffset()];
 }
 
 double
