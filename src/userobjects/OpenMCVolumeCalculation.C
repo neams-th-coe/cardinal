@@ -142,7 +142,7 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
   std::vector<int> domain_ids(ids.begin(), ids.end());
   _volume_calc->domain_ids_ = domain_ids;
   openmc::model::volume_calcs.push_back(*_volume_calc);
-  _calc_index = openmc::model::volume_calcs.size();
+  _calc_index = openmc::model::volume_calcs.size() - 1;
 }
 
 void
