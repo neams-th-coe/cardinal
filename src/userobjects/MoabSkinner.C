@@ -7,6 +7,7 @@
 #include "GeometryUtils.h"
 #include "UserErrorChecking.h"
 #include "DisplacedProblem.h"
+#include "MooseMeshElementConversionUtils.h"
 
 #include "libmesh/elem.h"
 #include "libmesh/enum_io_package.h"
@@ -15,6 +16,7 @@
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 #include "libmesh/mesh_tools.h"
+#include "libmesh/replicated_mesh.h"
 
 registerMooseObject("CardinalApp", MoabSkinner);
 
@@ -105,7 +107,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _output_full(getParam<bool>("output_full")),
     _scaling(1.0),
     _n_write(0),
-    _standalone(true)
+    _standalone(true),
+    _requires_tet_conversion(false)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
   _use_displaced = getParam<bool>("use_displaced_mesh");
@@ -244,9 +247,85 @@ MoabSkinner::getMooseMesh()
               : _fe_problem.mesh());
 }
 
+MeshBase &
+MoabSkinner::getGeometryMesh()
+{
+  if (_requires_tet_conversion && _tet_mesh)
+    return *_tet_mesh;
+  return getMooseMesh().getMesh();
+}
+
+void
+MoabSkinner::buildTetMesh()
+{
+  _tet_to_original_elem.clear();
+  _requires_tet_conversion = false;
+  _tet_mesh.reset();
+  _tet_mesh_built = true;
+
+  MeshBase & source = getMooseMesh().getMesh();
+
+  for (const auto * elem : source.active_element_ptr_range())
+  {
+    if (elem->type() == HEX8)
+      _requires_tet_conversion = true;
+    else if (elem->type() != TET4 && elem->type() != TET10)
+      mooseError("MoabSkinner only supports HEX8, TET4, and TET10 meshes, but found element type '",
+                 elem->type(),
+                 "'.");
+  }
+
+  if (!_requires_tet_conversion)
+    return;
+
+  if (_verbose)
+    _console << "MoabSkinner: non-tetrahedral elements detected. "
+             << "Building internal TET4 copy of the mesh..." << std::endl;
+
+  _tet_mesh = std::make_unique<ReplicatedMesh>(source.comm());
+  _tet_mesh->copy_nodes_and_elements(source);
+  _tet_mesh->prepare_for_use();
+
+  const unsigned int orig_id_tag = _tet_mesh->add_elem_integer("orig_id");
+  for (auto * elem : _tet_mesh->active_element_ptr_range())
+  {
+    if (elem->type() != HEX8 && elem->type() != TET4 && elem->type() != TET10)
+      mooseError("MoabSkinner only supports HEX8, TET4, and TET10 meshes, "
+                 "but found element type '",
+                 elem->type(),
+                 "'.");
+    elem->set_extra_integer(orig_id_tag, elem->id());
+  }
+
+  std::vector<std::pair<dof_id_type, bool>> elems_to_process;
+  for (const auto * elem : _tet_mesh->active_element_ptr_range())
+    elems_to_process.emplace_back(elem->id(), true);
+
+  std::set<subdomain_id_type> sids;
+  _tet_mesh->subdomain_ids(sids);
+  const subdomain_id_type tmp_remove_sid = *sids.rbegin() + 1;
+
+  std::vector<dof_id_type> converted_ids;
+  MooseMeshElementConversionUtils::convert3DMeshToAllTet4(
+      *_tet_mesh, elems_to_process, converted_ids, tmp_remove_sid, true);
+
+  _tet_mesh->prepare_for_use();
+
+  // Read the stamped original ID back from every surviving tet element.
+  for (const auto * tet : _tet_mesh->active_element_ptr_range())
+    _tet_to_original_elem[tet->id()] = tet->get_extra_integer(orig_id_tag);
+
+  if (_verbose)
+    _console << "MoabSkinner: internal TET4 mesh has " << _tet_mesh->n_active_elem()
+             << " elements (from " << source.n_active_elem() << " original elements)." << std::endl;
+}
+
 void
 MoabSkinner::initialize()
 {
+  if (!_tet_mesh_built)
+    buildTetMesh();
+
   findBlocks();
 
   if (_standalone)
@@ -313,6 +392,9 @@ MoabSkinner::update()
   // Clear MOAB mesh data from last timestep
   reset();
 
+  // Build internal TET4 mesh if source mesh has non-tet elements
+  buildTetMesh();
+
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
 
@@ -348,8 +430,10 @@ MoabSkinner::createMOABElems()
 
   double coords[3];
 
+  MeshBase & geom_mesh = getGeometryMesh();
+
   // Save all the node information
-  for (const auto & node : getMooseMesh().getMesh().node_ptr_range())
+  for (const auto & node : geom_mesh.node_ptr_range())
   {
     // Fetch coords (and scale to correct units)
     coords[0] = _scaling * (*node)(0);
@@ -367,7 +451,7 @@ MoabSkinner::createMOABElems()
   moab::Range all_elems;
 
   // Iterate over elements in the mesh
-  for (const auto & elem : getMooseMesh().getMesh().active_element_ptr_range())
+  for (const auto & elem : geom_mesh.active_element_ptr_range())
   {
     auto nodeSets = getTetSets(elem->type());
 
@@ -418,7 +502,9 @@ MoabSkinner::getTetSets(ElemType type) const
   else if (type == TET10)
     return _tet10_nodes;
   else
-    mooseError("The MoabSkinner can only be used with a tetrahedral [Mesh]!");
+    mooseError(
+        "The MoabSkinner can only be used with a tetrahedral [Mesh]! If your mesh "
+        "contains hex elements, MoabSkinner should convert them automatically.");
 }
 
 void
@@ -576,27 +662,71 @@ MoabSkinner::sortElemsByResults()
   std::vector<unsigned int> n_temp_hits(_n_temperature_bins, 0);
   std::vector<unsigned int> n_density_hits(_n_density_bins, 0);
 
-  for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
+  if (!_requires_tet_conversion)
   {
-    const Elem * const elem = getMooseMesh().queryElemPtr(e);
-    if (!elem)
-      continue;
+    for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
+    {
+      const Elem * const elem = getMooseMesh().queryElemPtr(e);
+      if (!elem)
+        continue;
 
-    // bin by subdomain ID
-    auto iMat = getSubdomainBin(elem);
-    n_block_hits[iMat] += 1;
+      auto iMat = getSubdomainBin(elem);
+      n_block_hits[iMat] += 1;
 
-    // bin by density
-    auto iDenBin = getDensityBin(elem);
-    n_density_hits[iDenBin] += 1;
+      auto iDenBin = getDensityBin(elem);
+      n_density_hits[iDenBin] += 1;
 
-    // bin by temperature
-    auto iBin = getTemperatureBin(elem);
-    n_temp_hits[iBin] += 1;
+      auto iBin = getTemperatureBin(elem);
+      n_temp_hits[iBin] += 1;
 
-    // Sort elem into a bin
-    auto iSortBin = getBin(iBin, iDenBin, iMat);
-    _elem_bins.at(iSortBin).insert(elem->id());
+      _elem_bins.at(getBin(iBin, iDenBin, iMat)).insert(elem->id());
+    }
+  }
+  else
+  {
+    // aux vars live on the original mesh; _elem_bins
+    // must hold tet-mesh IDs (keyed the same as _id_to_elem_handles).
+
+    // compute bin index for every original element.
+    std::map<dof_id_type, unsigned int> orig_id_to_bin;
+
+    for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
+    {
+      const Elem * const elem = getMooseMesh().queryElemPtr(e);
+      if (!elem)
+        continue;
+
+      auto iMat = getSubdomainBin(elem);
+      n_block_hits[iMat] += 1;
+
+      auto iDenBin = getDensityBin(elem);
+      n_density_hits[iDenBin] += 1;
+
+      auto iBin = getTemperatureBin(elem);
+      n_temp_hits[iBin] += 1;
+
+      orig_id_to_bin[elem->id()] = getBin(iBin, iDenBin, iMat);
+    }
+
+    // insert each tet ID into its parent's bin.
+    for (const auto * tet : _tet_mesh->active_element_ptr_range())
+    {
+      const dof_id_type tet_id = tet->id();
+
+      auto tet_it = _tet_to_original_elem.find(tet_id);
+      if (tet_it == _tet_to_original_elem.end())
+        mooseError("MoabSkinner::sortElemsByResults(): tet id=",
+                   tet_id,
+                   " not found in _tet_to_original_elem");
+
+      auto bin_it = orig_id_to_bin.find(tet_it->second);
+      if (bin_it == orig_id_to_bin.end())
+        mooseError("MoabSkinner::sortElemsByResults(): original elem id=",
+                   tet_it->second,
+                   " not found in bin map");
+
+      _elem_bins.at(bin_it->second).insert(tet_id);
+    }
   }
 
   if (_verbose)
@@ -704,7 +834,7 @@ void
 MoabSkinner::findSurfaces()
 {
   // Find all neighbours in mesh
-  getMooseMesh().getMesh().find_neighbors();
+  getGeometryMesh().find_neighbors();
 
   // Counter for volumes
   unsigned int vol_id = 0;
@@ -842,7 +972,7 @@ MoabSkinner::groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Rang
           local.insert(ent);
 
         // Get the libMesh element
-        Elem & elem = getMooseMesh().getMesh().elem_ref(next);
+        Elem & elem = getGeometryMesh().elem_ref(next);
 
         // How many nearest neighbors (general element)?
         unsigned int NN = elem.n_neighbors();
@@ -882,6 +1012,11 @@ MoabSkinner::reset()
   _moab.reset(new moab::Core());
   skinner.reset(new moab::Skinner(_moab.get()));
   gtt.reset(new moab::GeomTopoTool(_moab.get()));
+
+  _tet_mesh.reset();
+  _tet_to_original_elem.clear();
+  _requires_tet_conversion = false;
+  _tet_mesh_built = false;
 
   // Clear entity set maps
   surfsToVols.clear();
