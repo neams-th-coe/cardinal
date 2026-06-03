@@ -128,9 +128,9 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
       platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE"))
   {
     std::vector<occa::memory> o_V;
-    for (int i = 0; i < nrs->meshV->dim; i++) {
+    for (int i = 0; i < nrs->meshV->dim; i++)
       o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
-    }
+
     checkpointWriter->addVariable("velocity", o_V);
 
     std::vector<occa::memory> o_p = {nrs->fluid->o_P.slice(0, visMesh->Nlocal)};
@@ -141,9 +141,10 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   {
     if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE"))
     {
-      const auto temperatureExists = nrs->scalar->nameToIndex.find("temperature") != nrs->scalar->nameToIndex.end();
+      const auto temperatureExists = hasTemperatureVariable();
 
-      std::vector<occa::memory> o_Si = {nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+      std::vector<occa::memory> o_Si = {
+        nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
 
       if (i == 0 && temperatureExists) {
         checkpointWriter->addVariable("temperature", o_Si);
@@ -158,11 +159,11 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   platform->options.getArgs("POLYNOMIAL DEGREE", N);
   checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
 
-  checkpointWriter->writeAttribute("precision",
-      platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
+  checkpointWriter->writeAttribute(
+    "precision", platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
 
-  checkpointWriter->writeAttribute("outputMesh",
-      platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
+  checkpointWriter->writeAttribute(
+    "outputMesh", platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
 
   checkpointWriter->addVariable("time", const_cast<double &>(time));
   checkpointWriter->process();
