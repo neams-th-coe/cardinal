@@ -62,7 +62,14 @@
     input = points.i
     cli_args = 'Problem/casename="brick_no_temp"'
     expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall error if non-temperature scalars are present, but temperature is requested through the variable interface. The gold file has the same data as the points.i test but with only the scalars included."
+    requirement = "The system shall error if non-temperature scalars are present, but temperature is requested through the variable interface."
+    capabilities = 'nekrs'
+  []
+  [scalar_values_no_temp]
+    type = CSVDiff
+    input = points_no_temp.i
+    csvdiff = points_no_temp_out.csv
+    requirement = "The system shall correctly query scalar point values when temperature scalars are not present. The gold file has the same data as the points.i test but with only the scalars included."
     capabilities = 'nekrs'
   []
 []
