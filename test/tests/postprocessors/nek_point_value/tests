@@ -56,4 +56,13 @@
       capabilities = 'nekrs'
     []
   []
+
+  [scalars_but_no_temp]
+    type = RunException
+    input = points.i
+    cli_args = 'Problem/casename="brick_no_temp"'
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable!"
+    requirement = "The system shall error if non-temperature scalars are present, but temperature is requested through the variable interface. The gold file has the same data as the points.i test but with only the scalars included."
+    capabilities = 'nekrs'
+  []
 []

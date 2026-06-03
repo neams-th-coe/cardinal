@@ -746,6 +746,13 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int);
 double (*solutionPointer(const field::NekWriteEnum & field))(int, int);
 
 /**
+ * Determine the index in the scalar array for the non-temperature scalars
+ * @param[in] id id of the scalar; 1 corresponds to first non-temperature scalar, etc.
+ * @return slot in scalar array that holds this variable
+ */
+int scalarSlot(const int id);
+
+/**
  * Get the scalar01 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar01 value at index

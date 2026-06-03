@@ -1517,31 +1517,31 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
   return valid_boundary_ids;
 }
 
+int
+scalarSlot(const int id)
+{
+  if (hasTemperatureVariable())
+    return id;
+  else
+    return id - 1;
+}
+
 double
 get_scalar01(const int id, const int surf_offset = 0)
 {
-  if (hasTemperatureVariable())
-    return S[id + 1 * scalarFieldOffset()];
-  else
-    return S[id + 0 * scalarFieldOffset()];
+  return S[id + scalarSlot(1) * scalarFieldOffset()];
 }
 
 double
 get_scalar02(const int id, const int surf_offset = 0)
 {
-  if (hasTemperatureVariable())
-    return S[id + 2 * scalarFieldOffset()];
-  else
-    return S[id + 1 * scalarFieldOffset()];
+  return S[id + scalarSlot(2) * scalarFieldOffset()];
 }
 
 double
 get_scalar03(const int id, const int surf_offset = 0)
 {
-  if (hasTemperatureVariable())
-    return S[id + 3 * scalarFieldOffset()];
-  else
-    return S[id + 2 * scalarFieldOffset()];
+  return S[id + scalarSlot(3) * scalarFieldOffset()];
 }
 
 double
