@@ -1,6 +1,6 @@
 [Tests]
   design = 'NekVolumeIntegral.md'
-  issues = '#1065'
+  issues = '#1065 #1345'
   requirement = 'The system shall integrate the NekRS solution over a volume. This is tested by comparing against the output files of an identical setup in MOOSE, where identical integrals are computed using existing MOOSE postprocessors on the same mesh in'
 
   [nek]
@@ -15,6 +15,13 @@
     input = nondimensional.i
     csvdiff = nondimensional_out.csv
     requirement = 'nondimensional form'
+    capabilities = 'nekrs'
+  []
+  [scalar_values_no_temp]
+    type = CSVDiff
+    input = nek_no_temp.i
+    csvdiff = nek_no_temp_out.csv
+    requirement = "The system shall correctly compute integral scalar values when temperature scalars are not present. The gold file has the same data as the nek.i test but with only the scalars included."
     capabilities = 'nekrs'
   []
 []
