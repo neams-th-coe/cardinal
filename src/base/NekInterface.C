@@ -162,7 +162,8 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
       "precision", platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
 
   checkpointWriter->writeAttribute(
-      "outputMesh", platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
+      "outputMesh",
+      platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
 
   checkpointWriter->addVariable("time", const_cast<double &>(time));
   checkpointWriter->process();
