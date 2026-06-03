@@ -144,14 +144,13 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
       const auto temperatureExists = hasTemperatureVariable();
 
       std::vector<occa::memory> o_Si = {
-        nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+          nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
 
-      if (i == 0 && temperatureExists) {
+      if (i == 0 && temperatureExists)
         checkpointWriter->addVariable("temperature", o_Si);
-      }
-      else {
-        checkpointWriter->addVariable("scalar" + scalarDigitStr(temperatureExists ? i - 1 : i), o_Si);
-      }
+      else
+        checkpointWriter->addVariable("scalar" + scalarDigitStr(temperatureExists ? i - 1 : i),
+                                      o_Si);
     }
   }
 
@@ -160,10 +159,10 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
   checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
 
   checkpointWriter->writeAttribute(
-    "precision", platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
+      "precision", platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
 
   checkpointWriter->writeAttribute(
-    "outputMesh", platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
+      "outputMesh", platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
 
   checkpointWriter->addVariable("time", const_cast<double &>(time));
   checkpointWriter->process();
