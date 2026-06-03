@@ -1,0 +1,14 @@
+#ifdef __okl__
+#endif
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+}
+
+void UDF_Setup()
+{
+}
+
+void UDF_ExecuteStep(double time, int tstep)
+{
+}
