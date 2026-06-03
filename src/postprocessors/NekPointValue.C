@@ -148,13 +148,13 @@ NekPointValue::execute()
       _value = interpolated[0];
       break;
     case field::scalar01:
-      _value = interpolated[1];
+      _value = interpolated[nekrs::scalarSlot(1)];
       break;
     case field::scalar02:
-      _value = interpolated[2];
+      _value = interpolated[nekrs::scalarSlot(2)];
       break;
     case field::scalar03:
-      _value = interpolated[3];
+      _value = interpolated[nekrs::scalarSlot(3)];
       break;
     case field::unity:
       _value = 1;
