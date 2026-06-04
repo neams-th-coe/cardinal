@@ -115,12 +115,6 @@ public:
   unsigned int getAuxiliaryVariableNumber(const std::string & name,
                                           const std::string & param_name) const;
 
-  /// TET4 clone of the MOOSE mesh. Present only when _requires_tet_conversion is true.
-  std::unique_ptr<ReplicatedMesh> _tet_mesh;
-
-  /// Maps every _tet_mesh element ID to the original getMooseMesh() element ID it was produced from
-  std::map<dof_id_type, dof_id_type> _tet_to_original_elem;
-
   /// Clear mesh data
   void reset();
 
@@ -244,6 +238,12 @@ protected:
 
   /// True when buildTetMesh() is called
   bool _tet_mesh_built;
+
+  /// TET4 clone of the MOOSE mesh. Present only when _requires_tet_conversion is true.
+  std::unique_ptr<ReplicatedMesh> _tet_mesh;
+
+  /// Maps every _tet_mesh element ID to the original getMooseMesh() element ID it was produced from
+  std::map<dof_id_type, dof_id_type> _tet_to_original_elem;
 
   /// Encode the whether the surface normal faces into or out of the volume
   enum Sense

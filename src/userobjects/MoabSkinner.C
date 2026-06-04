@@ -108,7 +108,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _scaling(1.0),
     _n_write(0),
     _standalone(true),
-    _requires_tet_conversion(false)
+    _requires_tet_conversion(false),
+    _tet_mesh_built(false)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
   _use_displaced = getParam<bool>("use_displaced_mesh");
@@ -265,11 +266,15 @@ MoabSkinner::buildTetMesh()
 
   MeshBase & source = getMooseMesh().getMesh();
 
+  // Decide whether conversion is needed and validate element types
+  bool has_tet10 = false;
   for (const auto * elem : source.active_element_ptr_range())
   {
     if (elem->type() == HEX8)
       _requires_tet_conversion = true;
-    else if (elem->type() != TET4 && elem->type() != TET10)
+    else if (elem->type() == TET10)
+      has_tet10 = true;
+    else if (elem->type() != TET4)
       mooseError("MoabSkinner only supports HEX8, TET4, and TET10 meshes, but found element type '",
                  elem->type(),
                  "'.");
@@ -277,6 +282,12 @@ MoabSkinner::buildTetMesh()
 
   if (!_requires_tet_conversion)
     return;
+
+  // convert3DMeshToAllTet4() only handles linear elements, so a mesh that mixes HEX8 with
+  // quadratic TET10 elements cannot be converted.
+  if (has_tet10)
+    mooseError("MoabSkinner cannot convert a mesh that mixes HEX8 and TET10 elements. "
+               "Use an all-HEX8, all-TET4, or all-TET10 mesh.");
 
   if (_verbose)
     _console << "MoabSkinner: non-tetrahedral elements detected. "
@@ -286,30 +297,24 @@ MoabSkinner::buildTetMesh()
   _tet_mesh->copy_nodes_and_elements(source);
   _tet_mesh->prepare_for_use();
 
+  // Stamp each element with its own ID so it can be recovered after conversion; the splitter
+  // copies element extra integers onto every child tet.
   const unsigned int orig_id_tag = _tet_mesh->add_elem_integer("orig_id");
+  std::vector<std::pair<dof_id_type, bool>> elems_to_process;
   for (auto * elem : _tet_mesh->active_element_ptr_range())
   {
-    if (elem->type() != HEX8 && elem->type() != TET4 && elem->type() != TET10)
-      mooseError("MoabSkinner only supports HEX8, TET4, and TET10 meshes, "
-                 "but found element type '",
-                 elem->type(),
-                 "'.");
     elem->set_extra_integer(orig_id_tag, elem->id());
-  }
-
-  std::vector<std::pair<dof_id_type, bool>> elems_to_process;
-  for (const auto * elem : _tet_mesh->active_element_ptr_range())
     elems_to_process.emplace_back(elem->id(), true);
+  }
 
   std::set<subdomain_id_type> sids;
   _tet_mesh->subdomain_ids(sids);
   const subdomain_id_type tmp_remove_sid = *sids.rbegin() + 1;
 
+  // convert3DMeshToAllTet4() contracts and re-prepares the mesh internally.
   std::vector<dof_id_type> converted_ids;
   MooseMeshElementConversionUtils::convert3DMeshToAllTet4(
       *_tet_mesh, elems_to_process, converted_ids, tmp_remove_sid, true);
-
-  _tet_mesh->prepare_for_use();
 
   // Read the stamped original ID back from every surviving tet element.
   for (const auto * tet : _tet_mesh->active_element_ptr_range())
@@ -391,9 +396,6 @@ MoabSkinner::update()
 
   // Clear MOAB mesh data from last timestep
   reset();
-
-  // Build internal TET4 mesh if source mesh has non-tet elements
-  buildTetMesh();
 
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
