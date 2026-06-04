@@ -58,4 +58,12 @@
     requirement = "The system shall bin hex mesh elements from the loaded mesh according to temperature and density and be able to visualize the bins on the mesh volume."
     capabilities = 'dagmc'
   []
+  [mixed_elements]
+    type = Exodiff
+    input = mixed_elements.i
+    exodiff = mixed_elements_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin mixed HEX8 and PRISM6 mesh elements from the loaded mesh according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume."
+    capabilities = 'dagmc'
+  []
 []
