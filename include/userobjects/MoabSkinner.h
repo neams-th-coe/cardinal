@@ -233,17 +233,11 @@ protected:
   /// Whether this class runs by itself, or is controlled by an external class
   bool _standalone;
 
-  /// True when the source mesh has HEX8 elements.
-  bool _requires_tet_conversion;
-
   /// True when buildTetMesh() is called
   bool _tet_mesh_built;
 
   /// TET4 clone of the MOOSE mesh. Present only when _requires_tet_conversion is true.
-  std::unique_ptr<ReplicatedMesh> _tet_mesh;
-
-  /// Maps every _tet_mesh element ID to the original getMooseMesh() element ID it was produced from
-  std::map<dof_id_type, dof_id_type> _tet_to_original_elem;
+  std::unique_ptr<MeshBase> _tet_mesh;
 
   /// Encode the whether the surface normal faces into or out of the volume
   enum Sense
@@ -264,10 +258,10 @@ protected:
 
   /**
    * Return the mesh used for DAGMC geometry construction.
-   * Returns *_tet_mesh when _requires_tet_conversion && _tet_mesh,
+   * Returns *_tet_mesh when conversion is required,
    * otherwise returns getMooseMesh().getMesh().
    */
-  MeshBase & getGeometryMesh();
+  MeshBase & getDAGMCGeometryMesh();
 
   /**
    * If the mesh has HEX8 elements, clone it into

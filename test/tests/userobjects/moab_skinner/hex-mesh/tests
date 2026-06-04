@@ -58,12 +58,4 @@
     requirement = "The system shall bin hex mesh elements from the loaded mesh according to temperature and density and be able to visualize the bins on the mesh volume."
     capabilities = 'dagmc'
   []
-  [unsupported_mesh]
-    type = RunException
-    input = wrong_type.i
-    mesh_mode = 'replicated'
-    expect_err = "MoabSkinner only supports HEX8, TET4, and TET10 meshes"
-    requirement = "The system shall error if the skinner is given a mesh with an unspported element type."
-    capabilities = 'dagmc'
-  []
 []
