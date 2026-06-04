@@ -1,5 +1,5 @@
 [Tests]
-  issues = '#567'
+  issues = '#1352'
   design = 'MoabSkinner.md'
 
   [bins]
@@ -50,12 +50,12 @@
     cli_args = '--mesh-only'
     requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions. The bins shall be re-generated on each time step from a hex mesh."
   []
-  [wrong_type]
+  [unsupported_mesh]
     type = RunException
     input = wrong_type.i
     mesh_mode = 'replicated'
-    expect_err = "Auxiliary variable 'temp' must be a CONSTANT MONOMIAL type!"
-    requirement = "The system shall error if the requirements for a binning variable type are violated."
+    expect_err = "MoabSkinner only supports HEX8, TET4, and TET10 meshes"
+    requirement = "The system shall error if the skinner is given a mesh with an unspported element type."
     capabilities = 'dagmc'
   []
 []

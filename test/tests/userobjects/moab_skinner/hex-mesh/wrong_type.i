@@ -11,6 +11,7 @@
     nx = 5
     ny = 5
     nz = 5
+    elem_type = HEX20
   []
   [id1]
     type = ParsedSubdomainMeshGenerator
@@ -33,6 +34,8 @@
 
 [AuxVariables]
   [temp]
+    family = MONOMIAL
+    order = CONSTANT
   []
 []
 
