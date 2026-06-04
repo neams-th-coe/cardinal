@@ -66,4 +66,13 @@
     requirement = "The system shall bin mixed HEX8 and PRISM6 mesh elements from the loaded mesh according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume."
     capabilities = 'dagmc'
   []
+  [second_order]
+    type = Exodiff
+    input = mixed_elements.i
+    cli_args = 'Mesh/order_conversion/type=ElementOrderConversionGenerator Mesh/order_conversion/input=extrude Mesh/order_conversionconversion_type=SECOND_ORDER'
+    exodiff = mixed_elements_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin mixed HEX27 and PRISM18 mesh elements from the loaded mesh according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume."
+    capabilities = 'dagmc'
+  []
 []
