@@ -488,7 +488,7 @@ MoabSkinner::getTetSets(ElemType type) const
     return _tet10_nodes;
   else
     mooseError("The MoabSkinner can only be used with a tetrahedral [Mesh]! If your mesh "
-               "contains hex elements, MoabSkinner should convert them automatically.");
+               "contains other element types, MoabSkinner should convert them automatically.");
 }
 
 void

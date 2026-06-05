@@ -236,7 +236,7 @@ protected:
   /// True when buildTetMesh() is called
   bool _tet_mesh_built;
 
-  /// TET4 clone of the MOOSE mesh. Present only when _requires_tet_conversion is true.
+  /// TET4 clone of the MOOSE mesh. Present only when the source mesh contains non-tetrahedral elements. Rebuilt each update() cycle.
   std::unique_ptr<MeshBase> _tet_mesh;
 
   /// Encode the whether the surface normal faces into or out of the volume
@@ -258,22 +258,20 @@ protected:
 
   /**
    * Return the mesh used for DAGMC geometry construction.
-   * Returns *_tet_mesh when conversion is required,
-   * otherwise returns getMooseMesh().getMesh().
+   * Returns *_tet_mesh when the source mesh contained non-tetrahedral elements
+   * and an internal conversion was performed; otherwise returns getMooseMesh().getMesh().
    */
   MeshBase & getDAGMCGeometryMesh();
 
-  /**
-   * If the mesh has HEX8 elements, clone it into
-   * _tet_mesh and convert to all-TET4 using and populate _tet_to_original_elem.
-   */
+  /// If the mesh has non-tetrahedral elements, clone it into _tet_mesh and convert to all-TET4
   void buildTetMesh();
 
   /**
    * Copy the libMesh [Mesh] into a MOAB mesh. This first loops through all of the
    * nodes, and rebuilds each as a MOAB vertex. Then, we loop over all of the elements
    * and rebuild each as a TET4 (if the libMesh mesh has TET10 elements, they are each
-   * rebuilt into 8 TET4 elements).
+   * rebuilt into 8 TET4 elements). When the source mesh contained non-tetrahedral elements,
+   * the geometry mesh is the internally-converted all-TET4 clone rather than the MOOSE mesh
    */
   void createMOABElems();
 
