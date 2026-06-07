@@ -16,12 +16,6 @@ To access this tutorial,
 cd cardinal/tutorials/rr_lwr_pincell
 ```
 
-!alert! note title=Previous Experience
-In this tutorial, we assume that the user is familiar with coupling OpenMC to MOOSE in
-Cardinal for [!ac](LWR) problems. If you haven't done so already, we recommend that you
-complete the [continuous energy LWR pincell tutorial](pincell1.md) before continuing.
-!alert-end!
-
 ## Geometry and Computational Models id=model_1
 
 This model consists of a single UO@2@ pincell from a continuous energy version of the 3D
@@ -60,8 +54,9 @@ with the following fluid temperature
 T_{fluid}(z) = T_{inlet} + (T_{outlet} - T_{inlet})\left(\frac{z + L/2}{L}\right)
 \end{equation}
 
-is applied to the outer surface of the cladding. The common parameters for the model can be found in
-`common.i`/`common.py`:
+is applied to the outer surface of the cladding. Although simplistic, this lets us focus this tutorial on [!ac](TRRM)
+and its unique features, while removing some complexity of including a fluids solver (which you can extend should
+it be desired). The common parameters for the model can be found in `common.i`:
 
 !listing /tutorials/rr_lwr_pincell/common.i
 
@@ -81,13 +76,18 @@ azimuthal dimension is discretized uniformly.
 Afterwards, we define continuous energy material properties for the UO@2@ fuel (`uo2`), Zr cladding (`zr`),
 and borated water coolant (`h2o`). Once materials are defined, we create the surfaces and cells necessary
 to build the full pincell with [!ac](CSG) in the radial plane. `build_sr_pin` is then used to create a
-universe which is populated with the discretized pincell. In this problem the azimuthal dimension is
-symmetric, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
+universe which is populated with the discretized pincell. In this problem the azimuthal dimension of the
+fuel pin itself is symmetric, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
 to a lattice to extrude it into 100 layers axially. The lattice is placed in a cell
 which applies vacuum boundary conditions on the top and bottom of the pincell, while reflective boundary
 conditions are applied on the remaining sides of the geometry. Finally, we add the materials and geometry
 to a model container and set some simulation settings for the continuous energy model. The radial
 discretization of the OpenMC [!ac](CSG) geometry can be found in [rr_openmc_cells].
+
+!alert note
+For most continuous-energy simulations `model.materials` does not need to be set prior to writing the `model.xml`
+file to disk with `model.export_to_model_xml()`. When using `model.convert_to_multigroup()`, `model.materials`
+must be set as the conversion function does not attempt to discover materials from the geometry.
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
   start=## Fuel region: UO2 at ~1% enriched.
@@ -126,20 +126,19 @@ coolant has a temperature of ~600 K and the fuel has a temperature of ~1400 K). 
 conditions in this tutorial to simplify the generation of [!ac](MGXS) - care should be exercised if using this
 option for production calculations. We recommend reading the
 [OpenMC user guide](https://docs.openmc.org/en/stable/usersguide/random_ray.html#generating-multigroup-cross-sections-mgxs)
-for generating [!ac](MGXS) to review the pros and cons of the autoconvert function. A final choice that we make
+for generating [!ac](MGXS) to review the pros and cons of the autoconvert function and to learn how you can generate the
+[!ac](MGXS) without relying on the autoconvert function. A final choice that we make
 for [!ac](MGXS) generation is the scattering treatment - we select a P@0@ transport correction (`correction="P0"`)
 to minimize bias introduced in the scattering source. This is often sufficient for [!ac](LWR) applications.
 
-Converting to a random ray model requires minimal user knowledge compared to the multi-group conversion.
-OpenMC will examine the bounding box of our pincell to determine the maximum chord length, and set the inactive
-length to that distance. The maximum chord length is often larger than ten mean free paths in reactor applications,
-and so
+Converting to a random ray model requires minimal user knowledge. OpenMC will examine the bounding box of our pincell to
+determine the maximum chord length, and set the inactive length to that distance. The maximum chord length is often
+larger than ten mean free paths in reactor applications, and so
 [ray initialization bias](https://docs.openmc.org/en/stable/methods/random_ray.html#ray-starting-conditions-and-inactive-length)
-is wiped away with this choice. The active distance is set to five times the maximum chord length. Unlike the
-conversion to multi-group where [!ac](MGXS) are generated, the selection of the inactive and active ray length
-can be set to different values if they are found to be insufficient. This function also sets the ray source to
+is wiped away with this choice. The active distance is set to five times the maximum chord length. The inactive and active
+ray lengths can be set to different values if they are found to be insufficient. This function also sets the ray source to
 the geometric bounding box, and takes a guess as to how many rays will be required. The number of rays should
-be set by the user as this guess is almost never sufficient.
+be set by the user as the default guess is almost never sufficient.
 
 After converting to a [!ac](TRRM) model, we set some discretization parameters specific to our problem. This
 includes further source region subdivision of the coolant region using a uniform mesh (known as
@@ -164,13 +163,13 @@ used by [!ac](TRRM).
 The flat source random ray model can be generated with,
 
 ```bash
-python3 make_openmc_model -r
+python make_openmc_model.py -r
 ```
 
 and the linear source model can be generated with,
 
 ```bash
-python3 make_openmc_model -r --linear
+python make_openmc_model.py -r --linear
 ```
 
 ### MOOSE Heat Conduction Model id=heat_cond
@@ -200,15 +199,16 @@ input file (`solid_mesh.i`):
 
 The pincell is created first with a [PolygonConcentricCircleMeshGenerator](PolygonConcentricCircleMeshGenerator.md),
 where the radial regions have the same radii as the source region discretization we set up in the OpenMC [!ac](CSG)
-model. This ensures that we maintain a one-to-one mapping between subdomains in the MOOSE mesh and the OpenMC geometry
-to avoid warping tallies. The mesh is then extruded axially with an [AdvancedExtruderGenerator](AdvancedExtruderGenerator.md).
-We label the boundary between the fuel and the gap (`fuel_or`), the boundary between the clad and the gap (`clad_ir`),
-and the boundary between the clad and the coolant (`clad_or`). These sidesets are used to apply the gap conductance
-model and the convective boundary condition in the heat conduction input file. We then delete the gap and coolant blocks
-as they are unused in both the heat conduction and OpenMC applications. Finally, we scale the mesh such that
-it is in meters (to match the provided thermal properties). The resulting mesh can be found in [rr_solid_mesh]. Note
-that this mesh is coarse for the purpose of reducing the computational burden in this tutorial, and requires additional
-refinement to improve temperature predictions.
+model. This ensures that we maintain a one-to-one mapping between subdomains in the MOOSE mesh and the OpenMC geometry,
+and tallies are therefore all normalized by the same volume. The mesh is then extruded axially with an
+[AdvancedExtruderGenerator](AdvancedExtruderGenerator.md). We label the boundary between the fuel and the gap
+(`fuel_or`), the boundary between the clad and the gap (`clad_ir`), and the boundary between the clad and the
+coolant (`clad_or`). These sidesets are used to apply the gap conductance model and the convective boundary condition
+in the heat conduction input file. We then delete the gap and coolant blocks as they are unused in both the heat
+conduction and OpenMC applications. Finally, we scale the mesh such that it is in meters (to match the provided
+thermal properties). The resulting mesh can be found in [rr_solid_mesh]. Note that this mesh is coarse for the purpose
+of reducing the computational burden in this tutorial, and requires additional refinement to improve temperature
+predictions.
 
 !media rr_solid_mesh.png
   id=rr_solid_mesh
@@ -234,20 +234,21 @@ Next, we define an `AuxVariable` to visualize the temperature Cardinal is settin
 to it with a [CellTemperatureAux](CellTemperatureAux.md) (which queries the cell temperature in the OpenMC geometry):
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
-  start=[AuxVariables]
-  end=[Problem]
+  start=AuxVariables
+  end=Problem
 
 Afterwards, we replace the default finite element problem with an [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md).
 This class is responsible for initializing OpenMC, setting cell temperatures and densities (with equivalent field
 variables on the `[Mesh]`), and writing results from OpenMC tallies to the MOOSE mesh. We start by overriding the
-number of inactive batches, the total number of batches, and the number of particles per batch. A large number of
+number of inactive batches, the total number of batches, and the number of particles per batch. It should be noted
+that these settings can be applied in `make_openmc_model.py` when generating the OpenMC model as well. A large number of
 inactive batches (in this case, 400) are required when running [!ac](TRRM) as both the scattering and fission sources
 must be converged. Fewer rays per batch (1000 in this case) are required as rays do not terminate until they reach
 the end of the active length (unlike particles, which are killed on absorption). We then specify `scaling = 100.0`
 to convert from mesh units (m) to OpenMC units (cm). We also set the pin power used to normalize tally scores.
-Afterwards, we set the cell level of the cell to element mapping to the lowest level in the OpenMC geometry, and
+Afterwards, we set the depth in the OpenMC geometry we wish to couple to (`cell_level`), and
 specify that we wish to couple OpenMC to the fuel (`uo2` and `uo2_tri` blocks) with temperature feedback. To speed
-up the rate of convergence and avoid the nonlinear feedback instabilities inherent to [!ac](LWR) multiphysics
+up the rate of convergence and avoid the nonlinear feedback instabilities commonly observed in [!ac](LWR) multiphysics
 calculations, we use constant relaxation with a relaxation factor of 0.5. The final component of the OpenMC
 problem setup is to add a [CellTally](CellTally.md) which accumulates `kappa_fission` over `uo2` and `uo2_tri`.
 In addition to fission heating tally value, we enable outputs for the heating standard deviation and relative error.
@@ -278,21 +279,21 @@ application is executed after running OpenMC (on `TIMESTEP_END`), resulting in t
 5. Repeat until fields are converged.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
-  start=[MultiApps]
-  end=[Postprocessors]
+  start=MultiApps
+  end=Postprocessors
 
 The final portion of the input file deals with execution, post-processing, and outputs. We use a
 [Transient](Transient.md) executioner in this problem to control the number of iterations between
 the OpenMC main application and the heat conduction sub-application. In this problem, 5 iterations
 are sufficient to converge tally statistics and $k_{eff}$ due to the low variance of [!ac](TRRM).
 It should be noted that the problem OpenMC is solving is still a quasi-static k-eigenvalue
-calculation, and the heat conduction simulation is a steady-state event with the use of a
+calculation, and the heat conduction simulation is a steady-state governing equation with the use of a
 [Transient](Transient.md) executioner. We add a series of post-processors to monitor the relative
 errors of tally variables and report the k-eigenvalue (and its associated standard deviation).
 Finally, we select Exodus and CSV output in the `[Outputs]` block.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
-  start=[Postprocessors]
+  start=Postprocessors
 
 ### Solid Input File id=solid_input
 
@@ -309,24 +310,24 @@ equation over the fuel and cladding (where the fission heat source `heat` is blo
 restricted to the fuel).
 
 !listing /tutorials/rr_lwr_pincell/solid.i
-  start=[Variables]
-  end=[Functions]
+  start=Variables
+  end=Functions
 
 We then add a [ParsedFunction](MooseParsedFunction.md) to represent [eq:2], and a
 [ConvectiveFluxFunction](ConvectiveFluxFunction.md) to apply the convective boundary condition
 to the outer radius of the clad.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
-  start=[Functions]
-  end=[Materials]
+  start=Functions
+  end=Materials
 
 A series of [GenericConstantMaterial](GenericConstantMaterial.md) are then added to set the
 thermal conductivity of the fuel and cladding, which is followed by the addition of a
 [GapHeatTransfer](GapHeatTransfer.md) to set up the gap conductance model.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
-  start=[Materials]
-  end=[Executioner]
+  start=Materials
+  end=Executioner
 
 Finally, the `[Executioner]` is set to [Transient](Transient.md). As no timestepping parameters
 are provided, the heat conduction simulation will execute in lock-step with the OpenMC simulation.
@@ -334,14 +335,14 @@ We add several post-processors to monitor the maximum fuel and cladding temperat
 Exodus and CSV output in the `[Outputs]` block.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
-  start=[Executioner]
+  start=Executioner
 
 ## Execution and Postprocessing id=results
 
 To run the coupled calculation with [!ac](TRRM) and flat sources,
 
 ```bash
-python3 make_openmc_model -r
+python make_openmc_model.py -r
 cardinal-opt -i solid_mesh.i --mesh-only
 cardinal-opt -i openmc.i --n-threads=4
 ```
@@ -349,7 +350,7 @@ cardinal-opt -i openmc.i --n-threads=4
 To run with [!ac](TRRM)  and linear sources,
 
 ```bash
-python3 make_openmc_model -r --linear
+python make_openmc_model.py -r --linear
 cardinal-opt -i solid_mesh.i --mesh-only
 cardinal-opt -i openmc.i --n-threads=4
 ```
@@ -357,7 +358,7 @@ cardinal-opt -i openmc.i --n-threads=4
 and to run the continuous energy reference,
 
 ```bash
-python3 make_openmc_model
+python make_openmc_model.py
 cardinal-opt -i solid_mesh.i --mesh-only
 cardinal-opt -i openmc.i --n-threads=4
 ```

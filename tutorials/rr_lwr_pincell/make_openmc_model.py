@@ -129,7 +129,7 @@ def main() -> None:
   mod_cell = openmc.Cell(fill = h2o, region = +fuel_zr_or, name = 'Moderator Cell')
 
   ## Use the helper function to build a universe filled with subdivided
-  ## fuel source regions. The problem is symmetric in the azimuthal plane, so we only need
+  ## fuel source regions. The fuel pin is symmetric in the azimuthal plane, so we only need
   ## to subdivide the pin radially.
   fuel_pin_uni = build_sr_pin(uo2, 3, 1, fuel_pin_or)
   ## Add the other cells to this universe.
