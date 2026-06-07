@@ -6,6 +6,10 @@ In this tutorial, you will learn:
 - How to couple OpenMC's [!ac](TRRM) solver to MOOSE with a fission heat source and temperature feedback
 - The advantages and disadvantages of [!ac](TRRM) compared to continuous energy Monte Carlo
 
+While this tutorial does not apply density feedback for simplicity, this capability is supported
+when running the [!ac](TRRM) solver and has been verified with the
+[Doppler slab benchmark](vv/doppler_slab.md).
+
 To access this tutorial,
 
 ```

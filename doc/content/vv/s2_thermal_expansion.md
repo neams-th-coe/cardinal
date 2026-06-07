@@ -87,8 +87,8 @@ Mass is conserved by ensuring that the following expression is satisfied:
 ## Analytical Solutions
 
 The analytical solutions to the coupled problem were derived by [!cite](s2_thermal_expansion)
-under the assumption that the temperature and neutron flux fields are proportional to each other.
-To ensure this assumption is not violated, $\sigma_{t,0}$ and $h$ are manufactured based on other
+under the ansatz that the temperature and neutron flux fields are proportional to each other.
+To ensure this ansatz is not violated, $\sigma_{t,0}$ and $h$ are manufactured based on other
 benchmark parameters. For details regarding the derivation of the benchmark solution, readers
 are referred to [!cite](s2_thermal_expansion).
 
@@ -107,7 +107,7 @@ and
 \Sigma_{t}(x)\phi(x)q = \frac{P}{L}\text{.}
 
 The neutron flux in the center of the slab ($\phi(0)$) is arbitrary, and is therefore considered
-a benchmark parameter. The slab eigenvalue can be calculated with [lambda_sln]:
+an input setting. The slab eigenvalue can be calculated with [lambda_sln]:
 
 !equation id=lambda_sln
 \lambda = \frac{1}{2}\left(1 + \sqrt{1 + \frac{16 q^2 \phi^2(0)}{P^2}}\right)\text{,}
@@ -152,17 +152,20 @@ cm and a slab k-eigenvalue of $k_{eff} = 0.29557$.
 ## Cardinal Multi-Group Monte Carlo Results
 
 [!cite](eltawila_thermo) used the Griesheimer and Kooreman benchmark problem to verify Cardinal's
-thermomechanical-neutronics coupling to OpenMC. Those benchmark results required substantial modifications
+thermomechanical-neutronics coupling to OpenMC. Those benchmark results required several small modifications
 to OpenMC's multi-group Monte Carlo solver to enable S@2@ neutron transport, precluding the inclusion of
 input files in Cardinal's regression suite. Readers interested in these results are referred to
-[!cite](eltawila_thermo) for more information.
+[!cite](eltawila_thermo) for more information. Cardinal was found to converge to the analytic solutions
+with a linear rate of convergence as cells, mesh elements, and temperature grid points were refined.
+Excellent agreement between Cardinal and the analytic solution was obtained in the case of maximal
+refinement.
 
 ## Cardinal Random Ray Solutions
 
 The Griesheimer and Kooreman problem is solved in Cardinal using [!ac](TRRM) in a similar manner to the
 multi-group Monte Carlo approach presented in [!cite](eltawila_thermo). The neutronics domain is
-discretized into 200 slab regions, which are further subdivided into 31 tetrahedral elements per
-slab subregion (for a total of 6200 flat source regions). The conversion to tetrahedral elements is
+discretized into 200 regions, which are further subdivided into 31 tetrahedral elements per
+subregion (for a total of 6200 flat source regions). The conversion to tetrahedral elements is
 necessary to use on-the-fly geometry skinning in Cardinal for material deformation.
 Unfortunately, this conversion introduces non-physical source region gradients in
 the y and z directions which bias the [!ac](TRRM) solution. It is important to note that this bias

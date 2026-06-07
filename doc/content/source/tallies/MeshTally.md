@@ -2,7 +2,8 @@
   id=um
 
 !alert note
-Unstructured mesh tallies are not supported when running neutronics with OpenMC's random ray solver.
+Unstructured mesh tallies are not supported when running neutronics with OpenMC's random ray solver,
+because OpenMC's random ray solver requires tracklength estimators (not yet supported with libMesh meshes).
 
 ## Description
 
