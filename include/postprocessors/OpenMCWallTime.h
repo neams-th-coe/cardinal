@@ -53,15 +53,15 @@ public:
   /// Declare the OpenMCTime enum. These will correspond 1 to 1 to the
   /// enums used in the input file.
   CreateMooseEnumClass(OpenMCTime,
-    initialization_time = 0,
-    total_simulation_time = 1,
-    transport_time = 2,
-    inactive_batch_time = 3,
-    active_batch_time = 4,
-    fission_bank_time = 5,
-    tally_accumulation_time = 6,
-    finalization_time = 7,
-    total_elapsed_time = 8);
+                       initialization_time = 0,
+                       total_simulation_time = 1,
+                       transport_time = 2,
+                       inactive_batch_time = 3,
+                       active_batch_time = 4,
+                       fission_bank_time = 5,
+                       tally_accumulation_time = 6,
+                       finalization_time = 7,
+                       total_elapsed_time = 8);
 
 protected:
   /// Whether the simulation time should be accumulated or not.
