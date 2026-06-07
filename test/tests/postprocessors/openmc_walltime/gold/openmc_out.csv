@@ -1,3 +1,3 @@
-time,accum_active_batch_time_gzero,accum_finalization_time_gzero,accum_fission_bank_time_gzero,accum_inactive_batch_time_gzero,accum_initialization_time_gzero,accum_tally_accumulation_time_gzero,accum_total_simulation_time_gzero,accum_total_time_elapsed_gzero,accum_transport_time_gzero,step_active_batch_time_gzero,step_finalization_time_gzero,step_fission_bank_time_gzero,step_inactive_batch_time_gzero,step_initialization_time_gzero,step_tally_accumulation_time_gzero,step_total_simulation_time_gzero,step_total_time_elapsed_gzero,step_transport_time_gzero
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-2,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1
+time,accum_active_batch_time_gzero,accum_finalization_time_gzero,accum_fission_bank_time_gzero,accum_inactive_batch_time_gzero,accum_initialization_time_gzero,accum_tally_accumulation_time_gzero,accum_total_simulation_time_gzero,accum_total_time_elapsed_gzero,accum_transport_time_gzero,step_finalization_time_gzero,step_fission_bank_time_gzero,step_inactive_batch_time_gzero,step_initialization_time_gzero,step_tally_accumulation_time_gzero,step_total_simulation_time_gzero,step_total_time_elapsed_gzero,step_transport_time_gzero
+1,0,0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1
+2,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1

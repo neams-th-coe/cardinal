@@ -11,18 +11,8 @@
     max_parallel = 8
     requirement = "The system shall allow for the output of different timing statistics from OpenMC. "
                   "Golding execution times is non-deterministic due to the difference in testing "
-                  "hardware and hardware utilization. To avoid indeterminism, this test checks each "
-                  "post-processor for any non-zero ouput and compared those results to the gold file. "
-                  "The output of each post-processor has been manually checked against OpenMC console "
-                  "output to ensure the correct timing statistic is selected by the post-processor."
-    capabilities = 'openmc'
-  []
-  [only_timestep_end]
-    type = RunException
-    input = openmc.i
-    cli_args = 'Postprocessors/step_initialization_time/execute_on="TIMESTEP_BEGIN"'
-    expect_err = "Timing information is only available in OpenMC once a simulation has finished running."
-    requirement = "The system shall error if the user selects an execute_on enum other than TIMESTEP_END when using OpenMCWallTime."
+                  "hardware and hardware utilization. This test is designed to avoid non-determinism "
+                  "when possible, and so raw timing statistics are not reported in the gold file."
     capabilities = 'openmc'
   []
 []

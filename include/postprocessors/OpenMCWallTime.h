@@ -50,22 +50,25 @@ public:
 
   virtual Real getValue() const override;
 
+  /// Declare the OpenMCTime enum. These will correspond 1 to 1 to the
+  /// enums used in the input file.
+  CreateMooseEnumClass(OpenMCTime,
+    initialization_time = 0,
+    total_simulation_time = 1,
+    transport_time = 2,
+    inactive_batch_time = 3,
+    active_batch_time = 4,
+    fission_bank_time = 5,
+    tally_accumulation_time = 6,
+    finalization_time = 7,
+    total_elapsed_time = 8);
+
 protected:
   /// Whether the simulation time should be accumulated or not.
   const bool & _accumulate_time;
 
   /// The type of time to report from OpenMC.
-  const enum class OpenMCTime {
-    TotalInitTime = 0,
-    TotalSimTime = 1,
-    TransportTime = 2,
-    InactiveBatchTime = 3,
-    ActiveBatchTime = 4,
-    FissionBankTime = 5,
-    TallyAccumTime = 6,
-    FinalizationTime = 7,
-    TotalTime = 8
-  } _openmc_time;
+  const OpenMCTime _openmc_time;
 
   /// The accumulate or step walltime.
   Real _walltime;

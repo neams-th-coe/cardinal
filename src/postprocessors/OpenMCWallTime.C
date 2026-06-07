@@ -34,15 +34,13 @@ OpenMCWallTime::validParams()
                         true,
                         "Whether the simulation time should be accumulated over all simulation "
                         "steps (selected by default) or not.");
-  MooseEnum time_type("initialization_time total_simulation_time transport_time "
-                      "inactive_batch_time active_batch_time fission_bank_time "
-                      "tally_accumulation_time finalization_time total_elapsed_time",
-                      "total_elapsed_time");
-  params.addParam<MooseEnum>("time_type", time_type, "The time to report from OpenMC.");
+  params.addParam<MooseEnum>(
+      "time_type", MooseEnum(getOpenMCTimeOptions(), "total_elapsed_time"), "The time to report from OpenMC.");
 
   // We only get timing information after running OpenMC, so we force execution on TIMESTEP_END.
-  params.set<ExecFlagEnum>("execute_on").addValidName("TIMESTEP_END");
-  params.suppressParameter("execute_on");
+  params.set<ExecFlagEnum>("execute_on").clearSetValues();
+  params.set<ExecFlagEnum>("execute_on") = "TIMESTEP_END";
+  params.suppressParameter<ExecFlagEnum>("execute_on");
 
   return params;
 }
@@ -63,32 +61,32 @@ OpenMCWallTime::execute()
 
   switch (_openmc_time)
   {
-    case OpenMCTime::TotalInitTime:
+    case OpenMCTime::initialization_time:
       _walltime += openmc::simulation::time_initialize.elapsed();
       break;
-    case OpenMCTime::TotalSimTime:
+    case OpenMCTime::total_simulation_time:
       _walltime +=
           openmc::simulation::time_inactive.elapsed() + openmc::simulation::time_active.elapsed();
       break;
-    case OpenMCTime::TransportTime:
+    case OpenMCTime::transport_time:
       _walltime += openmc::simulation::time_transport.elapsed();
       break;
-    case OpenMCTime::InactiveBatchTime:
+    case OpenMCTime::inactive_batch_time:
       _walltime += openmc::simulation::time_inactive.elapsed();
       break;
-    case OpenMCTime::ActiveBatchTime:
+    case OpenMCTime::active_batch_time:
       _walltime += openmc::simulation::time_active.elapsed();
       break;
-    case OpenMCTime::FissionBankTime:
+    case OpenMCTime::fission_bank_time:
       _walltime += openmc::simulation::time_bank.elapsed();
       break;
-    case OpenMCTime::TallyAccumTime:
+    case OpenMCTime::tally_accumulation_time:
       _walltime += openmc::simulation::time_tallies.elapsed();
       break;
-    case OpenMCTime::FinalizationTime:
+    case OpenMCTime::finalization_time:
       _walltime += openmc::simulation::time_finalize.elapsed();
       break;
-    case OpenMCTime::TotalTime:
+    case OpenMCTime::total_elapsed_time:
       _walltime += openmc::simulation::time_total.elapsed();
       break;
     default:
