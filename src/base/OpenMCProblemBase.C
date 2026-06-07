@@ -382,8 +382,15 @@ OpenMCProblemBase::externalSolve()
   }
 
   int err;
+  if (!firstSolve())
+  {
+    err = openmc_reset_timers();
+    if (err)
+      mooseError(openmc_err_msg);
+  }
+
   if (_criticality_search)
-    _criticality_search->searchForCriticality();
+    _criticality_search->searchForCriticality([&]() { this->critSearchStep(); });
   else
   {
     err = openmc_run();
@@ -392,10 +399,6 @@ OpenMCProblemBase::externalSolve()
   }
 
   _total_n_particles += nParticles();
-
-  err = openmc_reset_timers();
-  if (err)
-    mooseError(openmc_err_msg);
 
   _fixed_point_iteration++;
 

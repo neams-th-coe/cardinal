@@ -157,6 +157,10 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 
 # Sodium Fast Reactors
 
+S. Garcia, M.A. Allaf, I. Naupa, L. Gross, D. Kotlyar, and B. Lindley,
+["Multiphysics Framework Comparison for a Liquid Metal Microreactor"](https://www.ans.org/pubs/transactions/article-58713/)
+*Proceedings of ANS* (2026)
+
 D.R. Shaver and M. Dalinger,
 "Simulation of NACIE Benchmark Tests using NekRS and Cardinal"
 *NURETH* (2025)

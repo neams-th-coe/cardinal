@@ -28,6 +28,7 @@
 #include "SetupMGXSAction.h"
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
+#include "CriticalitySearchBase.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -523,9 +524,12 @@ OpenMCCellAverageProblem::initialSetup()
                  "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
                  "Unexpected behavior may occur.");
 
-  // Coupling re-initialization should be triggered if we have cells transofrms which can happen
+  // Coupling re-initialization should be triggered if we have cell transforms which can happen
   // even if the mesh isn't moving or adaptive.
   _need_to_reinit_coupling |= hasCellTransform();
+  // The criticality search may modify the geometry.
+  if (_criticality_search)
+    _need_to_reinit_coupling |= _criticality_search->changingGeometry();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
@@ -2536,90 +2540,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         _displaced_problem->updateMesh();
       }
 
-#ifdef ENABLE_DAGMC
-      if (_skinner)
-      {
-        // Update the OpenMC geometry to take into account skinning. This also calls
-        // _skinner->update().
-        updateOpenMCGeometry();
-
-        // regenerate the DAGMC geometry
-        reloadDAGMC();
-      }
-#endif
-      if (_need_to_reinit_coupling)
-      {
-        if (_volume_calc)
-          _volume_calc->resetVolumeCalculation();
-
-        resetTallies();
-        setupProblem();
-      }
-
-      // Change nuclide composition of material; we put this here so that we can still then change
-      // the _overall_ density (like due to thermal expansion, which does not change the relative
-      // amounts of the different nuclides)
-      sendNuclideDensitiesToOpenMC();
-
-      if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
-      {
-        std::string incoming_transfer =
-            _specified_density_feedback ? "temperature and density" : "temperature";
-
-        switch (_initial_condition)
-        {
-          case coupling::hdf5:
-          {
-            // if we're reading temperature and density from an existing HDF5 file,
-            // we don't need to send anything in to OpenMC, so we can leave.
-            importProperties();
-            _console << "Skipping " << incoming_transfer
-                     << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
-            return;
-          }
-          case coupling::moose:
-          {
-            // transfer will happen from MOOSE - proceed normally
-            break;
-          }
-          case coupling::xml:
-          {
-            // if we're just using whatever temperature and density are already in the XML
-            // files, we don't need to send anything in to OpenMC, so we can leave.
-            _console << "Skipping " << incoming_transfer
-                     << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
-            return;
-          }
-          default:
-            mooseError("Unhandled OpenMCInitialConditionEnum!");
-        }
-      }
-
-      // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
-      // to be setting the temperature of all of the cells in cell_to_elem - only for the density
-      // transfer do we need to filter for the fluid cells
-      sendTemperatureToOpenMC();
-
-      sendDensityToOpenMC();
-
-      if (_export_properties)
-        openmc_properties_export("properties.h5");
-
-      // After setting cell temperatures, we need to re-initialize MGXS data as temperature
-      // interpolation is performed on initialization. Verbosity is temporarily modified here
-      // as the user has seen the MGXS initialization info previously.
-      if (!openmc::settings::run_CE)
-      {
-        auto initial_verbosity = openmc::settings::verbosity;
-        openmc::settings::verbosity = 1;
-        // Clear the MGXS manager.
-        openmc::data::mg = {};
-        // Reload the MGXS data.
-        openmc::data::mg.read_header(openmc::settings::path_cross_sections);
-        openmc::put_mgxs_header_data_to_globals();
-        openmc::finalize_cross_sections();
-        openmc::settings::verbosity = initial_verbosity;
-      }
+      // Reinitialize the MOOSE -> OpenMC coupling.
+      reinitCouplingAndApplyFeedback();
 
       break;
     }
@@ -2670,6 +2592,109 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 
   _first_transfer = false;
+  _aux->solution().close();
+  _aux->system().update();
+}
+
+void
+OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
+{
+#ifdef ENABLE_DAGMC
+  if (_skinner)
+  {
+    // Update the OpenMC geometry to take into account skinning. This also calls
+    // _skinner->update().
+    updateOpenMCGeometry();
+
+    // regenerate the DAGMC geometry
+    reloadDAGMC();
+  }
+#endif
+
+  if (_need_to_reinit_coupling)
+  {
+    if (_volume_calc)
+      _volume_calc->resetVolumeCalculation();
+
+    resetTallies();
+    setupProblem();
+  }
+
+  // Change nuclide composition of material; we put this here so that we can still then change
+  // the _overall_ density (like due to thermal expansion, which does not change the relative
+  // amounts of the different nuclides)
+  sendNuclideDensitiesToOpenMC();
+
+  if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
+  {
+    std::string incoming_transfer =
+        _specified_density_feedback ? "temperature and density" : "temperature";
+
+    switch (_initial_condition)
+    {
+      case coupling::hdf5:
+      {
+        // if we're reading temperature and density from an existing HDF5 file,
+        // we don't need to send anything in to OpenMC, so we can leave.
+        importProperties();
+        _console << "Skipping " << incoming_transfer
+                 << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
+        return;
+      }
+      case coupling::moose:
+      {
+        // transfer will happen from MOOSE - proceed normally
+        break;
+      }
+      case coupling::xml:
+      {
+        // if we're just using whatever temperature and density are already in the XML
+        // files, we don't need to send anything in to OpenMC, so we can leave.
+        _console << "Skipping " << incoming_transfer
+                 << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
+        return;
+      }
+      default:
+        mooseError("Unhandled OpenMCInitialConditionEnum!");
+    }
+  }
+
+  // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
+  // to be setting the temperature of all of the cells in cell_to_elem - only for the density
+  // transfer do we need to filter for the fluid cells
+  sendTemperatureToOpenMC();
+
+  sendDensityToOpenMC();
+
+  if (_export_properties)
+    openmc_properties_export("properties.h5");
+
+  // After setting cell temperatures, we need to re-initialize MGXS data as temperature
+  // interpolation is performed on initialization. Verbosity is temporarily modified here
+  // as the user has seen the MGXS initialization info previously.
+  if (!openmc::settings::run_CE)
+  {
+    auto initial_verbosity = openmc::settings::verbosity;
+    openmc::settings::verbosity = 1;
+    // Clear the MGXS manager.
+    openmc::data::mg = {};
+    // Reload the MGXS data.
+    openmc::data::mg.read_header(openmc::settings::path_cross_sections);
+    openmc::put_mgxs_header_data_to_globals();
+    openmc::finalize_cross_sections();
+    openmc::settings::verbosity = initial_verbosity;
+  }
+}
+
+void
+OpenMCCellAverageProblem::critSearchStep()
+{
+  _aux->serializeSolution();
+
+  // Reinitialize the OpenMC coupling prior to the execution of
+  // a criticality search step.
+  reinitCouplingAndApplyFeedback();
+
   _aux->solution().close();
   _aux->system().update();
 }

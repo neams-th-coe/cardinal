@@ -398,6 +398,9 @@ public:
   const openmc::Tally & getMGBetaTally();
 
 protected:
+  /// A virtual function to allow for execution prior to each step in a criticality search.
+  virtual void critSearchStep() = 0;
+
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 
