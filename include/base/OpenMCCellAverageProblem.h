@@ -470,9 +470,10 @@ public:
 
 protected:
   /**
-   * A function to re-initialize coupling to the OpenMC problem. Applied before
-   * OpenMC is executed in either: i) normal Picard iterations, or ii) criticality
-   * searches. This function performs these operations in the following order:
+   * A function to re-initialize coupling and apply feedback to the OpenMC problem.
+   * Applied before OpenMC is executed in either: i) normal Picard iterations, or
+   * ii) criticality searches. This function performs these operations in the
+   * following order:
    * 1. Updates the OpenMC geometry using the skinner;
    * 2. Resets tallies and the cell->element maps to take into account
    *    mesh/geometry changes;
@@ -482,7 +483,7 @@ protected:
    * 6. Reinitializes multi-group cross sections to take into account changing
    *    temperatures and densities.
    */
-  void reinitCoupling();
+  void reinitCouplingAndApplyFeedback();
 
   /**
    * Implement critSearchStep() to re-generate the cell-to-element (and dual)

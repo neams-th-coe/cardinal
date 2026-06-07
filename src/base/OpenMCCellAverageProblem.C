@@ -2541,7 +2541,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       }
 
       // Reinitialize the MOOSE -> OpenMC coupling.
-      reinitCoupling();
+      reinitCouplingAndApplyFeedback();
 
       break;
     }
@@ -2597,7 +2597,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 }
 
 void
-OpenMCCellAverageProblem::reinitCoupling()
+OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
 {
 #ifdef ENABLE_DAGMC
   if (_skinner)
@@ -2693,7 +2693,7 @@ OpenMCCellAverageProblem::critSearchStep()
 
   // Reinitialize the OpenMC coupling prior to the execution of
   // a criticality search step.
-  reinitCoupling();
+  reinitCouplingAndApplyFeedback();
 
   _aux->solution().close();
   _aux->system().update();
