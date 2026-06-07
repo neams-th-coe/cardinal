@@ -116,7 +116,8 @@ Input files for the linear temperature feedback case are included in Cardinal to
 Cardinal's OpenMC coupling, and different temperature interpolation schemes present in OpenMC. These input files
 can be found in `/test/tests/neutronics/mg/mc_doppler_slab_lin`. The OpenMC and heat conduction input files for this
 problem can be found below. Please note that these input decks run with fewer particles and Picard iterations to make
-them suitable for inclusion in Cardinal's test suite.
+them suitable for inclusion in Cardinal's test suite. Actual verification results presented in the literature using
+these models use higher numbers of batches and particles.
 
 !listing /test/tests/neutronics/mg/mc_doppler_slab_lin/openmc_base.i
 
@@ -174,9 +175,7 @@ they are used to regression test temperature feedback with [!ac](TRRM). These ca
 !listing /test/tests/neutronics/mg/rr_doppler_slab_lin/solid.i
 
 The input files for the inverse root temperature feedback case can be found in `/test/tests/neutronics/mg/rr_doppler_slab_root`,
-where they are used to regression test density feedback with [!ac](TRRM). The input files can be found below,
-where slight modifications have been made (fewer Picard iterations and rays per batch) to make the problem
-amenable for inclusion in Cardinal's test suite.
+where they are used to regression test density feedback with [!ac](TRRM).
 
 !listing /test/tests/neutronics/mg/rr_doppler_slab_root/openmc.i
 
