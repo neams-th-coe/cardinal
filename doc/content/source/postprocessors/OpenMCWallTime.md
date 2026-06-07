@@ -20,10 +20,6 @@ select with [!param](/Postprocessors/OpenMCWallTime/time_type). Options are:
 Either the cumulative simulation time (over all time steps / Picard iterations / adaptivity steps) or the per-step
 walltime may be selected by setting [!param](/Postprocessors/OpenMCWallTime/accumulate_time).
 
-!alert note
-This post-processor requires [!param](/Postprocessors/OpenMCWallTime/execute_on) to be set to `TIMESTEP_END` as
-timing information is only available at the end of an OpenMC simulation.
-
 ## Example Input Syntax
 
 An example of using this post-processor for outputting timing statistics can be found below:
