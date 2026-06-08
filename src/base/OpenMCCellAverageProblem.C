@@ -72,6 +72,11 @@ OpenMCCellAverageProblem::validParams()
                         false,
                         "Whether to export OpenMC's temperature and density properties to an HDF5 "
                         "file after updating them from MOOSE.");
+
+  params.addParam<bool>("velocity_field_transfer",
+                        false,
+                        "TODO.");
+
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -135,6 +140,11 @@ OpenMCCellAverageProblem::validParams()
       "mode). These densities represent the initial densities used when generated the multigroup "
       "library. Each entry maps to the corresponding row in 'density_blocks.' Units are "
       "expected to be kg/m3.");
+
+  params.addParam<std::vector<std::vector<SubdomainName>>>(
+      "velocity_blocks",
+      "Blocks corresponding to each of the 'velocity_variables'. If not specified, "
+      "there will be no velocity feedback to OpenMC.");
 
   params.addParam<unsigned int>("cell_level",
                                 "Coordinate level in OpenMC (across the entire geometry) to use "
@@ -207,6 +217,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
+    _velocity_field_transfer(getParam<bool>("velocity_field_transfer")),
     _using_skinner(isParamValid("skinner")),
     // 'used_displaced' is added to '_need_to_reinit_coupling' later in the ctor.
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
@@ -413,6 +424,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   readBlockVariables("temperature", "temp", _temp_vars_to_blocks, _temp_blocks);
   readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
+  readBlockVariables("velocity", "velocity", _velocity_vars_to_blocks, _velocity_blocks);
 
   // When running in multi-group mode, the user needs to provide a reference density if density
   // feedback is specified (to convert to the dimensionless MGXS density). In the future, it would
@@ -2406,6 +2418,29 @@ OpenMCCellAverageProblem::addExternalVariables()
       _subdomain_to_temp_vars[s] = {number, v.first};
   }
 
+  // create the variable(s) that will be used to recieve velocity
+  _subdomain_to_velocity_x_vars.clear();
+  _subdomain_to_velocity_y_vars.clear();
+  _subdomain_to_velocity_z_vars.clear();
+  for (const auto & v : _velocity_vars_to_blocks)
+  {
+    std::vector<std::string> data = {"velocity_x", "velocity_y", "velocity_z"};
+
+    for (const auto& var : data) {
+      auto number = addExternalVariable(var, "velocity feedback", &v.second);
+
+      auto ids = getMooseMesh().getSubdomainIDs(v.second);
+      for (const auto & s : ids)
+        if (var == "velocity_x") {
+          _subdomain_to_velocity_x_vars[s] = {number, var};
+        } else if (var == "velocity_y") {
+          _subdomain_to_velocity_y_vars[s] = {number, var};
+        } else if (var == "velocity_z") {
+          _subdomain_to_velocity_z_vars[s] = {number, var};
+        }
+    }
+  }
+
   if (_output_cell_mapping && _needs_to_map_cells)
   {
     std::string auxk_type = "CellIDAux";
@@ -2661,6 +2696,68 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   }
 }
 
+void
+OpenMCCellAverageProblem::sendVelocityToOpenMC() const
+{
+  if (_velocity_field_transfer) {
+    _console << "Sending velocity to OpenMC velocity field... " << std::endl;
+
+    // Do we need a element->element mapping between the MOOSE mirror mesh and the mesh in the OpenMC temperature field?
+
+    const auto & sys_number = _aux->number();
+
+    // Go through elements from the MOOSE mirror mesh
+    for (const auto & c : _local_cell_to_elem) {
+      for (const auto & e : c.second) {
+
+        // Get element
+        unsigned int global_id = globalElemID(e);
+        const auto * elem = getMooseMesh().queryElemPtr(global_id);
+
+        // Send velocity
+
+        // ---------------
+        // velocity_x
+        // ---------------
+
+        // Get DoF index for velocity on this element
+        auto v = _subdomain_to_velocity_x_vars.at(elem->subdomain_id()).first;
+        auto dof_idx = elem->dof_number(sys_number, v, 0);
+
+        // Retrieve velocity from the serialized solution
+        Real vx = _serialized_solution(dof_idx);
+
+        // ---------------
+        // velocity_y
+        // ---------------
+
+        // Get DoF index for velocity on this element
+        v = _subdomain_to_velocity_y_vars.at(elem->subdomain_id()).first;
+        dof_idx = elem->dof_number(sys_number, v, 0);
+
+        // Retrieve velocity from the serialized solution
+        Real vy = _serialized_solution(dof_idx);
+      
+        // ---------------
+        // velocity_z
+        // ---------------
+
+        // Get DoF index for velocity on this element
+        v = _subdomain_to_velocity_z_vars.at(elem->subdomain_id()).first;
+        dof_idx = elem->dof_number(sys_number, v, 0);
+
+        // Retrieve velocity from the serialized solution
+        Real vz = _serialized_solution(dof_idx);
+
+        // Send the velocity to OpenMC using the same ID or a cell->cell map
+        openmc_velocity_field_set_velocity(global_id, vx, vy, vz);
+
+      }
+    }
+  }
+  return;
+}
+
 Real
 OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
                                           const Real & local_mean_tally) const
@@ -2872,6 +2969,8 @@ OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
   sendTemperatureToOpenMC();
 
   sendDensityToOpenMC();
+
+  sendVelocityToOpenMC();
 
   if (_export_properties)
     openmc_properties_export("properties.h5");
