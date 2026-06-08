@@ -20,7 +20,6 @@
 
 #include "OpenMCInitAction.h"
 
-#include "MooseApp.h"
 #include <chrono>
 
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
@@ -28,7 +27,7 @@ registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 InputParameters
 OpenMCInitAction::validParams()
 {
-  InputParameters params = MooseObjectAction::validParams();
+  InputParameters params = Action::validParams();
   params.addClassDescription("Initializes OpenMC.");
   params.addParam<std::string>("type", "Problem type");
   params.addParam<FileName>(
@@ -38,7 +37,7 @@ OpenMCInitAction::validParams()
 }
 
 OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters), _xml_directory(getParam<FileName>("xml_directory"))
+  : Action(parameters), _xml_directory(getParam<FileName>("xml_directory"))
 {
 }
 

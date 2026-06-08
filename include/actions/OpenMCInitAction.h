@@ -18,17 +18,17 @@
 
 #pragma once
 
-#include "MooseObjectAction.h"
+#include "Action.h"
 
 /**
  * Initialize OpenMC.
  */
-class OpenMCInitAction : public MooseObjectAction
+class OpenMCInitAction : public Action
 {
 public:
-  static InputParameters validParams();
-
   OpenMCInitAction(const InputParameters & parameters);
+
+  static InputParameters validParams();
 
   virtual void act() override;
 
