@@ -672,7 +672,7 @@ MoabSkinner::sortElemsByResults()
     // must hold tet-mesh IDs (keyed the same as _id_to_elem_handles).
 
     // compute bin index for every original element.
-    std::map<dof_id_type, unsigned int> orig_id_to_bin;
+    std::unordered_map<dof_id_type, unsigned int> orig_id_to_bin;
 
     for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
     {

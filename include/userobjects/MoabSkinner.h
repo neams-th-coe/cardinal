@@ -258,7 +258,7 @@ protected:
 
   /**
    * Return the mesh used for DAGMC geometry construction.
-   * Returns *_tet_mesh when the source mesh contained non-tetrahedral elements
+   * @return *_tet_mesh when the source mesh contained non-tetrahedral elements
    * and an internal conversion was performed; otherwise returns getMooseMesh().getMesh().
    */
   MeshBase & getDAGMCGeometryMesh();

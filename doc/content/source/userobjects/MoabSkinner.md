@@ -34,7 +34,7 @@ elements are also supported: when these elements are detected, an internal all-T
 the mesh is built automatically, and all skinning
 and geometry operations are performed on that copy. The original MOOSE mesh is never
 modified; temperature, density, and subdomain binning are always evaluated on the original
-mesh where the auxiliary variables live. Higher orders of these elements types are also supported.
+mesh where the auxiliary variables live. Higher order versions of these element types are also supported.
 
 ## Example Input Syntax
 
