@@ -29,6 +29,7 @@ InputParameters
 OpenMCInitAction::validParams()
 {
   InputParameters params = MooseObjectAction::validParams();
+  params.addClassDescription("Initializes OpenMC.");
   params.addParam<std::string>("type", "Problem type");
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
