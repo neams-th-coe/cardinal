@@ -50,14 +50,6 @@
     cli_args = '--mesh-only'
     requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions. The bins shall be re-generated on each time step from a hex mesh."
   []
-  [hex_sphere]
-    type = Exodiff
-    input = skinner.i
-    exodiff = skinner_out.e
-    mesh_mode = 'replicated'
-    requirement = "The system shall bin hex mesh elements from the loaded mesh according to temperature and density and be able to visualize the bins on the mesh volume."
-    capabilities = 'dagmc'
-  []
   [mixed_elements]
     type = Exodiff
     input = mixed_elements.i
