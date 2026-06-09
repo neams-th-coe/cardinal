@@ -26,11 +26,10 @@ namespace OpenMC
 {
 
 void
-associateSyntax(Syntax & syntax, ActionFactory & /*action_factory*/)
+associateSyntax(Syntax & syntax, ActionFactory & action_factory)
 {
-  registerMooseObjectTask("openmc_init", Problem, true);
-  registerSyntax("OpenMCInitAction", "Problem");
-  addTaskDependency("meta_action", "openmc_init");
+  registerTask("openmc_init", true);
+  addTaskDependency("create_problem", "openmc_init");
 }
 
 } // namespace OpenMC
