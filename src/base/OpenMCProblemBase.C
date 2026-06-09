@@ -86,6 +86,8 @@ OpenMCProblemBase::validParams()
       "reset_seed",
       false,
       "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
+  params.addParam<FileName>(
+      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
 
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
@@ -113,7 +115,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _run_on_adaptivity_cycle(true),
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
-    _initial_seed(openmc::openmc_get_seed())
+    _initial_seed(openmc::openmc_get_seed()),
+    _xml_directory(getParam<FileName>("xml_directory"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
