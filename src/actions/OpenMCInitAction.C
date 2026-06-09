@@ -20,8 +20,6 @@
 
 #include "OpenMCInitAction.h"
 
-#include <chrono>
-
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
 InputParameters
@@ -47,7 +45,6 @@ OpenMCInitAction::act()
   if (_type != "OpenMCCellAverageProblem")
     return;
 
-  const auto timeStart = std::chrono::high_resolution_clock::now();
 
   // Suppress OpenMC output when the language server is active by
   // decreasing the verbosity to level 1 (the lowest).
@@ -71,13 +68,6 @@ OpenMCInitAction::act()
 
   // Initialize OpenMC
   openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
-
-  // Timer
-  double elapsedTime = 0;
-  const auto timeStop = std::chrono::high_resolution_clock::now();
-  elapsedTime += std::chrono::duration<double, std::milli>(timeStop - timeStart).count() / 1e3;
-
-  _console << "OpenMC initialization took " << elapsedTime << " s" << std::endl;
 }
 
 #endif
