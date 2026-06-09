@@ -1,31 +1,31 @@
-#********************************************************************/
-#*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
-#*                             Cardinal                             */
-#*                                                                  */
-#*                  (c) 2021 UChicago Argonne, LLC                  */
-#*                        ALL RIGHTS RESERVED                       */
-#*                                                                  */
-#*                 Prepared by UChicago Argonne, LLC                */
-#*               Under Contract No. DE-AC02-06CH11357               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*             Prepared by Battelle Energy Alliance, LLC            */
-#*               Under Contract No. DE-AC07-05ID14517               */
-#*                With the U. S. Department of Energy               */
-#*                                                                  */
-#*                 See LICENSE for full restrictions                */
-#********************************************************************/
+#####################################################################
+#                  SOFTWARE COPYRIGHT NOTIFICATION                  #
+#                             Cardinal                              #
+#                                                                   #
+#                  (c) 2021 UChicago Argonne, LLC                   #
+#                        ALL RIGHTS RESERVED                        #
+#                                                                   #
+#                 Prepared by UChicago Argonne, LLC                 #
+#               Under Contract No. DE-AC02-06CH11357                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#             Prepared by Battelle Energy Alliance, LLC             #
+#               Under Contract No. DE-AC07-05ID14517                #
+#                With the U. S. Department of Energy                #
+#                                                                   #
+#                 See LICENSE for full restrictions                 #
+#####################################################################
 
 import openmc
 
 a = openmc.Material()
-a.set_density('g/cc', 11.0)
-a.add_nuclide('U235', 1.0)
+a.set_density("g/cc", 11.0)
+a.add_nuclide("U235", 1.0)
 
 b = openmc.Material()
-b.set_density('g/cc', 11.0)
-b.add_nuclide('U235', 0.5)
-b.add_nuclide('U238', 0.5)
+b.set_density("g/cc", 11.0)
+b.add_nuclide("U235", 0.5)
+b.add_nuclide("U238", 0.5)
 
 mats = openmc.Materials([a, b])
 mats.export_to_xml()
@@ -34,13 +34,13 @@ p1 = 12.5
 p2 = 37.5
 p3 = 62.5
 
-xmin = openmc.XPlane(x0=-12.5, boundary_type='vacuum')
-xmax = openmc.XPlane(x0=87.5,  boundary_type='vacuum')
-ymin = openmc.YPlane(y0=-12.5,  boundary_type='vacuum')
-ymax = openmc.YPlane(y0=37.5,  boundary_type='vacuum')
-ymid = openmc.YPlane(y0=(-12.5+25.0))
-zmin = openmc.ZPlane(z0=-12.5,  boundary_type='vacuum')
-zmax = openmc.ZPlane(z0=12.5,  boundary_type='vacuum')
+xmin = openmc.XPlane(x0=-12.5, boundary_type="vacuum")
+xmax = openmc.XPlane(x0=87.5, boundary_type="vacuum")
+ymin = openmc.YPlane(y0=-12.5, boundary_type="vacuum")
+ymax = openmc.YPlane(y0=37.5, boundary_type="vacuum")
+ymid = openmc.YPlane(y0=(-12.5 + 25.0))
+zmin = openmc.ZPlane(z0=-12.5, boundary_type="vacuum")
+zmax = openmc.ZPlane(z0=12.5, boundary_type="vacuum")
 
 x1 = openmc.XPlane(x0=p1)
 x2 = openmc.XPlane(x0=p2)

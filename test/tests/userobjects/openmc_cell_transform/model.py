@@ -37,7 +37,9 @@ pin_water_cell = openmc.Cell(cell_id=1012, fill=water, region=pin_prism & +fuel_
 
 pin_univ = openmc.Universe(universe_id=100, cells=[pin_fuel_cell, pin_water_cell])
 
-water_univ = openmc.Universe(universe_id=101, cells=[openmc.Cell(cell_id=1013, fill=water)])
+water_univ = openmc.Universe(
+    universe_id=101, cells=[openmc.Cell(cell_id=1013, fill=water)]
+)
 
 lattice = openmc.RectLattice(lattice_id=200)
 lattice.pitch = (pitch, pitch)
@@ -55,8 +57,12 @@ bundle_lattice_cell = openmc.Cell(
 )
 bundle_univ = openmc.Universe(universe_id=10, cells=[bundle_lattice_cell])
 
-bundle_cell = openmc.Cell(cell_id=1, fill=bundle_univ, region=bundle_prism & +zmin & -zmax)
-outside_water_cell = openmc.Cell(cell_id=2, fill=water, region=root_region & ~bundle_prism)
+bundle_cell = openmc.Cell(
+    cell_id=1, fill=bundle_univ, region=bundle_prism & +zmin & -zmax
+)
+outside_water_cell = openmc.Cell(
+    cell_id=2, fill=water, region=root_region & ~bundle_prism
+)
 
 root_universe = openmc.Universe(universe_id=0, cells=[bundle_cell, outside_water_cell])
 model.geometry = openmc.Geometry(root_universe)

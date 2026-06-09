@@ -25,9 +25,12 @@ z_outer_min = openmc.ZPlane(z0=-15.0, boundary_type="reflective")
 z_outer_max = openmc.ZPlane(z0=+15.0, boundary_type="reflective")
 
 root_region = (
-    +x_outer_min & -x_outer_max &
-    +y_outer_min & -y_outer_max &
-    +z_outer_min & -z_outer_max
+    +x_outer_min
+    & -x_outer_max
+    & +y_outer_min
+    & -y_outer_max
+    & +z_outer_min
+    & -z_outer_max
 )
 
 x_mid = openmc.XPlane(x0=0.0)
@@ -35,13 +38,16 @@ y_mid = openmc.YPlane(y0=0.0)
 zmin = openmc.ZPlane(z0=-15.0)
 zmax = openmc.ZPlane(z0=15.0)
 
-region_2011 = +x_outer_min & -x_mid       & +y_outer_min & -y_mid       & +zmin & -zmax
-region_2012 = +x_mid       & -x_outer_max & +y_outer_min & -y_mid       & +zmin & -zmax
-region_2013 = +x_outer_min & -x_mid       & +y_mid       & -y_outer_max & +zmin & -zmax
-region_2014 = +x_mid       & -x_outer_max & +y_mid       & -y_outer_max & +zmin & -zmax
+region_2011 = +x_outer_min & -x_mid & +y_outer_min & -y_mid & +zmin & -zmax
+region_2012 = +x_mid & -x_outer_max & +y_outer_min & -y_mid & +zmin & -zmax
+region_2013 = +x_outer_min & -x_mid & +y_mid & -y_outer_max & +zmin & -zmax
+region_2014 = +x_mid & -x_outer_max & +y_mid & -y_outer_max & +zmin & -zmax
+
 
 def make_pin_universe(univ_id, box_region, cx, cy, fuel_base_id):
-    pin_prism = -openmc.model.RectangularPrism(width=pitch, height=pitch, origin=(cx, cy))
+    pin_prism = -openmc.model.RectangularPrism(
+        width=pitch, height=pitch, origin=(cx, cy)
+    )
     fuel_cyl = openmc.ZCylinder(x0=cx, y0=cy, r=fuel_radius)
 
     fuel_cell = openmc.Cell(
@@ -60,12 +66,15 @@ def make_pin_universe(univ_id, box_region, cx, cy, fuel_base_id):
         fill=water,
     )
 
-    return openmc.Universe(universe_id=univ_id, cells=[fuel_cell, water_in_cell, outside_pin_cell])
+    return openmc.Universe(
+        universe_id=univ_id, cells=[fuel_cell, water_in_cell, outside_pin_cell]
+    )
+
 
 pin_univ_1 = make_pin_universe(100, region_2011, -2.0, -2.0, 1011)
-pin_univ_2 = make_pin_universe(110, region_2012,  2.0, -2.0, 1111)
-pin_univ_3 = make_pin_universe(120, region_2013, -2.0,  2.0, 1211)
-pin_univ_4 = make_pin_universe(130, region_2014,  2.0,  2.0, 1311)
+pin_univ_2 = make_pin_universe(110, region_2012, 2.0, -2.0, 1111)
+pin_univ_3 = make_pin_universe(120, region_2013, -2.0, 2.0, 1211)
+pin_univ_4 = make_pin_universe(130, region_2014, 2.0, 2.0, 1311)
 
 c2011 = openmc.Cell(cell_id=2011, region=region_2011, fill=pin_univ_1)
 c2012 = openmc.Cell(cell_id=2012, region=region_2012, fill=pin_univ_2)
