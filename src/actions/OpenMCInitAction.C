@@ -64,11 +64,6 @@ OpenMCInitAction::get_openmc_problem_type_xml_directory(std::string & xml_direct
         xml_directory = obj_params.get<FileName>("xml_directory");
         return true;
       }
-      else
-      {
-        mooseError(
-            "OpenMCCellAverageProblem was found but does not have an 'xml_directory' parameter.");
-      }
     }
   }
   return false;
