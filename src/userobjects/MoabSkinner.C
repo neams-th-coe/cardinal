@@ -42,15 +42,15 @@ MoabSkinner::validParams()
   params.addRangeCheckedParam<unsigned int>(
       "n_density_bins", "n_density_bins > 0", "Number of density bins");
   params.addParam<std::vector<SubdomainName>>(
-    "material_blocks",
-    "List of mesh subdomain names for which to assign material names in the generated "
-    "DAGMC geometry. Must be the same length as 'material_names'.");
+      "material_blocks",
+      "List of mesh subdomain names for which to assign material names in the generated "
+      "DAGMC geometry. Must be the same length as 'material_names'.");
   params.addParam<std::vector<std::string>>(
-    "material_names",
-    "Material names to assign to subdomains in the generated DAGMC geometry. "
-    "Must be the same length as 'material_blocks' and listed in the same order. "
-    "Any subdomain not listed in 'material_blocks' will have no material assignment "
-    "and OpenMC will default to void for that region.");
+      "material_names",
+      "Material names to assign to subdomains in the generated DAGMC geometry. "
+      "Must be the same length as 'material_blocks' and listed in the same order. "
+      "Any subdomain not listed in 'material_blocks' will have no material assignment "
+      "and OpenMC will default to void for that region.");
 
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
@@ -323,10 +323,9 @@ MoabSkinner::initialize()
 
   if (isParamValid("material_blocks"))
   {
-    checkRequiredParam(parameters(), "material_names",
-                       "specifying 'material_blocks'");
+    checkRequiredParam(parameters(), "material_names", "specifying 'material_blocks'");
     auto block_names = getParam<std::vector<SubdomainName>>("material_blocks");
-    auto mat_names   = getParam<std::vector<std::string>>("material_names");
+    auto mat_names = getParam<std::vector<std::string>>("material_names");
 
     if (block_names.size() != mat_names.size())
       paramError("material_names",
@@ -345,13 +344,14 @@ MoabSkinner::initialize()
   }
   else if (_standalone)
   {
-    checkRequiredParam(parameters(), "material_names",
-                       "using skinner independent of an OpenMCCellAverageProblem");
+    checkRequiredParam(
+        parameters(), "material_names", "using skinner independent of an OpenMCCellAverageProblem");
     const auto & mat_names = getParam<std::vector<std::string>>("material_names");
     if (mat_names.size() != _n_block_bins)
       paramError("material_names",
                  "This parameter must be the same length as the number of "
-                 "subdomains in the mesh (" + Moose::stringify(_n_block_bins) + ")");
+                 "subdomains in the mesh (" +
+                     Moose::stringify(_n_block_bins) + ")");
 
     _block_id_to_material_name.clear();
     for (const auto & [subdomain_id, block_index] : _blocks)
@@ -361,7 +361,8 @@ MoabSkinner::initialize()
   {
     // .h5m was prepared outside of Cardinal; _material_names was set by setMaterialNames().
     // Build the same existing map.
-    checkUnusedParam(parameters(), "material_names",
+    checkUnusedParam(parameters(),
+                     "material_names",
                      "using the skinner in conjunction with an OpenMCCellAverageProblem "
                      "without 'material_blocks' overrides");
     _block_id_to_material_name.clear();
@@ -376,12 +377,13 @@ MoabSkinner::initialize()
 
   if (!unassigned_blocks.empty())
     mooseWarning("The following mesh subdomains have no material assignment in MoabSkinner "
-               "and will default to void in OpenMC:\n  ",
-               Moose::stringify(unassigned_blocks, "\n  "));
+                 "and will default to void in OpenMC:\n  ",
+                 Moose::stringify(unassigned_blocks, "\n  "));
 
   if (_verbose)
   {
-    VariadicTable<std::string, std::string, std::string> vt({"Subdomain ID", "Subdomain Name", "Material"});
+    VariadicTable<std::string, std::string, std::string> vt(
+        {"Subdomain ID", "Subdomain Name", "Material"});
     for (const auto & [subdomain_id, block_index] : _blocks)
     {
       auto name = getMooseMesh().getSubdomainName(subdomain_id);
