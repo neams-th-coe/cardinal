@@ -37,5 +37,5 @@ protected:
   bool get_openmc_problem_type_xml_directory(std::string & xml_directory) const;
 
   /// Call the OpenMC initialization handle
-  void init_openmc(const std::string & xml_directory);
+  void initOpenMC(const std::string & xml_directory);
 };

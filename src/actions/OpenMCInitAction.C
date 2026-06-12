@@ -42,7 +42,8 @@ OpenMCInitAction::act()
   if (!get_openmc_problem_type_xml_directory(xml_directory))
     return;
 
-  init_openmc(xml_directory);
+  // Initialize OpenMC
+  initOpenMC(xml_directory);
 }
 
 bool
@@ -70,7 +71,7 @@ OpenMCInitAction::get_openmc_problem_type_xml_directory(std::string & xml_direct
 }
 
 void
-OpenMCInitAction::init_openmc(const std::string & xml_directory)
+OpenMCInitAction::initOpenMC(const std::string & xml_directory)
 {
   // Suppress OpenMC output when the language server is active by
   // decreasing the verbosity to level 1 (the lowest).
