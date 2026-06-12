@@ -57,14 +57,8 @@ OpenMCInitAction::get_openmc_problem_type_xml_directory(std::string & xml_direct
     // If an action has the OpenMCCellAverageProblem type
     if (action->getParam<std::string>("type") == "OpenMCCellAverageProblem")
     {
-      // Retrieve the associated xml_directory_parameter
-      const InputParameters & obj_params = action->getObjectParams();
-
-      if (obj_params.have_parameter<FileName>("xml_directory"))
-      {
-        xml_directory = obj_params.get<FileName>("xml_directory");
-        return true;
-      }
+      xml_directory = action->getObjectParams().get<FileName>("xml_directory");
+      return true;
     }
   }
   return false;
