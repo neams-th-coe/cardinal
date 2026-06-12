@@ -39,7 +39,9 @@ OpenMCInitAction::act()
 {
   // Check if OpenMCCellAverageProblem is present and return xml_directory if it is the case
   std::string xml_directory;
-  if (!get_openmc_problem_type_xml_directory(xml_directory))
+
+  // Leave if no OpenMCCellAverageProblem requested in the input file
+  if (!isOpenMCCellAverageProblemRequested(xml_directory))
     return;
 
   // Initialize OpenMC
@@ -47,7 +49,7 @@ OpenMCInitAction::act()
 }
 
 bool
-OpenMCInitAction::get_openmc_problem_type_xml_directory(std::string & xml_directory) const
+OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_directory) const
 {
   // Retrieve all create problem actions
   const auto & problem_actions = _awh.getActions<CreateProblemAction>();

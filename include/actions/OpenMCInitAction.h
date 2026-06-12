@@ -33,8 +33,14 @@ public:
   virtual void act() override;
 
 protected:
-  /// Check if OpenMCCellAverageProblem is present and return xml_directory if it is the case
-  bool get_openmc_problem_type_xml_directory(std::string & xml_directory) const;
+  /**
+   * Check whether an OpenMCCellAverageProblem have been requested in the input file and returns the
+   * associated path to the XML directory if an OpenMCCellAverageProblem is present in the input
+   * file.
+   * @param[out] xml_directory directory in which OpenMC settings xml files are located
+   * @return whether an OpenMCCellAverageProblem have been requested in the input file
+   */
+  bool isOpenMCCellAverageProblemRequested(std::string & xml_directory) const;
 
   /// Call the OpenMC initialization handle
   void initOpenMC(const std::string & xml_directory);
