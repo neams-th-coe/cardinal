@@ -42,6 +42,9 @@ protected:
    */
   bool isOpenMCCellAverageProblemRequested(std::string & xml_directory) const;
 
-  /// Call the OpenMC initialization handle
+  /**
+   * Call the OpenMC initialization handle
+   * @param[in] xml_directory directory in which OpenMC settings xml files are located
+   */
   void initOpenMC(const std::string & xml_directory);
 };
