@@ -6,13 +6,11 @@
   numSteps = 10
   dt = 0.1
   polynomialOrder = 2
-  writeControl = steps
-  writeInterval = 3
+  checkpointControl = steps
+  checkpointInterval = 3
+  udf = "../nek_as_sub_even/pyramid.udf"
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
-
-[TEMPERATURE]
-  solver = none
+[FLUID PRESSURE]

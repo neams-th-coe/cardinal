@@ -84,10 +84,10 @@ c-----------------------------------------------------------------------
 
 c change this to 1 to do the averaging. Before you can set this to 1,
 c you need to have run your case. 35 is the file to start reading, 50
-c is the file to stop reading. 'pipe' is the casename
+c is the file to stop reading.
       ifaveraging=0
       if (ifaveraging.eq.1) then
-       call average_files("pipe",35, 50)
+       call average_files("avg",35, 50)
        call exitt()
       endif
 
@@ -120,26 +120,3 @@ c-----------------------------------------------------------------------
 
       return
       end
-c-----------------------------------------------------------------------
-      subroutine usrdat3
-      include 'SIZE'
-      include 'TOTAL'
-
-      common /scrach_o1/ w1(lx1*ly1*lz1*lelv),
-     $                   w2(lx1*ly1*lz1*lelv),
-     $                   w3(lx1*ly1*lz1*lelv),
-     $                   w4(lx1*ly1*lz1*lelv),
-     $                   w5(lx1*ly1*lz1*lelv)
-
-      common /scrach_o2/ ywd(lx1,ly1,lz1,lelv)
-
-      COMMON /NRSSCPTR/ nrs_scptr(1)
-      integer*8         nrs_scptr
-
-      call distf(ywd,1,'W  ',w1,w2,w3,w4,w5)
-
-      nrs_scptr(1) = loc(ywd)
-
-      return
-      end
-c-----------------------------------------------------------------------

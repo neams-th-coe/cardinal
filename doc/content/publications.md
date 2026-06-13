@@ -229,16 +229,6 @@ A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 ["Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"](https://www.researchgate.net/publication/373157683_Multiphysics_Coupling_of_OpenMC_CAD-Based_Transport_to_MOOSE_using_Cardinal_and_Aurora)
 *Proceedings of M&C* (2023)
 
-# Pressurized Thermal Shock
-
-Y. Yu, A. Novak, D. Shaver, and E. Merzari,
-["Coupled Simulation of Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS) Using Cardinal"](https://www.ans.org/pubs/proceedings/article-51638/)
-*Proceedings of ATH* (2022)
-
-Y. Yu, A. Novak, D. Shaver, and E. Merzari,
-["Multi-Physics Simulation on Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS)"](https://www.osti.gov/biblio/1876833)
-*Argonne National Laboratory*, ANL/NSE-22/30 (2022)
-
 # Systems-Level Analysis
 
 A. Huxford, V. Coppo Leite, E. Merzari, L. Zou, V. Petrov, and A. Manera
@@ -254,6 +244,15 @@ A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 B.W. Spencer, Y. Yu, W.M. Hoffman, D.R. Shaver, and E. Merzari,
 ["3D Probabilistic Fracture Mechanics / Computational Fluid Dynamics Simulation of a Reactor Pressure Vessel Under Transient Conditions"](https://www.sciencedirect.com/science/article/pii/S002954932600097X)
 *Nuclear Engineering and Design* (2026)
+
+Y. Yu, A. Novak, D. Shaver, and E. Merzari,
+["Coupled Simulation of Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS) Using Cardinal"](https://www.ans.org/pubs/proceedings/article-51638/)
+*Proceedings of ATH* (2022)
+
+Y. Yu, A. Novak, D. Shaver, and E. Merzari,
+["Multi-Physics Simulation on Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS)"](https://www.osti.gov/biblio/1876833)
+*Argonne National Laboratory*, ANL/NSE-22/30 (2022)
+
 
 A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Brooks,
 ["A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"](https://ui.adsabs.harvard.edu/abs/2023arXiv230811777C/abstract)

@@ -6,19 +6,21 @@
   numSteps = 10
   dt = 0.1
   polynomialOrder = 3
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature
+  udf = "cylinder.udf"
 
 [MESH]
   file=cylinder.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 1.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 1.5
+  transportCoeff = 1.0
   residualTol = 1.0e-5
   boundaryTypeMap = t, I, I

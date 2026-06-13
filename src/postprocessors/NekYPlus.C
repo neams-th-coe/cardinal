@@ -28,27 +28,27 @@ NekYPlus::validParams()
   InputParameters params = NekSidePostprocessor::validParams();
   MooseEnum value_type("max min avg", "max");
   params.addParam<MooseEnum>("value_type", value_type, "Type of value to report");
-  params.addParam<unsigned int>(
-      "wall_distance_index", 1, "Index into nek::scPtr where the wall distance is stored");
   params.addClassDescription("Compute y+ on boundaries");
   return params;
 }
 
 NekYPlus::NekYPlus(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters),
-    _value_type(getParam<MooseEnum>("value_type")),
-    _wall_distance_index(getParam<unsigned int>("wall_distance_index"))
+  : NekSidePostprocessor(parameters), _value_type(getParam<MooseEnum>("value_type"))
 {
   if (_pp_mesh != nek_mesh::fluid)
     mooseError("The 'NekYPlus' postprocessor can only be applied to the fluid mesh "
                "boundaries!\n"
                "Please change 'mesh' to 'fluid'.");
+
+  // TODO: for moving mesh features, we will need to re-compute the wall distance
+  // on every time step. This call here assumes the mesh is not moving.
+  nekrs::computeWallDistance(_boundary);
 }
 
 Real
 NekYPlus::getValue() const
 {
-  auto yplus = nekrs::yPlus(_boundary, _wall_distance_index);
+  auto yplus = nekrs::yPlus(_boundary);
 
   if (_value_type == "max")
     return yplus[0];

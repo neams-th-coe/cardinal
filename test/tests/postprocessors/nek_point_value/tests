@@ -1,9 +1,9 @@
 [Tests]
-  design = 'NekPointValue.md'
+  design = 'NekPointValue.md NekVolumetricData.md'
   issues = '#1015 #1016 #1079'
 
   [pp]
-    requirement = 'The system shall interpolate the NekRS solution onto a given point. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
+    requirement = 'The system shall interpolate the NekRS solution onto a given point and with usrwrk data filled by a Cardinal transfer. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
     [points]
       type = CSVDiff
       input = points.i
@@ -55,5 +55,21 @@
       detail = 'usrwrk slot 2'
       capabilities = 'nekrs'
     []
+  []
+
+  [scalars_but_no_temp]
+    type = RunException
+    input = points.i
+    cli_args = 'Problem/casename="brick_no_temp"'
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable!"
+    requirement = "The system shall error if non-temperature scalars are present, but temperature is requested through the variable interface."
+    capabilities = 'nekrs'
+  []
+  [scalar_values_no_temp]
+    type = CSVDiff
+    input = points_no_temp.i
+    csvdiff = points_no_temp_out.csv
+    requirement = "The system shall correctly query scalar point values when temperature scalars are not present. The gold file has the same data as the points.i test but with only the scalars included."
+    capabilities = 'nekrs'
   []
 []

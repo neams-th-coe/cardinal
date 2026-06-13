@@ -1,39 +1,163 @@
-#include "udf.hpp"
-#include "plugins/velRecycling.hpp"
-#include "plugins/tavg.hpp"
+#include "tavg.hpp"
+#include "planarCopy.hpp"
+#include "avm.hpp"
+#include <csignal>
+//#include "nekAscent.hpp"
 
-static dfloat zLen;
 static int NSLABS;
 static int NELSLAB;
+static int processAscentYamlFrequency;
+
+deviceMemory<dfloat> o_qcriterion;
+deviceMemory<dfloat> o_nuAVM;
+
+std::unique_ptr<iofld> io;
+
+//#define USE_TAVG_LEGACY
+
+#ifdef USE_TAVG_LEGACY 
+std::unique_ptr<nrs_t::tavgLegacy_t> avg;
+#else
+std::unique_ptr<tavg> avg;
+#endif
+
+deviceMemory<int> o_bID;
+planarCopy* recyc = nullptr;
+dfloat area;
+
+#define ASCENT_UPDATE_SIGNAL SIGUSR1
+volatile sig_atomic_t processAscentYaml = 0;
 
 #ifdef __okl__
 
-#include "turbPipe.oudf"
-
+// Boundary conditions
+void udfDirichlet(bcData *bc)
+{  
+  if (isField("fluid velocity")) { 
+    bc->uxFluid = bc->usrwrk[bc->idxVol + 0 * bc->fieldOffset];
+    bc->uyFluid = bc->usrwrk[bc->idxVol + 1 * bc->fieldOffset];
+    bc->uzFluid = bc->usrwrk[bc->idxVol + 2 * bc->fieldOffset];
+  } else if (isField("fluid pressure")) {
+    const dfloat iU0delta = 20.0;
+    const dfloat un = bc->uxFluid * bc->nx + bc->uyFluid * bc->ny + bc->uzFluid * bc->nz;
+    const dfloat s0 = 0.5 * (1.0 - tanh(un * iU0delta));
+    bc->pFluid = -0.5 * (bc->uxFluid * bc->uxFluid + bc->uyFluid * bc->uyFluid + bc->uzFluid * bc->uzFluid) * s0;
+  } else if (isField("scalar s00")) {
+    if (bc->id == 1) {
+      bc->sScalar = 0;
+    } else {
+      bc->sScalar = 0.5 * (tanh((bc->z - 1.0) / 0.2) + 1.0); // smooth ramp
+    }
+  }
+}
 #endif
 
-void UDF_Setup(nrs_t *nrs)
+void uservp(double time)
 {
-  mesh_t *mesh = nrs->meshV;
-  zLen = abs(
-              platform->linAlg->max(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm) -
-              platform->linAlg->min(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm)
-            );
+  auto mesh = nrs->meshV;
+
+  static auto firstTime = true;
+  if (firstTime) {
+    avm::setup(mesh);
+    o_nuAVM.resize(mesh->Nlocal);
+    nrs->addUserCheckpointField("scalar01", std::vector<deviceMemory<dfloat>>{o_nuAVM});
+    firstTime = false; 
+  }
+  const auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("s00")->second);
+
+  dfloat kappa = 1.0;
+  platform->options.getArgs("SCALAR" + sid + " REGULARIZATION AVM ACTIVATION WIDTH", kappa);
+
+  dfloat logS0 = 2.0;
+  platform->options.getArgs("SCALAR" + sid + " REGULARIZATION AVM DECAY THRESHOLD", logS0);
+
+  dfloat scalingCoeff = 1.0;
+  platform->options.getArgs("SCALAR" + sid + " REGULARIZATION AVM SCALING COEFF", scalingCoeff);
+
+  dfloat absTol = 0;
+  platform->options.getArgs("SCALAR" + sid + " REGULARIZATION AVM ABSOLUTE TOL", absTol);
+
+  dfloat rhoD0;
+  platform->options.getArgs("SCALAR" + sid + " DIFFUSIVITY", rhoD0);
+
+  auto& scalar = nrs->scalar;
+
+  auto o_rhoD = scalar->o_diffusionCoeff("s00");
+  platform->linAlg->fill(mesh->Nlocal, rhoD0, o_rhoD); 
+
+  std::cout << "apply avm " << absTol << "," << scalingCoeff << std::endl;
+  avm::viscosity(nrs->fluid->fieldOffset, nrs->fluid->o_U, nrs->scalar->o_solution("s00"), o_nuAVM, absTol, scalingCoeff);
+  platform->linAlg->axpby(mesh->Nlocal, 1.0, o_nuAVM, 1.0, o_rhoD);
+}
+
+void UDF_Setup0(MPI_Comm comm, setupAide &options)
+{
+  platform->par->extract("casedata", "nslabs", NSLABS);
+  platform->par->extract("casedata", "nelslab", NELSLAB);
+  platform->par->extract("casedata", "processAscentYamlFrequency", processAscentYamlFrequency); // ascent
+}
+
+void UDF_Setup()
+{
+#if 0
+  nrs->userProperties = &uservp;
+#endif
+
+  auto mesh = nrs->meshV;
+  const auto zLen = abs( 
+              platform->linAlg->max(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm()) - 
+              platform->linAlg->min(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm())
+            ); 
+
+  std::vector<dfloat> x(mesh->Nlocal);
+  std::vector<dfloat> y(mesh->Nlocal);
+  std::vector<dfloat> z(mesh->Nlocal);
+  mesh->o_x.copyTo(x.data());
+  mesh->o_y.copyTo(y.data());
+  mesh->o_z.copyTo(z.data());
+
+  o_qcriterion.resize(mesh->Nlocal);
+
+#if 0
+  io = iofldFactory::create();
+  io->open(mesh, iofld::mode::write, "qcrit");
+  io->writeAttribute("uniformSpacing", "true");
+  io->writeAttribute("polynomialOrder", std::to_string(mesh->N + 2));
+
+#if 0
+  auto elementFilter = [&]() 
+  {
+    std::vector<int> elementFilter;
+    for(int e = 0; e < mesh->Nelements; e++) {
+       auto zmaxLocal = std::numeric_limits<dfloat>::lowest();
+       for(int i = 0; i < mesh->Np; i++) zmaxLocal = std::max(z[i + e * mesh->Np], zmaxLocal);
+       if (zmaxLocal > zRecycLayer) elementFilter.push_back(e);
+    }
+    return elementFilter;
+  }();
+  io->writeElementFilter(elementFilter);
+#endif
+
+  io->addVariable("scalar00", std::vector<deviceMemory<dfloat>>{o_qcriterion});
+#endif
 
   // set IC
   if (platform->options.getArgs("RESTART FILE NAME").empty()) {
     auto rand = randomVector<dfloat>(mesh->Nlocal, -1.0, 1.0, true);
 
+    std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+    std::vector<dfloat> S(mesh->Nlocal, 0.0);
+
     for (int n = 0; n < mesh->Nlocal; n++) {
       const auto R = 0.5;
 
-      const auto xr = mesh->x[n] / R;
-      const auto yr = mesh->y[n] / R;
-      const auto zo = 2 * M_PI * mesh->z[n] / zLen;
+      const auto xr = x[n] / R;
+      const auto yr = y[n] / R;
+      const auto zo = 2 * M_PI * z[n] / zLen;
 
       auto rr = xr * xr + yr * yr;
       rr = (rr > 0) ? sqrt(rr) : 0.0;
-      const auto th = atan2(mesh->y[n], mesh->x[n]);
+      const auto th = atan2(y[n], x[n]);
 
       auto uz = 6/5. * (1 - pow(rr, 6));
 
@@ -52,35 +176,158 @@ void UDF_Setup(nrs_t *nrs)
       if (amp_sin < -amp_clip) amp_sin = -amp_clip;
       if (rr > (1 - blt)) uz += amp_sin;
 
-      nrs->U[n + 0 * nrs->fieldOffset] = 0.05 * pow(rand[n], 2);
-      nrs->U[n + 1 * nrs->fieldOffset] = 0.1  * pow(rand[n], 3);
-      nrs->U[n + 2 * nrs->fieldOffset] = uz + 0.01 * rand[n];
+      U[n + 0 * nrs->fluid->fieldOffset] = 0.05 * pow(rand[n], 2);
+      U[n + 1 * nrs->fluid->fieldOffset] = 0.1  * pow(rand[n], 3);
+      U[n + 2 * nrs->fluid->fieldOffset] = uz + 0.01 * rand[n];
+
+      S[n] = 0;
     }
+    nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+    nrs->scalar->o_solution("s00").copyFrom(S.data(), S.size());
   }
 
-  nrs->o_usrwrk = platform->device.malloc<dfloat>(nrs->NVfields * nrs->fieldOffset);
+  platform->app->bc->o_usrwrk.resize(mesh->dim * nrs->fluid->fieldOffset);
 
-  // velocity recycling
-  const dfloat uBulk = 1.0;
-  const int bID = 1;
-  dfloat zRecycLayer = 0.25 * zLen;
-  velRecycling::setup(nrs, nrs->o_usrwrk, 0.0, 0.0, zRecycLayer, bID, uBulk);
+  // velocity planarCopy
+  { 
+    const dfloat zRecycLayer = 0.25 * zLen;
+    std::vector<int> bID;
+    bID.push_back(1);
+    o_bID.resize(bID.size());
+    o_bID.copyFrom(bID);
 
-  tavg::setup(nrs);
+    deviceMemory<dfloat> o_tmp(mesh->Nlocal);
+    platform->linAlg->fill(o_tmp.size(), 1.0, o_tmp);
+    area = mesh->surfaceAreaMultiplyIntegrate(o_bID, o_tmp);
+
+#if 0
+    // does not work with current mesh generated by gmsh 
+    const hlong offset = NELSLAB * std::round(NSLABS * zRecycLayer / zLen);
+    recyc = new planarCopy(mesh, nrs->fluid->o_solution(), mesh->dim, nrs->fluid->fieldOffset, offset, bID, platform->app->bc->o_usrwrk);
+#else
+    recyc = new planarCopy(mesh, nrs->fluid->o_solution(), mesh->dim, nrs->fluid->fieldOffset, 0.0, 0.0, zRecycLayer, bID[0], platform->app->bc->o_usrwrk);
+#endif
+  }
+
+  {
+#ifdef USE_TAVG_LEGACY
+    avg = std::make_unique<nrs_t::tavgLegacy_t>();
+#else
+    std::vector< tavg::field > tavgFields;
+
+    deviceMemory<dfloat> o_ux(nrs->fluid->o_solution("x"));
+    deviceMemory<dfloat> o_uy(nrs->fluid->o_solution("y"));
+    deviceMemory<dfloat> o_uz(nrs->fluid->o_solution("z"));
+
+    deviceMemory<dfloat> o_s00(nrs->scalar->o_solution("s00"));
+
+    tavgFields.push_back({"ux", std::vector{o_ux}});
+    tavgFields.push_back({"uy", std::vector{o_uy}});
+    tavgFields.push_back({"uz", std::vector{o_uz}});
+    tavgFields.push_back({"s0", std::vector{o_s00}});
+
+    tavgFields.push_back({"uxux", std::vector{o_ux, o_ux}});
+    tavgFields.push_back({"uyuy", std::vector{o_uy, o_uy}});
+    tavgFields.push_back({"uzuz", std::vector{o_uz, o_uz}});
+    tavgFields.push_back({"s0s0", std::vector{o_s00, o_s00}});
+
+    tavgFields.push_back({"uxuy", std::vector{o_ux, o_uy}});
+    tavgFields.push_back({"uyuz", std::vector{o_uy, o_uz}});
+    tavgFields.push_back({"uzux", std::vector{o_uz, o_ux}});
+
+    avg = std::make_unique<tavg>(nrs->fluid->fieldOffset, tavgFields);
+#endif
+  }
+
+#ifdef NEKRS_ASCENT_ENABLED 
+  {
+    auto handleSignal = [](int signal) {
+      processAscentYaml = 1;
+    };
+    std::signal(ASCENT_UPDATE_SIGNAL, handleSignal);
+
+    auto meshV = nrs->meshV;
+    auto meshT = nrs->meshT;
+
+    deviceMemory<dfloat> o_ux(nrs->fluid->o_U.slice(0 * nrs->fluid->fieldOffset));
+    deviceMemory<dfloat> o_uy(nrs->fluid->o_U.slice(1 * nrs->fluid->fieldOffset));
+    deviceMemory<dfloat> o_uz(nrs->fluid->o_U.slice(2 * nrs->fluid->fieldOffset));
+    std::vector<deviceMemory<dfloat>> o_U{o_ux, o_uy, o_uz};
+    nekAscent::addVariable("velocity", meshV, o_U);
+
+    deviceMemory<dfloat> o_s00(nrs->scalar->o_solution("s00")); 
+    nekAscent::addVariable("scalar00", meshT, std::vector<deviceMemory<dfloat>>{o_s00});
+
+    nekAscent::addVariable("Qcriterion", meshV, std::vector<deviceMemory<dfloat>>{o_qcriterion});
+
+    const int Nviz = 1.5 * mesh->N;
+    const auto uniform = true;
+    nekAscent::setup(mesh, "ascent.yaml", Nviz, uniform);
+  }
+#endif
+
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
-  mesh_t *mesh = nrs->meshV;
+  auto mesh = nrs->meshV;
 
-  velRecycling::copy();
-  tavg::run(time);
-
-  if (nrs->isOutputStep) {
-    occa::memory o_UZ = nrs->o_U + 2 * nrs->fieldOffset;
-    const dfloat ubar =
-        platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_LMM, platform->comm.mpiComm) / mesh->volume;
-
-    tavg::outfld();
+  if (tstep == 0) {
+    //nrs->writeCheckpoint(time); 
   }
+
+  { 
+    recyc->execute();
+    
+    auto uBulk = 1.0;
+    const auto flux = mesh->surfaceAreaNormalMultiplyVectorIntegrate(nrs->fluid->fieldOffset, o_bID, platform->app->bc->o_usrwrk);
+    platform->linAlg->scale(nrs->fluid->fieldOffsetSum, -uBulk * area / flux, platform->app->bc->o_usrwrk);
+  }
+
+
+  if (nrs->timeStepConverged) {
+    avg->run(time);
+  }
+
+#ifdef NEKRS_ASCENT_ENABLED
+  {
+    blockSignal(ASCENT_UPDATE_SIGNAL);
+    int tmp = processAscentYaml;
+    MPI_Bcast(&tmp, 1, MPI_INT, 0, platform->comm.mpiComm());
+    processAscentYaml = tmp;
+    processAscentYaml = processAscentYaml || (tstep % processAscentYamlFrequency == 0 && tstep > 0);
+  }
+#endif
+
+  if (nrs->checkpointStep || processAscentYaml) {
+    nrs->Qcriterion(o_qcriterion);
+  }
+
+  if (nrs->checkpointStep) {
+    auto o_UZ = nrs->fluid->o_U + 2 * nrs->fluid->fieldOffset;
+    const dfloat ubar =
+        platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_Jw, platform->comm.mpiComm()) / mesh->volume;
+    if (platform->comm.mpiRank() == 0) {
+      printf(" uBulk: %g\n", ubar);
+    }
+
+    avg->writeToFile(mesh);
+  }
+
+  if (nrs->lastStep) avg.reset();
+
+#if 0
+  io->addVariable("time", time);
+  io->process();
+  if (nrs->lastStep) io->close();
+#endif
+
+#ifdef NEKRS_ASCENT_ENABLED 
+  if (processAscentYaml) {
+    nekAscent::run(time, tstep);
+    processAscentYaml = 0;
+  }
+  if (nrs->lastStep) nekAscent::finalize();
+  unblockSignal(ASCENT_UPDATE_SIGNAL);
+#endif
 }

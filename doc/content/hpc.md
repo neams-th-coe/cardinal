@@ -15,7 +15,7 @@ you must follow the build instructions on the
 
 !alert note
 NekRS can sometimes fail to correctly pre-compile its kernels on these [!ac](HPC)
-systems. We recommend precompiling NekRS (with the `nrspre` script) if you run into
+systems. We recommend precompiling NekRS (with the `nekrs --build-only 1 casename` command) if you run into
 issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
 for more information.
 

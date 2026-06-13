@@ -20,6 +20,8 @@ rho = 4147.3                            # kg/m3
       type = NekVolumetricSource
       direction = to_nek
       usrwrk_slot = 0
+      normalization_abs_tol = 1e6
+      normalization_rel_tol = 1e-3
     []
     [temperature]
       type = NekFieldVariable
@@ -32,12 +34,9 @@ rho = 4147.3                            # kg/m3
     U = ${fparse Re * mu / rho}
     T = ${fparse 625.0 + 273.15}
     dT = 100.0
-    rho = ${rho}
+    rho = 4147.3
     Cp = 1524.86 # J/kg/K
   []
-
-  normalization_abs_tol = 1e6
-  normalization_rel_tol = 1e-3
 []
 
 [Executioner]
