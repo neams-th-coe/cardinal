@@ -478,4 +478,7 @@ protected:
 
   /// Tolerance to use for comparing values to bin bounds
   const Real BIN_TOLERANCE = 1e-6;
+
+  /// Map from mesh SubdomainID to DAGMC material name
+  std::map<SubdomainID, std::string> _block_id_to_material_name;
 };

@@ -1,0 +1,21 @@
+[Tests]
+  issues = '#1359'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+  [generate_dagmc]
+    type = RunApp
+    input = generate_dagmc.i
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall assign materials to MOOSE mesh blocks and generate a new DAGMC geoemtry "
+  []
+  [run_updated_geometry]
+    type = CSVDiff
+    prereq = generate_dagmc
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Outputs/hide="cell_instance"'
+    requirement = "The system shall update materials assignment and run OpenMC with the new geometry"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]
