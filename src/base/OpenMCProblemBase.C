@@ -94,6 +94,8 @@ OpenMCProblemBase::validParams()
 
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
+  params.addParam<bool>(
+      "delta_tracking", false, "Whether delta tracking should be used for transport or not.");
 
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
@@ -265,6 +267,45 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     if (openmc::settings::ifp_n_generation > openmc::settings::n_inactive)
       paramError("ifp_generations",
                  "'ifp_generations' must be less than or equal to the number of inactive batches!");
+  }
+
+  // Perform error checks that we miss when overriding delta tracking outside of
+  // the OpenMC XML files.
+  if (getParam<bool>("delta_tracking"))
+  {
+    openmc::settings::delta_tracking = getParam<bool>("delta_tracking");
+    // Collision estimators cannot be used when running delta tracking.
+    for (const auto & tally : openmc::model::tallies)
+    {
+      if (tally->estimator_ == openmc::TallyEstimator::TRACKLENGTH)
+      {
+        mooseWarning("The tally with an ID of " + Moose::stringify(tally->id_) + " is using a "
+                     "tracklength estimator, but you've set `delta_tracking` = true. Delta "
+                     "tracking does not support tracklength estimators - this tally will "
+                     "have its estimator set to `collision` instead.");
+        tally->estimator_ == openmc::TallyEstimator::COLLISION;
+      }
+    }
+
+    // NCrystal materials are not supported when running delta tracking in OpenMC.
+    for (const auto & mat : openmc::model::materials)
+      if (mat->ncrystal_mat())
+        paramError("delta_tracking",
+                   "Delta tracking does not support NCrystal material(s)! Please set "
+                   "`delta_tracking` = false.");
+
+    // Windowed multipole cross sections are not supported when running delta tracking
+    // in OpenMC.
+    if (openmc::settings::temperature_multipole)
+      paramError("delta_tracking",
+                 "Delta tracking does not support windowed multipole cross sections! "
+                 "Please set `delta_tracking` = false.");
+
+    // Delta tracking does not support multiigroup mode (yet).
+    if (!openmc::settings::run_CE)
+      paramError("delta_tracking",
+                 "Delta tracking does not support multi-group mode! Please set "
+                 "`delta_tracking` = false.");
   }
 }
 
