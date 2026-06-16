@@ -16,6 +16,7 @@
     csvdiff = read1_out.csv
     prereq = check_scratch
     working_directory = 'read'
+    min_slots = 2 # memory heavy
     requirement = "The system shall write the correct usrwrk data into the scratch space. This is tested "
                   "by reading the written aaa0.f00001 file into a new simulation and applying it to the scalars, such "
                   "that various Cardinal postprocessors can read those values and confirm a match. This test "
@@ -31,6 +32,7 @@
     csvdiff = read2_out.csv
     prereq = check_scratch
     working_directory = 'read'
+    min_slots = 2 # memory heavy
     requirement = "The system shall write the correct usrwrk data into the scratch space. This is tested "
                   "by reading the written ccc0.f00001 file into a new simulation and applying it to the scalars, such "
                   "that various Cardinal postprocessors can read those values and confirm a match. This test "
