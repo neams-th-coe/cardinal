@@ -13,5 +13,6 @@
                   "exactly, provided we are using Gauss Lobatto quadrature for MOOSE's area"
                   "post-processors, in order to match NekRS's GLL quadrature."
     capabilities = 'nekrs'
+    skip = 'Needs updating to v26'
   []
 []
