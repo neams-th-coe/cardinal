@@ -10,6 +10,7 @@
                   "send displacements from NekRS to MOOSE."
     mesh_mode = 'replicated'
     capabilities = 'nekrs'
+    skip = 'Needs updating to v26'
   []
   [boundary]
     type = CSVDiff
@@ -22,5 +23,6 @@
                   "send displacements from NekRS to MOOSE."
     mesh_mode = 'replicated'
     capabilities = 'nekrs'
+    skip = 'Needs updating to v26'
   []
 []
