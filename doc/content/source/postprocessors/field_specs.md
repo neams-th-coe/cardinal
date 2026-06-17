@@ -10,7 +10,7 @@ The field is specified with the `field` parameter, which may be one of:
 - `velocity_y_squared`: $y$-component of velocity, squared
 - `velocity_z_squared`: $z$-component of velocity, squared
 - `velocity_component`: velocity vector dotted against another vector
-- `scalar01`: first non-temperautre passive scalar
+- `scalar01`: first non-temperature passive scalar
 - `scalar02`: second non-temperature passive scalar
 - `scalar03`: third non-temperature passive scalar
 - `unity`: the value 1.0
