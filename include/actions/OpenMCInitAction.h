@@ -42,8 +42,14 @@ protected:
    */
   bool isOpenMCCellAverageProblemRequested(std::string & xml_directory) const;
 
-  /// Check if OpenMCMeshGenerator is present in the Mesh block and return xml_directory if it is the case
-  bool get_openmc_mesh_generator_xml_directory(std::string & xml_directory) const;
+  /**
+   * Check whether an OpenMCMeshGenerator have been requested in the input file and returns the
+   * associated path to the XML directory if an OpenMCMeshGenerator is present in the input
+   * file.
+   * @param[out] xml_directory directory in which OpenMC settings xml files are located
+   * @return whether an OpenMCMeshGenerator have been requested in the input file
+   */
+  bool isOpenMCMeshGeneratorRequested(std::string & xml_directory) const;
 
   /**
    * Call the OpenMC initialization handle

@@ -38,14 +38,13 @@ OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters) : Action(
 void
 OpenMCInitAction::act()
 {
-  // Check if OpenMCCellAverageProblem is requested in the input file
+  // Check whether OpenMCCellAverageProblem is requested in the input file
   std::string xml_directory_problem;
   bool openmc_problem_requested = isOpenMCCellAverageProblemRequested(xml_directory_problem);
 
-  // Check if OpenMCMeshGenerator is present in the Mesh block and return xml_directory if available
+  // Check whether OpenMCMeshGenerator is requested in the input file
   std::string xml_directory_generator;
-  bool openmc_mesh_generator_requested =
-      get_openmc_mesh_generator_xml_directory(xml_directory_generator);
+  bool openmc_mesh_generator_requested = isOpenMCMeshGeneratorRequested(xml_directory_generator);
 
   // if there is no need to initialize OpenMC, return
   if (!openmc_problem_requested && !openmc_mesh_generator_requested)
@@ -66,7 +65,7 @@ OpenMCInitAction::act()
       (openmc_problem_requested) ? xml_directory_problem : xml_directory_generator;
 
   // Initialize OpenMC
-  init_openmc(xml_directory);
+  initOpenMC(xml_directory);
 }
 
 bool
@@ -88,10 +87,12 @@ OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_director
 }
 
 bool
-OpenMCInitAction::get_openmc_mesh_generator_xml_directory(std::string & xml_directory) const
+OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory) const
 {
+  // Retrieve all AddMeshGeneratorAction actions
   const auto & mesh_gen_actions = _awh.getActions<AddMeshGeneratorAction>();
 
+  // Search for an OpenMCMeshGenerator
   for (const auto * action : mesh_gen_actions)
   {
     if (action->getMooseObjectType() == "OpenMCMeshGenerator")
