@@ -1,0 +1,23 @@
+[Tests]
+  [mesh_only]
+    type = Exodiff
+    input = openmc_mesh_only.i
+    exodiff = openmc_mesh_only_in.e
+    cli_args = "--mesh-only"
+    requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
+  []
+  [verify_point_sampling]
+    type = CSVDiff
+    input = openmc_mesh_sampling.i
+    csvdiff = openmc_mesh_sampling_out_sample_points_0001.csv
+    requirement = "Points generated inside the mesh produced by OpenMCMeshGenerator "
+                  "must correctly map to the mesh element IDs."
+  []
+  [verify_bounding_box_and_info]
+    type = CSVDiff
+    input = openmc_mesh_sampling.i
+    csvdiff = openmc_mesh_sampling_out.csv
+    requirement = "Bounds, volume, number of nodes and elements for the mesh generated "
+                  "by OpenMCMeshGenerator must be correct"
+  []
+[]
