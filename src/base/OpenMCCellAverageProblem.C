@@ -414,17 +414,27 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                        "running in multi-group mode and using density feedback");
     const auto & density_scales = getParam<std::vector<Real>>("mgxs_reference_densities");
 
-    std::vector<std::string> density_vars;
-    for (const auto & [density_var, density_blocks] : _density_vars_to_blocks)
-      density_vars.push_back(density_var);
+    if (isParamValid("density_variables"))
+    {
+      const auto & density_vars = getParam<std::vector<std::vector<std::string>>>("density_variables");
 
-    if (density_scales.size() != density_vars.size())
-      paramError("mgxs_reference_densities",
-                 "'mgxs_reference_densities' must have the same number of entries as rows in "
-                 "'density_variables'!");
+      if (density_scales.size() != density_vars.size())
+        paramError("mgxs_reference_densities",
+                  "'mgxs_reference_densities' must have the same number of entries as rows in "
+                  "'density_variables'!");
 
-    for (unsigned int i = 0; i < density_vars.size(); i++)
-      _density_vars_to_ref_density[density_vars[i]] = density_scales[i];
+      for (unsigned int i = 0; i < density_vars.size(); ++i)
+        for (const auto & var : density_vars[i])
+          _density_vars_to_ref_density[var] = density_scales[i];
+    }
+    else
+    {
+      if (density_scales.size() != 1)
+        paramError("mgxs_reference_densities",
+                  "'mgxs_reference_densities' may only have a single entry when no density variables are specified!");
+
+      _density_vars_to_ref_density["density"] = density_scales[0];
+    }
   }
   else
     checkUnusedParam(params,
