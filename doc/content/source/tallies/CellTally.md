@@ -25,9 +25,8 @@ Namely, filters are limited to [EnergyFilters](EnergyFilter.md) and scores are l
 - `nu_fission`
 - `fission`
 
-In addition to restrictions on filters and scores, global tallies cannot be utilized as they do not apply a
-spatial filter; using [!ac](TRRM) requires `normalize_by_global_tally = false` and `check_tally_sum = false`.
-Finally, the only `estimator` that can be used with [!ac](TRRM) is the `tracklength` estimator.
+In addition to restrictions on filters and scores, the only `estimator` that can be used with [!ac](TRRM) is
+the `tracklength` estimator.
 
 ## Example Input File Syntax
 

@@ -28,7 +28,10 @@
 #include "EnergyOutFilter.h"
 #include "DelayedGroupFilter.h"
 
+#include "openmc/tallies/filter_universe.h"
+#include "openmc/geometry.h"
 #include "openmc/settings.h"
+#include "openmc/universe.h"
 
 InputParameters
 TallyBase::validParams()
@@ -123,10 +126,12 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _has_outputs(isParamValid("output")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
 {
+  /*
   if (_needs_global_tally && _openmc_problem.runRandomRay())
     mooseError("Cannot add global tallies when running in random "
                "ray mode! Please set 'normalize_by_global_tally' "
                "and 'check_tally_sum' to false.");
+  */
 
   if (isParamValid("score"))
   {
@@ -427,6 +432,16 @@ TallyBase::initializeTally()
     _global_tally = openmc::Tally::create();
     _global_tally->set_scores(_tally_score);
     _global_tally->estimator_ = _estimator;
+
+    // Add a universe filter with the root universe if running in random ray mode.
+    if (_openmc_problem.runRandomRay())
+    {
+      // These vectors are required for OpenMC::span.
+      std::vector<openmc::Filter*> uni_filter = {openmc::Filter::create("universe")};
+      std::vector<int> root_uni = {openmc::model::root_universe};
+      dynamic_cast<openmc::UniverseFilter *>(uni_filter.back())->set_universes(root_uni);
+      _global_tally->set_filters(uni_filter);
+    }
   }
 
   auto [index, spatial_filter] = spatialFilter();
@@ -459,7 +474,8 @@ TallyBase::resetTally()
     openmc::model::tallies.erase(openmc::model::tallies.begin() + _global_tally_index);
 
   // Erase the filter(s).
-  openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
+  const auto erase_idx = addingGlobalTally() && _openmc_problem.runRandomRay() ? _filter_index - 1 : _filter_index;
+  openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + erase_idx);
 }
 
 Real
