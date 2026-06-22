@@ -41,11 +41,24 @@
       <lower_left>0.0 0.0 0.0</lower_left>
       <upper_right>10.0 10.0 10.0</upper_right>
     </mesh>
+    <mesh id="2" type="cylindrical">
+      <r_grid>0.0 5.0</r_grid>
+      <phi_grid>0.0 6.283185307179586</phi_grid>
+      <z_grid>0.0 10.0</z_grid>
+      <origin>5.0 5.0 0.0</origin>
+    </mesh>
     <filter id="1" type="mesh">
       <bins>1</bins>
     </filter>
-    <tally id="1" name="mesh_tally">
+    <filter id="2" type="mesh">
+      <bins>2</bins>
+    </filter>
+    <tally id="1" name="regular_mesh_tally">
       <filters>1</filters>
+      <scores>flux</scores>
+    </tally>
+    <tally id="2" name="cylindrical_mesh_tally">
+      <filters>2</filters>
       <scores>flux</scores>
     </tally>
   </tallies>

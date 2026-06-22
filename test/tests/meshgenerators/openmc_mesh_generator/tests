@@ -15,6 +15,14 @@
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
                   "values"
   []
+  [wrong_mesh_type]
+    type = RunException
+    input = openmc_wrong_mesh_type.i
+    cli_args = "--mesh-only"
+    expect_err = "Only implemented for openmc::RegularMesh!"
+    requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
+                  "OpenMC RegularMesh"
+  []
   [two_meshes]
     type = Exodiff
     input = openmc_two_meshes.i
