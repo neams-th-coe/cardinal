@@ -5,6 +5,7 @@
     exodiff = openmc_mesh_only_in.e
     cli_args = "--mesh-only"
     requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
+    capabilities = "openmc"
   []
   [different_xml_directories]
     type = RunException
@@ -14,6 +15,7 @@
                  "OpenMCMeshGenerators"
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
                   "values"
+    capabilities = "openmc"
   []
   [wrong_mesh_type]
     type = RunException
@@ -22,6 +24,7 @@
     expect_err = "Only implemented for openmc::RegularMesh!"
     requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
                   "OpenMC RegularMesh"
+    capabilities = "openmc"
   []
   [two_meshes]
     type = Exodiff
@@ -30,6 +33,7 @@
     cli_args = "--mesh-only"
     requirement = "OpenMCMeshGenerator must accept at least two different calls from the "
                   "same xml_directory"
+    capabilities = "openmc"
   []
   [verify_point_sampling]
     type = CSVDiff
@@ -37,6 +41,7 @@
     csvdiff = openmc_mesh_sampling_out_sample_points_0001.csv
     requirement = "Points generated inside the mesh produced by OpenMCMeshGenerator "
                   "must correctly map to the mesh element IDs."
+    capabilities = "openmc"
   []
   [verify_bounding_box_and_info]
     type = CSVDiff
@@ -44,5 +49,6 @@
     csvdiff = openmc_mesh_sampling_out.csv
     requirement = "Bounds, volume, number of nodes and elements for the mesh generated "
                   "by OpenMCMeshGenerator must be correct"
+    capabilities = "openmc"
   []
 []
