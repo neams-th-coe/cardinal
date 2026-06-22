@@ -6,6 +6,14 @@
     cli_args = "--mesh-only"
     requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
   []
+  [two_meshes]
+    type = Exodiff
+    input = openmc_two_meshes.i
+    exodiff = openmc_two_meshes_in.e
+    cli_args = "--mesh-only"
+    requirement = "OpenMCMeshGenerator must accept at least two different calls from the "
+                  "same xml_directory"
+  []
   [verify_point_sampling]
     type = CSVDiff
     input = openmc_mesh_sampling.i
