@@ -44,6 +44,11 @@
     lower_fraction = 0.2
     upper_fraction = 0.3
   []
+  [value_diff]
+    type = ValueDifferenceHeuristicUserObject
+    metric_variable_name = 'metric_var'
+    tolerance = 0.1
+  []
   [boolean_combo]
     type = BooleanComboClusteringUserObject
     expression = "value_fraction"

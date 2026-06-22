@@ -32,4 +32,12 @@
         expect_err = "lower_fraction \+ upper_fraction must be less than 1"
         requirement = "The system shall error if 'lower_faction + upper_fraction' is more than 1."
     []
+    [tolerance_must_be_positive]
+        type = RunException
+        input = common_error.i
+        mesh_mode = "replicated"
+        cli_args = "UserObjects/value_diff/tolerance=-0.01"
+        expect_err = "tolerance must be positive"
+        requirement = "The system shall throw a param error if 'tolerance' is negative"
+    []
 []
