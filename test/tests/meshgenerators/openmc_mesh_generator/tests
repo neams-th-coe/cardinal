@@ -6,6 +6,15 @@
     cli_args = "--mesh-only"
     requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
   []
+  [different_xml_directories]
+    type = RunException
+    input = openmc_different_xml_directories.i
+    cli_args = "--mesh-only"
+    expect_err = "Inconsistent xml directories for OpenMC in the declared "
+                 "OpenMCMeshGenerators"
+    requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
+                  "values"
+  []
   [two_meshes]
     type = Exodiff
     input = openmc_two_meshes.i
