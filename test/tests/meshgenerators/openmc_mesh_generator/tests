@@ -41,6 +41,7 @@
     csvdiff = openmc_mesh_sampling_out_sample_points_0001.csv
     requirement = "Points generated inside the mesh produced by OpenMCMeshGenerator "
                   "must correctly map to the mesh element IDs."
+    mesh_mode = "replicated"
     capabilities = "openmc"
   []
   [verify_bounding_box_and_info]
