@@ -92,14 +92,31 @@ OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory) co
   // Retrieve all AddMeshGeneratorAction actions
   const auto & mesh_gen_actions = _awh.getActions<AddMeshGeneratorAction>();
 
-  // Search for an OpenMCMeshGenerator
+  // Search for OpenMCMeshGenerators and verify that xml_directory parameters are consistent
+  bool found = false;
   for (const auto * action : mesh_gen_actions)
   {
     if (action->getMooseObjectType() == "OpenMCMeshGenerator")
     {
-      xml_directory = action->getObjectParams().get<FileName>("xml_directory");
-      return true;
+      std::string xml_directory_temp = action->getObjectParams().get<FileName>("xml_directory");
+      if (found)
+      {
+        if (xml_directory_temp != xml_directory)
+        {
+          mooseError(
+              "Inconsistent xml directories for OpenMC in the declared OpenMCMeshGenerators");
+        }
+      }
+      else
+      {
+        xml_directory = xml_directory_temp;
+        found = true;
+      }
     }
+  }
+  if (found)
+  {
+    return true;
   }
   return false;
 }

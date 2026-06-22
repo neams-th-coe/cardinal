@@ -46,6 +46,9 @@ protected:
    * Check whether an OpenMCMeshGenerator have been requested in the input file and returns the
    * associated path to the XML directory if an OpenMCMeshGenerator is present in the input
    * file.
+   *
+   * If multiple OpenMCMeshGenerators are requested but the xml_directory values are not
+   * exactly the same, it returns an error because we cannot initialize OpenMC more than once.
    * @param[out] xml_directory directory in which OpenMC settings xml files are located
    * @return whether an OpenMCMeshGenerator have been requested in the input file
    */
