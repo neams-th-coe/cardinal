@@ -2,7 +2,7 @@
   [nondim]
     type = Exodiff
     input = nek.i
-    exodiff = nek_out.e
+    exodiff = nek_out_sub0.e
     requirement = "Spatially-binned side integrals and averages shall be correctly dimensionalized for "
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."
