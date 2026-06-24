@@ -1,4 +1,5 @@
-#include "udf.hpp"
+#ifdef __okl__
+#endif
 
 void UDF_LoadKernels(occa::properties & kernelInfo)
 {
@@ -10,7 +11,6 @@ void UDF_Setup()
   // we turn off the solves, we're just doing postprocessing of whatever we set
   // for the initial conditions
   auto mesh = nrs->meshV;
-  auto &scalar = nrs->scalar;
 
   std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
   std::vector<dfloat> P(mesh->Nlocal, 0.0);
