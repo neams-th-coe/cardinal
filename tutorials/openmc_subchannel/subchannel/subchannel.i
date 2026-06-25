@@ -32,6 +32,10 @@ mass_flux_in = ${fparse total_mdot / flow_area}
     n_cells = 100
     heated_length = ${fparse height * 1e-2}
     pitch = ${fparse pin_pitch * 1e-2}
+    dwire = ${fparse wire_diameter * 1e-2}
+    flat_to_flat = ${fparse duct_inner_flat_to_flat * 1e-2}
+    hwire = ${fparse wire_pitch * 1e-2}
+    pin_diameter = ${fparse outer_clad_diameter * 1e-2}
   []
 []
 
