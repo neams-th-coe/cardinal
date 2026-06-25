@@ -89,7 +89,11 @@ TallyBase::validParams()
                         "with a global tally sum. This will require that the "
                         "integral of the local tally matches a tally with no filters "
                         "(defined over the entire phase space).");
-  params.addRangeCheckedParam<Real>("tally_sum_tol", 1e-6, "tally_sum_tol > 0", "Relative tolerance above which to throw an error message that the local tally does not preserve the global tally");
+  params.addRangeCheckedParam<Real>("tally_sum_tol",
+                                    1e-6,
+                                    "tally_sum_tol > 0",
+                                    "Relative tolerance above which to throw an error message that "
+                                    "the local tally does not preserve the global tally");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -713,7 +717,8 @@ TallyBase::tallyNormalization(unsigned int score) const
 void
 TallyBase::checkTallySum(const unsigned int & score) const
 {
-  auto rel_diff = std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score];
+  auto rel_diff =
+      std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score];
   if (rel_diff > _tally_sum_tol)
   {
     std::stringstream msg;
