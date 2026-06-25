@@ -89,6 +89,7 @@ TallyBase::validParams()
                         "with a global tally sum. This will require that the "
                         "integral of the local tally matches a tally with no filters "
                         "(defined over the entire phase space).");
+  params.addRangeCheckedParam<Real>("tally_sum_tol", 1e-6, "tally_sum_tol > 0", "Relative tolerance above which to throw an error message that the local tally does not preserve the global tally");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -118,6 +119,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
                          : (_openmc_problem.runMode() == openmc::RunMode::FIXED_SOURCE
                                 ? true
                                 : _normalize_by_global)),
+    _tally_sum_tol(getParam<Real>("tally_sum_tol")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output")),
@@ -711,18 +713,20 @@ TallyBase::tallyNormalization(unsigned int score) const
 void
 TallyBase::checkTallySum(const unsigned int & score) const
 {
-  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] >
-      1e-6)
+  auto rel_diff = std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score];
+  if (rel_diff > _tally_sum_tol)
   {
     std::stringstream msg;
     msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score]
         << " tally:\n"
-        << " Global value: " << Moose::stringify(_global_sum_tally[score])
-        << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
-        << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
+        << " Global value:            " << Moose::stringify(_global_sum_tally[score])
+        << "\n Tally sum:             " << Moose::stringify(_local_sum_tally[score])
+        << "\n Absolute Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
+        << "\n Relative Difference:   " << rel_diff
         << "\n\nThis means that the tallies created by Cardinal are missing some hits over the "
            "domain.\n"
-        << "You can turn off this check by setting 'check_tally_sum' to false.";
+        << "You can turn off this check by setting 'check_tally_sum' to false. "
+        << "Or, if this relative difference is acceptable to you, you can loosen 'tally_sum_tol'";
 
     mooseError(msg.str());
   }
