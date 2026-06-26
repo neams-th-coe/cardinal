@@ -126,13 +126,6 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _has_outputs(isParamValid("output")),
     _is_adaptive(_openmc_problem.hasAdaptivity())
 {
-  /*
-  if (_needs_global_tally && _openmc_problem.runRandomRay())
-    mooseError("Cannot add global tallies when running in random "
-               "ray mode! Please set 'normalize_by_global_tally' "
-               "and 'check_tally_sum' to false.");
-  */
-
   if (isParamValid("score"))
   {
     const auto & scores = getParam<MultiMooseEnum>("score");
@@ -146,9 +139,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
       std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
   if (_openmc_problem.runRandomRay() && openmc::FlatSourceDomain::volume_normalized_flux_tallies_ &&
       has_flux)
-    mooseError("Cardinal volume normalizes flux tallies with volumes computed with mesh "
+    mooseError("Cardinal volume-normalizes flux tallies with volumes computed from the mesh "
                "elements, and so normalizing flux tallies with the random ray volume "
-               "estimator will result in a double divide by volume. Please set "
+               "estimator will result in dividing by volume twice. Please set "
                "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC model.");
 
   if (_openmc_problem.runRandomRay())
@@ -199,26 +192,25 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
   else
   {
-    /**
-     * Set a default of tracklength for all tallies other then heating tallies in photon transport
-     * and nu_scatter tallies. This behavior must be overridden in derived tallies that implement
-     * mesh filters.
-     */
+    // Set a default of tracklength. This must be overridden in derived classes that use different
+    // spatial filters (e.g. unstructured mesh tallies).
     _estimator = openmc::TallyEstimator::TRACKLENGTH;
+    if (!_openmc_problem.runRandomRay())
+    {
+      // Heating tallies in photon transport and nu_scatter tallies require collision/analog scores.
+      if (nu_scatter && !(heating && openmc::settings::photon_transport))
+        _estimator = openmc::TallyEstimator::ANALOG;
+      else if (nu_scatter && heating && openmc::settings::photon_transport)
+        paramError(
+            "estimator",
+            "A single tally cannot score both nu_scatter and heating when photon transport is "
+            "enabled, as both scores require different estimators. Consider adding one tally "
+            "which scores nu_scatter (with an analog estimator), and a second tally that scores "
+            "heating (with a collision estimator).");
 
-    if (nu_scatter && !(heating && openmc::settings::photon_transport) &&
-        !_openmc_problem.runRandomRay())
-      _estimator = openmc::TallyEstimator::ANALOG;
-    else if (nu_scatter && heating && openmc::settings::photon_transport)
-      paramError(
-          "estimator",
-          "A single tally cannot score both nu_scatter and heating when photon transport is "
-          "enabled, as both scores require different estimators. Consider adding one tally "
-          "which scores nu_scatter (with an analog estimator), and a second tally that scores "
-          "heating (with a collision estimator).");
-
-    if (heating && openmc::settings::photon_transport && !_openmc_problem.runRandomRay())
-      _estimator = openmc::TallyEstimator::COLLISION;
+      if (heating && openmc::settings::photon_transport)
+        _estimator = openmc::TallyEstimator::COLLISION;
+    }
   }
 
   if (heating && !openmc::settings::photon_transport)
@@ -473,7 +465,9 @@ TallyBase::resetTally()
   if (addingGlobalTally())
     openmc::model::tallies.erase(openmc::model::tallies.begin() + _global_tally_index);
 
-  // Erase the filter(s).
+  // Erase the filter(s). When running the random ray solver with global normalization we
+  // add an additional universe filter to the problem before adding the filter at `_filter_index`.
+  // We need to erase that filter as well so we offset by 1.
   const auto erase_idx =
       addingGlobalTally() && _openmc_problem.runRandomRay() ? _filter_index - 1 : _filter_index;
   openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + erase_idx);
