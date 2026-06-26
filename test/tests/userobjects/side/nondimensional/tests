@@ -1,8 +1,16 @@
 [Tests]
+  [boundary_mesh]
+    type = RunApp
+    input = nek.i
+    cli_args = "Mesh/volume=false Mesh/boundary='4' --mesh-only"
+    requirement = 'The system shall generate a boundary mesh to receive a side userobject during a multiapp transfer.'
+    capabilities = 'nekrs'
+  []
   [nondim]
     type = Exodiff
     input = nek.i
     exodiff = nek_out_sub0.e
+    prereq = 'boundary_mesh'
     requirement = "Spatially-binned side integrals and averages shall be correctly dimensionalized for "
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."
