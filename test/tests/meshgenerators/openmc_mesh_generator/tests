@@ -1,4 +1,6 @@
 [Tests]
+  issues = "#1369"
+
   [mesh_only]
     type = Exodiff
     input = openmc_mesh_only.i
