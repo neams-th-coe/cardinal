@@ -1,7 +1,7 @@
 [Mesh]
   [f]
     type = FileMeshGenerator
-    file = boundary.e
+    file = nek_in.e
   []
 []
 
