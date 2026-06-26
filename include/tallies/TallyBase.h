@@ -455,7 +455,7 @@ protected:
    */
   const bool _check_tally_sum;
 
-  /// Relative tolerance for erroring on local vs. glocal conservation of the tally
+  /// Relative tolerance for erroring on local vs. global conservation of the tally
   const Real & _tally_sum_tol;
 
   /**
