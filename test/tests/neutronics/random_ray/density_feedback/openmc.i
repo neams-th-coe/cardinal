@@ -55,7 +55,7 @@
   verbose = true
   cell_level = 0
   density_blocks = '0 3'
-  mgxs_reference_densities = '1000.0'
+  mgxs_reference_densities_by_block = '1000.0'
 
   batches = 100
   inactive_batches = 10

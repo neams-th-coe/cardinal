@@ -16,7 +16,7 @@
     type = CSVDiff
     input = two_vars.i
     csvdiff = two_vars_out.csv
-    requirement = "The system shall allow a reference density per variable when sending densities "
+    requirement = "The system shall allow a reference density per block when sending densities "
                   "to OpenMC's random ray solver."
     capabilities = 'openmc'
   []

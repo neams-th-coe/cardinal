@@ -31,16 +31,16 @@
   [err_mismatching_reference_densities_1]
     type = RunException
     input = reference_densities.i
-    cli_args = "Problem/mgxs_reference_densities='1.0 1.0'"
-    expect_err = "'mgxs_reference_densities' may only have a single entry when no density variables are specified!"
+    cli_args = "Problem/mgxs_reference_densities_by_block='1.0 1.0'"
+    expect_err = "'mgxs_reference_densities_by_block' may only have a single entry when no density variables are specified!"
     requirement = "The system shall error if the user provides more reference densities then density blocks/variables."
     capabilities = 'openmc'
   []
   [err_mismatching_reference_densities_2]
     type = RunException
     input = reference_densities.i
-    cli_args = "Problem/mgxs_reference_densities='1.0 1.0' Problem/density_variables='rho'"
-    expect_err = "'mgxs_reference_densities' must have the same number of entries as rows in 'density_variables'!"
+    cli_args = "Problem/mgxs_reference_densities_by_block='1.0 1.0' Problem/density_variables='rho'"
+    expect_err = "'mgxs_reference_densities_by_block' must have the same number of entries as rows in 'density_variables'!"
     requirement = "The system shall error if the user provides more reference densities then density blocks/variables."
     capabilities = 'openmc'
   []
@@ -49,7 +49,7 @@
   [err_ifp]
     type = RunException
     input = reference_densities.i
-    cli_args = "Problem/mgxs_reference_densities='1.0' Problem/calc_kinetics_params=true Problem/ifp_generations=5"
+    cli_args = "Problem/mgxs_reference_densities_by_block='1.0' Problem/calc_kinetics_params=true Problem/ifp_generations=5"
     expect_err = "Kinetic parameters cannot be calculated when using the random ray solver!"
     requirement = "The system shall error if the user requests the calculation of kinetics "
                   "parameters when running in random ray mode."

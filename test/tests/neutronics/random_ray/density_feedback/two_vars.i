@@ -63,7 +63,7 @@
   cell_level = 0
   density_blocks = '0; 3'
   density_variables = 'rho_1; rho_2'
-  mgxs_reference_densities = '1000.0 500.0'
+  mgxs_reference_densities_by_block = '1000.0 500.0'
 
   batches = 100
   inactive_batches = 10
