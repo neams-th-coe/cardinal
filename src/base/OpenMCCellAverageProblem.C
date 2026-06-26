@@ -127,10 +127,12 @@ OpenMCCellAverageProblem::validParams()
       "density_blocks",
       "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "there will be no density feedback to OpenMC.");
-  params.addParam<std::vector<Real>>(
+  params.addRangeCheckedParam<std::vector<Real>>(
       "mgxs_reference_densities",
+      "mgxs_reference_densities > 0.0",
       "Reference density values to use when applying density feedback (only used in multi-group "
-      "mode). Each entry maps to the corresponding row in 'density_variables.' Units are expected "
+      "mode). These densities represent the initial densities used when generated the multigroup "
+      "library. Each entry maps to the corresponding row in 'density_variables.' Units are expected "
       "to be kg/m3.");
 
   params.addParam<unsigned int>("cell_level",
@@ -2505,22 +2507,26 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
     maximum = std::max(maximum, average_density);
 
     if (_verbose)
+    {
       if (openmc::settings::run_CE)
         _console << "Setting cell " << printCell(cell_info)
                  << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
       else
         _console << "Setting cell " << printCell(cell_info)
                  << " to MGXS density (-): " << std::setw(4) << average_density << std::endl;
+    }
 
     setCellDensity(average_density, cell_info);
   }
 
   if (!_verbose)
+  {
     if (openmc::settings::run_CE)
       _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum
                << std::endl;
     else
       _console << " Sent cell-averaged min/max (-): " << minimum << ", " << maximum << std::endl;
+  }
 }
 
 Real
@@ -2569,8 +2575,10 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
 const Real
 OpenMCCellAverageProblem::getReferenceDensity(const Elem * elem) const
 {
-  return openmc::settings::run_CE || !elem ? 1.0
-                                           : _subdomain_to_ref_density.at(elem->subdomain_id());
+  // The element should never be null entering this function.
+  assert(elem != nullptr);
+
+  return openmc::settings::run_CE ? 1.0 : _subdomain_to_ref_density.at(elem->subdomain_id());
 }
 
 void
