@@ -420,9 +420,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
 
     if (density_scales.size() != density_blocks.size())
-      paramError("mgxs_reference_densities_by_block",
-                  "'mgxs_reference_densities_by_block' must have the same number of entries as rows in "
-                  "'density_blocks'!");
+      paramError(
+          "mgxs_reference_densities_by_block",
+          "'mgxs_reference_densities_by_block' must have the same number of entries as rows in "
+          "'density_blocks'!");
 
     for (unsigned int i = 0; i < density_blocks.size(); ++i)
       for (const auto & subdomain_name : density_blocks[i])
@@ -1480,21 +1481,20 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       for (auto mat : sub_materials)
         materials += materialName(mat) + ", ";
 
-      mooseWarning("Reference density "
-          + Moose::stringify(_subdomain_to_ref_density.at(sub))
-          + " is being applied to a subdomain ("
-          + subdomainName(sub)
-          + ") which maps to multiple OpenMC materials: "
-          + materials.substr(0, materials.size() - 2)
-          + ". If these multiple materials had different densities during "
-          + "the MGXS generation stage, your model is not consistently "
-          + "applying density feedback. The solution is to create a "
-          + "separate mesh subdomain for each OpenMC material.");
+      mooseWarning("Reference density " + Moose::stringify(_subdomain_to_ref_density.at(sub)) +
+                   " is being applied to a subdomain (" + subdomainName(sub) +
+                   ") which maps to multiple OpenMC materials: " +
+                   materials.substr(0, materials.size() - 2) +
+                   ". If these multiple materials had different densities during " +
+                   "the MGXS generation stage, your model is not consistently " +
+                   "applying density feedback. The solution is to create a " +
+                   "separate mesh subdomain for each OpenMC material.");
     }
   }
 
   VariadicTable<std::string, std::string> vt_ce({"Subdomain", "Material"});
-  VariadicTable<std::string, std::string, std::string> vt_mg({"Subdomain", "Reference Density", "Material"});
+  VariadicTable<std::string, std::string, std::string> vt_mg(
+      {"Subdomain", "Reference Density", "Material"});
   auto subdomains = coupledSubdomains();
   for (const auto & i : subdomains)
   {
@@ -1516,7 +1516,9 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       mats += " " + m.first + extra + ",";
     }
 
-    auto ref_density_str = _subdomain_to_ref_density.count(i) ? Moose::stringify(_subdomain_to_ref_density.at(i)) : std::string("");
+    auto ref_density_str = _subdomain_to_ref_density.count(i)
+                               ? Moose::stringify(_subdomain_to_ref_density.at(i))
+                               : std::string("");
     mats.pop_back();
     if (openmc::settings::run_CE)
       vt_ce.addRow(subdomainName(i), mats);
@@ -1531,11 +1533,13 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
         << std::endl;
     _console << "              Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
     if (!openmc::settings::run_CE)
-      _console << "      Reference Density:  Reference density (kg/m3) applied to the subdomain" << std::endl;
-    _console << "               Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
-             << "                          show the ID. If N duplicate material names, we show the\n"
-             << "                          number in ( ).\n"
-             << std::endl;
+      _console << "      Reference Density:  Reference density (kg/m3) applied to the subdomain"
+               << std::endl;
+    _console
+        << "               Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
+        << "                          show the ID. If N duplicate material names, we show the\n"
+        << "                          number in ( ).\n"
+        << std::endl;
     if (openmc::settings::run_CE)
       vt_ce.print(_console);
     else

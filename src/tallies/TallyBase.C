@@ -138,7 +138,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
   if (_openmc_problem.runRandomRay())
   {
     const auto has_flux =
-      std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
+        std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
     if (openmc::FlatSourceDomain::volume_normalized_flux_tallies_ && has_flux)
       mooseError("Cardinal volume-normalizes flux tallies with volumes computed from the "
                  "mesh elements, and so normalizing flux tallies with the random ray "
@@ -179,8 +179,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
       auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
       if (estimator != tally::tracklength)
         paramError("estimator",
-                  "The random ray solver in OpenMC requires that tallies use "
-                  "tracklength estimators! Please set 'estimator' to 'tracklength'.");
+                   "The random ray solver in OpenMC requires that tallies use "
+                   "tracklength estimators! Please set 'estimator' to 'tracklength'.");
 
       _estimator = _openmc_problem.tallyEstimator(estimator);
     }
@@ -195,8 +195,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
       // Photon heating tallies cannot use tracklength estimators.
       if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
         paramError("estimator",
-                  "Tracklength estimators are currently incompatible with photon transport and "
-                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
+                   "Tracklength estimators are currently incompatible with photon transport and "
+                   "heating scores! For more information: https://tinyurl.com/3wre3kwt");
 
       if (estimator != tally::analog && nu_scatter)
         paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
