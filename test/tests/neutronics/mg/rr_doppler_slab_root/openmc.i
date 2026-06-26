@@ -71,7 +71,7 @@ Y0     = 6.65e11                         # source intensity (n / cm2-s)
 
   cell_level = 0
   density_blocks = '0'
-  mgxs_reference_densities_by_vars = '1.0'
+  mgxs_reference_densities_by_block = '1.0'
   initial_properties = xml
 
   particles = 1000

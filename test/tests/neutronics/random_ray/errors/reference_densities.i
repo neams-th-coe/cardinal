@@ -12,6 +12,7 @@
   type = OpenMCCellAverageProblem
 
   density_blocks = '0'
+  mgxs_reference_densities_by_block = '1.0 1.0'
 []
 
 [Executioner]

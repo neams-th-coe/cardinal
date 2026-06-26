@@ -6,7 +6,8 @@
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
-    requirement = "The system shall support density feedback to OpenMC's random ray solver. This "
+    requirement = "The system shall support density feedback to OpenMC's random ray solver for the "
+                  "case when only density feedback blocks are provided. This "
                   "test was verified with a standalone OpenMC simulation where distributed cell "
                   "densities were set in the Python API. The k-eff and standard deviations matched "
                   "exactly."
@@ -16,8 +17,11 @@
     type = CSVDiff
     input = two_vars.i
     csvdiff = two_vars_out.csv
-    requirement = "The system shall allow a reference density per block when sending densities "
-                  "to OpenMC's random ray solver."
+    requirement = "The system shall support density feedback to OpenMC's random ray solver for the "
+                  "case when only density feedback blocks and variables are provided. This "
+                  "test was verified with a standalone OpenMC simulation where distributed cell "
+                  "densities were set in the Python API. The k-eff and standard deviations matched "
+                  "exactly."
     capabilities = 'openmc'
   []
 []
