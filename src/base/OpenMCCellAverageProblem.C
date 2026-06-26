@@ -416,12 +416,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
     if (isParamValid("density_variables"))
     {
-      const auto & density_vars = getParam<std::vector<std::vector<std::string>>>("density_variables");
+      const auto & density_vars =
+          getParam<std::vector<std::vector<std::string>>>("density_variables");
 
       if (density_scales.size() != density_vars.size())
         paramError("mgxs_reference_densities",
-                  "'mgxs_reference_densities' must have the same number of entries as rows in "
-                  "'density_variables'!");
+                   "'mgxs_reference_densities' must have the same number of entries as rows in "
+                   "'density_variables'!");
 
       for (unsigned int i = 0; i < density_vars.size(); ++i)
         for (const auto & var : density_vars[i])
@@ -431,7 +432,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       if (density_scales.size() != 1)
         paramError("mgxs_reference_densities",
-                  "'mgxs_reference_densities' may only have a single entry when no density variables are specified!");
+                   "'mgxs_reference_densities' may only have a single entry when no density "
+                   "variables are specified!");
 
       _density_vars_to_ref_density["density"] = density_scales[0];
     }

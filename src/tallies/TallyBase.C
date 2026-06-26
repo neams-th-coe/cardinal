@@ -437,7 +437,7 @@ TallyBase::initializeTally()
     if (_openmc_problem.runRandomRay())
     {
       // These vectors are required for OpenMC::span.
-      std::vector<openmc::Filter*> uni_filter = {openmc::Filter::create("universe")};
+      std::vector<openmc::Filter *> uni_filter = {openmc::Filter::create("universe")};
       std::vector<int> root_uni = {openmc::model::root_universe};
       dynamic_cast<openmc::UniverseFilter *>(uni_filter.back())->set_universes(root_uni);
       _global_tally->set_filters(uni_filter);
@@ -474,7 +474,8 @@ TallyBase::resetTally()
     openmc::model::tallies.erase(openmc::model::tallies.begin() + _global_tally_index);
 
   // Erase the filter(s).
-  const auto erase_idx = addingGlobalTally() && _openmc_problem.runRandomRay() ? _filter_index - 1 : _filter_index;
+  const auto erase_idx =
+      addingGlobalTally() && _openmc_problem.runRandomRay() ? _filter_index - 1 : _filter_index;
   openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + erase_idx);
 }
 
