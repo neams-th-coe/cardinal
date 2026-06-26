@@ -135,17 +135,17 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
     _tally_score = {"kappa-fission"};
 
-  const auto has_flux =
-      std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
-  if (_openmc_problem.runRandomRay() && openmc::FlatSourceDomain::volume_normalized_flux_tallies_ &&
-      has_flux)
-    mooseError("Cardinal volume-normalizes flux tallies with volumes computed from the mesh "
-               "elements, and so normalizing flux tallies with the random ray volume "
-               "estimator will result in dividing by volume twice. Please set "
-               "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC model.");
-
   if (_openmc_problem.runRandomRay())
   {
+    const auto has_flux =
+      std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
+    if (openmc::FlatSourceDomain::volume_normalized_flux_tallies_ && has_flux)
+      mooseError("Cardinal volume-normalizes flux tallies with volumes computed from the "
+                 "mesh elements, and so normalizing flux tallies with the random ray "
+                 "volume estimator will result in dividing by volume twice. Please set "
+                 "openmc.Settings.random_ray['volume_estimator'] = False in your OpenMC "
+                 "model.");
+
     bool found_invalid_rr_score = false;
     std::string invalid_scores;
     for (const auto & score : _tally_score)
@@ -170,33 +170,45 @@ TallyBase::TallyBase(const InputParameters & parameters)
   const bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
 
-  if (isParamValid("estimator"))
+  // Random ray mode requires tracklength estimators.
+  if (_openmc_problem.runRandomRay())
   {
-    auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
+    // Error if the user tries to set something other than tracklength for random ray mode
+    if (isParamValid("estimator"))
+    {
+      auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
+      if (estimator != tally::tracklength)
+        paramError("estimator",
+                  "The random ray solver in OpenMC requires that tallies use "
+                  "tracklength estimators! Please set 'estimator' to 'tracklength'.");
 
-    if (estimator != tally::tracklength && _openmc_problem.runRandomRay())
-      paramError("estimator",
-                 "The random ray solver in OpenMC requires that tallies use "
-                 "tracklength estimators! Please set 'estimator' to 'tracklength'.");
-
-    // Photon heating tallies cannot use tracklength estimators.
-    if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
-      paramError("estimator",
-                 "Tracklength estimators are currently incompatible with photon transport and "
-                 "heating scores! For more information: https://tinyurl.com/3wre3kwt");
-
-    if (estimator != tally::analog && nu_scatter)
-      paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
-
-    _estimator = _openmc_problem.tallyEstimator(estimator);
+      _estimator = _openmc_problem.tallyEstimator(estimator);
+    }
+    else
+      _estimator = openmc::TallyEstimator::TRACKLENGTH;
   }
   else
   {
-    // Set a default of tracklength. This must be overridden in derived classes that use different
-    // spatial filters (e.g. unstructured mesh tallies).
-    _estimator = openmc::TallyEstimator::TRACKLENGTH;
-    if (!_openmc_problem.runRandomRay())
+    if (isParamValid("estimator"))
     {
+      auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
+      // Photon heating tallies cannot use tracklength estimators.
+      if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
+        paramError("estimator",
+                  "Tracklength estimators are currently incompatible with photon transport and "
+                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
+
+      if (estimator != tally::analog && nu_scatter)
+        paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
+
+      _estimator = _openmc_problem.tallyEstimator(estimator);
+    }
+    else
+    {
+      // Set a default of tracklength. This must be overridden in derived classes that use different
+      // spatial filters (e.g. unstructured mesh tallies).
+      _estimator = openmc::TallyEstimator::TRACKLENGTH;
+
       // Heating tallies in photon transport and nu_scatter tallies require collision/analog scores.
       if (nu_scatter && !(heating && openmc::settings::photon_transport))
         _estimator = openmc::TallyEstimator::ANALOG;

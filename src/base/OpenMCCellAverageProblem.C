@@ -128,8 +128,8 @@ OpenMCCellAverageProblem::validParams()
       "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "there will be no density feedback to OpenMC.");
   params.addRangeCheckedParam<std::vector<Real>>(
-      "mgxs_reference_densities",
-      "mgxs_reference_densities > 0.0",
+      "mgxs_reference_densities_by_block",
+      "mgxs_reference_densities_by_block > 0.0",
       "Reference density values to use when applying density feedback (only used in multi-group "
       "mode). These densities represent the initial densities used when generated the multigroup "
       "library. Each entry maps to the corresponding row in 'density_variables.' Units are "
@@ -412,37 +412,25 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (!openmc::settings::run_CE && _specified_density_feedback)
   {
     checkRequiredParam(params,
-                       "mgxs_reference_densities",
+                       "mgxs_reference_densities_by_block",
                        "running in multi-group mode and using density feedback");
-    const auto & density_scales = getParam<std::vector<Real>>("mgxs_reference_densities");
+    const auto & density_scales = getParam<std::vector<Real>>("mgxs_reference_densities_by_block");
 
-    if (isParamValid("density_variables"))
-    {
-      const auto & density_vars =
-          getParam<std::vector<std::vector<std::string>>>("density_variables");
+    const auto & density_blocks =
+        getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
 
-      if (density_scales.size() != density_vars.size())
-        paramError("mgxs_reference_densities",
-                   "'mgxs_reference_densities' must have the same number of entries as rows in "
-                   "'density_variables'!");
+    if (density_scales.size() != density_blocks.size())
+      paramError("mgxs_reference_densities_by_block",
+                  "'mgxs_reference_densities_by_block' must have the same number of entries as rows in "
+                  "'density_blocks'!");
 
-      for (unsigned int i = 0; i < density_vars.size(); ++i)
-        for (const auto & var : density_vars[i])
-          _density_vars_to_ref_density[var] = density_scales[i];
-    }
-    else
-    {
-      if (density_scales.size() != 1)
-        paramError("mgxs_reference_densities",
-                   "'mgxs_reference_densities' may only have a single entry when no density "
-                   "variables are specified!");
-
-      _density_vars_to_ref_density["density"] = density_scales[0];
-    }
+    for (unsigned int i = 0; i < density_blocks.size(); ++i)
+      for (const auto & subdomain_name : density_blocks[i])
+        _subdomain_to_ref_density[mesh().getSubdomainID(subdomain_name)] = density_scales[i];
   }
   else
     checkUnusedParam(params,
-                     "mgxs_reference_densities",
+                     "mgxs_reference_densities_by_block",
                      "not running in multi-group mode and using density feedback");
 
   for (const auto & i : _identical_cell_fill_blocks)
@@ -1483,7 +1471,30 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
         _subdomain_to_material[s].insert(m);
   }
 
-  VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
+  // Warn the user if a reference density is applied to multiple materials.
+  for (const auto & [sub, sub_materials] : _subdomain_to_material)
+  {
+    if (_subdomain_to_ref_density.count(sub) && sub_materials.size() > 1)
+    {
+      std::string materials;
+      for (auto mat : sub_materials)
+        materials += materialName(mat) + ", ";
+
+      mooseWarning("Reference density "
+          + Moose::stringify(_subdomain_to_ref_density.at(sub))
+          + " is being applied to a subdomain ("
+          + subdomainName(sub)
+          + ") which maps to multiple OpenMC materials: "
+          + materials.substr(0, materials.size() - 2)
+          + "If these multiple materials had different densities during "
+          + "the MGXS generation stage, your model is not consistently "
+          + "applying density feedback. The solution is to create a "
+          + "separate mesh subdomain for each OpenMC material.");
+    }
+  }
+
+  VariadicTable<std::string, std::string> vt_ce({"Subdomain", "Material"});
+  VariadicTable<std::string, std::string, std::string> vt_mg({"Subdomain", "Reference Density", "Material"});
   auto subdomains = coupledSubdomains();
   for (const auto & i : subdomains)
   {
@@ -1505,8 +1516,12 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       mats += " " + m.first + extra + ",";
     }
 
+    auto ref_density_str = _subdomain_to_ref_density.count(i) ? Moose::stringify(_subdomain_to_ref_density.at(i)) : std::string("");
     mats.pop_back();
-    vt.addRow(subdomainName(i), mats);
+    if (openmc::settings::run_CE)
+      vt_ce.addRow(subdomainName(i), mats);
+    else
+      vt_mg.addRow(subdomainName(i), ref_density_str, mats);
   }
 
   if (_cell_to_elem.size())
@@ -1514,12 +1529,17 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     _console
         << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n"
         << std::endl;
-    _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-    _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
-             << "                  show the ID. If N duplicate material names, we show the\n"
-             << "                  number in ( ).\n"
+    _console << "              Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+    if (!openmc::settings::run_CE)
+      _console << "      Reference Density:  Reference density (kg/m3) applied to the subdomain" << std::endl;
+    _console << "               Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
+             << "                          show the ID. If N duplicate material names, we show the\n"
+             << "                          number in ( ).\n"
              << std::endl;
-    vt.print(_console);
+    if (openmc::settings::run_CE)
+      vt_ce.print(_console);
+    else
+      vt_mg.print(_console);
     _console << std::endl;
   }
 }
@@ -2289,11 +2309,7 @@ OpenMCCellAverageProblem::addExternalVariables()
 
     auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
-    {
       _subdomain_to_density_vars[s] = {number, v.first};
-      if (!openmc::settings::run_CE)
-        _subdomain_to_ref_density[s] = _density_vars_to_ref_density[v.first];
-    }
   }
 
   // create the variable(s) that will be used to receive temperature

@@ -1078,12 +1078,6 @@ protected:
   /// Mapping from density variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _density_vars_to_blocks;
 
-  /**
-   * Mapping from density variable name to the reference density to use when rescaling
-   * the density value in multi-group mode.
-   */
-  std::map<std::string, Real> _density_vars_to_ref_density;
-
   /// Optional volume calculation for cells which map to MOOSE
   OpenMCVolumeCalculation * _volume_calc;
 
