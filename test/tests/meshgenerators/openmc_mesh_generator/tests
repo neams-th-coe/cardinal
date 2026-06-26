@@ -1,5 +1,6 @@
 [Tests]
   issues = "#1369"
+  design = "OpenMCMeshGenerator.md ElementIDAux.md"
 
   [mesh_only]
     type = Exodiff
