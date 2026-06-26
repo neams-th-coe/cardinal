@@ -412,21 +412,19 @@ for each generation). It is recommend that the number of IFP generations be mini
 Cardinal supports solving both fixed source and k-eigenvalue neutron transport problems with
 [!ac](TRRM) in OpenMC. First-class support is provided for temperature feedback, density feedback,
 and deforming geometry when using [!ac](TRRM). When using density feedback with either [!ac](TRRM)
-or multi-group Monte Carlo, `mgxs_reference_densities` must be provided. This is required to
+or multi-group Monte Carlo, `mgxs_reference_densities_by_block` must be provided. This is required to
 convert the field variables provided (which have units of kg m$^{-3}$) to the unitless density
-multiplier expected by OpenMC. This should be the same density that was used to generate
-the [!ac](MGXS) for the materials filling the cells where density feedback is applied.
-`OpenMCCellAverageProblem` allows for the control of the inactive and active ray length
-from the Cardinal input file by setting `inactive_distance` and `active_distance` (overriding the
-values provided in the `settings.xml` file). An `OpenMCCellAverageProblem` block using [!ac](TRRM)
-will look quite similar to the equivalent continuous energy simulation,
+multiplier expected by OpenMC. The values used in `mgxs_reference_densities_by_block` should be the same
+density values that were used to generate the [!ac](MGXS) for the materials filling the cells
+where density feedback is applied. An `OpenMCCellAverageProblem` block using [!ac](TRRM) will
+look quite similar to the equivalent continuous energy simulation,
 
 !listing test/tests/neutronics/mg/rr_doppler_slab_root/openmc.i
   block=Problem
 
 Several features supported in continuous energy Monte Carlo neutron transport are not supported when
 using [!ac](TRRM). These include the calculation of kinetics parameters, the use of tally/filter/material
-editors, and the [BoratedWater](BoratedWater.md) criticality search. Finally, tally/filter/score support is limited to
+editors, and some criticality searches. Finally, tally/filter/score support is limited to
 the [supported set in OpenMC](https://docs.openmc.org/en/stable/usersguide/random_ray.html#tallies).
 See [CellTally](CellTally.md) for more information regarding the use of tallies with [!ac](TRRM).
 
@@ -558,6 +556,8 @@ settings directly from the Cardinal input file:
 - `inactive_batches`: the number of inactive batches
 - `openmc_verbosity`: [verbosity level](https://docs.openmc.org/en/latest/io_formats/settings.html#verbosity) in OpenMC
 - `particles`: the number of particles per batch
+- `inactive_distance`: the inactive length covered by rays in a [!ac](TRRM) simulation
+- `active_distance`: the active length covered by rays in a [!ac](TRRM) simulation
 
 For all of the above, a setting in the Cardinal input file will override
 any settings in the OpenMC XML files.

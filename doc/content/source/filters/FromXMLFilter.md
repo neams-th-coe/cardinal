@@ -1,8 +1,5 @@
 # FromXMLFilter
 
-!alert note
-This filter is not supported when solving neutronics with OpenMC's random ray solver.
-
 ## Description
 
 The `FromXMLFilter` object provides a thin wrapper around an arbitrary OpenMC filter which

@@ -195,8 +195,9 @@ reasonable (but not perfect) agreement with [neutron_flux_sln]. The thermomechan
 1D mesh, resulting in better agreement between the numerical temperature predictions and
 [temperature_sln]. The [!ac](TRRM) solution predicts $k_{eff} = 0.29520$ ($\Delta k_{eff} = −37$ pcm)
 and an expanded slab length $L = 106.47$ cm. It is expected that the agreement in both the flux
-and eigenvalue solutions will improve when hexahedral element support is added to the [MoabSkinner.md],
-as this will eliminate the y-z source region gradients in the [!ac](TRRM) solution.
+and eigenvalue solutions will improve when hexahedral element support is added to the [MoabSkinner.md] in
+[issue #1352](https://github.com/neams-th-coe/cardinal/issues/1352),as this will eliminate the y-z source
+region gradients in the [!ac](TRRM) solution.
 
 The input files for the [!ac](TRRM) solutions to the Griesheimer and Kooreman problem can be found in
 `/test/tests/neutronics/mg/rr_thermal_expansion`, where they are used to regression test on-the-fly

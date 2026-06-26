@@ -86,7 +86,7 @@ discretization of the OpenMC [!ac](CSG) geometry can be found in [rr_openmc_cell
 
 !alert note
 For most continuous-energy simulations `model.materials` does not need to be set prior to writing the `model.xml`
-file to disk with `model.export_to_model_xml()`. When using `model.convert_to_multigroup()`, `model.materials`
+file to disk with `model.export_to_model_xml()`. However, when using `model.convert_to_multigroup()`, `model.materials`
 must be set as the conversion function does not attempt to discover materials from the geometry.
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
@@ -252,7 +252,6 @@ up the rate of convergence and avoid the nonlinear feedback instabilities common
 calculations, we use constant relaxation with a relaxation factor of 0.5. The final component of the OpenMC
 problem setup is to add a [CellTally](CellTally.md) which accumulates `kappa_fission` over `uo2` and `uo2_tri`.
 In addition to fission heating tally value, we enable outputs for the heating standard deviation and relative error.
-Finally, we disable tally global normalization as it is not supported by the [!ac](TRRM) wrapper.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Problem
@@ -330,9 +329,10 @@ thermal conductivity of the fuel and cladding, which is followed by the addition
   end=Executioner
 
 Finally, the `[Executioner]` is set to [Transient](Transient.md). As no timestepping parameters
-are provided, the heat conduction simulation will execute in lock-step with the OpenMC simulation.
-We add several post-processors to monitor the maximum fuel and cladding temperatures, and select
-Exodus and CSV output in the `[Outputs]` block.
+are provided, the heat conduction simulation will execute in lock-step with the OpenMC simulation
+because `sub_cycling = true` was set in the `openmc.i` file. We add several post-processors to
+monitor the maximum fuel and cladding temperatures, and select Exodus and CSV output in the
+`[Outputs]` block.
 
 !listing /tutorials/rr_lwr_pincell/solid.i
   start=Executioner
