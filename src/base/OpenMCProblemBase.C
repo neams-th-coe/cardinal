@@ -89,8 +89,6 @@ OpenMCProblemBase::validParams()
       "reset_seed",
       false,
       "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
-  params.addParam<FileName>(
-      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
 
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
@@ -181,7 +179,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
         checkUnusedParam(params, "source_strength", "no tallies have been added");
 
       if (!runRandomRay())
-        checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+        checkUnusedParam(params, "inactive_batches", "running in fixed source mode with the Monte Carlo solver");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
       checkUnusedParam(params, "power", "running in fixed source mode");
       _reuse_source = false;
@@ -599,7 +597,16 @@ OpenMCProblemBase::materialFill(const cellInfo & cell_info, int32_t & material_i
 const Real
 OpenMCProblemBase::densityConversionFactor() const
 {
-  // Densities are unitless when running in multi-group mode.
+  // The density field variables are assumed to be in units of kg/m3, which must be
+  // converted to g/cm3 for OpenMC (the conversion factor is _density_conversion_factor).
+  // However, when running in multi-group mode OpenMC expects unitless density multipliers.
+  // To go between the field variable density and density multipliers, the superclass
+  // (OpenMCCellAverageProblem) asks users to specify a reference density (the density
+  // in kg/m3 used to generate multi-group cross sections). This divides the field variable
+  // density to get the unitless density multiplier expected by OpenMC.
+  //
+  // Therefore, in multi-group mode converting from kg/m3 to g/cm3 is no longer required
+  // and we can return unity instead.
   return openmc::settings::run_CE ? _density_conversion_factor : 1.0;
 }
 
