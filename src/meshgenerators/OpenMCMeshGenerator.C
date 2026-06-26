@@ -29,15 +29,14 @@ OpenMCMeshGenerator::validParams()
   InputParameters params = MeshGenerator::validParams();
 
   params.addClassDescription(
-      "A class which provides a thin wrapper around an arbitrary OpenMC mesh.");
+      "A class that generates a mesh from an available OpenMC regular mesh.");
   params.addRequiredParam<unsigned int>(
       "mesh_id", "The id of the OpenMC mesh that this class should provide to Cardinal.");
   params.addRangeCheckedParam<Real>(
       "scaling",
       1.0,
       "scaling > 0.0",
-      "Scaling factor to apply to [Mesh] to get to units of centimeters that OpenMC expects; "
-      "setting 'scaling = 100.0', for instance, indicates that the [Mesh] is in units of meters");
+      "Scaling factor used to scale the OpenMC mesh dimensions for the creation of the mesh");
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
   return params;
