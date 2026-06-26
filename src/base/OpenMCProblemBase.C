@@ -180,7 +180,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
       if (!runRandomRay())
         checkUnusedParam(
-          params, "inactive_batches", "running in fixed source mode with the Monte Carlo solver");
+            params, "inactive_batches", "running in fixed source mode with the Monte Carlo solver");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
       checkUnusedParam(params, "power", "running in fixed source mode");
       _reuse_source = false;
