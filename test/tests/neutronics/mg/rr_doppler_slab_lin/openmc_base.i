@@ -19,10 +19,6 @@ alpha  = -0.0001                         # Linear doppler Coefficient
     family = MONOMIAL
     order = CONSTANT
   []
-  [dummy_zero]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]

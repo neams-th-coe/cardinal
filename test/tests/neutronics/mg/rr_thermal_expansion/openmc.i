@@ -66,14 +66,12 @@ eV_to_J = 1.602e-19 # J/eV
   [Tallies]
     [kappa_fission]
       type = CellTally
-      block = '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20'
       name = kappa_fission
       output = unrelaxed_tally_std_dev
       normalize_by_global_tally = false
     []
     [flux]
       type = CellTally
-      block = '1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20'
       score = flux
       output = unrelaxed_tally_std_dev
       normalize_by_global_tally = false

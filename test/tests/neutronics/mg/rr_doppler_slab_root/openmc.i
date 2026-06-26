@@ -22,10 +22,6 @@ Y0     = 6.65e11                         # source intensity (n / cm2-s)
     family = MONOMIAL
     order = CONSTANT
   []
-  [dummy_zero]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]

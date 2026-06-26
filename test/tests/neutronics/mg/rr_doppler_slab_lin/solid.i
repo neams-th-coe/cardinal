@@ -27,14 +27,7 @@
     boundary = 'left'
     value = 293.6
   []
-  [insulated]
-    type = NeumannBC
-    variable = T
-    boundary = 'right top bottom front back'
-    value = 0
-  []
 []
-
 
 [Materials]
   [absorbing]
