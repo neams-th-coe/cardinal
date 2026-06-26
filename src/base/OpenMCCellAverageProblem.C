@@ -1486,7 +1486,7 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
           + subdomainName(sub)
           + ") which maps to multiple OpenMC materials: "
           + materials.substr(0, materials.size() - 2)
-          + "If these multiple materials had different densities during "
+          + ". If these multiple materials had different densities during "
           + "the MGXS generation stage, your model is not consistently "
           + "applying density feedback. The solution is to create a "
           + "separate mesh subdomain for each OpenMC material.");

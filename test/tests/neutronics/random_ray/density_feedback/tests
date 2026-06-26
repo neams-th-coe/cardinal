@@ -24,4 +24,12 @@
                   "exactly."
     capabilities = 'openmc'
   []
+  [reference_density_mult_mat]
+    type = RunException
+    input = check_mat_mapping.i
+    cli_args = '--error'
+    expect_err = "Reference density 1000 is being applied to a subdomain (0) which maps to multiple OpenMC materials"
+    requirement = "The system shall warn the user if a single MGXS reference density maps to multiple OpenMC materials."
+    capabilities = 'openmc'
+  []
 []
