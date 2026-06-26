@@ -48,8 +48,7 @@ KEigenvalue::KEigenvalue(const InputParameters & parameters)
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
     mooseError("Eigenvalues are only computed when running OpenMC in eigenvalue mode!");
 
-  if (_openmc_problem->runRandomRay() &&
-      _type != eigenvalue::EigenvalueEnum::tracklength)
+  if (_openmc_problem->runRandomRay() && _type != eigenvalue::EigenvalueEnum::tracklength)
     paramError("value_type",
                "'tracklength' k-eigenvalue estimators are required when running OpenMC's "
                "random-ray solver!");
