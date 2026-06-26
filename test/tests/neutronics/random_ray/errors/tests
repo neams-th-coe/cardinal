@@ -28,15 +28,6 @@
   []
 
   # Error checks for density feedback specific to random ray / multi-group Monte Carlo.
-  [err_no_reference_densities]
-    type = RunException
-    input = reference_densities.i
-    expect_err = "When running in multi-group mode and using density feedback, the 'mgxs_reference_densities' "
-                 "parameter is required!"
-    requirement = "The system shall error if the user doesn't provide reference densities when running in "
-                  "multi-group mode with density feedback."
-    capabilities = 'openmc'
-  []
   [err_mismatching_reference_densities_1]
     type = RunException
     input = reference_densities.i
@@ -75,20 +66,11 @@
     mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
-  [err_check_tally_sum]
-    type = RunException
-    input = tallies.i
-    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/check_tally_sum=true"
-    expect_err = "Cannot add global tallies when running in random ray mode! Please set "
-                 "'normalize_by_global_tally' and 'check_tally_sum' to false."
-    requirement = "The system shall error if global tallies are added when running in random ray mode."
-    capabilities = 'openmc'
-  []
   [err_volume_norm]
     type = RunException
     input = tallies.i
     cli_args = "Problem/Tallies/cell/score='kappa_fission flux' Problem/source_rate_normalization='kappa_fission'"
-    expect_err = "Cardinal volume normalizes flux tallies with volumes computed with mesh elements"
+    expect_err = "Cardinal volume-normalizes flux tallies with volumes computed from the mesh"
     requirement = "The system shall error if the user requests flux volume normalization in their OpenMC model. "
                   "This prevents a double-divide by volume, which Cardinal cannot recover due to the random ray "
                   "volume estimations being cleared after tallies are extracted."

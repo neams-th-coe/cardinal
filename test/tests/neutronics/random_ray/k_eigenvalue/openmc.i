@@ -37,7 +37,6 @@
       type = CellTally
       score = 'flux'
       output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
-      normalize_by_global_tally = false
       filters = 'energy'
       block = '0 1'
     []
@@ -45,7 +44,6 @@
       type = CellTally
       score = 'kappa_fission total fission nu_fission'
       output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
-      normalize_by_global_tally = false
       block = '0 1'
     []
   []

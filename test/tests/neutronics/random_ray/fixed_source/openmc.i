@@ -42,8 +42,6 @@
       type = CellTally
       score = 'flux'
       output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
-      normalize_by_global_tally = false
-      check_tally_sum = false
       filters = 'energy'
       block = '0 1 2'
     []
@@ -51,8 +49,6 @@
       type = CellTally
       score = 'total'
       output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
-      normalize_by_global_tally = false
-      check_tally_sum = false
       block = '0 1 2'
     []
   []

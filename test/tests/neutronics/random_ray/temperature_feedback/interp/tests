@@ -6,7 +6,10 @@
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
-    requirement = "The system shall support temperature feedback to OpenMC's random ray solver with linear interpolation."
+    requirement = "The system shall support temperature feedback to OpenMC's random ray solver with linear "
+                  "interpolation. A standalone calculation was performed where distributed cell temperatures "
+                  "were set with the OpenMC Python API. k-eff and its standard deviation were compared between "
+                  "the standalone calculation and the Cardinal result, and found to be in perfect agreement."
     capabilities = 'openmc'
   []
 []
