@@ -1,0 +1,35 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [density_feedback]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall support density feedback to OpenMC's random ray solver for the "
+                  "case when only density feedback blocks are provided. This "
+                  "test was verified with a standalone OpenMC simulation where distributed cell "
+                  "densities were set in the Python API. The k-eff and standard deviations matched "
+                  "exactly."
+    capabilities = 'openmc'
+  []
+  [density_feedback_two_var]
+    type = CSVDiff
+    input = two_vars.i
+    csvdiff = two_vars_out.csv
+    requirement = "The system shall support density feedback to OpenMC's random ray solver for the "
+                  "case when only density feedback blocks and variables are provided. This "
+                  "test was verified with a standalone OpenMC simulation where distributed cell "
+                  "densities were set in the Python API. The k-eff and standard deviations matched "
+                  "exactly."
+    capabilities = 'openmc'
+  []
+  [reference_density_mult_mat]
+    type = RunException
+    input = check_mat_mapping.i
+    cli_args = '--error'
+    expect_err = "Reference density 1000 is being applied to a subdomain \(0\) which maps to multiple OpenMC materials"
+    requirement = "The system shall warn the user if a single MGXS reference density maps to multiple OpenMC materials."
+    capabilities = 'openmc'
+  []
+[]
