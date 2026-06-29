@@ -132,7 +132,7 @@ OpenMCCellAverageProblem::validParams()
       "mgxs_reference_densities_by_block > 0.0",
       "Reference density values to use when applying density feedback (only used in multi-group "
       "mode). These densities represent the initial densities used when generated the multigroup "
-      "library. Each entry maps to the corresponding row in 'density_variables.' Units are "
+      "library. Each entry maps to the corresponding row in 'density_blocks.' Units are "
       "expected to be kg/m3.");
 
   params.addParam<unsigned int>("cell_level",

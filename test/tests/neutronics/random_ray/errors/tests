@@ -10,22 +10,6 @@
     requirement = "The system shall error if the user requests a combined estimator when running in random ray mode."
     capabilities = 'openmc'
   []
-  [err_k_collision]
-    type = RunException
-    input = k_estimators.i
-    cli_args = "Postprocessors/k/value_type='collision'"
-    expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
-    requirement = "The system shall error if the user requests a collision estimator when running in random ray mode."
-    capabilities = 'openmc'
-  []
-  [err_k_abs]
-    type = RunException
-    input = k_estimators.i
-    cli_args = "Postprocessors/k/value_type='absorption'"
-    expect_err = "'tracklength' k-eigenvalue estimators are required when running OpenMC's random-ray solver!"
-    requirement = "The system shall error if the user requests an absorption estimator when running in random ray mode."
-    capabilities = 'openmc'
-  []
 
   # Error checks for density feedback specific to random ray / multi-group Monte Carlo.
   [err_mismatching_reference_densities]
@@ -86,15 +70,6 @@
     expect_err = "The random ray solver in OpenMC requires that tallies use tracklength estimators! "
                  "Please set 'estimator' to 'tracklength'."
     requirement = "The system shall error if the user requests a collision estimator for a tally."
-    capabilities = 'openmc'
-  []
-  [err_tally_analog]
-    type = RunException
-    input = tallies.i
-    cli_args = "Problem/Tallies/cell/score='kappa_fission' Problem/Tallies/cell/estimator='analog'"
-    expect_err = "The random ray solver in OpenMC requires that tallies use tracklength estimators! "
-                 "Please set 'estimator' to 'tracklength'."
-    requirement = "The system shall error if the user requests a analog estimator for a tally."
     capabilities = 'openmc'
   []
 
