@@ -23,6 +23,11 @@
 
 #include "openmc/tallies/filter_mesh.h"
 
+#ifdef ENABLE_XDG
+#include "xdg/xdg.h"
+#include "xdg/mesh_managers.h"
+#endif
+
 namespace libMesh
 {
 class ReplicatedMesh;

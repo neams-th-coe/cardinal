@@ -22,6 +22,10 @@
 
 #include "libmesh/replicated_mesh.h"
 
+#ifdef ENABLE_XDG
+#include "openmc/xdg.h"
+#endif
+
 registerMooseObject("CardinalApp", MeshTally);
 
 InputParameters
@@ -37,6 +41,11 @@ MeshTally::validParams()
   params.addParam<Point>("mesh_translation",
                          "Coordinate to which this mesh should be "
                          "translated. Units must match those used to define the [Mesh].");
+#ifdef ENABLE_XDG
+  params.addParam<bool>("use_xdg",
+                        false,
+                        "Whether this mesh tally should ue XDG or not.");
+#endif
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -50,6 +59,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
                                                        : Point(0.0, 0.0, 0.0)),
     _instance(getParam<unsigned int>("instance")),
     _use_dof_map(_is_adaptive || isParamValid("block"))
+#ifdef ENABLE_XDG
+    , _use_xdg(getParam<bool>("use_xdg"))
+#endif
 {
   bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
@@ -57,12 +69,24 @@ MeshTally::MeshTally(const InputParameters & parameters)
   // Error check the estimators.
   if (isParamValid("estimator"))
   {
+#ifdef ENABLE_XDG
+    if (_estimator == openmc::TallyEstimator::TRACKLENGTH && !_use_xdg)
+      paramError("estimator",
+                 "Tracklength estimators are currently incompatible with non-XDG mesh tallies!");
+#else
     if (_estimator == openmc::TallyEstimator::TRACKLENGTH)
       paramError("estimator",
                  "Tracklength estimators are currently incompatible with mesh tallies!");
+#endif
   }
   else
+  {
+#ifdef ENABLE_XDG
+    _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : (_use_xdg ? openmc::TallyEstimator::TRACKLENGTH : openmc::TallyEstimator::COLLISION);
+#else
     _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
+#endif
+  }
 
   // Error check the mesh template.
   if (_openmc_problem.getMooseMesh().getMesh().allow_renumbering())
@@ -103,6 +127,40 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "The mesh filter cannot be translated if directly tallying on the mesh "
                  "provided in the [Mesh] block!");
   }
+
+  // Error check parameters for XDG tallies.
+#ifdef ENABLE_XDG
+  if (_use_xdg)
+  {
+    if (isParamSetByUser("block"))
+      paramError("block", "Cannot use subdomain restriction when using XDG mesh tallies!");
+
+    if (_openmc_problem.scaling() != 1.0)
+      mooseError("XDG mesh tallies cannot be scaled!");
+
+    // Gather all element types in the mesh.
+    std::set<ElemType> contained_elem;
+    auto begin = _openmc_problem.getMooseMesh().activeLocalElementsBegin();
+    auto end = _openmc_problem.getMooseMesh().activeLocalElementsEnd();
+    for (const auto & elem : libMesh::as_range(begin, end))
+      contained_elem.insert(elem->type());
+
+    // Check to make sure the mesh only contains a single element type.
+    if (contained_elem.size() > 1)
+      paramError("use_xdg",
+                 "XDG mesh tallies only support single-element meshess! Either "
+                 "ensure your mesh uses a single element type, or set "
+                 "'use_xdg = false'.");
+
+    // Check to make sure all elements are TET4s or HEX8s.
+    for (auto elem_type : contained_elem)
+      if (elem_type != ElemType::TET4 && elem_type != ElemType::HEX8)
+        paramError("use_xdg",
+                   "XDG mesh tallies only support TET4 and HEX8 elements! Either "
+                   "ensure your mesh only uses either TET4 or HEX8 elements, or set "
+                   "'use_xdg = false'.");
+  }
+#endif
 
   /**
    * If the instance isn't zero this variable is a translated mesh tally. It will accumulate it's
@@ -161,12 +219,44 @@ MeshTally::spatialFilter()
       }
     }
 
+#ifdef ENABLE_XDG
+    if (_use_xdg)
+    {
+      _xdg_mesh_manager.reset(new xdg::LibMeshManager(msh));
+      _xdg_mesh_manager->init();
+      _xdg_mesh_manager->parse_metadata();
+
+      _xdg_instance.reset(new xdg::XDG(_xdg_mesh_manager, xdg::RTLibrary::EMBREE));
+      openmc::model::meshes.emplace_back(std::make_unique<openmc::XDGMesh>(_xdg_instance));
+    }
+    else
+    {
+      openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
+        _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling(), _tally_blocks));
+    }
+#else
     openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
         _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling(), _tally_blocks));
+#endif
   }
   else
-    openmc::model::meshes.emplace_back(
+  {
+#ifdef ENABLE_XDG
+    if (_use_xdg)
+    {
+      openmc::model::meshes.emplace_back(
+        std::make_unique<openmc::XDGMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+    }
+    else
+    {
+      openmc::model::meshes.emplace_back(
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+    }
+#else
+    openmc::model::meshes.emplace_back(
+      std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+#endif
+  }
 
   _mesh_index = openmc::model::meshes.size() - 1;
   _mesh_template =

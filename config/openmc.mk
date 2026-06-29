@@ -1,4 +1,4 @@
-$(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
+$(OPENMC_BUILDDIR)/Makefile: build_dagmc build_xdg | $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
 	cd $(OPENMC_BUILDDIR) && \
 	cmake -L \
@@ -6,7 +6,9 @@ $(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
 	-DOPENMC_USE_LIBMESH=ON \
 	-DOPENMC_USE_MPI=ON \
 	-DOPENMC_USE_DAGMC=$(ENABLE_DAGMC) \
+	-DOPENMC_USE_XDG=$(ENABLE_XDG) \
 	-DDAGMC_DIR=$(DAGMC_DIR) \
+	-DXDG_DIR=$(XDG_DIR) \
 	-DCMAKE_C_COMPILER="$(LIBMESH_CC_LIST)" \
 	-DCMAKE_CXX_COMPILER="$(LIBMESH_CXX_LIST)" \
 	-DCMAKE_Fortran_COMPILER="$(LIBMESH_F90_LIST)" \

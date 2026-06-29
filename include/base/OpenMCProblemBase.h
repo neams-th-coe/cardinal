@@ -18,8 +18,6 @@
 
 #pragma once
 
-#define LIBMESH
-
 #include "CardinalProblem.h"
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
