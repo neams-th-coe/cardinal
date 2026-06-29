@@ -14,18 +14,18 @@ water.add_nuclide("H1", 2.0)
 water.add_nuclide("O16", 1.0)
 
 xmin = openmc.XPlane(x0=-12.0, boundary_type="reflective")
-xmax = openmc.XPlane(x0= 12.0, boundary_type="reflective")
+xmax = openmc.XPlane(x0=12.0, boundary_type="reflective")
 ymin = openmc.YPlane(y0=-12.0, boundary_type="reflective")
-ymax = openmc.YPlane(y0=  4.0, boundary_type="reflective")
-zmin = openmc.ZPlane(z0=  0.0, boundary_type="reflective")
-zmax = openmc.ZPlane(z0= 30.0, boundary_type="reflective")
+ymax = openmc.YPlane(y0=4.0, boundary_type="reflective")
+zmin = openmc.ZPlane(z0=0.0, boundary_type="reflective")
+zmax = openmc.ZPlane(z0=30.0, boundary_type="reflective")
 
 root_region = +xmin & -xmax & +ymin & -ymax & +zmin & -zmax
 
 fuel_radius = 1.0
 fuel_cyl = openmc.ZCylinder(r=fuel_radius)
 
-moving_fuel_cell = openmc.Cell(fill=fuel,  region=-fuel_cyl)
+moving_fuel_cell = openmc.Cell(fill=fuel, region=-fuel_cyl)
 moving_water_cell = openmc.Cell(fill=water, region=+fuel_cyl)
 
 moving_univ = openmc.Universe(cells=[moving_fuel_cell, moving_water_cell])
@@ -40,7 +40,7 @@ model.settings.inactive = 10
 model.settings.particles = 1000
 
 lower = (-12.0, -12.0, 0.0)
-upper = ( 12.0,  12.0, 30.0)
+upper = (12.0, 12.0, 30.0)
 
 model.settings.source = openmc.IndependentSource(
     space=openmc.stats.Box(lower_left=lower, upper_right=upper)
