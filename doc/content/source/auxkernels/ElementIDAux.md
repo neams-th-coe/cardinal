@@ -1,8 +1,10 @@
 # ElementIDAux
 
+!syntax description /AuxKernels/ElementIDAux
+
 ## Description
 
-Displays the current mesh element ID.
+Returns the current element ID from the mesh.
 
 Associated with a `PointValueSampler`, it allows to determine which mesh element
 contains a given point in space.

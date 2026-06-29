@@ -24,7 +24,7 @@ InputParameters
 ElementIDAux::validParams()
 {
   InputParameters params = AuxKernel::validParams();
-  params.addClassDescription("Display the mesh cell ID");
+  params.addClassDescription("Displays the current mesh element ID.");
   return params;
 }
 
