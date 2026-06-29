@@ -181,11 +181,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
         paramError("estimator",
                    "The random ray solver in OpenMC requires that tallies use "
                    "tracklength estimators! Please set 'estimator' to 'tracklength'.");
-
-      _estimator = _openmc_problem.tallyEstimator(estimator);
     }
-    else
-      _estimator = openmc::TallyEstimator::TRACKLENGTH;
+    _estimator = openmc::TallyEstimator::TRACKLENGTH;
   }
   else
   {
