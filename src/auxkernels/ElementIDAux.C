@@ -33,5 +33,5 @@ ElementIDAux::ElementIDAux(const InputParameters & parameters) : AuxKernel(param
 Real
 ElementIDAux::computeValue()
 {
-  return static_cast<Real>(_current_elem->id());
+  return _current_elem->id();
 }
