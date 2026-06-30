@@ -2452,7 +2452,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
         Real element_temperature = _serialized_solution(dof_idx);
 
         // Send the temperature to OpenMC using the same ID
-        openmc::simulation::temperature_field.value(global_id) = element_temperature;
+        openmc_temperature_field_set_temperature(global_id, element_temperature);
       }
     }
     return;
