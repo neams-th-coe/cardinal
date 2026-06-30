@@ -60,7 +60,8 @@ OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
 
   if (_openmc_mesh->n_dimension_ != 3)
   {
-    mooseError("3D mesh only!");
+    mooseError("At this time, this object only supports 3D meshes. Please contact the Cardinal "
+               "developer team if you need 2D or 1D meshes!");
   }
 
   // Construct mesh using a subgenerator
