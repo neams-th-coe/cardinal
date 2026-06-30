@@ -149,7 +149,7 @@ cm and a slab k-eigenvalue of $k_{eff} = 0.29557$.
 | $\nu\Sigma_{f}/\Sigma_{t}$ | $1.5$ |
 | $\Sigma_{s}/\Sigma_{t}$ | $0.45$ |
 
-## Cardinal Multi-Group Monte Carlo Results
+## Cardinal Multi-Group Monte Carlo Model
 
 [!cite](eltawila_thermo) used the Griesheimer and Kooreman benchmark problem to verify Cardinal's
 thermomechanical-neutronics coupling to OpenMC. Those benchmark results required several small modifications
@@ -159,6 +159,105 @@ input files in Cardinal's regression suite. Readers interested in these results 
 with a linear rate of convergence as cells, mesh elements, and temperature grid points were refined.
 Excellent agreement between Cardinal and the analytic solution was obtained in the case of maximal
 refinement.
+
+!alert! construction title=To run this model you need to build your application with the S$_2$ OpenMC patch
+This model is using S$_2$ neutron transport to compare with the 1D Analytic benchmark. To replicate
+the results, you have to build your application with [this](https://github.com/meltawila/openmc_S2transport) patch of OpenMC. You can do this simply with:
+
+!listing language=bash
+cd cardinal/contrib/openmc
+git remote add s2patch https://github.com/meltawila/openmc_S2transport.git
+git fetch s2patch
+git cherry-pick d34189845b394895ed210008218c40bc754bce25
+!alert-end!
+
+Cardinal is used to couple OpenMC with MOOSE via Picard iteration. OpenMC tallies neutron flux, heating, and the multiplication factor. A conceptual depiction of the meshes used as well as the data transfers that occur on each Picard iteration is shown in [fig:schematic].
+Three different meshes/geometries are involved. The thermomechanics mesh is a simple 1D mesh of $N$ EDGE2 elements; the thermomechanical physics do not require higher dimensional (e.g. 2D or 3D) meshes for this problem. The OpenMC geometry is represented using DAGMC, where cells are bounded by a triangulated surface (TRI3 elements).
+To facilitate data transfers between OpenMC and MOOSE thermomechanics, there is also an intermediate volumetric data transfer mesh composed of TET4 elements; no physics solves happen on this intermediate mesh.
+[fig:schematic] highlights one element (for MOOSE and the Cardinal intermediate data transfer mesh) and one OpenMC cell each in blue, with adjacent portions of the geometry shown in gray for context.
+
+!media slab_benchmark_prbschematic.png
+  id=fig:schematic
+  caption=Data transfers between OpenMC and MOOSE and conceptual depiction of the different meshes used.
+  style=display:block;margin-left:auto;margin-right:auto;width:60%;
+
+We show the input files for a coarse mesh here with more details on results convergence shown in the next section.
+
+The OpenMC input files is as follows:
+
+!listing /doc/content/vv/slab_benchmark_model/model.py language=python
+
+The neutronics input file is as follows:
+
+!listing /doc/content/vv/slab_benchmark_model/openmc.i
+
+The thermomechanics input file is as follows:
+
+!listing /doc/content/vv/slab_benchmark_model/solid.i
+
+It is important to note that incremental (hypoelastic) formulations of finite strain behavior inherently introduce inaccuracies arising from the time integration error. This limitation is inherent to this formulation and therefore exists in the MOOSE implementation and the implementations of other major commercial codes. The magnitude of these errors grows with increasing strain, so this typically becomes a practical issue only for very large strains, for which hyperelastic models are more appropriate.
+
+The main sources of error in this coupled model are: (i) the statistical error from use of finite particles in OpenMC; (ii) the user-input cross-section data, which is defined with 1 K $\Delta$T spacings used in all cases while taking the nearest temperature point cross section; and (iii) discretization error from a finite spatial mesh in both OpenMC (temperature feedback resolution) and MOOSE thermomechanics. Additional sources of error are present, but anticipated to be negligible due to the use of fine settings for these simulation parameters: (i) finite Picard iterations, and (ii) nonzero nonlinear tolerances in the MOOSE thermomechanics model.
+
+### Results
+
+We see the heating result in [fig:heatingsol] compared against the analytic solution, as well as flux and temperature solutions in [fig:fluxsol] and [fig:tempsol]. Figures are only included for $P=1.0 \times 10^{22}$ eV/s and on a fine mesh where the number of OpenMC and mesh elements is $N = 100$, since all results have a similar shape. Both the heating and flux tally everywhere agree with the analytic solution within 3$\sigma$.
+
+!media slab_benchmark_heatingsol.png
+  id=fig:heatingsol
+  caption=Heating result from OpenMC for N = 100 mesh elements compared against the analytic solution.
+  style=display:block;margin-left:auto;margin-right:auto;width:40%;
+
+!media slab_benchmark_fluxsol.png
+  id=fig:fluxsol
+  caption=Flux result from OpenMC for N = 100 mesh elements compared against the analytic solution.
+  style=display:block;margin-left:auto;margin-right:auto;width:40%;
+
+!media slab_benchmark_tempsol.png
+  id=fig:tempsol
+  caption=Temperature result from MOOSE for N = 100 mesh elements compared against the analytic solution.
+  style=display:block;margin-left:auto;margin-right:auto;width:40%;
+
+[tab:results] shows results convergence with mesh refinement.
+
+!table id=tab:results caption=Results and corresponding errors with different mesh sizes [!citep](eltawila_thermo).
+| Resolution        | Heated length (cm) | Error (μm) | $k_{\text{eff}}$ | Error (pcm) |
+| :- | :- | :- | :- | :- |
+| Analytic solution | 106.47                 | --             | 0.29557              | --              |
+| 5                 | 106.3298               | -1402          | 0.29608 ± 0.00001    | 51 ± 1          |
+| 10                | 106.4382               | -318           | 0.29619 ± 0.00001    | 62 ± 1          |
+| 20                | 106.4671               | -29            | 0.29557 ± 0.00001    | 0 ± 1           |
+| 50                | 106.4730               | 30             | 0.29536 ± 0.00001    | -21 ± 1         |
+| 100               | 106.4745               | 45             | 0.29549 ± 0.00001    | -8 ± 1          |
+| 200               | 106.4748               | 48             | 0.29556 ± 0.00001    | -1 ± 1          |
+
+In [fig:fluxconv] and [fig:tempconv], convergence of flux and temperature relative L$^2$ norms, defined as
+
+\begin{equation}
+  \varepsilon_\phi=\frac{||\phi_a-\phi_{sln.}||_2}{||\phi_a||_2}
+\end{equation}
+
+and
+
+\begin{equation}
+  \varepsilon_T=\frac{||T_a-T_{sln.}||_2}{||T_a||_2}
+\end{equation}
+
+where $\phi_a$ is the analytic flux solution, $\phi_{sln.}$ is the Cardinal flux solution, $T_a$ is the analytic temperature solution, and $T_{sln.}$ is the Cardinal temperature solution.
+
+!media slab_benchmark_fluxconv.png
+  id=fig:fluxconv
+  caption=Convergence of flux relative L$^2$ norm.
+  style=display:block;margin-left:auto;margin-right:auto;width:40%;
+
+!media slab_benchmark_tempconv.png
+  id=fig:tempconv
+  caption=Convergence of temperature relative L$^2$ norm.
+  style=display:block;margin-left:auto;margin-right:auto;width:40%;
+
+A first-order convergence of the temperature is achieved with mesh refinement, while the flux starts to converge following a first-order trend then stagnates where other error components dominate as discussed earlier. The stochastic noise error influence is highlighted by keeping the number of particles constant for each line, where we see further convergence when there is less stochastic noise.
+
+We hypothesize that the observed first-order convergence arises from the use of cell tallies in OpenMC, where heating results are tallied as constant monomials. This may be limiting the convergence rate of the coupled solve.
 
 ## Cardinal Random Ray Solutions
 
