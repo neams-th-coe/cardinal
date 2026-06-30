@@ -6,9 +6,6 @@
 
 Returns the current element ID from the mesh.
 
-Associated with a `PointValueSampler`, it allows to determine which mesh element
-contains a given point in space.
-
 ## Example Input Syntax
 
 Here is a minimal example showing how to declare `ElementIDAux`:
