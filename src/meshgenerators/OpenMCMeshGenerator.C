@@ -55,18 +55,18 @@ OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
                    " does not exist in the OpenMC model! Please make sure the mesh has been "
                    "added in the OpenMC model and you've supplied the correct mesh id.");
 
-  _mesh_index = openmc::model::mesh_map.at(_mesh_id);
-  _mesh = openmc::model::meshes[_mesh_index].get();
+  _openmc_mesh_index = openmc::model::mesh_map.at(_mesh_id);
+  _openmc_mesh = openmc::model::meshes[_openmc_mesh_index].get();
 
-  if (_mesh->n_dimension_ != 3)
+  if (_openmc_mesh->n_dimension_ != 3)
   {
     mooseError("3D mesh only!");
   }
 
   // Construct mesh using a subgenerator
-  if (_mesh->get_mesh_type() == openmc::RegularMesh::mesh_type)
+  if (_openmc_mesh->get_mesh_type() == openmc::RegularMesh::mesh_type)
   {
-    openmc::RegularMesh * regular_mesh = dynamic_cast<openmc::RegularMesh *>(_mesh);
+    openmc::RegularMesh * regular_mesh = dynamic_cast<openmc::RegularMesh *>(_openmc_mesh);
 
     InputParameters params = GeneratedMeshGenerator::validParams();
     params.set<MooseEnum>("dim") = regular_mesh->n_dimension_;

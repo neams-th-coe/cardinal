@@ -42,9 +42,9 @@ private:
 
   const Real & _scaling;
 
-  openmc::Mesh * _mesh = nullptr;
+  openmc::Mesh * _openmc_mesh = nullptr;
 
-  unsigned int _mesh_index;
+  unsigned int _openmc_mesh_index;
 
   /// Directory in which OpenMC settings xml files are located
   const std::string & _xml_directory;
