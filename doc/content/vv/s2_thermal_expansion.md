@@ -77,7 +77,7 @@ thermal strain $\epsilon_{x}(x)$:
 where $\ell_{0}$ is the initial slab length, and the linear expansion coefficient $\alpha(T)$ (K$^{-1}$) is:
 
 !equation id=linear_expansion
-\alpha(T) = \frac{1}{\sqrt{2T_{0}T(x)}}\text{.}
+\alpha(T) = \frac{1}{2\sqrt{T_{0}T(x)}}\text{.}
 
 Mass is conserved by ensuring that the following expression is satisfied:
 
@@ -129,7 +129,7 @@ h = \left(\sqrt{\frac{L(\lambda - 1)}{\kappa_{0}P}} - \frac{2T_{0}}{P}\right)^{-
 To ensure positivity of the solution, the power must be chosen such that:
 
 !equation id=power_constraint
-P \geq \frac{\lambda \kappa_{0}T_{0}^2}{L(\lambda - 1)}\text{.}
+P \geq \frac{4 \kappa_{0}T_{0}^2}{L(\lambda - 1)}\text{.}
 
 The canonical parameters of the benchmark proposed by [!cite](s2_thermal_expansion) can be
 found in [benchmark_params]. These parameters result in an expanded slab length of $L = 106.47$
