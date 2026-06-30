@@ -852,6 +852,9 @@ protected:
    */
   const bool & _export_properties;
 
+  /// Whether to transfer temperature to OpenMC using an OpenMC temperature field.
+  const bool & _temperature_field_transfer;
+
   /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
   const bool _using_skinner;
 
