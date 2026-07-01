@@ -134,6 +134,11 @@ mass_flux_in = ${fparse total_mdot / flow_area}
     variable = T
     height = ${fparse height * 1e-2}
   []
+  [expected_dT]
+    type = ParsedPostprocessor
+    expression = 'power/${total_mdot}/${Cp}'
+    pp_names = 'power'
+  []
 []
 
 [Executioner]
