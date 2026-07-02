@@ -126,12 +126,11 @@ else
 	BUILD_TYPE := Release
 endif
 
-# need special flag for mac when using MOOSE's conda environment
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-  USE_OPENMC_VENDORED_LIBS := OFF
+# need special flag when using MOOSE's conda environment for OpenMC's dependencies
+ifeq ($(wildcard $(CONDA_PREFIX)/share/moose-compilers),)
+    USE_OPENMC_VENDORED_LIBS := ON
 else
-  USE_OPENMC_VENDORED_LIBS := ON
+    USE_OPENMC_VENDORED_LIBS := OFF
 endif
 
 DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
