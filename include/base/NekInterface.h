@@ -31,6 +31,7 @@
 #include "mesh.h"
 
 #include "libmesh/point.h"
+#include "Function.h"
 
 #include <string>
 #include <vector>
@@ -537,6 +538,21 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 double volumeIntegral(const field::NekFieldEnum & integrand,
                       const double & volume,
                       const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the L^N norm of a given integrand over the mesh
+ * @param[in] integrand field to integrate
+ * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
+ * @param[in] N order of the norm
+ * @return integrated L^N norm of the NekRS field, relative to a function
+ */
+double volumeNorm(const field::NekFieldEnum & integrand,
+                  const nek_mesh::NekMeshEnum pp_mesh,
+                  const Function * function,
+                  const Real & time,
+                  const unsigned int & N);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs
