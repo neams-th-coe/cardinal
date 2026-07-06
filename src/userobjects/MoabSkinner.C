@@ -329,17 +329,24 @@ MoabSkinner::initialize()
     const auto & block_names = getParam<std::vector<SubdomainName>>("material_blocks");
     const auto & mat_names = getParam<std::vector<std::string>>("material_names");
 
-    if (block_names.size() != mat_names.size())
-      paramError("material_names",
-                 "'material_names' must be the same length as 'material_blocks' (" +
-                     Moose::stringify(block_names.size()) + ")");
+    paramError("material_names",
+               "'material_names' (length " + Moose::stringify(mat_names.size()) +
+               ") must be the same length as 'material_blocks' (length " +
+                Moose::stringify(block_names.size()) + ")");
 
+    std::set<SubdomainID> seen_ids;
     for (const auto i : index_range(block_names))
     {
       if (!MooseMeshUtils::hasSubdomainName(getMooseMesh().getMesh(), block_names[i]))
         paramError("material_blocks",
                    "Subdomain '" + std::string(block_names[i]) + "' not found in the mesh");
       auto id = getMooseMesh().getSubdomainID(block_names[i]);
+      if (seen_ids.count(id))
+        // A repeated entry for blocks (including if the same block is passed by its name then later by its ID) should error here
+        paramError("material_blocks",
+                   "Subdomain '" + std::string(block_names[i]) +
+                   "' refers to the same mesh subdomain as another entry in 'material_blocks'");
+      seen_ids.insert(id);
       auto it = _blocks.find(id);
       _block_id_to_material_name[it->first] = mat_names[i];
     }
