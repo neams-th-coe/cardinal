@@ -89,6 +89,8 @@ MoabSkinner::validParams()
                         "Whether the skinned mesh should be generated from a displaced mesh ");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
+  ExecFlagEnum & exec_enum = params.set<ExecFlagEnum>("execute_on", true);
+  exec_enum = {EXEC_TIMESTEP_BEGIN};
   return params;
 }
 
@@ -380,22 +382,6 @@ MoabSkinner::initialize()
                  "and will default to void in OpenMC:\n  ",
                  Moose::stringify(unassigned_blocks, "\n  "));
 
-  if (_verbose)
-  {
-    VariadicTable<std::string, std::string, std::string> vt(
-        {"Subdomain ID", "Subdomain Name", "Material"});
-    for (const auto & [subdomain_id, block_index] : _blocks)
-    {
-      const auto & name = getMooseMesh().getSubdomainName(subdomain_id);
-      const auto & mat_it = _block_id_to_material_name.find(subdomain_id);
-      const auto & mat = (mat_it != _block_id_to_material_name.end()) ? mat_it->second : "(void)";
-      vt.addRow(std::to_string(subdomain_id), name, mat);
-    }
-    _console << "\nMoabSkinner updated material assignments:" << std::endl;
-    vt.print(_console);
-    _console << std::endl;
-  }
-
   // Set spatial dimension in MOAB
   check(_moab->set_dimension(getMooseMesh().getMesh().spatial_dimension()));
 
@@ -445,6 +431,22 @@ MoabSkinner::update()
 
   // Re-initialise the mesh data
   initialize();
+
+  if (_verbose)
+  {
+    VariadicTable<std::string, std::string, std::string> vt(
+        {"Subdomain ID", "Subdomain Name", "Material"});
+    for (const auto & [subdomain_id, block_index] : _blocks)
+    {
+      const auto & name = getMooseMesh().getSubdomainName(subdomain_id);
+      const auto & mat_it = _block_id_to_material_name.find(subdomain_id);
+      const auto & mat = (mat_it != _block_id_to_material_name.end()) ? mat_it->second : "(void)";
+      vt.addRow(std::to_string(subdomain_id), name, mat);
+    }
+    _console << "\nMoabSkinner updated material assignments:" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
+  }
 
   // Sort libMesh elements into bins
   sortElemsByResults();
