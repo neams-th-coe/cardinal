@@ -5,21 +5,13 @@
   ny = 4
 []
 
-[Variables]
-  [u]
-  []
-[]
-
-[Kernels]
-  [dummy]
-    type = Diffusion
-    variable = u
-  []
+[Problem]
+  type = FEProblem
+  solve = false
 []
 
 [Executioner]
   type = Transient
-  num_steps = 1
 []
 
 [Postprocessors]
@@ -27,8 +19,4 @@
     type = TallyRelativeError
     value_type = max
   []
-[]
-
-[Outputs]
-  exodus = true
 []
