@@ -1079,4 +1079,10 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
     uo->setValue();
 }
 
+const Real
+OpenMCProblemBase::tallyNormalizationValue() const
+{
+  return _run_mode == openmc::RunMode::FIXED_SOURCE ? *_source_strength : *_power;
+}
+
 #endif
