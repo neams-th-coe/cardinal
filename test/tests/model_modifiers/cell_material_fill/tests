@@ -18,4 +18,12 @@
     requirement = 'The system shall error if the number of materials provided to modify a cell fill does not match the number of instances of that cell'
     capabilities = 'openmc'
   []
+  [invalid_material]
+    type = RunException
+    input = openmc.i
+    cli_args = "Problem/ModelModifiers/one/material_ids='1 2 400'"
+    expect_err = "Material with ID 400 was not found in the OpenMC model!"
+    requirement = 'The system shall error if a nonexistent material is to be applied to an OpenMC cell'
+    capabilities = 'openmc'
+  []
 []
