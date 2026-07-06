@@ -1,0 +1,13 @@
+[Tests]
+  design = 'OpenMCCellMaterialFill.md'
+  issues = '#1378'
+
+  [invalid_cell]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/ModelModifiers/one/cell_id=123'
+    expect_err = 'No cell exists with ID=123'
+    requirement = 'The system shall error if trying to modify a cell which does not exist in the OpenMC model'
+    capabilities = 'openmc'
+  []
+[]
