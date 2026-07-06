@@ -86,7 +86,7 @@ public:
    * The value used to normalize the tallies
    * @return the source strength or power, depending on the run mode in OpenMC
    */
-  const Real tallyNormalizationValue() const;
+  Real tallyNormalizationValue() const;
 
   /**
    * Whether the random ray solver can accumulate a score or not.

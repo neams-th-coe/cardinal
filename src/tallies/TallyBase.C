@@ -813,7 +813,7 @@ TallyBase::checkTallySum(const unsigned int & score) const
            "tally hits are not being mapped to Cardinal. If you are using a cell tally, this "
            "usually happens because some OpenMC cells are not hit by an element centroid in the "
            "[Mesh]. Another possibility is that your OpenMC model is bigger than the [Mesh] and "
-           "some tally hits are happening outside the [Mesh]. To debug, you can try:\n\n"
+           "some tally hits are happening outside the [Mesh]. To debug, you can try to:\n\n"
         << " 1. Temporarily set 'check_tally_sum = false'\n"
         << " 2. Create a MeshTally over the entire domain.\n"
         << " 3. Compare the mesh tally to the problematic tally. Do you see any tally hits "
