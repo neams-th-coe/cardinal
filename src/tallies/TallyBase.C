@@ -794,16 +794,30 @@ TallyBase::checkTallySum(const unsigned int & score) const
 
     std::string run_type = fixed_source ? "source_strength" : "power";
     msg << "\n\nThis means that the tallies created by Cardinal are missing some hits over the "
-           "domain. The '" << run_type << "' parameter you provided for normalizing the tallies will therefore correspond only to those hits which Cardinal is seeing. If this is your intention, you can set 'normalize_by_global_tally' to false, which means that Cardinal will be normalizing your tallies so that they correspond to a ";
+           "domain. The '"
+        << run_type
+        << "' parameter you provided for normalizing the tallies will therefore correspond only to "
+           "those hits which Cardinal is seeing. If this is your intention, you can set "
+           "'normalize_by_global_tally' to false, which means that Cardinal will be normalizing "
+           "your tallies so that they correspond to a ";
     std::replace(run_type.begin(), run_type.end(), '_', ' ');
 
-    msg  << run_type << " of " << Moose::stringify(_local_sum_tally[score] / _global_sum_tally[score] * _openmc_problem.tallyNormalizationValue()) << " (NOT the user-specified power of " << _openmc_problem.tallyNormalizationValue()
-         << "). Or, if this relative difference is acceptable to you, you can loosen 'tally_sum_tol'.\n\n";
+    msg << run_type << " of "
+        << Moose::stringify(_local_sum_tally[score] / _global_sum_tally[score] *
+                            _openmc_problem.tallyNormalizationValue())
+        << " (NOT the user-specified power of " << _openmc_problem.tallyNormalizationValue()
+        << "). Or, if this relative difference is acceptable to you, you can loosen "
+           "'tally_sum_tol'.\n\n";
 
-    msg << "If this error is NOT expected, you need to debug your model to determine where some tally hits are not being mapped to Cardinal. If you are using a cell tally, this usually happens because some OpenMC cells are not hit by an element centroid in the [Mesh]. Another possibility is that your OpenMC model is bigger than the [Mesh] and some tally hits are happening outside the [Mesh]. To debug, you can try:\n\n"
-       << " 1. Temporarily set 'check_tally_sum = false'\n"
-       << " 2. Create a MeshTally over the entire domain.\n"
-       << " 3. Compare the mesh tally to the problematic tally. Do you see any tally hits happening in regions where the problematic tally is not picking anything up?";
+    msg << "If this error is NOT expected, you need to debug your model to determine where some "
+           "tally hits are not being mapped to Cardinal. If you are using a cell tally, this "
+           "usually happens because some OpenMC cells are not hit by an element centroid in the "
+           "[Mesh]. Another possibility is that your OpenMC model is bigger than the [Mesh] and "
+           "some tally hits are happening outside the [Mesh]. To debug, you can try:\n\n"
+        << " 1. Temporarily set 'check_tally_sum = false'\n"
+        << " 2. Create a MeshTally over the entire domain.\n"
+        << " 3. Compare the mesh tally to the problematic tally. Do you see any tally hits "
+           "happening in regions where the problematic tally is not picking anything up?";
 
     mooseError(msg.str());
   }
