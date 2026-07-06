@@ -43,11 +43,11 @@ MoabSkinner::validParams()
       "n_density_bins", "n_density_bins > 0", "Number of density bins");
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
-      "List of mesh subdomain names for which to assign material names in the generated "
+      "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
       "DAGMC geometry. Must be the same length as 'material_names'.");
   params.addParam<std::vector<std::string>>(
       "material_names",
-      "Material names to assign to subdomains in the generated DAGMC geometry. "
+      "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
       "Must be the same length as 'material_blocks' and listed in the same order. "
       "Any subdomain not listed in 'material_blocks' will have no material assignment "
       "and OpenMC will default to void for that region.");
@@ -324,15 +324,15 @@ MoabSkinner::initialize()
   if (isParamValid("material_blocks"))
   {
     checkRequiredParam(parameters(), "material_names", "specifying 'material_blocks'");
-    auto block_names = getParam<std::vector<SubdomainName>>("material_blocks");
-    auto mat_names = getParam<std::vector<std::string>>("material_names");
+    const auto & block_names = getParam<std::vector<SubdomainName>>("material_blocks");
+    const auto & mat_names = getParam<std::vector<std::string>>("material_names");
 
     if (block_names.size() != mat_names.size())
       paramError("material_names",
                  "'material_names' must be the same length as 'material_blocks' (" +
                      Moose::stringify(block_names.size()) + ")");
 
-    for (std::size_t i = 0; i < block_names.size(); ++i)
+    for (const auto i : index_range(block_names))
     {
       if (!MooseMeshUtils::hasSubdomainName(getMooseMesh().getMesh(), block_names[i]))
         paramError("material_blocks",
@@ -386,9 +386,9 @@ MoabSkinner::initialize()
         {"Subdomain ID", "Subdomain Name", "Material"});
     for (const auto & [subdomain_id, block_index] : _blocks)
     {
-      auto name = getMooseMesh().getSubdomainName(subdomain_id);
-      auto mat_it = _block_id_to_material_name.find(subdomain_id);
-      auto mat = (mat_it != _block_id_to_material_name.end()) ? mat_it->second : "(void)";
+      const auto & name = getMooseMesh().getSubdomainName(subdomain_id);
+      const auto & mat_it = _block_id_to_material_name.find(subdomain_id);
+      const auto & mat = (mat_it != _block_id_to_material_name.end()) ? mat_it->second : "(void)";
       vt.addRow(std::to_string(subdomain_id), name, mat);
     }
     _console << "\nMoabSkinner updated material assignments:" << std::endl;
