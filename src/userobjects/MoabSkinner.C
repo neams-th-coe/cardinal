@@ -440,21 +440,8 @@ MoabSkinner::update()
   // Re-initialise the mesh data
   initialize();
 
-  if (_verbose)
-  {
-    VariadicTable<std::string, std::string, std::string> vt(
-        {"Subdomain ID", "Subdomain Name", "Material"});
-    for (const auto & [subdomain_id, block_index] : _blocks)
-    {
-      const auto & name = getMooseMesh().getSubdomainName(subdomain_id);
-      const auto & mat_it = _block_id_to_material_name.find(subdomain_id);
-      const auto & mat = (mat_it != _block_id_to_material_name.end()) ? mat_it->second : "(void)";
-      vt.addRow(std::to_string(subdomain_id), name, mat);
-    }
-    _console << "\nMoabSkinner updated material assignments:" << std::endl;
-    vt.print(_console);
-    _console << std::endl;
-  }
+  if (isParamValid("material_blocks"))
+    _console << "MoabSkinner updating material assignments..." << std::endl;
 
   // Sort libMesh elements into bins
   sortElemsByResults();
