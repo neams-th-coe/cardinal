@@ -10,9 +10,9 @@ changes a cell's material fill before executing Cardinal.
 The following input will modify the material in cell 2; there are three instances of cell
 2, and each is modified to material 1.
 
-!listing test/tests/model_modifiers/openmc_cell_material/openmc.i
+!listing test/tests/model_modifiers/cell_material_fill/openmc.i
   block=Problem
 
-!syntax parameters /Problem/AddModelModifiers/OpenMCCellMaterialFill
+!syntax parameters /Problem/ModelModifiers/OpenMCCellMaterialFill
 
-!syntax inputs /Problem/AddModelModifiers/OpenMCCellMaterialFill
+!syntax inputs /Problem/ModelModifiers/OpenMCCellMaterialFill
