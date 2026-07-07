@@ -83,6 +83,12 @@ public:
   bool isHeatingScore(const std::string & score) const;
 
   /**
+   * The value used to normalize the tallies
+   * @return the source strength or power, depending on the run mode in OpenMC
+   */
+  Real tallyNormalizationValue() const;
+
+  /**
    * Whether the random ray solver can accumulate a score or not.
    * @return whether the random ray solver can accumulate the score or not
    */
