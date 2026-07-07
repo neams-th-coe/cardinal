@@ -41,8 +41,7 @@ ModelModifiersBase::validParams()
 }
 
 ModelModifiersBase::ModelModifiersBase(const InputParameters & parameters)
-  : MooseObject(parameters),
-    OpenMCBase(this, parameters)
+  : MooseObject(parameters), OpenMCBase(this, parameters)
 {
 }
 
