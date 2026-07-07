@@ -464,7 +464,7 @@ protected:
   std::map<dof_id_type, std::vector<moab::EntityHandle>> _id_to_elem_handles;
 
   /// Map from libMesh id to MOAB vertex handles
-  std::map<dof_id_type, moab::EntityHandle> _node_id_to_handle;
+  std::unordered_map<dof_id_type, moab::EntityHandle> _node_id_to_handle;
 
   /// Save the first tet entity handle
   moab::EntityHandle offset;
