@@ -1,12 +1,49 @@
 [Tests]
   issues = '#1359'
   design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+  [material_names_wrong_length]
+    type = RunException
+    input = generate_dagmc.i
+    cli_args = "UserObjects/moab/material_names='1'"
+    expect_err = "'material_names' \(length 1\) must be the same length as 'material_blocks' \(length 2\)"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall error if 'material_names' and 'material_blocks' are not the same length"
+  []
+  [material_blocks_not_in_mesh]
+    type = RunException
+    input = generate_dagmc.i
+    cli_args = "UserObjects/moab/material_blocks='block_1 nonexistent'"
+    expect_err = "Subdomain 'nonexistent' not found in the mesh"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall error if a block listed in 'material_blocks' does not exist in the mesh"
+  []
+  [material_blocks_duplicate]
+    type = RunException
+    input = generate_dagmc.i
+    cli_args = "UserObjects/moab/material_blocks='1 block_1' UserObjects/moab/material_names='1 2'"
+    expect_err = "Subdomain 'block_1' refers to the same mesh subdomain as another entry in 'material_blocks'"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall error if the same subdomain is listed more than once in 'material_blocks'"
+  []
+  [material_names_required_with_blocks]
+    type = RunException
+    input = no_material_names.i
+    cli_args = "UserObjects/moab/material_blocks='block_1 block_2'"
+    expect_err = "When specifying 'material_blocks', the 'material_names' parameter is required!"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall error if 'material_blocks' is specified without 'material_names'"
+  []
   [generate_dagmc]
     type = RunApp
     input = generate_dagmc.i
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    requirement = "The system shall assign materials to MOOSE mesh blocks and generate a new DAGMC geoemtry "
+    requirement = "The system shall assign materials to MOOSE mesh blocks and generate a new DAGMC geometry"
+                  "with the correct material group tags"
   []
   [run_updated_geometry]
     type = CSVDiff
@@ -14,7 +51,8 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     cli_args = 'Outputs/hide="cell_instance"'
-    requirement = "The system shall update materials assignment and run OpenMC with the new geometry"
+    requirement = "The system shall update material assignments with 'material_blocks' and 'material_names' "
+                  "(using names or IDs) and run OpenMC with the regenerated geometry"
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
