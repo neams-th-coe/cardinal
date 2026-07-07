@@ -16,21 +16,23 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  volume_calculation = vol
+  verbose = true
+  power = 100
+  cell_level = 1
 
   [ModelModifiers]
     [one]
       type = OpenMCCellMaterialFill
       cell_id = 2
-      material_ids = '1'
+      material_ids = '1 1 1'
     []
   []
-[]
 
-[UserObjects]
-  [vol]
-    type = OpenMCVolumeCalculation
-    n_samples = 1000
+  [Tallies]
+    [t]
+      type = CellTally
+      score = 'kappa_fission'
+    []
   []
 []
 

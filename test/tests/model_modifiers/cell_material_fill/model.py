@@ -38,7 +38,10 @@ water.add_element('O', 1.0)
 cyl = openmc.ZCylinder(r=5.0)
 
 cell1_q1 = openmc.Cell(region=-cyl, fill=mat1)
+
+# change fill to mat1 to locally get results to compare with Cardinal test
 cell2_q1 = openmc.Cell(region=+cyl, fill=water)
+
 universe1 = openmc.Universe(cells=[cell1_q1, cell2_q1])
 
 cell1_q2 = openmc.Cell(region=-cyl, fill=mat2)
@@ -58,8 +61,8 @@ main_cell = openmc.Cell(fill=lattice, region=-box)
 model.geometry = openmc.Geometry([main_cell])
 
 model.settings = openmc.Settings()
-model.settings.batches = 5
-model.settings.inactive = 2
+model.settings.batches = 10
+model.settings.inactive = 5
 model.settings.particles = 1000
 
 # Create an initial uniform spatial source distribution over fissionable zones
