@@ -392,6 +392,9 @@ protected:
   /**
    * Convert sideset names or numeric IDs to mesh BoundaryIDs and validate that each
    * is a sideset. Both string names and integer IDs are accepted.
+   * @param[in] names sideset names or IDs
+   * @param[in] param_name input parameter name, for error messages
+   * @return resolved boundary IDs
    */
   std::set<BoundaryID> boundaryNamesToIDs(const std::vector<BoundaryName> & names,
                                           const std::string & param_name);
@@ -399,13 +402,21 @@ protected:
   /// Error if the same sideset ID appears in both vacuum and reflective BC sets.
   void checkBoundaryConditionOverlap() const;
 
-  /// Determine which BC type, if any, applies to a libMesh side based on its boundary IDs.
+  /** Determine which BC type, if any, applies to a libMesh side based on its boundary IDs.
+   * @param[in] side_boundary_ids boundary IDs to which the side belongs
+   * @return boundary condition type to assign to the side
+   */
   BoundaryConditionType
   boundaryConditionType(const std::vector<boundary_id_type> & side_boundary_ids) const;
 
   /**
    * Classify the skinned triangles for one region into transmission, vacuum, and
    * reflective sets by checking each triangle against the BC sidesets.
+   * @param[in] region MOAB tets forming the current local region
+   * @param[in] skin skinned triangles bounding the region
+   * @param[out] transmission_tris triangles with no boundary condition (transmission)
+   * @param[out] vacuum_tris triangles assigned vacuum boundary conditions
+   * @param[out] reflective_tris triangles assigned reflective boundary conditions
    */
   void splitSkinByBoundaryCondition(const moab::Range & region,
                                     const moab::Range & skin,
@@ -417,6 +428,10 @@ protected:
    * Classify and create DAGMC surfaces from find_skin() result.
    * Splits the skin into transmission, vacuum, and reflective subsets and calls
    * createSurfaces() for each type.
+   * @param[in] region MOAB tets forming the current local region
+   * @param[in] skin skinned triangles bounding the region
+   * @param[in] voldata volume to associate with the created surfaces
+   * @param[in,out] surf_id running counter of surface IDs
    */
   void createSurfacesFromSkin(const moab::Range & region,
                               moab::Range & skin,
@@ -426,11 +441,15 @@ protected:
   /**
    * Record that a DAGMC surface meshset has been assigned a BC type.
    * Called from createSurf() and from the overlap path in createSurfaces().
+   * @param[in] surface_set surface meshset
+   * @param[in] bc_type boundary condition type assigned to the surface
    */
   void recordBoundaryConditionSurface(moab::EntityHandle surface_set,
                                       BoundaryConditionType bc_type);
 
-  /// Return the first group ID available after material, graveyard, and implicit-complement groups.
+  /** Return the first group ID available after material, graveyard, and implicit-complement groups.
+   * @return first available boundary condition group ID
+   */
   unsigned int firstBoundaryConditionGroupID() const;
 
   /// Create the DAGMC BC group entity sets from the surfaces recorded
