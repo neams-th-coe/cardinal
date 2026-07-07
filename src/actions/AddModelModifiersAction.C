@@ -28,7 +28,7 @@ InputParameters
 AddModelModifiersAction::validParams()
 {
   auto params = MooseObjectAction::validParams();
-  params.addClassDescription("Adds a modifiers that changes the OpenMC model prior to execution");
+  params.addClassDescription("Adds a modifier that changes the OpenMC model prior to execution");
   return params;
 }
 
