@@ -72,7 +72,7 @@ dT = 50.0
     build_graveyard = true
     graveyard_scale_inner = 1.1
     graveyard_scale_outer = 1.2
-    material_blocks = 'block_1 block_2'
+    material_blocks = 'block_1 2'
     material_names = 'h2o 1'
   []
 []
