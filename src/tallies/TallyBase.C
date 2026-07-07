@@ -805,7 +805,8 @@ TallyBase::checkTallySum(const unsigned int & score) const
     msg << run_type << " of "
         << Moose::stringify(_local_sum_tally[score] / _global_sum_tally[score] *
                             _openmc_problem.tallyNormalizationValue())
-        << " (NOT the user-specified " << run_type << " of " << _openmc_problem.tallyNormalizationValue()
+        << " (NOT the user-specified " << run_type << " of "
+        << _openmc_problem.tallyNormalizationValue()
         << "). Or, if this relative difference is acceptable to you, you can loosen "
            "'tally_sum_tol'.\n\n";
 
