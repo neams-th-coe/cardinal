@@ -2,7 +2,7 @@
 
 ## Description
 
-`OpenMCCellMaterialFill` is a [AddModelModifiers](AddModelModifiersAction.md) that
+`OpenMCCellMaterialFill` is a [ModelModifier](AddModelModifiersAction.md) that
 changes a cell's material fill before executing Cardinal.
 
 ## Example Input File Syntax
