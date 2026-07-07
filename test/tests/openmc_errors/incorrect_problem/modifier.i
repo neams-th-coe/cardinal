@@ -10,8 +10,10 @@
   solve = false
 
   [ModelModifiers]
-    type = OpenMCCellMaterialFill
-    cell_id = 1
+    [n]
+      type = OpenMCCellMaterialFill
+      cell_id = 1
+    []
   []
 []
 

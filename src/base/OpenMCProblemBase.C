@@ -23,12 +23,14 @@
 #include "CardinalAppTypes.h"
 #include "AddTallyAction.h"
 #include "SetupMGXSAction.h"
+#include "AddModelModifiersAction.h"
 
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
 #include "OpenMCCellTransform.h"
 #include "CriticalitySearchBase.h"
+#include "ModelModifiersBase.h"
 
 // For filtering \beta_eff by DNP group.
 #include "openmc/tallies/filter_delayedgroup.h"
@@ -464,6 +466,13 @@ OpenMCProblemBase::initialSetup()
 
   if (objs.size())
     _criticality_search = objs[0];
+
+  // Find model modifier objects
+  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");
+  std::vector<ModelModifiersBase *> mm_objs;
+  mm_query.queryInto(mm_objs);
+  for (const auto & m : mm_objs)
+    m->modifyOpenMCModel();
 }
 
 void
