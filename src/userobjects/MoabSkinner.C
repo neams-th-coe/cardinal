@@ -328,11 +328,11 @@ MoabSkinner::initialize()
     checkRequiredParam(parameters(), "material_names", "specifying 'material_blocks'");
     const auto & block_names = getParam<std::vector<SubdomainName>>("material_blocks");
     const auto & mat_names = getParam<std::vector<std::string>>("material_names");
-
-    paramError("material_names",
-               "'material_names' (length " + Moose::stringify(mat_names.size()) +
-                   ") must be the same length as 'material_blocks' (length " +
-                   Moose::stringify(block_names.size()) + ")");
+    if (block_names.size() != mat_names.size())
+      paramError("material_names",
+                 "'material_names' (length " + Moose::stringify(mat_names.size()) +
+                     ") must be the same length as 'material_blocks' (length " +
+                     Moose::stringify(block_names.size()) + ")");
 
     std::set<SubdomainID> seen_ids;
     for (const auto i : index_range(block_names))
