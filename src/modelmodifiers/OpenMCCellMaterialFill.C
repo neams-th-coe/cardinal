@@ -54,7 +54,8 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   if (n_mats != 1 && (n_cell_instances != n_mats))
     paramError("material_ids",
                "'material_ids' (length " + std::to_string(n_mats) +
-                   ") must either be of length 1 or have a length equal to the number of instances of cell " +
+                   ") must either be of length 1 or have a length equal to the number of instances "
+                   "of cell " +
                    std::to_string(_cell_id) + " (" + std::to_string(n_cell_instances) + ")");
 
   // check that each provided material exists in the model
