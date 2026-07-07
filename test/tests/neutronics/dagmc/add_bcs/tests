@@ -2,14 +2,14 @@
   [sideset_added_twice]
     type = RunException
     input = conflicting_bcs.i
-    expect_err = "Boundary 'left' appears in both 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'."
+    expect_err = "The following sideset ID\(s\) appear in both 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces': 4"
     requirement = "The system shall error if a sideset is assigned both vacuum and reflective BCs."
     capabilities = 'dagmc'
   []
   [typo]
     type = RunException
     input = typo.i
-    expect_err = "Boundary 'topp' is not a sideset."
+    expect_err = "Boundary 'topp' does not exist in the mesh."
     requirement = "The system shall error if an unknown sideset is assigned a BC."
     capabilities = 'dagmc'
   []
