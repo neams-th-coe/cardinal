@@ -20,7 +20,6 @@
 
 #include "MooseObject.h"
 #include "OpenMCBase.h"
-#include "CardinalEnums.h"
 
 /**
  * Applies a modification to the OpenMC model prior to execution.

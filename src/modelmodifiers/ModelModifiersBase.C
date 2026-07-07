@@ -19,12 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "ModelModifiersBase.h"
-#include "UserErrorChecking.h"
-#include "VariadicTable.h"
-#include "BrentsMethod.h"
-
-// To disable tallies
-#include "openmc/tallies/tally.h"
 
 InputParameters
 ModelModifiersBase::validParams()

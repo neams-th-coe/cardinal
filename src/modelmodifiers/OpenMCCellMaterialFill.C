@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellMaterialFill.h"
-#include "UserErrorChecking.h"
 #include "openmc/cell.h"
 
 registerMooseObject("CardinalApp", OpenMCCellMaterialFill);
