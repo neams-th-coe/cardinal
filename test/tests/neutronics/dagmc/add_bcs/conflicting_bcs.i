@@ -1,5 +1,5 @@
 [Mesh]
-[f]
+  [f]
     type = GeneratedMeshGenerator
     dim = 3
     xmin = -12.5

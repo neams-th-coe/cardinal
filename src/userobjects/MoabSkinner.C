@@ -98,12 +98,12 @@ MoabSkinner::validParams()
       "vacuum_bcs_surfaces",
       "Mesh sideset names or numeric sideset IDs to assign DAGMC vacuum boundary conditions to. "
       "Both string names and integer IDs (as strings) are accepted. "
-      "Sides not listed here default to transmission.");
+      "If not specified, the surface defaults to transmission.");
   params.addParam<std::vector<BoundaryName>>(
       "reflective_bcs_surfaces",
       "Mesh sideset names or numeric sideset IDs to assign DAGMC reflective boundary conditions "
       "to. Both string names and integer IDs (as strings) are accepted. "
-      "Sides not listed here default to transmission.");
+      "If not specified, the surface defaults to transmission.");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
   return params;
@@ -1012,7 +1012,7 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
                  elem_id_it->second,
                  " while assigning DAGMC boundary conditions.");
 
-    for (unsigned int side = 0; side < elem->n_sides(); ++side)
+    for (const auto side : make_range(elem->n_sides()))
     {
       std::vector<boundary_id_type> side_bids;
       boundary_info.boundary_ids(elem, side, side_bids);
