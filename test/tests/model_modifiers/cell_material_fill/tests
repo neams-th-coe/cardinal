@@ -14,7 +14,7 @@
     type = RunException
     input = openmc.i
     cli_args = "Problem/ModelModifiers/one/material_ids='1 2'"
-    expect_err = "'material_ids' \(length 2\) must have a length equal to the number of instances of cell 2 \(3\)"
+    expect_err = "'material_ids' \(length 2\) must either be of length 1 or have a length equal to the number of instances of cell 2 \(3\)"
     requirement = 'The system shall error if the number of materials provided to modify a cell fill does not match the number of instances of that cell'
     capabilities = 'openmc'
   []
@@ -31,6 +31,14 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     requirement = "The system shall be able to modify the material(s) filling a cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
+    capabilities = 'openmc'
+  []
+  [change_material_all_instances]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Problem/ModelModifiers/one/material_ids="1"'
+    requirement = "The system shall be able to modify the same material filling all instances of a distributed cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
     capabilities = 'openmc'
   []
 []

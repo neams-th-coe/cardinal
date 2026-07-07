@@ -51,21 +51,28 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   const auto & material_ids = getParam<std::vector<int32_t>>("material_ids");
   auto n_cell_instances = openmc::model::cells[_cell_index]->n_instances();
   auto n_mats = std::size(material_ids);
-  if (n_cell_instances != n_mats)
+  if (n_mats != 1 && (n_cell_instances != n_mats))
     paramError("material_ids",
                "'material_ids' (length " + std::to_string(n_mats) +
-                   ") must have a length equal to the number of instances of cell " +
+                   ") must either be of length 1 or have a length equal to the number of instances of cell " +
                    std::to_string(_cell_id) + " (" + std::to_string(n_cell_instances) + ")");
 
   // check that each provided material exists in the model
+  int32_t material_index = -1;
   for (const auto & m : material_ids)
   {
-    int32_t material_index = -1;
     err = openmc_get_material_index(m, &material_index);
     if (err)
       paramError("material_ids",
                  "Material with ID " + std::to_string(m) + " was not found in the OpenMC model!");
     _material_indices.push_back(material_index);
+  }
+
+  if (n_mats == 1)
+  {
+    // make _material_indices equal in length to the number of cell instances
+    for (int i = 1; i < n_mats; ++i)
+      _material_indices.push_back(material_index);
   }
 }
 
