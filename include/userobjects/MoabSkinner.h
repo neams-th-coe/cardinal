@@ -485,10 +485,10 @@ protected:
   std::set<moab::EntityHandle> _reflective_bc_surface_sets;
 
   /// Reverse map from MOAB tet entity handle to libMesh element ID. Populated in createMOABElems()
-  std::map<moab::EntityHandle, dof_id_type> _elem_handle_to_id;
+  std::unordered_map<moab::EntityHandle, dof_id_type> _elem_handle_to_id;
 
   /// Whether to assign boundary conditions to surfaces
-  bool _set_bcs = false;
+  bool _set_bcs;
 
   /// Lower bound of density bins
   Real _density_min;
