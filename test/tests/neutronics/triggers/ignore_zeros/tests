@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#875'
+  design = 'CellTally.md MeshTally.md'
+
   [empty_bin]
     type = CSVDiff
     input = ignore_zero.i
