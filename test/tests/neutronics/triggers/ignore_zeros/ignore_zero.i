@@ -66,9 +66,16 @@
     type = TallyRelativeError
     tally_score = 'H3_production'
   []
+
+  [threshold]
+    type = ParsedPostprocessor
+    expression = 'if (max_err < 1.0, 1, 0)'
+    pp_names = 'max_err'
+  []
 []
 
 [Outputs]
-  execute_on = final
   csv = true
+  hide = 'max_err'
+  execute_on = 'TIMESTEP_END'
 []

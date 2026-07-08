@@ -1,3 +1,2 @@
-time,max_tally_err
-0,0
-1,0.019833790664452
+time,threshold
+1,1
