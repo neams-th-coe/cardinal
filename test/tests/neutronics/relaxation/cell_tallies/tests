@@ -45,7 +45,6 @@
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "same input file, but with the relaxation part commented out in the source code (so that we can compare "
                   "directly against runs that only differ by changing the number of particles."
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
 
@@ -80,7 +79,6 @@
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the "
                   "mesh mirror."
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [global_without_alignment_relax]
@@ -92,7 +90,6 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case (without additional command line parameters)"
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
 
@@ -104,7 +101,6 @@
     min_parallel = 2
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the mesh mirror"
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [local_without_alignment_relax]
@@ -117,7 +113,6 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [none_fixed_mesh]
@@ -145,7 +140,6 @@
     input = multi_tally.i
     csvdiff = multi_tally_out.csv
     requirement = "The wrapping shall allow output of multiple tally scores, with relaxation applied independently to each score"
-    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [no_relax_with_fixed_mesh]
