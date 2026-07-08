@@ -39,7 +39,8 @@ cyl = openmc.ZCylinder(r=5.0)
 
 cell1_q1 = openmc.Cell(region=-cyl, fill=mat1)
 
-# change fill to mat1 to locally get results to compare with Cardinal test
+# change fill to mat1 to locally get results to compare with Cardinal tests
+# (change_material and change_material_all_instances)
 cell2_q1 = openmc.Cell(region=+cyl, fill=water)
 
 universe1 = openmc.Universe(cells=[cell1_q1, cell2_q1])
@@ -48,11 +49,19 @@ cell1_q2 = openmc.Cell(region=-cyl, fill=mat2)
 cell2_q2 = openmc.Cell(region=+cyl, fill=water)
 universe2 = openmc.Universe(cells=[cell1_q2, cell2_q2])
 
+# another universe for standalone comparisons with Cardinal test
+# (change_material_different_instances)
+cell1_q3 = openmc.Cell(region=-cyl, fill=mat1)
+cell2_q3 = openmc.Cell(region=+cyl, fill=mat2)
+universe3 = openmc.Universe(cells=[cell1_q3, cell2_q3])
+
 # create the lattice
 pitch = 10.0
 lattice = openmc.RectLattice()
 lattice.lower_left = (0, 0)
 lattice.pitch = (pitch, pitch)
+
+# change top left universe to universe3 for the change_material_different_instances test
 lattice.universes = [[universe1, universe1], \
                      [universe2, universe1]]
 

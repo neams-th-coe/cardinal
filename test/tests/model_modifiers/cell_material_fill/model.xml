@@ -24,8 +24,8 @@
     <cell id="2" material="3" region="1" universe="1"/>
     <cell id="3" material="2" region="-1" universe="2"/>
     <cell id="4" material="3" region="1" universe="2"/>
-    <cell id="5" fill="3" region="-3 2 -5 4 -7 6" universe="4"/>
-    <lattice id="3">
+    <cell id="7" fill="4" region="-3 2 -5 4 -7 6" universe="5"/>
+    <lattice id="4">
       <pitch>10.0 10.0</pitch>
       <dimension>2 2</dimension>
       <lower_left>0 0</lower_left>
