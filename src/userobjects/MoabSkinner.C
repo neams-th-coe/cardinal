@@ -346,7 +346,7 @@ MoabSkinner::initialize()
         // by its ID) should error here
         paramError("material_blocks",
                    "Subdomain '" + std::string(block_names[i]) +
-                       "' refers to the same mesh subdomain as another entry in 'material_blocks'");
+                       "' was already listed in 'material_blocks' (either by name or ID). Each block can only be listed one time.");
       seen_ids.insert(id);
       auto it = _blocks.find(id);
       _block_id_to_material_name[it->first] = mat_names[i];
