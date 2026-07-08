@@ -72,7 +72,7 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   if (n_mats == 1)
   {
     // make _material_indices equal in length to the number of cell instances
-    for (int i = 1; i < n_mats; ++i)
+    for (int i = 1; i < n_cell_instances; ++i)
       _material_indices.push_back(material_index);
   }
 }
