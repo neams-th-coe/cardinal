@@ -3,7 +3,8 @@
 ## Description
 
 `OpenMCCellMaterialFill` is a [ModelModifier](AddModelModifiersAction.md) that
-changes a cell's material fill before executing Cardinal. If the cell in question
+sets the fill of an OpenMC cell to a user-specified material or list of materials
+(for distributed cells), prior to execution. If the cell in question
 is a distribcell (has multiple instances throughout the geometry), then the material
 in each instance can be individually modified (by providing multiple values for
 `material_ids`) or the same material can be applied to all distribcells at once
