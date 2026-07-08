@@ -69,7 +69,7 @@
 
   [threshold]
     type = ParsedPostprocessor
-    expression = 'if (max_err < 1.0, 1, 0)'
+    expression = 'if (max_err > 4.2e-2, 1, 0)'
     pp_names = 'max_err'
   []
 []
