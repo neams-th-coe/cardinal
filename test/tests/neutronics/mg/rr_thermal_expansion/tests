@@ -1,0 +1,14 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [s2_thermal_exp]
+    type = CSVDiff
+    input = 'openmc.i'
+    csvdiff = 'openmc_out.csv'
+    requirement = "The system shall be capable of solving the S2 thermal expansion benchmark "
+                  "problem with OpenMC's random ray solver."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]

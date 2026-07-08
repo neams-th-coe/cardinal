@@ -30,9 +30,12 @@
 #include "OpenMCCellTransform.h"
 #include "CriticalitySearchBase.h"
 
-#include "openmc/random_lcg.h"
 // For filtering \beta_eff by DNP group.
 #include "openmc/tallies/filter_delayedgroup.h"
+#include "openmc/random_lcg.h"
+#include "openmc/mgxs_interface.h"
+// For random ray settings.
+#include "openmc/random_ray/random_ray.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -87,6 +90,9 @@ OpenMCProblemBase::validParams()
       false,
       "Whether to reset OpenMC's seed to the initial starting seed before each OpenMC solve");
 
+  params.addParam<FileName>(
+      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
+
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
                         false,
@@ -96,8 +102,18 @@ OpenMCProblemBase::validParams()
       "ifp_generations",
       openmc::DEFAULT_IFP_N_GENERATION,
       "The number of generations to use with the method of iterated fission probabilities.");
-  params.addParam<FileName>(
-      "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
+
+  // Random ray settings. These are only valid if Cardinal is running the random ray solver.
+  params.addRangeCheckedParam<Real>(
+      "inactive_distance",
+      "inactive_distance >= 0",
+      "The inactive length (distance a ray travels before beginning to accumulate tallies) used "
+      "for random ray; this overrides the setting in the XML files.");
+  params.addRangeCheckedParam<Real>(
+      "active_distance",
+      "active_distance > 0",
+      "The active length (distance a ray travels while accumulating tallies) used "
+      "for random ray; this overrides the setting in the XML files.");
   return params;
 }
 
@@ -121,28 +137,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
-
-  // Suppress OpenMC output when the language server is active by
-  // decreasing the verbosity to level 1 (the lowest).
-  std::vector<std::string> argv_vec = {"openmc"};
-  if (_app.isParamValid("language_server") && _app.getParam<bool>("language_server"))
-  {
-    argv_vec.push_back("-q");
-    argv_vec.push_back("1");
-  }
-  // Add the parameter for the XML directory at the end.
-  argv_vec.push_back(_xml_directory);
-
-  std::vector<char *> argv;
-
-  for (const auto & arg : argv_vec)
-  {
-    argv.push_back(const_cast<char *>(arg.data()));
-  }
-  // Add terminating nullptr
-  argv.push_back(nullptr);
-
-  openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 
   // ensure that any mapped cells have their distribcell indices generated in OpenMC
   if (!openmc::settings::material_cell_offsets)
@@ -184,7 +178,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       else
         checkUnusedParam(params, "source_strength", "no tallies have been added");
 
-      checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+      if (!runRandomRay())
+        checkUnusedParam(
+            params, "inactive_batches", "running in fixed source mode with the Monte Carlo solver");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
       checkUnusedParam(params, "power", "running in fixed source mode");
       _reuse_source = false;
@@ -216,6 +212,18 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   if (isParamValid("particles"))
     _particles = &getPostprocessorValue("particles");
 
+  if (!runRandomRay())
+  {
+    checkUnusedParam(params, "inactive_distance", "not running in random ray mode");
+    checkUnusedParam(params, "active_distance", "not running in random ray mode");
+  }
+
+  if (isParamValid("inactive_distance"))
+    openmc::RandomRay::distance_inactive_ = getParam<Real>("inactive_distance");
+
+  if (isParamValid("active_distance"))
+    openmc::RandomRay::distance_active_ = getParam<Real>("active_distance");
+
   if (isParamValid("batches"))
   {
     auto xml_n_batches = openmc::settings::n_batches; // user XML setting
@@ -243,6 +251,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     if (_run_mode != openmc::RunMode::EIGENVALUE)
       paramError("calc_kinetics_params",
                  "Kinetic parameters can only be calculated in k-eigenvalue mode!");
+
+    if (runRandomRay())
+      paramError("calc_kinetics_params",
+                 "Kinetic parameters cannot be calculated when using the random ray solver!");
 
     openmc::settings::ifp_on = true;
     openmc::settings::ifp_parameter = openmc::IFPParameter::Both;
@@ -381,7 +393,7 @@ OpenMCProblemBase::externalSolve()
     openmc_set_seed(_initial_seed);
   }
 
-  int err;
+  int err = 0;
   if (!firstSolve())
   {
     err = openmc_reset_timers();
@@ -393,7 +405,11 @@ OpenMCProblemBase::externalSolve()
     _criticality_search->searchForCriticality([&]() { this->critSearchStep(); });
   else
   {
-    err = openmc_run();
+    if (runRandomRay())
+      openmc_run_random_ray();
+    else
+      err = openmc_run();
+
     if (err)
       mooseError(openmc_err_msg);
   }
@@ -579,6 +595,22 @@ OpenMCProblemBase::materialFill(const cellInfo & cell_info, int32_t & material_i
   return true;
 }
 
+const Real
+OpenMCProblemBase::densityConversionFactor() const
+{
+  // The density field variables are assumed to be in units of kg/m3, which must be
+  // converted to g/cm3 for OpenMC (the conversion factor is _density_conversion_factor).
+  // However, when running in multi-group mode OpenMC expects unitless density multipliers.
+  // To go between the field variable density and density multipliers, the superclass
+  // (OpenMCCellAverageProblem) asks users to specify a reference density (the density
+  // in kg/m3 used to generate multi-group cross sections). This divides the field variable
+  // density to get the unitless density multiplier expected by OpenMC.
+  //
+  // Therefore, in multi-group mode converting from kg/m3 to g/cm3 is no longer required
+  // and we can return unity instead.
+  return openmc::settings::run_CE ? _density_conversion_factor : 1.0;
+}
+
 void
 OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_info) const
 {
@@ -610,7 +642,7 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
   // properties module) to g/cm3
   int err = openmc_cell_set_density(
-      cell_info.first, _density_conversion_factor * density, &cell_info.second, false);
+      cell_info.first, densityConversionFactor() * density, &cell_info.second, false);
 
   if (err)
   {
@@ -712,6 +744,12 @@ OpenMCProblemBase::tallyMeanAcrossBins(std::vector<const openmc::Tally *> tally,
     n += t->n_realizations_;
 
   return tallySumAcrossBins(tally, score) / n;
+}
+
+bool
+OpenMCProblemBase::runRandomRay() const
+{
+  return openmc::settings::solver_type == openmc::SolverType::RANDOM_RAY;
 }
 
 std::string
@@ -885,6 +923,14 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
   return viable_scores.count(score);
 }
 
+bool
+OpenMCProblemBase::validRandomRayScore(const std::string & score) const
+{
+  const std::set<std::string> viable_scores = {
+      "flux", "total", "fission", "nu-fission", "kappa-fission"};
+  return viable_scores.count(score);
+}
+
 unsigned int
 OpenMCProblemBase::addExternalVariable(const std::string & name,
                                        const std::string & system,
@@ -1031,6 +1077,12 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)
     uo->setValue();
+}
+
+Real
+OpenMCProblemBase::tallyNormalizationValue() const
+{
+  return _run_mode == openmc::RunMode::FIXED_SOURCE ? *_source_strength : *_power;
 }
 
 #endif

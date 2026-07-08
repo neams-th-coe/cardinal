@@ -1,3 +1,2 @@
-time,max_err_de,max_err_kf
-0,0,0
-1,0.010481153182571,0.019942371974543
+time,threshold_de,threshold_kf
+1,1,1

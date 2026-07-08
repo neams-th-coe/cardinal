@@ -133,7 +133,12 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
         t->set_active(false);
 
     // re-run the model
-    int err = openmc_run();
+    int err = 0;
+    if (_openmc_problem->runRandomRay())
+      openmc_run_random_ray();
+    else
+      err = openmc_run();
+
     if (err)
       mooseError(openmc_err_msg);
 

@@ -15,7 +15,7 @@ mass_flux_in = ${fparse total_mdot / flow_area}
 
 [TriSubChannelMesh]
   [subchannel]
-    type = SCMTriSubChannelMeshGenerator
+    type = SCMTriAssemblyMeshGenerator
     nrings = 5
     n_cells = 100
     flat_to_flat = ${fparse duct_inner_flat_to_flat * 1e-2}
@@ -24,14 +24,6 @@ mass_flux_in = ${fparse total_mdot / flow_area}
     pitch = ${fparse pin_pitch * 1e-2}
     dwire = ${fparse wire_diameter * 1e-2}
     hwire = ${fparse wire_pitch * 1e-2}
-  []
-  [fuel_pins]
-    type = SCMTriPinMeshGenerator
-    input = subchannel
-    nrings = 5
-    n_cells = 100
-    heated_length = ${fparse height * 1e-2}
-    pitch = ${fparse pin_pitch * 1e-2}
   []
 []
 

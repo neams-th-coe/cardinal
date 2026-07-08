@@ -425,6 +425,13 @@ public:
   Real tallyMultiplier(const std::string & score_name, const Real & local_mean_tally) const;
 
   /**
+   * Get the reference density of an element when running in multi-group mode.
+   * @param[in] elem the element
+   * @return the reference density (kg/m3) or unity (if not running in multi-group mode)
+   */
+  const Real getReferenceDensity(const Elem * elem) const;
+
+  /**
    * Check whether a vector extracted with getParam is empty
    * @param[in] vector vector
    * @param[in] name name to use for printing error if empty
@@ -746,11 +753,13 @@ protected:
    * Compute the product of volume with a field across ranks and sum into a global map
    * @param[in] var_num variable to weight with volume, mapped by subdomain ID
    * @param[in] phase phases to compute the operation for
+   * @param[in] scaling a scaling factor to apply, mapped by subdomain ID
    * @return volume-weighted field for each cell, in a global sense
    */
   std::map<cellInfo, Real> computeVolumeWeightedCellInput(
       const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-      const std::vector<coupling::CouplingFields> * phase) const;
+      const std::vector<coupling::CouplingFields> * phase = nullptr,
+      const std::map<SubdomainID, Real> * scaling = nullptr) const;
 
   /**
    * Send temperature from MOOSE to OpenMC by computing a volume average
@@ -796,13 +805,14 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
                              std::map<cellInfo, containedCells> & compare) const;
 
-  NumericVector<Number> & _serialized_solution;
-
   /**
    * Return all IDs of all Cardinal-mapped Tallies
    * @return all Cardinal-mapped Tally IDs
    */
   virtual std::vector<int32_t> getMappedTallyIDs() const override;
+
+  /// A reference to the serialized auxvariable solution.
+  NumericVector<Number> & _serialized_solution;
 
   /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
@@ -1154,4 +1164,7 @@ private:
 
   /// Mapping from subdomain IDs to which aux variable to read density (kg/m3) from
   std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_density_vars;
+
+  /// Mapping from subdomain IDs to the reference density (kg/m3).
+  std::map<SubdomainID, Real> _subdomain_to_ref_density;
 };
