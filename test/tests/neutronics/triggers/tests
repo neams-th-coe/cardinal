@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#98'
+  design = 'OpenMCCellAverageProblem.md CellTally.md MeshTally.md'
+
   [k_std_dev]
     type = CSVDiff
     input = k_std_dev.i
