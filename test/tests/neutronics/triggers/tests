@@ -19,7 +19,7 @@
   [k_variance]
     type = CSVDiff
     input = k_std_dev.i
-    cli_args = 'Problem/k_trigger=variance Outputs/file_base=k_variance_out Problem/k_trigger_threshold=2e-4'
+    cli_args = 'Problem/k_trigger=variance Outputs/file_base=k_variance_out Problem/k_trigger_threshold=2e-4 Postprocessors/threshold/constant_expressions=2e-4 Postprocessors/threshold/expression="if(k_err*k_err<th,1,0)"'
     csvdiff = k_variance_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k variance."
@@ -28,7 +28,7 @@
   [k_rel_err]
     type = CSVDiff
     input = k_std_dev.i
-    cli_args = 'Problem/k_trigger=rel_err Outputs/file_base=k_rel_err_out Problem/k_trigger_threshold=1.3e-2'
+    cli_args = 'Problem/k_trigger=rel_err Outputs/file_base=k_rel_err_out Problem/k_trigger_threshold=1.3e-2 Postprocessors/threshold/constant_expressions=1.3e-2 Postprocessors/k_err/output=rel_err'
     csvdiff = k_rel_err_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k relative error."
