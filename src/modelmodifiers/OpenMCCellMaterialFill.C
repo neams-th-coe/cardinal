@@ -31,8 +31,8 @@ OpenMCCellMaterialFill::validParams()
   params.addRequiredParam<int32_t>("cell_id", "Cell ID to modify");
   params.addRequiredParam<std::vector<int32_t>>(
       "material_ids",
-      "IDs of the materials to fill into the cell; the length of this array can be one material ID that will"
-      " be applied to all instances. Otherwise, it must match the number "
+      "IDs of the materials to fill into the cell; the length of this array can be one material ID "
+      "that will be applied to all instances. Otherwise, it must match the number "
       "of instances of the cell");
   params.addClassDescription("Modifies the cell fill within an OpenMC cell");
   return params;
@@ -52,7 +52,12 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   if (n_cell_instances == 0)
     paramError("cell_id",
                "Cell ID " + std::to_string(_cell_id) +
-               " has zero instances so its material fill cannot be modified. This cell is probably corresponding to a cell in a lattice.outer universe. If you want to change the material here, you will need to either (i) widen your lattice to have universes covering all of the space you want to change the material or (ii) represent this region of space as a conventional cell.\n\nFor more information, see: https://github.com/openmc-dev/openmc/issues/551.");
+                   " has zero instances so its material fill cannot be modified. This cell is "
+                   "probably corresponding to a cell in a lattice.outer universe. If you want to "
+                   "change the material here, you will need to either (i) widen your lattice to "
+                   "have universes covering all of the space you want to change the material or "
+                   "(ii) represent this region of space as a conventional cell.\n\nFor more "
+                   "information, see: https://github.com/openmc-dev/openmc/issues/551.");
 
   // check that the length of the materials matches the number of instances
   const auto & material_ids = getParam<std::vector<int32_t>>("material_ids");
