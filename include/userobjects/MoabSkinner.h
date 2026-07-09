@@ -447,6 +447,13 @@ protected:
   void recordBoundaryConditionSurface(moab::EntityHandle surface_set,
                                       BoundaryConditionType bc_type);
 
+  /**
+   * Get the boundary condition type previously recorded for a surface, if any
+   * @param[in] surface_set surface meshset
+   * @return recorded boundary condition type (None if the surface has no BC)
+   */
+  BoundaryConditionType recordedBoundaryCondition(moab::EntityHandle surface_set) const;
+
   /** Return the first group ID available after material, graveyard, and implicit-complement groups.
    * @return first available boundary condition group ID
    */

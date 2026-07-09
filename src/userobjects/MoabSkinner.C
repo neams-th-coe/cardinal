@@ -980,7 +980,8 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
   if (!_set_bcs || skin.empty())
     return;
 
-  const auto & boundary_info = getMooseMesh().getMesh().get_boundary_info();
+  MeshBase & geom_mesh = getDAGMCGeometryMesh();
+  const auto & boundary_info = geom_mesh.get_boundary_info();
 
   // Number of entities passed to get_adjacencies per call
   constexpr int num_entities = 1;
@@ -991,14 +992,15 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
   {
     const auto elem_id_it = _elem_handle_to_id.find(tet);
     if (elem_id_it == _elem_handle_to_id.end())
-      mooseError("Could not map a MOAB tet back to a libMesh element while assigning "
-                 "DAGMC boundary conditions.");
+      mooseAssert(false,
+                  "Could not map a MOAB tet back to a libMesh element while assigning "
+                  "DAGMC boundary conditions.");
 
-    const Elem * const elem = getMooseMesh().queryElemPtr(elem_id_it->second);
+    const Elem * const elem = geom_mesh.query_elem_ptr(elem_id_it->second);
     if (!elem)
-      mooseError("Could not find libMesh element ",
-                 elem_id_it->second,
-                 " while assigning DAGMC boundary conditions.");
+      mooseAssert(false,
+                  "Could not find libMesh element " + elem_id_it->second +
+                      " while assigning DAGMC boundary conditions.");
 
     for (const auto side : make_range(elem->n_sides()))
     {
@@ -1016,15 +1018,15 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
       {
         const auto node_it = _node_id_to_handle.find(side_elem->node_id(i));
         if (node_it == _node_id_to_handle.end())
-          mooseError("Could not map libMesh node ",
-                     side_elem->node_id(i),
-                     " to a MOAB vertex while assigning DAGMC boundary conditions.");
+          mooseAssert(false,
+                      "Could not map libMesh node " + side_elem->node_id(i) +
+                          " to a MOAB vertex while assigning DAGMC boundary conditions.");
         side_verts.insert(node_it->second);
       }
 
       // Retrieve the MOAB triangle faces adjacent to this tet
       moab::Range tri_faces;
-      check(_moab->get_adjacencies(&tet, num_entities, surface_dimension, true, tri_faces));
+      check(_moab->get_adjacencies(&tet, num_entities, surface_dimension, false, tri_faces));
 
       for (const auto tri : tri_faces)
       {
@@ -1096,10 +1098,20 @@ MoabSkinner::recordBoundaryConditionSurface(moab::EntityHandle surface_set,
   }
 }
 
+MoabSkinner::BoundaryConditionType
+MoabSkinner::recordedBoundaryCondition(moab::EntityHandle surface_set) const
+{
+  if (_vacuum_bc_surface_sets.count(surface_set))
+    return BoundaryConditionType::Vacuum;
+  if (_reflective_bc_surface_sets.count(surface_set))
+    return BoundaryConditionType::Reflective;
+  return BoundaryConditionType::None;
+}
+
 unsigned int
 MoabSkinner::firstBoundaryConditionGroupID() const
 {
-  // IDs 1..nBins() are used by material groups.
+  // IDs used by material groups.
   // buildGraveyard() and the implicit complement each consume one additional ID when enabled.
   unsigned int gid = nBins() + 1;
   gid += _build_graveyard + _set_implicit_complement_material;
@@ -1127,7 +1139,7 @@ MoabSkinner::createBoundaryConditionGroups()
   if (!_vacuum_bc_surface_sets.empty())
   {
     moab::EntityHandle vac_group = 0;
-    createGroup(gid++, "boundary:vacuum", vac_group);
+    createGroup(gid++, "boundary:Vacuum", vac_group);
     for (const auto surf_set : _vacuum_bc_surface_sets)
       check(_moab->add_entities(vac_group, &surf_set, 1));
   }
@@ -1411,10 +1423,21 @@ MoabSkinner::createSurfaces(moab::Range & faces,
         // Append our new volume to the list that share this surf
         vols.push_back(voldata);
 
-        // Create a new shared surface
+        // The shared tris may have been assigned a BC when 'surf' was created (e.g. by
+        // the region on the other side of an internal surface); merge that record with
+        // the current classification so the BC is not lost when the tris move to the
+        // new shared surface
+        auto merged_bc = bc_type;
+        const auto existing_bc = recordedBoundaryCondition(surf);
+        if (merged_bc == BoundaryConditionType::None)
+          merged_bc = existing_bc;
+        else if (existing_bc != BoundaryConditionType::None && existing_bc != merged_bc)
+          mooseError("A DAGMC surface was assigned both vacuum and reflective boundary "
+                     "conditions.");
+
         moab::EntityHandle shared_surf;
         surf_id++;
-        createSurf(surf_id, shared_surf, overlap, vols, bc_type);
+        createSurf(surf_id, shared_surf, overlap, vols, merged_bc);
       }
 
       // Subtract from the input list

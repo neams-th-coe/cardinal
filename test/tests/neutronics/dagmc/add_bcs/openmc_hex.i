@@ -58,10 +58,6 @@
     new_boundary = 'corner_nodes'
     coord = '-12.5 -12.5 -12.5'
   []
-  [hextotet]
-    type = ElementsToTetrahedronsConverter
-    input = corner_nodes
-  []
 
   allow_renumbering = false
   parallel_type = replicated

@@ -6,6 +6,52 @@
     requirement = "The system shall error if a sideset is assigned both vacuum and reflective BCs."
     capabilities = 'dagmc'
   []
+  [side_in_two_sidesets]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=left UserObjects/moab/reflective_bcs_surfaces=left_dup'
+    expect_err = "A mesh side is assigned both vacuum and reflective boundary conditions"
+    requirement = "The system shall error if a mesh side belongs to two different sidesets, one "
+                  "assigned vacuum and the other reflective boundary conditions."
+    capabilities = 'dagmc'
+  []
+  [conflicting_interface_bcs]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=interface_a UserObjects/moab/reflective_bcs_surfaces=interface_b'
+    expect_err = "A DAGMC surface was assigned both vacuum and reflective boundary conditions"
+    requirement = "The system shall error if an internal DAGMC surface shared between two skinned "
+                  "regions is assigned vacuum boundary conditions from one side and reflective "
+                  "boundary conditions from the other."
+    capabilities = 'dagmc'
+  []
+  [unused_bcs_sideset]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=midplane'
+    expect_err = "'vacuum_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned"
+    requirement = "The system shall error if a boundary condition is assigned to a sideset whose "
+                  "faces are interior to a single skinned region, since no DAGMC surface receives "
+                  "the boundary condition."
+    capabilities = 'dagmc'
+  []
+  [nonexistent_boundary_id]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=999'
+    expect_err = "Boundary '999' does not exist in the mesh."
+    requirement = "The system shall error if an unknown sideset ID is assigned a BC."
+    capabilities = 'dagmc'
+  []
+  [bcs_on_nodeset]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=corner_nodes'
+    expect_err = "is a nodeset; boundary conditions can only be assigned to sidesets"
+    requirement = "The system shall error if a BC is assigned to a boundary that exists only as a "
+                  "nodeset."
+    capabilities = 'dagmc'
+  []
   [typo]
     type = RunException
     input = typo.i
@@ -19,7 +65,7 @@
     csvdiff = 'all_reflective.csv'
     cli_args = 'UserObjects/moab/reflective_bcs_surfaces="top bottom front back left right" Outputs/file/file_base="all_reflective"'
     requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
-                  "boundary conditions through the skinner when all external surfaces are assigned reflective boundary conditions"
+                  "boundary conditions through the skinner when all external surfaces are assigned reflective boundary conditions "
                   "via 'reflective_bcs_surfaces' as compared to applying BCs on a CSG cell that contains the DAGMC geometry in /equivalent_bcs."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
@@ -44,7 +90,7 @@
                          UserObjects/moab/reflective_bcs_surfaces='front back top bottom'
                          Outputs/file/file_base='mix_bcs'"
       requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
-                    "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' as compared to applying BCs on a CSG cell that contains"
+                    "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' as compared to applying BCs on a CSG cell that contains "
                     "the DAGMC geometry in /equivalent_bcs."
       mesh_mode = 'replicated'
       capabilities = 'dagmc'
@@ -55,21 +101,63 @@
       csvdiff = 'mix_bcs.csv'
       cli_args = 'UserObjects/moab/vacuum_bcs_surfaces="4 2" UserObjects/moab/reflective_bcs_surfaces="5 back 3 1" Outputs/file/file_base="mix_bcs"'
       requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding boundary conditions through the "
-                    " skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' using sideset id or name as compared to applying BCs on a CSG cell that contains"
+                    " skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' using sideset id or name as compared to applying BCs on a CSG cell that contains "
                     "the DAGMC geometry in /equivalent_bcs."
       mesh_mode = 'replicated'
       capabilities = 'dagmc'
   []
-  [transmission_surface]
-      type = CSVDiff
-      input = openmc.i
-      csvdiff = 'transmission_surface.csv'
-      # 'right' is the only surface that is not assigned a BC (transmission by default)
-      cli_args = 'UserObjects/moab/vacuum_bcs_surfaces="left" UserObjects/moab/reflective_bcs_surfaces="front back top bottom" Outputs/file/file_base="transmission_surface"'
-      requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
-                    "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' where one surface defaults to transmission BC"
-                    " as it is not assigned a BC explicitly compared to applying the same BCs on a CSG cell that contains the DAGMC geometry in /equivalent_bcs."
-      mesh_mode = 'replicated'
-      capabilities = 'dagmc'
+  [internal_transmission]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = 'internal_transmission.csv'
+    cli_args = "UserObjects/moab/vacuum_bcs_surfaces='top'
+                UserObjects/moab/reflective_bcs_surfaces='bottom front back left right'
+                Outputs/file/file_base='internal_transmission'"
+    requirement = "The system shall treat an internal skinned surface (the interface between the "
+                  "two mesh blocks) as a transmission surface by default, allowing particles to "
+                  "stream from the lower block through the upper block and leak out the vacuum "
+                  "top surface."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [internal_reflective]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = 'internal_reflective.csv'
+    cli_args = "UserObjects/moab/vacuum_bcs_surfaces='top'
+                UserObjects/moab/reflective_bcs_surfaces='bottom front back left right interface_a'
+                Outputs/file/file_base='internal_reflective'"
+    requirement = "The system shall apply reflective boundary conditions to an internal skinned "
+                  "surface. Relative to the internal_transmission case, which differs only in the "
+                  "interface boundary condition"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [hexmesh_internal_transmission]
+    type = CSVDiff
+    input = openmc_hex.i
+    csvdiff = 'internal_transmission.csv'
+    cli_args = "UserObjects/moab/vacuum_bcs_surfaces='top'
+                UserObjects/moab/reflective_bcs_surfaces='bottom front back left right'
+                Outputs/file/file_base='internal_transmission'"
+    requirement = "The system shall use a hexmesh and treat an internal skinned surface (the interface between the "
+                  "two mesh blocks) as a transmission surface by default, allowing particles to "
+                  "stream from the lower block through the upper block and leak out the vacuum "
+                  "top surface."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [hexmesh_internal_reflective]
+    type = CSVDiff
+    input = openmc_hex.i
+    csvdiff = 'internal_reflective.csv'
+    cli_args = "UserObjects/moab/vacuum_bcs_surfaces='top'
+                UserObjects/moab/reflective_bcs_surfaces='bottom front back left right interface_a'
+                Outputs/file/file_base='internal_reflective'"
+    requirement = "The system shall use a hexmesh and apply reflective boundary conditions to an internal skinned "
+                  "surface. Relative to the internal_transmission case, which differs only in the "
+                  "interface boundary condition"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
   []
 []
