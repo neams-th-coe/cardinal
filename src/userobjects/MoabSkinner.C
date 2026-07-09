@@ -44,9 +44,12 @@ MoabSkinner::validParams()
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
-      "DAGMC geometry. Must be provided together with 'material_names' where both have the same length."
-      "Any subdomain not listed in 'material_blocks' will have no material assignment and OpenMC will"
-      "default to void for that region. This parameter is optional when coupled with OpenMCCellAverageProblem"
+      "DAGMC geometry. Must be provided together with 'material_names' where both have the same "
+      "length."
+      "Any subdomain not listed in 'material_blocks' will have no material assignment and OpenMC "
+      "will"
+      "default to void for that region. This parameter is optional when coupled with "
+      "OpenMCCellAverageProblem"
       "where material names are deduced from OpenMC.");
   params.addParam<std::vector<std::string>>(
       "material_names",
@@ -329,12 +332,12 @@ MoabSkinner::initialize()
   {
     if (has_material_blocks)
       paramError("material_names",
-                "The 'material_names' parameter must be provided whenever "
-                "'material_blocks' is provided.");
+                 "The 'material_names' parameter must be provided whenever "
+                 "'material_blocks' is provided.");
     else
       paramError("material_blocks",
-                "The 'material_blocks' parameter must be provided whenever "
-                "'material_names' is provided.");
+                 "The 'material_blocks' parameter must be provided whenever "
+                 "'material_names' is provided.");
   }
 
   if (has_material_blocks)
@@ -373,9 +376,9 @@ MoabSkinner::initialize()
     // prepared outside of Cardinal and material names is set in setMaterialNames().
     if (_standalone)
       paramError("material_blocks",
-               "Standalone MoabSkinner requires both 'material_blocks' and "
-               "'material_names'. Omit both parameters only when DAGMC geometry is"
-               "supplied and Cardinal can deduce material names from the provided geometry.");
+                 "Standalone MoabSkinner requires both 'material_blocks' and "
+                 "'material_names'. Omit both parameters only when DAGMC geometry is"
+                 "supplied and Cardinal can deduce material names from the provided geometry.");
     for (const auto & [subdomain_id, block_index] : _blocks)
       _block_id_to_material_name[subdomain_id] = _material_names[block_index];
   }
