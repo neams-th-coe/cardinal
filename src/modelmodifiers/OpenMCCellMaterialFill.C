@@ -31,7 +31,8 @@ OpenMCCellMaterialFill::validParams()
   params.addRequiredParam<int32_t>("cell_id", "Cell ID to modify");
   params.addRequiredParam<std::vector<int32_t>>(
       "material_ids",
-      "IDs of the materials to fill into the cell; the length of this array must match the number "
+      "IDs of the materials to fill into the cell; the length of this array can be one material ID that will"
+      " be applied to all instances. Otherwise, it must match the number "
       "of instances of the cell");
   params.addClassDescription("Modifies the cell fill within an OpenMC cell");
   return params;
