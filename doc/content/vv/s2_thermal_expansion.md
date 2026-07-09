@@ -161,7 +161,7 @@ Excellent agreement between Cardinal and the analytic solution was obtained in t
 refinement.
 
 !alert! construction title=To run this model you need to build your application with the S$_2$ OpenMC patch
-This model is using S$_2$ neutron transport to compare with the 1D Analytic benchmark. To replicate
+This model is using S$_2$ neutron transport to compare with the 1D analytic benchmark. To replicate
 the results, you have to build your application with [this](https://github.com/meltawila/openmc_S2transport) patch of OpenMC. You can do this simply with:
 
 !listing language=bash
@@ -169,6 +169,8 @@ cd cardinal/contrib/openmc
 git remote add s2patch https://github.com/meltawila/openmc_S2transport.git
 git fetch s2patch
 git cherry-pick d34189845b394895ed210008218c40bc754bce25
+
+However, we no do not frequently rebase this branch of OpenMC off the latest version of OpenMC, so you may encounter other compatibility issues (usually small).
 !alert-end!
 
 Cardinal is used to couple OpenMC with MOOSE via Picard iteration. OpenMC tallies neutron flux, heating, and the multiplication factor. A conceptual depiction of the meshes used as well as the data transfers that occur on each Picard iteration is shown in [fig:schematic].
@@ -183,7 +185,7 @@ To facilitate data transfers between OpenMC and MOOSE thermomechanics, there is 
 
 We show the input files for a coarse mesh here with more details on results convergence shown in the next section.
 
-The OpenMC input files is as follows:
+The script used to generate the OpenMC model is as follows:
 
 !listing /doc/content/vv/slab_benchmark_model/model.py language=python
 
