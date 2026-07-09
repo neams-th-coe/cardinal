@@ -48,6 +48,7 @@ class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
 class OpenMCCellTransform;
 class CriticalitySearchBase;
+class ModelModifiersBase;
 
 typedef openmc::tensor::Tensor<double> OMCTensor;
 
