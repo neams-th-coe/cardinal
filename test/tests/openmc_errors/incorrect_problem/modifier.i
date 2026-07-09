@@ -8,15 +8,15 @@
 [Problem]
   type = FEProblem
   solve = false
+
+  [ModelModifiers]
+    [n]
+      type = OpenMCCellMaterialFill
+      cell_id = 1
+    []
+  []
 []
 
 [Executioner]
   type = Transient
-[]
-
-[Postprocessors]
-  [max_tally_rel_err]
-    type = TallyRelativeError
-    value_type = max
-  []
 []

@@ -235,6 +235,11 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerTask("add_criticality_search", false /* is required */);
   addTaskDependency("add_criticality_search", "init_problem");
 
+  // Add the [Problem/ModelModifiers] block
+  registerSyntaxTask("AddModelModifiersAction", "Problem/ModelModifiers/*", "add_model_modifiers");
+  registerMooseObjectTask("add_model_modifiers", ModelModifiers, false);
+  addTaskDependency("add_model_modifiers", "init_problem");
+
   // Register a modify outputs task to enable variable hiding in the MGXS action.
   registerTask("modify_outputs", true /* is required */);
   addTaskDependency("modify_outputs", "common_output");

@@ -1,0 +1,52 @@
+[Tests]
+  design = 'OpenMCCellMaterialFill.md'
+  issues = '#1378'
+
+  [invalid_cell]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/ModelModifiers/one/cell_id=123'
+    expect_err = 'Cell ID 123 was not found in the OpenMC model'
+    requirement = 'The system shall error if trying to modify a cell which does not exist in the OpenMC model'
+    capabilities = 'openmc'
+  []
+  [invalid_num_instances]
+    type = RunException
+    input = openmc.i
+    cli_args = "Problem/ModelModifiers/one/material_ids='1 2'"
+    expect_err = "'material_ids' \(length 2\) must either be of length 1 or have a length equal to the number of instances of cell 2 \(3\)"
+    requirement = 'The system shall error if the number of materials provided to modify a cell fill does not match the number of instances of that cell'
+    capabilities = 'openmc'
+  []
+  [invalid_material]
+    type = RunException
+    input = openmc.i
+    cli_args = "Problem/ModelModifiers/one/material_ids='1 2 400'"
+    expect_err = "Material with ID 400 was not found in the OpenMC model!"
+    requirement = 'The system shall error if a nonexistent material is to be applied to an OpenMC cell'
+    capabilities = 'openmc'
+  []
+  [change_material]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall be able to modify the material(s) filling a cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
+    capabilities = 'openmc'
+  []
+  [change_material_all_instances]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    cli_args = 'Problem/ModelModifiers/one/material_ids="1"'
+    requirement = "The system shall be able to modify the same material filling all instances of a distributed cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
+    capabilities = 'openmc'
+  []
+  [change_material_different_instances]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = different.csv
+    cli_args = 'Problem/ModelModifiers/one/material_ids="1 2 1" Outputs/file_base="different"'
+    requirement = "The system shall be able to apply different materials filling all instances of a distributed cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
+    capabilities = 'openmc'
+  []
+[]
