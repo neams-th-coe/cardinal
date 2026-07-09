@@ -36,6 +36,13 @@ dT = 50.0
   []
 []
 
+[AuxVariables]
+  [material_id]
+    order = CONSTANT
+    family = MONOMIAL
+  []
+[]
+
 [AuxKernels]
   [temp]
     type = FunctionAux
@@ -43,12 +50,23 @@ dT = 50.0
     function = temp
     execute_on = timestep_begin
   []
+  [density]
+    type = FunctionAux
+    variable = density
+    function = temp
+    execute_on = timestep_begin
+  []
+  [material_id]
+    type = CellMaterialIDAux
+    variable = material_id
+  []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
   temperature_blocks = '1 2'
+  density_blocks = '1 2'
   cell_level = 0
   power = 100.0
 
@@ -67,8 +85,12 @@ dT = 50.0
     type = MoabSkinner
     temperature_min = 0
     temperature_max = 1000
+    density_min = 0
+    density_max = 1000
     n_temperature_bins = 4
+    n_density_bins = 1
     temperature = temp
+    density = density
     build_graveyard = true
     graveyard_scale_inner = 1.1
     graveyard_scale_outer = 1.2
@@ -78,12 +100,15 @@ dT = 50.0
 []
 
 [Postprocessors]
-  [k]
-    type = KEigenvalue
+  [mat_in_block_1]
+    type = PointValue
+    variable = material_id
+    point = '12.5 12.5 12.5'
   []
-  [k_std_dev]
-    type = KEigenvalue
-    output = 'std_dev'
+  [mat_in_block_2]
+    type = PointValue
+    variable = material_id
+    point = '62.5 12.5 12.5'
   []
 []
 

@@ -23,7 +23,7 @@
     type = RunException
     input = generate_dagmc.i
     cli_args = "UserObjects/moab/material_blocks='1 block_1' UserObjects/moab/material_names='1 2'"
-    expect_err = "Subdomain 'block_1' refers to the same mesh subdomain as another entry in 'material_blocks'"
+    expect_err = "Subdomain 'block_1' was already listed in 'material_blocks' \(either by name or ID\). Each block can only be listed one time."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
     requirement = "The system shall error if the same subdomain is listed more than once in 'material_blocks'"
@@ -36,6 +36,15 @@
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
     requirement = "The system shall error if 'material_blocks' is specified without 'material_names'"
+  []
+  [unlisted_block_void_warning]
+    type = RunException
+    input = generate_dagmc.i
+    cli_args = "UserObjects/moab/material_blocks='block_1' UserObjects/moab/material_names='1' --error"
+    expect_err = "The following mesh subdomains have no material assignment in MoabSkinner"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall warn when a mesh subdomain has no material assignment and will default to void"
   []
   [generate_dagmc]
     type = RunApp
@@ -50,9 +59,19 @@
     prereq = generate_dagmc
     input = openmc.i
     csvdiff = openmc_out.csv
-    cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall update material assignments with 'material_blocks' and 'material_names' "
                   "(using names or IDs) and run OpenMC with the regenerated geometry"
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+  [run_updated_geometry_with_void]
+    type = CSVDiff
+    prereq = generate_dagmc
+    input = openmc.i
+    csvdiff = void.csv
+    cli_args = "UserObjects/moab/material_blocks='block_1' UserObjects/moab/material_names='2' Outputs/file_base='void'"
+    requirement = "The system shall partially update material assignments with 'material_blocks' and 'material_names' "
+                  "(using names or IDs) and assign void to missing block and run OpenMC with the regenerated geometry"
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []

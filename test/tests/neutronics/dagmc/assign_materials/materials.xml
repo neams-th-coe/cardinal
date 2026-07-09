@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <materials>
-  <material depletable="true" id="1">
+  <material depletable="true" id="1"  name="U35">
     <density units="g/cc" value="11.0" />
     <nuclide ao="1.0" name="U235" />
   </material>
-  <material depletable="true" id="2">
+  <material depletable="true" id="2"  name="U35_U38">
     <density units="g/cc" value="11.0" />
     <nuclide ao="0.5" name="U235" />
     <nuclide ao="0.5" name="U238" />

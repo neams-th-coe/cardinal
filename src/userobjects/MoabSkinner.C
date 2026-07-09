@@ -44,14 +44,12 @@ MoabSkinner::validParams()
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
-      "DAGMC geometry. Must be the same length as 'material_names'.");
+      "DAGMC geometry. Must be the same length as 'material_names'. Any subdomain not listed in "
+      "'material_blocks' will have no material assignment and OpenMC will default to void for that region.");
   params.addParam<std::vector<std::string>>(
       "material_names",
       "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
-      "Must be the same length as 'material_blocks' and listed in the same order. "
-      "Any subdomain not listed in 'material_blocks' will have no material assignment "
-      "and OpenMC will default to void for that region.");
-
+      "Must be the same length as 'material_blocks' and listed in the same order. ");
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
   params.addRangeCheckedParam<Real>(
@@ -89,8 +87,6 @@ MoabSkinner::validParams()
                         "Whether the skinned mesh should be generated from a displaced mesh ");
   params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
                              "the mesh geometry and/or contours in temperature and density");
-  ExecFlagEnum & exec_enum = params.set<ExecFlagEnum>("execute_on", true);
-  exec_enum = {EXEC_TIMESTEP_BEGIN};
   return params;
 }
 
@@ -352,29 +348,28 @@ MoabSkinner::initialize()
       _block_id_to_material_name[it->first] = mat_names[i];
     }
   }
-  else if (_standalone)
+  else
   {
-    checkRequiredParam(
-        parameters(), "material_names", "using skinner independent of an OpenMCCellAverageProblem");
-    const auto & mat_names = getParam<std::vector<std::string>>("material_names");
-    if (mat_names.size() != _n_block_bins)
-      paramError("material_names",
+    if (_standalone)
+    {
+      // In standalone mode, only material_names parameter can be provided where one name per subdomain in ascending SubdomainID order is used
+      checkRequiredParam(parameters(), "material_names", "using skinner independent of an OpenMCCellAverageProblem");
+      _material_names = getParam<std::vector<std::string>>("material_names");
+      if (_material_names.size() != _n_block_bins)
+        paramError("material_names",
                  "This parameter must be the same length as the number of "
                  "subdomains in the mesh (" +
                      Moose::stringify(_n_block_bins) + ")");
-
-    _block_id_to_material_name.clear();
-    for (const auto & [subdomain_id, block_index] : _blocks)
-      _block_id_to_material_name[subdomain_id] = mat_names[block_index];
-  }
-  else
-  {
-    // .h5m was prepared outside of Cardinal; _material_names was set by setMaterialNames().
-    // Build the same existing map.
-    checkUnusedParam(parameters(),
+    }
+    else
+    {
+      // .h5m was prepared outside of Cardinal; _material_names was set by setMaterialNames().
+      // Build the same existing map.
+      checkUnusedParam(parameters(),
                      "material_names",
                      "using the skinner in conjunction with an OpenMCCellAverageProblem "
                      "without 'material_blocks' overrides");
+    }
     _block_id_to_material_name.clear();
     for (const auto & [subdomain_id, block_index] : _blocks)
       _block_id_to_material_name[subdomain_id] = _material_names[block_index];
@@ -871,10 +866,12 @@ MoabSkinner::materialName(const unsigned int & block,
       if (it != _block_id_to_material_name.end())
         return "mat:" + it->second;
 
-      return "mat:" + _material_names.at(block);
+      return "mat:void";
     }
   }
-  mooseError("materialName: could not find subdomain for block index ", block);
+  mooseAssert(false, "could not find subdomain for block index " +
+                     Moose::stringify(block));
+  return "";
 }
 
 void

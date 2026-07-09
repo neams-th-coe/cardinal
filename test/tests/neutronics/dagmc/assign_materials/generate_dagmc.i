@@ -26,12 +26,7 @@
   [temp]
     order = CONSTANT
     family = MONOMIAL
-    [AuxKernel]
-        type = FunctionAux
-        variable = temp
-        function = 200
-        execute_on = 'timestep_begin'
-    []
+    initial_condition = 200
   []
 []
 
@@ -51,7 +46,7 @@
     graveyard_scale_inner = 1.1
     graveyard_scale_outer = 1.2
     material_blocks = 'block_1 block_2'
-    material_names = '1 2'
+    material_names = '1 U35_U38'
     output_full = true
   []
 []
