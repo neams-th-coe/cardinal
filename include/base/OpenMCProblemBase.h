@@ -594,7 +594,4 @@ protected:
 
   /// Object to use for a criticality search
   CriticalitySearchBase * _criticality_search = nullptr;
-
-  /// Objects to use for model modifications prior to execution
-  std::vector<ModelModifiersBase *> _model_modifiers;
 };
