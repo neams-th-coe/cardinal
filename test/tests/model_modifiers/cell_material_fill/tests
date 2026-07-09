@@ -44,7 +44,7 @@
   [change_material_different_instances]
     type = CSVDiff
     input = openmc.i
-    csvdiff = openmc_out.csv
+    csvdiff = different.csv
     cli_args = 'Problem/ModelModifiers/one/material_ids="1 2 1" Outputs/file_base="different"'
     requirement = "The system shall be able to apply different materials filling all instances of a distributed cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
     capabilities = 'openmc'
