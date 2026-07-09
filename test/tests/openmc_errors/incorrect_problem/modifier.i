@@ -13,6 +13,7 @@
     [n]
       type = OpenMCCellMaterialFill
       cell_id = 1
+      material_ids = '1'
     []
   []
 []
