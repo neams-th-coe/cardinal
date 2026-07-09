@@ -45,7 +45,8 @@ MoabSkinner::validParams()
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
       "DAGMC geometry. Must be the same length as 'material_names'. Any subdomain not listed in "
-      "'material_blocks' will have no material assignment and OpenMC will default to void for that region.");
+      "'material_blocks' will have no material assignment and OpenMC will default to void for that "
+      "region.");
   params.addParam<std::vector<std::string>>(
       "material_names",
       "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
@@ -342,7 +343,8 @@ MoabSkinner::initialize()
         // by its ID) should error here
         paramError("material_blocks",
                    "Subdomain '" + std::string(block_names[i]) +
-                       "' was already listed in 'material_blocks' (either by name or ID). Each block can only be listed one time.");
+                       "' was already listed in 'material_blocks' (either by name or ID). Each "
+                       "block can only be listed one time.");
       seen_ids.insert(id);
       auto it = _blocks.find(id);
       _block_id_to_material_name[it->first] = mat_names[i];
@@ -352,23 +354,26 @@ MoabSkinner::initialize()
   {
     if (_standalone)
     {
-      // In standalone mode, only material_names parameter can be provided where one name per subdomain in ascending SubdomainID order is used
-      checkRequiredParam(parameters(), "material_names", "using skinner independent of an OpenMCCellAverageProblem");
+      // In standalone mode, only material_names parameter can be provided where one name per
+      // subdomain in ascending SubdomainID order is used
+      checkRequiredParam(parameters(),
+                         "material_names",
+                         "using skinner independent of an OpenMCCellAverageProblem");
       _material_names = getParam<std::vector<std::string>>("material_names");
       if (_material_names.size() != _n_block_bins)
         paramError("material_names",
-                 "This parameter must be the same length as the number of "
-                 "subdomains in the mesh (" +
-                     Moose::stringify(_n_block_bins) + ")");
+                   "This parameter must be the same length as the number of "
+                   "subdomains in the mesh (" +
+                       Moose::stringify(_n_block_bins) + ")");
     }
     else
     {
       // .h5m was prepared outside of Cardinal; _material_names was set by setMaterialNames().
       // Build the same existing map.
       checkUnusedParam(parameters(),
-                     "material_names",
-                     "using the skinner in conjunction with an OpenMCCellAverageProblem "
-                     "without 'material_blocks' overrides");
+                       "material_names",
+                       "using the skinner in conjunction with an OpenMCCellAverageProblem "
+                       "without 'material_blocks' overrides");
     }
     _block_id_to_material_name.clear();
     for (const auto & [subdomain_id, block_index] : _blocks)
@@ -869,8 +874,7 @@ MoabSkinner::materialName(const unsigned int & block,
       return "mat:void";
     }
   }
-  mooseAssert(false, "could not find subdomain for block index " +
-                     Moose::stringify(block));
+  mooseAssert(false, "could not find subdomain for block index " + Moose::stringify(block));
   return "";
 }
 
