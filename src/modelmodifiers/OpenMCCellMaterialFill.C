@@ -48,9 +48,14 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
     paramError("cell_id",
                "Cell ID " + std::to_string(_cell_id) + " was not found in the OpenMC model!");
 
+  auto n_cell_instances = openmc::model::cells[_cell_index]->n_instances();
+  if (n_cell_instances == 0)
+    paramError("cell_id",
+               "Cell ID " + std::to_string(_cell_id) +
+               " has zero instances so its material fill cannot be modified. This cell is probably corresponding to a cell in a lattice.outer universe. If you want to change the material here, you will need to either (i) widen your lattice to have universes covering all of the space you want to change the material or (ii) represent this region of space as a conventional cell.\n\nFor more information, see: https://github.com/openmc-dev/openmc/issues/551.");
+
   // check that the length of the materials matches the number of instances
   const auto & material_ids = getParam<std::vector<int32_t>>("material_ids");
-  auto n_cell_instances = openmc::model::cells[_cell_index]->n_instances();
   auto n_mats = std::size(material_ids);
   if (n_mats != 1 && (n_cell_instances != n_mats))
     paramError("material_ids",

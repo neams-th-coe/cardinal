@@ -1,9 +1,19 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md OpenMCCellMaterialFill.md'
+
   [temp]
     type = RunException
     input = temp.i
     expect_err = "mapped to cell 2 in the OpenMC model is inside a universe used as the 'outer' universe of a lattice."
     requirement = "The system shall error if attempting to pass temperature feedback to a lattice outer universe due to lack of instance support in OpenMC"
     capabilities = 'openmc'
+  []
+  [material_fill]
+    type = RunException
+    input = fill.i
+    expect_err = "Cell ID 2 has zero instances so its material fill cannot be modified"
+    requirement = "The system shall error if attempting to change the material filling a cell with zero instances"
+    capabilities = 'openmc'
+    issues = '1378'
   []
 []
