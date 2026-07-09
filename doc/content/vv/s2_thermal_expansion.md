@@ -236,13 +236,13 @@ We see the heating result in [fig:heatingsol] compared against the analytic solu
 In [fig:fluxconv] and [fig:tempconv], convergence of flux and temperature relative L$^2$ norms, defined as
 
 \begin{equation}
-  \varepsilon_\phi=\frac{||\phi_a-\phi_{sln.}||_2}{||\phi_a||_2}
+  \varepsilon_\phi=\frac{\|\phi_a-\phi_{\mathrm{sln}}\|_2}{\|\phi_a\|_2}
 \end{equation}
 
 and
 
 \begin{equation}
-  \varepsilon_T=\frac{||T_a-T_{sln.}||_2}{||T_a||_2}
+  \varepsilon_T=\frac{\|T_a-T_{\mathrm{sln}}\|_2}{\|T_a\|_2}
 \end{equation}
 
 where $\phi_a$ is the analytic flux solution, $\phi_{sln.}$ is the Cardinal flux solution, $T_a$ is the analytic temperature solution, and $T_{sln.}$ is the Cardinal temperature solution.
