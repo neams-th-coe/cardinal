@@ -44,13 +44,16 @@ MoabSkinner::validParams()
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
-      "DAGMC geometry. Must be the same length as 'material_names'. Any subdomain not listed in "
-      "'material_blocks' will have no material assignment and OpenMC will default to void for that "
-      "region.");
+      "DAGMC geometry. Must be provided together with 'material_names' where both have the same length."
+      "Any subdomain not listed in 'material_blocks' will have no material assignment and OpenMC will"
+      "default to void for that region. This parameter is optional when coupled with OpenMCCellAverageProblem"
+      "where material names are deduced from OpenMC.");
   params.addParam<std::vector<std::string>>(
       "material_names",
       "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
-      "Must be the same length as 'material_blocks' and listed in the same order. ");
+      "Must be provided together with 'material_names' where both have the same length"
+      "and listed in the same order. This parameter is optional when coupled with "
+      "OpenMCCellAverageProblem where material names are deduced from OpenMC.");
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
   params.addRangeCheckedParam<Real>(
@@ -320,9 +323,22 @@ MoabSkinner::initialize()
   findBlocks();
   _block_id_to_material_name.clear();
 
-  if (isParamValid("material_blocks"))
+  const bool has_material_blocks = isParamValid("material_blocks");
+  const bool has_material_names = isParamValid("material_names");
+  if (has_material_blocks != has_material_names)
   {
-    checkRequiredParam(parameters(), "material_names", "specifying 'material_blocks'");
+    if (has_material_blocks)
+      paramError("material_names",
+                "The 'material_names' parameter must be provided whenever "
+                "'material_blocks' is provided.");
+    else
+      paramError("material_blocks",
+                "The 'material_blocks' parameter must be provided whenever "
+                "'material_names' is provided.");
+  }
+
+  if (has_material_blocks)
+  {
     const auto & block_names = getParam<std::vector<SubdomainName>>("material_blocks");
     const auto & mat_names = getParam<std::vector<std::string>>("material_names");
     if (block_names.size() != mat_names.size())
@@ -352,30 +368,14 @@ MoabSkinner::initialize()
   }
   else
   {
+    // Neither 'material_blocks' nor 'material_names' was supplied in the input.
+    // This is only valid when the skinner is controlled externally, e.g. an .h5m was
+    // prepared outside of Cardinal and material names is set in setMaterialNames().
     if (_standalone)
-    {
-      // In standalone mode, only material_names parameter can be provided where one name per
-      // subdomain in ascending SubdomainID order is used
-      checkRequiredParam(parameters(),
-                         "material_names",
-                         "using skinner independent of an OpenMCCellAverageProblem");
-      _material_names = getParam<std::vector<std::string>>("material_names");
-      if (_material_names.size() != _n_block_bins)
-        paramError("material_names",
-                   "This parameter must be the same length as the number of "
-                   "subdomains in the mesh (" +
-                       Moose::stringify(_n_block_bins) + ")");
-    }
-    else
-    {
-      // .h5m was prepared outside of Cardinal; _material_names was set by setMaterialNames().
-      // Build the same existing map.
-      checkUnusedParam(parameters(),
-                       "material_names",
-                       "using the skinner in conjunction with an OpenMCCellAverageProblem "
-                       "without 'material_blocks' overrides");
-    }
-    _block_id_to_material_name.clear();
+      paramError("material_blocks",
+               "Standalone MoabSkinner requires both 'material_blocks' and "
+               "'material_names'. Omit both parameters only when DAGMC geometry is"
+               "supplied and Cardinal can deduce material names from the provided geometry.");
     for (const auto & [subdomain_id, block_index] : _blocks)
       _block_id_to_material_name[subdomain_id] = _material_names[block_index];
   }
@@ -440,7 +440,7 @@ MoabSkinner::update()
   // Re-initialise the mesh data
   initialize();
 
-  if (isParamValid("material_blocks"))
+  if (isParamValid("material_blocks") && isParamValid("material_names"))
     _console << "MoabSkinner updating material assignments..." << std::endl;
 
   // Sort libMesh elements into bins
