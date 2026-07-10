@@ -75,13 +75,9 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   std::vector<int32_t> material_ids;
   // check that the length of the materials matches the number of instances
   if (material_ids_valid)
-  {
     material_ids = getParam<std::vector<int32_t>>("material_ids");
-  }
   else
-  {
-    material_ids = extractMaterialIdsFromFile(getParam<std::string>("material_ids_file"));
-  }
+    extractMaterialIdsFromFile(getParam<std::string>("material_ids_file"), material_ids);
 
   auto n_mats = std::size(material_ids);
   if (n_mats != 1 && (n_cell_instances != n_mats))
@@ -109,8 +105,9 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   }
 }
 
-std::vector<int32_t>
-OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename)
+void
+OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename,
+                                                   std::vector<int32_t> & material_ids)
 {
   // confirm that filename specified exists
   if (!MooseUtils::checkFileReadable(filename))
@@ -120,12 +117,8 @@ OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename)
 
   // extract the material_fill_ids attribute from the file
   hid_t file = openmc::file_open(filename, 'r');
-  hid_t group = openmc::open_group(file, "material_fill_ids");
-  std::vector<int32_t> material_ids;
-  openmc::read_attribute(group, "material_fill_ids", material_ids);
-  openmc::close_group(group);
+  openmc::read_dataset(file, "material_fill_ids", material_ids);
   openmc::file_close(file);
-  return material_ids;
 }
 
 void

@@ -33,9 +33,9 @@ public:
   /**
    * Read data from hdf5 file to assign to _material_indices
    * @param[in] filename filename
-   * @return a vector of material IDs
+   * @param[in] material_ids passed by reference to assign
    */
-  std::vector<int32_t> extractMaterialIdsFromFile(std::string filename);
+  void extractMaterialIdsFromFile(std::string filename, std::vector<int32_t> & material_ids);
 
   virtual void modifyOpenMCModel() const override;
 
