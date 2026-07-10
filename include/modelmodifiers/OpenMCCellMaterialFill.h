@@ -29,7 +29,7 @@ public:
   static InputParameters validParams();
 
   OpenMCCellMaterialFill(const InputParameters & parameters);
-
+  std::vector<int32_t> extractMaterialIdsFromFile(std::string filename);
   virtual void modifyOpenMCModel() const override;
 
 protected:
@@ -41,4 +41,7 @@ protected:
 
   /// Materials to be filled into the cell instances
   std::vector<int32_t> _material_indices;
+
+  /// Name of a file containing material data to be assigned to _material_indices
+  std::string _material_ids_file;
 };
