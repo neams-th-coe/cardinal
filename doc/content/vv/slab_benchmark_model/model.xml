@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <cross_sections>one_group.h5</cross_sections>
+    <material id="1" name="slab">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="slab_xs"/>
+    </material>
+  </materials>
+  <geometry>
+    <dagmc_universe id="1" filename="slab20v.h5m"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>50000</particles>
+    <batches>150</batches>
+    <inactive>50</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-60 -0.5 -0.5 60 0.5 0.5</parameters>
+      </space>
+      <angle type="mu-phi" reference_uvw="0.0 0.0 1.0" reference_vwu="1.0 0.0 0.0">
+        <mu type="discrete">
+          <parameters>0.0 1.0</parameters>
+        </mu>
+        <phi type="discrete">
+          <parameters>0.0 3.141592653589793 0.5 0.5</parameters>
+        </phi>
+      </angle>
+    </source>
+    <output>
+      <summary>false</summary>
+      <tallies>true</tallies>
+    </output>
+    <energy_mode>multi-group</energy_mode>
+    <temperature_default>293.0</temperature_default>
+    <temperature_method>nearest</temperature_method>
+    <temperature_range>290 390</temperature_range>
+    <temperature_tolerance>50</temperature_tolerance>
+  </settings>
+  </model>
