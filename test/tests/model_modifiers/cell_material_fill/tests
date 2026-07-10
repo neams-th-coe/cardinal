@@ -6,8 +6,8 @@
     type = RunException
     input = openmc.i
     cli_args = 'Problem/ModelModifiers/one/cell_id=123'
-    expect_err = 'Cell ID 123 was not found in the OpenMC model'
-    requirement = 'The system shall error if trying to modify a cell which does not exist in the OpenMC model'
+    expect_err = "Cell ID 123 was not found in the OpenMC model"
+    requirement = "The system shall error if trying to modify a cell which does not exist in the OpenMC model"
     capabilities = 'openmc'
   []
   [invalid_num_instances]
@@ -15,7 +15,7 @@
     input = openmc.i
     cli_args = "Problem/ModelModifiers/one/material_ids='1 2'"
     expect_err = "'material_ids' \(length 2\) must either be of length 1 or have a length equal to the number of instances of cell 2 \(3\)"
-    requirement = 'The system shall error if the number of materials provided to modify a cell fill does not match the number of instances of that cell'
+    requirement = "The system shall error if the number of materials provided to modify a cell fill does not match the number of instances of that cell"
     capabilities = 'openmc'
   []
   [invalid_material]
@@ -23,7 +23,7 @@
     input = openmc.i
     cli_args = "Problem/ModelModifiers/one/material_ids='1 2 400'"
     expect_err = "Material with ID 400 was not found in the OpenMC model!"
-    requirement = 'The system shall error if a nonexistent material is to be applied to an OpenMC cell'
+    requirement = "The system shall error if a nonexistent material is to be applied to an OpenMC cell"
     capabilities = 'openmc'
   []
   [change_material]
@@ -47,6 +47,29 @@
     csvdiff = different.csv
     cli_args = 'Problem/ModelModifiers/one/material_ids="1 2 1" Outputs/file_base="different"'
     requirement = "The system shall be able to apply different materials filling all instances of a distributed cell prior to executing OpenMC. This is verified by creating a standalone OpenMC model with the final set of materials, compared to a different starting model whose cell's fill is modified via Cardinal."
+    capabilities = 'openmc'
+  []
+  [specify_material_ids_from_file]
+    type = CSVDiff
+    input = mats_from_file.i
+    csvdiff = different.csv
+    cli_args = 'Outputs/file_base="different"'
+    requirement = "The system shall be able to read and assign instances of a distributed cell prior to executing OpenMC. The file chosen has the same ID list as the change_material_different_instances test, and so it should be able to match the gold file different.csv as well. A python file to generate the needed h5 input file is in this directory as well as a copy of the h5 file."
+    capabilities = 'openmc'
+  []
+  [specify_both_material_ids_and_file]
+    type = RunException
+    input = mats_from_file.i
+    cli_args = 'Problem/ModelModifiers/one/material_ids="1"'
+    requirement = 'The system shall error if both the "material_ids" and "material_ids_file" are specified'
+    expect_err = "Both of 'material_ids' and 'material_ids_file' were be specified, but only one can be provided."
+    capabilities = 'openmc'
+  []
+  [specify_neither_material_ids_nor_file]
+    type = RunException
+    input = none_specified.i
+    requirement = 'The system shall error if neither the "material_ids" and "material_ids_file" are specified'
+    expect_err = 'One of 'material_ids' or 'material_ids_file' must be specified, but neither have been provided.'
     capabilities = 'openmc'
   []
 []
