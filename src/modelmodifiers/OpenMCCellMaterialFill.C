@@ -48,15 +48,11 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   const bool material_ids_valid = isParamValid("material_ids");
   const bool material_ids_file_valid = isParamValid("material_ids_file");
   if (!material_ids_valid && !material_ids_file_valid)
-  {
     mooseError("One of 'material_ids' or 'material_ids_file' must be specified, but neither have "
                "been provided.");
-  }
   if (material_ids_valid && material_ids_file_valid)
-  {
     mooseError("Both of 'material_ids' and 'material_ids_file' were be specified, but only one can "
                "be provided.");
-  }
 
   // get the cell requested
   _cell_index = -1;

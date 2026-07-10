@@ -69,7 +69,7 @@
     type = RunException
     input = none_specified.i
     requirement = 'The system shall error if neither the "material_ids" and "material_ids_file" are specified'
-    expect_err = 'One of 'material_ids' or 'material_ids_file' must be specified, but neither have been provided.'
+    expect_err = "One of 'material_ids' or 'material_ids_file' must be specified, but neither have been provided."
     capabilities = 'openmc'
   []
 []

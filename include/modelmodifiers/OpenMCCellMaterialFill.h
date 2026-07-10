@@ -29,7 +29,14 @@ public:
   static InputParameters validParams();
 
   OpenMCCellMaterialFill(const InputParameters & parameters);
+
+  /**
+   * Read data from hdf5 file to assign to _material_indices
+   * @param[in] filename filename
+   * @return a vector of material IDs
+   */
   std::vector<int32_t> extractMaterialIdsFromFile(std::string filename);
+
   virtual void modifyOpenMCModel() const override;
 
 protected:
