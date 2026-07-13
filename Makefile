@@ -3,7 +3,7 @@
 # To control where various third-party dependencies are.
 # NOTE: If you change any of these partway through a build, you will need to
 # clear out the build/ and install/ directories to be sure the proper build
-# flags are used.
+# flags are used, with "rm -rf build/ install/"
 
 # * CONTRIB_DIR      : Dir with third-party dependencies (default: contrib)
 # * MOOSE_DIR        : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
