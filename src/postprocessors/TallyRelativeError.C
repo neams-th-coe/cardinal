@@ -90,16 +90,20 @@ Real
 TallyRelativeError::getValue() const
 {
   Real post_processor_value;
+  std::string return_type;
   switch (_type)
   {
     case operation::max:
       post_processor_value = std::numeric_limits<Real>::min();
+      return_type = "maximum";
       break;
     case operation::min:
       post_processor_value = std::numeric_limits<Real>::max();
+      return_type = "minimum";
       break;
     case operation::average:
       post_processor_value = 0.0;
+      return_type = "average";
       break;
     default:
       mooseError("Unhandled OperationEnum!");
@@ -109,10 +113,14 @@ TallyRelativeError::getValue() const
   for (const auto linked : _tally->linkedTallies())
     tallies.push_back(linked);
 
+  bool had_hit = false;
+
   unsigned int num_values = 0;
+  std::string tally_name;
   for (const auto tally : tallies)
   {
     const auto t = tally->getWrappedTally();
+    tally_name = tally->name();
     auto sum = OMCTensor(t->results_.slice(openmc::tensor::all,
                                            tally->scoreIndex(_score),
                                            static_cast<int>(openmc::TallyResult::SUM)));
@@ -127,6 +135,8 @@ TallyRelativeError::getValue() const
       // sense to compare against
       if (MooseUtils::absoluteFuzzyEqual(sum(i), 0))
         continue;
+
+      had_hit = true;
 
       switch (_type)
       {
@@ -149,7 +159,10 @@ TallyRelativeError::getValue() const
   if (_type == operation::average)
     post_processor_value /= num_values;
 
-  return post_processor_value;
+  if (!had_hit)
+    mooseWarning("No events scored to the " + _score + " tally (stored in the AuxVariable named '" + tally_name + "')! The " + return_type + " relative error is being set to zero because there is nothing to report.");
+
+  return had_hit ? post_processor_value : 0.0;
 }
 
 #endif
