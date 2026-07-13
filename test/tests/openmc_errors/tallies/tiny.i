@@ -23,6 +23,7 @@
     [mesh]
       type = MeshTally
       check_tally_sum = false
+      name = 'my_tally'
     []
   []
 []

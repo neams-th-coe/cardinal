@@ -120,7 +120,7 @@ TallyRelativeError::getValue() const
   for (const auto tally : tallies)
   {
     const auto t = tally->getWrappedTally();
-    tally_name = tally->name();
+    tally_name = tally->getAuxVarNames()[0];
     auto sum = OMCTensor(t->results_.slice(openmc::tensor::all,
                                            tally->scoreIndex(_score),
                                            static_cast<int>(openmc::TallyResult::SUM)));
