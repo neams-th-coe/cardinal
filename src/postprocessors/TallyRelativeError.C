@@ -160,7 +160,9 @@ TallyRelativeError::getValue() const
     post_processor_value /= num_values;
 
   if (!had_hit)
-    mooseWarning("No events scored to the " + _score + " tally (stored in the AuxVariable named '" + tally_name + "')! The " + return_type + " relative error is being set to zero because there is nothing to report.");
+    mooseWarning("No events scored to the " + _score + " tally (stored in the AuxVariable named '" +
+                 tally_name + "')! The " + return_type +
+                 " relative error is being set to zero because there is nothing to report.");
 
   return had_hit ? post_processor_value : 0.0;
 }
