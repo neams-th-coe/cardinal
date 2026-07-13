@@ -33,7 +33,7 @@ public:
   /**
    * Read data from hdf5 file to assign to _material_indices
    * @param[in] filename filename
-   * @param[in] material_ids passed by reference to assign
+   * @param[out] material_ids passed by reference to assign
    */
   void extractMaterialIdsFromFile(std::string filename, std::vector<int32_t> & material_ids);
 

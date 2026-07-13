@@ -34,9 +34,9 @@ OpenMCCellMaterialFill::validParams()
       "IDs of the materials to fill into the cell; the length of this array can be one material ID "
       "that will be applied to all instances. Otherwise, it must match the number "
       "of instances of the cell");
-  params.addParam<std::string>(
-      "material_ids_file",
-      "Filename containing material ids to assign to the cell instances. Must be an h5 file.");
+  params.addParam<std::string>("material_ids_file",
+                               "Filename containing material ids to assign to the cell instances. "
+                               "Must be an HDF5 (*.h5) file.");
   params.addClassDescription("Modifies the cell fill within an OpenMC cell");
   return params;
 }
@@ -47,12 +47,9 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
   // check that only one of material_ids and material_ids_file is specified
   const bool material_ids_valid = isParamValid("material_ids");
   const bool material_ids_file_valid = isParamValid("material_ids_file");
-  if (!material_ids_valid && !material_ids_file_valid)
-    mooseError("One of 'material_ids' or 'material_ids_file' must be specified, but neither have "
-               "been provided.");
-  if (material_ids_valid && material_ids_file_valid)
-    mooseError("Both of 'material_ids' and 'material_ids_file' were be specified, but only one can "
-               "be provided.");
+  if (material_ids_valid == material_ids_file_valid)
+    mooseError("Only one of 'material_ids' or 'material_ids_file' can be provided; you have "
+               "specified both or none.");
 
   // get the cell requested
   _cell_index = -1;
@@ -111,9 +108,7 @@ OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename,
 {
   // confirm that filename specified exists
   if (!MooseUtils::checkFileReadable(filename))
-  {
     paramError("material_ids_file", "The filename specified could not be found.");
-  }
 
   // extract the material_fill_ids attribute from the file
   hid_t file = openmc::file_open(filename, 'r');

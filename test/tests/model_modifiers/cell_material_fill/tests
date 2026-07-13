@@ -62,14 +62,7 @@
     input = mats_from_file.i
     cli_args = 'Problem/ModelModifiers/one/material_ids="1"'
     requirement = 'The system shall error if both the "material_ids" and "material_ids_file" are specified'
-    expect_err = "Both of 'material_ids' and 'material_ids_file' were be specified, but only one can be provided."
-    capabilities = 'openmc'
-  []
-  [specify_neither_material_ids_nor_file]
-    type = RunException
-    input = none_specified.i
-    requirement = 'The system shall error if neither the "material_ids" and "material_ids_file" are specified'
-    expect_err = "One of 'material_ids' or 'material_ids_file' must be specified, but neither have been provided."
+    expect_err = "Only one of 'material_ids' or 'material_ids_file' can be provided; you have specified both or none."
     capabilities = 'openmc'
   []
 []
