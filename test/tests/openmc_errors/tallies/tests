@@ -47,5 +47,6 @@
     capabilities = 'openmc'
     issues = '#1387'
     design = 'TallyRelativeError.md'
+    mesh_mode = 'replicated'
   []
 []
