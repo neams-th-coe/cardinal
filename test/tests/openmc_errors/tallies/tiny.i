@@ -17,7 +17,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  cell_level = 0
 
   [Tallies]
     [mesh]

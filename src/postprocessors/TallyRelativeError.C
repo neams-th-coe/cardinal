@@ -120,7 +120,13 @@ TallyRelativeError::getValue() const
   for (const auto tally : tallies)
   {
     const auto t = tally->getWrappedTally();
-    tally_name = tally->getAuxVarNames()[0];
+
+    // For linked tallies (e.g. translated mesh tallies), only one tally will add
+    // auxvariables (and therefore have any associated auxvariable names). All
+    // other tallies store data in the first auxvariable in the series.
+    if (tally->getAuxVarNames().size() > 0)
+      tally_name = tally->getAuxVarNames()[0];
+
     auto sum = OMCTensor(t->results_.slice(openmc::tensor::all,
                                            tally->scoreIndex(_score),
                                            static_cast<int>(openmc::TallyResult::SUM)));
