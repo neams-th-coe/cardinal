@@ -1551,8 +1551,6 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
 void
 OpenMCCellAverageProblem::getMaterialFills()
 {
-  VariadicTable<std::string, int> vt({"Cell", "Material"});
-
   _cell_to_material.clear();
   for (const auto & c : _cell_to_elem)
   {
@@ -1569,17 +1567,6 @@ OpenMCCellAverageProblem::getMaterialFills()
           "Density transfer does not currently support cells filled with universes or lattices!");
 
     _cell_to_material[cell_info] = material_index;
-    vt.addRow(printCell(cell_info), materialID(material_index));
-  }
-
-  if (_verbose && _specified_density_feedback)
-  {
-    _console
-        << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n"
-        << std::endl;
-    _console << "           Cell:  OpenMC cell receiving density feedback" << std::endl;
-    _console << "       Material:  OpenMC material ID in this cell (-1 for void)\n" << std::endl;
-    vt.print(_console);
   }
 }
 
