@@ -1,9 +1,18 @@
 [Tests]
-  [triso_lattice]
+  design = 'OpenMCCellAverageProblem.md'
+  [triso_lattice_temperature]
     type = RunException
     input = openmc.i
     expect_err = "Cell 10, instance 0 has already had its temperature set by Cardinal to 625"
     requirement = "The system shall error if Cardinal tries to change the temperature of a given OpenMC cell more than once, since this indicates a problem with model setup."
     capabilities = 'openmc'
+  []
+  [triso_lattice_density]
+    type = RunException
+    input = density.i
+    expect_err = "Cell 10, instance 0 has already had its temperature set by Cardinal to 625"
+    requirement = "The system shall error if Cardinal tries to change the density of a given OpenMC cell more than once, since this indicates a problem with model setup."
+    capabilities = 'openmc'
+    issues = '#1392'
   []
 []
