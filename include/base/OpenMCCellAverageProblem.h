@@ -385,6 +385,13 @@ public:
   double cellTemperature(const cellInfo & cell_info) const;
 
   /**
+   * Get the density of a cell; for cells not filled with materials, this will return
+   * the density of the first material-type cell
+   * @param[in] cell_info cell index, instance pair
+   */
+  double cellDensity(const cellInfo & cell_info) const;
+
+  /**
    * Get the volume that each OpenMC cell mapped to
    * @param[in] cell_info cell index, instance pair
    */

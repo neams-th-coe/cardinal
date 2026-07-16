@@ -2845,6 +2845,21 @@ OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info) const
 }
 
 double
+OpenMCCellAverageProblem::cellDensity(const cellInfo & cell_info) const
+{
+  auto material_cell = firstContainedMaterialCell(cell_info);
+
+  double density;
+  int err = openmc_cell_get_density(material_cell.first, &material_cell.second, &density);
+  catchOpenMCError(err, "get density of cell " + printCell(cell_info));
+
+  // Rescale by the reference density, if required.
+  const auto ref_den = getReferenceDensity(_current_elem);
+
+  return ref_den * density / densityConversionFactor();
+}
+
+double
 OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info) const
 {
   auto material_cell = firstContainedMaterialCell(cell_info);
