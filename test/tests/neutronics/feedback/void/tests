@@ -1,11 +1,25 @@
 [Tests]
   design = 'CellDensityAux.md CellMaterialIDAux.md'
   issues = '#1392'
-  [density]
+  [density_level_1]
     type = CSVDiff
     input = openmc.i
     csvdiff = 'openmc_out.csv'
     requirement = "The system shall return zero when reporting density of void regions and the material void index (-1) for material ID, when void is the only contained cell in the reporting element."
+    capabilities = 'openmc'
+  []
+  [density_level_0]
+    type = CSVDiff
+    input = density.i
+    csvdiff = 'density_out.csv'
+    requirement = "The system shall return the density of the first non-void material cell if the containing cell contains both void and non-void material fills."
+    capabilities = 'openmc'
+  []
+  [multiple_material_ids]
+    type = RunException
+    input = material_id.i
+    expect_err = 'Element 0 maps to OpenMC cell id 3, instance 0 \(of 1\) which contains 20 material-filled cells'
+    requirement = "The system shall error if trying to report a material ID for a cell which contains multiple material-filled cells."
     capabilities = 'openmc'
   []
 []

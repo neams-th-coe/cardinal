@@ -638,7 +638,7 @@ OpenMCProblemBase::setCellDensity(const int32_t & index,
   // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
   // properties module) to g/cm3
   int err = openmc_cell_set_density(
-      cell_info.first, densityConversionFactor() * density, &cell_info.second, false);
+      index, densityConversionFactor() * density, &instance, false);
 
   if (err)
   {

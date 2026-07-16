@@ -1679,6 +1679,9 @@ OpenMCCellAverageProblem::setContainedCells(const cellInfo & cell_info,
 
   openmc::Position p{hint(0), hint(1), hint(2)};
 
+  // we include all material-fill and void cells within the requested cell, because
+  // we may want to add cell tallies in void regions, even if no feedback is applied
+  // to voids
   const auto & cell = openmc::model::cells[cell_info.first];
   if (cell->type_ == openmc::Fill::MATERIAL)
   {
@@ -2453,7 +2456,29 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 OpenMCCellAverageProblem::cellInfo
 OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info) const
 {
+  // this function is only used for displaying temperature and density in auxkernels; to avoid
+  // confusing the user, we return the first cell which is non-void fill - even if we set
+  // the density on a void cell via Cardinal, OpenMC will always be storing a density of zero
+  // because the density multiplier is zero. This could be confusing when reporting the density
+  // in CellDensityAux of a cell containing multiple nested cells and if void happens to be the
+  // first of those contained cells. So, we screen it out here.
+
   const auto & contained_cells = containedMaterialCells(cell_info);
+  for (const auto & c : contained_cells)
+  {
+    const auto & cell = openmc::model::cells[c.first];
+    for (const auto & instance : c.second)
+    {
+      const auto mat_index = cell->material(instance);
+      if (mat_index != openmc::MATERIAL_VOID)
+      {
+        cellInfo first_cell = {c.first, instance};
+        return first_cell;
+      }
+    }
+  }
+
+  // if the cell only contains void, then we'll return that
   const auto & instances = contained_cells.begin()->second;
   cellInfo first_cell = {contained_cells.begin()->first, instances[0]};
   return first_cell;

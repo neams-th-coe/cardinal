@@ -26,7 +26,7 @@ InputParameters
 CellDensityAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("OpenMC cell density (kg/m$^3$), mapped to each MOOSE element. For cells filled by universes or lattices, returns the density of the first-located material cell contained within.");
+  params.addClassDescription("OpenMC cell density (kg/m$^3$), mapped to each MOOSE element. For cells filled by universes or lattices, returns the density of the first-located, non-void, material cell contained within.");
   return params;
 }
 
