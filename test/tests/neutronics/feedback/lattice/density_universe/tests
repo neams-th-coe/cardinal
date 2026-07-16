@@ -1,0 +1,13 @@
+[Tests]
+  design = 'OpenMCCellAverageProblem CellDensityAux.md'
+  issues = '#1392'
+  [density]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = 'openmc_out.csv'
+    requirement = "The system shall allow density feedback to be applied to cells which contain universes. "
+                  "This is tested by applying densities to top-level cells which contain universes; a comparison "
+                  "is made to a standalone OpenMC model, showing perfect agreement."
+    capabilities = 'openmc'
+  []
+[]
