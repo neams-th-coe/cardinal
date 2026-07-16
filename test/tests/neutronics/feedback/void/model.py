@@ -32,10 +32,10 @@ rho = 1000.0
 model = openmc.Model()
 
 ### Materials ###
-water = openmc.Material(name='water')
-water.add_element('H', 2.0)
-water.add_element('O', 1.0)
-water.set_density('kg/m3', rho)
+fuel = openmc.Material(name='fuel')
+fuel.add_nuclide('U235', 0.0001)
+fuel.add_element('O'   , 0.50)
+fuel.set_density('kg/m3', rho)
 
 outer = openmc.model.RectangularPrism(l, l, boundary_type='reflective')
 split = openmc.XPlane(x0=0.0)
@@ -50,9 +50,9 @@ min_z.boundary_type = 'reflective'
 max_z = axial_planes[-1]
 max_z.boundary_type = 'reflective'
 
-fuel_cell = openmc.Cell(region=-split, fill=None)
+fuel_cell = openmc.Cell(region=-split, fill=fuel)
 fuel_cell.temperature = T
-water_cell = openmc.Cell(region=+split, fill=water)
+water_cell = openmc.Cell(region=+split, fill=None)
 water_cell.temperature = T
 univ = openmc.Universe(cells=[fuel_cell, water_cell])
 

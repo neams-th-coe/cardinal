@@ -1,0 +1,11 @@
+[Tests]
+  design = 'CellDensityAux.md'
+  issues = '#1392'
+  [density]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = 'openmc_out.csv'
+    requirement = "The system shall return zero when reporting density of void regions and void is the only contained cell in the reporting element."
+    capabilities = 'openmc'
+  []
+[]
