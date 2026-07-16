@@ -48,7 +48,7 @@ CellDensityAux::computeValue()
   if (!_openmc_problem->hasDensityFeedback(cell_info))
     return OpenMCCellAverageProblem::UNMAPPED;
 
-  return _openmc_problem->cellDensity(cell_info);
+  return _openmc_problem->cellDensity(cell_info, _current_elem);
 }
 
 #endif

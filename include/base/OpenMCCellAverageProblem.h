@@ -376,8 +376,9 @@ public:
    * Get the density of a cell; for cells not filled with materials, this will return
    * the density of the first material-type cell
    * @param[in] cell_info cell index, instance pair
+   * @param[in] elem element to fetch multigroup reference densities
    */
-  double cellDensity(const cellInfo & cell_info) const;
+  double cellDensity(const cellInfo & cell_info, const Elem * elem) const;
 
   /**
    * Get the volume that each OpenMC cell mapped to
@@ -470,6 +471,20 @@ public:
    */
   const bool & useDisplaced() const { return _use_displaced; }
 
+  /**
+   * Get the number of material-fill cells contained within the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return number of contained cells filled by a material
+   */
+  int numContainedMaterialCells(const cellInfo & cell_info) const;
+
+  /**
+   * Get the first material cell contained in the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return material cell index, instance pair
+   */
+  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
+
 protected:
   /**
    * A function to re-initialize coupling and apply feedback to the OpenMC problem.
@@ -539,13 +554,6 @@ protected:
    */
   bool cellMapsToSubdomain(const cellInfo & cell_info,
                            const std::unordered_set<SubdomainID> & id) const;
-
-  /**
-   * Get the first material cell contained in the given cell
-   * @param[in] cell_info cell index, instance pair
-   * @return material cell index, instance pair
-   */
-  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
 
   /**
    * Get all of the material cells contained within this cell

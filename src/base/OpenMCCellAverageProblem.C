@@ -2477,10 +2477,11 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   std::map<cellInfo, Real> cell_vol_density =
       computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, scaling);
 
+  std::unordered_set<cellInfo> cells_already_set;
+
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-
     if (!hasDensityFeedback(cell_info))
       continue;
 
@@ -2499,7 +2500,34 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
                  << " to MGXS density (-): " << std::setw(4) << average_density << std::endl;
     }
 
-    setCellDensity(average_density, cell_info);
+    containedCells contained_cells = containedMaterialCells(cell_info);
+
+    for (const auto & contained : contained_cells)
+    {
+      for (const auto & instance : contained.second)
+      {
+        cellInfo ci = {contained.first, instance};
+        if (cells_already_set.count(ci))
+        {
+          double rho;
+          openmc_cell_get_density(ci.first, &ci.second, &rho);
+
+          mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " +
+                     std::to_string(instance) +
+                     " has already had its density set by Cardinal to " + std::to_string(rho) +
+                     "! This indicates a problem with how you have built your geometry, because "
+                     "this cell is trying to receive a distribution of densities in space, but "
+                     "each successive set-density operation is only overwriting the previous "
+                     "value.\n\nThis error most often appears when you are filling a LATTICE into "
+                     "multiple cells. One fix is to first place that lattice into a universe, and "
+                     "then fill that UNIVERSE into multiple cells.\n\nFor more information, please "
+                     "consult https://github.com/neams-th-coe/cardinal/pull/918.");
+        }
+
+        cells_already_set.insert(ci);
+        setCellDensity(contained.first, instance, average_density, cell_info);
+      }
+    }
   }
 
   if (!_verbose)
@@ -2821,7 +2849,7 @@ OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info) const
 }
 
 double
-OpenMCCellAverageProblem::cellDensity(const cellInfo & cell_info) const
+OpenMCCellAverageProblem::cellDensity(const cellInfo & cell_info, const Elem * elem) const
 {
   auto material_cell = firstContainedMaterialCell(cell_info);
 
@@ -2830,7 +2858,7 @@ OpenMCCellAverageProblem::cellDensity(const cellInfo & cell_info) const
   catchOpenMCError(err, "get density of cell " + printCell(cell_info));
 
   // Rescale by the reference density, if required.
-  const auto ref_den = getReferenceDensity(_current_elem);
+  const auto ref_den = getReferenceDensity(elem);
 
   return ref_den * density / densityConversionFactor();
 }
@@ -3327,5 +3355,16 @@ OpenMCCellAverageProblem::transformPointToOpenMC(const Point & pt) const
   pnt_out *= _scaling;
 
   return pnt_out;
+}
+
+int
+OpenMCCellAverageProblem::numContainedMaterialCells(const cellInfo & cell_info) const
+{
+  int n_contained = 0;
+  auto contained_cells = containedMaterialCells(cell_info);
+  for (const auto & cell : contained_cells)
+    n_contained += cell.second.size();
+
+  return n_contained;
 }
 #endif

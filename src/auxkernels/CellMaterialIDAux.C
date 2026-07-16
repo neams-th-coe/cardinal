@@ -55,26 +55,23 @@ CellMaterialIDAux::computeValue()
   // by a universe or lattice), then we cannot return a single value from this function. We check
   // if there are multiple cell IDs; if this does not fail, then we still need to check the number
   // of instances of the single-ID fill.
-  const auto & contained_cells = _openmc_problem->containedMaterialCells(cell_info);
-  bool multiple_contained_cells = contained_cells.size() > 1;
-  if (!multiple_contained_cells)
-    multiple_contained_cells = contained_cells[0].begin()->second.size() > 1;
 
   // we could technically have a situation where you build a lattice of single-material universes,
   // which would trigger this error message. I opted for an error here because it's likely not worth
   // the expense to form a list of all the materials filling the given cell to see if we're actually
   // in a situation where we have multiple MATERIALs in those cells, vs. multiple cells all filled by
   // the same material.
-  if (multiple_contained_cells)
-    mooseError("Element ", this->_current_elem->id(), " maps to OpenMC cell ", printCell(cell_info), " which contains more than one material-fill cell (for instance, by being filled by a universe or lattice). Therefore, we cannot easily return a single material ID at this position in space.");
+  int nc = _openmc_problem->numContainedMaterialCells(cell_info);
+  if (nc > 1)
+    mooseError("Element ", this->_current_elem->id(), " maps to OpenMC cell ", _openmc_problem->printCell(cell_info), " which contains ", nc, " material-filled cells (for instance, by being filled by a universe or lattice). Therefore, we cannot easily return a single material ID at this position in space.");
 
   // we screen to be sure there's just one material fill, so "first" here is same as "only"
-  auto first_material_cell = firstContainedMaterialCell(cell_info);
+  auto first_material_cell = _openmc_problem->firstContainedMaterialCell(cell_info);
 
   int32_t index;
-  _openmc_problem->materialFill(first_material_cell, &index);
+  _openmc_problem->materialFill(first_material_cell, index);
 
-  return _openmc_problem->materialID(index);;
+  return _openmc_problem->materialID(index);
 }
 
 #endif
