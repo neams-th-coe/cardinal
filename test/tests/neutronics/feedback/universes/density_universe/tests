@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCCellAverageProblem CellDensityAux.md'
+  design = 'OpenMCCellAverageProblem.md CellDensityAux.md'
   issues = '#1392'
   [density]
     type = CSVDiff
