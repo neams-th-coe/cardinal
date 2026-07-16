@@ -10,7 +10,7 @@
   [triso_lattice_density]
     type = RunException
     input = density.i
-    expect_err = "Cell 10, instance 0 has already had its temperature set by Cardinal"
+    expect_err = "Cell 10, instance 0 has already had its density set by Cardinal"
     requirement = "The system shall error if Cardinal tries to change the density of a given OpenMC cell more than once, since this indicates a problem with model setup."
     capabilities = 'openmc'
     issues = '#1392'
