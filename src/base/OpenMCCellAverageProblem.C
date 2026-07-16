@@ -760,8 +760,6 @@ OpenMCCellAverageProblem::setupProblem()
 
   initializeElementToCellMapping();
 
-  getMaterialFills();
-
   // we do this last so that we can at least hit any other errors first before
   // spending time on the costly filled cell caching
   cacheContainedCells();
@@ -1545,28 +1543,6 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     else
       vt_mg.print(_console);
     _console << std::endl;
-  }
-}
-
-void
-OpenMCCellAverageProblem::getMaterialFills()
-{
-  _cell_to_material.clear();
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-
-    if (!hasDensityFeedback(cell_info))
-      continue;
-
-    int32_t material_index;
-    auto is_material_cell = materialFill(cell_info, material_index);
-
-    if (!is_material_cell)
-      mooseError(
-          "Density transfer does not currently support cells filled with universes or lattices!");
-
-    _cell_to_material[cell_info] = material_index;
   }
 }
 

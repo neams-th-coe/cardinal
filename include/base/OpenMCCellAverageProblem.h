@@ -734,9 +734,6 @@ protected:
    */
   void resetTallies();
 
-  /// Find the material filling each cell which receives density feedback
-  void getMaterialFills();
-
   /**
    * Get one point inside each cell, for accelerating the particle search routine.
    * This function will get the centroid of the first global element in the lowest
@@ -1036,12 +1033,6 @@ protected:
    * OpenMCVolumeCalculation user object
    */
   std::map<cellInfo, Real> _cell_volume;
-
-  /**
-   * Material filling each cell to receive density feedback. We enforce that these
-   * cells are filled with a material (cannot be filled with a lattice or universe).
-   */
-  std::map<cellInfo, int32_t> _cell_to_material;
 
   /**
    * Material-type cells contained within a cell; this is only populated if a cell
