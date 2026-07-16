@@ -2538,8 +2538,8 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
           openmc_cell_get_density(ci.first, &ci.second, &rho);
 
           mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " +
-                     std::to_string(instance) +
-                     " has already had its density set by Cardinal to " + std::to_string(rho) +
+                     std::to_string(instance) + " has already had its density set by Cardinal to " +
+                     std::to_string(rho) +
                      "! This indicates a problem with how you have built your geometry, because "
                      "this cell is trying to receive a distribution of densities in space, but "
                      "each successive set-density operation is only overwriting the previous "

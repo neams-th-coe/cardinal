@@ -59,11 +59,19 @@ CellMaterialIDAux::computeValue()
   // we could technically have a situation where you build a lattice of single-material universes,
   // which would trigger this error message. I opted for an error here because it's likely not worth
   // the expense to form a list of all the materials filling the given cell to see if we're actually
-  // in a situation where we have multiple MATERIALs in those cells, vs. multiple cells all filled by
-  // the same material.
+  // in a situation where we have multiple MATERIALs in those cells, vs. multiple cells all filled
+  // by the same material.
   int nc = _openmc_problem->numContainedMaterialCells(cell_info);
   if (nc > 1)
-    mooseError("Element ", this->_current_elem->id(), " maps to OpenMC cell ", _openmc_problem->printCell(cell_info), " which contains ", nc, " material-filled cells (for instance, by being filled by a universe or lattice). Therefore, we cannot easily return a single material ID at this position in space.");
+    mooseError(
+        "Element ",
+        this->_current_elem->id(),
+        " maps to OpenMC cell ",
+        _openmc_problem->printCell(cell_info),
+        " which contains ",
+        nc,
+        " material-filled cells (for instance, by being filled by a universe or lattice). "
+        "Therefore, we cannot easily return a single material ID at this position in space.");
 
   // we screen to be sure there's just one material fill, so "first" here is same as "only"
   auto first_material_cell = _openmc_problem->firstContainedMaterialCell(cell_info);

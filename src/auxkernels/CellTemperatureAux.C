@@ -26,7 +26,9 @@ InputParameters
 CellTemperatureAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("OpenMC cell temperature (K), mapped to each MOOSE element. For cells filled by universes or lattices, returns the temperature of the first-located material cell contained within.");
+  params.addClassDescription(
+      "OpenMC cell temperature (K), mapped to each MOOSE element. For cells filled by universes or "
+      "lattices, returns the temperature of the first-located material cell contained within.");
   return params;
 }
 
