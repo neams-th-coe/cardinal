@@ -40,7 +40,7 @@ Real
 CellMaterialIDAux::computeValue()
 {
   // if the element doesn't map to an OpenMC cell, return a cell ID of -1; otherwise, we would
-  // get an error in the call to cellCouplingFields and cellToMaterialIndex, since these
+  // get an error in the call to cellCouplingFields, since these
   // rely on a valid cell instance, index pair being passed to OpenMC's C-API
   if (!mappedElement())
     return OpenMCCellAverageProblem::UNMAPPED;
