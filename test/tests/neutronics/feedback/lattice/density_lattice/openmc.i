@@ -56,7 +56,7 @@ h = 1.0
   type = OpenMCCellAverageProblem
   scaling = 100.0
   density_blocks = '0 100'
-  cell_level = 1
+  cell_level = 0
 []
 
 [Executioner]
@@ -67,10 +67,15 @@ h = 1.0
   [k]
     type = KEigenvalue
   []
-  [density]
+  [density_left]
     type = PointValue
     variable = cell_density
-    point = '0 0 ${fparse h/2}'
+    point = '${fparse -l/4} 0 ${fparse h/2}'
+  []
+  [density_right]
+    type = PointValue
+    variable = cell_density
+    point = '${fparse l/4} 0 ${fparse h/2}'
   []
 []
 
