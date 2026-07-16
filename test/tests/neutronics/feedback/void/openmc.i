@@ -28,12 +28,20 @@ h = 1.0
     family = MONOMIAL
     order = CONSTANT
   []
+  [cell_material_id]
+    family = MONOMIAL
+    order = CONSTANT
+  []
 []
 
 [AuxKernels]
   [cell_density]
     type = CellDensityAux
     variable = cell_density
+  []
+  [cell_material_id]
+    type = CellMaterialIDAux
+    variable = cell_material_id
   []
 []
 
@@ -72,6 +80,16 @@ h = 1.0
   [density_right_void]
     type = PointValue
     variable = cell_density
+    point = '${fparse l/4} 0 ${fparse h/2}'
+  []
+  [material_left]
+    type = PointValue
+    variable = cell_material_id
+    point = '${fparse -l/4} 0 ${fparse h/2}'
+  []
+  [material_right_void]
+    type = PointValue
+    variable = cell_material_id
     point = '${fparse l/4} 0 ${fparse h/2}'
   []
 []
