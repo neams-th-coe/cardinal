@@ -5,6 +5,10 @@ Content:
         root_dir: ${MOOSE_DIR}/framework/doc/content
     fluid_properties:
         root_dir: ${MOOSE_DIR}/modules/fluid_properties/doc/content
+    # fluid_properties docs poorly depend on templated content from
+    # GraveityVectorInterface
+    fluid_properties_interfaces:
+        root_dir: ${MOOSE_DIR}/modules/misc/doc/content/source/interfaces
     heat_transfer:
         root_dir: ${MOOSE_DIR}/modules/heat_transfer/doc/content
     navier_stokes:

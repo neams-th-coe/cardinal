@@ -20,10 +20,17 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
+#include "OpenMCCellTransformBase.h"
 #include "GeneralUserObject.h"
-#include "OpenMCBase.h"
 
-class OpenMCCellTransform : public GeneralUserObject, public OpenMCBase
+#include <array>
+
+/**
+ * Transforms one or more OpenMC cells filled with universes based on user input.
+ * The user can either specify a single translation or rotation per OpenMCCellTransform,
+ * which is applied to all cells.
+ */
+class OpenMCCellTransform : public GeneralUserObject, public OpenMCCellTransformBase
 {
 public:
   static InputParameters validParams();
@@ -35,20 +42,10 @@ public:
   virtual void finalize() override {}
 
 protected:
-  /// OpenMC cell IDs to which the translation will be applied
-  std::set<int32_t> _cell_ids;
-
   /// Transform type: "translation" or "rotation"
-  const MooseEnum _transform_type;
-
-  /// Postprocessor providing the first entry of the transform array
-  const PostprocessorValue * _t0_pp;
-
-  /// Postprocessor providing the second entry of the transform array
-  const PostprocessorValue * _t1_pp;
-
-  /// Postprocessor providing the third entry of the transform array
-  const PostprocessorValue * _t2_pp;
+  const MooseEnum & _transform_type;
+  /// Postprocessor providing the entries of the transform array
+  std::array<const PostprocessorValue *, 3> _t_pp;
 };
 
 #endif

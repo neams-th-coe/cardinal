@@ -1,5 +1,6 @@
 ABTR: Advanced Burner Test Reactor
 ABR: Advanced Burner Reactor
+AMR: Adaptive Mesh Refinement
 ANL: Argonne National Laboratory
 CAD: Computer Aided Design
 CEFR: Chinese Experimental Fast Reactor
@@ -14,12 +15,14 @@ DNS: Direct Numerical Simulation
 ECP: Exascale Computing Project
 EEIID: Extra Element Integer ID
 EOS: Equation of State
+FoM: Figure of Merit
 GCE: General Computing Environment
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
 LES: Large Eddy Simulation
 LWR: Light Water Reactor
+MGXS: Multi-Group Cross Sections
 MSFR: Molten Salt Fast Reactor
 NRIC: National Reactor Innovation Center
 OCCA: Open Concurrent Compute Abstraction
@@ -36,8 +39,8 @@ T/H: Thermal-Hydraulic
 THM: Thermal Hydraulics Module
 THTR: Thorium High Temperature Reactor
 TRISO: Tri-Structural Isotropic
+TRRM: The Random Ray Method
 UQ: Uncertainty Quantification
 VTB: Virtual Test Bed
 V&V: Verification and Validation
-AMR: Adaptive Mesh Refinement
-MGXS: Multi-Group Cross Sections
+VR: Variance Reduction

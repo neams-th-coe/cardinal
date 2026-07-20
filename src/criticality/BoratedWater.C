@@ -47,6 +47,10 @@ BoratedWater::validParams()
 
 BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialSearch(parameters)
 {
+  if (_openmc_problem->runRandomRay())
+    mooseError(
+        "The BoratedWater criticality search is not supported when running the random ray solver!");
+
   // apply additional checks on the minimum and maximum
   if (_minimum < 0)
     paramError("minimum",
@@ -133,7 +137,7 @@ BoratedWater::BoratedWater(const InputParameters & parameters) : OpenMCMaterialS
 void
 BoratedWater::updateOpenMCModel(const Real & ppm)
 {
-  _console << "Searching for boron = " << ppm << " [ppm] ..." << std::endl;
+  _console << " OpenMC will run with next guess for boron = " << ppm << " [ppm] ..." << std::endl;
 
   // A coupled thermal-fluid app may set the material density just before we enter
   // this routine; we will preserve that density which may be set and we interpret

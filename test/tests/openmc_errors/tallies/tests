@@ -38,4 +38,15 @@
     requirement = "The system shall error if score has duplicate entries."
     capabilities = 'openmc'
   []
+  [no_hits]
+    type = RunException
+    input = tiny.i
+    cli_args = '--error'
+    expect_err = "No events scored to the kappa-fission tally \(stored in the AuxVariable named 'my_tally'\)! The maximum relative error is being set to zero because there is nothing to report."
+    requirement = 'The system shall print a warning about zeroing-out the tally relative errors if no hits were made to the tally.'
+    capabilities = 'openmc'
+    issues = '#1387'
+    design = 'TallyRelativeError.md'
+    mesh_mode = 'replicated'
+  []
 []

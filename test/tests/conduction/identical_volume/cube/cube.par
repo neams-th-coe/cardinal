@@ -17,5 +17,5 @@
 [TEMPERATURE]
   conductivity = 1.5
   rhoCp = 1.0
-  residualTol = 1.0e-5
+  residualTol = 1.0e-7
   boundaryTypeMap = I, t, t, t, t, I

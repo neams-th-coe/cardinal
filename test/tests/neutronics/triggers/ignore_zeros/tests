@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#875'
+  design = 'CellTally.md MeshTally.md'
+
   [empty_bin]
     type = CSVDiff
     input = ignore_zero.i
@@ -6,7 +9,10 @@
     requirement = "The system shall ignore zero bins when executing tally triggers. This is done "
                   "by measuring the maximum tally relative error of the H3 score. A smaller tally "
                   "relative error indicates the simulation ran to max batches and didn't ignore the "
-                  "zero bin. If the zero bin is ignored, the simulation should only run 50 batches."
+                  "zero bin. If the zero bin is ignored, the simulation should only run 50 batches and "
+                  "the error will be above 4.2e-2. Otherwise, the extra batches will decrease the error "
+                  "to at least 4.1e-2 (running an additional extra batch), indicating the trigger fired "
+                  "on zero bins."
     capabilities = 'openmc'
   []
   [length_igore_zero]

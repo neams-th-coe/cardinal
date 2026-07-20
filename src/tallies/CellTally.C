@@ -70,6 +70,19 @@ CellTally::spatialFilter()
   return std::make_pair(openmc::model::tally_filters.size() - 1, _cell_filter);
 }
 
+void
+CellTally::setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor)
+{
+  if (relaxation_type != relaxation::RelaxationEnum::none && _openmc_problem.hasSkinner())
+    mooseError("Relaxation is not supported when using cell tallies with "
+               "the MoabSkinner! The skinning operation changes cells, "
+               "and therefore tally bins, between Picard iterations. "
+               "Please set 'relaxation' to 'none' in your "
+               "OpenMCCellAverageProblem.");
+
+  TallyBase::setRelaxation(relaxation_type, relaxation_factor);
+}
+
 Real
 CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,

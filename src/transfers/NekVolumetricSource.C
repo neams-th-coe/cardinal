@@ -177,7 +177,7 @@ NekVolumetricSource::sendDataToNek()
   if (!successful_normalization)
     mooseError("Volumetric source normalization process failed! NekRS integrated source: ",
                normalized_nek_source,
-               " MOOSE integrated source: ",
+               ". MOOSE integrated source: ",
                moose_source,
                ".\n\n",
                normalizationHint());

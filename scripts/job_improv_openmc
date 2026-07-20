@@ -1,0 +1,45 @@
+#!/bin/bash -l
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_improv
+
+#PBS -A startup
+#PBS -l select=10:ncpus=128:mpiprocs=8:ompthreads=16
+#PBS -l walltime=01:00:00
+#PBS -q compute
+#PBS -j oe
+#PBS -N cardinal
+
+#PBS -m bea
+
+# Modify this variable in addition to 'select=10'  on line 9 if running with a different number of nodes.
+nodes=10
+num_numa=8
+cores_per_numa=8
+let threads_per_numa=$cores_per_numa*2
+let ntasks=$num_numa*$nodes
+
+module purge
+module load gcc/11.4.0
+module load openmpi/4.1.6-gcc-11.4.0-pbs
+module load cmake/3.27.4
+module load perl/5.38.0-gcc-11.4.0
+module load miniforge3/25.3.0
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Improv is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+# Moving into the working directory (where the job script was launched).
+echo "Working directory: $PBS_O_WORKDIR"
+
+# Run a Cardinal case
+mpirun -np $ntasks --bind-to numa --map-by numa cardinal-opt -i openmc.i --n-threads=$threads_per_numa > logfile

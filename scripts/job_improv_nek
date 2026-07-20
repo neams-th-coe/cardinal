@@ -1,0 +1,43 @@
+#!/bin/bash -l
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_improv
+
+#PBS -A startup
+#PBS -l select=2:ncpus=128:mpiprocs=128
+#PBS -l walltime=00:10:00
+#PBS -q compute
+#PBS -j oe
+#PBS -N cardinal
+
+#PBS -m bea
+#PBS -M <your_email_address>
+
+module purge
+module load gcc/11.4.0
+module load openmpi/4.1.6-gcc-11.4.0-pbs
+module load cmake/3.27.4
+module load perl/5.38.0-gcc-11.4.0
+module load miniforge3/25.3.0
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Improv is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+
+# The name of the input file you want to run
+input_file=openmc.i
+
+# Moving into the working directory (where the job script was launched).
+echo "Working directory: $PBS_O_WORKDIR"
+cd $PBS_O_WORKDIR
+
+# Run a Cardinal case. mpirun should be launched with 128 * (NUM_NODES) ranks. In this case, 
+# two nodes are requested and so mpirun launches with 256 ranks to fill out both nodes.
+mpirun -np 256 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile

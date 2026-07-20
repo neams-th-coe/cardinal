@@ -61,3 +61,8 @@ protected:
   /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
   OpenMCCellAverageProblem * _openmc_problem;
 };
+
+/**
+ * Get the OpenMCCellAverageProblem from the application associated with the given object.
+ */
+OpenMCCellAverageProblem & getOpenMCProblem(const ParallelParamObject & moose_object);

@@ -28,6 +28,7 @@
 #include "openmc/bank.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
+#include "openmc/constants.h"
 #include "openmc/geometry.h"
 #include "openmc/geometry_aux.h"
 #include "openmc/hdf5_interface.h"
@@ -35,6 +36,7 @@
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
 #include "openmc/simulation.h"
+#include "openmc/random_ray/random_ray_simulation.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
 #include "openmc/tallies/tally.h"
@@ -46,6 +48,7 @@ class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
 class OpenMCCellTransform;
 class CriticalitySearchBase;
+class ModelModifiersBase;
 
 typedef openmc::tensor::Tensor<double> OMCTensor;
 
@@ -81,6 +84,18 @@ public:
   bool isHeatingScore(const std::string & score) const;
 
   /**
+   * The value used to normalize the tallies
+   * @return the source strength or power, depending on the run mode in OpenMC
+   */
+  Real tallyNormalizationValue() const;
+
+  /**
+   * Whether the random ray solver can accumulate a score or not.
+   * @return whether the random ray solver can accumulate the score or not
+   */
+  bool validRandomRayScore(const std::string & score) const;
+
+  /**
    * Add a constant monomial auxiliary variable
    * @param[in] name name of the variable
    * @param[in] block optional subdomain names on which to restrict the variable
@@ -102,6 +117,13 @@ public:
    * @return whether the user has set the problem scaling or not
    */
   bool hasScaling() const { return _specified_scaling; }
+
+  /**
+   * Whether the problem is running OpenMC with the multi-group random ray solver or the
+   * continuous energy Monte Carlo solver.
+   * @return if random ray is being used
+   */
+  bool runRandomRay() const;
 
   /**
    * Convert from a MOOSE-type enum into a valid OpenMC tally score string
@@ -243,7 +265,7 @@ public:
    * Get the density conversion factor (multiplicative factor)
    * @return density conversion factor from kg/m3 to g/cm3
    */
-  const Real & densityConversionFactor() const { return _density_conversion_factor; }
+  const Real densityConversionFactor() const;
 
   /// Number of particles that OpenMC will run in each batch
   const Real * _particles;
@@ -398,6 +420,9 @@ public:
   const openmc::Tally & getMGBetaTally();
 
 protected:
+  /// A virtual function to allow for execution prior to each step in a criticality search.
+  virtual void critSearchStep() = 0;
+
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 

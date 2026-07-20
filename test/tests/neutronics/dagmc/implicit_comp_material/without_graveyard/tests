@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+
   [no_graveyard_implicit_complement]
     type = CSVDiff
     input = openmc.i

@@ -45,8 +45,18 @@
   [max_tally_err]
     type = TallyRelativeError
   []
+
+  [threshold]
+    type = ParsedPostprocessor
+    expression = 'if (max_tally_err < th, 1, 0)'
+    pp_names = 'max_tally_err'
+    constant_names = 'th'
+    constant_expressions = '2e-2'
+  []
 []
 
 [Outputs]
   csv = true
+  hide = 'max_tally_err'
+  execute_on = 'TIMESTEP_END'
 []

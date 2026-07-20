@@ -31,12 +31,8 @@ OpenMCBase::validParams()
 }
 
 OpenMCBase::OpenMCBase(const ParallelParamObject * moose_object, const InputParameters & parameters)
-  : _openmc_problem(
-        dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
+  : _openmc_problem(&getOpenMCProblem(*moose_object))
 {
-  if (!_openmc_problem)
-    mooseError(moose_object->type() +
-               " can only be used with problems of type 'OpenMCCellAverageProblem'!");
 }
 
 Real
@@ -123,6 +119,17 @@ OpenMCBase::kStandardDeviation(const eigenvalue::EigenvalueEnum estimator) const
     default:
       mooseError("Internal error: Unhandled StandardDeviationEnum!");
   }
+}
+
+OpenMCCellAverageProblem &
+getOpenMCProblem(const ParallelParamObject & moose_object)
+{
+  OpenMCCellAverageProblem * const openmc_problem =
+      dynamic_cast<OpenMCCellAverageProblem *>(&moose_object.getMooseApp().feProblem());
+  if (!openmc_problem)
+    moose_object.mooseError(
+        "This object can only be used with problems of type 'OpenMCCellAverageProblem'!");
+  return *openmc_problem;
 }
 
 #endif

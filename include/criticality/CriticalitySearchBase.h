@@ -39,8 +39,18 @@ public:
    */
   virtual void updateOpenMCModel(const Real & input) = 0;
 
-  /// Use Brent's method to search for criticality
-  virtual void searchForCriticality();
+  /**
+   * Use Brent's method to search for criticality
+   * @param[in] step_callback a callback to execute after the OpenMC model has been updated prior to
+   * running the OpenMC solve.
+   */
+  virtual void searchForCriticality(std::function<void()> step_callback);
+
+  /**
+   * Whether this criticality search is modifying the OpenMC geometry.
+   * @return if the OpenMC geometry is changing during a search.
+   */
+  virtual bool changingGeometry() const = 0;
 
 protected:
   /// The quantity being varied in the search for criticality, for console prints
@@ -55,11 +65,20 @@ protected:
   /// Minimum range of value to explore
   const Real & _minimum;
 
-  /// Absolute tolerance for finding a critical configuration
-  const Real & _tolerance;
+  /// Absolute tolerance on the eigenvalue of the search
+  const Real & _k_tol;
+
+  /// Absolute tolerance on the solved root of the search
+  const Real & _root_tol;
 
   /// Estimator to use for k
   const eigenvalue::EigenvalueEnum _estimator;
+
+  /// Whether a final critical state calculation is executed or not.
+  const bool & _run_critical_state;
+
+  /// Whether tallies should be disabled through the search or not.
+  const bool & _tally_during_search;
 
   /// Target k
   const Real & _target;

@@ -22,13 +22,18 @@ This capability is off by default, but to build with [!ac](DAGMC) support, set:
 export ENABLE_DAGMC=yes
 ```
 
+!alert! note title=Performance Improvement with Double-Down
 If you chose to enable DAGMC, we also provide support for [Double-Down](https://double-down.readthedocs.io/en/latest/) -
 a mixed-precision interface to the ray-tracing library [Embree](https://www.embree.org/). Embree support is disabled by
-default, if you do want to use DAGMC with Embree, set:
+default, but we *strongly* recommend enabling it - you can expect to see around 100x speedup when using Double-Down
+on mesh-based geometries.
+
+If you do want to use DAGMC with Embree, set:
 
 ```
 export ENABLE_DOUBLE_DOWN=yes
 ```
+!alert-end!
 
 !alert! note title=External HDF5
 Double-Down does not compile if using an external HDF5, such as when loading by a module on an HPC system. The easiest way to compile with Double-Down is to let PETSc handle the HDF5 download for you (by disabling any HDF5 module load).

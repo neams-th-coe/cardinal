@@ -31,12 +31,23 @@
 []
 
 [Postprocessors]
-  [k_std_dev]
+  # Switched by command-line args to either std_dev or rel_err
+  [k_err]
     type = KEigenvalue
     output = 'std_dev'
+  []
+
+  [threshold]
+    type = ParsedPostprocessor
+    expression = 'if (k_err < th, 1, 0)'
+    pp_names = 'k_err'
+    constant_names = 'th'
+    constant_expressions = '1.2e-2'
   []
 []
 
 [Outputs]
   csv = true
+  hide = 'k_err'
+  execute_on = 'TIMESTEP_END'
 []

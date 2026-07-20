@@ -1,0 +1,51 @@
+[Tests]
+  design = 'RotationSearch.md'
+  issues = '#1294 #1336'
+  [bad_lower_bound]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/minimum=-10.0'
+    expect_err = "The 'minimum' specified rotation"
+    requirement = 'The system shall error if the minmum search value passed to a RotationSearch is negative.'
+    capabilities = 'openmc'
+  []
+  [bad_upper_bound]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/CriticalitySearch/maximum=370.0'
+    expect_err = "The 'maximum' specified rotation"
+    requirement = 'The system shall error if the maximum search value passed to a RotationSearch is greater than 360 degrees.'
+    capabilities = 'openmc'
+  []
+  [rotation_search]
+    type = CSVDiff
+    input = openmc.i
+    min_parallel = 6
+    csvdiff = openmc_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall conduct a criticality search by modifying a cell rotation. This test is created by running a criticality search with a high particle count (1-sigma less than 10 pcm on k) and comparing the critical search result against a standalone OpenMC simulation which is run at the identified critical value of material density. The two approaches match within statistics. Due to floating point non-determinism, the actual test just checks that k converges to the target within the desired tolerance.'
+    capabilities = 'openmc'
+  []
+  [with_coupling]
+    type = CSVDiff
+    input = coupling.i
+    min_parallel = 6
+    csvdiff = coupling_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall correctly remap MOOSE mesh elements and OpenMC '
+                  'cells on each step of a rotation criticality search. This ensures tallies '
+                  'are extracted properly and feedback is applied correctly. This test '
+                  'checks to see if the cell IDs are rotated correctly by point sampling '
+                  'a single element. This is more robust than checking kappa_fission from a '
+                  'cell tally as criticality searches are somewhat non-deterministic on CIVET.'
+    capabilities = 'openmc'
+  []
+  [disable_tallying_and_critical_calc]
+    type = RunException
+    input = coupling.i
+    cli_args = 'Problem/CriticalitySearch/run_critical_state=false'
+    expect_err = "When disabling tallies during intermediate calculations"
+    requirement = 'The system shall error if the user disables tallies and does not request a critical state calculation.'
+    capabilities = 'openmc'
+  []
+[]

@@ -81,7 +81,8 @@ public:
    * @param[in] relaxation_type the type of relaxation to use
    * @param[in] factor the relaxation factor to use (for constant relxation or no relaxation)
    */
-  void setRelaxation(relaxation::RelaxationEnum relaxation_type, const Real & relaxation_factor);
+  virtual void setRelaxation(relaxation::RelaxationEnum relaxation_type,
+                             const Real & relaxation_factor);
 
   /**
    * A function which computes and stores the sum and mean of the tally across all bins for a
@@ -453,6 +454,9 @@ protected:
    * of course still set a value for this parameter to override the default.
    */
   const bool _check_tally_sum;
+
+  /// Relative tolerance for erroring on local vs. global conservation of the tally
+  const Real & _tally_sum_tol;
 
   /**
    * Whether a global tally is required for the sake of normalization and/or checking

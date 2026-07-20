@@ -1,0 +1,14 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [doppler_density]
+    type = CSVDiff
+    input = 'openmc.i'
+    csvdiff = 'openmc_out.csv'
+    requirement = "The system shall solve the inverse square root feedback Doppler slab problem, "
+                  "where cross section feedback is applied as density feedback instead of using "
+                  "MGXS temperature interpolation tables."
+    capabilities = 'openmc'
+  []
+[]

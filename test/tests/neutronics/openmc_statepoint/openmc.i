@@ -7,12 +7,12 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
+  batches = 50 # this number needs to match the value in settings.xml for the purpose of the test
 []
 
 [Executioner]
   type = Transient
   num_steps = 1
-  batches = 50 # this number needs to match the value in settings.xml for the purpose of the test
 []
 
 [Postprocessors]

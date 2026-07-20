@@ -18,6 +18,7 @@
     csvdiff = solid_out_openmc0.csv
     prereq = make_mesh
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
+    min_slots = 2 # memory heavy
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with cell tallies."
     capabilities = 'openmc'
@@ -28,6 +29,7 @@
     csvdiff = solid_um_out_openmc0.csv
     prereq = make_mesh
     mesh_mode = 'replicated'
+    min_slots = 2 # memory heavy
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with an unstructured mesh tally."

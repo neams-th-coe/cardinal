@@ -21,18 +21,25 @@ for more information.
 
 ## Improv
 
-Last updated on 01/15/2025
+Last updated on 03/06/2026
 
 [Improv](https://docs.lcrc.anl.gov/improv/getting-started-improv/)
 is an [!ac](HPC) system at [!ac](ANL) with 825 AMD EPYC dual-socket
-nodes (128 cores per node).
+nodes (128 cores per node). After loading the `miniforge3/25.3.0` module,
+you will need to pip install two python modules.
+
+```
+pip install pyaml
+pip install jinja2
+```
 
 !listing! language=bash caption=Sample `~/.bashrc` for Improv id=im1
 module purge
 module load gcc/11.4.0
-module load openmpi/5.0.0-gcc-11.4.0
+module load openmpi/4.1.6-gcc-11.4.0-pbs
 module load cmake/3.27.4
-module load anaconda3/2024.10
+module load perl/5.38.0-gcc-11.4.0
+module load miniforge3/25.3.0
 
 export CC=mpicc
 export CXX=mpicxx
@@ -49,7 +56,9 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
-!listing scripts/job_improv language=bash caption=Sample job script for Improv with the `startup` project code id=im2
+!listing scripts/job_improv_nek language=bash caption=Sample job script for Improv with the `startup` project code for a NekRS job id=im2
+
+!listing scripts/job_improv_openmc language=bash caption=Sample job script for Improv with the `startup` project code for an OpenMC job. When using this script, you must modify the PBS selection directive (`select`) and the value of `nodes` to change the number of nodes you're requesting id=im3
 
 ## Bebop
 
@@ -160,7 +169,7 @@ export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
 
 ## Frontier
 
-Last updated on 02/17/2024
+Last updated on 03/25/2026 (thanks to M. Dalinger for his contributions)
 
 Frontier is an [!ac](HPC) system at [!ac](ORNL) with 9408 AMD compute nodes, each with
 4 AMD MI250X, each with 2 Graphics Compute Dies (GCDs), which you can think of as
@@ -179,22 +188,39 @@ need to pass some additional settings to libMesh.
 
 ```
 ./contrib/moose/scripts/update_and_rebuild_petsc.sh
-./contrib/moose/scripts/update_and_rebuild_libmesh.sh --enable-xdr-required --with-xdr-include=/usr/include
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh --enable-xdr-required --with-xdr-include=/usr/include --with-vexcl=no
 ./contrib/moose/scripts/update_and_rebuild_wasp.sh
+```
+
+You'll also then edit the `cardinal/config/nekrs.mk` file to disable HYPRE GPU support.
+Add this line to the CMake flags:
+
+```
+  -DENABLE_HYPRE_GPU=OFF \
 ```
 
 !listing! language=bash caption=Sample `~/.bashrc` for Frontier id=fr1
 if [ $LMOD_SYSTEM_NAME = frontier ]; then
-    module purge
-    module load PrgEnv-gnu craype-accel-amd-gfx90a cray-mpich rocm cray-python/3.9.13.1 cmake/3.21.3
+    module reset
+    module load PrgEnv-gnu
+    module load cray-python
+    module load gcc-native/13.2
+    module load craype-accel-amd-gfx90a
+    module load cray-mpich
+    module load rocm
+    module load cmake
     module unload cray-libsci
 
-    # Revise for your Cardinal repository location
-    DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME/frontier
-    cd $DIRECTORY_WHERE_YOU_HAVE_CARDINAL
+    export CC=cc
+    export CXX=CC
+    export FC=ftn
+    export F90=ftn
+    export F77=ftn
 
-    HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
-    export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+    # Revise for your Cardinal repository location
+    DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$(realpath -P /lustre/orion/fus166/proj-shared/novak)
+
+    export NEKRS_HOME=$DIRECTORY_WHERE_YOU_HAVE_CARDINAL/install
 
     export OPENMC_CROSS_SECTIONS=/lustre/orion/fus166/proj-shared/novak/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 fi

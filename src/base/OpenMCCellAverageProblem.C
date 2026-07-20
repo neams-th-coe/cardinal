@@ -28,6 +28,7 @@
 #include "SetupMGXSAction.h"
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
+#include "CriticalitySearchBase.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -126,6 +127,13 @@ OpenMCCellAverageProblem::validParams()
       "density_blocks",
       "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "there will be no density feedback to OpenMC.");
+  params.addRangeCheckedParam<std::vector<Real>>(
+      "mgxs_reference_densities_by_block",
+      "mgxs_reference_densities_by_block > 0.0",
+      "Reference density values to use when applying density feedback (only used in multi-group "
+      "mode). These densities represent the initial densities used when generated the multigroup "
+      "library. Each entry maps to the corresponding row in 'density_blocks.' Units are "
+      "expected to be kg/m3.");
 
   params.addParam<unsigned int>("cell_level",
                                 "Coordinate level in OpenMC (across the entire geometry) to use "
@@ -191,6 +199,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _using_skinner(isParamValid("skinner")),
+    // 'used_displaced' is added to '_need_to_reinit_coupling' later in the ctor.
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
@@ -275,7 +284,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // guarantee that the tallies from iteration to iteration correspond to exactly
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
-  if (_need_to_reinit_coupling && _relaxation != relaxation::none)
+  if ((_use_displaced || _has_adaptivity) && _relaxation != relaxation::none)
     paramError(
         "relaxation",
         "When adaptivity is requested or a displaced problem is used, the mapping from the "
@@ -396,6 +405,35 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   readBlockVariables("temperature", "temp", _temp_vars_to_blocks, _temp_blocks);
   readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
 
+  // When running in multi-group mode, the user needs to provide a reference density if density
+  // feedback is specified (to convert to the dimensionless MGXS density). In the future, it would
+  // be nice if OpenMC materials could store their own reference densities (in multi-group mode)
+  // as this is rather error prone.
+  if (!openmc::settings::run_CE && _specified_density_feedback)
+  {
+    checkRequiredParam(params,
+                       "mgxs_reference_densities_by_block",
+                       "running in multi-group mode and using density feedback");
+    const auto & density_scales = getParam<std::vector<Real>>("mgxs_reference_densities_by_block");
+
+    const auto & density_blocks =
+        getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
+
+    if (density_scales.size() != density_blocks.size())
+      paramError(
+          "mgxs_reference_densities_by_block",
+          "'mgxs_reference_densities_by_block' must have the same number of entries as rows in "
+          "'density_blocks'!");
+
+    for (unsigned int i = 0; i < density_blocks.size(); ++i)
+      for (const auto & subdomain_name : density_blocks[i])
+        _subdomain_to_ref_density[mesh().getSubdomainID(subdomain_name)] = density_scales[i];
+  }
+  else
+    checkUnusedParam(params,
+                     "mgxs_reference_densities_by_block",
+                     "not running in multi-group mode and using density feedback");
+
   for (const auto & i : _identical_cell_fill_blocks)
     if (std::find(_density_blocks.begin(), _density_blocks.end(), i) != _density_blocks.end())
       paramError(
@@ -475,7 +513,7 @@ OpenMCCellAverageProblem::readBlockVariables(
   std::vector<std::vector<SubdomainName>> blocks;
   read2DBlockParameters(b, blocks, specified_blocks);
 
-  // now, get the names of those temperature variables
+  // now, get the names of those variables
   std::vector<std::vector<std::string>> vars;
   if (isParamValid(v))
   {
@@ -490,7 +528,7 @@ OpenMCCellAverageProblem::readBlockVariables(
                  std::to_string(vars.size()) + " and '" + b + "' is of length " +
                  std::to_string(blocks.size()));
 
-    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+    // TODO: for now, we restrict each set of blocks to map to a single variable
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
         mooseError("Each entry in '" + v + "' must be of length 1. Entry " + std::to_string(i) +
@@ -522,9 +560,12 @@ OpenMCCellAverageProblem::initialSetup()
                  "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
                  "Unexpected behavior may occur.");
 
-  // Coupling re-initialization should be triggered if we have cells transofrms which can happen
+  // Coupling re-initialization should be triggered if we have cell transforms which can happen
   // even if the mesh isn't moving or adaptive.
   _need_to_reinit_coupling |= hasCellTransform();
+  // The criticality search may modify the geometry.
+  if (_criticality_search)
+    _need_to_reinit_coupling |= _criticality_search->changingGeometry();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
@@ -1431,7 +1472,29 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
         _subdomain_to_material[s].insert(m);
   }
 
-  VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
+  // Warn the user if a reference density is applied to multiple materials.
+  for (const auto & [sub, sub_materials] : _subdomain_to_material)
+  {
+    if (_subdomain_to_ref_density.count(sub) && sub_materials.size() > 1)
+    {
+      std::string materials;
+      for (auto mat : sub_materials)
+        materials += materialName(mat) + ", ";
+
+      mooseWarning("Reference density " + Moose::stringify(_subdomain_to_ref_density.at(sub)) +
+                   " is being applied to a subdomain (" + subdomainName(sub) +
+                   ") which maps to multiple OpenMC materials: " +
+                   materials.substr(0, materials.size() - 2) +
+                   ". If these multiple materials had different densities during " +
+                   "the MGXS generation stage, your model is not consistently " +
+                   "applying density feedback. The solution is to create a " +
+                   "separate mesh subdomain for each OpenMC material.");
+    }
+  }
+
+  VariadicTable<std::string, std::string> vt_ce({"Subdomain", "Material"});
+  VariadicTable<std::string, std::string, std::string> vt_mg(
+      {"Subdomain", "Reference Density", "Material"});
   auto subdomains = coupledSubdomains();
   for (const auto & i : subdomains)
   {
@@ -1453,8 +1516,14 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       mats += " " + m.first + extra + ",";
     }
 
+    auto ref_density_str = _subdomain_to_ref_density.count(i)
+                               ? Moose::stringify(_subdomain_to_ref_density.at(i))
+                               : std::string("");
     mats.pop_back();
-    vt.addRow(subdomainName(i), mats);
+    if (openmc::settings::run_CE)
+      vt_ce.addRow(subdomainName(i), mats);
+    else
+      vt_mg.addRow(subdomainName(i), ref_density_str, mats);
   }
 
   if (_cell_to_elem.size())
@@ -1462,12 +1531,19 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     _console
         << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n"
         << std::endl;
-    _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-    _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
-             << "                  show the ID. If N duplicate material names, we show the\n"
-             << "                  number in ( ).\n"
-             << std::endl;
-    vt.print(_console);
+    _console << "              Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+    if (!openmc::settings::run_CE)
+      _console << "      Reference Density:  Reference density (kg/m3) applied to the subdomain"
+               << std::endl;
+    _console
+        << "               Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
+        << "                          show the ID. If N duplicate material names, we show the\n"
+        << "                          number in ( ).\n"
+        << std::endl;
+    if (openmc::settings::run_CE)
+      vt_ce.print(_console);
+    else
+      vt_mg.print(_console);
     _console << std::endl;
   }
 }
@@ -2299,7 +2375,8 @@ OpenMCCellAverageProblem::externalSolve()
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
 OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
     const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-    const std::vector<coupling::CouplingFields> * phase = nullptr) const
+    const std::vector<coupling::CouplingFields> * phase,
+    const std::map<SubdomainID, Real> * scaling) const
 {
   const auto & sys_number = _aux->number();
 
@@ -2327,7 +2404,8 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
       const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       auto v = var_num.at(elem->subdomain_id()).first;
       auto dof_idx = elem->dof_number(sys_number, v, 0);
-      product += _serialized_solution(dof_idx) * elem->volume();
+      const auto scale_val = scaling ? scaling->at(elem->subdomain_id()) : 1.0;
+      product += _serialized_solution(dof_idx) * elem->volume() / scale_val;
     }
 
     volume_product.push_back(product);
@@ -2432,8 +2510,9 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   // collect the volume-density product across local ranks
   std::vector<coupling::CouplingFields> phase = {coupling::density,
                                                  coupling::density_and_temperature};
+  const auto scaling = openmc::settings::run_CE ? nullptr : &_subdomain_to_ref_density;
   std::map<cellInfo, Real> cell_vol_density =
-      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase);
+      computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, scaling);
 
   for (const auto & c : _cell_to_elem)
   {
@@ -2448,14 +2527,26 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
     maximum = std::max(maximum, average_density);
 
     if (_verbose)
-      _console << "Setting cell " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4)
-               << average_density << std::endl;
+    {
+      if (openmc::settings::run_CE)
+        _console << "Setting cell " << printCell(cell_info)
+                 << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
+      else
+        _console << "Setting cell " << printCell(cell_info)
+                 << " to MGXS density (-): " << std::setw(4) << average_density << std::endl;
+    }
 
     setCellDensity(average_density, cell_info);
   }
 
   if (!_verbose)
-    _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum << std::endl;
+  {
+    if (openmc::settings::run_CE)
+      _console << " Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum
+               << std::endl;
+    else
+      _console << " Sent cell-averaged min/max (-): " << minimum << ", " << maximum << std::endl;
+  }
 }
 
 Real
@@ -2501,6 +2592,15 @@ OpenMCCellAverageProblem::tallyMultiplier(const std::string & score_name,
   }
 }
 
+const Real
+OpenMCCellAverageProblem::getReferenceDensity(const Elem * elem) const
+{
+  // The element should never be null entering this function.
+  assert(elem != nullptr);
+
+  return openmc::settings::run_CE ? 1.0 : _subdomain_to_ref_density.at(elem->subdomain_id());
+}
+
 void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
@@ -2535,90 +2635,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         _displaced_problem->updateMesh();
       }
 
-#ifdef ENABLE_DAGMC
-      if (_skinner)
-      {
-        // Update the OpenMC geometry to take into account skinning. This also calls
-        // _skinner->update().
-        updateOpenMCGeometry();
-
-        // regenerate the DAGMC geometry
-        reloadDAGMC();
-      }
-#endif
-      if (_need_to_reinit_coupling)
-      {
-        if (_volume_calc)
-          _volume_calc->resetVolumeCalculation();
-
-        resetTallies();
-        setupProblem();
-      }
-
-      // Change nuclide composition of material; we put this here so that we can still then change
-      // the _overall_ density (like due to thermal expansion, which does not change the relative
-      // amounts of the different nuclides)
-      sendNuclideDensitiesToOpenMC();
-
-      if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
-      {
-        std::string incoming_transfer =
-            _specified_density_feedback ? "temperature and density" : "temperature";
-
-        switch (_initial_condition)
-        {
-          case coupling::hdf5:
-          {
-            // if we're reading temperature and density from an existing HDF5 file,
-            // we don't need to send anything in to OpenMC, so we can leave.
-            importProperties();
-            _console << "Skipping " << incoming_transfer
-                     << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
-            return;
-          }
-          case coupling::moose:
-          {
-            // transfer will happen from MOOSE - proceed normally
-            break;
-          }
-          case coupling::xml:
-          {
-            // if we're just using whatever temperature and density are already in the XML
-            // files, we don't need to send anything in to OpenMC, so we can leave.
-            _console << "Skipping " << incoming_transfer
-                     << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
-            return;
-          }
-          default:
-            mooseError("Unhandled OpenMCInitialConditionEnum!");
-        }
-      }
-
-      // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
-      // to be setting the temperature of all of the cells in cell_to_elem - only for the density
-      // transfer do we need to filter for the fluid cells
-      sendTemperatureToOpenMC();
-
-      sendDensityToOpenMC();
-
-      if (_export_properties)
-        openmc_properties_export("properties.h5");
-
-      // After setting cell temperatures, we need to re-initialize MGXS data as temperature
-      // interpolation is performed on initialization. Verbosity is temporarily modified here
-      // as the user has seen the MGXS initialization info previously.
-      if (!openmc::settings::run_CE)
-      {
-        auto initial_verbosity = openmc::settings::verbosity;
-        openmc::settings::verbosity = 1;
-        // Clear the MGXS manager.
-        openmc::data::mg = {};
-        // Reload the MGXS data.
-        openmc::data::mg.read_header(openmc::settings::path_cross_sections);
-        openmc::put_mgxs_header_data_to_globals();
-        openmc::finalize_cross_sections();
-        openmc::settings::verbosity = initial_verbosity;
-      }
+      // Reinitialize the MOOSE -> OpenMC coupling.
+      reinitCouplingAndApplyFeedback();
 
       break;
     }
@@ -2669,6 +2687,109 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 
   _first_transfer = false;
+  _aux->solution().close();
+  _aux->system().update();
+}
+
+void
+OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
+{
+#ifdef ENABLE_DAGMC
+  if (_skinner)
+  {
+    // Update the OpenMC geometry to take into account skinning. This also calls
+    // _skinner->update().
+    updateOpenMCGeometry();
+
+    // regenerate the DAGMC geometry
+    reloadDAGMC();
+  }
+#endif
+
+  if (_need_to_reinit_coupling)
+  {
+    if (_volume_calc)
+      _volume_calc->resetVolumeCalculation();
+
+    resetTallies();
+    setupProblem();
+  }
+
+  // Change nuclide composition of material; we put this here so that we can still then change
+  // the _overall_ density (like due to thermal expansion, which does not change the relative
+  // amounts of the different nuclides)
+  sendNuclideDensitiesToOpenMC();
+
+  if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
+  {
+    std::string incoming_transfer =
+        _specified_density_feedback ? "temperature and density" : "temperature";
+
+    switch (_initial_condition)
+    {
+      case coupling::hdf5:
+      {
+        // if we're reading temperature and density from an existing HDF5 file,
+        // we don't need to send anything in to OpenMC, so we can leave.
+        importProperties();
+        _console << "Skipping " << incoming_transfer
+                 << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
+        return;
+      }
+      case coupling::moose:
+      {
+        // transfer will happen from MOOSE - proceed normally
+        break;
+      }
+      case coupling::xml:
+      {
+        // if we're just using whatever temperature and density are already in the XML
+        // files, we don't need to send anything in to OpenMC, so we can leave.
+        _console << "Skipping " << incoming_transfer
+                 << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
+        return;
+      }
+      default:
+        mooseError("Unhandled OpenMCInitialConditionEnum!");
+    }
+  }
+
+  // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
+  // to be setting the temperature of all of the cells in cell_to_elem - only for the density
+  // transfer do we need to filter for the fluid cells
+  sendTemperatureToOpenMC();
+
+  sendDensityToOpenMC();
+
+  if (_export_properties)
+    openmc_properties_export("properties.h5");
+
+  // After setting cell temperatures, we need to re-initialize MGXS data as temperature
+  // interpolation is performed on initialization. Verbosity is temporarily modified here
+  // as the user has seen the MGXS initialization info previously.
+  if (!openmc::settings::run_CE)
+  {
+    auto initial_verbosity = openmc::settings::verbosity;
+    openmc::settings::verbosity = 1;
+    // Clear the MGXS manager.
+    openmc::data::mg = {};
+    // Reload the MGXS data.
+    openmc::data::mg.read_header(openmc::settings::path_cross_sections);
+    openmc::put_mgxs_header_data_to_globals();
+    openmc::finalize_cross_sections();
+    openmc::settings::verbosity = initial_verbosity;
+  }
+}
+
+void
+OpenMCCellAverageProblem::critSearchStep()
+{
+  _aux->serializeSolution();
+
+  // Reinitialize the OpenMC coupling prior to the execution of
+  // a criticality search step.
+  reinitCouplingAndApplyFeedback();
+
   _aux->solution().close();
   _aux->system().update();
 }

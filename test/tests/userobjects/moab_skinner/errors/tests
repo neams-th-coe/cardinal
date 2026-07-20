@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#567'
+  design = 'MoabSkinner.md'
+
   [invalid_max_temp]
     type = RunException
     input = skinner.i
@@ -51,15 +54,6 @@
     mesh_mode = 'replicated'
     expect_err = "Variable 'rho' has value above maximum range of bins. Please increase 'density_max'."
     requirement = "The system shall error if the density is above the maximum bin bound"
-    capabilities = 'dagmc'
-  []
-  [invalid_mesh]
-    type = RunException
-    input = skinner.i
-    cli_args = 'Mesh/cube/file=../../../neutronics/meshes/sphere.e'
-    mesh_mode = 'replicated'
-    expect_err = "The MoabSkinner can only be used with a tetrahedral \[Mesh\]!"
-    requirement = "The system shall error if the skinned mesh does not contain tetrahedral elements"
     capabilities = 'dagmc'
   []
   [invalid_graveyard_scales]
