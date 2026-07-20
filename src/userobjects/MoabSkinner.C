@@ -365,18 +365,12 @@ MoabSkinner::initialize()
   }
   else
   {
-    // 'material_blocks'/'material_names' was not supplied in the input.
+    // Neither 'material_blocks' nor 'material_names' was supplied in the input.
     // This is only valid when the skinner is controlled externally, e.g. an .h5m was
     // prepared outside of Cardinal and material names is set in setMaterialNames().
     if (_standalone)
-    {
-      paramError("material_blocks",
-                 "'material_blocks' is required when using the MoabSkinner independent of an "
-                 "OpenMCCellAverageProblem");
-      paramError("material_names",
-                 "'material_names' is required when using the MoabSkinner independent of an "
-                 "OpenMCCellAverageProblem");
-    }
+      mooseError("When using the MoabSkinner independent of an OpenMCCellAverageProblem "
+                 "it requires both 'material_blocks' and 'material_names' parameters.");
     for (const auto & [subdomain_id, block_index] : _blocks)
       _block_id_to_material_name[subdomain_id] = _material_names[block_index];
   }

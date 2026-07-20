@@ -37,6 +37,16 @@
     capabilities = 'dagmc'
     requirement = "The system shall error if 'material_blocks' is specified without 'material_names'"
   []
+  [standalone_requires_material_blocks_and_names]
+    type = RunException
+    input = no_material_names.i
+    expect_err = "When using the MoabSkinner independent of an OpenMCCellAverageProblem it "
+                 "requires both 'material_blocks' and 'material_names' parameters."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+    requirement = "The system shall error if neither 'material_blocks' nor 'material_names' is "
+                  "provided when using the skinner independent of an OpenMCCellAverageProblem"
+  []
   [unlisted_block_void_warning]
     type = RunException
     input = generate_dagmc.i

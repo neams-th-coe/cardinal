@@ -25,7 +25,6 @@
     temperature_max = 1000
     n_temperature_bins = 1
     temperature = temp
-    material_blocks = '1 2'
   []
 []
 
