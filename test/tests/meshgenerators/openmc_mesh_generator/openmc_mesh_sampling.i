@@ -67,7 +67,7 @@
     type = VolumePostprocessor
   []
   [num_elems]
-    type = NumElems
+    type = NumElements
   []
   [num_nodes]
     type = NumNodes
