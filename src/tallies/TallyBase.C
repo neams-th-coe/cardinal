@@ -204,7 +204,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
       if (estimator != tally::analog && nu_scatter)
         paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
 
-      if (estimator == openmc::TallyEstimator::TRACKLENGTH && openmc::settings::delta_tracking)
+      if (estimator == tally::tracklength && openmc::settings::delta_tracking)
         paramError("estimator", "Tracklength estimators are not supported when running delta tracking!");
 
       _estimator = _openmc_problem.tallyEstimator(estimator);
