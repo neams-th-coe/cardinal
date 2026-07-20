@@ -552,6 +552,14 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
+  // Find model modifier objects
+  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("OpenMCCellMaterialFill");
+  std::vector<OpenMCCellMaterialFill *> mm_objs;
+  mm_query.queryInto(mm_objs);
+  for (const auto & m : mm_objs) {
+    _cell_material_modifiers[m->get_cell_id()] = m;
+  }
+  
   getOpenMCUserObjects();
 
   if (_use_displaced && !_using_skinner && !hasCellTransform())
@@ -3324,16 +3332,22 @@ OpenMCCellAverageProblem::containedMaterialCells(const cellInfo & cell_info) con
 std::vector<int32_t>
 OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cells) const
 {
+
   std::vector<int32_t> mats;
   for (const auto & contained : contained_cells)
   {
-    for (const auto & instance : contained.second)
+    if (_cell_material_modifiers.contains(contained.first))
+      mats = _cell_material_modifiers[contained.first]->get_material_indices();
+    else 
     {
-      // we know this is a material cell, so we don't need to check that the fill is material
-      int32_t material_index;
-      cellInfo cell_info = {contained.first, instance};
-      materialFill(cell_info, material_index);
-      mats.push_back(material_index);
+      for (const auto & instance : contained.second)
+      {
+        // we know this is a material cell, so we don't need to check that the fill is material
+        int32_t material_index;
+        cellInfo cell_info = {contained.first, instance};
+        materialFill(cell_info, material_index);
+        mats.push_back(material_index);
+      }
     }
   }
 
