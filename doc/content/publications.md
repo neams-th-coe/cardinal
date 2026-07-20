@@ -157,6 +157,10 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 
 # Sodium Fast Reactors
 
+S. Garcia, M.A. Allaf, I. Naupa, L. Gross, D. Kotlyar, and B. Lindley,
+["Multiphysics Framework Comparison for a Liquid Metal Microreactor"](https://www.ans.org/pubs/transactions/article-58713/)
+*Proceedings of ANS* (2026)
+
 D.R. Shaver and M. Dalinger,
 "Simulation of NACIE Benchmark Tests using NekRS and Cardinal"
 *NURETH* (2025)
@@ -201,7 +205,17 @@ M. Dalinger, E. Merzari, T. Nguyen, and R. Martineau, ["High-Fidelity Multiphysi
 M. Dalinger, E. Merzari, T. Nguyen, M. Seneca, and R. Martineau, ["Multiphysics Modeling of SNAP 10A/2 Space Reactor with Cardinal"](https://www.ans.org/meetings/nets2025/session/view-2957/)
 *Proceedings of NETS* (2025)
 
+# Shielding
+
+M. Elkamash, L. Charlot, J. Dorville, S. Kumar, M.K. Jaradat, P.A. Ferney, P.K. Romano, and E.R. Shemon,
+["Demonstration of Microreactor Experiments (DOME) Shield Model Development for the Virtual Test Bed Using Cardinal"](https://www.tandfonline.com/doi/full/10.1080/00295639.2026.2675192)
+*Nuclear Science and Engineering* (2026)
+
 # Fusion Devices and Components
+
+S.C.Y. Lo, H.M. Brooks, and D. Foster,
+"Coupled Neutronics and Thermal-Fluid Simulations of Tritium Transport in Molten-Salt Breeder Blankets Using Cardinal"
+*Proceedings of TOFE* (2026)
 
 W. Ellis, H. Brooks, A. Davis, and D. Foster,
 "An Integrated MOOSE Workflow for Activation Modelling Using FISPACT-II and Cardinal"

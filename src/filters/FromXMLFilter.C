@@ -20,6 +20,8 @@
 
 #include "FromXMLFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
+
 registerMooseObject("CardinalApp", FromXMLFilter);
 
 InputParameters
@@ -48,6 +50,9 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
     _filter_id(getParam<unsigned int>("filter_id")),
     _bin_label(getParam<std::string>("bin_label"))
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("FromXMLFilter is presently not supported when running the random ray solver!");
+
   // Check to make sure the filter exists.
   if (openmc::model::filter_map.count(_filter_id) == 0)
     paramError("filter_id",

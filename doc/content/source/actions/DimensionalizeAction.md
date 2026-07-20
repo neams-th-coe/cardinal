@@ -97,7 +97,7 @@ and [eq:V_ref] to give the
 
 \begin{equation}
 \label{eq:pp_dim}
-p=\frac{\int T^\dagger dV^\dagger}{\int dV^\dagger}+\frac{T_{ref}}{\Delta T}
+p=\Delta T \frac{\int T^\dagger dV^\dagger}{\int dV^\dagger}+T_{ref}
 \end{equation}
 
 where $p$ is the value of the postprocessor in dimensional form (which

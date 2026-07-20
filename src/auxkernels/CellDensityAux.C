@@ -61,11 +61,14 @@ CellDensityAux::computeValue()
   double density;
   int err = openmc_cell_get_density(cell_info.first, &cell_info.second, &density);
 
+  // Rescale by the reference density, if required.
+  const auto ref_den = _openmc_problem->getReferenceDensity(_current_elem);
+
   if (err)
     mooseError("In attempting to get the density for " + _openmc_problem->printCell(cell_info) +
                ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
-  return density / _openmc_problem->densityConversionFactor();
+  return ref_den * density / _openmc_problem->densityConversionFactor();
 }
 
 #endif

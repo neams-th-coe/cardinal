@@ -1,0 +1,37 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [random_ray_eigen]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall properly normalize scores when running the random ray solver in eigenvalue mode. "
+                  "Tallies obtained from a standalone OpenMC random ray simulation were normalized manually and "
+                  "confirmed to match the Cardinal tallies on the MOOSE mesh."
+    capabilities = 'openmc'
+  []
+  [inactive_length]
+    type = CSVDiff
+    input = openmc.i
+    cli_args = "Problem/inactive_distance=0 Outputs/file_base='inactive_length_out'"
+    csvdiff = inactive_length_out.csv
+    requirement = "The system shall allow the user to control the random ray inactive length."
+    capabilities = 'openmc'
+  []
+  [active_length]
+    type = CSVDiff
+    input = openmc.i
+    cli_args = "Problem/active_distance=200 Outputs/file_base='active_length_out'"
+    csvdiff = active_length_out.csv
+    requirement = "The system shall allow the user to control the random ray active length."
+    capabilities = 'openmc'
+  []
+  [global_norm]
+    type = RunException
+    input = global_tally.i
+    expect_err = "flux tallies do not match the global flux tally"
+    requirement = "The system shall allow for global tally normalization through the use of a universe filter."
+    capabilities = 'openmc'
+  []
+[]

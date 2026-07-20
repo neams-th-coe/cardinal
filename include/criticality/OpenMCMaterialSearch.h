@@ -30,6 +30,8 @@ public:
 
   OpenMCMaterialSearch(const InputParameters & parameters);
 
+  virtual bool changingGeometry() const override { return false; }
+
 protected:
   /// Material to be modified
   const int32_t & _material_id;

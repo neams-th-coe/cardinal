@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <cross_sections>./mgxs.h5</cross_sections>
+    <material id="1" name="abs">
+      <density value="1.0" units="macro"/>
+      <macroscopic name="abs"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="7 -8 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="2" material="1" region="8 -9 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="3" material="1" region="9 -10 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="4" material="1" region="10 -11 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="5" material="1" region="11 -12 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="6" material="1" region="12 -13 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="7" material="1" region="13 -14 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="8" material="1" region="14 -15 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="9" material="1" region="15 -16 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="10" material="1" region="16 -17 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="11" material="1" region="17 -18 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="12" material="1" region="18 -19 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="13" material="1" region="19 -20 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="14" material="1" region="20 -21 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="15" material="1" region="21 -22 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="16" material="1" region="22 -23 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="17" material="1" region="23 -24 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="18" material="1" region="24 -25 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="19" material="1" region="25 -26 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="20" material="1" region="26 -27 1 -2 3 -4" temperature="293.6" universe="1"/>
+    <cell id="21" material="void" region="5 -6 1 -2 3 -4" universe="1"/>
+    <cell id="22" material="void" region="6 -7 1 -2 3 -4" universe="1"/>
+    <cell id="23" material="void" region="27 -28 1 -2 3 -4" universe="1"/>
+    <surface id="1" type="y-plane" boundary="vacuum" coeffs="0"/>
+    <surface id="2" type="y-plane" boundary="vacuum" coeffs="2.0"/>
+    <surface id="3" type="z-plane" boundary="vacuum" coeffs="0"/>
+    <surface id="4" type="z-plane" boundary="vacuum" coeffs="2.0"/>
+    <surface id="5" type="x-plane" boundary="vacuum" coeffs="-2.0"/>
+    <surface id="6" type="x-plane" coeffs="-1.0"/>
+    <surface id="7" type="x-plane" coeffs="0.0"/>
+    <surface id="8" type="x-plane" coeffs="10.0"/>
+    <surface id="9" type="x-plane" coeffs="20.0"/>
+    <surface id="10" type="x-plane" coeffs="30.0"/>
+    <surface id="11" type="x-plane" coeffs="40.0"/>
+    <surface id="12" type="x-plane" coeffs="50.0"/>
+    <surface id="13" type="x-plane" coeffs="60.0"/>
+    <surface id="14" type="x-plane" coeffs="70.0"/>
+    <surface id="15" type="x-plane" coeffs="80.0"/>
+    <surface id="16" type="x-plane" coeffs="90.0"/>
+    <surface id="17" type="x-plane" coeffs="100.0"/>
+    <surface id="18" type="x-plane" coeffs="110.0"/>
+    <surface id="19" type="x-plane" coeffs="120.0"/>
+    <surface id="20" type="x-plane" coeffs="130.0"/>
+    <surface id="21" type="x-plane" coeffs="140.0"/>
+    <surface id="22" type="x-plane" coeffs="150.0"/>
+    <surface id="23" type="x-plane" coeffs="160.0"/>
+    <surface id="24" type="x-plane" coeffs="170.0"/>
+    <surface id="25" type="x-plane" coeffs="180.0"/>
+    <surface id="26" type="x-plane" coeffs="190.0"/>
+    <surface id="27" type="x-plane" coeffs="200.0"/>
+    <surface id="28" type="x-plane" boundary="vacuum" coeffs="210.0"/>
+  </geometry>
+  <settings>
+    <run_mode>fixed source</run_mode>
+    <particles>5000</particles>
+    <batches>1000</batches>
+    <inactive>0</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-1.0 0.0 0.0 0.0 2.0 2.0</parameters>
+      </space>
+      <energy type="discrete">
+        <parameters>1000.0 1.0</parameters>
+      </energy>
+      <constraints>
+        <domain_type>cell</domain_type>
+        <domain_ids>22</domain_ids>
+      </constraints>
+    </source>
+    <energy_mode>multi-group</energy_mode>
+    <temperature_default>300.0</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_range>293.6 1200.0</temperature_range>
+    <temperature_tolerance>10.0</temperature_tolerance>
+    <random_ray>
+      <distance_inactive>0.0</distance_inactive>
+      <distance_active>209.0</distance_active>
+      <source type="independent" strength="1.0" particle="neutron">
+        <space type="box">
+          <parameters>-2.0 0.0 0.0 -1.0 2.0 2.0</parameters>
+        </space>
+      </source>
+      <source_shape>flat</source_shape>
+      <sample_method>s2</sample_method>
+    </random_ray>
+  </settings>
+  </model>

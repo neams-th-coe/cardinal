@@ -38,7 +38,9 @@ public:
    */
   virtual moab::ErrorCode check(const moab::ErrorCode input) const;
 
-  std::string materialName(const unsigned int & block, const unsigned int & density, const unsigned int & temp) const;
+  std::string materialName(const unsigned int & block,
+                           const unsigned int & density,
+                           const unsigned int & temp) const;
 
   /// Perform the skinning operation
   virtual void update();
@@ -231,6 +233,12 @@ protected:
   /// Whether this class runs by itself, or is controlled by an external class
   bool _standalone;
 
+  /// True when buildTetMesh() is called
+  bool _tet_mesh_built;
+
+  /// TET4 clone of the MOOSE mesh. Present only when the source mesh contains non-tetrahedral elements. Rebuilt each update() cycle.
+  std::unique_ptr<MeshBase> _tet_mesh;
+
   /// Encode the whether the surface normal faces into or out of the volume
   enum Sense
   {
@@ -245,13 +253,25 @@ protected:
     Sense sense;
   };
 
-  /// Moose mesh
+  /// Get the MooseMesh (displaced or not, depending on _use_displaced)
   MooseMesh & getMooseMesh();
+
+  /**
+   * Return the mesh used for DAGMC geometry construction.
+   * @return *_tet_mesh when the source mesh contained non-tetrahedral elements
+   * and an internal conversion was performed; otherwise returns getMooseMesh().getMesh().
+   */
+  MeshBase & getDAGMCGeometryMesh();
+
+  /// If the mesh has non-tetrahedral elements, clone it into _tet_mesh and convert to all-TET4
+  void buildTetMesh();
+
   /**
    * Copy the libMesh [Mesh] into a MOAB mesh. This first loops through all of the
    * nodes, and rebuilds each as a MOAB vertex. Then, we loop over all of the elements
    * and rebuild each as a TET4 (if the libMesh mesh has TET10 elements, they are each
-   * rebuilt into 8 TET4 elements).
+   * rebuilt into 8 TET4 elements). When the source mesh contained non-tetrahedral elements,
+   * the geometry mesh is the internally-converted all-TET4 clone rather than the MOOSE mesh
    */
   void createMOABElems();
 
@@ -264,10 +284,12 @@ protected:
    * @param[in] name name for the group
    * @param[in] group_set group of entities
    */
-  void createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set);
+  void
+  createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set);
 
   /// Helper method to create MOAB volume entity set
-  void createVol(const unsigned int & id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
+  void
+  createVol(const unsigned int & id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
 
   /// Helper method to create MOAB surface entity set
   void createSurf(const unsigned int & id,

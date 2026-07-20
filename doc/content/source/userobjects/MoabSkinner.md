@@ -26,6 +26,16 @@ which to track particles.
 You can visualize this user object (i.e., the bin
 indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
 
+### Supported Mesh Element Types
+
+`MoabSkinner` natively supports meshes consisting of TET4 and TET10 elements, since DAGMC
+geometry requires triangulated surfaces (i.e. skins of tetrahedra). Meshes containing HEX, PYRAMID, PRISM
+elements are also supported: when these elements are detected, an internal all-TET4 copy of
+the mesh is built automatically, and all skinning
+and geometry operations are performed on that copy. The original MOOSE mesh is never
+modified; temperature, density, and subdomain binning are always evaluated on the original
+mesh where the auxiliary variables live. Higher order versions of these element types are also supported.
+
 ## Example Input Syntax
 
 Below is an example input file that skins a mesh, generating the bin distributions

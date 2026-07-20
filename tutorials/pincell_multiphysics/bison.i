@@ -194,8 +194,8 @@ M = 25
   nl_rel_tol = 1e-25
   l_tol = 1e-15
   l_abs_tol = 1e-50
-  petsc_options_value = 'hypre boomeramg'
-  petsc_options_iname = '-pc_type -pc_hypre_type'
+  petsc_options_iname = '-pc_type -pc_factor_mat_solver_type'
+  petsc_options_value = 'lu superlu_dist'
 []
 
 [Outputs]

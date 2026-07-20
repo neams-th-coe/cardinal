@@ -1,0 +1,14 @@
+[Tests]
+  issues = '#1273'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [random_ray_fs]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall properly normalize scores when running the random ray solver in fixed "
+                  "source mode. Tallies obtained from a standalone OpenMC random ray simulation were "
+                  "normalized manually and confirmed to match the Cardinal tallies on the MOOSE mesh."
+    capabilities = 'openmc'
+  []
+[]

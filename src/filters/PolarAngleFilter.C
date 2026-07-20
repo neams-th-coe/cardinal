@@ -20,6 +20,8 @@
 
 #include "PolarAngleFilter.h"
 
+#include "OpenMCCellAverageProblem.h"
+
 #include "openmc/tallies/filter_polar.h"
 
 registerMooseObject("CardinalApp", PolarAngleFilter);
@@ -48,6 +50,9 @@ PolarAngleFilter::validParams()
 
 PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters) : FilterBase(parameters)
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("PolarAngleFilter is presently not supported when running the random ray solver!");
+
   if (isParamValid("num_equal_divisions") == isParamValid("polar_angle_boundaries"))
     mooseError("You have either set 'num_equal_divisions' and 'polar_angle_boundaries' or have not "
                "specified a bin option! Please specify either 'num_equal_divisions' or "

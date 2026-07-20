@@ -112,6 +112,10 @@ MeshTally::MeshTally(const InputParameters & parameters)
    */
   if (_instance != 0)
     _tally_name = std::vector<std::string>();
+
+  // The random ray solver requires tracklength estimators, which unstructured meshes don't support.
+  if (_openmc_problem.runRandomRay())
+    mooseError("Unstructured mesh tallies are not supported when using the random ray solver!");
 }
 
 std::pair<unsigned int, openmc::Filter *>

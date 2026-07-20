@@ -43,6 +43,9 @@ DelayedGroupFilter::validParams()
 DelayedGroupFilter::DelayedGroupFilter(const InputParameters & parameters)
   : FilterBase(parameters), _delayed_groups(getParam<std::vector<int>>("dnp_groups"))
 {
+  if (_openmc_problem.runRandomRay())
+    mooseError("DelayedGroupFilter is presently not supported when running the random ray solver!");
+
   _openmc_problem.checkEmptyVector(_delayed_groups, "dnp_groups");
 
   // Initialize the OpenMC DelayedGroupFilter.
