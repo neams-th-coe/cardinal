@@ -32,7 +32,7 @@
     type = RunException
     input = no_material_names.i
     cli_args = "UserObjects/moab/material_blocks='block_1 block_2'"
-    expect_err = "'material_names' parameter must be provided whenever 'material_blocks' is provided"
+    expect_err = "'material_blocks' and 'material_names' must both be provided if specifying materials for the skinner"
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
     requirement = "The system shall error if 'material_blocks' is specified without 'material_names'"
