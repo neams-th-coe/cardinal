@@ -45,18 +45,18 @@ MoabSkinner::validParams()
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
       "DAGMC geometry. Must be provided together with 'material_names' where both have the same "
-      "length."
+      "length and are listed in the same order."
       "Any subdomain not listed in 'material_blocks' will have no material assignment and OpenMC "
       "will"
-      "default to void for that region. This parameter is optional when coupled with "
+      "default to void for that region. This parameter is optional when used in combination with "
       "OpenMCCellAverageProblem"
-      "where material names are deduced from OpenMC.");
+      "because in this case, the default is to auto-detect the materials in the original h5m file and re-apply them during skinning.");
   params.addParam<std::vector<std::string>>(
       "material_names",
       "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
-      "Must be provided together with 'material_names' where both have the same length"
-      "and listed in the same order. This parameter is optional when coupled with "
-      "OpenMCCellAverageProblem where material names are deduced from OpenMC.");
+      "Must be provided together with 'material_blocks' where both have the same length"
+      "and listed in the same order. This parameter is optional when used in combination with "
+      "OpenMCCellAverageProblem because in this case, the default is to auto-detect the materials in the original h5m file and re-apply them during skinning.");
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
   params.addRangeCheckedParam<Real>(
