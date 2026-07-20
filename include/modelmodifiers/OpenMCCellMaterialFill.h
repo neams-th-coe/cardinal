@@ -39,8 +39,11 @@ public:
 
   virtual void modifyOpenMCModel() const override;
 
+  // Accessor for the cell ID asociated with the OpenMCCellMaterialFill ModelModifier
   const int32_t & get_cell_id() const { return _cell_id; }
 
+  // Accessor for the material indices corresponding the OpenMCCellMaterialFill ModelModifier that
+  // will be applied to the cell
   const std::vector<int32_t> & get_material_indices() const { return _material_indices; }
 
 protected:

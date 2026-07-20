@@ -29,6 +29,7 @@
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 #include "CriticalitySearchBase.h"
+#include "OpenMCCellMaterialFill.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -312,9 +313,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-    // point have DAGMC enabled.
+  // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+  // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+  // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;
@@ -553,13 +554,15 @@ OpenMCCellAverageProblem::initialSetup()
   OpenMCProblemBase::initialSetup();
 
   // Find model modifier objects
-  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("OpenMCCellMaterialFill");
+  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>(
+      "OpenMCCellMaterialFill"); // TODO "ModelModifiers" ?
   std::vector<OpenMCCellMaterialFill *> mm_objs;
   mm_query.queryInto(mm_objs);
-  for (const auto & m : mm_objs) {
+  for (const auto & m : mm_objs)
+  {
     _cell_material_modifiers[m->get_cell_id()] = m;
   }
-  
+
   getOpenMCUserObjects();
 
   if (_use_displaced && !_using_skinner && !hasCellTransform())
@@ -3336,9 +3339,17 @@ OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cell
   std::vector<int32_t> mats;
   for (const auto & contained : contained_cells)
   {
-    if (_cell_material_modifiers.contains(contained.first))
-      mats = _cell_material_modifiers[contained.first]->get_material_indices();
-    else 
+    if (_cell_material_modifiers.find(contained.first) != _cell_material_modifiers.end())
+    {
+      // find the iterator corresponding to the ModelModifier corresponding to the contained cell's
+      // ID
+      auto it = _cell_material_modifiers.find(contained.first);
+      std::vector<int32_t> modifier_mats = it->second->get_material_indices();
+      // insert the contents of the ModelModifiers _material_indices vector into the current mats
+      // vector
+      mats.insert(mats.end(), modifier_mats.begin(), modifier_mats.end());
+    }
+    else
     {
       for (const auto & instance : contained.second)
       {
