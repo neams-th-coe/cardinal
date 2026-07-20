@@ -39,6 +39,10 @@ public:
 
   virtual void modifyOpenMCModel() const override;
 
+  const int32_t & get_cell_id() const { return _cell_id; }
+
+  const std::vector<int32_t> & get_material_indices() const { return _material_indices; }
+
 protected:
   /// Cell to be modified
   const int32_t & _cell_id;
