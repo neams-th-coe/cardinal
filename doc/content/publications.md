@@ -268,6 +268,12 @@ A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Broo
 ["A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"](https://ui.adsabs.harvard.edu/abs/2023arXiv230811777C/abstract)
 *Proceedings of M&C* (2023)
 
+# Depletion
+
+L. Harbour, P. Shriwise, A. Novak, and D. Gaston,
+"MOOSE Web Server Interface: A Message-Based External Interface for Multiphysics Simulations"
+*Proceedings of M&C* (2025)
+
 # Adaptive Mesh Refinement
 
 E.W. Ahammed, K. Sawatzky, L. Gross, A. Novak, P. Shriwise, P. Romano, and P. Wilson,
