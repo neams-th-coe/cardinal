@@ -557,8 +557,14 @@ OpenMCCellAverageProblem::initialSetup()
   TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");
   std::vector<OpenMCCellMaterialFill *> mm_objs;
   mm_query.queryInto(mm_objs);
+
+  // loop through all queried ModelModifiers and add any OpenMCCellMaterialFill
+  // to the _cell_material_modifiers map
   for (const auto & m : mm_objs)
-    _cell_material_modifiers[m->get_cell_index()] = m;
+  {
+    if (dynamic_cast<OpenMCCellMaterialFill *>(m))
+      _cell_material_modifiers[m->getCellIndex()] = m;
+  }
 
   getOpenMCUserObjects();
 
@@ -3339,18 +3345,19 @@ OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cell
     {
       // find the iterator corresponding to the ModelModifier corresponding to the contained
       // cell's index
-      auto it = _cell_material_modifiers.find(contained.first);
-      std::vector<int32_t> modifier_mats = it->second->get_material_indices();
+      std::vector<int32_t> modifier_mats =
+          _cell_material_modifiers.at(contained.first)->getMaterialIndices();
       // insert exactly as many entries from the _material_indices vector as there are cell
-      // instances into the current mats vector
-      if (modifier_mats.size() > contained.second.size())
-        mooseWarning(
-            "The number of instances corresponding to cell with index =" +
-            std::to_string(contained.first) + "(" + std::to_string(contained.second.size()) + ")" +
-            " is less than the number of openmc Materials (" +
-            std::to_string(modifier_mats.size()) +
-            ") found in it's ModelModifier. While this might be the intention, make sure your "
-            "ModelModifier is properly specified.");
+      // instances into the current mats vector, which in most cases is the same number
+
+      // NOTE: for TRISO problems, when contained corresponds to a TRISO cell it is possible
+      // that modifier_mats has many more entries than the actual number of intances of the
+      // contained cell here.
+
+      // This occurs when using the material_ids_file to do zoning, which assigns a material
+      // as many materials as there are instances of this cell in the containing cell.
+      // This case is why the below does not go to modifier_mats.end(), i.e. modifier_mats.end()
+      // does not always have to equal modifier_mats.begin() + contained.second.size().
       mats.insert(
           mats.end(), modifier_mats.begin(), modifier_mats.begin() + contained.second.size());
     }
