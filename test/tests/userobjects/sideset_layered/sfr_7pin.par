@@ -3,15 +3,15 @@
   numSteps = 1
   dt = 5.0e-4
   timeStepper = tombo2
-  writeControl = steps
-  writeInterval = 25
-  dealiasing = yes
+  checkpointControl = steps
+  checkpointInterval = 25
   polynomialOrder = 3
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

@@ -42,22 +42,6 @@ Or, written in tensor notation, the $i$-th component of the expression above is
 f_i-\left(\vec{f}\cdot\hat{n}\right)n_i\right\tau_{ij}n_j-(\tau_{kl}n_ln_k)n_i
 \end{equation}
 
-## Computing the Distance to the Wall
-
-To use this postprocessor, you need to compute the wall distance in NekRS, which
-can be done in the `.usr` file. First, in `usrdat2` you need to explicitly set
-the `cbc` array to `'W  '` for any sidesets which correspond to walls. The `1`
-in `cbc(ifc,iel,1)` corresponds to the sideset ID.
-
-Then, you need to compute the wall distance in `usrdat3` by calling the `distf`
-function. The `1` in `distf(ywd,1,'W  ',w1,w2,w3,w4,w5)` is the sideset ID corresponding
-to the wall. If you have multiple walls in the problem, simply call `dist` multiple times.
-Finally, you need to expose the wall distance to the C++ side of NekRS by assigning
-the `nrs_scptr`. The `1` in `nrs_scptr(1)` is the `wall_distance_index` parameter
-that this object will ask you to provide.
-
-!listing test/tests/postprocessors/nek_yplus/pipe.usr language=fortran
-
 ## Example Input Syntax
 
 As an example, the postprocessors below compute the $y^+$ on a wall

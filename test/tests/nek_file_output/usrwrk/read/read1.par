@@ -1,0 +1,25 @@
+[GENERAL]
+  startFrom = ../aaa0.f00001
+  polynomialOrder = 5
+  stopAt = numSteps
+  numSteps = 1
+  dt = 2e-03
+  timeStepper = tombo3
+  checkpointControl = steps
+  checkpointInterval = 1
+  scalars = zero, one
+  udf = "read.udf"
+
+[MESH]
+  file="../brick.re2"
+
+[FLUID PRESSURE]
+
+[FLUID VELOCITY]
+  solver = none
+
+[SCALAR ZERO]
+  solver = none
+
+[SCALAR ONE]
+  solver = none

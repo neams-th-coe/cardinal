@@ -4,22 +4,25 @@
   numSteps = 1
   dt = 1e-3
   timeStepper = tombo2
-  writeInterval = 1
+  checkpointInterval = 1
   oudf = "nekbox.oudf"
   udf = "nekbox.udf"
+  scalars = temperature
 
 [MESH]
-  solver = none
   file = "nekbox.re2"
 
-[PROBLEMTYPE]
-  stressFormulation = true
-
-[PRESSURE]
-  residualTol = 1e-4
-
-[VELOCITY]
+[GEOM]
   solver = none
 
-[TEMPERATURE]
+[PROBLEMTYPE]
+  stressFormulation = false
+
+[FLUID PRESSURE]
+  residualTol = 1e-4
+
+[FLUID VELOCITY]
+  solver = none
+
+[SCALAR TEMPERATURE]
   solver = none

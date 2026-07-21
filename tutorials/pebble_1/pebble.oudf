@@ -1,17 +1,18 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = 0.0; // x-velocity
-  bc->v = 0.0; // y-velocity
-  bc->w = p_inlet_v; // z-velocity
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = 0.0; // x-velocity
+    bc->uyFluid = 0.0; // y-velocity
+    bc->uzFluid = p_inlet_v; // z-velocity
+  }
+
+  if (isField("scalar temperature"))
+    bc->sScalar = p_inlet_T; // temperature
 }
 
-void scalarDirichletConditions(bcData *bc)
-{
-  bc->s = p_inlet_T; // temperature
-}
-
-void scalarNeumannConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
   // power divided by sphere surface area
-  bc->flux = 315892;
+  bc->fluxScalar = 315892;
 }

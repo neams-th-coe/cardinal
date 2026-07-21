@@ -75,7 +75,8 @@ ScalarTransferBase::ScalarTransferBase(const InputParameters & parameters)
   if (_direction == "from_nek")
     paramError("direction",
                "Reading scalar values from NekRS can be performed using the Postprocessing system. "
-               "Alternatively, if you want to pull out individual scalars from nrs->usrwrk, "
+               "Alternatively, if you want to pull out individual scalars from "
+               "platform->app->bc->o_usrwrk, "
                "contact the Cardinal developer team to request this feature.");
 }
 

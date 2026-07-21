@@ -53,16 +53,36 @@ NekViscousSurfaceForce::NekViscousSurfaceForce(const InputParameters & parameter
 Real
 NekViscousSurfaceForce::getValue() const
 {
-  auto drag = nekrs::viscousDrag(_boundary);
+  auto nrs = nekrs::nrsPtr();
+  auto mesh = nekrs::flowMesh();
+
+  auto o_Sij = nrs->strainRate();
+  auto o_bID = platform->device.malloc<int>(_boundary.size(), _boundary.data());
+
+  auto o_tangentialViscousTraction =
+      nrs->viscousShearStress(o_bID, o_Sij); // tau dot n - ((tau dot n) dot n) * n
+  auto o_normalViscousTraction = nrs->viscousNormalStress(o_bID, o_Sij); // ((tau dot n) dot n) * n
+
+  const dlong Ntotal = o_tangentialViscousTraction.size() / mesh->dim;
+  auto fvT =
+      mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_tangentialViscousTraction);
+  auto fvN = mesh->surfaceAreaMultiplyIntegrate(mesh->dim, Ntotal, o_bID, o_normalViscousTraction);
+
+  auto fx = fvT[0] + fvN[0];
+  auto fy = fvT[1] + fvN[1];
+  auto fz = fvT[2] + fvN[2];
+
+  o_Sij.free();
+  o_bID.free();
 
   if (_component == "total")
-    return std::sqrt(drag[0] * drag[0] + drag[1] * drag[1] + drag[2] * drag[2]);
+    return std::sqrt(fx * fx + fy * fy + fz * fz);
   else if (_component == "x")
-    return drag[0];
+    return fx;
   else if (_component == "y")
-    return drag[1];
+    return fy;
   else if (_component == "z")
-    return drag[2];
+    return fz;
   else
     mooseError("Unknown 'component' in NekViscousSurfaceForce!");
 }

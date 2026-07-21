@@ -1,18 +1,20 @@
+userSections = CASEDATA
+
 [GENERAL]
   polynomialOrder = 7
   numSteps = 100
   dt = 1e-03
   timeStepper = tombo2
-  writeInterval = 0
+  checkpointInterval = 0
 
 [PROBLEMTYPE]
   equation = Stokes+variableViscosity
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-08
 
-[VELOCITY]
-  boundaryTypeMap = sym
+[FLUID VELOCITY]
+  boundaryTypeMap = zeroDirichletN/zeroNeumann
   residualTol = 1e-12
   density = 1.0
   viscosity = 0.1

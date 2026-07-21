@@ -21,7 +21,7 @@
   [app_outputs]
     type = CheckFiles
     input = nek_master.i
-    check_files = 'a00pin0.f00001 a00pin0.f00002 a00pin0.f00003 a00pin0.f00004 a00pin0.f00005 a01pin0.f00001 a01pin0.f00002 a01pin0.f00003 a01pin0.f00004 a01pin0.f00005'
+    check_files = 'a00pin0.f00000 a00pin0.f00001 a00pin0.f00002 a00pin0.f00003 a00pin0.f00004 a01pin0.f00000 a01pin0.f00001 a01pin0.f00002 a01pin0.f00003 a01pin0.f00004'
     # needs a unique communicator for each Nek app
     min_parallel = 2
     requirement = "The correct output files shall be written when writing separate output files for repeated "

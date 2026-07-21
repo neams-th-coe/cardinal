@@ -6,21 +6,21 @@
   numSteps = 50
   dt = 1.0
   polynomialOrder = 2
-  writeControl = steps
-  writeInterval = 10
+  checkpointControl = steps
+  checkpointInterval = 10
 
 [MESH]
   solver = user
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1.0e-5
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   conductivity = 1.0
   rhoCp = 0.0
   residualTol = 1.0e-5

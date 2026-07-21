@@ -67,9 +67,9 @@ NekBinnedPlaneIntegral::getBinVolumes()
 
   // sum across all processes
   MPI_Allreduce(
-      _bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+      _bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
   MPI_Allreduce(
-      _bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+      _bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm());
 
   for (unsigned int i = 0; i < _n_bins; ++i)
   {
@@ -114,7 +114,7 @@ NekBinnedPlaneIntegral::binnedPlaneIntegral(const field::NekFieldEnum & integran
 
   // sum across all processes
   MPI_Allreduce(
-      _bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+      _bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   for (unsigned int i = 0; i < _n_bins; ++i)
   {

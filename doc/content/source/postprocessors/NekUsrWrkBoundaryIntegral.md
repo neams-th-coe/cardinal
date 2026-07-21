@@ -4,7 +4,7 @@
 
 ## Description
 
-This postprocessor computes the integral of a slot in the `nrs->usrwrk` array
+This postprocessor computes the integral of a slot in the `platform->app->bc->o_usrwrk` array
 (sometimes called the "scratch space") over a boundary in the NekRS mesh,
 
 \begin{equation}
@@ -25,7 +25,7 @@ postprocessor.
 ## Example Input Syntax
 
 As an example, the `flux1` and `flux2` postprocessors
-below will evaluate the integral of the first slot in `nrs->usrwrk`
+below will evaluate the integral of the first slot in `platform->app->bc->o_usrwrk`
 over two different boundaries in NekRS's mesh. For conjugate heat transfer,
 this particular slot represents the heat flux boundary condition sent to NekRS.
 

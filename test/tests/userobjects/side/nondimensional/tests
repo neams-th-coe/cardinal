@@ -1,20 +1,19 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrspre sfr_7pin 1'
-    requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
+  [boundary_mesh]
+    type = RunApp
+    input = nek.i
+    cli_args = "Mesh/volume=false Mesh/boundary='4' --mesh-only"
+    requirement = 'The system shall generate a boundary mesh to receive a side userobject during a multiapp transfer.'
     capabilities = 'nekrs'
-    use_shell = True
   []
   [nondim]
     type = Exodiff
     input = nek.i
-    exodiff = nek_out.e
+    exodiff = nek_out_sub0.e
+    prereq = 'boundary_mesh'
     requirement = "Spatially-binned side integrals and averages shall be correctly dimensionalized for "
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."
-    prereq = precompile
     capabilities = 'nekrs'
-    skip = 'Need to resolve precompile issues'
   []
 []
