@@ -1,4 +1,5 @@
 [Tests]
+  design = 'RadialBin.md'
   [bin]
     type = Exodiff
     input = radial.i

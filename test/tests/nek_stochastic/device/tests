@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekScalarValue.md NekRSProblem.md'
   [precompile]
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre pyramid 1'

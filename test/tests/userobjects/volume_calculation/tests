@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCVolumeCalculation.md'
   [invalid_box]
     type = RunException
     input = openmc.i

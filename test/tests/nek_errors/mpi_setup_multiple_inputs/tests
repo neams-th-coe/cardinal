@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md'
   [too_few_mpi_ranks]
     type = RunException
     input = nek_master.i

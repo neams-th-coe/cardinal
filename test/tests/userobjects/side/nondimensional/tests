@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekBinnedSideAverage.md NekBinnedSideIntegral.md'
   [precompile]
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre sfr_7pin 1'

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekSideIntegral.md'
   [nek_side_integral]
     type = CSVDiff
     input = nek.i

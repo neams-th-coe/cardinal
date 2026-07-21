@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekScalarValue.md NekRSProblem.md'
   [clear0]
     type = RunCommand
     command = 'rm -rf .cache/'

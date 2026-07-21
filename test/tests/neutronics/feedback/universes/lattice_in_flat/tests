@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md'
   [triso_lattice]
     type = RunException
     input = openmc.i

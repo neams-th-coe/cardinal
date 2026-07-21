@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekTimeStepper.md NekRSProblem.md'
   [variable_dt]
     type = CSVDiff
     input = nek.i

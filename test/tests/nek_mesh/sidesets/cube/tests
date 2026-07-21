@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSMesh.md'
   [cube_sidesets]
     type = CSVDiff
     input = nek_volume.i

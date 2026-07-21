@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md'
   [occupied_scratch_space]
     type = RunException
     input = nek.i
