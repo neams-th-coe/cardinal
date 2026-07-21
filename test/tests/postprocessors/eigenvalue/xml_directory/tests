@@ -1,4 +1,5 @@
 [Tests]
+  design = 'KEigenvalue.md OpenMCCellAverageProblem.md'
   [xml_directory]
     type = CSVDiff
     input = openmc.i

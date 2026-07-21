@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekFieldVariable.md NekVolumeExtremeValue.md NekRSProblem.md'
   [temperature]
     type = RunException
     input = nek.i

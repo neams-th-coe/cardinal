@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md'
   [multiple_layers]
     type = Exodiff
     input = openmc.i

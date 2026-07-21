@@ -1,4 +1,5 @@
 [Tests]
+  design = 'LayeredGapBin.md'
   [bin]
     type = Exodiff
     input = layered.i

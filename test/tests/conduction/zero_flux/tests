@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md'
   [zero_flux_total]
     type = RunApp
     input = main.i

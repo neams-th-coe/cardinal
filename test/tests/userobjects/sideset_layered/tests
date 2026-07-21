@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekBinnedSideIntegral.md NekBinnedSideAverage.md LayeredBin.md'
   [invalid_boundary]
     type = RunException
     input = invalid_boundary.i

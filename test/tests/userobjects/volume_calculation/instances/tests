@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCVolumeCalculation.md'
   [warn_instances]
     type = RunException
     input = openmc.i

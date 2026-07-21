@@ -1,4 +1,5 @@
 [Tests]
+  design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
   [type_error]
     type = RunException
     input = type_error.i

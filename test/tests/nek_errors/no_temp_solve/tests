@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekBoundaryFlux.md NekVolumetricSource.md'
   [flux]
     type = RunException
     input = nek.i

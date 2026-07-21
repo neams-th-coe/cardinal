@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md'
   [invalid_transfer_pp]
     type = RunException
     input = nek_master.i

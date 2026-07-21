@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekFieldVariable.md NekRSProblem.md'
   [scalar_output]
     type = CSVDiff
     input = nek.i

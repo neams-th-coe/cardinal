@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekVolumetricSource.md'
   [no_occa_source_kernel]
     type = RunException
     input = nek.i

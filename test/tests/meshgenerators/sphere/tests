@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekMeshGenerator.md'
   [sphere]
     type = RunApp
     input = sphere.i
