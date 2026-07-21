@@ -1,7 +1,7 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/nuclearkevin/openmc.git
-  branch = delta_tracking
+  branch = hybrid_tracking
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://github.com/neams-th-coe/nekRS.git
