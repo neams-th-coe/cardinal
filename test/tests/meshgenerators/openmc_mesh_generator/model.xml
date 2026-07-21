@@ -14,13 +14,15 @@
     </material>
   </materials>
   <geometry>
-    <cell id="1" material="1" region="-2 1 -4 3 -6 5" universe="1"/>
+    <cell id="1" material="1" region="-2 1 -4 3 -6 5 -7" universe="1"/>
+    <cell id="2" material="1" region="-2 1 -4 3 -6 5 7" universe="1"/>
     <surface id="1" type="x-plane" boundary="vacuum" coeffs="0.0"/>
     <surface id="2" type="x-plane" boundary="vacuum" coeffs="10.0"/>
     <surface id="3" type="y-plane" boundary="vacuum" coeffs="0.0"/>
     <surface id="4" type="y-plane" boundary="vacuum" coeffs="10.0"/>
     <surface id="5" type="z-plane" boundary="vacuum" coeffs="0.0"/>
     <surface id="6" type="z-plane" boundary="vacuum" coeffs="10.0"/>
+    <surface id="7" type="z-plane" coeffs="5.0"/>
   </geometry>
   <settings>
     <run_mode>eigenvalue</run_mode>

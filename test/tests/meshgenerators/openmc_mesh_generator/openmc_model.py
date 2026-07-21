@@ -31,10 +31,14 @@ box = openmc.model.RectangularParallelepiped(
     zmin=lower_left[2], zmax=upper_right[2],
     boundary_type="vacuum"
 )
-cell = openmc.Cell(fill=mat, region=-box)
+
+plane = openmc.ZPlane(z0=5.0)
+
+cell_1 = openmc.Cell(fill=mat, region=(-box & -plane))
+cell_2 = openmc.Cell(fill=mat, region=(-box & +plane))
 
 # Register geometry
-geometry = openmc.Geometry([cell])
+geometry = openmc.Geometry([cell_1, cell_2])
 
 # Create a regular mesh tally
 mesh_filter_1 = openmc.MeshFilter(mesh_1)
