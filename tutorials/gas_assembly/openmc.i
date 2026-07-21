@@ -176,7 +176,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [Tallies]
     [heat_source]
       type = CellTally
-      block = '2'
+      block = 'compacts'
       name = heat_source
       check_equal_mapped_tally_volumes = true
       output = 'unrelaxed_tally_std_dev'
@@ -342,6 +342,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
     execute_on = 'transfer initial timestep_end'
+    block = 'compacts'
   []
   [max_tally_rel_err]
     type = TallyRelativeError
