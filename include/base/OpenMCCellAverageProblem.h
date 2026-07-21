@@ -1171,6 +1171,6 @@ private:
   /// Mapping from subdomain IDs to the reference density (kg/m3).
   std::map<SubdomainID, Real> _subdomain_to_ref_density;
 
-  /// Mapping from cell ID to the OpenMC Cell Material Modifier that contains its material list
+  /// Mapping from cell index to the OpenMC Cell Material Modifier that contains its material list
   std::map<int32_t, OpenMCCellMaterialFill *> _cell_material_modifiers;
 };

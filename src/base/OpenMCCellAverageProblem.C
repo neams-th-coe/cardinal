@@ -553,15 +553,12 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
-  // Find model modifier objects
-  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>(
-      "OpenMCCellMaterialFill"); // TODO "ModelModifiers" ?
+  // Find ModelModifier objects and store them in _cell_material_modifiers map
+  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");
   std::vector<OpenMCCellMaterialFill *> mm_objs;
   mm_query.queryInto(mm_objs);
   for (const auto & m : mm_objs)
-  {
-    _cell_material_modifiers[m->get_cell_id()] = m;
-  }
+    _cell_material_modifiers[m->get_cell_index()] = m;
 
   getOpenMCUserObjects();
 
@@ -3335,19 +3332,27 @@ OpenMCCellAverageProblem::containedMaterialCells(const cellInfo & cell_info) con
 std::vector<int32_t>
 OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cells) const
 {
-
   std::vector<int32_t> mats;
   for (const auto & contained : contained_cells)
   {
     if (_cell_material_modifiers.find(contained.first) != _cell_material_modifiers.end())
     {
-      // find the iterator corresponding to the ModelModifier corresponding to the contained cell's
-      // ID
+      // find the iterator corresponding to the ModelModifier corresponding to the contained
+      // cell's index
       auto it = _cell_material_modifiers.find(contained.first);
       std::vector<int32_t> modifier_mats = it->second->get_material_indices();
-      // insert the contents of the ModelModifiers _material_indices vector into the current mats
-      // vector
-      mats.insert(mats.end(), modifier_mats.begin(), modifier_mats.end());
+      // insert exactly as many entries from the _material_indices vector as there are cell
+      // instances into the current mats vector
+      if (modifier_mats.size() > contained.second.size())
+        mooseWarning(
+            "The number of instances corresponding to cell with index =" +
+            std::to_string(contained.first) + "(" + std::to_string(contained.second.size()) + ")" +
+            " is less than the number of openmc Materials (" +
+            std::to_string(modifier_mats.size()) +
+            ") found in it's ModelModifier. While this might be the intention, make sure your "
+            "ModelModifier is properly specified.");
+      mats.insert(
+          mats.end(), modifier_mats.begin(), modifier_mats.begin() + contained.second.size());
     }
     else
     {
