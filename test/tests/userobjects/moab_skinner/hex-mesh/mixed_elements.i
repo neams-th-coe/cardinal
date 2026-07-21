@@ -93,6 +93,7 @@
   [moab]
     type = MoabSkinner
     verbose = true
+    material_blocks = '2 3'
     material_names = 'mat2 mat3'
 
     temperature = temp
