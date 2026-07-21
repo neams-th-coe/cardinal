@@ -309,18 +309,6 @@ public:
   cellInfo elemToCellInfo(const int & elem_id) const { return _elem_to_cell[elem_id]; }
 
   /**
-   * Get the cell material index based on index, instance pair. Note that this function requires
-   * a valid instance, index pair for cellInfo - you cannot pass in an unmapped cell, i.e.
-   * (UNMAPPED, UNMAPPED)
-   * @param[in] cell_info cell index, instance pair
-   * @return material index
-   */
-  int32_t cellToMaterialIndex(const cellInfo & cell_info) const
-  {
-    return _cell_to_material.at(cell_info);
-  }
-
-  /**
    * Get the fields coupled for each cell; because we require that each cell maps to a consistent
    * set, we simply look up the coupled fields of the first element that this cell maps to. Note
    * that this function requires a valid instance, index pair for cellInfo - you cannot pass in an
@@ -383,6 +371,14 @@ public:
    * @param[in] cell_info cell index, instance pair
    */
   double cellTemperature(const cellInfo & cell_info) const;
+
+  /**
+   * Get the density of a cell; for cells not filled with materials, this will return
+   * the density of the first material-type cell
+   * @param[in] cell_info cell index, instance pair
+   * @param[in] elem element to fetch multigroup reference densities
+   */
+  double cellDensity(const cellInfo & cell_info, const Elem * elem) const;
 
   /**
    * Get the volume that each OpenMC cell mapped to
@@ -475,6 +471,20 @@ public:
    */
   const bool & useDisplaced() const { return _use_displaced; }
 
+  /**
+   * Get the number of material-fill cells contained within the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return number of contained cells filled by a material
+   */
+  int numContainedMaterialCells(const cellInfo & cell_info) const;
+
+  /**
+   * Get the first material cell contained in the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return material cell index, instance pair
+   */
+  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
+
 protected:
   /**
    * A function to re-initialize coupling and apply feedback to the OpenMC problem.
@@ -544,13 +554,6 @@ protected:
    */
   bool cellMapsToSubdomain(const cellInfo & cell_info,
                            const std::unordered_set<SubdomainID> & id) const;
-
-  /**
-   * Get the first material cell contained in the given cell
-   * @param[in] cell_info cell index, instance pair
-   * @return material cell index, instance pair
-   */
-  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
 
   /**
    * Get all of the material cells contained within this cell
@@ -738,9 +741,6 @@ protected:
    * Also delete any mesh filters and meshes added to OpenMC for mesh filters.
    */
   void resetTallies();
-
-  /// Find the material filling each cell which receives density feedback
-  void getMaterialFills();
 
   /**
    * Get one point inside each cell, for accelerating the particle search routine.
@@ -1041,12 +1041,6 @@ protected:
    * OpenMCVolumeCalculation user object
    */
   std::map<cellInfo, Real> _cell_volume;
-
-  /**
-   * Material filling each cell to receive density feedback. We enforce that these
-   * cells are filled with a material (cannot be filled with a lattice or universe).
-   */
-  std::map<cellInfo, int32_t> _cell_to_material;
 
   /**
    * Material-type cells contained within a cell; this is only populated if a cell
