@@ -64,7 +64,7 @@
     input = openmc.i
     csvdiff = 'all_reflective.csv'
     cli_args = 'UserObjects/moab/reflective_bcs_surfaces="top bottom front back left right" Outputs/file/file_base="all_reflective"'
-    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
+    requirement = "The system shall give identical Monte Carlo solution (k) when adding "
                   "boundary conditions through the skinner when all external surfaces are assigned reflective boundary conditions "
                   "via 'reflective_bcs_surfaces' as compared to applying BCs on a CSG cell that contains the DAGMC geometry in /equivalent_bcs."
     mesh_mode = 'replicated'
@@ -75,10 +75,10 @@
     input = openmc.i
     csvdiff = 'all_vacuum.csv'
     cli_args = 'UserObjects/moab/vacuum_bcs_surfaces="top bottom front back left right" Outputs/file/file_base="all_vacuum"'
-    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
+    requirement = "The system shall give identical Monte Carlo solution (k) when adding "
                   "boundary conditions through the skinner when all external surfaces are assigned vacuum boundary conditions "
                   "via 'vacuum_bcs_surfaces', as compared to applying BCs on a CSG cell that contains"
-                  "the DAGMC geometry in /equivalent_bcs."
+                  "the DAGMC geometry in ./equivalent_bcs."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
@@ -89,9 +89,9 @@
       cli_args = "UserObjects/moab/vacuum_bcs_surfaces='left right'
                          UserObjects/moab/reflective_bcs_surfaces='front back top bottom'
                          Outputs/file/file_base='mix_bcs'"
-      requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding "
+      requirement = "The system shall give identical Monte Carlo solution (k) when adding "
                     "boundary conditions through the skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' as compared to applying BCs on a CSG cell that contains "
-                    "the DAGMC geometry in /equivalent_bcs."
+                    "the DAGMC geometry in ./equivalent_bcs."
       mesh_mode = 'replicated'
       capabilities = 'dagmc'
   []
@@ -100,9 +100,9 @@
       input = openmc.i
       csvdiff = 'mix_bcs.csv'
       cli_args = 'UserObjects/moab/vacuum_bcs_surfaces="4 2" UserObjects/moab/reflective_bcs_surfaces="5 back 3 1" Outputs/file/file_base="mix_bcs"'
-      requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when adding boundary conditions through the "
+      requirement = "The system shall give identical Monte Carlo solution (k) when adding boundary conditions through the "
                     " skinner via 'reflective_bcs_surfaces' and 'vacuum_bcs_surfaces' using sideset id or name as compared to applying BCs on a CSG cell that contains "
-                    "the DAGMC geometry in /equivalent_bcs."
+                    "the DAGMC geometry in ./equivalent_bcs."
       mesh_mode = 'replicated'
       capabilities = 'dagmc'
   []
