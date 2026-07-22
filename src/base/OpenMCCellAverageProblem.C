@@ -2908,7 +2908,7 @@ OpenMCCellAverageProblem::reloadDAGMC()
   // Clear cells on all surviving universes
   for (auto & universe : openmc::model::universes)
     universe->cells_.clear();
-  
+
   // Add cells to universes
   openmc::populate_universes();
 
