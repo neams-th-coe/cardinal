@@ -112,7 +112,7 @@ OpenMCProblemBase::validParams()
   params.addRangeCheckedParam<Real>(
       "xs_threshold",
       0.9,
-      "xs_threshold >= 0.0 && xs_threshold <= 1.0",
+      "xs_threshold >= 0.0 & xs_threshold <= 1.0",
       "The threshold to use when running hybrid-in-cross-section delta tracking. "
       "A value of 0 results in surface tracking, while a value of 1.0 results in "
       "delta tracking. A value inbetween yields a combination of the tracking approaches "
