@@ -406,8 +406,8 @@ MoabSkinner::initialize()
 
   createMOABElems();
 
-  // Resolve sideset names/IDs and check for overlaps (The check in the constructor use the string
-  // which might not be correct).
+  // Resolve sideset names/IDs to boundary IDs and check that no boundary appears in both
+  // 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'
   if (_set_bcs)
   {
     if (isParamSetByUser("vacuum_bcs_surfaces"))
@@ -948,23 +948,55 @@ MoabSkinner::checkBoundaryConditionOverlap() const
 }
 
 MoabSkinner::BoundaryConditionType
-MoabSkinner::boundaryConditionType(const std::vector<boundary_id_type> & side_boundary_ids) const
+MoabSkinner::boundaryConditionType(const Elem * const elem,
+                                   const unsigned int side,
+                                   const libMesh::BoundaryInfo & boundary_info) const
 {
-  bool want_vacuum = false;
-  bool want_reflective = false;
-  for (const auto bid : side_boundary_ids)
+  std::vector<boundary_id_type> side_bids;
+  boundary_info.boundary_ids(elem, side, side_bids);
+
+  std::vector<boundary_id_type> vacuum_bids, reflective_bids;
+  for (const auto bid : side_bids)
   {
-    want_vacuum = want_vacuum || _vacuum_bcs_surface_ids.count(bid);
-    want_reflective = want_reflective || _reflective_bcs_surface_ids.count(bid);
+    if (_vacuum_bcs_surface_ids.count(bid))
+      vacuum_bids.push_back(bid);
+    if (_reflective_bcs_surface_ids.count(bid))
+      reflective_bids.push_back(bid);
   }
-  if (want_vacuum && want_reflective)
-    mooseError("A mesh side is assigned both vacuum and reflective boundary conditions. "
-               "Check 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces'.");
-  if (want_vacuum)
+
+  if (!vacuum_bids.empty() && !reflective_bids.empty())
+  {
+    // Assemble sideset names (resolves to IDs) for a helpful error message
+    auto names = [&boundary_info](const std::vector<boundary_id_type> & bids)
+    {
+      std::string out;
+      for (const auto bid : bids)
+      {
+        const auto & name = boundary_info.get_sideset_name(bid);
+        out += (out.empty() ? "" : ", ");
+        out += "'" + (name.empty() ? std::to_string(bid) : name) + "'";
+      }
+      return out;
+    };
+
+    mooseError("Element ",
+               elem->id(),
+               ", side ",
+               side,
+               " is assigned both vacuum and reflective boundary conditions, because this side "
+               "belongs to sideset(s) ",
+               names(vacuum_bids),
+               " (vacuum) and ",
+               names(reflective_bids),
+               " (reflective). An element side cannot be assigned competing types of surface "
+               "boundary conditions.");
+  }
+
+  if (!vacuum_bids.empty())
     return BoundaryConditionType::Vacuum;
-  if (want_reflective)
+  if (!reflective_bids.empty())
     return BoundaryConditionType::Reflective;
-  return BoundaryConditionType::None;
+  return BoundaryConditionType::Transmission;
 }
 
 void
@@ -991,24 +1023,19 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
   for (const auto tet : region)
   {
     const auto elem_id_it = _elem_handle_to_id.find(tet);
-    if (elem_id_it == _elem_handle_to_id.end())
-      mooseAssert(false,
-                  "Could not map a MOAB tet back to a libMesh element while assigning "
-                  "DAGMC boundary conditions.");
+    mooseAssert(elem_id_it != _elem_handle_to_id.end(),
+                "Could not map a MOAB tet back to a libMesh element while assigning "
+                "DAGMC boundary conditions.");
 
     const Elem * const elem = geom_mesh.query_elem_ptr(elem_id_it->second);
-    if (!elem)
-      mooseAssert(false,
-                  "Could not find libMesh element " + elem_id_it->second +
-                      " while assigning DAGMC boundary conditions.");
+    mooseAssert(elem,
+                "Could not find libMesh element " + std::to_string(elem_id_it->second) +
+                    " while assigning DAGMC boundary conditions.");
 
     for (const auto side : make_range(elem->n_sides()))
     {
-      std::vector<boundary_id_type> side_bids;
-      boundary_info.boundary_ids(elem, side, side_bids);
-
-      const auto bc_type = boundaryConditionType(side_bids);
-      if (bc_type == BoundaryConditionType::None)
+      const auto bc_type = boundaryConditionType(elem, side, boundary_info);
+      if (bc_type == BoundaryConditionType::Transmission)
         continue;
 
       // Build the set of MOAB vertex handles covering this libMesh side
@@ -1017,10 +1044,9 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
       for (const auto i : make_range(side_elem->n_nodes()))
       {
         const auto node_it = _node_id_to_handle.find(side_elem->node_id(i));
-        if (node_it == _node_id_to_handle.end())
-          mooseAssert(false,
-                      "Could not map libMesh node " + side_elem->node_id(i) +
-                          " to a MOAB vertex while assigning DAGMC boundary conditions.");
+        mooseAssert(node_it != _node_id_to_handle.end(),
+                    "Could not map libMesh node " + std::to_string(side_elem->node_id(i)) +
+                        " to a MOAB vertex while assigning DAGMC boundary conditions.");
         side_verts.insert(node_it->second);
       }
 
@@ -1042,17 +1068,21 @@ MoabSkinner::splitSkinByBoundaryCondition(const moab::Range & region,
         if (!side_verts.count(conn[0]) || !side_verts.count(conn[1]) || !side_verts.count(conn[2]))
           continue;
 
-        transmission_tris.erase(tri);
         switch (bc_type)
         {
+          case BoundaryConditionType::Transmission:
+            // Nothing to do - tris stay in transmission_tris
+            break;
           case BoundaryConditionType::Vacuum:
+            transmission_tris.erase(tri);
             vacuum_tris.insert(tri);
             break;
           case BoundaryConditionType::Reflective:
+            transmission_tris.erase(tri);
             reflective_tris.insert(tri);
             break;
           default:
-            mooseError("Unhandled Boundary condition type!");
+            mooseError("Unhandled boundary condition type!");
         }
       }
     }
@@ -1070,7 +1100,7 @@ MoabSkinner::createSurfacesFromSkin(const moab::Range & region,
 
   // Create surfaces for each BC class separately so every surface meshset carries
   //  one BC type. Transmission is the DAGMC default and needs no group.
-  createSurfaces(transmission_tris, voldata, surf_id, BoundaryConditionType::None);
+  createSurfaces(transmission_tris, voldata, surf_id, BoundaryConditionType::Transmission);
   createSurfaces(vacuum_tris, voldata, surf_id, BoundaryConditionType::Vacuum);
   createSurfaces(reflective_tris, voldata, surf_id, BoundaryConditionType::Reflective);
 }
@@ -1079,33 +1109,39 @@ void
 MoabSkinner::recordBoundaryConditionSurface(moab::EntityHandle surface_set,
                                             BoundaryConditionType bc_type)
 {
-  switch (bc_type)
-  {
-    case BoundaryConditionType::None:
-      return;
-    case BoundaryConditionType::Vacuum:
-      if (_reflective_bc_surface_sets.count(surface_set))
-        mooseError("A DAGMC surface was assigned both vacuum and reflective boundary conditions.");
-      _vacuum_bc_surface_sets.insert(surface_set);
-      return;
-    case BoundaryConditionType::Reflective:
-      if (_vacuum_bc_surface_sets.count(surface_set))
-        mooseError("A DAGMC surface was assigned both vacuum and reflective boundary conditions.");
-      _reflective_bc_surface_sets.insert(surface_set);
-      return;
-    default:
-      mooseError("Unhandled Boundary condition type!");
-  }
+  // transmission is the DAGMC default - we don't need to tag the transmission surface
+  if (bc_type == BoundaryConditionType::Transmission)
+    return;
+
+  const auto [it, inserted] = _surface_bc_types.emplace(surface_set, bc_type);
+  if (!inserted && it->second != bc_type)
+    mooseError("A DAGMC surface was assigned two different boundary conditions ('",
+               boundaryConditionGroupName(it->second),
+               "' and '",
+               boundaryConditionGroupName(bc_type),
+               "').");
 }
 
 MoabSkinner::BoundaryConditionType
 MoabSkinner::recordedBoundaryCondition(moab::EntityHandle surface_set) const
 {
-  if (_vacuum_bc_surface_sets.count(surface_set))
-    return BoundaryConditionType::Vacuum;
-  if (_reflective_bc_surface_sets.count(surface_set))
-    return BoundaryConditionType::Reflective;
-  return BoundaryConditionType::None;
+  const auto it = _surface_bc_types.find(surface_set);
+  return it == _surface_bc_types.end() ? BoundaryConditionType::Transmission : it->second;
+}
+
+std::string
+MoabSkinner::boundaryConditionGroupName(BoundaryConditionType bc_type) const
+{
+  switch (bc_type)
+  {
+    case BoundaryConditionType::Vacuum:
+      return "boundary:Vacuum";
+    case BoundaryConditionType::Reflective:
+      return "boundary:Reflecting";
+    case BoundaryConditionType::Transmission:
+    default:
+      mooseError("No DAGMC boundary condition group exists for this boundary condition type");
+  }
 }
 
 unsigned int
@@ -1124,40 +1160,37 @@ MoabSkinner::createBoundaryConditionGroups()
   if (!_set_bcs)
     return;
 
-  if (!_vacuum_bcs_surface_ids.empty() && _vacuum_bc_surface_sets.empty())
-    mooseError("'vacuum_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned "
+  std::map<BoundaryConditionType, std::vector<moab::EntityHandle>> surfaces_by_type;
+  for (const auto & [surf, bc_type] : _surface_bc_types)
+    surfaces_by_type[bc_type].push_back(surf);
+
+  if (!_vacuum_bcs_surface_ids.empty() && !surfaces_by_type.count(BoundaryConditionType::Vacuum))
+    paramError("vacuum_bcs_surfaces",
+               "'vacuum_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned "
                "vacuum boundary conditions. Verify the sideset names or IDs correspond to "
                "boundary faces of the mesh.");
 
-  if (!_reflective_bcs_surface_ids.empty() && _reflective_bc_surface_sets.empty())
-    mooseError("'reflective_bcs_surfaces' was specified but no skinned DAGMC surfaces were "
+  if (!_reflective_bcs_surface_ids.empty() &&
+      !surfaces_by_type.count(BoundaryConditionType::Reflective))
+    paramError("reflective_bcs_surfaces",
+               "'reflective_bcs_surfaces' was specified but no skinned DAGMC surfaces were "
                "assigned reflective boundary conditions. Verify the sideset names or IDs "
                "correspond to boundary faces of the mesh.");
 
   unsigned int gid = firstBoundaryConditionGroupID();
-
-  if (!_vacuum_bc_surface_sets.empty())
+  for (const auto & [bc_type, surfs] : surfaces_by_type)
   {
-    moab::EntityHandle vac_group = 0;
-    createGroup(gid++, "boundary:Vacuum", vac_group);
-    for (const auto surf_set : _vacuum_bc_surface_sets)
-      check(_moab->add_entities(vac_group, &surf_set, 1));
-  }
-
-  if (!_reflective_bc_surface_sets.empty())
-  {
-    moab::EntityHandle ref_group = 0;
-    createGroup(gid++, "boundary:Reflecting", ref_group);
-    for (const auto surf_set : _reflective_bc_surface_sets)
-      check(_moab->add_entities(ref_group, &surf_set, 1));
+    moab::EntityHandle group = 0;
+    createGroup(gid++, boundaryConditionGroupName(bc_type), group);
+    for (const auto surf_set : surfs)
+      check(_moab->add_entities(group, &surf_set, 1));
   }
 }
 
 void
 MoabSkinner::findSurfaces()
 {
-  _vacuum_bc_surface_sets.clear();
-  _reflective_bc_surface_sets.clear();
+  _surface_bc_types.clear();
 
   // Find all neighbours in mesh
   getDAGMCGeometryMesh().find_neighbors();
@@ -1429,9 +1462,9 @@ MoabSkinner::createSurfaces(moab::Range & faces,
         // new shared surface
         auto merged_bc = bc_type;
         const auto existing_bc = recordedBoundaryCondition(surf);
-        if (merged_bc == BoundaryConditionType::None)
+        if (merged_bc == BoundaryConditionType::Transmission)
           merged_bc = existing_bc;
-        else if (existing_bc != BoundaryConditionType::None && existing_bc != merged_bc)
+        else if (existing_bc != BoundaryConditionType::Transmission && existing_bc != merged_bc)
           mooseError("A DAGMC surface was assigned both vacuum and reflective boundary "
                      "conditions.");
 

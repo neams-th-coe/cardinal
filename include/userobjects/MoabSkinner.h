@@ -165,7 +165,7 @@ protected:
   /// Boundary condition types that can be assigned to DAGMC surfaces
   enum class BoundaryConditionType
   {
-    None,
+    Transmission,
     Vacuum,
     Reflective
   };
@@ -305,14 +305,14 @@ protected:
                   moab::EntityHandle & surface_set,
                   moab::Range & faces,
                   const std::vector<VolData> & voldata,
-                  BoundaryConditionType bc_type = BoundaryConditionType::None);
+                  BoundaryConditionType bc_type = BoundaryConditionType::Transmission);
 
   /// Helper method to create MOAB surfaces with no overlaps; bc_type is recorded on
   /// every surface created or matched by this call
   void createSurfaces(moab::Range & faces,
                       VolData & voldata,
                       unsigned int & surf_id,
-                      BoundaryConditionType bc_type = BoundaryConditionType::None);
+                      BoundaryConditionType bc_type = BoundaryConditionType::Transmission);
 
   /**
    * Create a MOAB surface from a bounding box
@@ -402,12 +402,17 @@ protected:
   /// Error if the same sideset ID appears in both vacuum and reflective BC sets.
   void checkBoundaryConditionOverlap() const;
 
-  /** Determine which BC type, if any, applies to a libMesh side based on its boundary IDs.
-   * @param[in] side_boundary_ids boundary IDs to which the side belongs
+  /**
+   * Determine which BC type, if any, applies to a side of an element based on the
+   * sidesets that side belongs to.
+   * @param[in] elem element (in the DAGMC geometry mesh)
+   * @param[in] side side index on the element
+   * @param[in] boundary_info boundary info of the DAGMC geometry mesh
    * @return boundary condition type to assign to the side
    */
-  BoundaryConditionType
-  boundaryConditionType(const std::vector<boundary_id_type> & side_boundary_ids) const;
+  BoundaryConditionType boundaryConditionType(const Elem * const elem,
+                                              const unsigned int side,
+                                              const libMesh::BoundaryInfo & boundary_info) const;
 
   /**
    * Classify the skinned triangles for one region into transmission, vacuum, and
@@ -450,7 +455,7 @@ protected:
   /**
    * Get the boundary condition type previously recorded for a surface, if any
    * @param[in] surface_set surface meshset
-   * @return recorded boundary condition type (None if the surface has no BC)
+   * @return recorded boundary condition type (Transmission if the surface has no explicit BC)
    */
   BoundaryConditionType recordedBoundaryCondition(moab::EntityHandle surface_set) const;
 
@@ -462,6 +467,13 @@ protected:
   /// Create the DAGMC BC group entity sets from the surfaces recorded
   /// during skinning and add them to the MOAB geometry
   void createBoundaryConditionGroups();
+
+  /**
+   * Get the DAGMC group name used to assign a boundary condition type
+   * @param[in] bc_type boundary condition type
+   * @return DAGMC group name
+   */
+  std::string boundaryConditionGroupName(BoundaryConditionType bc_type) const;
 
   /// Group a given bin into local regions
   /// NB elems in param is a copy, localElems is a reference
@@ -504,11 +516,9 @@ protected:
   /// Resolved reflective BC sideset IDs (from 'reflective_bcs_surfaces' input parameter)
   std::set<BoundaryID> _reflective_bcs_surface_ids;
 
-  /// DAGMC surface meshsets assigned vacuum BCs, recorded during skinning
-  std::set<moab::EntityHandle> _vacuum_bc_surface_sets;
-
-  /// DAGMC surface meshsets assigned reflective BCs, recorded during skinning
-  std::set<moab::EntityHandle> _reflective_bc_surface_sets;
+  /// Map from DAGMC surface meshset to its assigned BC type, recorded during skinning.
+  /// Transmission surfaces are not recorded (they need no DAGMC group).
+  std::map<moab::EntityHandle, BoundaryConditionType> _surface_bc_types;
 
   /// Reverse map from MOAB tet entity handle to libMesh element ID. Populated in createMOABElems()
   std::unordered_map<moab::EntityHandle, dof_id_type> _elem_handle_to_id;
