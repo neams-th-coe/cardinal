@@ -1,7 +1,10 @@
 [Tests]
+  issues = '#1285'
+  design = 'MoabSkinner.md'
   [sideset_added_twice]
     type = RunException
-    input = conflicting_bcs.i
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=left UserObjects/moab/reflective_bcs_surfaces=left'
     expect_err = "The following sideset ID\(s\) appear in both 'vacuum_bcs_surfaces' and 'reflective_bcs_surfaces': 4"
     requirement = "The system shall error if a sideset is assigned both vacuum and reflective BCs."
     capabilities = 'dagmc'
@@ -26,12 +29,22 @@
                   "boundary conditions from the other."
     capabilities = 'dagmc'
   []
-  [unused_bcs_sideset]
+  [unused_vacuum_sideset]
     type = RunException
     input = openmc.i
     cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=midplane'
     expect_err = "'vacuum_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned"
-    requirement = "The system shall error if a boundary condition is assigned to a sideset whose "
+    requirement = "The system shall error if a vacuum BC is assigned to a sideset whose "
+                  "faces are interior to a single skinned region, since no DAGMC surface receives "
+                  "the boundary condition."
+    capabilities = 'dagmc'
+  []
+  [unused_reflective_sideset]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/moab/reflective_bcs_surfaces=midplane'
+    expect_err = "'reflective_bcs_surfaces' was specified but no skinned DAGMC surfaces were assigned"
+    requirement = "The system shall error if a reflective BC is assigned to a sideset whose "
                   "faces are interior to a single skinned region, since no DAGMC surface receives "
                   "the boundary condition."
     capabilities = 'dagmc'
@@ -41,7 +54,7 @@
     input = openmc.i
     cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=999'
     expect_err = "Boundary '999' does not exist in the mesh."
-    requirement = "The system shall error if an unknown sideset ID is assigned a BC."
+    requirement = "The system shall error if an unknown sideset ID was used."
     capabilities = 'dagmc'
   []
   [bcs_on_nodeset]
@@ -53,11 +66,12 @@
                   "nodeset."
     capabilities = 'dagmc'
   []
-  [typo]
+  [nonexistent_boundary_name]
     type = RunException
-    input = typo.i
+    input = openmc.i
+    cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=topp'
     expect_err = "Boundary 'topp' does not exist in the mesh."
-    requirement = "The system shall error if an unknown sideset is assigned a BC."
+    requirement = "The system shall error if an unknown sideset name was used to assign BC."
     capabilities = 'dagmc'
     mesh_mode = 'replicated'
   []
