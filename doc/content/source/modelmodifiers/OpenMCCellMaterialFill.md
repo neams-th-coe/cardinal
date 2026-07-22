@@ -19,16 +19,18 @@ The following input will modify the material in cell 2; there are three instance
   block=Problem
 
 ## Providing materials via file
+
 The `material_ids_file` parameter is powerful for larger models where it would be too tedious and extremely difficult to use the `material_ids` param in the input file. However, using a file-based set of materials requires care when creating the HDF5 (`*.h5`) file. For TRISO problems specifically, there is a bit of nuance to be aware of. As soon as there is a reason to vary TRISO material composition throughout the reactor (e.g. to study the effects of depletion or to test loading different enrichments), it becomes necessary to use a distribmat list to specify what OpenMC materials go in which TRISO instance. Models not concerned with this can use the same fuel material in every TRISO in the problem and do not need this feature.
 
-OpenMC allows specifiying the distribmat list of a cell via `openmc.Cell.fill = [...]`.  This list should be **constructed carefully**, and once complete, it can be used to generate the HDF5 file used in Cardinal (see section below). The list needs to have as many entries as there are fuel spheres in the entire model. Say there are `N` TRISO cells per fuel cyilnder, then the list `[...]` needs to start with `N` entries corresponding to the material ("zone") in the first fuel compact. The next `N` entries should correspond to whatever material goes in the second fuel compact, and so on. **It is highly reccomended to use the [OpenMC plotter](https://github.com/openmc-dev/plotter) when figuring out the order cell instance increases throughout the cells in your model.** 
+OpenMC allows specifiying the distribmat list of a cell via `openmc.Cell.fill = [...]`. This list should be **constructed carefully**, and once complete, it can be used to generate the HDF5 file used in Cardinal. See this [section](#How to automate material fill to HDF5) for more details. The list needs to have as many entries as there are fuel spheres in the entire model. Say there are `N` TRISO cells per fuel cyilnder, then the list `[...]` needs to start with `N` entries corresponding to the material ("zone") in the first fuel compact. The next `N` entries should correspond to whatever material goes in the second fuel compact, and so on. **It is highly reccomended to use the [OpenMC plotter](https://github.com/openmc-dev/plotter) when figuring out the order that the cell instances increase throughout the cells in your model.** 
 
 If the number of materials does not line up with the instances correctly, then the materials will be split between different fuel cylinders, which is not correct. A note about the instances of a TRISO cell when using `create_triso_lattice`: Say there are `M` physical TRISOs that are inside the cylinder. The number of instances `N` will be greater than `M` because of the way that instances are split when a TRISO particle lives between boundaries in the search lattice. Make sure to verify the number of **instances** of your TRISO cell because this is how many entries need to exist for each fuel compact, not the actual physical number of spheres in the fuel cylinder.
 
-## How to automate openmc.Cell.fill to HDF5
-Here is an exmaple of how to take a model that uses distribmat to specify `openmc.Cell.fill` and to export that data to HDF5.
+## How to automate material fill to HDF5
 
-!listing /doc/content/source/modelmodifiers/openmc_to_hdf5.py language=python
+Here is an exmaple of how to generate an HDF5 file that can be used via the `material_ids_file` parameter. In this example, there is a command line argument to specify a list of material IDs. However, in a model with a large list of materials to specify, it might be infeasible to type out all of the material IDs. In this case, if the user has a variable corresponding to the list of OpenMC materials, e.g. `mats_list`, they can generate the input parameter `mat_ids` for the `write_ids` function in `create_material_fill_ids_h5.py` by using a list comprehension `mat_ids = [mat.id for mat in mats_list]`.
+
+!listing /test/tests/model_modifiers/cell_material_fill/create_material_fill_ids_h5.py language=python
 
 !syntax parameters /Problem/ModelModifiers/OpenMCCellMaterialFill
 

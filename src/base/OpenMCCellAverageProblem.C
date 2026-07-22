@@ -555,15 +555,16 @@ OpenMCCellAverageProblem::initialSetup()
 
   // Find ModelModifier objects and store them in _cell_material_modifiers map
   TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");
-  std::vector<OpenMCCellMaterialFill *> mm_objs;
+  std::vector<ModelModifiersBase *> mm_objs;
   mm_query.queryInto(mm_objs);
 
   // loop through all queried ModelModifiers and add any OpenMCCellMaterialFill
   // to the _cell_material_modifiers map
   for (const auto & m : mm_objs)
   {
-    if (dynamic_cast<OpenMCCellMaterialFill *>(m))
-      _cell_material_modifiers[m->getCellIndex()] = m;
+    auto * modifier = dynamic_cast<OpenMCCellMaterialFill *>(m);
+    if (modifier)
+      _cell_material_modifiers[modifier->getCellIndex()] = modifier;
   }
 
   getOpenMCUserObjects();
