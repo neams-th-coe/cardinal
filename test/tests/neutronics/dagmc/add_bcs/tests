@@ -10,7 +10,8 @@
     type = RunException
     input = openmc.i
     cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=left UserObjects/moab/reflective_bcs_surfaces=left_dup'
-    expect_err = "A mesh side is assigned both vacuum and reflective boundary conditions"
+    expect_err = "Element 99, side 0 is assigned both vacuum and reflective boundary conditions, "
+                 "because this side belongs to sideset\(s\) 'left' \(vacuum\) and 'left_dup' \(reflective\)"
     requirement = "The system shall error if a mesh side belongs to two different sidesets, one "
                   "assigned vacuum and the other reflective boundary conditions."
     capabilities = 'dagmc'
@@ -19,7 +20,7 @@
     type = RunException
     input = openmc.i
     cli_args = 'UserObjects/moab/vacuum_bcs_surfaces=interface_a UserObjects/moab/reflective_bcs_surfaces=interface_b'
-    expect_err = "A DAGMC surface was assigned both vacuum and reflective boundary conditions"
+    expect_err = "A DAGMC surface was assigned two different boundary conditions \('boundary:Vacuum' and 'boundary:Reflecting'\)."
     requirement = "The system shall error if an internal DAGMC surface shared between two skinned "
                   "regions is assigned vacuum boundary conditions from one side and reflective "
                   "boundary conditions from the other."
