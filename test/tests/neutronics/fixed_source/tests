@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCCellAverageProblem.md CellTally.md'
+  design = 'OpenMCCellAverageProblem.md'
   [mapping_all]
     type = CSVDiff
     input = mapping_all.i

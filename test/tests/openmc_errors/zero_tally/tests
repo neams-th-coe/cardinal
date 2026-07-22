@@ -1,5 +1,5 @@
 [Tests]
-  design = 'CellTally.md'
+  design = 'CellTally.md MeshTally.md'
   [local_zero]
     type = CSVDiff
     input = openmc.i

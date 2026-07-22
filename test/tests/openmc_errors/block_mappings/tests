@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCCellAverageProblem.md CellTally.md'
+  design = 'OpenMCCellAverageProblem.md'
   [nonexistent_block]
     type = RunException
     input = nonexistent_block.i
