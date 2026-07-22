@@ -58,7 +58,7 @@ tallies = openmc.Tallies([tally_1, tally_2])
 # Register settings
 settings = openmc.Settings()
 settings.batches = 2
-settings.particles = 50
+settings.particles = 1000
 spatial_dist = openmc.stats.Box(lower_left, upper_right)
 settings.source = openmc.IndependentSource(
     space=spatial_dist, constraints={"fissionable": True})
