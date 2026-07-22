@@ -67,20 +67,6 @@
   parallel_type = replicated
 []
 
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
-[]
-
 [AuxKernels]
   [temp]
     type = ConstantAux
@@ -99,12 +85,6 @@
 
   skinner = moab
 
-  [Tallies]
-    [Cell]
-      type = CellTally
-      block = '1 2'
-    []
-  []
 []
 
 [UserObjects]
