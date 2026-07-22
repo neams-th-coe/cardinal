@@ -32,20 +32,6 @@
   parallel_type = replicated
 []
 
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
-[]
-
 [AuxKernels]
   [temp]
     type = ConstantAux
@@ -63,15 +49,10 @@
   power = 100.0
 
   skinner = moab
-
-  [Tallies]
-    [Cell]
-      type = CellTally
-      block = '1 2'
-    []
-  []
 []
 
+# geometry.xml has the corresponding CSG surfaces with the current configuration added to match add_bcs.mix_bcs test
+# geometry.xml can be updated directly to match other cases
 [UserObjects]
   [moab]
     type = MoabSkinner
