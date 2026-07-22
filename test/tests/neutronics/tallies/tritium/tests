@@ -1,5 +1,5 @@
 [Tests]
-  design = 'CellTally.md OpenMCCellAverageProblem.md'
+  design = 'CellTally.md MeshTally.md'
   [tritium]
     type = CSVDiff
     input = openmc.i

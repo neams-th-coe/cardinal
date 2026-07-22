@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCVolumeCalculation.md'
+  design = 'OpenMCVolumeCalculation.md OpenMCCellAverageProblem.md'
   [warn_instances]
     type = RunException
     input = openmc.i

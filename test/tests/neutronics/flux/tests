@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCCellAverageProblem.md CellTally.md'
+  design = 'MeshTally.md CellTally.md'
   [flux]
     type = CSVDiff
     input = flux.i

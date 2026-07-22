@@ -1,5 +1,5 @@
 [Tests]
-  design = 'OpenMCVolumeCalculation.md'
+  design = 'OpenMCVolumeCalculation.md OpenMCCellAverageProblem.md'
   [invalid_box]
     type = RunException
     input = openmc.i
