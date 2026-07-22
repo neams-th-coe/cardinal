@@ -58,6 +58,7 @@
     expect_err = "Boundary 'topp' does not exist in the mesh."
     requirement = "The system shall error if an unknown sideset is assigned a BC."
     capabilities = 'dagmc'
+    mesh_mode = 'replicated'
   []
   [all_reflective]
     type = CSVDiff
