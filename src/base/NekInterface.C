@@ -976,35 +976,76 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
 
 double
 volumeNorm(const field::NekFieldEnum & integrand,
-          const nek_mesh::NekMeshEnum pp_mesh,
-          const Function * function,
-          const Real & time,
-          const unsigned int & N)
+           const nek_mesh::NekMeshEnum pp_mesh,
+           const Function * function,
+           const Real & time,
+           const Real & N)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-
-  double integral = 0.0;
 
   double (*f)(int, int);
   f = solutionPointer(integrand);
 
+  // L-infinity norm
+  if (std::isinf(N))
+  {
+    double local_max = 0.0;
+
+    for (int k = 0; k < mesh->Nelements; ++k)
+    {
+      const int offset = k * mesh->Np;
+
+      for (int v = 0; v < mesh->Np; ++v)
+      {
+        const int n = offset + v;
+        const auto shift = evaluateFunctionOnMesh(function, time, n);
+
+        const double error = std::abs(f(n, 0 /* unused */) - shift);
+
+        local_max = std::max(local_max, error);
+      }
+    }
+
+    double global_max = 0.0;
+
+    MPI_Allreduce(&local_max,
+                  &global_max,
+                  1,
+                  MPI_DOUBLE,
+                  MPI_MAX,
+                  platform->comm.mpiComm());
+
+    return global_max;
+  }
+
+  // Finite L^N norm
+  double integral = 0.0;
+
   for (int k = 0; k < mesh->Nelements; ++k)
   {
-    int offset = k * mesh->Np;
+    const int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
     {
-      auto n = offset + v;
-      auto shift = evaluateFunctionOnMesh(function, time, n);
-      integral += std::pow(f(n, 0 /* unused */) - shift, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      const int n = offset + v;
+      const auto shift = evaluateFunctionOnMesh(function, time, n);
+
+      const double error = std::abs(f(n, 0 /* unused */) - shift);
+
+      integral += std::pow(error, N) *
+                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
-  // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
+  MPI_Allreduce(&integral,
+                &total_integral,
+                1,
+                MPI_DOUBLE,
+                MPI_SUM,
+                platform->comm.mpiComm());
 
-  return std::pow(total_integral, 1.0 / double(N));
+  return std::pow(total_integral, 1.0 / N);
 }
 
 double

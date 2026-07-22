@@ -552,7 +552,7 @@ double volumeNorm(const field::NekFieldEnum & integrand,
                   const nek_mesh::NekMeshEnum pp_mesh,
                   const Function * function,
                   const Real & time,
-                  const unsigned int & N);
+                  const Real & N);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs

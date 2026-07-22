@@ -24,6 +24,14 @@
  * Compute the L$^N$ norm of a NekRS solution field,
  * integrated over the NekRS volume mesh.
  *
+ * Finite values of N compute
+ *
+ *   (integral |u - f|^N dV)^(1/N).
+ *
+ * Setting N = infinity computes
+ *
+ *   max |u - f|
+ *
  * Note that this calculation is done directly on the mesh that NekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
@@ -38,5 +46,5 @@ public:
 
 protected:
   /// Order of the norm
-  const unsigned int & _N;
+  const Real _N;
 };
