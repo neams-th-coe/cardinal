@@ -29,11 +29,14 @@ OpenMCCellMaterialFill::validParams()
 {
   auto params = ModelModifiersBase::validParams();
   params.addRequiredParam<int32_t>("cell_id", "Cell ID to modify");
-  params.addRequiredParam<std::vector<int32_t>>(
+  params.addParam<std::vector<int32_t>>(
       "material_ids",
       "IDs of the materials to fill into the cell; the length of this array can be one material ID "
       "that will be applied to all instances. Otherwise, it must match the number "
       "of instances of the cell");
+  params.addParam<std::string>("material_ids_file",
+                               "Filename containing material ids to assign to the cell instances. "
+                               "Must be an HDF5 (*.h5) file.");
   params.addClassDescription("Modifies the cell fill within an OpenMC cell");
   return params;
 }
@@ -41,6 +44,13 @@ OpenMCCellMaterialFill::validParams()
 OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameters)
   : ModelModifiersBase(parameters), _cell_id(getParam<int32_t>("cell_id"))
 {
+  // check that only one of material_ids and material_ids_file is specified
+  const bool material_ids_valid = isParamValid("material_ids");
+  const bool material_ids_file_valid = isParamValid("material_ids_file");
+  if (material_ids_valid == material_ids_file_valid)
+    mooseError("Only one of 'material_ids' or 'material_ids_file' can be provided; you have "
+               "specified both or none.");
+
   // get the cell requested
   _cell_index = -1;
   int err = openmc_get_cell_index(_cell_id, &_cell_index);
@@ -59,8 +69,13 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
                    "(ii) represent this region of space as a conventional cell.\n\nFor more "
                    "information, see: https://github.com/openmc-dev/openmc/issues/551.");
 
+  std::vector<int32_t> material_ids;
   // check that the length of the materials matches the number of instances
-  const auto & material_ids = getParam<std::vector<int32_t>>("material_ids");
+  if (material_ids_valid)
+    material_ids = getParam<std::vector<int32_t>>("material_ids");
+  else
+    extractMaterialIdsFromFile(getParam<std::string>("material_ids_file"), material_ids);
+
   auto n_mats = std::size(material_ids);
   if (n_mats != 1 && (n_cell_instances != n_mats))
     paramError("material_ids",
@@ -85,6 +100,19 @@ OpenMCCellMaterialFill::OpenMCCellMaterialFill(const InputParameters & parameter
     // make _material_indices equal in length to the number of cell instances
     _material_indices.assign(n_cell_instances, material_index);
   }
+}
+
+void
+OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename,
+                                                   std::vector<int32_t> & material_ids)
+{
+  // confirm that filename specified exists
+  MooseUtils::checkFileReadable(filename);
+
+  // extract the material_fill_ids attribute from the file
+  hid_t file = openmc::file_open(filename, 'r');
+  openmc::read_dataset(file, "material_fill_ids", material_ids);
+  openmc::file_close(file);
 }
 
 void

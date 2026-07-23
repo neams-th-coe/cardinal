@@ -29,6 +29,7 @@
 #include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 #include "CriticalitySearchBase.h"
+#include "OpenMCCellMaterialFill.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -312,9 +313,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-    // point have DAGMC enabled.
+  // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+  // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+  // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;
@@ -551,6 +552,20 @@ void
 OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
+
+  // Find ModelModifier objects and store them in _cell_material_modifiers map
+  TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");
+  std::vector<ModelModifiersBase *> mm_objs;
+  mm_query.queryInto(mm_objs);
+
+  // loop through all queried ModelModifiers and add any OpenMCCellMaterialFill
+  // to the _cell_material_modifiers map
+  for (const auto & m : mm_objs)
+  {
+    auto * modifier = dynamic_cast<OpenMCCellMaterialFill *>(m);
+    if (modifier)
+      _cell_material_modifiers[modifier->getCellIndex()] = modifier;
+  }
 
   getOpenMCUserObjects();
 
@@ -3359,13 +3374,36 @@ OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cell
   std::vector<int32_t> mats;
   for (const auto & contained : contained_cells)
   {
-    for (const auto & instance : contained.second)
+    if (_cell_material_modifiers.find(contained.first) != _cell_material_modifiers.end())
     {
-      // we know this is a material cell, so we don't need to check that the fill is material
-      int32_t material_index;
-      cellInfo cell_info = {contained.first, instance};
-      materialFill(cell_info, material_index);
-      mats.push_back(material_index);
+      // find the iterator corresponding to the ModelModifier corresponding to the contained
+      // cell's index
+      std::vector<int32_t> modifier_mats =
+          _cell_material_modifiers.at(contained.first)->getMaterialIndices();
+      // insert exactly as many entries from the _material_indices vector as there are cell
+      // instances into the current mats vector, which in most cases is the same number
+
+      // NOTE: for TRISO problems, when contained corresponds to a TRISO cell it is possible
+      // that modifier_mats has many more entries than the actual number of intances of the
+      // contained cell here.
+
+      // This occurs when using the material_ids_file to do zoning, which assigns a material
+      // as many materials as there are instances of this cell in the containing cell.
+      // This case is why the below does not go to modifier_mats.end(), i.e. modifier_mats.end()
+      // does not always have to equal modifier_mats.begin() + contained.second.size().
+      mats.insert(
+          mats.end(), modifier_mats.begin(), modifier_mats.begin() + contained.second.size());
+    }
+    else
+    {
+      for (const auto & instance : contained.second)
+      {
+        // we know this is a material cell, so we don't need to check that the fill is material
+        int32_t material_index;
+        cellInfo cell_info = {contained.first, instance};
+        materialFill(cell_info, material_index);
+        mats.push_back(material_index);
+      }
     }
   }
 
