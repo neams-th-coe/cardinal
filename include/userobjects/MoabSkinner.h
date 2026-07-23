@@ -46,8 +46,9 @@ public:
   virtual void update();
 
   /**
-   * Set the names to be used for naming the subdomains in the skinned mesh;
-   * there should be one name per subdomain.
+   * Set the names to be used for naming the subdomains in the skinned mesh.
+   * This is used when material names are supplied externally rather than through
+   * the 'material_blocks' and 'material_names' input parameters.
    * @param[in] names names for subdomains
    */
   virtual void setMaterialNames(std::vector<std::string> names) { _material_names = names; }
@@ -478,4 +479,7 @@ protected:
 
   /// Tolerance to use for comparing values to bin bounds
   const Real BIN_TOLERANCE = 1e-6;
+
+  /// Map from mesh SubdomainID to OpenMC material name
+  std::map<SubdomainID, std::string> _block_id_to_material_name;
 };

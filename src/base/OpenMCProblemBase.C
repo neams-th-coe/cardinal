@@ -621,7 +621,10 @@ OpenMCProblemBase::densityConversionFactor() const
 }
 
 void
-OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_info) const
+OpenMCProblemBase::setCellDensity(const int32_t & index,
+                                  const int32_t & instance,
+                                  const Real & density,
+                                  const cellInfo & cell_info) const
 {
   // OpenMC technically allows a density of >= 0.0, but we can impose a tighter
   // check here with a better error message than the Excepts() in material->set_density
@@ -631,27 +634,10 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
     mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n\n cell " +
                printCell(cell_info) + " set to density " + Moose::stringify(density) + " (kg/m3)");
 
-  int32_t material_index;
-  auto is_material_cell = materialFill(cell_info, material_index);
-
-  if (!is_material_cell)
-    mooseError(
-        "Density transfer does not currently support cells filled with universes or lattices!");
-
-  // throw a special error if the cell is void, because the OpenMC error isn't very
-  // clear what the mistake is
-  if (material_index == MATERIAL_VOID)
-  {
-    mooseWarning("Skipping setting density for cell " + printCell(cell_info) +
-                 " because this cell is void (vacuum)");
-    return;
-  }
-
   // Compute the density. We multiply density by 0.001 to convert from kg/m3
   // (the units assumed in the 'density' auxvariable as well as the MOOSE fluid
   // properties module) to g/cm3
-  int err = openmc_cell_set_density(
-      cell_info.first, densityConversionFactor() * density, &cell_info.second, false);
+  int err = openmc_cell_set_density(index, densityConversionFactor() * density, &instance, false);
 
   if (err)
   {

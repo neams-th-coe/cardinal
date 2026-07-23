@@ -41,13 +41,24 @@ MoabSkinner::validParams()
   params.addParam<Real>("density_max", "Upper bound of density bins");
   params.addRangeCheckedParam<unsigned int>(
       "n_density_bins", "n_density_bins > 0", "Number of density bins");
-
+  params.addParam<std::vector<SubdomainName>>(
+      "material_blocks",
+      "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
+      "DAGMC geometry. Must be provided together with 'material_names' where both have the same "
+      "length and are listed in the same order."
+      "Any subdomain not listed in 'material_blocks' will have no material assignment and OpenMC "
+      "will"
+      "default to void for that region. This parameter is optional when used in combination with "
+      "OpenMCCellAverageProblem"
+      "because in this case, the default is to auto-detect the materials in the original h5m file "
+      "and re-apply them during skinning.");
   params.addParam<std::vector<std::string>>(
       "material_names",
-      "List of names for each subdomain to use for naming the new volumes created in MOAB. "
-      "You only need to set this if using this skinner independent of OpenMC; otherwise, "
-      "these names are auto-deduced from OpenMC");
-
+      "Material names (or IDs) to assign to subdomains in the generated DAGMC geometry. "
+      "Must be provided together with 'material_blocks' where both have the same length"
+      "and listed in the same order. This parameter is optional when used in combination with "
+      "OpenMCCellAverageProblem because in this case, the default is to auto-detect the materials "
+      "in the original h5m file and re-apply them during skinning.");
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
   params.addRangeCheckedParam<Real>(
@@ -315,26 +326,64 @@ MoabSkinner::initialize()
     buildTetMesh();
 
   findBlocks();
+  _block_id_to_material_name.clear();
 
-  if (_standalone)
+  const bool has_material_blocks = isParamValid("material_blocks");
+  const bool has_material_names = isParamValid("material_names");
+  if (has_material_blocks != has_material_names)
+    mooseError("'material_blocks' and 'material_names' must both be provided if specifying "
+               "materials for the skinner; you have provided only one of these parameters");
+
+  if (has_material_blocks)
   {
-    checkRequiredParam(
-        parameters(), "material_names", "using skinner independent of an OpenMC [Problem]");
-    _material_names = getParam<std::vector<std::string>>("material_names");
-
-    if (_material_names.size() != _n_block_bins)
+    const auto & block_names = getParam<std::vector<SubdomainName>>("material_blocks");
+    const auto & mat_names = getParam<std::vector<std::string>>("material_names");
+    if (block_names.size() != mat_names.size())
       paramError("material_names",
-                 "This parameter must be the same length as the number of "
-                 "subdomains in the mesh (" +
-                     Moose::stringify(_n_block_bins) + ")");
+                 "'material_names' (length " + Moose::stringify(mat_names.size()) +
+                     ") must be the same length as 'material_blocks' (length " +
+                     Moose::stringify(block_names.size()) + ")");
+
+    std::set<SubdomainID> seen_ids;
+    for (const auto i : index_range(block_names))
+    {
+      if (!MooseMeshUtils::hasSubdomainName(getMooseMesh().getMesh(), block_names[i]))
+        paramError("material_blocks",
+                   "Subdomain '" + std::string(block_names[i]) + "' not found in the mesh");
+      auto id = getMooseMesh().getSubdomainID(block_names[i]);
+      if (seen_ids.count(id))
+        // A repeated entry for blocks (including if the same block is passed by its name then later
+        // by its ID) should error here
+        paramError("material_blocks",
+                   "Subdomain '" + std::string(block_names[i]) +
+                       "' was already listed in 'material_blocks' (either by name or ID). Each "
+                       "block can only be listed one time.");
+      seen_ids.insert(id);
+      auto it = _blocks.find(id);
+      _block_id_to_material_name[it->first] = mat_names[i];
+    }
   }
   else
   {
-    // the external class should have set the value of _material_names
-    checkUnusedParam(parameters(),
-                     "material_names",
-                     "using the skinner in conjunction with an OpenMC [Problem]");
+    // Neither 'material_blocks' nor 'material_names' was supplied in the input.
+    // This is only valid when the skinner is controlled externally, e.g. an .h5m was
+    // prepared outside of Cardinal and material names is set in setMaterialNames().
+    if (_standalone)
+      mooseError("When using the MoabSkinner independent of an OpenMCCellAverageProblem "
+                 "it requires both 'material_blocks' and 'material_names' parameters.");
+    for (const auto & [subdomain_id, block_index] : _blocks)
+      _block_id_to_material_name[subdomain_id] = _material_names[block_index];
   }
+
+  std::vector<std::string> unassigned_blocks;
+  for (const auto & [subdomain_id, block_index] : _blocks)
+    if (_block_id_to_material_name.find(subdomain_id) == _block_id_to_material_name.end())
+      unassigned_blocks.push_back(getMooseMesh().getSubdomainName(subdomain_id));
+
+  if (!unassigned_blocks.empty())
+    mooseWarning("The following mesh subdomains have no material assignment in MoabSkinner "
+                 "and will default to void in OpenMC:\n  ",
+                 Moose::stringify(unassigned_blocks, "\n  "));
 
   // Set spatial dimension in MOAB
   check(_moab->set_dimension(getMooseMesh().getMesh().spatial_dimension()));
@@ -385,6 +434,9 @@ MoabSkinner::update()
 
   // Re-initialise the mesh data
   initialize();
+
+  if (isParamValid("material_blocks") && isParamValid("material_names"))
+    _console << "MoabSkinner updating material assignments..." << std::endl;
 
   // Sort libMesh elements into bins
   sortElemsByResults();
@@ -806,7 +858,19 @@ MoabSkinner::materialName(const unsigned int & block,
                           const unsigned int & density,
                           const unsigned int & temp) const
 {
-  return "mat:" + _material_names.at(block);
+  for (const auto & [subdomain_id, block_index] : _blocks)
+  {
+    if (block_index == block)
+    {
+      auto it = _block_id_to_material_name.find(subdomain_id);
+      if (it != _block_id_to_material_name.end())
+        return "mat:" + it->second;
+
+      return "mat:void";
+    }
+  }
+  mooseAssert(false, "could not find subdomain for block index " + Moose::stringify(block));
+  return "";
 }
 
 void

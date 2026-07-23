@@ -27,7 +27,7 @@ InputParameters
 CellMaterialIDAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("OpenMC fluid material ID, mapped to each MOOSE element");
+  params.addClassDescription("OpenMC material ID, mapped to each MOOSE element");
   return params;
 }
 
@@ -40,22 +40,46 @@ Real
 CellMaterialIDAux::computeValue()
 {
   // if the element doesn't map to an OpenMC cell, return a cell ID of -1; otherwise, we would
-  // get an error in the call to cellCouplingFields and cellToMaterialIndex, since these
+  // get an error in the call to cellCouplingFields, since these
   // rely on a valid cell instance, index pair being passed to OpenMC's C-API
   if (!mappedElement())
     return OpenMCCellAverageProblem::UNMAPPED;
 
-  // we only extract the material information for fluid cells, because otherwise we don't
-  // need to know the material info. So, set a value of -1 for non-fluid cells.
   OpenMCCellAverageProblem::cellInfo cell_info =
       _openmc_problem->elemToCellInfo(_current_elem->id());
+
   if (!_openmc_problem->hasDensityFeedback(cell_info))
     return -1;
 
-  int32_t index = _openmc_problem->cellToMaterialIndex(cell_info);
-  int32_t id = _openmc_problem->materialID(index);
+  // if the cell which maps to this element contains more than one cell within it (e.g. if filled
+  // by a universe or lattice), then we cannot return a single value from this function. We check
+  // if there are multiple cell IDs; if this does not fail, then we still need to check the number
+  // of instances of the single-ID fill.
 
-  return id;
+  // we could technically have a situation where you build a lattice of single-material universes,
+  // which would trigger this error message. I opted for an error here because it's likely not worth
+  // the expense to form a list of all the materials filling the given cell to see if we're actually
+  // in a situation where we have multiple MATERIALs in those cells, vs. multiple cells all filled
+  // by the same material.
+  int nc = _openmc_problem->numContainedMaterialCells(cell_info);
+  if (nc > 1)
+    mooseError(
+        "Element ",
+        this->_current_elem->id(),
+        " maps to OpenMC cell ",
+        _openmc_problem->printCell(cell_info),
+        " which contains ",
+        nc,
+        " material-filled cells (for instance, by being filled by a universe or lattice). "
+        "Therefore, we cannot easily return a single material ID at this position in space.");
+
+  // we screen to be sure there's just one material fill, so "first" here is same as "only"
+  auto first_material_cell = _openmc_problem->firstContainedMaterialCell(cell_info);
+
+  int32_t index;
+  _openmc_problem->materialFill(first_material_cell, index);
+
+  return _openmc_problem->materialID(index);
 }
 
 #endif
