@@ -107,8 +107,7 @@ OpenMCCellMaterialFill::extractMaterialIdsFromFile(std::string filename,
                                                    std::vector<int32_t> & material_ids)
 {
   // confirm that filename specified exists
-  if (!MooseUtils::checkFileReadable(filename))
-    paramError("material_ids_file", "The filename specified could not be found.");
+  MooseUtils::checkFileReadable(filename);
 
   // extract the material_fill_ids attribute from the file
   hid_t file = openmc::file_open(filename, 'r');

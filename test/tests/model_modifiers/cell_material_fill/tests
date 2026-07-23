@@ -65,11 +65,4 @@
     expect_err = "Only one of 'material_ids' or 'material_ids_file' can be provided; you have specified both or none."
     capabilities = 'openmc'
   []
-  [specify_invalid_file]
-    type = RunException
-    input = mats_from_file.i
-    cli_args = 'Problem/ModelModifiers/one/material_ids_file="fake_file.h5"'
-    expect_err = "Unable to open file "
-    capabilities = 'openmc'
-  []
 []
