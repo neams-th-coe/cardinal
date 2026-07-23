@@ -2905,7 +2905,7 @@ OpenMCCellAverageProblem::reloadDAGMC()
   _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... "
            << std::endl;
 
-  // Clear cells on all surviving universes
+  // Clear cells on all surviving universes.
   for (auto & universe : openmc::model::universes)
     universe->cells_.clear();
 
