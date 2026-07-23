@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekRSMesh.md'
 
   # can't use more processors than elements, so all tests are limited to 12 ranks
 

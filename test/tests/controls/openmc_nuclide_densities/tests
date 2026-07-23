@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCNuclideDensitiesControl.md OpenMCNuclideDensities.md'
   [wrong_uo]
     type = RunException
     input = error.i

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'RadialBin.md LayeredBin.md NekBinnedVolumeIntegral.md'
   [1d_output]
     type = CSVDiff
     input = 1d.i

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'MeshTally.md CellTally.md'
   [flux]
     type = CSVDiff
     input = flux.i

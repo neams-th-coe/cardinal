@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekBoundaryFlux.md NekVolumetricSource.md NekScalarValue.md'
   [duplicate_scratch]
     type = RunException
     input = nek.i

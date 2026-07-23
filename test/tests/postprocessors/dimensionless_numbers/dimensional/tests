@@ -1,4 +1,5 @@
 [Tests]
+  design = 'PecletNumber.md ReynoldsNumber.md NekNumRanks.md'
   [dimensional_Re_Pe]
     type = CSVDiff
     input = nek.i

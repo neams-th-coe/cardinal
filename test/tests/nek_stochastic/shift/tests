@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekScalarValue.md NekRSProblem.md'
   [initial_offset]
     type = CSVDiff
     input = nek.i

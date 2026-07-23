@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekVolumetricSource.md NekFieldVariable.md'
   [pyramid]
     type = Exodiff
     input = openmc.i

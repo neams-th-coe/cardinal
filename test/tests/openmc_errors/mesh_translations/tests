@@ -1,4 +1,5 @@
 [Tests]
+  design = 'MeshTally.md'
   [invalid_row]
     type = RunException
     input = invalid_row.i

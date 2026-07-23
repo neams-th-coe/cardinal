@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md ktau.md'
   [volume]
     type = RunApp
     input = nek.i

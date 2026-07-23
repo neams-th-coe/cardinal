@@ -1,4 +1,5 @@
 [Tests]
+  design = 'CellTally.md MeshTally.md'
   [unrelaxed_tally_rel_error_cell]
     type = CSVDiff
     input = cell.i

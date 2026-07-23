@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md'
   [nek_as_sub_output]
     type = CheckFiles
     input = nek_master.i

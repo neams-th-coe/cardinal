@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md'
   [invalid_write_fld]
     type = RunException
     input = nek.i

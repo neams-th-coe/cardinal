@@ -1,4 +1,5 @@
 [Tests]
+  design = 'HexagonalSubchannelGapBin.md'
   [bin]
     type = Exodiff
     input = subchannel.i

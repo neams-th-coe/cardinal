@@ -1,4 +1,5 @@
 [Tests]
+  design = 'KEigenvalue.md OpenMCCellAverageProblem.md'
   [k]
     type = RunException
     input = k.i

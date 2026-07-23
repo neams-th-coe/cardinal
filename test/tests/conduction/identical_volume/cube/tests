@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekVolumetricSource.md NekFieldVariable.md'
   [slab_heat_source]
     type = Exodiff
     input = nek_master.i

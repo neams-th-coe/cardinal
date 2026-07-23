@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCNuclideDensities.md OpenMCCellAverageProblem.md'
   [nonexistent_id]
     type = RunException
     input = openmc.i

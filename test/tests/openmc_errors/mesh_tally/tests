@@ -1,4 +1,5 @@
 [Tests]
+  design = 'MeshTally.md'
   [incorrect_scaling]
     type = RunException
     input = incorrect_scaling.i
