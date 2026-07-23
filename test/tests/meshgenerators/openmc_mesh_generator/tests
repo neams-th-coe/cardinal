@@ -1,6 +1,6 @@
 [Tests]
   issues = "#1369"
-  design = "OpenMCMeshGenerator.md ElementIDAux.md"
+  design = "OpenMCMeshGenerator.md"
 
   [mesh_only]
     type = Exodiff
@@ -24,7 +24,7 @@
     type = RunException
     input = openmc_wrong_mesh_type.i
     cli_args = "--mesh-only"
-    expect_err = "Only implemented for openmc::RegularMesh!"
+    expect_err = "Only implemented for regular meshes in OpenMC!"
     requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
                   "OpenMC RegularMesh"
     capabilities = "openmc"

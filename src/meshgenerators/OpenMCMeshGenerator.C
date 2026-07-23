@@ -59,10 +59,8 @@ OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
   _openmc_mesh = openmc::model::meshes[_openmc_mesh_index].get();
 
   if (_openmc_mesh->n_dimension_ != 3)
-  {
     mooseError("At this time, this object only supports 3D meshes. Please contact the Cardinal "
                "developer team if you need 2D or 1D meshes!");
-  }
 
   // Construct mesh using a subgenerator
   if (_openmc_mesh->get_mesh_type() == openmc::RegularMesh::mesh_type)
@@ -85,9 +83,7 @@ OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
     _build_mesh = &getMeshByName(name() + "_openmc_sub_mesh");
   }
   else
-  {
-    mooseError("Only implemented for openmc::RegularMesh!");
-  }
+    mooseError("Only implemented for regular meshes in OpenMC!");
 }
 
 std::unique_ptr<MeshBase>

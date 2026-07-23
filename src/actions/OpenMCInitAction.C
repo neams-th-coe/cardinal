@@ -52,13 +52,9 @@ OpenMCInitAction::act()
 
   // If both OpenMC problem and mesh generator are present, check xml_directory consistency
   if (openmc_problem_requested && openmc_mesh_generator_requested)
-  {
     if (xml_directory_problem != xml_directory_generator)
-    {
       mooseError("Inconsistent xml directories for OpenMC in the mesh generator and the problem "
                  "declarations.");
-    }
-  }
 
   // Select xml_directory
   std::string xml_directory =
@@ -115,9 +111,7 @@ OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory) co
     }
   }
   if (found)
-  {
     return true;
-  }
   return false;
 }
 
