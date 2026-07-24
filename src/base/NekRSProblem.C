@@ -797,8 +797,14 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  if (nekrs::hasMovingMesh())
-    nekrs::copyDeformationToDevice();
+  if (nekrs::hasMovingMesh()) {
+    if (nekrs::hasUserMeshSolver()) {
+      nekrs::copyMeshToHost();
+      nekrs::updateHostMeshParameters();
+    } else {
+      nekrs::copyDeformationToDevice();
+    }
+  }
 }
 
 bool
