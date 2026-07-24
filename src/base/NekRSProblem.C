@@ -521,10 +521,19 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  if (nekrs::hasUserMeshSolver())
+  bool moose_controls_mesh = false;
+
+  for (const auto & t : _field_transfers)
   {
-    // NekRS advanced the mesh during runStep().
-    // Refresh Cardinal's host coordinate and geometry arrays afterward.
+    if (dynamic_cast<NekMeshDeformation *>(t))
+    {
+      moose_controls_mesh = true;
+      break;
+    }
+  }
+
+  if (nekrs::hasMovingMesh() && !moose_controls_mesh)
+  {
     nekrs::copyMeshToHost();
     nekrs::updateHostMeshParameters();
   }
@@ -800,9 +809,19 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  if (nekrs::hasMovingMesh() && !nekrs::hasUserMeshSolver()) {
-    nekrs::copyDeformationToDevice();
+  bool moose_controls_mesh = false;
+
+  for (const auto & t : _field_transfers)
+  {
+    if (dynamic_cast<NekMeshDeformation *>(t))
+    {
+      moose_controls_mesh = true;
+      break;
+    }
   }
+
+  if (moose_controls_mesh)
+    nekrs::copyDeformationToDevice();
 }
 
 bool
