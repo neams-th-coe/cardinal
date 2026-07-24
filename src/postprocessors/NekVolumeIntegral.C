@@ -26,13 +26,21 @@ InputParameters
 NekVolumeIntegral::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
-  params.addClassDescription("Integral of a field over the NekRS volume mesh");
+
+  params.addClassDescription(
+      "Integral of a field, optionally multiplied by an analytical "
+      "function, over the NekRS volume mesh.");
+
   return params;
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
+  if (_function && _nek_problem->nondimensional())
+    mooseError(
+        "NekVolumeIntegral does not yet support use of the 'function' "
+        "parameter for non-dimensional NekRS cases.");
 }
 
 Real
@@ -42,10 +50,13 @@ NekVolumeIntegral::volume() const
   {
     case nek_mesh::fluid:
       return nekrs::volume(nek_mesh::fluid);
+
     case nek_mesh::all:
       return nekrs::volume(nek_mesh::all);
+
     case nek_mesh::solid:
       return nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
+
     default:
       mooseError("Unhandled NekMeshEnum in volume()!");
   }
@@ -58,10 +69,13 @@ NekVolumeIntegral::getValue() const
   {
     case nek_mesh::fluid:
       return getIntegralOnMesh(nek_mesh::fluid);
+
     case nek_mesh::all:
       return getIntegralOnMesh(nek_mesh::all);
+
     case nek_mesh::solid:
       return getIntegralOnMesh(nek_mesh::all) - getIntegralOnMesh(nek_mesh::fluid);
+
     default:
       mooseError("Unhandled NekMeshEnum in getValue()!");
   }
@@ -70,18 +84,20 @@ NekVolumeIntegral::getValue() const
 Real
 NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 {
-  Real vol = nekrs::volume(mesh);
+  const Real vol = nekrs::volume(mesh);
 
   if (_field == field::velocity_component)
   {
-    Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh);
-    Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh);
-    Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh);
-    Point velocity(vx, vy, vz);
+    const Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, _function, _t);
+    const Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, _function, _t);
+    const Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, _function, _t);
+
+    const Point velocity(vx, vy, vz);
+
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, vol, mesh);
+  return nekrs::volumeIntegral(_field, vol, mesh, _function, _t);
 }
 
 #endif

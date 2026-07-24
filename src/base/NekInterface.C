@@ -926,34 +926,6 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
     integral += add * area(boundary_id, pp_mesh);
 }
 
-double
-volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-
-  double integral = 0.0;
-
-  double (*f)(int, int);
-  f = solutionPointer(integrand);
-
-  for (int k = 0; k < mesh->Nelements; ++k)
-  {
-    int offset = k * mesh->Np;
-
-    for (int v = 0; v < mesh->Np; ++v)
-      integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-  }
-
-  // sum across all processes
-  double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-
-  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
-
-  return total_integral;
-}
-
 namespace
 {
 double
@@ -973,6 +945,47 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
   return shift;
 }
 }
+
+double
+volumeIntegral(const field::NekFieldEnum & integrand,
+               const Real & volume,
+               const nek_mesh::NekMeshEnum pp_mesh,
+               const Function * function,
+               const Real & time)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double integral = 0.0;
+
+  double (*f)(int, int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    const int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      const int n = offset + v;
+      const auto function_value = function ? evaluateFunctionOnMesh(function, time, n) : 1.0;
+      integral += f(n, 0 /* unused */) * function_value *
+                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  double total_integral;
+  MPI_Allreduce(&integral,
+                &total_integral,
+                1,
+                MPI_DOUBLE,
+                MPI_SUM,
+                platform->comm.mpiComm());
+
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  return total_integral;
+}
+
 
 double
 volumeNorm(const field::NekFieldEnum & integrand,
