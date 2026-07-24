@@ -521,6 +521,14 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
+  if (nekrs::hasUserMeshSolver())
+  {
+    // NekRS advanced the mesh during runStep().
+    // Refresh Cardinal's host coordinate and geometry arrays afterward.
+    nekrs::copyMeshToHost();
+    nekrs::updateHostMeshParameters();
+  }
+
   if (nekrs::printStepInfoFreq())
     if (_t_step % nekrs::printStepInfoFreq() == 0)
       nekrs::printStepInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
@@ -622,11 +630,6 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       for (const auto & t : _scalar_transfers)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
-
-      // update any user-defined properties (could be used for UQ)
-      auto nrs = nekrs::nrsPtr();
-      if (nrs->userProperties)
-        nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
 
       // copy host-side arrays which were filled to the device
       copyHostToDevice();
@@ -797,13 +800,8 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  if (nekrs::hasMovingMesh()) {
-    if (nekrs::hasUserMeshSolver()) {
-      nekrs::copyMeshToHost();
-      nekrs::updateHostMeshParameters();
-    } else {
-      nekrs::copyDeformationToDevice();
-    }
+  if (nekrs::hasMovingMesh() && !nekrs::hasUserMeshSolver()) {
+    nekrs::copyDeformationToDevice();
   }
 }
 
