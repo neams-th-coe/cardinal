@@ -31,6 +31,7 @@
 #endif
 
 /// Forward declarations to avoid cyclic dependencies.
+class OpenMCCellMaterialFill;
 class OpenMCVolumeCalculation;
 
 /**
@@ -632,7 +633,9 @@ protected:
    * @param[out] global global mapping of the pushed back values to the cells
    */
   template <typename T>
-  void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
+  void gatherCellVector(std::vector<T> & local,
+                        std::vector<unsigned int> & n_local,
+                        std::map<cellInfo, std::vector<T>> & global);
 
   /**
    * Get the feedback which this element provides to OpenMC
@@ -1161,4 +1164,7 @@ private:
 
   /// Mapping from subdomain IDs to the reference density (kg/m3).
   std::map<SubdomainID, Real> _subdomain_to_ref_density;
+
+  /// Mapping from cell index to the OpenMC Cell Material Modifier that contains its material list
+  std::map<int32_t, OpenMCCellMaterialFill *> _cell_material_modifiers;
 };
