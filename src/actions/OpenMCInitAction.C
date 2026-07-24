@@ -20,6 +20,7 @@
 
 #include "OpenMCInitAction.h"
 #include "CreateProblemAction.h"
+#include "AddMeshGeneratorAction.h"
 
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
@@ -27,8 +28,8 @@ InputParameters
 OpenMCInitAction::validParams()
 {
   InputParameters params = Action::validParams();
-  params.addClassDescription(
-      "Initializes OpenMC when an OpenMCCellAverageProblem is present in the input.");
+  params.addClassDescription("Initializes OpenMC when an OpenMCCellAverageProblem or an "
+                             "OpenMCMeshGenerator is present in the input.");
   return params;
 }
 
@@ -37,12 +38,27 @@ OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters) : Action(
 void
 OpenMCInitAction::act()
 {
-  // Directory containing XML files for OpenMC initialization
-  std::string xml_directory;
+  // Check whether OpenMCCellAverageProblem is requested in the input file
+  std::string xml_directory_problem;
+  bool openmc_problem_requested = isOpenMCCellAverageProblemRequested(xml_directory_problem);
 
-  // Leave if no OpenMCCellAverageProblem requested in the input file
-  if (!isOpenMCCellAverageProblemRequested(xml_directory))
+  // Check whether OpenMCMeshGenerator is requested in the input file
+  std::string xml_directory_generator;
+  bool openmc_mesh_generator_requested = isOpenMCMeshGeneratorRequested(xml_directory_generator);
+
+  // if there is no need to initialize OpenMC, return
+  if (!openmc_problem_requested && !openmc_mesh_generator_requested)
     return;
+
+  // If both OpenMC problem and mesh generator are present, check xml_directory consistency
+  if (openmc_problem_requested && openmc_mesh_generator_requested)
+    if (xml_directory_problem != xml_directory_generator)
+      mooseError("Inconsistent xml directories for OpenMC in the mesh generator and the problem "
+                 "declarations.");
+
+  // Select xml_directory
+  std::string xml_directory =
+      (openmc_problem_requested) ? xml_directory_problem : xml_directory_generator;
 
   // Initialize OpenMC
   initOpenMC(xml_directory);
@@ -63,6 +79,39 @@ OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_director
       return true;
     }
   }
+  return false;
+}
+
+bool
+OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory) const
+{
+  // Retrieve all AddMeshGeneratorAction actions
+  const auto & mesh_gen_actions = _awh.getActions<AddMeshGeneratorAction>();
+
+  // Search for OpenMCMeshGenerators and verify that xml_directory parameters are consistent
+  bool found = false;
+  for (const auto * action : mesh_gen_actions)
+  {
+    if (action->getMooseObjectType() == "OpenMCMeshGenerator")
+    {
+      std::string xml_directory_temp = action->getObjectParams().get<FileName>("xml_directory");
+      if (found)
+      {
+        if (xml_directory_temp != xml_directory)
+        {
+          mooseError(
+              "Inconsistent xml directories for OpenMC in the declared OpenMCMeshGenerators");
+        }
+      }
+      else
+      {
+        xml_directory = xml_directory_temp;
+        found = true;
+      }
+    }
+  }
+  if (found)
+    return true;
   return false;
 }
 

@@ -1,0 +1,85 @@
+[Tests]
+  issues = "#1369"
+  design = "OpenMCMeshGenerator.md"
+
+  [mesh_only]
+    type = Exodiff
+    input = openmc_mesh_only.i
+    exodiff = openmc_mesh_only_in.e
+    cli_args = "--mesh-only"
+    requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
+    capabilities = "openmc"
+  []
+  [different_xml_directories]
+    type = RunException
+    input = openmc_different_xml_directories.i
+    cli_args = "--mesh-only"
+    expect_err = "Inconsistent xml directories for OpenMC in the declared "
+                 "OpenMCMeshGenerators"
+    requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
+                  "values"
+    capabilities = "openmc"
+  []
+  [wrong_mesh_type]
+    type = RunException
+    input = openmc_wrong_mesh_type.i
+    cli_args = "--mesh-only"
+    expect_err = "Only implemented for regular meshes in OpenMC!"
+    requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
+                  "OpenMC RegularMesh"
+    capabilities = "openmc"
+  []
+  [two_meshes]
+    type = Exodiff
+    input = openmc_two_meshes.i
+    exodiff = openmc_two_meshes_in.e
+    cli_args = "--mesh-only"
+    requirement = "OpenMCMeshGenerator must accept at least two different calls from the "
+                  "same xml_directory"
+    capabilities = "openmc"
+  []
+  [verify_point_sampling]
+    type = CSVDiff
+    input = openmc_mesh_sampling.i
+    csvdiff = openmc_mesh_sampling_out_sample_points_0001.csv
+    requirement = "Points generated inside the mesh produced by OpenMCMeshGenerator "
+                  "must correctly map to the mesh element IDs."
+    mesh_mode = "replicated"
+    capabilities = "openmc"
+  []
+  [verify_bounding_box_and_info]
+    type = CSVDiff
+    input = openmc_mesh_sampling.i
+    csvdiff = openmc_mesh_sampling_out.csv
+    requirement = "Bounds, volume, number of nodes and elements for the mesh generated "
+                  "by OpenMCMeshGenerator must be correct"
+    capabilities = "openmc"
+  []
+  [consistent_scaling]
+    type = CSVDiff
+    input = openmc_mesh_scaling.i
+    csvdiff = openmc_mesh_scaling_out.csv
+    requirement = "Consistent scaling factors between OpenMCMeshGenerator and "
+                  "OpenMCCellAverageProblem must work"
+    capabilities = "openmc"
+  []
+  [inconsistent_scaling_1]
+    type = RunException
+    input = openmc_mesh_scaling.i
+    cli_args = "Problem/scaling=1.0"
+    expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
+    requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
+                  "OpenMCCellAverageProblem (S2) must fail when S2 < S1"
+    capabilities = "openmc"
+  []
+  [inconsistent_scaling_2]
+    type = RunException
+    input = openmc_mesh_scaling.i
+    cli_args = "Problem/scaling=100.0"
+    expect_err = "Did not find any overlap between MOOSE elements and OpenMC cells for "
+                 "the specified blocks!"
+    requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
+                  "OpenMCCellAverageProblem (S2) must fail when S2 > S1"
+    capabilities = "openmc"
+  []
+[]

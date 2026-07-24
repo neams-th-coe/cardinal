@@ -16,23 +16,36 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
+#pragma once
 
-#include "OpenMCSyntax.h"
-#include "ActionFactory.h"
-#include "Syntax.h"
+#include "MeshGenerator.h"
 
-namespace OpenMC
+#include "openmc/mesh.h"
+
+/*
+ * MeshGenerator that uses an existing OpenMC mesh to create an equivalent one with libmesh.
+ */
+class OpenMCMeshGenerator : public MeshGenerator
 {
+public:
+  static InputParameters validParams();
 
-void
-associateSyntax(Syntax & syntax, ActionFactory & action_factory)
-{
-  registerTask("openmc_init", true);
-  addTaskDependency("create_problem", "openmc_init");
-  addTaskDependency("setup_mesh", "openmc_init");
-}
+  OpenMCMeshGenerator(const InputParameters & parameters);
 
-} // namespace OpenMC
+  std::unique_ptr<MeshBase> generate() override;
 
-#endif
+private:
+  /// Generated mesh
+  std::unique_ptr<MeshBase> * _build_mesh;
+
+  const unsigned int _mesh_id;
+
+  const Real & _scaling;
+
+  openmc::Mesh * _openmc_mesh = nullptr;
+
+  unsigned int _openmc_mesh_index;
+
+  /// Directory in which OpenMC settings xml files are located
+  const std::string & _xml_directory;
+};
