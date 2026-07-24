@@ -11,3 +11,20 @@
     capabilities = 'dagmc'
   []
 []
+
+[Tests]
+  issues = '#1400'
+  design = 'MoabSkinner.md OpenMCCellAverageProblem.md'
+
+  [cell_instances_stable_across_reskins]
+    type = RunApp
+    input = openmc.i
+    expect_out = 'of 1\)'
+    absent_out = 'of [2-9]\)'
+    requirement = "The system shall not artificially inflate an OpenMC cell's instance count "
+                  "when the MOAB skinner reloads DAGMC geometry multiple times for a "
+                  "CSG-wrapped DAGMC universe."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+[]
