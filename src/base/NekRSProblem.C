@@ -637,8 +637,14 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       // execute all incoming scalar transfers
       for (const auto & t : _scalar_transfers)
-        if (t->direction() == "to_nek")
+        if (t->direction() == "to_nek") {
           t->sendDataToNek();
+
+          // update any user-defined properties (could be used for UQ)
+          auto nrs = nekrs::nrsPtr();
+          if(nrs->userProperties)
+            nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
+        }
 
       // copy host-side arrays which were filled to the device
       copyHostToDevice();
