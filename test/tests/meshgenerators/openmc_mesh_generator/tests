@@ -67,7 +67,8 @@
     type = RunException
     input = openmc_mesh_scaling.i
     cli_args = "Problem/scaling=1.0"
-    expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
+    expect_err = "Inconsistent scaling factors for OpenMC in the mesh generator and problem "
+                 "declarations."
     requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
                   "OpenMCCellAverageProblem (S2) must fail when S2 < S1"
     capabilities = "openmc"
@@ -76,8 +77,8 @@
     type = RunException
     input = openmc_mesh_scaling.i
     cli_args = "Problem/scaling=100.0"
-    expect_err = "Did not find any overlap between MOOSE elements and OpenMC cells for "
-                 "the specified blocks!"
+    expect_err = "Inconsistent scaling factors for OpenMC in the mesh generator and problem "
+                 "declarations."
     requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
                   "OpenMCCellAverageProblem (S2) must fail when S2 > S1"
     capabilities = "openmc"
