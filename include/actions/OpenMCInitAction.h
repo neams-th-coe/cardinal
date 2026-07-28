@@ -48,8 +48,10 @@ protected:
    * associated path to the XML directory if an OpenMCMeshGenerator is present in the input
    * file.
    *
-   * If multiple OpenMCMeshGenerators are requested but the xml_directory values are not
-   * exactly the same, it returns an error because we cannot initialize OpenMC more than once.
+   * If multiple OpenMCMeshGenerators are requested but the xml_directory values are not exactly the
+   * same, it returns an error because we cannot initialize OpenMC more than once. Additionally, the
+   * scaling factor should be the same for all instances of OpenMCMeshGenerators or an error will be
+   * raised.
    * @param[out] xml_directory directory in which OpenMC settings xml files are located
    * @param[out] scaling scaling factor for OpenMC
    * @return whether an OpenMCMeshGenerator have been requested in the input file

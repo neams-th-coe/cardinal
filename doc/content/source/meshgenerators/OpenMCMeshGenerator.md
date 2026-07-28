@@ -13,7 +13,10 @@ folder containing the OpenMC model can be declared using the `xml_directory` par
 `OpenMCMeshGenerator` retrieves the coordinates of the lower left and upper right corners of the OpenMC
 regular mesh and divides them by a user-defined scaling factor (defaulting to 1)
 declared via the `scaling` parameter. The number of cells in the mesh in each dimension is also directly
-retrieved from OpenMC.
+retrieved from OpenMC. When `OpenMCMeshGenerator` is used in conjunction with an `OpenMCCellAverageProblem`,
+the scaling factors for both objects must be identical to guarantee unit consistency. An error is raised if
+this is not the case. Additionally, if multiple `OpenMCMeshGenerator` objects are declared, the scaling
+factor must be the same for all instances or an error will be raised.
 
 !alert! note title=OpenMC initialization
 
@@ -33,7 +36,8 @@ an ID of 1 in the OpenMC model:
 !listing test/tests/meshgenerators/openmc_mesh_generator/openmc_mesh_only.i
 
 In this example, a scaling factor of 10 is used. This means that the dimensions retrieved from OpenMC
-will be divided by 10 to construct the mesh on the Cardinal side (since OpenMC always uses units of centimeters, this means that the Cardinal mesh would have units of decimeters).
+will be divided by 10 to construct the mesh on the Cardinal side (since OpenMC always uses units of
+centimeters, this means that the Cardinal mesh would have units of decimeters).
 
 !syntax parameters /Mesh/OpenMCMeshGenerator
 
