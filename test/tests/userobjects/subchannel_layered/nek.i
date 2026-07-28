@@ -60,11 +60,6 @@
     pin_diameter = 7.646e-3
     n_rings = 2
   []
-  [axial_binning]
-    type = LayeredBin
-    direction = z
-    num_layers = 6
-  []
   [vol_avg]
     type = NekBinnedVolumeAverage
     bins = 'subchannel_binning axial_binning'
@@ -74,6 +69,11 @@
     type = NekBinnedVolumeIntegral
     bins = 'subchannel_binning axial_binning'
     field = unity
+  []
+  [axial_binning]
+    type = LayeredBin
+    direction = z
+    num_layers = 6
   []
 
   [one_bin]
