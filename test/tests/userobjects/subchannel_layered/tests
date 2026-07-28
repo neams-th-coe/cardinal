@@ -2,8 +2,8 @@
   [type_error]
     type = RunException
     input = type_error.i
-    expect_err = "Bin user object with name 'dummy' must inherit from SpatialBinUserObject."
-    requirement = "The system shall error if the userobjects aren't derived from the correct base class."
+    expect_err = "Bin user object with name 'dummy' either does not exist or is of the wrong type."
+    requirement = "The system shall error if the userobjects aren't derived from the correct base class or if they are not found in the problem."
     capabilities = 'nekrs'
   []
   [subchannel_layered]
