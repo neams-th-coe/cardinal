@@ -149,6 +149,8 @@
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
+  # This test is similar to [internal_transmission] except that it's starting with a hex mesh and does
+  # the conversion to TET4 internally then compare against the same csvdiff from the first test.
   [hexmesh_internal_transmission]
     type = CSVDiff
     input = openmc_hex.i
@@ -163,6 +165,8 @@
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
   []
+  # This test is similar to [internal_reflective] except that it's starting with a hex mesh and does
+  # the conversion to TET4 internally then compare against the same csvdiff from the first test.
   [hexmesh_internal_reflective]
     type = CSVDiff
     input = openmc_hex.i

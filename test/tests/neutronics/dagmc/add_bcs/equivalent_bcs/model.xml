@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material id="1" depletable="true">
+      <density value="11.0" units="g/cc"/>
+      <nuclide name="U235" ao="0.0072"/>
+      <nuclide name="U238" ao="0.9928"/>
+    </material>
+    <material id="2" depletable="true">
+      <density value="11.0" units="g/cc"/>
+      <nuclide name="U235" ao="0.0072"/>
+      <nuclide name="U238" ao="0.9928"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" name="block_1" material="1" region="1 -2 3 -4 5 -6 7" temperature="500.0" universe="1"/>
+    <cell id="2" name="block_2" material="2" region="1 -2 3 -4 5 -6 -7" temperature="500.0" universe="1"/>
+    <surface id="1" type="x-plane" boundary="vacuum" coeffs="-12.5"/>
+    <surface id="2" type="x-plane" boundary="vacuum" coeffs="87.5"/>
+    <surface id="3" type="y-plane" boundary="reflective" coeffs="-12.5"/>
+    <surface id="4" type="y-plane" boundary="reflective" coeffs="37.5"/>
+    <surface id="5" type="z-plane" boundary="reflective" coeffs="-12.5"/>
+    <surface id="6" type="z-plane" boundary="reflective" coeffs="12.5"/>
+    <surface id="7" type="y-plane" coeffs="12.5"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>1000</particles>
+    <batches>100</batches>
+    <inactive>50</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-12.5 -12.5 -12.5 87.5 37.5 12.5</parameters>
+      </space>
+    </source>
+    <temperature_default>500.0</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_range>294.0 3000.0</temperature_range>
+    <temperature_tolerance>1000.0</temperature_tolerance>
+  </settings>
+  </model>
