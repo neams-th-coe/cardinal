@@ -8,6 +8,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
+  scaling = 10
   solve = false
 []
 
