@@ -1139,6 +1139,10 @@ MoabSkinner::boundaryConditionGroupName(BoundaryConditionType bc_type) const
     case BoundaryConditionType::Reflective:
       return "boundary:Reflecting";
     case BoundaryConditionType::Transmission:
+      mooseAssert(bc_type != BoundaryConditionType::Transmission,
+                  "Surface set groups should not be created for transmission BCs since "
+                  "transmission is the DAGMC default.");
+      return "";
     default:
       mooseError("No DAGMC boundary condition group exists for this boundary condition type");
   }
@@ -1466,7 +1470,11 @@ MoabSkinner::createSurfaces(moab::Range & faces,
           merged_bc = existing_bc;
         else if (existing_bc != BoundaryConditionType::Transmission && existing_bc != merged_bc)
           mooseError("A DAGMC surface was assigned both vacuum and reflective boundary "
-                     "conditions.");
+                     "conditions. This surface is shared between two skinned regions "
+                     "(e.g. an internal surface between two blocks) and received a "
+                     "different boundary condition from each side. Check 'vacuum_bcs_surfaces' "
+                     "and 'reflective_bcs_surfaces' for sidesets that cover the same mesh faces "
+                     "from opposite sides.");
 
         moab::EntityHandle shared_surf;
         surf_id++;
