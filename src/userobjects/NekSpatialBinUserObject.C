@@ -78,7 +78,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     // check that the user object exists and that it's the right type
     if (!hasUserObjectByName<SpatialBinUserObject>(b))
       mooseError("Bin user object with name '" + b +
-                 "' either does not exist or is of the wrong type. This user object must inherit from SpatialBinUserObject.\n\n"
+                 "' either does not exist or is of the wrong type. This user object must inherit "
+                 "from SpatialBinUserObject.\n\n"
                  "Volume options: HexagonalSubchannelBin, LayeredBin, RadialBin\n"
                  "Side options: HexagonalSubchannelGapBin, LayeredGapBin");
 
