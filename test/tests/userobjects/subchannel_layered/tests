@@ -2,15 +2,8 @@
   [type_error]
     type = RunException
     input = type_error.i
-    expect_err = "Bin user object with name 'dummy' must inherit from SpatialBinUserObject."
-    requirement = "The system shall error if the userobjects aren't derived from the correct base class."
-    capabilities = 'nekrs'
-  []
-  [ordering_error]
-    type = RunException
-    input = order_error.i
-    expect_err = "Bin user object with name 'subchannel_binning' not found in problem. The user objects in 'bins' must be listed before the 'vol_avg' user object."
-    requirement = "The system shall error if the userobjects aren't listed in the correct order in the input file."
+    expect_err = "Bin user object with name 'dummy' either does not exist or is of the wrong type."
+    requirement = "The system shall error if the userobjects aren't derived from the correct base class or if they are not found in the problem."
     capabilities = 'nekrs'
   []
   [subchannel_layered]
@@ -20,6 +13,7 @@
     requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for volume integrals and averages."
     capabilities = 'nekrs'
+    issues = '#1407'
   []
   [conflicting_bins]
     type = RunException
