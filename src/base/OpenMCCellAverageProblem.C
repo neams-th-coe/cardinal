@@ -782,15 +782,7 @@ OpenMCCellAverageProblem::setupProblem()
   // save the number of contained cells for printing in every transfer if verbose
   _cell_to_n_contained.clear();
   for (const auto & c : _cell_to_elem)
-  {
-    const auto & cell_info = c.first;
-    int32_t n_contained = 0;
-
-    for (const auto & cc : containedMaterialCells(cell_info))
-      n_contained += cc.second.size();
-
-    _cell_to_n_contained[cell_info] = n_contained;
-  }
+    _cell_to_n_contained[c.first] = numContainedMaterialCells(c.first);
 
   subdomainsToMaterials();
 
@@ -1476,9 +1468,9 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
   {
     printTrisoHelp(time_start);
 
-    const auto mats = cellHasIdenticalFill(c.first)
+    const auto & mats = cellHasIdenticalFill(c.first)
                           ? _first_identical_cell_materials
-                          : materialsInCells(containedMaterialCells(c.first));
+                          : materialsInCells(_cell_to_contained_material_cells.at(c.first));
 
     for (const auto & s : _cell_to_elem_subdomain.at(c.first))
       for (const auto & m : mats)
@@ -1813,7 +1805,18 @@ OpenMCCellAverageProblem::cacheContainedCells()
 
     std::map<cellInfo, containedCells> current_cell_fills;
     for (const auto & c : _cell_to_elem)
-      current_cell_fills[c.first] = containedMaterialCells(c.first);
+    {
+      // Shift the cell instances in-place.
+      if (cellHasIdenticalFill(c.first))
+      {
+        current_cell_fills[c.first] = _cell_to_contained_material_cells.at(_first_identical_cell);
+        for (auto & [cc_idx, cc_instances] : current_cell_fills[c.first])
+          for (unsigned int instance_idx = 0; instance_idx < cc_instances.size(); instance_idx++)
+            cc_instances[instance_idx] = containedCellInstanceShift(c.first, cc_idx, instance_idx);
+      }
+      else
+        current_cell_fills[c.first] = _cell_to_contained_material_cells.at(c.first);
+    }
 
     std::map<cellInfo, containedCells> ordered_reference(checking_cell_fills.begin(),
                                                          checking_cell_fills.end());
@@ -2434,20 +2437,24 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
                << " contained cells] to temperature (K): " << std::setw(4) << average_temp
                << std::endl;
 
-    containedCells contained_cells = containedMaterialCells(cell_info);
-
-    for (const auto & contained : contained_cells)
+    const bool identical_fill = cellHasIdenticalFill(cell_info);
+    const auto & unshifted_contained_cells = unshiftedContainedCells(cell_info);
+    for (auto & [cc_idx, cc_instances] : unshifted_contained_cells)
     {
-      for (const auto & instance : contained.second)
+      for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
       {
-        cellInfo ci = {contained.first, instance};
+        // Shift the cell instances in-place if required for the identical cell fill optimization.
+        auto cc_instance =
+            identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
+                           : cc_instances[cc_instance_idx];
+        cellInfo ci = {cc_idx, cc_instance};
         if (cells_already_set.count(ci))
         {
           double T;
           openmc_cell_get_temperature(ci.first, &ci.second, &T);
 
-          mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " +
-                     std::to_string(instance) +
+          mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
+                     std::to_string(cc_instance) +
                      " has already had its temperature set by Cardinal to " + std::to_string(T) +
                      " K! This indicates a problem with how you have built your geometry, because "
                      "this cell is trying to receive a distribution of temperatures in space, but "
@@ -2459,7 +2466,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
         }
 
         cells_already_set.insert(ci);
-        setCellTemperature(contained.first, instance, average_temp, cell_info);
+        setCellTemperature(cc_idx, cc_instance, average_temp, cell_info);
       }
     }
   }
@@ -2478,24 +2485,35 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
   // in CellDensityAux of a cell containing multiple nested cells and if void happens to be the
   // first of those contained cells. So, we screen it out here.
 
-  const auto & contained_cells = containedMaterialCells(cell_info);
-  for (const auto & c : contained_cells)
+  const bool identical_fill = cellHasIdenticalFill(cell_info);
+  const auto & unshifted_contained_cells = unshiftedContainedCells(cell_info);
+  for (auto & [cc_idx, cc_instances] : unshifted_contained_cells)
   {
-    const auto & cell = openmc::model::cells[c.first];
-    for (const auto & instance : c.second)
+    const auto & cell = openmc::model::cells[cc_idx];
+    for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
     {
-      const auto mat_index = cell->material(instance);
+      // Shift the cell instances in-place if required for the identical cell fill optimization.
+      auto cc_instance =
+          identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
+                          : cc_instances[cc_instance_idx];
+
+      const auto mat_index = cell->material(cc_instance);
       if (mat_index != openmc::MATERIAL_VOID)
       {
-        cellInfo first_cell = {c.first, instance};
+        cellInfo first_cell = {cc_idx, cc_instance};
         return first_cell;
       }
     }
   }
 
   // if the cell only contains void, then we'll return that
-  const auto & instances = contained_cells.begin()->second;
-  cellInfo first_cell = {contained_cells.begin()->first, instances[0]};
+  auto cc_idx = unshifted_contained_cells.begin()->first;
+  const auto & cc_instances = unshifted_contained_cells.begin()->second;
+  // Shift the cell instance in-place if required for the identical cell fill optimization.
+  auto cc_instance =
+          identical_fill ? containedCellInstanceShift(cell_info, cc_idx, 0)
+                          : cc_instances[0];
+  cellInfo first_cell = {cc_idx, cc_instance};
   return first_cell;
 }
 
@@ -2540,7 +2558,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
                  << " to MGXS density (-): " << std::setw(4) << average_density << std::endl;
     }
 
-    containedCells contained_cells = containedMaterialCells(cell_info);
+    auto & contained_cells = _cell_to_contained_material_cells.at(cell_info);
 
     for (const auto & contained : contained_cells)
     {
@@ -3336,40 +3354,32 @@ OpenMCCellAverageProblem::cellHasIdenticalFill(const cellInfo & cell_info) const
   return cellMapsToSubdomain(cell_info, _identical_cell_fill_blocks);
 }
 
-OpenMCCellAverageProblem::containedCells
-OpenMCCellAverageProblem::shiftCellInstances(const cellInfo & cell_info) const
+int
+OpenMCCellAverageProblem::containedCellInstanceShift(const cellInfo & cell_info,
+                                                     int32_t cc_idx,
+                                                     int32_t cc_instance_idx_to_shift) const
 {
   if (!_has_identical_cell_fills)
-    mooseError("Internal error: should not call shiftCellInstances!");
+    mooseError("Internal error: should not call containedCellInstanceShift!");
 
   auto offset = _n_offset.at(cell_info);
-
-  containedCells contained_cells;
+  // All material filled cells in "cell_info".
   const auto & first_cell_cc = _cell_to_contained_material_cells.at(_first_identical_cell);
-  for (const auto & cc : first_cell_cc)
-  {
-    const auto & index = cc.first;
-    const auto & instances = cc.second;
-    auto n_instances = instances.size();
-    const auto & shifts = _instance_offsets.at(index);
+  // The cell instance we're shifting.
+  auto instance_to_shift = first_cell_cc.at(cc_idx)[cc_instance_idx_to_shift];
+  // The shift to apply.
+  auto shift = _instance_offsets.at(cc_idx)[cc_instance_idx_to_shift];
 
-    std::vector<int32_t> shifted_instances;
-    for (unsigned int inst = 0; inst < n_instances; ++inst)
-      shifted_instances.push_back(instances[inst] + offset * shifts[inst]);
-
-    contained_cells[index] = shifted_instances;
-  }
-
-  return contained_cells;
+  // Compute the new instance.
+  return instance_to_shift + offset * shift;
 }
 
-OpenMCCellAverageProblem::containedCells
-OpenMCCellAverageProblem::containedMaterialCells(const cellInfo & cell_info) const
+const OpenMCCellAverageProblem::containedCells &
+OpenMCCellAverageProblem::unshiftedContainedCells(const cellInfo & cell_info) const
 {
-  if (!cellHasIdenticalFill(cell_info))
-    return _cell_to_contained_material_cells.at(cell_info);
-  else
-    return shiftCellInstances(cell_info);
+  const bool identical_fill = cellHasIdenticalFill(cell_info);
+  return identical_fill ? _cell_to_contained_material_cells.at(_first_identical_cell)
+                        : _cell_to_contained_material_cells.at(cell_info);
 }
 
 std::vector<int32_t>
@@ -3429,7 +3439,7 @@ int
 OpenMCCellAverageProblem::numContainedMaterialCells(const cellInfo & cell_info) const
 {
   int n_contained = 0;
-  auto contained_cells = containedMaterialCells(cell_info);
+  const auto & contained_cells = unshiftedContainedCells(cell_info);
   for (const auto & cell : contained_cells)
     n_contained += cell.second.size();
 
