@@ -544,10 +544,13 @@ protected:
    * new instance of a cell contained in 'cell_info'
    * @param[in] cell_info cell index, instance pair of the containing cell
    * @param[in] cc_idx index in the openmc::model::cells array for a cell contained in 'cell_info'
-   * @param[in] cc_instance_idx_to_shift the index in the containedCells instance array for the instance we want to shift
+   * @param[in] cc_instance_idx_to_shift the index in the containedCells instance array for the
+   * instance we want to shift
    * @return a shifted instance
    */
-  int containedCellInstanceShift(const cellInfo & cell_info, int32_t cc_idx, int32_t cc_instance_idx_to_shift) const;
+  int containedCellInstanceShift(const cellInfo & cell_info,
+                                 int32_t cc_idx,
+                                 int32_t cc_instance_idx_to_shift) const;
 
   /**
    * When using the 'identical_cell_fills' feature, this is use to get a list of

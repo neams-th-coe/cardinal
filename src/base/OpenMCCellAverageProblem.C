@@ -1469,8 +1469,8 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     printTrisoHelp(time_start);
 
     const auto & mats = cellHasIdenticalFill(c.first)
-                          ? _first_identical_cell_materials
-                          : materialsInCells(_cell_to_contained_material_cells.at(c.first));
+                            ? _first_identical_cell_materials
+                            : materialsInCells(_cell_to_contained_material_cells.at(c.first));
 
     for (const auto & s : _cell_to_elem_subdomain.at(c.first))
       for (const auto & m : mats)
@@ -1857,16 +1857,16 @@ OpenMCCellAverageProblem::cacheContainedCells()
         {
           if (cells_already_set.count({cc_idx, cc_instance}))
             mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
-                      std::to_string(cc_instance) +
-                      " has been mapped to multiple times by "
-                      "Cardinal! This indicates a problem with how you have built your "
-                      "geometry, because this cell is trying to receive a distribution of "
-                      "temperatures or densities in space, but each successive set-property "
-                      "operation is only overwriting the previous value.\n\nThis "
-                      "error most often appears when you are filling a LATTICE into multiple "
-                      "cells. One fix is to first place that lattice into a universe, and then "
-                      "fill that UNIVERSE into multiple cells.\n\nFor more information, "
-                      "please consult https://github.com/neams-th-coe/cardinal/pull/918.");
+                       std::to_string(cc_instance) +
+                       " has been mapped to multiple times by "
+                       "Cardinal! This indicates a problem with how you have built your "
+                       "geometry, because this cell is trying to receive a distribution of "
+                       "temperatures or densities in space, but each successive set-property "
+                       "operation is only overwriting the previous value.\n\nThis "
+                       "error most often appears when you are filling a LATTICE into multiple "
+                       "cells. One fix is to first place that lattice into a universe, and then "
+                       "fill that UNIVERSE into multiple cells.\n\nFor more information, "
+                       "please consult https://github.com/neams-th-coe/cardinal/pull/918.");
 
           cells_already_set.insert({cc_idx, cc_instance});
         }
@@ -2484,12 +2484,13 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
     const auto & unshifted_contained_cells = unshiftedContainedCells(cell_info);
     for (auto & [cc_idx, cc_instances] : unshifted_contained_cells)
     {
-      for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
+      for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size();
+           ++cc_instance_idx)
       {
         // Shift the cell instances in-place if required for the identical cell fill optimization.
-        auto cc_instance =
-            identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
-                           : cc_instances[cc_instance_idx];
+        auto cc_instance = identical_fill
+                               ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
+                               : cc_instances[cc_instance_idx];
         setCellTemperature(cc_idx, cc_instance, average_temp, cell_info);
       }
     }
@@ -2517,9 +2518,9 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
     for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
     {
       // Shift the cell instances in-place if required for the identical cell fill optimization.
-      auto cc_instance =
-          identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
-                          : cc_instances[cc_instance_idx];
+      auto cc_instance = identical_fill
+                             ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
+                             : cc_instances[cc_instance_idx];
 
       const auto mat_index = cell->material(cc_instance);
       if (mat_index != openmc::MATERIAL_VOID)
@@ -2535,8 +2536,7 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
   const auto & cc_instances = unshifted_contained_cells.begin()->second;
   // Shift the cell instance in-place if required for the identical cell fill optimization.
   auto cc_instance =
-          identical_fill ? containedCellInstanceShift(cell_info, cc_idx, 0)
-                          : cc_instances[0];
+      identical_fill ? containedCellInstanceShift(cell_info, cc_idx, 0) : cc_instances[0];
   cellInfo first_cell = {cc_idx, cc_instance};
   return first_cell;
 }
