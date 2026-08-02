@@ -1825,6 +1825,12 @@ OpenMCCellAverageProblem::cacheContainedCells()
     compareContainedCells(ordered_reference, ordered);
   }
 
+  if (_has_identical_cell_fills && !used_cache_shortcut)
+    mooseWarning("You specified 'identical_cell_fills', but all cells which mapped to these "
+                 "subdomains were filled \n"
+                 "by a material (as opposed to a universe/lattice), so the 'identical_cell_fills' "
+                 "parameter is unused.");
+
   // Check for duplicate contained cells to ensure we don't set the cell temperature or
   // density multiple times erroneously. This occurs if Cardinal maps to multiple cells
   // that are each filled with the same lattice, as OpenMC doesn't add cell instances in
@@ -1838,16 +1844,17 @@ OpenMCCellAverageProblem::cacheContainedCells()
     std::unordered_set<cellInfo> cells_already_set;
     for (const auto & [cell_info, elements] : _cell_to_elem)
     {
+      // Skip checking the identical cell fills outside of _first_identical_cell.
+      // These mapping errors are caught when verifying contained cells above.
       const bool identical_fill = cellHasIdenticalFill(cell_info);
-      const auto & unshifted_contained_cells = unshiftedContainedCells(cell_info);
-      for (auto & [cc_idx, cc_instances] : unshifted_contained_cells)
+      if (identical_fill && cell_info != _first_identical_cell)
+        continue;
+
+      const auto & contained_cells = _cell_to_contained_material_cells.at(cell_info);
+      for (auto & [cc_idx, cc_instances] : contained_cells)
       {
-        for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
+        for (auto cc_instance : cc_instances)
         {
-          // Shift the cell instances in-place if required for the identical cell fill optimization.
-          auto cc_instance =
-              identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
-                            : cc_instances[cc_instance_idx];
           if (cells_already_set.count({cc_idx, cc_instance}))
             mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
                       std::to_string(cc_instance) +
@@ -1868,12 +1875,6 @@ OpenMCCellAverageProblem::cacheContainedCells()
   }
   // All MPI ranks need to wait until rank zero has finished performing the mapping check.
   _communicator.barrier();
-
-  if (_has_identical_cell_fills && !used_cache_shortcut)
-    mooseWarning("You specified 'identical_cell_fills', but all cells which mapped to these "
-                 "subdomains were filled \n"
-                 "by a material (as opposed to a universe/lattice), so the 'identical_cell_fills' "
-                 "parameter is unused.");
 }
 
 void
