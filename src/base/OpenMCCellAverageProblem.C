@@ -1825,6 +1825,50 @@ OpenMCCellAverageProblem::cacheContainedCells()
     compareContainedCells(ordered_reference, ordered);
   }
 
+  // Check for duplicate contained cells to ensure we don't set the cell temperature or
+  // density multiple times erroneously. This occurs if Cardinal maps to multiple cells
+  // that are each filled with the same lattice, as OpenMC doesn't add cell instances in
+  // that case (lattices must be placed in universes, then those universes may be placed
+  // in cells). This check is memory-intensive as it builds a map of all contained
+  // cell index + instance pairs, so we ensure its only performed on a single MPI rank
+  // and outside of any point where the auxsystem is serialized to reduce peak
+  // memory consumption.
+  if (_communicator.rank() == 0)
+  {
+    std::unordered_set<cellInfo> cells_already_set;
+    for (const auto & [cell_info, elements] : _cell_to_elem)
+    {
+      const bool identical_fill = cellHasIdenticalFill(cell_info);
+      const auto & unshifted_contained_cells = unshiftedContainedCells(cell_info);
+      for (auto & [cc_idx, cc_instances] : unshifted_contained_cells)
+      {
+        for (unsigned int cc_instance_idx = 0; cc_instance_idx < cc_instances.size(); ++cc_instance_idx)
+        {
+          // Shift the cell instances in-place if required for the identical cell fill optimization.
+          auto cc_instance =
+              identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
+                            : cc_instances[cc_instance_idx];
+          if (cells_already_set.count({cc_idx, cc_instance}))
+            mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
+                      std::to_string(cc_instance) +
+                      " has been mapped to multiple times by "
+                      "Cardinal! This indicates a problem with how you have built your "
+                      "geometry, because this cell is trying to receive a distribution of "
+                      "temperatures or densities in space, but each successive set-property "
+                      "operation is only overwriting the previous value.\n\nThis "
+                      "error most often appears when you are filling a LATTICE into multiple "
+                      "cells. One fix is to first place that lattice into a universe, and then "
+                      "fill that UNIVERSE into multiple cells.\n\nFor more information, "
+                      "please consult https://github.com/neams-th-coe/cardinal/pull/918.");
+
+          cells_already_set.insert({cc_idx, cc_instance});
+        }
+      }
+    }
+  }
+  // All MPI ranks need to wait until rank zero has finished performing the mapping check.
+  _communicator.barrier();
+
   if (_has_identical_cell_fills && !used_cache_shortcut)
     mooseWarning("You specified 'identical_cell_fills', but all cells which mapped to these "
                  "subdomains were filled \n"
@@ -2418,8 +2462,6 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   std::map<cellInfo, Real> cell_vol_temp =
       computeVolumeWeightedCellInput(_subdomain_to_temp_vars, &phase);
 
-  std::unordered_set<cellInfo> cells_already_set;
-
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -2447,25 +2489,6 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
         auto cc_instance =
             identical_fill ? containedCellInstanceShift(cell_info, cc_idx, cc_instance_idx)
                            : cc_instances[cc_instance_idx];
-        cellInfo ci = {cc_idx, cc_instance};
-        if (cells_already_set.count(ci))
-        {
-          double T;
-          openmc_cell_get_temperature(ci.first, &ci.second, &T);
-
-          mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
-                     std::to_string(cc_instance) +
-                     " has already had its temperature set by Cardinal to " + std::to_string(T) +
-                     " K! This indicates a problem with how you have built your geometry, because "
-                     "this cell is trying to receive a distribution of temperatures in space, but "
-                     "each successive set-temperature operation is only overwriting the previous "
-                     "value.\n\nThis error most often appears when you are filling a LATTICE into "
-                     "multiple cells. One fix is to first place that lattice into a universe, and "
-                     "then fill that UNIVERSE into multiple cells.\n\nFor more information, please "
-                     "consult https://github.com/neams-th-coe/cardinal/pull/918.");
-        }
-
-        cells_already_set.insert(ci);
         setCellTemperature(cc_idx, cc_instance, average_temp, cell_info);
       }
     }
@@ -2535,8 +2558,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   std::map<cellInfo, Real> cell_vol_density =
       computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase, scaling);
 
-  std::unordered_set<cellInfo> cells_already_set;
-
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -2561,32 +2582,8 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
     auto & contained_cells = _cell_to_contained_material_cells.at(cell_info);
 
     for (const auto & contained : contained_cells)
-    {
       for (const auto & instance : contained.second)
-      {
-        cellInfo ci = {contained.first, instance};
-        if (cells_already_set.count(ci))
-        {
-          double rho;
-          openmc_cell_get_density(ci.first, &ci.second, &rho);
-
-          mooseError(
-              "Cell " + std::to_string(cellID(contained.first)) + ", instance " +
-              std::to_string(instance) + " has already had its density set by Cardinal to " +
-              std::to_string(rho) +
-              " g/cm3! This indicates a problem with how you have built your geometry, because "
-              "this cell is trying to receive a distribution of densities in space, but "
-              "each successive set-density operation is only overwriting the previous "
-              "value.\n\nThis error most often appears when you are filling a LATTICE into "
-              "multiple cells. One fix is to first place that lattice into a universe, and "
-              "then fill that UNIVERSE into multiple cells.\n\nFor more information, please "
-              "consult https://github.com/neams-th-coe/cardinal/pull/918.");
-        }
-
-        cells_already_set.insert(ci);
         setCellDensity(contained.first, instance, average_density, cell_info);
-      }
-    }
   }
 
   if (!_verbose)
