@@ -1845,7 +1845,8 @@ OpenMCCellAverageProblem::cacheContainedCells()
     for (const auto & [cell_info, elements] : _cell_to_elem)
     {
       // Skip checking the identical cell fills outside of _first_identical_cell.
-      // These mapping errors are caught when verifying contained cells above (if 'check_identical_cell_fills' is true)
+      // These mapping errors are caught when verifying contained cells above (if
+      // 'check_identical_cell_fills' is true)
       const bool identical_fill = cellHasIdenticalFill(cell_info);
       if (identical_fill && cell_info != _first_identical_cell)
         continue;
