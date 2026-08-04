@@ -1845,7 +1845,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
     for (const auto & [cell_info, elements] : _cell_to_elem)
     {
       // Skip checking the identical cell fills outside of _first_identical_cell.
-      // These mapping errors are caught when verifying contained cells above.
+      // These mapping errors are caught when verifying contained cells above (if 'check_identical_cell_fills' is true)
       const bool identical_fill = cellHasIdenticalFill(cell_info);
       if (identical_fill && cell_info != _first_identical_cell)
         continue;
@@ -1858,7 +1858,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
           if (cells_already_set.count({cc_idx, cc_instance}))
             mooseError("Cell " + std::to_string(cellID(cc_idx)) + ", instance " +
                        std::to_string(cc_instance) +
-                       " has been mapped to multiple times by "
+                       " has already had its properties (temperature and/or density) set by "
                        "Cardinal! This indicates a problem with how you have built your "
                        "geometry, because this cell is trying to receive a distribution of "
                        "temperatures or densities in space, but each successive set-property "
