@@ -5,6 +5,8 @@
     expect_err = "Bin user object with name 'dummy' either does not exist or is of the wrong type."
     requirement = "The system shall error if the userobjects aren't derived from the correct base class or if they are not found in the problem."
     capabilities = 'nekrs'
+    design = 'NekBinnedVolumeAverage.md'
+    issues = '#1407'
   []
   [subchannel_layered]
     type = Exodiff
@@ -13,7 +15,7 @@
     requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for volume integrals and averages."
     capabilities = 'nekrs'
-    issues = '#1407'
+    design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
   []
   [conflicting_bins]
     type = RunException
@@ -22,6 +24,7 @@
                  "Bin 'x_bins' conflicts with bin 'subchannel_binning'"
     requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
     capabilities = 'nekrs'
+    design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
   []
   [1d_output]
     type = CSVDiff
@@ -29,6 +32,7 @@
     csvdiff = 1d_out_from_uo_0002.csv
     requirement = "The output points shall be automatically output for a single-axis subchannel binning"
     capabilities = 'nekrs'
+    design = 'HexagonalSubchannelBin.md NekBinnedVolumeAverage.md'
   []
   [wrong_type]
     type = RunException
@@ -36,6 +40,7 @@
     expect_err = "This user object requires all bins to be volume distributions"
     requirement = "System shall error if a side user object is provided to a volume binning user object."
     capabilities = 'nekrs'
+    design = 'NekBinnedVolumeAverage.md'
   []
   [invalid_component]
     type = RunException
@@ -44,6 +49,7 @@
     expect_err = "Setting 'velocity_component = normal' is not supported"
     requirement = "System shall error if attempting to use a normal velocity component with a user object that does not have normals defined"
     capabilities = 'nekrs'
+    design = 'NekBinnedVolumeAverage.md'
   []
   [user_component]
     type = Exodiff
@@ -53,6 +59,7 @@
                   "binning and demonstrate correct results for volume averages of velocity projected "
                   "along a constant direction."
     capabilities = 'nekrs'
+    design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
   []
   [pin_1d]
     type = CSVDiff
@@ -60,5 +67,6 @@
     csvdiff = pin_1d_out_from_uo_0002.csv
     requirement = "A pin-centered subchannel bin shall give correct results for side averages of temperature."
     capabilities = 'nekrs'
+    design = 'HexagonalSubchannelBin.md NekBinnedVolumeAverage.md'
   []
 []

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekSideIntegral.md'
   [invalid_boundary_id]
     type = RunException
     input = nek.i
@@ -10,8 +11,7 @@
                  "nekRS assumes the boundary IDs are ordered "
                  "contiguously beginning at 1. For this problem, nekRS has 6 boundaries. "
                  "Did you enter a valid 'boundary' in 'nek.i'?"
-    requirement = "MOOSE shall throw an error if an invalid boundary is specified for the construction "
-                  "of nekRS's mesh as a MooseMesh."
+    requirement = "MOOSE shall throw an error if an invalid boundary is specified for a side postprocessor."
     capabilities = 'nekrs'
   []
 []

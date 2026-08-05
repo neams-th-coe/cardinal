@@ -16,6 +16,7 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekRSMesh.md NekFieldVariable.md NekTimeStepper.md NekVolumeExtremeValue.md NekSideIntegral.md NekVolumeIntegral.md NekSideExtremeValue.md NekVolumeAverage.md NekSideAverage.md'
   []
   [boundary]
     type = CSVDiff
@@ -33,5 +34,6 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekRSMesh.md NekFieldVariable.md NekTimeStepper.md NekSideExtremeValue.md NekSideAverage.md'
   []
 []

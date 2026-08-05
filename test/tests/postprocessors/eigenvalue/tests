@@ -1,4 +1,5 @@
 [Tests]
+  design = 'KEigenvalue.md'
   [k_eigenvalue]
     type = CSVDiff
     input = openmc.i

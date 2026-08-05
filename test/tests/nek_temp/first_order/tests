@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekFieldVariable.md NekRSMesh.md'
   [first_order_temperature]
     type = Exodiff
     input = nek.i

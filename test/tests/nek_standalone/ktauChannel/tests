@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekRSMesh.md NekTimeStepper.md NekFieldVariable.md NekVolumeExtremeValue.md'
   [volume]
     type = RunApp
     input = nek.i

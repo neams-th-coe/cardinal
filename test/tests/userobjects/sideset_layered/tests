@@ -5,6 +5,7 @@
     expect_err = "Invalid 'boundary' entry: 5"
     requirement = "The system shall error if an invalid boundary ID is specified"
     capabilities = 'nekrs'
+    design = 'NekBinnedSideIntegral.md'
   []
   [z_bins]
     type = Exodiff
@@ -13,6 +14,7 @@
     rel_err = 5e-4
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the quadrature point"
     capabilities = 'nekrs'
+    design = 'NekBinnedSideIntegral.md NekBinnedSideAverage.md LayeredBin.md'
   []
   [z_bins_by_centroid]
     type = Exodiff
@@ -20,6 +22,7 @@
     exodiff = z_bins_by_centroid_out.e
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the face centroid"
     capabilities = 'nekrs'
+    design = 'NekBinnedSideIntegral.md NekBinnedSideAverage.md LayeredBin.md'
   []
   [side_average]
     type = Exodiff
@@ -27,5 +30,6 @@
     exodiff = side_average_out.e
     requirement = "The system shall correctly average over a sideset in the NekRS domain"
     capabilities = 'nekrs'
+    design = 'NekBinnedSideAverage.md LayeredBin.md'
   []
 []

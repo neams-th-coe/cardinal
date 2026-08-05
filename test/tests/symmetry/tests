@@ -1,4 +1,5 @@
 [Tests]
+  design = 'SymmetryPointGenerator.md OpenMCCellAverageProblem.md'
   [reflection]
     type = Exodiff
     input = reflection.i
