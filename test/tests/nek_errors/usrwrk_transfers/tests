@@ -1,5 +1,4 @@
 [Tests]
-  design = 'NekBoundaryFlux.md NekVolumetricSource.md NekScalarValue.md'
   [duplicate_scratch]
     type = RunException
     input = nek.i
@@ -7,6 +6,7 @@
     expect_err = "There are duplicate entries in 'usrwrk_slot': 1 1 ; duplicate entries are not allowed because the field transfer will overwrite itself."
     requirement = "MOOSE shall throw an error if a single transfer tries to occupy the same slot more than once"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [exceed_allocated_field]
     type = RunException
@@ -15,6 +15,7 @@
     expect_err = "Cannot write into usrwrk slot 7 because only 7 have been allocated with 'n_usrwrk_slots'. Slots are zero-indexed, so the maximum acceptable value in 'usrwrk_slot' is 6."
     requirement = "MOOSE shall throw an error if a attempting to write a field into a usrwrk slot which has not been allocated"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [exceed_allocated_scalar]
     type = RunException
@@ -23,6 +24,7 @@
     expect_err = "Cannot write into usrwrk slot 7 because only 7 have been allocated with 'n_usrwrk_slots'. Slots are zero-indexed, so the maximum acceptable value in 'usrwrk_slot' is 6."
     requirement = "MOOSE shall throw an error if a attempting to write a scalar into a usrwrk slot which has not been allocated"
     capabilities = 'nekrs'
+    design = 'NekScalarValue.md'
   []
   [field_duplicated_by_field]
     type = RunException
@@ -31,6 +33,7 @@
     expect_err = "A duplicate slot, 2, is being used by another FieldTransfer."
     requirement = "MOOSE shall throw an error if a attempting to write a field into a usrwrk slot already claimed by another field transfer"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [scalar_duplicated_by_field]
     type = RunException
@@ -38,6 +41,7 @@
     expect_err = "The usrwrk slot 3 is already used by the FieldTransfers for writing field data into NekRS. You cannot set 'usrwrk_slot' to any of: 3 4"
     requirement = "MOOSE shall throw an error if a attempting to write a scalar into a usrwrk slot already claimed by a field transfer"
     capabilities = 'nekrs'
+    design = 'NekScalarValue.md'
   []
   [flux_no_boundary]
     type = RunException
@@ -45,6 +49,7 @@
     expect_err = "NekBoundaryFlux can only be used when there is boundary coupling of NekRS with MOOSE, i.e. when 'boundary' is provided in NekRSMesh."
     requirement = "The system shall error when a boundary flux transfer is applied when there is not boundary coupling"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [source_no_volume]
     type = RunException
@@ -53,6 +58,7 @@
     expect_err = "The NekVolumetricSource object can only be used when there is volumetric coupling of NekRS with MOOSE, i.e. when 'volume = true' in NekRSMesh."
     requirement = "The system shall error when a volumetric source transfer is applied when there is not volume coupling"
     capabilities = 'nekrs'
+    design = 'NekVolumetricSource.md'
   []
   [flux_slots]
     type = RunException
@@ -61,6 +67,7 @@
     expect_err = "'usrwrk_slot' must be of length 1 for boundary flux transfers; you have entered a vector of length 2"
     requirement = "The system shall error when the usrwrk slot request does not match the needed number of slots for a flux transfer"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [source_slots]
     type = RunException
@@ -68,6 +75,7 @@
     expect_err = "'usrwrk_slot' must be of length 1 for volumetric source transfers; you have entered a vector of length 2"
     requirement = "The system shall error when the usrwrk slot request does not match the needed number of slots for a source transfer"
     capabilities = 'nekrs'
+    design = 'NekVolumetricSource.md'
   []
   [problem_field]
     type = RunException
@@ -75,6 +83,7 @@
     expect_err = "The \[FieldTransfers\] block can only be used with wrapped Nek cases! You need to change the \[Problem\] block to 'NekRSProblem'."
     requirement = "The system shall error if trying to use field transfer syntax only relevant for NekRS wrapped cases with a non-Nek case."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [problem_scalar]
     type = RunException
@@ -82,5 +91,6 @@
     expect_err = "The \[ScalarTransfers\] block can only be used with wrapped Nek cases! You need to change the \[Problem\] block to 'NekRSProblem'."
     requirement = "The system shall error if trying to use scalar transfer syntax only relevant for NekRS wrapped cases with a non-Nek case."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
 []

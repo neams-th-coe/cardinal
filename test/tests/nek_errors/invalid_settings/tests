@@ -1,6 +1,4 @@
 [Tests]
-  design = 'NekRSProblem.md NekRSMesh.md'
-
   # can't use more processors than elements, so all tests are limited to 12 ranks
 
   [executioner]
@@ -10,6 +8,7 @@
     requirement = "The system shall error if NekRSProblem is not paired with the correct executioner."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [dimensionalize]
     type = RunException
@@ -18,6 +17,7 @@
     requirement = "The system shall error if the Dimensionalize action is not paired with the correct problem."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [mesh]
     type = RunException
@@ -26,6 +26,7 @@
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [problem_base]
     type = RunException
@@ -34,6 +35,7 @@
     requirement = "The system shall error if a Nek object is not paired with the correct problem."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [problem_mesh]
     type = RunException
@@ -43,6 +45,7 @@
                   "problem."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSMesh.md'
   []
   [timestepper]
     type = RunException
@@ -52,6 +55,7 @@
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [missing_flux_bc]
     type = RunException
@@ -61,6 +65,7 @@
                   "on the nekRS boundaries that are coupled to MOOSE."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSMesh.md'
   []
   [boundary_id]
     type = RunException
@@ -72,6 +77,7 @@
                   "of nekRS's mesh as a MooseMesh."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSMesh.md'
   []
   [scaling_mismatch]
     type = RunException
@@ -80,5 +86,6 @@
     requirement = "The system shall error if there is a mismatch between the scaling of the mesh and NekRS problem."
     max_parallel = 12
     capabilities = 'nekrs'
+    design = 'NekRSMesh.md NekRSProblem.md'
   []
 []

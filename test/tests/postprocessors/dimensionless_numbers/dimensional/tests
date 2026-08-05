@@ -1,11 +1,11 @@
 [Tests]
-  design = 'PecletNumber.md ReynoldsNumber.md NekNumRanks.md'
   [dimensional_Re_Pe]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
     requirement = "The system shall correctly compute the Reynolds and Peclet numbers for a dimensional NekRS case."
     capabilities = 'nekrs'
+    design = 'PecletNumber.md ReynoldsNumber.md'
   []
   [ranks]
     type = CSVDiff
@@ -14,5 +14,6 @@
     min_parallel = 3
     requirement = "The system shall correctly output the number of NekRS MPI ranks"
     capabilities = 'nekrs'
+    design = 'NekNumRanks.md'
   []
 []

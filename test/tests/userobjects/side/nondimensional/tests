@@ -1,11 +1,11 @@
 [Tests]
-  design = 'NekBinnedSideAverage.md NekBinnedSideIntegral.md'
   [precompile]
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre sfr_7pin 1'
     requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [nondim]
     type = Exodiff
@@ -17,5 +17,6 @@
     prereq = precompile
     capabilities = 'nekrs'
     skip = 'Need to resolve precompile issues'
+    design = 'NekBinnedSideAverage.md NekBinnedSideIntegral.md DimensionalizeAction.md'
   []
 []
