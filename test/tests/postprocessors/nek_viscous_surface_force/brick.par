@@ -6,17 +6,14 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 5
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
 
 [MESH]
   file=../nek_weighted_side_integral/brick.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = 20
 
-[PRESSURE]
-
-[TEMPERATURE]
-  solver = none
+[FLUID PRESSURE]

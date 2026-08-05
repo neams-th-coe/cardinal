@@ -6,17 +6,19 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 7
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
   residualTol = 1.0e-6
   boundaryTypeMap = inlet, outlet, wall
 
-[PRESSURE]
-  residualTol = 1.0e-5
+[FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
+  transportCoeff = 1001400
+  diffusionCoeff = 2.34
   solver = none

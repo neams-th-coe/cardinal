@@ -66,7 +66,7 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
     mooseWarning(
         "Your NekRSMesh has 'displacements', but '" + _nek_problem.casename() +
         ".par' does not have a\n"
-        "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
+        "solver in the [GEOM] block! The displacements transferred to NekRS will be unused.");
 
   if (nekrs::hasMovingMesh() && _nek_mesh->exactMirror())
     mooseError("An exact mesh mirror is not yet implemented for the boundary mesh solver.");
@@ -90,7 +90,7 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
   auto boundary = _nek_mesh->boundary();
   if (!boundary && nekrs::hasBlendingSolver())
     mooseError("'" + _nek_problem.casename() +
-               ".par' has a solver in the [MESH] block. This solver uses\n"
+               ".par' has a solver in the [GEOM] block. This solver uses\n"
                "boundary displacement values from MOOSE to move the NekRS mesh. Please indicate\n"
                "the 'boundary' for which mesh motion is coupled from MOOSE to NekRS.");
 
@@ -111,13 +111,13 @@ NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
                  "boundary in '" +
                  _nek_problem.casename() +
                  ".par'\nto be of the type 'codedFixedValue'"
-                 " in the [MESH] block.");
+                 " in the [GEOM] block.");
   }
 
   if (!_nek_mesh->volume() && nekrs::hasUserMeshSolver())
     mooseError(
         "'" + _nek_problem.casename() +
-        ".par' has 'solver = user' in the [MESH] block. With this solver,\n"
+        ".par' has 'solver = user' in the [GEOM] block. With this solver,\n"
         "displacement values are sent to every GLL point in NekRS's volume. If you only are "
         "building\n"
         "a boundary mesh mirror, it's possible that some displacement values could result\n"

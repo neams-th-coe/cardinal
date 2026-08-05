@@ -1,12 +1,11 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  order = SECOND
 []
 
 [Problem]
   type = NekRSProblem
-  casename = 'ethier'
+  casename = 'sfr_pin'
 
   [FieldTransfers]
     [temperature]

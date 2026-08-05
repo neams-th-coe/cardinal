@@ -22,10 +22,23 @@
 #include "CardinalUtils.h"
 
 static nekrs::characteristicScales scales;
-static dfloat * sgeo;
-static dfloat * vgeo;
 static unsigned int n_usrwrk_slots;
 static bool is_nondimensional;
+
+/// Host arrays for essential NekRS fields
+static dfloat * sgeo;
+static dfloat * vgeo;
+static dfloat * x;
+static dfloat * y;
+static dfloat * z;
+static std::vector<dfloat> U;
+static std::vector<dfloat> P;
+static std::vector<dfloat> S;
+static dfloat * wall_distance;
+
+dfloat * usrwrk = nullptr;
+
+nrs_t * nrs;
 
 namespace nekrs
 {
@@ -66,34 +79,95 @@ setStartTime(const double & start)
 }
 
 void
-write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
+write_usrwrk_field_file(const int & usrWriterSize,
+                        const int & usrWriterIndex,
+                        const int & slot,
+                        const std::string & prefix,
+                        const dfloat & time,
+                        const int & step,
+                        const bool & write_coords)
 {
-  int num_bytes = fieldOffset() * sizeof(dfloat);
+  static std::vector<std::unique_ptr<iofld>> usrWriterVector(usrWriterSize);
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  occa::memory o_write = platform->device.malloc(num_bytes);
-  o_write.copyFrom(nrs->o_usrwrk, num_bytes /* length we are copying */,
-    0 /* where to place data */, num_bytes * slot /* where to source data */);
+  auto & usrWriter = usrWriterVector[usrWriterIndex];
 
-  occa::memory o_null;
-  writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, o_null, o_null, o_write, 1);
+  if (!usrWriter)
+  {
+    usrWriter = iofldFactory::create();
+    auto mesh = entireMesh();
+
+    usrWriter->open(mesh, iofld::mode::write, prefix.c_str());
+
+    if (platform->options.compareArgs("CHECKPOINT PRECISION", "FP32"))
+    {
+      usrWriter->writeAttribute("precision", "32");
+    }
+    else
+    {
+      usrWriter->writeAttribute("precision", "64");
+    }
+    usrWriter->addVariable("scalar00",
+                           std::vector<deviceMemory<dfloat>>{platform->app->bc->o_usrwrk.slice(
+                               slot * fieldOffset(), mesh->Nlocal)});
+  }
+
+  usrWriter->writeAttribute("outputmesh", write_coords ? "true" : "false");
+  usrWriter->addVariable("time", const_cast<double &>(time));
+  usrWriter->process();
 }
 
 void
 write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
+  auto checkpointWriter = iofldFactory::create();
 
-  int Nscalar = 0;
-  occa::memory o_s;
-  if (nrs->Nscalar)
+  auto visMesh = nrs->meshT;
+  checkpointWriter->open(visMesh, iofld::mode::write, prefix.c_str());
+
+  if (nrs->fluid &&
+      platform->options.compareArgs(upperCase(nrs->fluid->name) + " CHECKPOINTING", "TRUE"))
   {
-    o_s = nrs->cds->o_S;
-    Nscalar = nrs->Nscalar;
+    std::vector<occa::memory> o_V;
+    for (int i = 0; i < nrs->meshV->dim; i++)
+      o_V.push_back(nrs->fluid->o_U.slice(i * nrs->fluid->fieldOffset, visMesh->Nlocal));
+
+    checkpointWriter->addVariable("velocity", o_V);
+
+    std::vector<occa::memory> o_p = {nrs->fluid->o_P.slice(0, visMesh->Nlocal)};
+    checkpointWriter->addVariable("pressure", o_p);
   }
 
-  writeFld(
-      prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->o_U, nrs->o_P, o_s, Nscalar);
+  for (int i = 0; i < nrs->Nscalar; i++)
+  {
+    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(i) + " CHECKPOINTING", "TRUE"))
+    {
+      const auto temperatureExists = hasTemperatureVariable();
+
+      std::vector<occa::memory> o_Si = {
+          nrs->scalar->o_S.slice(nrs->scalar->fieldOffsetScan[i], visMesh->Nlocal)};
+
+      if (i == 0 && temperatureExists)
+        checkpointWriter->addVariable("temperature", o_Si);
+      else
+        checkpointWriter->addVariable("scalar" + scalarDigitStr(temperatureExists ? i - 1 : i),
+                                      o_Si);
+    }
+  }
+
+  int N;
+  platform->options.getArgs("POLYNOMIAL DEGREE", N);
+  checkpointWriter->writeAttribute("polynomialOrder", std::to_string(N));
+
+  checkpointWriter->writeAttribute(
+      "precision", platform->options.compareArgs("CHECKPOINT PRECISION", "FP64") ? "64" : "32");
+
+  checkpointWriter->writeAttribute(
+      "outputMesh",
+      platform->options.compareArgs("CHECKPOINT OUTPUT MESH", "TRUE") ? "true" : "false");
+
+  checkpointWriter->addVariable("time", const_cast<double &>(time));
+  checkpointWriter->process();
+  checkpointWriter->close();
 }
 
 void
@@ -111,7 +185,15 @@ buildOnly()
 bool
 hasCHT()
 {
-  return entireMesh()->cht;
+  auto ns = Nscalar();
+  for (int is = 0; is < ns; is++)
+  {
+    if (platform->options.compareArgs("SCALAR" + scalarDigitStr(is) + " MESH", "SOLID"))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool
@@ -129,13 +211,13 @@ hasVariableDt()
 bool
 hasBlendingSolver()
 {
-  return !platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return !platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
 hasUserMeshSolver()
 {
-  return platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
+  return platform->options.compareArgs("GEOM SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
@@ -159,49 +241,46 @@ endControlNumSteps()
 bool
 hasTemperatureVariable()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
+  return Nscalar() ? platform->options.compareArgs("SCALAR00 NAME", "TEMPERATURE") : false;
 }
 
 bool
 hasTemperatureSolve()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return hasTemperatureVariable() ? nrs->cds->compute[0] : false;
+  return hasTemperatureVariable() ? nrs->scalar->compute[0] : false;
 }
 
 bool
 hasScalarVariable(int scalarId)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return (scalarId < nrs->Nscalar);
+  if (hasTemperatureVariable())
+    return scalarId < nrs->Nscalar;
+  else
+    return scalarId <= nrs->Nscalar;
 }
 
 bool
 hasHeatSourceKernel()
 {
-  return static_cast<bool>(udf.sEqnSource);
+  return static_cast<bool>(nrs->userSource);
 }
 
 bool
 isInitialized()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs;
 }
 
 int
 scalarFieldOffset()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->fieldOffset[0];
+  return nrs->scalar->fieldOffset(); // same for all scalars
 }
 
 int
 velocityFieldOffset()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->fieldOffset;
+  return nrs->fluid->fieldOffset;
 }
 
 int
@@ -225,15 +304,13 @@ entireMesh()
 mesh_t *
 flowMesh()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   return nrs->meshV;
 }
 
 mesh_t *
 temperatureMesh()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->mesh[0];
+  return nrs->scalar->mesh("temperature");
 }
 
 mesh_t *
@@ -251,19 +328,18 @@ getMesh(const nek_mesh::NekMeshEnum pp_mesh)
 int
 commRank()
 {
-  return platform->comm.mpiRank;
+  return platform->comm.mpiRank();
 }
 
 int
 commSize()
 {
-  return platform->comm.mpiCommSize;
+  return platform->comm.mpiCommSize();
 }
 
 bool
 scratchAvailable()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // Because these scratch spaces are available for whatever the user sees fit, it is
   // possible that the user wants to use these arrays for a _different_ purpose aside from
@@ -272,7 +348,7 @@ scratchAvailable()
   // else in the core base, so we will make sure to throw an error from MOOSE if these
   // arrays are already in use, because otherwise our MOOSE transfer might get overwritten
   // by whatever other operation the user is trying to do.
-  if (nrs->usrwrk)
+  if (platform->app->bc->o_usrwrk.size() != 0)
     return false;
 
   return true;
@@ -284,17 +360,11 @@ initializeScratch(const unsigned int & n_slots)
   if (n_slots == 0)
     return;
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = entireMesh();
-
-  // clear them just to be sure
-  freeScratch();
-
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), nrs->usrwrk);
+  usrwrk = (dfloat *)calloc(n_slots * fieldOffset(), sizeof(dfloat));
+  platform->app->bc->o_usrwrk.resize(n_slots * fieldOffset());
 
   n_usrwrk_slots = n_slots;
 }
@@ -302,10 +372,13 @@ initializeScratch(const unsigned int & n_slots)
 void
 freeScratch()
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-
-  freePointer(nrs->usrwrk);
-  nrs->o_usrwrk.free();
+  freePointer(x);
+  freePointer(y);
+  freePointer(z);
+  freePointer(sgeo);
+  freePointer(vgeo);
+  freePointer(usrwrk);
+  freePointer(wall_distance);
 }
 
 double
@@ -313,7 +386,7 @@ viscosity()
 {
   dfloat mu;
   setupAide & options = platform->options;
-  options.getArgs("VISCOSITY", mu);
+  options.getArgs("FLUID VISCOSITY", mu);
 
   // because we set rho_ref, U_ref, and L_ref all equal to 1 if our input is dimensional,
   // we don't need to have separate treatments for dimensional vs. nondimensional cases
@@ -326,9 +399,9 @@ Pr()
 {
   dfloat rho, rho_cp, k;
   setupAide & options = platform->options;
-  options.getArgs("DENSITY", rho);
-  options.getArgs("SCALAR00 DENSITY", rho_cp);
-  options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  options.getArgs("FLUID DENSITY", rho);
+  options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
+  options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   dfloat Pe = 1.0 / k;
   dfloat conductivity = scales.rho_ref * scales.U_ref * scales.Cp_ref * scales.L_ref / Pe;
@@ -426,7 +499,6 @@ displacementAndCounts(const std::vector<int> & base_counts,
 double
 usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
@@ -436,12 +508,12 @@ usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_m
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += nrs->usrwrk[slot + offset + v] * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += usrwrk[slot + offset + v] * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   return total_integral;
 }
@@ -449,7 +521,6 @@ usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_m
 void
 scaleUsrwrk(const unsigned int & slot, const dfloat & value)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = getMesh(nek_mesh::all);
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -457,7 +528,7 @@ scaleUsrwrk(const unsigned int & slot, const dfloat & value)
     int id = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      nrs->usrwrk[slot + id + v] *= value;
+      usrwrk[slot + id + v] *= value;
   }
 }
 
@@ -466,7 +537,6 @@ usrwrkSideIntegral(const unsigned int & slot,
                    const std::vector<int> & boundary,
                    const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
 
   std::vector<double> integral(boundary.size(), 0.0);
@@ -485,8 +555,8 @@ usrwrkSideIntegral(const unsigned int & slot,
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
         for (int v = 0; v < mesh->Nfp; ++v)
-          integral[b_index] += nrs->usrwrk[slot + mesh->vmapM[offset + v]] *
-                               sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral[b_index] +=
+              usrwrk[slot + mesh->vmapM[offset + v]] * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
       }
     }
   }
@@ -494,7 +564,8 @@ usrwrkSideIntegral(const unsigned int & slot,
   // sum across all processes; this can probably be done more efficiently
   std::vector<double> total_integral(boundary.size(), 0.0);
   for (std::size_t i = 0; i < boundary.size(); ++i)
-    MPI_Allreduce(&integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+    MPI_Allreduce(
+        &integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   return total_integral;
 }
@@ -513,33 +584,56 @@ limitTemperature(const double * min_T, const double * max_T)
   minimum = (minimum - scales.T_ref) / scales.dT_ref;
   maximum = (maximum - scales.T_ref) / scales.dT_ref;
 
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
+
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const auto offset = scalarFieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
-      int id = i * mesh->Np + j;
+      int id = i * mesh->Np + j + sid * offset;
 
-      if (nrs->cds->S[id] < minimum)
-        nrs->cds->S[id] = minimum;
-      if (nrs->cds->S[id] > maximum)
-        nrs->cds->S[id] = maximum;
+      if (S[id] < minimum)
+        S[id] = minimum;
+      if (S[id] > maximum)
+        S[id] = maximum;
     }
   }
 
   // when complete, copy to device
-  nrs->cds->o_S.copyFrom(nrs->cds->S);
+  auto o_temperature = nrs->scalar->o_solution("temperature");
+  o_temperature.copyFrom(S, offset, sid * offset, 0);
+}
+
+void
+copySolutionToHost()
+{
+  nrs->fluid->o_U.copyTo(U.data(), U.size());
+  nrs->fluid->o_P.copyTo(P.data(), P.size());
+
+  if (Nscalar())
+    nrs->scalar->o_S.copyTo(S.data(), S.size());
+}
+
+void
+copyMeshToHost()
+{
+  mesh_t * mesh = entireMesh();
+  mesh->o_x.copyTo(x);
+  mesh->o_y.copyTo(y);
+  mesh->o_z.copyTo(z);
 }
 
 void
 copyDeformationToDevice()
 {
   mesh_t * mesh = entireMesh();
-  mesh->o_x.copyFrom(mesh->x);
-  mesh->o_y.copyFrom(mesh->y);
-  mesh->o_z.copyFrom(mesh->z);
+
+  mesh->o_x.copyFrom(x);
+  mesh->o_y.copyFrom(y);
+  mesh->o_z.copyFrom(z);
   mesh->update();
 
   updateHostMeshParameters();
@@ -551,6 +645,11 @@ initializeHostMeshParameters()
   mesh_t * mesh = entireMesh();
   sgeo = (dfloat *)calloc(mesh->o_sgeo.size(), sizeof(dfloat));
   vgeo = (dfloat *)calloc(mesh->o_vgeo.size(), sizeof(dfloat));
+  x = (dfloat *)calloc(mesh->o_x.size(), sizeof(dfloat));
+  y = (dfloat *)calloc(mesh->o_y.size(), sizeof(dfloat));
+  z = (dfloat *)calloc(mesh->o_z.size(), sizeof(dfloat));
+
+  copyMeshToHost();
 }
 
 void
@@ -607,7 +706,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
   // find extreme value across all processes
   double reduced_value;
   auto op = max ? MPI_MAX : MPI_MIN;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm());
 
   // dimensionalize the field if needed
   reduced_value = reduced_value * nondimensionalDivisor(field) + nondimensionalAdditive(field);
@@ -659,7 +758,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   // find extreme value across all processes
   double reduced_value;
   auto op = max ? MPI_MAX : MPI_MIN;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm());
 
   // dimensionalize the field if needed
   reduced_value = reduced_value * nondimensionalDivisor(field) + nondimensionalAdditive(field);
@@ -673,7 +772,7 @@ gllPoint(int local_elem_id, int local_node_id)
   mesh_t * mesh = entireMesh();
 
   int id = local_elem_id * mesh->Np + local_node_id;
-  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+  Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
   return p;
 }
@@ -685,7 +784,8 @@ gllPointFace(int local_elem_id, int local_face_id, int local_node_id)
   int face_id = mesh->EToB[local_elem_id * mesh->Nfaces + local_face_id];
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
   int id = mesh->vmapM[offset + local_node_id];
-  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+
+  Point p(x[id], y[id], z[id]);
   p *= scales.L_ref;
   return p;
 }
@@ -701,13 +801,13 @@ centroidFace(int local_elem_id, int local_face_id)
   double mass = 0.0;
 
   int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
-  for (int v = 0; v < mesh->Np; ++v)
+  for (int v = 0; v < mesh->Nfp; ++v)
   {
     int id = mesh->vmapM[offset + v];
     double mass_matrix = sgeo[mesh->Nsgeo * (offset + v) + WSJID];
-    x_c += mesh->x[id] * mass_matrix;
-    y_c += mesh->y[id] * mass_matrix;
-    z_c += mesh->z[id] * mass_matrix;
+    x_c += x[id] * mass_matrix;
+    y_c += y[id] * mass_matrix;
+    z_c += z[id] * mass_matrix;
     mass += mass_matrix;
   }
 
@@ -729,9 +829,9 @@ centroid(int local_elem_id)
   {
     int id = local_elem_id * mesh->Np + v;
     double mass_matrix = vgeo[local_elem_id * mesh->Np * mesh->Nvgeo + JWID * mesh->Np + v];
-    x_c += mesh->x[id] * mass_matrix;
-    y_c += mesh->y[id] * mass_matrix;
-    z_c += mesh->z[id] * mass_matrix;
+    x_c += x[id] * mass_matrix;
+    y_c += y[id] * mass_matrix;
+    z_c += z[id] * mass_matrix;
     mass += mass_matrix;
   }
 
@@ -755,7 +855,7 @@ volume(const nek_mesh::NekMeshEnum pp_mesh)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   total_integral *= scales.V_ref;
 
@@ -846,7 +946,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeVolumeIntegral(integrand, volume, total_integral);
 
@@ -879,39 +979,49 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeSideIntegral(field::unity, boundary_id, total_integral, pp_mesh);
 
   return total_integral;
 }
 
+void
+computeWallDistance(const std::vector<int> & boundary_id)
+{
+  mesh_t * mesh = getMesh(nek_mesh::fluid);
+  freePointer(wall_distance);
+  auto o_wbID = platform->device.malloc<int>(boundary_id.size(), boundary_id.data());
+  auto o_ywd = mesh->minDistance(boundary_id.size(), o_wbID, "cheap_dist");
+  wall_distance = (dfloat *)calloc(o_ywd.size(), sizeof(dfloat));
+  o_ywd.copyTo(wall_distance);
+  o_ywd.free();
+  o_wbID.free();
+}
+
 std::vector<dfloat>
-yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
+yPlus(const std::vector<int> & boundary_id)
 {
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
 
+  // integrate over the boundaries in the mesh; each rank will compute contributions to the
+  // x, y, and z components
+  mesh_t * mesh = getMesh(nek_mesh::fluid);
+
   // compute the rate of strain tensor on device
-  auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
-  postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+  auto o_Sij = nrs->strainRate();
 
   // copy to host for evaluating wall-parallel stress
   dfloat * Sij = (dfloat *)calloc(o_Sij.size(), sizeof(dfloat));
   o_Sij.copyTo(Sij);
   o_Sij.free();
 
-  double * wall_distance = (double *)nek::scPtr(index);
-
-  // integrate over the boundaries in the mesh; each rank will compute contributions to the
-  // x, y, and z components
-  mesh_t * mesh = getMesh(nek_mesh::fluid);
-
   // TODO: This function only works correctly if the viscosity and rho is constant, because
   // otherwise we need to copy the viscosity and rho from device to host
   double mu;
-  platform->options.getArgs("VISCOSITY", mu);
+  platform->options.getArgs("FLUID VISCOSITY", mu);
   double rho;
-  platform->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("FLUID DENSITY", rho);
   double nu = mu / rho;
 
   dfloat max_yp = -std::numeric_limits<float>::max();
@@ -944,14 +1054,14 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
           dfloat n3 = sgeo[surf_offset + NZID];
 
           dfloat s11 = Sij[vol_id + 0 * nrs->fieldOffset];
-          dfloat s12 = Sij[vol_id + 3 * nrs->fieldOffset];
-          dfloat s13 = Sij[vol_id + 5 * nrs->fieldOffset];
+          dfloat s12 = Sij[vol_id + 1 * nrs->fieldOffset];
+          dfloat s13 = Sij[vol_id + 2 * nrs->fieldOffset];
           dfloat s21 = s12;
-          dfloat s22 = Sij[vol_id + 1 * nrs->fieldOffset];
+          dfloat s22 = Sij[vol_id + 3 * nrs->fieldOffset];
           dfloat s23 = Sij[vol_id + 4 * nrs->fieldOffset];
           dfloat s31 = s13;
           dfloat s32 = s23;
-          dfloat s33 = Sij[vol_id + 2 * nrs->fieldOffset];
+          dfloat s33 = Sij[vol_id + 5 * nrs->fieldOffset];
 
           // tau_{ij}n_j - (tau_{jk} n_k n_j) * n_i
           dfloat f1 = scale * (s11 * n1 + s12 * n2 + s13 * n3);
@@ -985,113 +1095,27 @@ yPlus(const std::vector<int> & boundary_id, const unsigned int & index)
 
   // max across all processes
   double total_max_yp;
-  MPI_Allreduce(&max_yp, &total_max_yp, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
+  MPI_Allreduce(&max_yp, &total_max_yp, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm());
 
   // min across all processes
   double total_min_yp;
-  MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
+  MPI_Allreduce(&min_yp, &total_min_yp, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm());
 
   // sum across all processes
   double total_avg_yp;
-  MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&avg_yp, &total_avg_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   if (total_avg_yp == 0)
     mooseError("Failed to find any eligible points on boundaries for computing y+!");
 
   double total_denom_yp;
-  MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&denom_yp, &total_denom_yp, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // TODO: dimensionalize
   // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
 
   freePointer(Sij);
   return {total_max_yp, total_min_yp, total_avg_yp / total_denom_yp};
-}
-
-std::vector<dfloat>
-viscousDrag(const std::vector<int> & boundary_id)
-{
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-
-  // compute the rate of strain tensor on device
-  auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
-  postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
-
-  // copy to host for evaluating drag
-  dfloat * Sij = (dfloat *)calloc(o_Sij.size(), sizeof(dfloat));
-  o_Sij.copyTo(Sij);
-  o_Sij.free();
-
-  // integrate over the boundaries in the mesh; each rank will compute contributions to the
-  // x, y, and z components
-  mesh_t * mesh = getMesh(nek_mesh::fluid);
-
-  double integral_x = 0.0;
-  double integral_y = 0.0;
-  double integral_z = 0.0;
-
-  // TODO: This function only works correctly if the viscosity is constant, because
-  // otherwise we need to copy the viscosity from device to host
-  double mu;
-  platform->options.getArgs("VISCOSITY", mu);
-
-  for (int i = 0; i < mesh->Nelements; ++i)
-  {
-    for (int j = 0; j < mesh->Nfaces; ++j)
-    {
-      int face_id = mesh->EToB[i * mesh->Nfaces + j];
-
-      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
-      {
-        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-        for (int v = 0; v < mesh->Nfp; ++v)
-        {
-          int surf_offset = mesh->Nsgeo * (offset + v);
-          int vol_id = mesh->vmapM[offset + v];
-          dfloat sWJ = sgeo[surf_offset + WSJID];
-          dfloat scale = -2 * mu * sWJ;
-
-          dfloat n1 = sgeo[surf_offset + NXID];
-          dfloat n2 = sgeo[surf_offset + NYID];
-          dfloat n3 = sgeo[surf_offset + NZID];
-
-          dfloat s11 = Sij[vol_id + 0 * nrs->fieldOffset];
-          dfloat s12 = Sij[vol_id + 3 * nrs->fieldOffset];
-          dfloat s13 = Sij[vol_id + 5 * nrs->fieldOffset];
-          dfloat s21 = s12;
-          dfloat s22 = Sij[vol_id + 1 * nrs->fieldOffset];
-          dfloat s23 = Sij[vol_id + 4 * nrs->fieldOffset];
-          dfloat s31 = s13;
-          dfloat s32 = s23;
-          dfloat s33 = Sij[vol_id + 2 * nrs->fieldOffset];
-
-          dfloat dragx = scale * (s11 * n1 + s12 * n2 + s13 * n3);
-          dfloat dragy = scale * (s21 * n1 + s22 * n2 + s23 * n3);
-          dfloat dragz = scale * (s31 * n1 + s32 * n2 + s33 * n3);
-
-          integral_x += dragx;
-          integral_y += dragy;
-          integral_z += dragz;
-        }
-      }
-    }
-  }
-
-  // sum across all processes
-  double total_integral_x;
-  MPI_Allreduce(&integral_x, &total_integral_x, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-
-  double total_integral_y;
-  MPI_Allreduce(&integral_y, &total_integral_y, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-
-  double total_integral_z;
-  MPI_Allreduce(&integral_z, &total_integral_z, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-
-  // TODO: dimensionalize
-  // dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
-
-  freePointer(Sij);
-  return {total_integral_x, total_integral_y, total_integral_z};
 }
 
 double
@@ -1125,7 +1149,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeSideIntegral(integrand, boundary_id, total_integral, pp_mesh);
 
@@ -1136,12 +1160,11 @@ double
 massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  platform->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("FLUID DENSITY", rho);
 
   double integral = 0.0;
 
@@ -1160,9 +1183,9 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
+              U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
 
           integral += rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
@@ -1172,7 +1195,7 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
@@ -1186,12 +1209,11 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                              const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  platform->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("FLUID DENSITY", rho);
 
   double integral = 0.0;
 
@@ -1212,9 +1234,9 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
+              U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
           integral += f(vol_id, 0 /* unused */) * rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
       }
@@ -1223,7 +1245,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // dimensionalize the field if needed
   total_integral *= nondimensionalDivisor(integrand);
@@ -1245,7 +1267,6 @@ double
 pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   double integral = 0.0;
 
@@ -1263,9 +1284,9 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double p_normal = nrs->P[vol_id] * (sgeo[surf_offset + NXID] * direction(0) +
-                                              sgeo[surf_offset + NYID] * direction(1) +
-                                              sgeo[surf_offset + NZID] * direction(2));
+          double p_normal = P[vol_id] * (sgeo[surf_offset + NXID] * direction(0) +
+                                         sgeo[surf_offset + NYID] * direction(1) +
+                                         sgeo[surf_offset + NZID] * direction(2));
 
           integral += p_normal * sgeo[surf_offset + WSJID];
         }
@@ -1275,7 +1296,7 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeSideIntegral(field::pressure, boundary_id, total_integral, pp_mesh);
 
@@ -1286,15 +1307,17 @@ double
 heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the conductivity is constant, because
   // otherwise we need to copy the conductivity from device to host
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   double integral = 0.0;
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
+
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const int offset = sid * scalarFieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1307,7 +1330,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
         // some inefficiency if an element has more than one face on the sideset of interest,
         // because we will recompute the gradient in the element more than one time - but this
         // is of little practical interest because this will be a minority of cases.
-        gradient(mesh->Np, i, nrs->cds->S, grad_T, pp_mesh);
+        gradient(mesh->Np, i, S.data() + offset, grad_T, pp_mesh);
 
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
@@ -1333,7 +1356,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // multiply by the reference heat flux and an area factor to dimensionalize
   total_integral *= scales.flux_ref * scales.A_ref;
@@ -1393,28 +1416,39 @@ gradient(const int offset,
 bool
 isHeatFluxBoundary(const int boundary)
 {
-  // the heat flux boundary is now named 'codedFixedGradient', but 'fixedGradient'
-  // will be present for backwards compatibility
-  return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
-         (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+
+  // the purpose of this function is to check if the user has a non-zero flux boundary
+  // condition so that if MOOSE sends data to NekRS it will actually be used (even
+  // though zeroNeumann is technically a heat flux condition, it would not indicate
+  // the user has set up their model correctly)
+  return bcType == bdryBase::bcType_udfNeumann;
 }
 
 bool
 isMovingMeshBoundary(const int boundary)
 {
-  return bcMap::text(boundary, "mesh") == "codedFixedValue";
+  auto bcType = platform->app->bc->typeId(boundary, "geom");
+  return bcType == bdryBase::bcType_udfDirichlet;
 }
 
 bool
 isTemperatureBoundary(const int boundary)
 {
-  return bcMap::text(boundary, "scalar00") == "fixedValue";
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
+
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return bcType == bdryBase::bcType_udfDirichlet;
 }
 
 const std::string
 temperatureBoundaryType(const int boundary)
 {
-  return bcMap::text(boundary, "scalar00");
+  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
+
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return platform->app->bc->sBcIDToText.at(bcType);
 }
 
 int
@@ -1428,7 +1462,7 @@ Nelements()
 {
   int n_local = entireMesh()->Nelements;
   int n_global;
-  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm());
   return n_global;
 }
 
@@ -1459,7 +1493,7 @@ NboundaryFaces()
 int
 NboundaryID()
 {
-  if (entireMesh()->cht)
+  if (hasCHT())
     return nekData.NboundaryIDt;
   else
     return nekData.NboundaryID;
@@ -1483,53 +1517,56 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
   return valid_boundary_ids;
 }
 
+int
+scalarSlot(const int id)
+{
+  if (hasTemperatureVariable())
+    return id;
+  else
+    return id - 1;
+}
+
 double
 get_scalar01(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 1 * scalarFieldOffset()];
+  return S[id + scalarSlot(1) * scalarFieldOffset()];
 }
 
 double
 get_scalar02(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 2 * scalarFieldOffset()];
+  return S[id + scalarSlot(2) * scalarFieldOffset()];
 }
 
 double
 get_scalar03(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 3 * scalarFieldOffset()];
+  return S[id + scalarSlot(3) * scalarFieldOffset()];
 }
 
 double
 get_usrwrk00(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->usrwrk[id];
+  return usrwrk[id];
 }
 
 double
 get_usrwrk01(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->usrwrk[id + nrs->fieldOffset];
+  return usrwrk[id + nrs->fieldOffset];
 }
 
 double
 get_usrwrk02(const int id, const int surf_offset = 0)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->usrwrk[id + 2 * nrs->fieldOffset];
+  return usrwrk[id + 2 * nrs->fieldOffset];
 }
 
 double
 get_temperature(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id];
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  return S[id + sid * scalarFieldOffset()];
 }
 
 double
@@ -1537,9 +1574,7 @@ get_flux(const int id, const int surf_offset)
 {
   // TODO: this function does not support non-constant thermal conductivity
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
-
-  nrs_t * nrs = (nrs_t *)nrsPtr();
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh
@@ -1547,10 +1582,12 @@ get_flux(const int id, const int surf_offset)
   int elem_id = id / mesh->Np;
   int vertex_id = id % mesh->Np;
 
+  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
+  const int offset = sid * scalarFieldOffset();
   // This function is slightly inefficient, because we compute grad(T) for all nodes in
   // an element even though we only call this function for one node at a time
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
-  gradient(mesh->Np, elem_id, nrs->cds->S, grad_T, nek_mesh::all);
+  gradient(mesh->Np, elem_id, S.data() + offset, grad_T, nek_mesh::all);
 
   double normal_grad_T = grad_T[vertex_id + 0 * mesh->Np] * sgeo[surf_offset + NXID] +
                          grad_T[vertex_id + 1 * mesh->Np] * sgeo[surf_offset + NYID] +
@@ -1563,8 +1600,7 @@ get_flux(const int id, const int surf_offset)
 double
 get_pressure(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->P[id];
+  return P[id];
 }
 
 double
@@ -1576,33 +1612,29 @@ get_unity(const int /* id */, const int surf_offset)
 double
 get_velocity_x(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 0 * nrs->fieldOffset];
+  return U[id + 0 * nrs->fieldOffset];
 }
 
 double
 get_velocity_y(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 1 * nrs->fieldOffset];
+  return U[id + 1 * nrs->fieldOffset];
 }
 
 double
 get_velocity_z(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->U[id + 2 * nrs->fieldOffset];
+  return U[id + 2 * nrs->fieldOffset];
 }
 
 double
 get_velocity(const int id, const int surf_offset)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
   int offset = nrs->fieldOffset;
 
-  return std::sqrt(nrs->U[id + 0 * offset] * nrs->U[id + 0 * offset] +
-                   nrs->U[id + 1 * offset] * nrs->U[id + 1 * offset] +
-                   nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
+  return std::sqrt(U[id + 0 * offset] * U[id + 0 * offset] +
+                   U[id + 1 * offset] * U[id + 1 * offset] +
+                   U[id + 2 * offset] * U[id + 2 * offset]);
 }
 
 double
@@ -1985,6 +2017,119 @@ MPI_Datatype
 resolveType<int>()
 {
   return MPI_INT;
+}
+
+int
+Nscalar()
+{
+  int Nscalar;
+  platform->options.getArgs("NUMBER OF SCALARS", Nscalar);
+  return Nscalar;
+}
+
+void
+initializeNekHostArrays()
+{
+  nrs = dynamic_cast<nrs_t *>(platform->app);
+
+  mesh_t * mesh = entireMesh();
+
+  U.resize(mesh->dim * nrs->fluid->fieldOffset);
+  P.resize(mesh->Nlocal);
+
+  if (Nscalar())
+    S.resize(nrs->scalar->NSfields * nrs->scalar->fieldOffset()); // offset is same for all scalars
+}
+
+dfloat *
+host_x()
+{
+  return x;
+}
+dfloat *
+host_y()
+{
+  return y;
+}
+dfloat *
+host_z()
+{
+  return z;
+}
+
+// std::tuple<std::vector<dfloat>&, std::vector<dfloat>&, std::vector<dfloat>&>
+std::tuple<dfloat *, dfloat *, dfloat *>
+host_xyz()
+{
+  return {x, y, z};
+}
+
+std::vector<dfloat> &
+host_U()
+{
+  return U;
+}
+
+std::vector<dfloat> &
+host_P()
+{
+  return P;
+}
+
+std::vector<dfloat> &
+host_S()
+{
+  return S;
+}
+
+dfloat *
+host_wrk()
+{
+  return usrwrk;
+}
+
+nrs_t *
+nrsPtr()
+{
+  return nrs;
+}
+
+mesh_t *
+createMesh2(mesh_t * _mesh, int Nc)
+{
+  mesh_t * mesh = new mesh_t();
+  memcpy(mesh, _mesh, sizeof(mesh_t));
+
+  const int cubN = 0;
+  meshLoadReferenceNodesHex3D(mesh, Nc, cubN);
+
+  mesh->geometricFactorsKernel = nullptr;
+  mesh->surfaceGeometricFactorsKernel = nullptr;
+  mesh->cubatureGeometricFactorsKernel = nullptr;
+
+  mesh->o_D = platform->device.malloc<dfloat>(mesh->Nq * mesh->Nq, mesh->D);
+
+  dfloat * DT = (dfloat *)calloc(mesh->Nq * mesh->Nq, sizeof(dfloat));
+  for (int j = 0; j < mesh->Nq; j++)
+  {
+    for (int i = 0; i < mesh->Nq; i++)
+    {
+      DT[j * mesh->Nq + i] = mesh->D[i * mesh->Nq + j];
+    }
+  }
+  mesh->o_DT = platform->device.malloc<dfloat>(mesh->Nq * mesh->Nq, DT);
+  free(DT);
+
+  meshPhysicalNodesHex3D(mesh);
+
+  meshConnectFaceNodes3D(mesh);
+
+  meshGlobalIds(mesh);
+
+  meshParallelGatherScatterSetup(
+      mesh, mesh->Nlocal, mesh->globalIds, platform->comm.mpiComm(), OOGS_AUTO, 0);
+
+  return mesh;
 }
 
 } // end namespace nekrs

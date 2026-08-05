@@ -38,7 +38,4 @@ public:
 protected:
   /// Type of value to return
   const MooseEnum & _value_type;
-
-  /// Index where wall distance is stored in nek::scPtr
-  const unsigned int & _wall_distance_index;
 };

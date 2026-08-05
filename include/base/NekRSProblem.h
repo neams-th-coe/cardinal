@@ -377,7 +377,7 @@ public:
 
 protected:
   /// Copy the data sent from MOOSE->Nek from host to device.
-  void copyScratchToDevice();
+  void copyHostToDevice();
 
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)

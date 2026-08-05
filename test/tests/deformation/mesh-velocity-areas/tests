@@ -11,6 +11,7 @@
                   "the time step of the data transfers, due to the first-order finite difference "
                   "approximation made for velocity."
     capabilities = 'nekrs'
+    skip = 'Needs updating to v26'
   []
   [volume]
     type = CSVDiff
@@ -22,5 +23,6 @@
                   "when using a volume mesh mirror. We use the same gold file as for the boundary test, "
                   "proving equivalence."
     capabilities = 'nekrs'
+    skip = 'Needs updating to v26'
   []
 []

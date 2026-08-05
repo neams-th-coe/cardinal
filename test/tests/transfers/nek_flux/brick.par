@@ -6,17 +6,18 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 7
-  writeControl = steps
-  writeInterval = 2
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = temperature
 
 [MESH]
   file = ../../common_inputs/brick2.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 2
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 2
   solver = none

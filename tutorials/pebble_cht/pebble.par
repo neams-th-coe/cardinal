@@ -1,3 +1,5 @@
+userSections = CASEDATA
+
 [OCCA]
   backend = CPU
 
@@ -6,21 +8,23 @@
   numSteps = 4000
   dt = targetCFL=2.0 + initial=1e-4
   writeInterval = 500
+  scalars = temperature
 
 [MESH]
   file = "../pebble_1/pebble.re2"
+  boundaryIDMap = 2, 3, 4, 5
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-06
 
-[VELOCITY]
-  boundaryTypeMap = v, o, W, sym
+[FLUID VELOCITY]
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichletN/zeroNeumann
   residualTol = 1e-07
   density = 1000.0
   viscosity = 1e-3
 
-[TEMPERATURE]
-  boundaryTypeMap = t, o, f, I
+[SCALAR TEMPERATURE]
+  boundaryTypeMap = udfDirichlet, zeroNeumann, udfNeumann, zeroNeumann
   residualTol = 1e-07
   rhoCp = 4186000
   conductivity = 0.6

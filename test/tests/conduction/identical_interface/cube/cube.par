@@ -6,16 +6,15 @@
   numSteps = 10
   dt = 0.1
   polynomialOrder = 5
-  writeControl = steps
-  writeInterval = 10
+  checkpointControl = steps
+  checkpointInterval = 10
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
-
-[TEMPERATURE]
-  conductivity = 2.5
-  rhoCp = 1.0
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 2.5
+  transportCoeff = 1.0
   residualTol = 1.0e-10
   boundaryTypeMap = I, I, I, f, I, t

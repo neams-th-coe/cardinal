@@ -1,43 +1,39 @@
-#[OCCA]
-#backend = CUDA
-#deviceNumber = LOCAL-RANK
+userSections = CASEDATA
 
 [GENERAL]
-#verbose = true
 polynomialOrder = 7
-#startFrom = "restart.fld"
 stopAt = endTime
 endTime = 0.06
 
-dt = 6.0e-3
-#dt = targetCFL=4 + max=1e-2 + initial=6e-3
-
 timeStepper = tombo2
-subCyclingSteps = 2
 
-writeControl = simulationTime 
-writeInterval = 1
+dt = targetCFL=4 + max=1e-2 + initial=6e-3
+
+checkpointControl = simulationTime
+checkpointInterval = 10
 
 regularization = hpfrt + nModes=1 + scalingCoeff=10
 
-[PRESSURE]
-residualTol = 1e-04
-#initialGuess = projectionAconj+nVector=10
+scalars = s00
 
-[VELOCITY]
-boundaryTypeMap = inlet, outlet, wall
-density = 1.0
+[FLUID PRESSURE]
+residualTol = 1e-04
+
+[FLUID VELOCITY]
+boundaryTypeMap = udfDirichlet, zeroNeumann,zeroDirichlet
+rho = 1.0
 viscosity = 1/19000
 residualTol = 1e-06
 
-[SCALAR00]
-rho = 1.0
-diffusivity = 1/19000
-boundaryTypeMap = codedFixedValue, zeroFlux, codedFixedValue
+[SCALAR S00]
+transportCoeff = 1.0
+diffusionCoeff = 1/19000
+boundaryTypeMap = udfDirichlet, zeroNeumann, udfDirichlet 
 residualTol = 1e-06
-regularization = avm+highestModalDecay  
+regularization = avm+noiseThreshold=1e-3
 
 [CASEDATA]
-# adjust to actual mesh 
+# adjust to actual mesh
 NSLABS  = 60
-NELSLAB = 132 
+NELSLAB = 132
+processAscentYamlFrequency = 100

@@ -6,16 +6,15 @@
   numSteps = 3
   dt = 5.0e-4
   polynomialOrder = 1
-  writeControl = steps
-  writeInterval = 1
+  checkpointControl = steps
+  checkpointInterval = 1
+  scalars = temperature
 
 [MESH]
   file=../../../nek_output/pyramid.re2
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
-
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

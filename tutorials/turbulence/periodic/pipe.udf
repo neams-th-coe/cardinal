@@ -1,40 +1,54 @@
-#include "udf.hpp"
-
-static occa::kernel periodicSourceKernel;
-
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#ifdef __okl__
+void udfNeumann(bcData * bc)
 {
-  periodicSourceKernel = oudfBuildKernel(kernelInfo, "periodicSource");
+  bc->fluxScalar = 1.0; // heat flux
 }
 
-void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
+@kernel void periodicSource(const dlong Nelements, const dlong offset, const dfloat gamma, @restrict const dfloat * vel_z, @restrict dfloat * QVOL)
 {
-  auto mesh = nrs->cds->mesh[0];
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = - 1.0 * vel_z[id + 2 * offset] * gamma;
+    }
+  }
+}
+
+#endif
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+}
+
+void userq(double time)
+{
+  auto mesh = nrs->meshV;
   dfloat R = 0.5;
   dfloat q_dagger = 1.0;
-  periodicSourceKernel(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->o_U, o_FS);
+  periodicSource(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->fluid->o_U, nrs->scalar->o_EXT);
 
   // prevent any numerical drift by subtracting out the volume-average temperature
   const dfloat Tbar =
-    platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm) / mesh->volume;
-  platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
+    platform->linAlg->innerProd(mesh->Nlocal, nrs->scalar->o_solution("temperature"), mesh->o_LMM, platform->comm.mpiComm()) / mesh->volume;
+  platform->linAlg->add(mesh->Nlocal, -Tbar, nrs->scalar->o_solution("temperature"));
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
   auto mesh = nrs->meshV;
 
-  int n_gll_points = mesh->Np * mesh->Nelements;
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+  // arbitrary arrays on the host where we will fill some initial data
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
 
-    nrs->P[n] = 0.0; // pressure
+  for (int n = 0; n < mesh->Nlocal; ++n)
+    U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
 
-    nrs->cds->S[n + 0 * nrs->fieldOffset] = 0.0; // temperature
-  }
+  // copy host data into the device data
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
 
-  udf.sEqnSource = &userq;
+  nrs->userSource = &userq;
+}
+
+void UDF_ExecuteStep(double time, int tstep)
+{
 }

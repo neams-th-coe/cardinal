@@ -1,13 +1,13 @@
-void scalarDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
   if (bc->id == 2)
-    bc->s = 650.0;
+    bc->sScalar = 650.0;
   if (bc->id == 3)
-    bc->s = 500.0;
+    bc->sScalar = 500.0;
   if (bc->id == 4)
-    bc->s = 600.0;
+    bc->sScalar = 600.0;
   if (bc->id == 5)
-    bc->s = 650.0;
+    bc->sScalar = 650.0;
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)

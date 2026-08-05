@@ -1,4 +1,6 @@
 [Tests]
+  design = 'NekRSProblem.md'
+
   [sfr_pincell]
     type = Exodiff
     input = nek_master.i
@@ -6,33 +8,35 @@
     # just compare the postprocessors and the interpolated nek solution, since nothing
     # novel is done on the MOOSE side
     exodiff = 'nek_master_out_nek0.e'
-    min_parallel = 6
-    rel_err = 5e-5
-    custom_cmp = exodiff.cmp
+    min_parallel = 2
     heavy = true
+    rel_err = 1e-5
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form. A wide variety of postprocessors are measured and compared "
                   "against the same problem in dimensional form in the ../sfr_pincell directory. "
                   "Most measurements match exactly, but there is about a "
                   "0.1% difference in temperatures (this is to be expected, though, because "
-                  "the _solve_ is not exactly the same between a nondimensional and dimensional case - "
+                  "the solve is not exactly the same between a nondimensional and dimensional case - "
                   "the governing equation is the same, but not necessarily the number of iterations, etc. "
+                  "For expediency in the test suite, only several time steps are run instead of the full "
+                  "approach to pseudo-steady state, though the pseudo-steady solution is what is compared "
+                  "for developing the test."
     capabilities = 'nekrs'
   []
   [sfr_pincell_exact]
     type = CSVDiff
     input = nek_master_exact.i
+
+    # the exodus output is compared in the sfr_pincell test, so we can just look at the postprocessor
     csvdiff = 'nek_master_exact_out.csv'
-    min_parallel = 6
+    min_parallel = 2
     heavy = true
-    rel_err = 5e-4
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form using an exact mesh mirror. This solution was compared to "
                   "the sfr_pincell case, and results are very similar with only small differences "
-                  "due to the different mesh mirror representations. The usrwrk_output feature was "
-                  "also used to check the correctness of the flux map into NekRS."
+                  "due to the different mesh mirror representations."
     capabilities = 'nekrs'
   []
 []

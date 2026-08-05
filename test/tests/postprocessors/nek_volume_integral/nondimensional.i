@@ -3,6 +3,24 @@
   casename = 'pyramid'
   n_usrwrk_slots = 4
 
+  [FieldTransfers]
+    [usrwrk00]
+      type = NekVolumetricData
+      usrwrk_slot = 0
+      direction = to_nek
+    []
+    [usrwrk01]
+      type = NekVolumetricData
+      usrwrk_slot = 1
+      direction = to_nek
+    []
+    [usrwrk02]
+      type = NekVolumetricData
+      usrwrk_slot = 2
+      direction = to_nek
+    []
+  []
+
   [Dimensionalize]
     L = 2
     U = 0.2
@@ -16,6 +34,42 @@
     ds03 = 300
     rho = 1000
     Cp = 4000
+  []
+[]
+
+[AuxKernels]
+  [usrwrk00]
+    type = FunctionAux
+    variable = usrwrk00
+    function = usrwrk00
+    execute_on = timestep_begin
+  []
+  [usrwrk01]
+    type = FunctionAux
+    variable = usrwrk01
+    function = usrwrk01
+    execute_on = timestep_begin
+  []
+  [usrwrk02]
+    type = FunctionAux
+    variable = usrwrk02
+    function = usrwrk02
+    execute_on = timestep_begin
+  []
+[]
+
+[Functions]
+  [usrwrk00]
+    type = ParsedFunction
+    expression = 'exp(x/2)+1'
+  []
+  [usrwrk01]
+    type = ParsedFunction
+    expression = 'exp(y/2)+1'
+  []
+  [usrwrk02]
+    type = ParsedFunction
+    expression = 'exp(z/2)+1'
   []
 []
 
