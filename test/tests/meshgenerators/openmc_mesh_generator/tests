@@ -12,7 +12,7 @@
                   "element count against the internal OpenMC mesh"
     capabilities = "openmc"
   []
-  [different_xml_directories]
+  [inconsistent_xml_directories_across_mesh_generators]
     type = RunException
     input = openmc_two_meshes.i
     cli_args = "Mesh/openmc_mesh/xml_directory=./gold/ --mesh-only"
@@ -20,6 +20,16 @@
                  "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
                   "values"
+    capabilities = "openmc"
+  []
+  [inconsistent_xml_directories_between_problem_and_mesh_generator]
+    type = RunException
+    input = openmc_mesh_scaling.i
+    cli_args = "Problem/xml_directory=./gold/"
+    expect_err = "Inconsistent 'xml_directory' for OpenMC in the mesh generator and problem declarations. "
+                 "Make sure the same value is used throughout the \[Mesh\] and \[Problem\] blocks."
+    requirement = "Inconsistent xml_directory values between OpenMCMeshGenerator and "
+                  "OpenMCCellAverageProblem (S2) must fail"
     capabilities = "openmc"
   []
   [wrong_mesh_type]
