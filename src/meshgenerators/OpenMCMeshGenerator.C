@@ -36,7 +36,9 @@ OpenMCMeshGenerator::validParams()
       "scaling",
       1.0,
       "scaling > 0.0",
-      "Scaling factor used to scale the OpenMC mesh dimensions for the creation of the mesh; OpenMC always uses units of centimeters. Setting 'scaling = 100' means that the [Mesh] created will have units of meters, for example.");
+      "Scaling factor used to scale the OpenMC mesh dimensions for the creation of the mesh; "
+      "OpenMC always uses units of centimeters. Setting 'scaling = 100' means that the [Mesh] "
+      "created will have units of meters, for example.");
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
   return params;
@@ -83,7 +85,9 @@ OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
     _build_mesh = &getMeshByName(name() + "_openmc_sub_mesh");
   }
   else
-    mooseError("This object is currently only implemented for regular meshes (RegularMesh) in OpenMC! Please contact the Cardinal developer team if you require another structured mesh type.");
+    mooseError(
+        "This object is currently only implemented for regular meshes (RegularMesh) in OpenMC! "
+        "Please contact the Cardinal developer team if you require another structured mesh type.");
 }
 
 std::unique_ptr<MeshBase>
