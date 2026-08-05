@@ -24,8 +24,8 @@
   []
   [wrong_mesh_type]
     type = RunException
-    input = openmc_wrong_mesh_type.i
-    cli_args = "--mesh-only"
+    input = openmc_mesh_sampling.i
+    cli_args = "Mesh/openmc_mesh/mesh_id=2 --mesh-only"
     expect_err = "This object is currently only implemented for regular meshes \(RegularMesh\) in OpenMC! "
                  "Please contact the Cardinal developer team if you require another structured mesh type."
     requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
