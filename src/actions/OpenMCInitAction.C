@@ -134,9 +134,7 @@ OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory, Re
       }
     }
   }
-  if (found)
-    return true;
-  return false;
+  return found;
 }
 
 void
