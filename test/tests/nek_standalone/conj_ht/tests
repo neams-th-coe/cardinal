@@ -1,5 +1,4 @@
 [Tests]
-  design = 'NekRSProblem.md NekRSMesh.md'
   [nek_example]
     type = CSVDiff
     input = nek.i
@@ -8,6 +7,7 @@
     requirement = "Cardinal shall be able to run the conj_ht NekRS example with a thin wrapper while "
                   "using postprocessors acting on either the fluid mesh or fluid+solid mesh."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekRSMesh.md NekTimeStepper.md NekSideIntegral.md NekHeatFluxIntegral.md NekMassFluxWeightedSideIntegral.md NekMassFluxWeightedSideAverage.md ReynoldsNumber.md PecletNumber.md NekVolumeIntegral.md NekVolumeExtremeValue.md NekVolumeAverage.md'
   []
   [invalid_mesh_solid]
     type = RunException
@@ -16,5 +16,6 @@
     expect_err = "This object does not support operations on the solid part of the NekRS mesh!"
     requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh for side postprocessors."
     capabilities = 'nekrs'
+    design = 'NekSideIntegral.md'
   []
 []

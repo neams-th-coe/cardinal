@@ -1,11 +1,11 @@
 [Tests]
-  design = 'NekTimeStepper.md NekRSProblem.md'
   [variable_dt]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
     requirement = "The system shall support adaptive time stepping in NekRS when running as the main application."
     capabilities = 'nekrs'
+    design = 'NekTimeStepper.md'
   []
   [variable_dt_nondim]
     type = CSVDiff
@@ -14,5 +14,6 @@
     requirement = "The system shall support adaptive time stepping in NekRS when running as the main application "
                   "and with a non-dimensional formulation."
     capabilities = 'nekrs'
+    design = 'NekTimeStepper.md DimensionalizeAction.md'
   []
 []

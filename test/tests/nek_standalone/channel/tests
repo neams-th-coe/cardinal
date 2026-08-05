@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSProblem.md NekRSMesh.md'
+  design = 'NekRSProblem.md NekRSMesh.mdi NekFieldVariable.md NekTimeStepper.md NekVolumeExtremeValue.md NekSideExtremeValue.md NekVolumeAverage.md NekSideAverage.md'
   [test]
     type = CSVDiff
     input = nek.i

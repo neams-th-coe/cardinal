@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSMesh.md NekFieldVariable.md'
+  design = 'NekFieldVariable.md NekRSMesh.md'
   [exact_temperature]
     type = Exodiff
     input = exact.i

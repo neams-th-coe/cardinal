@@ -1,11 +1,11 @@
 [Tests]
-  design = 'NekScalarValue.md NekRSProblem.md'
   [precompile]
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre pyramid 1'
     requirement = "The system shall precompile a NekRS case."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [device]
     type = CSVDiff
@@ -18,5 +18,6 @@
                   "temperature on the boundary using postprocessors."
     capabilities = 'nekrs'
     mesh_mode = replicated
+    design = 'NekScalarValue.md'
   []
 []

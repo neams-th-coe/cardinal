@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSProblem.md'
+  design = 'NekRSProblem.md NekRSMesh.md NekTimeStepper.md NekVolumeAverage.md'
   [postprocess_from_restart]
     type = CSVDiff
     input = nek.i
