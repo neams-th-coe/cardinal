@@ -7,7 +7,7 @@
     input = openmc_mesh_only.i
     exodiff = openmc_mesh_only_in.e
     cli_args = "--mesh-only"
-    requirement = "OpenMCMeshGenerator must produce a valid mesh from an OpenMC model"
+    requirement = "The system shall be able to generate a structured mesh in MOOSE from an OpenMC RegularMesh and with scaling; this is checked by comparing node coordinates and element count against the internal OpenMC mesh"
     capabilities = "openmc"
   []
   [different_xml_directories]
@@ -34,7 +34,7 @@
     input = openmc_two_meshes.i
     exodiff = openmc_two_meshes_in.e
     cli_args = "--mesh-only"
-    requirement = "OpenMCMeshGenerator must accept at least two different calls from the "
+    requirement = "OpenMCMeshGenerator will accept more than one mesh generator from the "
                   "same xml_directory"
     capabilities = "openmc"
   []

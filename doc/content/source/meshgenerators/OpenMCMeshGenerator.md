@@ -4,7 +4,7 @@
 
 ## Description
 
-This mesh generator is used to create a mirror mesh from a regular mesh loaded with OpenMC at runtime.
+This mesh generator is used to create a mirror mesh from a [regular mesh in OpenMC](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.RegularMesh.html) loaded at runtime.
 
 The OpenMC mesh used by `OpenMCMeshGenerator` is identified via the `mesh_id` parameter
 and must correspond to the valid ID number of a regular mesh in the OpenMC model. The path to the

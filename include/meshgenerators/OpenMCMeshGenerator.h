@@ -40,10 +40,13 @@ private:
 
   const unsigned int _mesh_id;
 
+  /// Scaling factor to divide the mesh coordinates in the RegularMesh in OpenMC to get into units used by Cardinal
   const Real & _scaling;
 
+  /// pointer to underlying OpenMC mesh
   openmc::Mesh * _openmc_mesh = nullptr;
 
+  /// index of the OpenMC mesh in OpenMC's internal arrays
   unsigned int _openmc_mesh_index;
 
   /// Directory in which OpenMC settings xml files are located

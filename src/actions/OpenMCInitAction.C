@@ -59,13 +59,13 @@ OpenMCInitAction::act()
   {
     // Check for xml_directory consistency
     if (xml_directory_problem != xml_directory_generator)
-      mooseError("Inconsistent xml directories for OpenMC in the mesh generator and problem "
-                 "declarations.");
+      mooseError("Inconsistent 'xml_directory' for OpenMC in the mesh generator and problem "
+                 "declarations. Make sure the same value is used throughout the [Mesh] and [Problem] blocks.");
 
     // Check for scaling consistency
     if (scaling_problem != scaling_generator)
-      mooseError("Inconsistent scaling factors for OpenMC in the mesh generator and problem "
-                 "declarations.");
+      mooseError("Inconsistent 'scaling' factors for OpenMC in the mesh generator and problem "
+                 "declarations. Make sure the same value is used throughout the [Mesh] and [Problem] blocks.");
   }
 
   // Select xml_directory
@@ -115,12 +115,12 @@ OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory, Re
         // Check for xml_directory consistency
         if (xml_directory_temp != xml_directory)
           mooseError(
-              "Inconsistent xml directories for OpenMC in the declared OpenMCMeshGenerators");
+              "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects");
 
         // Check for scaling consistency
         if (scaling_temp != scaling)
           mooseError(
-              "Inconsistent scaling factors for OpenMC in the declared OpenMCMeshGenerators");
+              "Inconsistent 'scaling' factors for OpenMC in the declared OpenMCMeshGenerators; the same choice for 'scaling' must be used across all OpenMCMeshGenerator objects");
       }
       else
       {
