@@ -14,8 +14,8 @@
   []
   [different_xml_directories]
     type = RunException
-    input = openmc_different_xml_directories.i
-    cli_args = "--mesh-only"
+    input = openmc_two_meshes.i
+    cli_args = "Mesh/openmc_mesh/xml_directory=./gold/ --mesh-only"
     expect_err = "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the "
                  "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
