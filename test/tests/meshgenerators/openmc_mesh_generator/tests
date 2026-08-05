@@ -4,8 +4,8 @@
 
   [mesh_only]
     type = Exodiff
-    input = openmc_mesh_only.i
-    exodiff = openmc_mesh_only_in.e
+    input = openmc_mesh_sampling.i
+    exodiff = openmc_mesh_sampling_in.e
     cli_args = "--mesh-only"
     requirement = "The system shall be able to generate a structured mesh in MOOSE from an OpenMC "
                   "RegularMesh and with scaling; this is checked by comparing node coordinates and "
