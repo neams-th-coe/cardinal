@@ -7,15 +7,17 @@
     input = openmc_mesh_only.i
     exodiff = openmc_mesh_only_in.e
     cli_args = "--mesh-only"
-    requirement = "The system shall be able to generate a structured mesh in MOOSE from an OpenMC RegularMesh and with scaling; this is checked by comparing node coordinates and element count against the internal OpenMC mesh"
+    requirement = "The system shall be able to generate a structured mesh in MOOSE from an OpenMC "
+                  "RegularMesh and with scaling; this is checked by comparing node coordinates and "
+                  "element count against the internal OpenMC mesh"
     capabilities = "openmc"
   []
   [different_xml_directories]
     type = RunException
     input = openmc_different_xml_directories.i
     cli_args = "--mesh-only"
-    expect_err = "Inconsistent xml directories for OpenMC in the declared "
-                 "OpenMCMeshGenerators"
+    expect_err = "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the "
+                 "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
                   "values"
     capabilities = "openmc"
@@ -24,7 +26,8 @@
     type = RunException
     input = openmc_wrong_mesh_type.i
     cli_args = "--mesh-only"
-    expect_err = "Only implemented for regular meshes in OpenMC!"
+    expect_err = "This object is currently only implemented for regular meshes \(RegularMesh\) in OpenMC! "
+                 "Please contact the Cardinal developer team if you require another structured mesh type."
     requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
                   "OpenMC RegularMesh"
     capabilities = "openmc"
@@ -67,8 +70,9 @@
     type = RunException
     input = openmc_mesh_scaling.i
     cli_args = "Problem/scaling=1.0"
-    expect_err = "Inconsistent scaling factors for OpenMC in the mesh generator and problem "
-                 "declarations."
+    expect_err = "Inconsistent 'scaling' factors for OpenMC in the mesh generator and problem "
+                 "declarations. Make sure the same value is used throughout the \[Mesh\] and "
+                 "\[Problem\] blocks."
     requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
                   "OpenMCCellAverageProblem (S2) must fail when S2 is not equal to S1"
     capabilities = "openmc"
