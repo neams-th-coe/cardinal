@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSProblem.md NekFieldVariable.md NekBoundaryFlux.md'
+  design = 'NekFieldVariable.md'
   [output_cht]
     type = RunApp
     input = nek_master.i

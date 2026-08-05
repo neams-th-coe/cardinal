@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSProblem.md'
+  design = 'NekRSProblem.md NekVolumeIntegral.md NekSideIntegral.md'
   [volume]
     type = CSVDiff
     input = nek.i

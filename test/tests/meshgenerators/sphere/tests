@@ -1,5 +1,4 @@
 [Tests]
-  design = 'NekMeshGenerator.md'
   [sphere]
     type = RunApp
     input = sphere.i
@@ -13,6 +12,7 @@
     prereq = sphere
     cli_args = '--mesh-only'
     requirement = 'The system shall move the nodes on a sphere boundary to the curved surface'
+    design = 'NekMeshGenerator.md'
   []
   [shift_convert]
     type = Exodiff
@@ -21,5 +21,6 @@
     prereq = sphere
     cli_args = '--mesh-only'
     requirement = 'The system shall move the nodes on a sphere boundary to the curved surface when the sphere is offset from the origin'
+    design = 'NekMeshGenerator.md'
   []
 []
