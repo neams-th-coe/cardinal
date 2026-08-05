@@ -66,7 +66,7 @@
                   "OpenMCCellAverageProblem must work"
     capabilities = "openmc"
   []
-  [inconsistent_scaling]
+  [inconsistent_scaling_between_problem_and_mesh_generator]
     type = RunException
     input = openmc_mesh_scaling.i
     cli_args = "Problem/scaling=1.0"
@@ -75,6 +75,15 @@
                  "\[Problem\] blocks."
     requirement = "Inconsistent scaling factors between OpenMCMeshGenerator (S1) and "
                   "OpenMCCellAverageProblem (S2) must fail when S2 is not equal to S1"
+    capabilities = "openmc"
+  []
+  [inconsistent_scaling_across_mesh_generators]
+    type = RunException
+    input = openmc_two_meshes.i
+    cli_args = "Mesh/openmc_mesh/scaling=1 --mesh-only"
+    expect_err = "Inconsistent 'scaling' factors for OpenMC in the declared OpenMCMeshGenerators; "
+                 "the same choice for 'scaling' must be used across all OpenMCMeshGenerator objects"
+    requirement = "Inconsistent scaling factors across multiple OpenMCMeshGenerators must fail"
     capabilities = "openmc"
   []
 []
