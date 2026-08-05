@@ -33,7 +33,7 @@ time.
 Here is an example showing how to set up an `OpenMCMeshGenerator` from a regular mesh declared with
 an ID of 1 in the OpenMC model:
 
-!listing test/tests/meshgenerators/openmc_mesh_generator/openmc_mesh_only.i
+!listing test/tests/meshgenerators/openmc_mesh_generator/openmc_mesh_scaling.i block=Mesh
 
 In this example, a scaling factor of 10 is used. This means that the dimensions retrieved from OpenMC
 will be divided by 10 to construct the mesh on the Cardinal side (since OpenMC always uses units of
