@@ -47,11 +47,19 @@ OpenMCTemperatureField::initialize()
 void
 OpenMCTemperatureField::execute()
 {
-  for (std::size_t i = 0; i < openmc::simulation::temperature_field.values().size(); i++)
-  {
-    double temperature = openmc::simulation::temperature_field.value(i);
+  size_t n = openmc_temperature_field_size();
 
-    _cell_id.push_back(i);
-    _temperature.push_back(temperature);
+  _cell_id.resize(n);
+  _temperature.resize(n);
+
+  for (size_t i = 0; i < n; i++)
+  {
+    double temp;
+    int err = openmc_temperature_field_get_value(i, &temp);
+    if (err != 0)
+      mooseError("Failed to get temperature from OpenMC at index ", i);
+    
+    _cell_id[i] = i;
+    _temperature[i] = temp;
   }
 }
