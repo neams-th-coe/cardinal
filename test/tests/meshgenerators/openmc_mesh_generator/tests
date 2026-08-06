@@ -12,47 +12,6 @@
                   "element count against the internal OpenMC mesh"
     capabilities = "openmc"
   []
-  [inconsistent_xml_directories_across_mesh_generators]
-    type = RunException
-    input = openmc_two_meshes.i
-    cli_args = "Mesh/openmc_mesh/xml_directory=./gold/ --mesh-only"
-    expect_err = "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the "
-                 "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
-    requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
-                  "values"
-    capabilities = "openmc"
-  []
-  [inconsistent_xml_directories_between_problem_and_mesh_generator]
-    type = RunException
-    input = openmc_mesh_scaling.i
-    cli_args = "Problem/xml_directory=./gold/"
-    expect_err = "Inconsistent 'xml_directory' for OpenMC in the mesh generator and problem declarations. "
-                 "Make sure the same value is used throughout the \[Mesh\] and \[Problem\] blocks."
-    requirement = "Inconsistent xml_directory values between OpenMCMeshGenerator and "
-                  "OpenMCCellAverageProblem (S2) must fail"
-    capabilities = "openmc"
-  []
-  [wrong_mesh_type]
-    type = RunException
-    input = openmc_mesh_sampling.i
-    cli_args = "Mesh/openmc_mesh/mesh_id=2 --mesh-only"
-    expect_err = "This object is currently only implemented for regular meshes \(RegularMesh\) in OpenMC! "
-                 "Please contact the Cardinal developer team if you require another structured mesh type."
-    requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
-                  "OpenMC RegularMesh"
-    capabilities = "openmc"
-  []
-  [invalid_mesh_id]
-    type = RunException
-    input = openmc_mesh_sampling.i
-    cli_args = "Mesh/openmc_mesh/mesh_id=3 --mesh-only"
-    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 3 does not exist in the OpenMC model! "
-                 "Please make sure the mesh has been added in the OpenMC model and you've supplied the "
-                 "correct mesh id."
-    requirement = "OpenMCMeshGenerator must fail if the requested mesh ID is not available in the OpenMC "
-                  "model"
-    capabilities = "openmc"
-  []
   [two_meshes]
     type = Exodiff
     input = openmc_two_meshes.i
@@ -87,6 +46,27 @@
                   "OpenMCCellAverageProblem must work"
     capabilities = "openmc"
   []
+  [invalid_mesh_type]
+    type = RunException
+    input = openmc_mesh_sampling.i
+    cli_args = "Mesh/openmc_mesh/mesh_id=2 --mesh-only"
+    expect_err = "This object is currently only implemented for regular meshes \(RegularMesh\) in OpenMC! "
+                 "Please contact the Cardinal developer team if you require another structured mesh type."
+    requirement = "OpenMCMeshGenerator must fail if the requested mesh type is not an "
+                  "OpenMC RegularMesh"
+    capabilities = "openmc"
+  []
+  [invalid_mesh_id]
+    type = RunException
+    input = openmc_mesh_sampling.i
+    cli_args = "Mesh/openmc_mesh/mesh_id=3 --mesh-only"
+    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 3 does not exist in the OpenMC model! "
+                 "Please make sure the mesh has been added in the OpenMC model and you've supplied the "
+                 "correct mesh id."
+    requirement = "OpenMCMeshGenerator must fail if the requested mesh ID is not available in the OpenMC "
+                  "model"
+    capabilities = "openmc"
+  []
   [inconsistent_scaling_between_problem_and_mesh_generator]
     type = RunException
     input = openmc_mesh_scaling.i
@@ -105,6 +85,26 @@
     expect_err = "Inconsistent 'scaling' factors for OpenMC in the declared OpenMCMeshGenerators; "
                  "the same choice for 'scaling' must be used across all OpenMCMeshGenerator objects"
     requirement = "Inconsistent scaling factors across multiple OpenMCMeshGenerators must fail"
+    capabilities = "openmc"
+  []
+  [inconsistent_xml_directories_across_mesh_generators]
+    type = RunException
+    input = openmc_two_meshes.i
+    cli_args = "Mesh/openmc_mesh/xml_directory=./gold/ --mesh-only"
+    expect_err = "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the "
+                 "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
+    requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
+                  "values"
+    capabilities = "openmc"
+  []
+  [inconsistent_xml_directories_between_problem_and_mesh_generator]
+    type = RunException
+    input = openmc_mesh_scaling.i
+    cli_args = "Problem/xml_directory=./gold/"
+    expect_err = "Inconsistent 'xml_directory' for OpenMC in the mesh generator and problem declarations. "
+                 "Make sure the same value is used throughout the \[Mesh\] and \[Problem\] blocks."
+    requirement = "Inconsistent xml_directory values between OpenMCMeshGenerator and "
+                  "OpenMCCellAverageProblem (S2) must fail"
     capabilities = "openmc"
   []
 []
