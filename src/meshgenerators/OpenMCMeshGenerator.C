@@ -46,11 +46,11 @@ OpenMCMeshGenerator::validParams()
 
 OpenMCMeshGenerator::OpenMCMeshGenerator(const InputParameters & params)
   : MeshGenerator(params),
-    _mesh_id(getParam<unsigned int>("mesh_id")),
     _scaling(getParam<Real>("scaling")),
     _xml_directory(getParam<FileName>("xml_directory"))
 {
   // Check to make sure the mesh exists.
+  auto _mesh_id = getParam<unsigned int>("mesh_id");
   if (openmc::model::mesh_map.count(_mesh_id) == 0)
     paramError("mesh_id",
                "A mesh with the id " + Moose::stringify(_mesh_id) +

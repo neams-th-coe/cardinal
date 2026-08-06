@@ -38,8 +38,6 @@ private:
   /// Generated mesh
   std::unique_ptr<MeshBase> * _build_mesh;
 
-  const unsigned int _mesh_id;
-
   /// Scaling factor to divide the mesh coordinates in the RegularMesh in OpenMC to get into units used by Cardinal
   const Real & _scaling;
 
