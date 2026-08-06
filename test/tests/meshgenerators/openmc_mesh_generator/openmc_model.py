@@ -10,7 +10,7 @@ mat.add_element("H", 4.0)
 mat.set_density("g/cm3", 5.0)
 materials = openmc.Materials([mat])
 
-# Create a 2x2x2 regular mesh
+# Create a 2x2x2 regular mesh (3D)
 dim = 2
 lower_left = (0., 0., 0.)
 upper_right = (10.0, 10.0, 10.0)
@@ -23,6 +23,14 @@ mesh_1.dimension = (dim, dim, dim)
 mesh_2 = openmc.CylindricalMesh(
     r_grid=[0.0, 5.0], z_grid=[0.0, 10.0], phi_grid=[0.0, 2 * np.pi],
     origin=[5.0, 5.0, 0.0])
+
+# Create a 2x2 regular mesh (2D)
+lower_left_2D = (0., 0.)
+upper_right_2D = (10.0, 10.0)
+mesh_3 = openmc.RegularMesh()
+mesh_3.lower_left = lower_left_2D
+mesh_3.upper_right = upper_right_2D
+mesh_3.dimension = (dim, dim)
 
 # Create geometry
 box = openmc.model.RectangularParallelepiped(
@@ -40,9 +48,9 @@ cell_2 = openmc.Cell(fill=mat, region=(-box & +plane))
 # Register geometry
 geometry = openmc.Geometry([cell_1, cell_2])
 
-# Create a regular mesh tally
+# Create a 3D regular mesh tally
 mesh_filter_1 = openmc.MeshFilter(mesh_1)
-tally_1 = openmc.Tally(name="regular_mesh_tally")
+tally_1 = openmc.Tally(name="3D_regular_mesh_tally")
 tally_1.filters = [mesh_filter_1]
 tally_1.scores = ["flux"]
 
@@ -52,8 +60,14 @@ tally_2 = openmc.Tally(name="cylindrical_mesh_tally")
 tally_2.filters = [mesh_filter_2]
 tally_2.scores = ["flux"]
 
+# Create a 2D regular mesh tally
+mesh_filter_3 = openmc.MeshFilter(mesh_3)
+tally_3 = openmc.Tally(name="2D_regular_mesh_tally")
+tally_3.filters = [mesh_filter_3]
+tally_3.scores = ["flux"]
+
 # Register tally
-tallies = openmc.Tallies([tally_1, tally_2])
+tallies = openmc.Tallies([tally_1, tally_2, tally_3])
 
 # Register settings
 settings = openmc.Settings()

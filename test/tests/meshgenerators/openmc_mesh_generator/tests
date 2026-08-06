@@ -56,11 +56,20 @@
                   "OpenMC RegularMesh"
     capabilities = "openmc"
   []
-  [invalid_mesh_id]
+  [invalid_mesh_dimension]
     type = RunException
     input = openmc_mesh_sampling.i
     cli_args = "Mesh/openmc_mesh/mesh_id=3 --mesh-only"
-    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 3 does not exist in the OpenMC model! "
+    expect_err = "At this time, this object only supports 3D meshes. Please contact the Cardinal developer "
+                 "team if you need 2D or 1D meshes!"
+    requirement = "OpenMCMeshGenerator must fail if the requested regular mesh is not 3D"
+    capabilities = "openmc"
+  []
+  [invalid_mesh_id]
+    type = RunException
+    input = openmc_mesh_sampling.i
+    cli_args = "Mesh/openmc_mesh/mesh_id=4 --mesh-only"
+    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 4 does not exist in the OpenMC model! "
                  "Please make sure the mesh has been added in the OpenMC model and you've supplied the "
                  "correct mesh id."
     requirement = "OpenMCMeshGenerator must fail if the requested mesh ID is not available in the OpenMC "
