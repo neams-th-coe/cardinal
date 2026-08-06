@@ -32,6 +32,14 @@ mesh_3.lower_left = lower_left_2D
 mesh_3.upper_right = upper_right_2D
 mesh_3.dimension = (dim, dim)
 
+# Create a 2-cell regular mesh (1D)
+lower_left_1D = (0.,)
+upper_right_1D = (10.0,)
+mesh_4 = openmc.RegularMesh()
+mesh_4.lower_left = lower_left_1D
+mesh_4.upper_right = upper_right_1D
+mesh_4.dimension = (dim,)
+
 # Create geometry
 box = openmc.model.RectangularParallelepiped(
     xmin=lower_left[0], xmax=upper_right[0],
@@ -66,8 +74,14 @@ tally_3 = openmc.Tally(name="2D_regular_mesh_tally")
 tally_3.filters = [mesh_filter_3]
 tally_3.scores = ["flux"]
 
+# Create a 1D regular mesh tally
+mesh_filter_4 = openmc.MeshFilter(mesh_4)
+tally_4 = openmc.Tally(name="1D_regular_mesh_tally")
+tally_4.filters = [mesh_filter_4]
+tally_4.scores = ["flux"]
+
 # Register tally
-tallies = openmc.Tallies([tally_1, tally_2, tally_3])
+tallies = openmc.Tallies([tally_1, tally_2, tally_3, tally_4])
 
 # Register settings
 settings = openmc.Settings()
