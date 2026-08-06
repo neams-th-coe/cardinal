@@ -59,6 +59,11 @@
       <lower_left>0.0</lower_left>
       <upper_right>10.0</upper_right>
     </mesh>
+    <mesh id="5">
+      <dimension>2 2 2</dimension>
+      <lower_left>10.0 0.0 0.0</lower_left>
+      <upper_right>20.0 10.0 10.0</upper_right>
+    </mesh>
     <filter id="1" type="mesh">
       <bins>1</bins>
     </filter>
@@ -70,6 +75,9 @@
     </filter>
     <filter id="4" type="mesh">
       <bins>4</bins>
+    </filter>
+    <filter id="5" type="mesh">
+      <bins>5</bins>
     </filter>
     <tally id="1" name="3D_regular_mesh_tally">
       <filters>1</filters>
@@ -85,6 +93,10 @@
     </tally>
     <tally id="4" name="1D_regular_mesh_tally">
       <filters>4</filters>
+      <scores>flux</scores>
+    </tally>
+    <tally id="5" name="3D_regular_mesh_tally_2">
+      <filters>5</filters>
       <scores>flux</scores>
     </tally>
   </tallies>

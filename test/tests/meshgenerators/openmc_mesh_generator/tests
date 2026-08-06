@@ -77,8 +77,8 @@
   [invalid_mesh_id]
     type = RunException
     input = openmc_mesh_sampling.i
-    cli_args = "Mesh/openmc_mesh/mesh_id=5 --mesh-only"
-    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 5 does not exist in the OpenMC model! "
+    cli_args = "Mesh/openmc_mesh/mesh_id=6 --mesh-only"
+    expect_err = "Mesh/openmc_mesh/mesh_id: A mesh with the id 6 does not exist in the OpenMC model! "
                  "Please make sure the mesh has been added in the OpenMC model and you've supplied the "
                  "correct mesh id."
     requirement = "OpenMCMeshGenerator must fail if the requested mesh ID is not available in the OpenMC "
@@ -99,7 +99,7 @@
   [inconsistent_scaling_across_mesh_generators]
     type = RunException
     input = openmc_two_meshes.i
-    cli_args = "Mesh/openmc_mesh/scaling=1 --mesh-only"
+    cli_args = "Mesh/openmc_mesh_1/scaling=1 --mesh-only"
     expect_err = "Inconsistent 'scaling' factors for OpenMC in the declared OpenMCMeshGenerators; "
                  "the same choice for 'scaling' must be used across all OpenMCMeshGenerator objects"
     requirement = "Inconsistent scaling factors across multiple OpenMCMeshGenerators must fail"
@@ -108,7 +108,7 @@
   [inconsistent_xml_directories_across_mesh_generators]
     type = RunException
     input = openmc_two_meshes.i
-    cli_args = "Mesh/openmc_mesh/xml_directory=./gold/ --mesh-only"
+    cli_args = "Mesh/openmc_mesh_1/xml_directory=./gold/ --mesh-only"
     expect_err = "Inconsistent 'xml_directory' values found in the declared OpenMCMeshGenerators; the "
                  "same choice for 'xml_directory' must be used across all OpenMCMeshGenerator objects"
     requirement = "OpenMCMeshGenerator must fail if there are two different xml_directory"
