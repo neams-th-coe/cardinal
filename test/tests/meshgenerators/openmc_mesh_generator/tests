@@ -24,18 +24,10 @@
   [verify_point_sampling]
     type = CSVDiff
     input = openmc_mesh_sampling.i
-    csvdiff = openmc_mesh_sampling_out_sample_points_0001.csv
+    csvdiff = "openmc_mesh_sampling_out_sample_points_0001.csv openmc_mesh_sampling_out.csv"
     requirement = "Points generated inside the mesh produced by OpenMCMeshGenerator "
                   "must correctly map to the mesh element IDs."
     mesh_mode = "replicated"
-    capabilities = "openmc"
-  []
-  [verify_bounding_box_and_info]
-    type = CSVDiff
-    input = openmc_mesh_sampling.i
-    csvdiff = openmc_mesh_sampling_out.csv
-    requirement = "Bounds, volume, number of nodes and elements for the mesh generated "
-                  "by OpenMCMeshGenerator must be correct"
     capabilities = "openmc"
   []
   [consistent_scaling]
