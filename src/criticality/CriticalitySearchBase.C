@@ -132,8 +132,16 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
       for (auto & t : openmc::model::tallies)
         t->set_active(false);
 
-    // re-run the model
+    // Need to reset timers after the first iteration.
     int err = 0;
+    if (_inputs.size() > 1)
+    {
+      err = openmc_reset_timers();
+      if (err)
+        mooseError(openmc_err_msg);
+    }
+
+    // re-run the model
     if (_openmc_problem->runRandomRay())
       openmc_run_random_ray();
     else
