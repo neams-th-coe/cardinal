@@ -6,6 +6,7 @@
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for flux coupling."
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [source]
     type = RunException
@@ -14,5 +15,6 @@
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for source coupling."
     capabilities = 'nekrs'
+    design = 'NekVolumetricSource.md'
   []
 []

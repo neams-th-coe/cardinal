@@ -5,6 +5,7 @@
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [driver_multi_1]
     type = CSVDiff
@@ -18,6 +19,7 @@
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     capabilities = 'nekrs'
+    design = 'NekScalarValue.md'
   []
   [clear1]
     type = RunCommand
@@ -25,6 +27,7 @@
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [driver_multi_2]
     type = CSVDiff
@@ -39,6 +42,7 @@
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     capabilities = 'nekrs'
+    design = 'NekScalarValue.md'
   []
   [clear2]
     type = RunCommand
@@ -47,6 +51,7 @@
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [driver_multi_3]
     type = CSVDiff
@@ -61,6 +66,7 @@
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     capabilities = 'nekrs'
+    design = 'NekScalarValue.md'
   []
   [clear3]
     type = RunCommand
@@ -69,6 +75,7 @@
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     capabilities = 'nekrs'
     use_shell = True
+    design = 'NekRSProblem.md'
   []
   [driver_multi_4]
     type = CSVDiff
@@ -83,5 +90,6 @@
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     capabilities = 'nekrs'
     skip = 'Need to resolve random failure'
+    design = 'NekScalarValue.md'
   []
 []

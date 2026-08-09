@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSMesh.md'
   [boundary_exact]
     type = Exodiff
     input = exact.i

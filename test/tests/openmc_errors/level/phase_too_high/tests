@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md'
   [fluid_too_high]
     type = RunException
     input = fluid_too_high.i

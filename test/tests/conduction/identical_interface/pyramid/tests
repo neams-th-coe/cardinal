@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md'
   [pyramid_conduction]
     type = Exodiff
     input = nek_master.i

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md'
   [no_range]
     type = RunException
     input = openmc.i

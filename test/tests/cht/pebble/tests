@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md'
   [pebble]
     type = Exodiff
     input = nek_master.i

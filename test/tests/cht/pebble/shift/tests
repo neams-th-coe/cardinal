@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md'
   [pebble]
     type = CSVDiff
     input = nek_master.i
