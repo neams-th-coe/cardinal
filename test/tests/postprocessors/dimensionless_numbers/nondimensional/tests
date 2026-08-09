@@ -5,6 +5,7 @@
     csvdiff = nek_out.csv
     requirement = "The system shall correctly compute the Reynolds and Peclet numbers for a nondimensional NekRS case."
     capabilities = 'nekrs'
+    design = 'PecletNumber.md ReynoldsNumber.md DimensionalizeAction.md'
   []
   [check_zero_scratch]
     type = RunApp
@@ -12,5 +13,6 @@
     cli_args = 'Problem/n_usrwrk_slots=0'
     requirement = "The system shall allow zero scratch space allocation."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
 []

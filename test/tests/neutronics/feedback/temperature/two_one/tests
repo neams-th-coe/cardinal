@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCCellAverageProblem.md'
   [two_to_one]
     type = CSVDiff
     input = openmc.i

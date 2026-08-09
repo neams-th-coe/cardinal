@@ -1,4 +1,5 @@
 [Tests]
+  design = 'HexagonalSubchannelGapBin.md LayeredBin.md LayeredGapBin.md NekBinnedPlaneAverage.md NekBinnedPlaneIntegral.md'
   [type_error]
     type = RunException
     input = type_error.i

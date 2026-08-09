@@ -1,4 +1,5 @@
 [Tests]
+  design = 'VolumetricHeatSourceICAction.md'
   [sinusoidal]
     type = Exodiff
     input = 'sinusoidal_z.i'

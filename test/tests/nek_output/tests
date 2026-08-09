@@ -7,6 +7,7 @@
     requirement = "Nek-wrapped MOOSE cases shall be able to output the "
                   "passive scalars from the Nek solution onto the mesh mirror."
     capabilities = 'nekrs'
+    design = 'NekFieldVariable.md'
   []
   [other_output]
     type = CSVDiff
@@ -15,6 +16,7 @@
     abs_zero = 1e-8
     requirement = "Nek-wrapped MOOSE cases shall be able to output any quantity in the field enumeration from NekRS onto the mesh mirror."
     capabilities = 'nekrs'
+    design = 'NekFieldVariable.md'
   []
   [too_high_slot]
     type = RunException
@@ -22,6 +24,7 @@
     expect_err = "Cannot write field file for usrwrk slot greater than the total number of allocated slots: 2!"
     requirement = "The system shall error if trying to write a usrwrk slot greater than the total number of allocated slots"
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [mismatch_length]
     type = RunException
@@ -30,6 +33,7 @@
     expect_err = "The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!"
     requirement = "The system shall error if there is a mismatch between parameter lengths for writing usrwrk field files"
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md'
   []
   [bad_name]
     type = RunException
@@ -37,5 +41,6 @@
     expect_err = "We tried to choose a default 'field' as 'temp', but this value is not an option in the 'field' enumeration. Please provide the 'field' parameter."
     requirement = "The system shall error if the default choice for the field cannot be matched from the object name."
     capabilities = 'nekrs'
+    design = 'NekFieldVariable.md'
   []
 []

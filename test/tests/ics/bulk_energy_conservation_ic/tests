@@ -1,4 +1,5 @@
 [Tests]
+  design = 'BulkEnergyConservationIC.md VolumetricHeatSourceICAction.md'
   [missing_initial]
     type = RunException
     input = sinusoidal_z.i

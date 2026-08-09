@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekPostprocessorValue.md'
   [nek]
     type = CSVDiff
     input = nek.i

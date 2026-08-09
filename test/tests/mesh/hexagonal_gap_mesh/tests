@@ -1,4 +1,5 @@
 [Tests]
+  design = 'HexagonalSubchannelGapMesh.md'
   [three_rings]
     type = Exodiff
     input = three_rings.i

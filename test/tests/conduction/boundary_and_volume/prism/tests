@@ -12,6 +12,7 @@
                   "can be made better by using finer meshes in the coupled Cardinal case."
     min_slots = 12 # memory heavy
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekBoundaryFlux.md NekVolumetricSource.md NekFieldVariable.md'
   []
   [pyramid_exact]
     type = CSVDiff
@@ -26,6 +27,7 @@
                   "to the pyramid test and the usrwrk output for flux and volumetric heating match the "
                   "auxiliary variables in the Nek-wrapped input."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekBoundaryFlux.md NekVolumetricSource.md NekFieldVariable.md'
   []
   [duplicate_temp]
     type = RunException
@@ -35,5 +37,6 @@
     requirement = "The system shall error if the user specifies a duplicate variable with a name overlapping with special names reserved for Cardinal data transfers."
     min_slots = 6 # memory heavy
     capabilities = 'nekrs'
+    design = 'NekVolumetricSource.md'
   []
 []

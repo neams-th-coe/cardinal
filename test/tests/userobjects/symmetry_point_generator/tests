@@ -1,4 +1,5 @@
 [Tests]
+  design = 'SymmetryPointGenerator.md'
   [non_perpendicular_axis]
     type = RunException
     input = test.i
