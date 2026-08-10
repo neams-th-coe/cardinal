@@ -20,6 +20,10 @@
 
 #include "GeneralVectorPostprocessor.h"
 
+/**
+ * Returns a vector of temperatures corresponding to each mesh cell of
+ * the OpenMC temperature field.
+ */
 class OpenMCTemperatureField : public GeneralVectorPostprocessor
 {
 public:
@@ -31,6 +35,9 @@ public:
   virtual void finalize() override {}
 
 private:
+  /// Cell ID corresponding to each value in the OpenMC temperature field
   VectorPostprocessorValue & _cell_id;
+
+  /// Temperature assigned to each cell of the OpenMC temperature field
   VectorPostprocessorValue & _temperature;
 };
