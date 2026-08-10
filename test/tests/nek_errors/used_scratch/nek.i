@@ -15,8 +15,3 @@
     type = NekTimeStepper
   []
 []
-
-[Outputs]
-  exodus = true
-  hide = 'flux_integral'
-[]

@@ -1,16 +1,16 @@
-void velocityDirichletConditions(bcData * bc)
+void udfDirichlet(bcData * bc)
 {
-  bc->u = 0.0;
-  bc->v = 0.0;
-  bc->w = 1.0;
+  bc->uxFluid = 0.0;
+  bc->uyFluid = 0.0;
+  bc->uzFluid = 1.0;
 }
 
-void scalarDirichletConditions(bcData * bc)
+void udfDirichlet(bcData * bc)
 {
-  bc->s = 0.0;
+  bc->sScalar = 0.0;
 }
 
-void scalarNeumannConditions(bcData * bc)
+void udfNeumann(bcData * bc)
 {
-  bc->flux = 1000.0;
+  bc->fluxScalar = 1000.0;
 }

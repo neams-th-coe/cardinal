@@ -1,0 +1,12 @@
+[Tests]
+  design = 'NekRSProblem.md'
+  issues = '#1345'
+
+  [pebble]
+    type = CSVDiff
+    input = main.i
+    csvdiff = main_out_nek0.csv
+    requirement = 'The system shall solve for isothermal flow over a pebble.'
+    capabilities = 'nekrs'
+  []
+[]

@@ -82,7 +82,7 @@ Sending heat flux to NekRS boundary 1
 Normalizing total NekRS flux of 78.8581 to the conserved MOOSE value of 78.6508
 !listing-end!
 
-Here, the "total NekRS flux of ..." is the integral of `nrs->usrwrk` over the
+Here, the "total NekRS flux of ..." is the integral of `platform->app->bc->o_usrwrk` over the
 high-order NekRS spectral element mesh. Conversely, the "conserved MOOSE value of ..."
 is the total heat flux that MOOSE is setting in NekRS (read from the `<name_of_object>_integral`
 postprocessor that this object creates. These two numbers will be
@@ -127,12 +127,12 @@ writing this heat flux into usrwrk slot 0.
   block=Problem
 
 Then, all that is required to actually _apply_ this heat flux to the NekRS model is to use
-it in the `scalarNeumannConditions` boundary condition.
-Below, `bc->usrwrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
+it in the `udfNeumann` boundary condition.
+Below, `bc->usrwrk` is the same as `platform->app->bc->o_usrwrk`, or the scratch space on the
 device; this function applies the heat flux computed by MOOSE to the flux boundaries.
 
 !listing /test/tests/cht/pebble/onepebble2.oudf language=cpp
-  re=void\sscalarNeumannConditions.*?^}
+  re=void\sudfNeumann.*?^}
 
 !syntax parameters /Problem/FieldTransfers/NekBoundaryFlux
 

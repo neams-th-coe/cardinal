@@ -32,10 +32,18 @@
 
 [Executioner]
   type = Transient
-  dt = 2e-3
-  num_steps = 10
+  dt = 0.3
+  num_steps = 5
+[]
+
+[Postprocessors]
+  [max_T]
+    type = ElementExtremeValue
+    variable = nek_temp
+  []
 []
 
 [Outputs]
   exodus = true
+  csv = true
 []

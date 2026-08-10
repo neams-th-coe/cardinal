@@ -26,8 +26,8 @@ perturb an arbitrary number of parameters. Other notable features include:
   application. We will use this to send a thermal conductivity value
   from the [!ac](STM), to a solid heat conduction sub-app, which then passes the
   value to a NekRS sub-sub app.
-- You can use a single perturbed value in multiple locations in dependent applications.
-  For example, if you use a multiscale fluid model with NekRS in one part of the domain
+- You can use a single perturbed value in multiple locations.
+  For example, if you use a fluid model with NekRS in one part of the domain
   and the MOOSE [Navier-Stokes module](navier_stokes/index.md)
   in another region of space, you could send a single perturbed value for fluid density
   to both applications concurrently.
@@ -85,9 +85,7 @@ predict $T_i$ as our [!ac](QOI).
 ## NekRS Model
 
 First, we need to build a mesh for NekRS. We use MOOSE mesh generators to build the
-rectangular prism with $L_n=1$. Because NekRS's sidesets must be numbered contiguously
-beginning from 1, we need to shift the default sideset IDs created by the
-[GeneratedMeshGenerator](GeneratedMeshGenerator.md).
+rectangular prism with $L_n=1$.
 
 !listing /tutorials/nek_stochastic/channel.i
   block=Mesh
@@ -111,7 +109,7 @@ The remaining NekRS input files are:
   source terms
 
 In `channel.par`, we specify that we want to solve for temperature while disabling
-the fluid solve by setting `solver = none` in the `[VELOCITY]` block. The default
+the fluid solve by setting `solver = none` in the `[FLUID VELOCITY]` block. The default
 initial condition for velocity is a zero value, so this input file is essentially
 solving for solid heat conduction,
 
@@ -121,7 +119,7 @@ solving for solid heat conduction,
 
 where $\rho C_p=50$ and $k_n$ will be specified by MOOSE. Normally, all that
 you need to do to set thermal conductivity in NekRS is to set the
-`conductivity` parameter in the `[TEMPERATURE]` block. Here, we will instead
+`conductivity` parameter in the `[SCALAR TEMPERATURE]` block. Here, we will instead
 retrieve this value from MOOSE through the `.udf`.
 
 !alert warning
@@ -135,47 +133,34 @@ setting the properties in the `.par` file to their mean values.
 !listing /tutorials/nek_stochastic/channel.par
 
 Next, in the `channel.oudf` we specify our boundary conditions in the NekRS model --
-a Dirichlet temperature of 500 on sideset 3 and a heat flux from MOOSE on
-sideset 5.
+a Dirichlet temperature of 500 on sideset 2 and a heat flux from MOOSE on
+sideset 4.
 
 !listing /tutorials/nek_stochastic/channel.oudf language=cpp
 
 Finally, the `channel.udf` file contains user-defined functions.
-Here, we are going to use the `udf.properties` to apply custom material properties.
+Here, we are going to use the `nrs->userProperties` to apply custom material properties.
 In the `uservp` function, we are reading thermal conductivity from the scratch space
-`nrs->usrwrk` (to be described in more detail soon). This scratch space is where MOOSE
+`platform->app->bc->o_usrwrk` (to be described in more detail soon). This scratch space is where MOOSE
 writes *any* data going into NekRS -- which we have used extensively so far to send
-heat flux, volumetric heating, etc. from MOOSE to NekRS. Now, we will use this same
+heat flux, volumetric heating, etc. from MOOSE to NekRS in the other tutorials. Now, we will use this same
 scratch space to fetch a stochastically sampled value for thermal conductivity.
 
-This value is then passed into the thermal conductivity array, slot 0 in `o_SProp`,
+This value is then passed into the thermal conductivity array, `nrs->scalar->o_diffusionCoeff("temperature")`,
 by calling the `platform->linAlg->fill` function. If you wanted to stochastically
 perturb other quantities, like the fluid viscosity, you would access those in a different
-way. For a summary of how to access other quantities in NekRS, we will provide a table
-at the end of this tutorial.
+way.
 
 !listing /tutorials/nek_stochastic/channel.udf language=cpp
 
 In order to ensure that the most up-to-date stochastic data from MOOSE is used
-in each scalar and flow solver, we add an extra call to `udf.properties` in Cardinal
-*each time* MOOSE sends new data to NekRS. So,
-`udf.properties` is called:
-
-1. Once before time stepping begins (within `nekrs::setup`). At this point,
-  `nrs->usrwrk` does not exist yet, which is why we return without doing anything
-  if `nrs->usrwrk` is a null pointer (the `if (!nrs->usrwrk)` line). This means that
-  when the elliptic solvers are initialized, they are using whatever property values
-  are set in the `.par` file (as already described).
-2. (*special to Cardinal*) Immediately after MOOSE sends new stochastic data to NekRS
-3. Between each scalar solve and the ensuing flow solve
-
-Steps 1 and 3 already occur in standalone NekRS simulations, so Cardinal is just adding
-an extra call to ensure consistency.
+in each scalar and flow solver, we add an extra call to evaluate these user-provided properties in Cardinal
+*each time* MOOSE sends new data to NekRS.
 
 The last thing we need is the thin wrapper input file which runs NekRS.
 We start by building a mesh mirror of the NekRS mesh, as a
 [NekRSMesh](NekRSMesh.md). We will couple
-via conjugate heat transfer through boundary 5 in the NekRS domain. Next, we use
+via conjugate heat transfer through boundary 4 in the NekRS domain. Next, we use
 [NekRSProblem](NekRSProblem.md)
 to specify that we will replace MOOSE solves with NekRS solves and to
 add the necessary [FieldTransfers](AddFieldTransferAction.md) to facilitate
@@ -291,23 +276,16 @@ When you first run this input file, you will see a table print at the beginning 
 solve which shows:
 
 ```
- -----------------------------------------------------------------------------------------------------------
- | Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
- -----------------------------------------------------------------------------------------------------------
- |    0 | flux           | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
- |    1 | k              | bc->usrwrk[1 * bc->fieldOffset + 0]     | nrs->usrwrk[1 * nrs->fieldOffset + 0] |
- |    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
- |    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
- |    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
- |    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
- |    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
- -----------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+| Slot | Data |           How to Access (.oudf)          |               How to Access (.udf)                |
+--------------------------------------------------------------------------------------------------------------
+|    0 | flux | bc->usrwrk[0*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+n] |
+|    1 | k    | bc->usrwrk[1*bc->fieldOffset+0]          | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+0] |
+--------------------------------------------------------------------------------------------------------------
 ```
 
 This table will show you how the [NekScalarValues](NekScalarValue.md)
-map to particular locations in the scratch space. It is from this table that we knew the
-value of thermal conductivity would be located at `nrs->usrwrk[1 * nrs->fieldOffset + 0]`,
-which is what we used in the `channel.udf`.
+map to particular locations in the scratch space.
 
 !alert note
 When you run this input file,
@@ -334,7 +312,7 @@ that we want to plot the `results:receive:nek_max_T` data we fetched with the
 and save the histogram in a file named `Ti.pdf`, shown in [Ti_img] for 200 samples.
 
 ```
-python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v results:receive:nek_max_T --xlabel 'Interface Temperature' --output Ti.pdf
+python ../../contrib/moose/modules/stochastic_tools/python/moose_stochastic_tools/make_histogram.py driver_out.json* -v results:receive:nek_max_T --xlabel 'Interface Temperature' --output Ti.pdf
 ```
 
 !media Ti.png
@@ -346,7 +324,7 @@ We can also directly plot the random values sampled, i.e. the input distribution
 are shown in [samples].
 
 ```
-python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v sample_0 --xlabel 'Input Distribution' --output samples.pdf
+python ../../contrib/moose/modules/stochastic_tools/python/moose_stochastic_tools/make_histogram.py driver_out.json* -v sample_0 --xlabel 'Input Distribution' --output samples.pdf
 ```
 
 !media samples.png
@@ -360,7 +338,7 @@ we also have access to the mean, standard deviation, and confidence intervals au
 data as a table, using the `visualize_statistics.py` script.
 
 ```
-python ../../contrib/moose/modules/stochastic_tools/python/visualize_statistics.py driver_out.json --markdown-table --names '{"storage_results:receive:nek_max_T":"Interface Temperature"}'
+python ../../contrib/moose/modules/stochastic_tools/python/moose_stochastic_tools/visualize_statistics.py driver_out.json --markdown-table --names '{"storage_results:receive:nek_max_T":"Interface Temperature"}'
 ```
 
 which will output
@@ -383,31 +361,3 @@ If you want to preserve
 a unique output file for each of the NekRS runs, you can set `write_fld_files = true`
 in the `[Problem]` block, which will write output files labeled as `a00case`, `a01case`, ...,
 `z98case`, `z99case`, giving you 2574 possible output files.
-
-## Perturbing NekRS Parameters
-
-In this example, we perturbed the thermal conductivity, but there are many other parameters
-which can be modified in NekRS via the `udf.properties` function.
-[perturbed_params] summarizes the parameters which can be modified by the `udf.properties` function.
-Because NekRS simulations can
-be run with any number of passive scalars, the content and ordering will depend on how many
-scalars you have. So, to be as general as possible, we've written [perturbed_params]
-assuming you have a simulation with 3 passive scalars.
-
-!table id=perturbed_params caption=Commmon parameters to modify in NekRS via `udf.properties`
-| Parameter | How to Access |
-| :- | :- |
-| Coefficient on time derivative of 0th scalar equation | 0th slot in `o_SProp` |
-| Coefficient on time derivative of 1st scalar equation | 1st slot in `o_SProp` |
-| Coefficient on time derivative of 2nd scalar equation | 2nd slot in `o_SProp` |
-| Coefficient on diffusion operator of 0th scalar equation | 3rd slot in `o_SProp` |
-| Coefficient on diffusion operator of 1st scalar equation | 4th slot in `o_SProp` |
-| Coefficient on diffusion operator of 2nd scalar equation | 5th slot in `o_SProp` |
-| Fluid dynamic viscosity | 0th slot in `o_UProp` |
-| Fluid density | 1st slot in `o_UProp` |
-
-Other quantities which you can perturb include:
-
-- Boundary conditions
-- Anything in a GPU kernel, such as momentum or heat source terms
-- Geometry

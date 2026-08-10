@@ -68,7 +68,7 @@ T^\dagger=\frac{T-T_0}{\Delta T}
 Therefore, the reference heat flux to obtain the non-dimensional heat flux is simply $\rho C_p\Delta TU$ (taking the scaling for the volumetric heat and multiplying by a length scale to obtain the correct units). This means that the non-dimensional heat flux is scaled as
 
 \begin{equation}
-\frac{q}''^{\dagger}=\frac{q''}{\rho C_p\Delta TU}
+q''^{\dagger}=\frac{q''}{\rho C_p\Delta TU}
 \end{equation}
 
 If we apply a non-dimensional heat flux of 1.0, this means that the dimensional heat flux is
@@ -130,7 +130,7 @@ tool such as Paraview or Visit.
 !media pipe_steady.png
   id=pipe_steady
   caption=Time evolution of the fluid temperature
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 From Paraview, we can also extract solution data along lines; for instance,
 below shows the fluid pressure along the pipe axis. Our mesh is a bit too coarse
@@ -147,14 +147,14 @@ is around -0.3198 (nondimensional).
 !media pressure_gradient.png
   id=pressure_gradient
   caption=Fluid pressure plotted down the center of the pipe
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 ### Monitoring Steady State
 
 Because all our boundary conditions are steady, our flow will reach a steady-state
 (for laminar flows) or a steady-in-the-mean state (for turbulent flows). We would
-refer to either of these states as ``stationarity.'' Generally,
-you should expect to need several *convective units* of time to have passed to
+refer to either of these states as "stationarity." Generally,
+you should expect to need several/many *convective units* of time to have passed to
 reach this condition (though this will depend on the details of the flow and
 on what field you are monitoring). A convective unit $t_c$ is the amount of time required
 for the flow to move from the inlet to the outlet of the domain one time.
@@ -163,6 +163,7 @@ for the flow to move from the inlet to the outlet of the domain one time.
 t_c=\frac{\text{streamwise length of domain}}{U}
 \end{equation}
 
+where $U$ is the streamwise velocity.
 For our domain, we have a length of 10 and a velocity of 1 (both in non-dimensional units),
 so that a convective unit is 10 non-dimensional time units. Therefore, we need to
 run for a few of these convective units so that the fluid can "flush out" our initial
@@ -172,11 +173,11 @@ condition.
 The number of convective units you need to reach stationarity depends on the problem
 and you should remember to inspect *all* solution fields of interest. Depending on the
 fluid properties and the initial conditions you chose, temperature could take longer
-to reach stationarity than velocity, and vice versa.
+to reach stationarity than velocity for instance.
 
 #### Steady Flows
 
-For laminar flows or for [!ac](RANS)
+For this laminar flows
 with steady boundary conditions, we expect to reach an actual steady state in the
 solution fields. For these cases,
 you can inspect the field files to get a sense of when this stationarity has been
@@ -185,16 +186,13 @@ solution scalar quantities (e.g. maximum/minimum values, norms along lines, etc.
 
 Another easy way to monitor steady state is using Cardinal. For example, the input
 below will run your NekRS case and automatically terminate once the relative change
-in your solution $\vec{s}$ between two successive time steps $n$ and $n+1$ is less than a provided tolerance $\epsilon$. This check is performed for *all* auxiliary variables individually
+in your solution $s$ between two successive time steps $n$ and $n+1$ is less than a provided tolerance $\epsilon$. This check is performed for *all* auxiliary variables individually
 in your problem, if you are using `check_aux = True`.
 
 \begin{equation}
-\frac{1}{\Delta t}\frac{\|\vec{s}^{n+1}-\vec{s}^n\|}{\|\vec{s}^n\|}\leq\epsilon
+\frac{1}{\Delta t}\frac{\|s^{n+1}-s^n\|}{\|s^n\|}\leq\epsilon
 \end{equation}
 
-The solution $\vec{s}$ is the auxiliary system solution, meaning one long vector
-containing all of the auxiliary variables (which you need to explicitly pass from NekRS's
-internals into MOOSE variables using [FieldTransfers](AddFieldTransferAction.md).
 The norm above is scaled by $\Delta t$ so that if you have a very small time step,
 the solution wouldn't change very much in such a short window of time (even if the
 steady state has not been reached yet). You can also inspect postprocessors to see how
@@ -207,7 +205,8 @@ the steady state.
 #### Turbulent Flows
 
 For turbulent flow modeling using [!ac](LES) or [!ac](DNS), the flow will
-reach statistical stationarity. Methods to evaluate this will be described later
+reach statistical stationarity when there are steady boundary conditions.
+Methods to evaluate this will be described later
 in this tutorial.
 
 ## Periodic Boundary Conditions
@@ -247,7 +246,7 @@ exo2nek
 ```
 
 Now, we have a new `pipe.re2` file. For periodic cases, we need to have a `.usr`
-file to (i) set the boundary IDs of any sidesets which are to be periodic, to zero
+file to (i) set the boundary IDs of any sidesets which are to be periodic to zero
 and (ii) renormalize any remaining boundary IDs so that they are sequential beginning
 at 1.
 
@@ -258,11 +257,6 @@ Then, in our `.par` file, we will only refer to the non-periodic boundaries whic
 walls since that is the only boundary remaining in our mesh).
 
 !listing /tutorials/turbulence/periodic/pipe.par
-
-Note that in our `.oudf` file, we also only need to prescribe boundary conditions
-for the non-periodic boundaries.
-
-!listing /turbulence/periodic/pipe.oudf language=fortran
 
 ### Periodic Flow and Temperature
 
@@ -302,14 +296,16 @@ Now, we want to recast the energy equation in a way such that the outlet tempera
 
 \begin{equation}
 \label{eq:c3}
+\begin{aligned}
 \frac{\partial T}{\partial t}+V_i\frac{\partial T}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial T}{\partial x_i}\\
 \frac{\partial \tilde{T}}{\partial t}+V_i\frac{\partial\tilde{T}}{\partial x_i}=&\ \frac{k}{\rho C_p}\frac{\partial}{\partial x_i}\frac{\partial\tilde{T}}{\partial x_i}-V_z\gamma\\
+\end{aligned}
 \end{equation}
 
 In this way, by adding a heat sink term $V_z\gamma$, the actual quantity we are solving for with the energy equation is the periodic temperature field $\tilde{T}$. This field can be a function of height if the geometry itself varies with $z$, such as in
 wire-wrapped pin bundles (e.g. see [!cite](dutra)).
 In other words, the representation in [eq:c2] does allow the periodic temperature field to vary in $z$ (i.e. if you were to plot $\tilde{T}$ along a vertical line, you would not see a constant temperature) unless your geometry had no change in the cross-sectional
-geometry with height (like is the case for our simple pipe).
+geometry and boundary conditions with height (like is the case for our simple pipe).
 
 We need to add this heat sink, $\gamma z$, to our problem ourselves. This will require
 adding a kernel to the energy equation. Our resulting temperature field that we compute will represent the fully-developed temperature, but scaled so that its average is zero.
@@ -318,8 +314,6 @@ to also explicitly subtract out any numerical drift in the temperature average.
 Over long integration times, even if the bulk average is still a small number (e.g. $10^{-3}$), this can slowly drift over time.
 
 !listing /tutorials/turbulence/periodic/pipe.udf language=cpp
-
-!listing /tutorials/turbulence/periodic/pipe.oudf language=cpp
 
 Likewise for pressure, NekRS will solve for the pressure field superimposed on top of
 the constant-pressure-gradient arising from fully-developed flow.
@@ -348,18 +342,20 @@ to accomplish the periodic flow (aside from setting the `constFlowRate`).
 When running the case, NekRS will print to the screen the
 fully developed pressure gradient ($\lambda$)
 in Eq. [eq:lambda] as the `scale` term. For instance, for the time step shown
-below, the fully developed pressure gradient is 3.0882e-1 (compare this to
+below, the fully developed pressure gradient is 3.09634e-1 (compare this to
 the value we estimated from our inlet/outlet case earlier).
 
 ```
-Time Step 623, time = 11.0732, dt = 0.016456
+Time Step 625, time = 11.1647, dt = 0.0167122
 copying solution to nek
-S00      : iter 011  resNorm0 4.63e-07  resNorm 8.63e-08
-projP    : resNorm0 1.56e-07  resNorm 9.08e-12  ratio = 1.721e+04  5/8
-P        : iter 001  resNorm0 9.08e-12  resNorm 1.46e-12
-UVW      : iter 035  resNorm0 2.21e-03  resNorm 7.00e-08  divErrNorms 3.23e-14 3.00e-07
-flowRate : uBulk0 9.97e-01  uBulk 1.00e+00  err 2.22e-16  scale 3.08822e-01
-step= 623  t= 1.10731611e+01  dt=1.6e-02  C= 0.48  elapsedStep= 5.07e-02s  elapsedStepSum= 3.55035e+01s
+step=625      SCALAR temperature  : iter 010  resNorm0 1.16e-06  resNorm 2.78e-07
+step=625      proj FLUID p        : resNorm0 6.13e-07  resNorm 1.19e-11  ratio = 5.160e+04  7/8
+step=625      FLUID p             : iter 001  resNorm0 1.19e-11  resNorm 1.93e-12
+step=625      FLUID U             : iter 035  resNorm0 5.11e-03  resNorm 2.32e-07
+step=625      FLUID divUErr       : 1.63e-15  3.59e-07
+step=625      flowrate            : uBulk0 9.97e-01  uBulk 1.00e+00  err 0.00e+00  scale 3.09634e-01
+step=625      t= 1.11647029e+01  dt=1.7e-02  CFL= 0.484
+step=625      elapsedStep= 1.08e-01s  elapsedStepSum= 7.47700e+01s
 ```
 
 We are now ready to run this case. We will use the Cardinal input from the inlet/outlet
@@ -417,7 +413,7 @@ the kinematic viscosity ($1/Re$ for non-dimensional simulations), and $u_\tau$ i
 velocity. $u_\tau$ is defined as
 
 \begin{equation}
-u_\tau\equiv\frac{\sqrt{\tau_w}{\rho}}
+u_\tau\equiv\sqrt{\frac{\tau_w}{\rho}}
 \end{equation}
 
 where $\tau_w$ is the wall shear stress and $\rho$ is the density (1.0 for non-dimensional simulations).
@@ -448,7 +444,7 @@ giving
 
 \begin{equation}
 \begin{aligned}
-u_*\equiv&\ \sqrt{\frac{\tau_w}{\rho}}\\
+u_\tau\equiv&\ \sqrt{\frac{\tau_w}{\rho}}\\
 =&\ \sqrt{\frac{f\rho V^2}{8\rho}}\\
 =&\ V\sqrt{\frac{f}{8}}\\
 \end{aligned}
@@ -477,7 +473,6 @@ Then, we would estimate $f=0.0376$ for a flat plate for $Re=5000$
 $y^+$ on the wall as 0.38 in this mesh. We can compare this value with the [NekYPlus](NekYPlus.md)
 postprocessor, and find we did a pretty good job! The maximum $y^+$ on the mesh, after one
 convective unit, is around 0.5.
-
 
 ### Underresolved Turbulence
 
@@ -529,7 +524,7 @@ see [this page](les_filter.md). Here, we focus on the practical aspects of runni
 with NekRS.
 
 To run an [!ac](LES) simulation with NekRS, simply enable the filtering in the `.par` file
-with the `filtering`, `filterWeight`, and `filterModes` options. Generally recommended settings,
+with the `regularization` option. Generally recommended settings,
 for polynomial order greater than or equal to 5, are shown in the file below. The [!ac](LES) filtering
 in NekRS is spectrally convergent, so you can always choose a filter setting and then conduct
 a p-refinement study to ensure an adequately converged solution.
@@ -561,8 +556,8 @@ NekRS provides functionality to time-average its instantaneous velocity/pressure
 during the run. This section of the tutorial is an abridged version of the time-averaging
 documentation [on the NekRS website](https://nekrs.readthedocs.io/en/latest/problem_setup/postprocessing.html#time-averaging).
 
-In the `.udf` file, we simply add a few lines to register the time-averaging kernel in `UDF_LoadKernels`
-and `UDF_Setup`.
+In the `.udf` file, we simply add a few lines to create a time-averaging object, `avg`
+and initialize it in `UDF_Setup`.
 Then in `UDF_ExecuteStep` we call the time-averaging operation at the same frequency as we
 write output files (this is not required, but common).
 
@@ -571,17 +566,17 @@ write output files (this is not required, but common).
 When running NekRS, this will now create three additional output files on each output step.
 Since our casename is `pipe`, these will be named
 
-- `avgpipe0.f*`: these contain the time-averaged fields (first-order moments), i.e. $\langle u\rangle$,
+- `avg0.f*`: these contain the time-averaged fields (first-order moments), i.e. $\langle u\rangle$,
   $\langle v\rangle$, $\langle w\rangle$, etc. By default, the window for time averaging
   resets each time the averaging routine is called. In other words, if an output file is written
   on time steps 1000, 1500, and 3000, then `avgpipe0.f00001` contains the time average of the
   solution fields over time steps 0-1000; `avgpipe0.f00002` contains the time average of the
   solution fields over time steps 1000-1500; and `avgpipe0.f00003` contains the time average of
   the solution fields over time steps 1500-3000.
-- `rmspipe0.f*`: averages of the squares (second-order moments)
+- `rms0.f*`: averages of the squares (second-order moments)
   e.g. $\langle uu\rangle$, $\langle vv\rangle$, $\langle ww\rangle$ and for temperature,
   $\langle TT\rangle$.
-- `rm2pipe0.f*`: averages of the mixed correlations  $\langle uv\rangle$,
+- `rm20.f*`: averages of the mixed correlations  $\langle uv\rangle$,
   $\langle vw\rangle$, $\langle uw\rangle$.
 
 The mean Reynolds stress tensor has components which can then be computed as
@@ -597,11 +592,11 @@ The mean Reynolds stress tensor has components which can then be computed as
 and so on for the other components.
 
 To time-average together the averages, you will put in the `userchk()` routine in the `.usr`
-file a call to a function which will average together the various `avgpipe0.f*` files.
+file a call to a function which will average together the various `avg0.f*` files.
 This function takes as input the index of the file from which you want to begin the
 cumulative average, and the index of the file from which you want to end the cumulative average.
-For instance, if you want to average together files `avgpipe0.f00035`, `avgpipe0.f00036`,
-and `avgpipe0.f00037`, call the function as `call average_files("pipe", 35, 37)`.
+For instance, if you want to average together files `avg0.f00035`, `avg0.f00036`,
+and `avg0.f00037`, call the function as `call average_files("", 35, 37)`.
 
 !listing /tutorials/turbulence/les/pipe.usr language=fortran
 
@@ -628,10 +623,10 @@ simulation time. To convert the files into a form which can be read by Paraview,
 the folder where the output files are located,
 
 ```
-python ../../../../scripts/change_time.py --case pipe
+python ../../../../scripts/change_time.py
 ```
 
-where `../../../../scripts/change_time.py` is the path to the `chang_time.py` script in the
+where `../../../../scripts/change_time.py` is the path to the `change_time.py` script in the
 `cardinal/scripts` directory.
 
 To *undo* this action, pass the `--reset` flag to the `change_time.py` script. The times must

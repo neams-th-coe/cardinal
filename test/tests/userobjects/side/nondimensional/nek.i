@@ -1,11 +1,7 @@
-[GlobalParams]
-  check_boundary_restricted = false
-[]
-
 [Mesh]
   type = NekRSMesh
-  volume = true
   scaling = 7.646e-3
+  volume = true
 []
 
 [Problem]
@@ -50,72 +46,6 @@
   []
 []
 
-[AuxVariables]
-  [avg_T]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [avg_p]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [avg_v]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_T]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_p]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_v]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [avg_T]
-    type = SpatialUserObjectAux
-    variable = avg_T
-    user_object = avg_T
-    boundary = '2'
-  []
-  [avg_p]
-    type = SpatialUserObjectAux
-    variable = avg_p
-    user_object = avg_p
-    boundary = '2'
-  []
-  [avg_v]
-    type = SpatialUserObjectAux
-    variable = avg_v
-    user_object = avg_v
-    boundary = '2'
-  []
-  [integral_T]
-    type = SpatialUserObjectAux
-    variable = integral_T
-    user_object = integral_T
-    boundary = '2'
-  []
-  [integral_p]
-    type = SpatialUserObjectAux
-    variable = integral_p
-    user_object = integral_p
-    boundary = '2'
-  []
-  [integral_v]
-    type = SpatialUserObjectAux
-    variable = integral_v
-    user_object = integral_v
-    boundary = '2'
-  []
-[]
-
 [UserObjects]
   [x]
     type = LayeredBin
@@ -136,37 +66,37 @@
     type = NekBinnedSideAverage
     bins = 'x y z'
     field = temperature
-    boundary = '2'
+    boundary = '4'
   []
   [avg_p]
     type = NekBinnedSideAverage
     bins = 'x y z'
     field = pressure
-    boundary = '2'
+    boundary = '4'
   []
   [avg_v]
     type = NekBinnedSideAverage
     bins = 'x y z'
     field = velocity
-    boundary = '2'
+    boundary = '4'
   []
   [integral_T]
     type = NekBinnedSideIntegral
     bins = 'x y z'
     field = temperature
-    boundary = '2'
+    boundary = '4'
   []
   [integral_p]
     type = NekBinnedSideIntegral
     bins = 'x y z'
     field = pressure
-    boundary = '2'
+    boundary = '4'
   []
   [integral_v]
     type = NekBinnedSideIntegral
     bins = 'x y z'
     field = velocity
-    boundary = '2'
+    boundary = '4'
   []
 []
 
@@ -175,6 +105,58 @@
 
   [TimeStepper]
     type = NekTimeStepper
+  []
+[]
+
+
+# The data is passed to a sub-application just to keep the gold file smaller, since
+# we are only interested in the data on the boundary anwyays
+
+[MultiApps]
+  [sub]
+    type = TransientMultiApp
+    input_files = 'sub.i'
+    sub_cycling = true
+    execute_on = timestep_end
+  []
+[]
+
+[Transfers]
+  [u1]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = avg_T
+    source_user_object = avg_T
+    to_multi_app = sub
+  []
+  [u2]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = avg_p
+    source_user_object = avg_p
+    to_multi_app = sub
+  []
+  [u3]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = avg_v
+    source_user_object = avg_v
+    to_multi_app = sub
+  []
+  [u4]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = integral_T
+    source_user_object = integral_T
+    to_multi_app = sub
+  []
+  [u5]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = integral_p
+    source_user_object = integral_p
+    to_multi_app = sub
+  []
+  [u6]
+    type = MultiAppGeneralFieldUserObjectTransfer
+    variable = integral_v
+    source_user_object = integral_v
+    to_multi_app = sub
   []
 []
 

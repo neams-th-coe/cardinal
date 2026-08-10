@@ -5,10 +5,10 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
+    abs_zero = 1e-8
     requirement = "The system shall be able to read the flux from NekRS and write onto a boundary mesh mirror. This is tested by setting a known temperature distribution in NekRS such that the analytic heat flux can be computed and compared."
     issues = '#1166'
     capabilities = 'nekrs'
-    abs_zero = 1e-8
   []
   [volume]
     type = RunException
