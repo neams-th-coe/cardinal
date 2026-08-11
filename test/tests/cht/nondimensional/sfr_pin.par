@@ -4,7 +4,7 @@
 # L = 0.908e-2
 # rho = 834.5
 # Pr = 0.004532565021024762
-# U = 0.0950466                 inlet velocity from ../sfr_pincell
+# U = 0.000950466               inlet velocity from ../sfr_pincell
 # T0 = 628.15                   inlet temperature from ../sfr_pincell
 #
 # The particular length scale selected is based on dividing the mesh in
@@ -14,34 +14,25 @@
   backend = CPU
 
 [GENERAL]
-  stopAt = numSteps
   numSteps = 2000
-  dt = 0.05233843612334802
-  timeStepper = tombo2
-  writeControl = steps
-  writeInterval = 100
-  polynomialOrder = 4
+  dt = 0.10467687224669604
+  checkpointInterval = 500
+  polynomialOrder = 3
+  scalars = temperature
 
-[PROBLEMTYPE]
-  stressFormulation = true
-
-[VELOCITY]
-
+[FLUID VELOCITY]
   # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
-  viscosity = -3038.7881869873413
-
+  viscosity = -30.387881869873413
   density = 1.0
-  boundaryTypeMap = W, W, v, O
-  residualTol = 1.0e-6
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, udfDirichlet, zeroNeumann
+  residualTol = 1.0e-7
 
-[PRESSURE]
-  residualTol = 1.0e-6
-
-[TEMPERATURE]
-
-  # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
-  conductivity = -13.773505042642078
-
-  rhoCp = 1.0
-  boundaryTypeMap = f, I, t, O
+[FLUID PRESSURE]
   residualTol = 1.0e-5
+
+[SCALAR TEMPERATURE]
+  # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
+  diffusionCoeff = -0.13773505042642078
+  transportCoeff = 1.0
+  boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet, zeroNeumann
+  residualTol = 1.0e-7

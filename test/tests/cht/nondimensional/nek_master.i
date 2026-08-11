@@ -1,7 +1,7 @@
 [Mesh]
   [circle]
     type = AnnularMeshGenerator
-    nr = 10
+    nr = 8
     nt = 25
     rmin = 0
     rmax = 0.4e-2
@@ -10,15 +10,15 @@
   [cylinder]
     type = AdvancedExtruderGenerator
     input = circle
-    heights = '0.05 0.7 0.05'
-    num_layers = '5 10 5'
+    heights = '0.2'
+    num_layers = '10'
     direction = '0 0 1'
   []
   [transform]
     type = TransformGenerator
     input = cylinder
     transform = translate
-    vector_value = '0 0 -0.4'
+    vector_value = '0 0 -0.1'
   []
 []
 
@@ -52,14 +52,14 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1
-  dt = 0.05
+  num_steps = 10
+  dt = 0.1
   nl_abs_tol = 1e-8
 
   # In order to obtain the pseudo-steady converged case, run this until steady state is
   # detected and remove the num_steps
   #steady_state_detection = true
-  #steady_state_tolerance = 1e-5
+  #steady_state_tolerance = 1e-3
 []
 
 [MultiApps]
@@ -77,13 +77,15 @@
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    greedy_search = true
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    source_variable = flux
+    source_variable = flux_linear
     to_multi_app = nek
     variable = avg_flux
     from_boundaries = '1'
+    greedy_search = true
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer
@@ -104,6 +106,8 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [flux_linear]
+  []
   [nek_temp]
     initial_condition = 628.15
   []
@@ -120,6 +124,11 @@
     component = normal
     diffusivity = thermal_conductivity
     boundary = '1'
+  []
+  [flux_linear]
+    type = ProjectionAux
+    variable = flux_linear
+    v = flux
   []
 []
 

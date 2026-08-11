@@ -1,34 +1,36 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
   // note: when running with Cardinal, Cardinal will allocate the usrwrk
   // array. If running with NekRS standalone (e.g. nrsmpi), you need to
   // replace the usrwrk with some other value or allocate it youself from
   // the udf and populate it with values.
-  bc->u =  bc->usrwrk[bc->idM + 2*bc->fieldOffset];
-  bc->v =  bc->usrwrk[bc->idM + 3*bc->fieldOffset];
-  bc->w =  bc->usrwrk[bc->idM + 4*bc->fieldOffset];
+  if(isField("fluid velocity")) {
+    bc->uxFluid =  bc->usrwrk[bc->idxVol + 2 * bc->fieldOffset];
+    bc->uyFluid =  bc->usrwrk[bc->idxVol + 3 * bc->fieldOffset];
+    bc->uzFluid =  bc->usrwrk[bc->idxVol + 4 * bc->fieldOffset];
+  }
+
+  if(isField("fluid pressure")) {
+    const dfloat iU0delta = 20.0;
+    const dfloat un = bc->uxFluid*bc->nx + bc->uyFluid*bc->ny + bc->uzFluid*bc->nz;
+    const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
+    bc->pFluid = -0.5 * (bc->uxFluid*bc->uxFluid + bc->uyFluid*bc->uyFluid + bc->uzFluid*bc->uzFluid) * s0;
+  }
+
+  if(isField("scalar temperature")) {
+    bc->sScalar = 0.0;
+  }
 }
 
-// Stabilized outflow (Dong et al)
-void pressureDirichletConditions(bcData *bc)
+void udfNeumann(bcData *bc)
 {
-  const dfloat iU0delta = 20.0;
-  const dfloat un = bc->u*bc->nx + bc->v*bc->ny + bc->w*bc->nz;
-  const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
-  bc->p = -0.5 * (bc->u*bc->u + bc->v*bc->v + bc->w*bc->w) * s0;
+  bc->fluxScalar = 0.0;
 }
 
-void scalarDirichletConditions(bcData *bc)
-{
-  bc->s = 0.0;
-}
-
-void scalarNeumannConditions(bcData *bc)
-{
-  bc->flux = 0.0;
-}
-
-@kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
+@kernel void mooseHeatSource(const dlong Nelements, 
+                             const dlong offset,
+                             @restrict const dfloat * source,
+                             @restrict dfloat * QVOL)
 {
   for(dlong e=0;e<Nelements;++e;@outer(0)){
     for(int n=0;n<p_Np;++n;@inner(0)){

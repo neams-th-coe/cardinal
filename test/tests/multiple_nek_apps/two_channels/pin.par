@@ -6,17 +6,18 @@
   numSteps = 2000
   dt = 0.2
   timeStepper = tombo2
-  writeControl = steps
-  writeInterval = 5
+  checkpointControl = steps
+  checkpointInterval = 5
   polynomialOrder = 1
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
-  conductivity = 0.1
-  rhoCp = 1.0
-  boundaryTypeMap = f, t, I
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 0.1
+  transportCoeff = 1.0
+  boundaryTypeMap = udfNeumann, udfDirichlet, zeroNeumann
   residualTol = 1.0e-6

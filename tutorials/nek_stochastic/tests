@@ -14,6 +14,7 @@
                   "MOOSE solving heat conduction in part of the domain, and NekRS solving for heat conduction "
                   "in the remaining, with coupling via flux and temperature boundary conditions at the interface. "
                   "We compare against analytic solutions for steady-state heat transfer."
+    min_slots = 2 # memory heavy
     capabilities = 'nekrs'
   []
   [multi]

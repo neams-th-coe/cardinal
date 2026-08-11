@@ -25,9 +25,9 @@ Therefore, this object will interpolate between the NekRS [!ac](GLL) points and 
 
 ## Usrwrk Array
 
-When `direction = to_nek`, data is "sent" into NekRS by writing into the `nrs->usrwrk` scratch space array and also copying from this array into its corresponding array on the host (`nrs->o_usrwrk`)
-so that the data is accessible both on host and device within NekRS. For field transfers,
-each field occupies a single "slot" in the `nrs->usrwrk` array. For transfers into NekRS,
+When `direction = to_nek`, data is "sent" into NekRS by writing into the `platform->app->bc->o_usrwrk` scratch space array
+so that the data is accessible both on device within NekRS. For field transfers,
+each field occupies a single "slot" in the `platform->app->bc->o_usrwrk` array. For transfers into NekRS,
 you are required to list which slot in the array to write. Note that Cardinal automatically
 allocates this array, but you can control the size of it by setting `n_usrwrk_slots`
 in [NekRSProblem](NekRSProblem.md).
@@ -51,23 +51,18 @@ for the above example is listed below, which shows that heat flux values will ex
 first slice and volumetric heat source values will exist in the second slice.
 
 ```
------------------------------------------------------------------------------------------------------------
-| Slot | MOOSE quantity |          How to Access (.oudf)          |         How to Access (.udf)          |
------------------------------------------------------------------------------------------------------------
-|    0 | avg_flux       | bc->usrwrk[0 * bc->fieldOffset+bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
-|    1 | heat_source    | bc->usrwrk[1 * bc->fieldOffset+bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
-|    2 | unused         | bc->usrwrk[2 * bc->fieldOffset+bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
-|    3 | unused         | bc->usrwrk[3 * bc->fieldOffset+bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
-|    4 | unused         | bc->usrwrk[4 * bc->fieldOffset+bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
-|    5 | unused         | bc->usrwrk[5 * bc->fieldOffset+bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
-|    6 | unused         | bc->usrwrk[6 * bc->fieldOffset+bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+| Slot |    Data     |           How to Access (.oudf)          |               How to Access (.udf)                |
+---------------------------------------------------------------------------------------------------------------------
+|    0 | flux        | bc->usrwrk[0*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[0*nrs->fieldOffset+n] |
+|    1 | heat_source | bc->usrwrk[1*bc->fieldOffset+bc->idxVol] | platform->app->bc->o_usrwrk[1*nrs->fieldOffset+n] |
+---------------------------------------------------------------------------------------------------------------------
 ```
 
 For instance, the heat flux is then used in a boundary condition on the device in the `.oudf` file.
 
 !listing /tests/conduction/boundary_and_volume/prism/pyramid.oudf language=cpp
-  re=void\sscalarNeumannConditions.*?^
+  re=void\sudfNeumann.*?^
 
 
 !syntax list /Problem/FieldTransfers actions=false subsystems=false heading=Available FieldTransfer Objects

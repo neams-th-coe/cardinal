@@ -1,27 +1,28 @@
 [GENERAL]
-  startFrom = ../a01ethier0.f00001
+  startFrom = ../a01ethier0.f00000
   polynomialOrder = 5
   stopAt = numSteps
   numSteps = 1
   dt = 2e-03
   timeStepper = tombo3
-  writeControl = steps
-  writeInterval = 5
+  checkpointControl = steps
+  checkpointInterval = 5
+  scalars = temperature, one, two
+  udf = "read.udf"
 
 [MESH]
   file="../ethier.re2"
 
-[PRESSURE]
-  residualTol = 1e-08
+[FLUID PRESSURE]
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none
 
-[SCALAR01]
+[SCALAR ONE]
   solver = none
 
-[SCALAR02]
+[SCALAR TWO]
   solver = none

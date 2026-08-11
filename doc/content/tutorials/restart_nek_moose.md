@@ -15,10 +15,10 @@ cd cardinal/tutorials/restart_nek_and_moose
 ## Creating checkpoint files
 
 NekRS checkpoint file output is controlled
-using the `writeControl` and `writeInterval` parameters in the `.par` file.
+using the `writeControl` and `checkpointInterval` parameters in the `.par` file.
 The `.par` example below, for instance, writes a single checkpoint file
 at the end of the simulation. More fine-grained control can be achieved
-by using a smaller `writeInterval`.
+by using a smaller `checkpointInterval`.
 
 !listing /tutorials/restart_nek_and_moose/create_checkpoints/pyramid.par
 
