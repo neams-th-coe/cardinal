@@ -10,7 +10,7 @@ import numpy as np
 
 filename = "test.msh"
 length = 0.1  # [m]
-n_points = 20
+n_points = 5
 
 # Initialize gmsh
 gmsh.initialize()
