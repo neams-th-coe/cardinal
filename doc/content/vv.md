@@ -21,3 +21,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 
 - [Turbulent Channel (RANS)](vv/nekrs/ktauChannel.md)
 - [Rayleigh-Bénard Convection](vv/nekrs/rbc.md)
+- [Turbulent Pipe Flow (LES)](vv/nekrs/turbPipePeriodic.md)
