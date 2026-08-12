@@ -20,3 +20,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 ## NekRS
 
 - [Turbulent Channel (RANS)](vv/nekrs/ktauChannel.md)
+- [Rayleigh-Bénard Convection](vv/nekrs/rbc.md)
