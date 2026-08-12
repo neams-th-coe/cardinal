@@ -1,6 +1,6 @@
 # Turbulent Channel Flow (RANS)
 
-This case verifies the standard $k$-$\tau$ Reynolds-averaged Navier–Stokes (RANS) turbulence model [@tomboulides2025robust] using fully developed turbulent flow in an infinite half-channel.
+This case verifies the standard $k$-$\tau$ Reynolds-averaged Navier–Stokes (RANS) turbulence model [!citep](tomboulides2025robust) using fully developed turbulent flow in an infinite half-channel.
 Two CI modes verify the nondimensional and dimensional formulations of the same flow.
 
 ## Flow parameters
@@ -31,7 +31,7 @@ CI mode 1 uses the nondimensional formulation with
 L^* = 1, \qquad U_b^* = 1, \qquad \rho^* = 1, \qquad \mu^* = \frac{1}{Re},
 
 where the superscript $*$ denotes a nondimensional quantity.
-The computed nondimensional friction velocity is compared with the direct numerical simulation (DNS) reference of Lee *et al.* [@lee2015direct],
+The computed nondimensional friction velocity is compared with the direct numerical simulation (DNS) reference of Lee *et al.* [!citep](lee2015direct),
 
 !equation id=eq:ktau-channel-dns-friction-velocity
 u_{\tau,\mathrm{DNS}}^* = 4.58794 \times 10^{-2}.
