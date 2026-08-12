@@ -16,3 +16,7 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 
 - [1D Doppler slab benchmark](vv/doppler_slab.md)
 - [1D thermal expansion slab benchmark](vv/s2_thermal_expansion.md)
+
+## NekRS
+
+- [Turbulent Channel (RANS)](vv/nekrs/ktauChannel.md)
