@@ -1,4 +1,5 @@
 [Tests]
+  design = 'OpenMCParticles.md'
   [particles]
     type = CSVDiff
     input = openmc.i

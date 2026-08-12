@@ -126,6 +126,13 @@ else
 	BUILD_TYPE := Release
 endif
 
+# need special flag when using MOOSE's conda environment for OpenMC's dependencies
+ifeq ($(wildcard $(CONDA_PREFIX)/share/moose-compilers),)
+    USE_OPENMC_VENDORED_LIBS := ON
+else
+    USE_OPENMC_VENDORED_LIBS := OFF
+endif
+
 DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
 DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 

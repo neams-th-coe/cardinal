@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md'
   [reverse_cht]
     type = CSVDiff
     input = main.i

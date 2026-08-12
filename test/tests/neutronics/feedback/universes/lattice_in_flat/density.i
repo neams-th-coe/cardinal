@@ -13,20 +13,20 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  temperature_blocks = '0'
+  density_blocks = '0'
   cell_level = 0
 []
 
 [ICs]
-  [temp]
+  [density]
     type = FunctionIC
-    variable = temp
-    function = temp
+    variable = density
+    function = density
   []
 []
 
 [Functions]
-  [temp]
+  [density]
     type = ParsedFunction
     expression = '500+50*x'
   []

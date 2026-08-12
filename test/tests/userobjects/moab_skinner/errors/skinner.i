@@ -26,6 +26,7 @@
 [UserObjects]
   [moab]
     type = MoabSkinner
+    material_blocks = "1"
     material_names = "mat"
 
     temperature = temp

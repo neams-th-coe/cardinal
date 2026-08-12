@@ -974,12 +974,7 @@ volumeIntegral(const field::NekFieldEnum & integrand,
   }
 
   double total_integral;
-  MPI_Allreduce(&integral,
-                &total_integral,
-                1,
-                MPI_DOUBLE,
-                MPI_SUM,
-                platform->comm.mpiComm());
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeVolumeIntegral(integrand, volume, total_integral);
 

@@ -35,11 +35,13 @@
     <temperature_range>300.0 2000.0</temperature_range>
     <temperature_tolerance>5000.0</temperature_tolerance>
     <random_ray>
+    <ray_source>
       <source type="independent" strength="1.0" particle="neutron">
         <space type="box">
           <parameters>-25.0 -25.0 -50.0 25.0 25.0 50.0</parameters>
         </space>
       </source>
+      </ray_source>
       <distance_inactive>122.47448713915891</distance_inactive>
       <distance_active>612.3724356957946</distance_active>
       <source_region_meshes>

@@ -30,6 +30,7 @@ associateSyntax(Syntax & syntax, ActionFactory & action_factory)
 {
   registerTask("openmc_init", true);
   addTaskDependency("create_problem", "openmc_init");
+  addTaskDependency("setup_mesh", "openmc_init");
 }
 
 } // namespace OpenMC

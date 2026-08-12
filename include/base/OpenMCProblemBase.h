@@ -48,6 +48,7 @@ class OpenMCDomainFilterEditor;
 class OpenMCTallyEditor;
 class OpenMCCellTransform;
 class CriticalitySearchBase;
+class ModelModifiersBase;
 
 typedef openmc::tensor::Tensor<double> OMCTensor;
 
@@ -81,6 +82,12 @@ public:
    * @return whether the tally from OpenMC has units of eV/src
    */
   bool isHeatingScore(const std::string & score) const;
+
+  /**
+   * The value used to normalize the tallies
+   * @return the source strength or power, depending on the run mode in OpenMC
+   */
+  Real tallyNormalizationValue() const;
 
   /**
    * Whether the random ray solver can accumulate a score or not.
@@ -351,11 +358,19 @@ public:
                                   const cellInfo & cell_info) const;
 
   /**
-   * Set the cell density, and print helpful error message if a failure occurs
+   * Set the cell density, and print helpful error message if a failure occurs; this sets
+   * the density for the id + instance, which could be one of N cells filling the 'cell_info'
+   * parent cell (which is what we actually use for error printing)
+   * @param[in] id cell ID
+   * @param[in] instance cell instance
    * @param[in] density density
-   * @param[in] cell_info cell info for which we are setting the density
+   * @param[in] cell_info cell info for which we are setting interior density, for error
+   * printing
    */
-  virtual void setCellDensity(const Real & density, const cellInfo & cell_info) const;
+  virtual void setCellDensity(const int32_t & id,
+                              const int32_t & instance,
+                              const Real & density,
+                              const cellInfo & cell_info) const;
 
   /**
    * Get a descriptive, formatted, string describing a cell

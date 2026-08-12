@@ -44,11 +44,14 @@ endif
 ifeq ($(ENABLE_NEK),$(filter $(ENABLE_NEK), true yes on 1 TRUE YES ON))
   ENABLE_NEK := yes
 endif
-ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
-  ENABLE_DAGMC := yes
-endif
 ifeq ($(ENABLE_DOUBLE_DOWN),$(filter $(ENABLE_DOUBLE_DOWN), true yes on 1 TRUE YES ON))
   ENABLE_DOUBLE_DOWN := yes
+endif
+ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
+  ENABLE_DAGMC := yes
+  ifneq ($(ENABLE_DOUBLE_DOWN), yes)
+    $(warning $n"***WARNING***: You are compiling Cardinal with DAGMC but without Double-Down. For mesh-based geometries, Double-Down can yield speedups of ~100x and is highly recommended."$n)
+  endif
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)

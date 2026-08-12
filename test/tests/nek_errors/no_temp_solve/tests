@@ -10,6 +10,7 @@
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar solve in NekRS when passing heat flux"
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [source]
     type = RunException
@@ -22,5 +23,6 @@
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar solve in NekRS when passing heat flux"
     capabilities = 'nekrs'
+    design = 'NekVolumetricSource.md'
   []
 []

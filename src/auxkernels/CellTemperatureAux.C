@@ -19,8 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "CellTemperatureAux.h"
-#include "openmc/cell.h"
-#include "openmc/error.h"
 
 registerMooseObject("CardinalApp", CellTemperatureAux);
 
@@ -28,7 +26,9 @@ InputParameters
 CellTemperatureAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("OpenMC cell temperature (K), mapped to each MOOSE element");
+  params.addClassDescription(
+      "OpenMC cell temperature (K), mapped to each MOOSE element. For cells filled by universes or "
+      "lattices, returns the temperature of the first-located material cell contained within.");
   return params;
 }
 

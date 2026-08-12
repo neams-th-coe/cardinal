@@ -20,6 +20,7 @@
 
 #include "OpenMCInitAction.h"
 #include "CreateProblemAction.h"
+#include "AddMeshGeneratorAction.h"
 
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
@@ -27,8 +28,8 @@ InputParameters
 OpenMCInitAction::validParams()
 {
   InputParameters params = Action::validParams();
-  params.addClassDescription(
-      "Initializes OpenMC when an OpenMCCellAverageProblem is present in the input.");
+  params.addClassDescription("Initializes OpenMC when an OpenMCCellAverageProblem or an "
+                             "OpenMCMeshGenerator is present in the input.");
   return params;
 }
 
@@ -37,19 +38,49 @@ OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters) : Action(
 void
 OpenMCInitAction::act()
 {
-  // Directory containing XML files for OpenMC initialization
-  std::string xml_directory;
+  // Check whether OpenMCCellAverageProblem is requested in the input file
+  std::string xml_directory_problem;
+  Real scaling_problem;
+  bool openmc_problem_requested =
+      isOpenMCCellAverageProblemRequested(xml_directory_problem, scaling_problem);
 
-  // Leave if no OpenMCCellAverageProblem requested in the input file
-  if (!isOpenMCCellAverageProblemRequested(xml_directory))
+  // Check whether OpenMCMeshGenerator is requested in the input file
+  std::string xml_directory_generator;
+  Real scaling_generator;
+  bool openmc_mesh_generator_requested =
+      isOpenMCMeshGeneratorRequested(xml_directory_generator, scaling_generator);
+
+  // if there is no need to initialize OpenMC, return
+  if (!openmc_problem_requested && !openmc_mesh_generator_requested)
     return;
+
+  // If both OpenMC problem and mesh generator are present
+  if (openmc_problem_requested && openmc_mesh_generator_requested)
+  {
+    // Check for xml_directory consistency
+    if (xml_directory_problem != xml_directory_generator)
+      mooseError("Inconsistent 'xml_directory' for OpenMC in the mesh generator and problem "
+                 "declarations. Make sure the same value is used throughout the [Mesh] and "
+                 "[Problem] blocks.");
+
+    // Check for scaling consistency
+    if (scaling_problem != scaling_generator)
+      mooseError("Inconsistent 'scaling' factors for OpenMC in the mesh generator and problem "
+                 "declarations. Make sure the same value is used throughout the [Mesh] and "
+                 "[Problem] blocks.");
+  }
+
+  // Select xml_directory
+  std::string xml_directory =
+      (openmc_problem_requested) ? xml_directory_problem : xml_directory_generator;
 
   // Initialize OpenMC
   initOpenMC(xml_directory);
 }
 
 bool
-OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_directory) const
+OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_directory,
+                                                      Real & scaling) const
 {
   // Retrieve all CreateProblemAction actions
   const auto & problem_actions = _awh.getActions<CreateProblemAction>();
@@ -60,10 +91,50 @@ OpenMCInitAction::isOpenMCCellAverageProblemRequested(std::string & xml_director
     if (action->getParam<std::string>("type") == "OpenMCCellAverageProblem")
     {
       xml_directory = action->getObjectParams().get<FileName>("xml_directory");
+      scaling = action->getObjectParams().get<Real>("scaling");
       return true;
     }
   }
   return false;
+}
+
+bool
+OpenMCInitAction::isOpenMCMeshGeneratorRequested(std::string & xml_directory, Real & scaling) const
+{
+  // Retrieve all AddMeshGeneratorAction actions
+  const auto & mesh_gen_actions = _awh.getActions<AddMeshGeneratorAction>();
+
+  // Search for OpenMCMeshGenerators and verify parameters consistency
+  bool found = false;
+  for (const auto * action : mesh_gen_actions)
+  {
+    if (action->getMooseObjectType() == "OpenMCMeshGenerator")
+    {
+      std::string xml_directory_temp = action->getObjectParams().get<FileName>("xml_directory");
+      Real scaling_temp = action->getObjectParams().get<Real>("scaling");
+      if (found)
+      {
+        // Check for xml_directory consistency
+        if (xml_directory_temp != xml_directory)
+          mooseError("Inconsistent 'xml_directory' values found in the declared "
+                     "OpenMCMeshGenerators; the same choice for 'xml_directory' must be used "
+                     "across all OpenMCMeshGenerator objects");
+
+        // Check for scaling consistency
+        if (scaling_temp != scaling)
+          mooseError(
+              "Inconsistent 'scaling' factors for OpenMC in the declared OpenMCMeshGenerators; the "
+              "same choice for 'scaling' must be used across all OpenMCMeshGenerator objects");
+      }
+      else
+      {
+        xml_directory = xml_directory_temp;
+        scaling = scaling_temp;
+        found = true;
+      }
+    }
+  }
+  return found;
 }
 
 void

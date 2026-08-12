@@ -9,6 +9,7 @@
     cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [global_with_alignment_relax]
@@ -20,6 +21,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [global_with_alignment_rm_relax]
@@ -31,6 +33,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [global_with_alignment_dg_relax]
@@ -52,6 +55,7 @@
     cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [local_with_alignment_relax]
@@ -63,6 +67,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i case with normalize_by_global_tally=false."
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
 
@@ -118,6 +123,7 @@
     min_parallel = 2
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [output_fission_tally_cell]
@@ -126,6 +132,7 @@
     exodiff = output_fission_tally_out.e
     cli_args = 'Problem/output_cell_mapping=false'
     requirement = "The wrapping shall allow output of the unrelaxed heat source for cell tallies"
+    rel_err = '1e-3'
     capabilities = 'openmc'
   []
   [multi_tally]

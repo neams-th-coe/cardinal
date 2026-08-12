@@ -1,4 +1,5 @@
 [Tests]
+  design = 'CartesianGrid.md'
   [grid]
     type = Exodiff
     input = grid.i

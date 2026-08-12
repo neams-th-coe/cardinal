@@ -9,5 +9,6 @@
                   "temperature on the boundary using postprocessors."
     capabilities = 'nekrs'
     mesh_mode = replicated
+    design = 'NekScalarValue.md'
   []
 []

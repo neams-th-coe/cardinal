@@ -1,3 +1,2 @@
-time,k_std_dev
-0,0
-1,0.012786014526583
+time,threshold
+1,1

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekUsrWrkBoundaryIntegral.md'
   [invalid_slot]
     type = RunException
     input = nek.i

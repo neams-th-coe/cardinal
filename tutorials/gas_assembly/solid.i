@@ -66,19 +66,19 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
   [graphite]
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_graphite
-    temp = T
+    temperature = T
     block = 'graphite'
   []
   [compacts]
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_compacts
-    temp = T
+    temperature = T
     block = 'compacts'
   []
   [poison]
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_b4c
-    temp = T
+    temperature = T
     block = 'poison'
   []
 []

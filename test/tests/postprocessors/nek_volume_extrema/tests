@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekVolumeExtremeValue.md'
   [nek_volume_extrema]
     type = CSVDiff
     input = nek.i

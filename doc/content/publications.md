@@ -89,6 +89,11 @@ A.J. Novak, D. Shaver, and B. Feng
 
 # High Temperature Gas Reactors
 
+A. Hegazy, P.C. Simon, and A.J. Novak,
+["Multiphysics Simulation of TRISO Fuel Compacts and the Effects of Homogenization on Silver Release Predictions"](https://www.sciencedirect.com/science/article/pii/S0029549326001123)
+453 (114860)
+*Nuclear Engineering and Design* (2026)
+
 A. Hegazy, A.J. Novak, and R. Uddin,
 ["Multiphysics Simulation of TRISO Fuel Compacts and the Effects of Homogenization"](https://www.researchgate.net/publication/380151383_Multiphysics_Simulation_of_TRISO_Fuel_Compacts_and_the_Effects_of_Homogenization)
 *Proceedings of Physor* (2024)
@@ -191,6 +196,10 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 
 # Space Nuclear Reactors
 
+S. Garcia, M.A. Allaf, I. Naupa, W. Schlueter, L. Gross, A. Novak, D. Kotlyar, and B. Lindley,
+["Reproducible Benchmark for the SNAP 8 Experimental Reactor at Operating Conditions"](https://www.sciencedirect.com/science/article/abs/pii/S0306454926001313)
+232 (112243) *Annals of Nuclear Energy* (2025)
+
 M.A. Mendes, M. Eltawila, K.C. Sawatzky, A.J. Novak, and R.C. Martineau,
 ["Validation of Cardinal Coupled Neutronics and Thermomechanics Using the KRUSTY Experiments"](https://www.ans.org/meetings/nets2026/session/view-3632/#paper_11427)
 *Proceedings of NETS* (2026)
@@ -258,6 +267,12 @@ A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Broo
 ["A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"](https://ui.adsabs.harvard.edu/abs/2023arXiv230811777C/abstract)
 *Proceedings of M&C* (2023)
 
+# Depletion
+
+L. Harbour, P. Shriwise, A. Novak, and D. Gaston,
+"MOOSE Web Server Interface: A Message-Based External Interface for Multiphysics Simulations"
+*Proceedings of M&C* (2025)
+
 # Adaptive Mesh Refinement
 
 E.W. Ahammed, K. Sawatzky, L. Gross, A. Novak, P. Shriwise, P. Romano, and P. Wilson,
@@ -289,6 +304,10 @@ V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
 *Proceedings of Nureth* (2023)
 
 # Verification and Validation
+
+S. Garcia, M.A. Allaf, I. Naupa, W. Schlueter, L. Gross, A. Novak, D. Kotlyar, and B. Lindley,
+["Reproducible Benchmark for the SNAP 8 Experimental Reactor at Operating Conditions"](https://www.sciencedirect.com/science/article/abs/pii/S0306454926001313)
+232 (112243) *Annals of Nuclear Energy* (2025)
 
 M. Eltawila, P.C.A. Simon, G.L. Giudicelli, H. Brooks, N. Wozniak, and A.J. Novak,
 ["Thermomechanics Coupling to Monte Carlo Particle Transport on Unstructured Mesh Geometries Using Cardinal"](https://doi.org/10.1016/j.anucene.2025.112068)

@@ -64,6 +64,12 @@
     initial_condition = 1e8
     block = 'fuel'
   []
+  [q]
+    family = MONOMIAL
+    order = CONSTANT
+    initial_condition = 0.0
+    block = 'fuel'
+  []
   [q_prime]
     family = MONOMIAL
     order = CONSTANT
@@ -86,10 +92,17 @@
 []
 
 [AuxKernels]
-  [q_prime]
+  [q]
     type = SpatialUserObjectAux
-    variable = q_prime
+    variable = q
     user_object = q_prime_uo
+    block = 'fuel'
+  []
+  [q_prime] # divide by height of each averaging layer to get W/m from W
+    type = ParsedAux
+    variable = q_prime
+    coupled_variables = 'q'
+    expression = 'q / ${fparse height * 1e-2/n_layers}'
     block = 'fuel'
   []
 []

@@ -85,11 +85,13 @@
     <random_ray>
       <distance_inactive>0.0</distance_inactive>
       <distance_active>209.0</distance_active>
+      <ray_source>
       <source type="independent" strength="1.0" particle="neutron">
         <space type="box">
           <parameters>-2.0 0.0 0.0 -1.0 2.0 2.0</parameters>
         </space>
       </source>
+      </ray_source>
       <source_shape>flat</source_shape>
       <sample_method>s2</sample_method>
     </random_ray>

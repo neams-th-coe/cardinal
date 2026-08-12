@@ -47,6 +47,35 @@ shown in [moab_skinner].
 The binning, colored on a per-element basis as shown in [moab_skinner] can be visualized
 with the [SkinnedBins](SkinnedBins.md) auxiliary kernel.
 
+## Material Names and Blocks
+
+For the vast majority of use cases, you will be using the `MoabSkinner` in tandem with
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md). In this case, you can rely on
+OpenMC to auto-detect the mapping between materials and subdomains from the loaded `.h5m`
+model, so that when the geometry is re-skinned, OpenMC will re-apply the original materials
+corresponding to the regions of space. However, if you'd like to instead force the use of a
+_different_ material from what was present in the original `.h5m` file, you can provide
+`material_blocks` and `material_names` to have the skinner apply specific materials on
+each block.
+
+The `MoabSkinner` can also be used independently of `OpenMCCellAverageProblem` to generate
+an initial DAGMC geometry (`.h5m` file) directly from a MOOSE mesh, without needing any
+pre-existing DAGMC model. In this mode, `material_blocks` and `material_names` are required
+in order to tag the generated volumes with OpenMC material assignments, and `output_full`
+should be set to `true` to write the generated geometry to a file, then point
+OpenMC's `geometry.xml` at the generated file for subsequent coupled runs.
+
+Both mesh subdomains (in `material_blocks`) and materials (in `material_names`) may be
+specified either by name or by numeric ID. The two parameters must be the same length and
+are matched in order. Any mesh subdomain *not* listed in `material_blocks` receives no
+material assignment, and the corresponding region will be void in OpenMC; a warning listing
+these subdomains is printed at setup.
+
+Below is an example of generating an initial DAGMC geometry directly from a MOOSE mesh
+
+!listing test/tests/neutronics/dagmc/assign_materials/generate_dagmc.i
+  block=UserObjects
+
 !syntax parameters /UserObjects/MoabSkinner
 
 !syntax inputs /UserObjects/MoabSkinner

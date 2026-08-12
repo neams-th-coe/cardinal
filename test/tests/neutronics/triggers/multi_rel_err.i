@@ -55,8 +55,25 @@
     type = TallyRelativeError
     tally_score = 'damage_energy'
   []
+
+  [threshold_kf]
+    type = ParsedPostprocessor
+    expression = 'if (max_err_kf <= th, 1, 0)'
+    pp_names = 'max_err_kf'
+    constant_names = 'th'
+    constant_expressions = '2e-2'
+  []
+  [threshold_de]
+    type = ParsedPostprocessor
+    expression = 'if (max_err_de <= th, 1, 0)'
+    pp_names = 'max_err_de'
+    constant_names = 'th'
+    constant_expressions = '2e-2'
+  []
 []
 
 [Outputs]
   csv = true
+  hide = 'max_err_kf max_err_de'
+  execute_on = 'TIMESTEP_END'
 []

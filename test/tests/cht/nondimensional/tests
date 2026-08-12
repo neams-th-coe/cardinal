@@ -1,5 +1,5 @@
 [Tests]
-  design = 'NekRSProblem.md'
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md DimensionalizeAction.md'
 
   [sfr_pincell]
     type = Exodiff

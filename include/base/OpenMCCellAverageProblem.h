@@ -31,6 +31,7 @@
 #endif
 
 /// Forward declarations to avoid cyclic dependencies.
+class OpenMCCellMaterialFill;
 class OpenMCVolumeCalculation;
 
 /**
@@ -309,18 +310,6 @@ public:
   cellInfo elemToCellInfo(const int & elem_id) const { return _elem_to_cell[elem_id]; }
 
   /**
-   * Get the cell material index based on index, instance pair. Note that this function requires
-   * a valid instance, index pair for cellInfo - you cannot pass in an unmapped cell, i.e.
-   * (UNMAPPED, UNMAPPED)
-   * @param[in] cell_info cell index, instance pair
-   * @return material index
-   */
-  int32_t cellToMaterialIndex(const cellInfo & cell_info) const
-  {
-    return _cell_to_material.at(cell_info);
-  }
-
-  /**
    * Get the fields coupled for each cell; because we require that each cell maps to a consistent
    * set, we simply look up the coupled fields of the first element that this cell maps to. Note
    * that this function requires a valid instance, index pair for cellInfo - you cannot pass in an
@@ -383,6 +372,14 @@ public:
    * @param[in] cell_info cell index, instance pair
    */
   double cellTemperature(const cellInfo & cell_info) const;
+
+  /**
+   * Get the density of a cell; for cells not filled with materials, this will return
+   * the density of the first material-type cell
+   * @param[in] cell_info cell index, instance pair
+   * @param[in] elem element to fetch multigroup reference densities
+   */
+  double cellDensity(const cellInfo & cell_info, const Elem * elem) const;
 
   /**
    * Get the volume that each OpenMC cell mapped to
@@ -475,6 +472,20 @@ public:
    */
   const bool & useDisplaced() const { return _use_displaced; }
 
+  /**
+   * Get the number of material-fill cells contained within the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return number of contained cells filled by a material
+   */
+  int numContainedMaterialCells(const cellInfo & cell_info) const;
+
+  /**
+   * Get the first material cell contained in the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return material cell index, instance pair
+   */
+  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
+
 protected:
   /**
    * A function to re-initialize coupling and apply feedback to the OpenMC problem.
@@ -530,11 +541,24 @@ protected:
 
   /**
    * When using the 'identical_cell_fills' feature, this is used to determine the
-   * contained material cells in each parent cell by applying a uniform shift
-   * @param[in] cell_info cell index, instance pair
-   * @return material cells contained within the given cell
+   * new instance of a cell contained in 'cell_info'
+   * @param[in] cell_info cell index, instance pair of the containing cell
+   * @param[in] cc_idx index in the openmc::model::cells array for a cell contained in 'cell_info'
+   * @param[in] cc_instance_idx_to_shift the index in the containedCells instance array for the
+   * instance we want to shift
+   * @return a shifted instance
    */
-  containedCells shiftCellInstances(const cellInfo & cell_info) const;
+  int containedCellInstanceShift(const cellInfo & cell_info,
+                                 int32_t cc_idx,
+                                 int32_t cc_instance_idx_to_shift) const;
+
+  /**
+   * When using the 'identical_cell_fills' feature, this is use to get a list of
+   * contained cells and their instances for a given 'cell_info'.
+   * @param[in] cell_info the containing cell
+   * @return the cells contained in 'cell_info'. Instances are not shifted.
+   */
+  const containedCells & unshiftedContainedCells(const cellInfo & cell_info) const;
 
   /**
    * Whether this cell overlaps with ANY value in the given subdomain set
@@ -544,20 +568,6 @@ protected:
    */
   bool cellMapsToSubdomain(const cellInfo & cell_info,
                            const std::unordered_set<SubdomainID> & id) const;
-
-  /**
-   * Get the first material cell contained in the given cell
-   * @param[in] cell_info cell index, instance pair
-   * @return material cell index, instance pair
-   */
-  cellInfo firstContainedMaterialCell(const cellInfo & cell_info) const;
-
-  /**
-   * Get all of the material cells contained within this cell
-   * @param[in] cell_info cell index, instance pair
-   * @return all material cells contained in the given cell
-   */
-  containedCells containedMaterialCells(const cellInfo & cell_info) const;
 
   /**
    * Delete the OpenMC DAGMC geometry and re-generate the CSG geometry data structures in-place.
@@ -629,7 +639,9 @@ protected:
    * @param[out] global global mapping of the pushed back values to the cells
    */
   template <typename T>
-  void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
+  void gatherCellVector(std::vector<T> & local,
+                        std::vector<unsigned int> & n_local,
+                        std::map<cellInfo, std::vector<T>> & global);
 
   /**
    * Get the feedback which this element provides to OpenMC
@@ -738,9 +750,6 @@ protected:
    * Also delete any mesh filters and meshes added to OpenMC for mesh filters.
    */
   void resetTallies();
-
-  /// Find the material filling each cell which receives density feedback
-  void getMaterialFills();
 
   /**
    * Get one point inside each cell, for accelerating the particle search routine.
@@ -1043,12 +1052,6 @@ protected:
   std::map<cellInfo, Real> _cell_volume;
 
   /**
-   * Material filling each cell to receive density feedback. We enforce that these
-   * cells are filled with a material (cannot be filled with a lattice or universe).
-   */
-  std::map<cellInfo, int32_t> _cell_to_material;
-
-  /**
    * Material-type cells contained within a cell; this is only populated if a cell
    * is NOT indicated as having an identical fill
    */
@@ -1167,4 +1170,7 @@ private:
 
   /// Mapping from subdomain IDs to the reference density (kg/m3).
   std::map<SubdomainID, Real> _subdomain_to_ref_density;
+
+  /// Mapping from cell index to the OpenMC Cell Material Modifier that contains its material list
+  std::map<int32_t, OpenMCCellMaterialFill *> _cell_material_modifiers;
 };

@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekRSProblem.md NekFieldVariable.md NekVolumeIntegral.md NekVolumeAverage.md'
   [volume_pp]
     type = CSVDiff
     input = nek.i

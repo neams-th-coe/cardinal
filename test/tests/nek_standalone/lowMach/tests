@@ -15,6 +15,7 @@
                   "require that all the postprocessors match between these two renderings of the "
                   "solution (on the GLL points versus on the mesh mirror)."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekRSMesh.md NekFieldVariable.md NekTimeStepper.md NekVolumeExtremeValue.md NekSideIntegral.md NekVolumeIntegral.md NekSideExtremeValue.md NekVolumeAverage.md NekSideAverage.md'
   []
   [boundary]
     type = CSVDiff
@@ -31,5 +32,6 @@
                   "require that all the postprocessors match between these two renderings of the "
                   "solution (on the GLL points versus on the mesh mirror)."
     capabilities = 'nekrs'
+    design = 'NekRSProblem.md NekRSMesh.md NekFieldVariable.md NekTimeStepper.md NekSideExtremeValue.md NekSideAverage.md'
   []
 []

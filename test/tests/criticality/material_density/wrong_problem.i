@@ -20,7 +20,8 @@
     material_id = 1
     minimum = 1000
     maximum = 30000
-    tolerance = 1e-2
+    k_tol = 1e-2
+    root_tol = 1e-2
   []
 []
 

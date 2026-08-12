@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material id="1" name="fuel" depletable="true">
+      <density value="1000.0" units="kg/m3"/>
+      <nuclide name="U235" ao="0.0001"/>
+      <nuclide name="O16" ao="0.4998105"/>
+      <nuclide name="O17" ao="0.0001895"/>
+    </material>
+    <material id="2" name="water">
+      <density value="1000.0" units="kg/m3"/>
+      <nuclide name="H1" ao="1.99968852"/>
+      <nuclide name="H2" ao="0.00031148"/>
+      <nuclide name="O16" ao="0.999621"/>
+      <nuclide name="O17" ao="0.000379"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="-5" temperature="1000.0" universe="1"/>
+    <cell id="2" material="2" region="5" temperature="1000.0" universe="1"/>
+    <cell id="3" fill="1" region="6 -7 1 -2 3 -4" universe="2"/>
+    <cell id="4" fill="1" region="7 -8 1 -2 3 -4" universe="2"/>
+    <cell id="5" fill="1" region="8 -9 1 -2 3 -4" universe="2"/>
+    <cell id="6" fill="1" region="9 -10 1 -2 3 -4" universe="2"/>
+    <cell id="7" fill="1" region="10 -11 1 -2 3 -4" universe="2"/>
+    <cell id="8" fill="1" region="11 -12 1 -2 3 -4" universe="2"/>
+    <cell id="9" fill="1" region="12 -13 1 -2 3 -4" universe="2"/>
+    <cell id="10" fill="1" region="13 -14 1 -2 3 -4" universe="2"/>
+    <cell id="11" fill="1" region="14 -15 1 -2 3 -4" universe="2"/>
+    <cell id="12" fill="1" region="15 -16 1 -2 3 -4" universe="2"/>
+    <surface id="1" name="minimum x" type="x-plane" boundary="reflective" coeffs="-10.0"/>
+    <surface id="2" name="maximum x" type="x-plane" boundary="reflective" coeffs="10.0"/>
+    <surface id="3" name="minimum y" type="y-plane" boundary="reflective" coeffs="-10.0"/>
+    <surface id="4" name="maximum y" type="y-plane" boundary="reflective" coeffs="10.0"/>
+    <surface id="5" type="x-plane" coeffs="0.0"/>
+    <surface id="6" type="z-plane" boundary="reflective" coeffs="0.0"/>
+    <surface id="7" type="z-plane" coeffs="10.0"/>
+    <surface id="8" type="z-plane" coeffs="20.0"/>
+    <surface id="9" type="z-plane" coeffs="30.0"/>
+    <surface id="10" type="z-plane" coeffs="40.0"/>
+    <surface id="11" type="z-plane" coeffs="50.0"/>
+    <surface id="12" type="z-plane" coeffs="60.0"/>
+    <surface id="13" type="z-plane" coeffs="70.0"/>
+    <surface id="14" type="z-plane" coeffs="80.0"/>
+    <surface id="15" type="z-plane" coeffs="90.0"/>
+    <surface id="16" type="z-plane" boundary="reflective" coeffs="100.0"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>1000</particles>
+    <batches>10</batches>
+    <inactive>5</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>-10.0 -10.0 0.0 10.0 10.0 100.0</parameters>
+      </space>
+    </source>
+    <temperature_method>nearest</temperature_method>
+    <temperature_range>294.0 1500.0</temperature_range>
+    <temperature_tolerance>200.0</temperature_tolerance>
+  </settings>
+  </model>

@@ -11,7 +11,7 @@ Note that this temperature is not necessarily the temperature at which cross
 sections are evaluated at. For more information, see the `temperature`-related
 elements in [OpenMC's settings](https://docs.openmc.org/en/latest/io_formats/settings.html#temperature-default-element).
 
-If a MOOSE element did not map at all to an OpenMC cell or if an element does not provide feedback,
+If a MOOSE element did not map at all to an OpenMC cell or if an element does not provide temperature feedback,
 then this auxiliary kernel returns $-1$.
 
 ## Example Input Syntax
