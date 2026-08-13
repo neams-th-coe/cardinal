@@ -29,3 +29,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Stokes Flow](vv/nekrs/channel.md)
 - [Poiseuille Flow](vv/nekrs/shlChannel.md)
 - [Periodic Hills (RANS and Hybrid RANS)](vv/nekrs/periodicHill.md)
+- [Ethier (Navier-Stokes)](vv/nekrs/ethier.md)
