@@ -27,3 +27,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Moving Cylinder (Low-mach)](vv/nekrs/mv_cyl.md)
 - [Conjugate Heat Transfer](vv/nekrs/cht.md)
 - [Stokes Flow](vv/nekrs/channel.md)
+- [Poiseuille Flow](vv/nekrs/shlChannel.md)
