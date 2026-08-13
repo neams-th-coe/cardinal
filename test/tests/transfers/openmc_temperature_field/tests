@@ -1,4 +1,7 @@
 [Tests]
+  issues = "#1414"
+  design = "OpenMCCellAverageProblem.md OpenMCTemperatureField.md"
+
   [verify_openmc_temperature_transfer]
     type = CSVDiff
     input = "openmc.i"
