@@ -20,7 +20,6 @@
 
 #include "NekInterface.h"
 #include "CardinalUtils.h"
-#include "Function.h"
 
 static nekrs::characteristicScales scales;
 static unsigned int n_usrwrk_slots;
@@ -926,32 +925,9 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
     integral += add * area(boundary_id, pp_mesh);
 }
 
-namespace
-{
 double
-evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
-{
-  double shift = 0.0;
-  if (f)
-  {
-    // the function is given in dimensional form from MOOSE, so we need to
-    // convert to non-dimensional form before we shift the field
-    Point p(x[id], y[id], z[id]);
-    p *= scales.L_ref;
-    auto t = time * scales.t_ref;
-    shift = f->value(t, p);
-  }
-
-  return shift;
-}
-}
-
-double
-volumeIntegral(const field::NekFieldEnum & integrand,
-               const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh,
-               const Function * function,
-               const Real & time)
+volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
+               const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -962,98 +938,19 @@ volumeIntegral(const field::NekFieldEnum & integrand,
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
-    const int offset = k * mesh->Np;
+    int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-    {
-      const int n = offset + v;
-      const auto function_value = function ? evaluateFunctionOnMesh(function, time, n) : 1.0;
-      integral += f(n, 0 /* unused */) * function_value *
-                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-    }
+      integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
+  // sum across all processes
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeVolumeIntegral(integrand, volume, total_integral);
 
   return total_integral;
-}
-
-
-double
-volumeNorm(const field::NekFieldEnum & integrand,
-           const nek_mesh::NekMeshEnum pp_mesh,
-           const Function * function,
-           const Real & time,
-           const Real & N)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-
-  double (*f)(int, int);
-  f = solutionPointer(integrand);
-
-  // L-infinity norm
-  if (std::isinf(N))
-  {
-    double local_max = 0.0;
-
-    for (int k = 0; k < mesh->Nelements; ++k)
-    {
-      const int offset = k * mesh->Np;
-
-      for (int v = 0; v < mesh->Np; ++v)
-      {
-        const int n = offset + v;
-        const auto shift = evaluateFunctionOnMesh(function, time, n);
-
-        const double error = std::abs(f(n, 0 /* unused */) - shift);
-
-        local_max = std::max(local_max, error);
-      }
-    }
-
-    double global_max = 0.0;
-
-    MPI_Allreduce(&local_max,
-                  &global_max,
-                  1,
-                  MPI_DOUBLE,
-                  MPI_MAX,
-                  platform->comm.mpiComm());
-
-    return global_max;
-  }
-
-  // Finite L^N norm
-  double integral = 0.0;
-
-  for (int k = 0; k < mesh->Nelements; ++k)
-  {
-    const int offset = k * mesh->Np;
-
-    for (int v = 0; v < mesh->Np; ++v)
-    {
-      const int n = offset + v;
-      const auto shift = evaluateFunctionOnMesh(function, time, n);
-
-      const double error = std::abs(f(n, 0 /* unused */) - shift);
-
-      integral += std::pow(error, N) *
-                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-    }
-  }
-
-  double total_integral;
-  MPI_Allreduce(&integral,
-                &total_integral,
-                1,
-                MPI_DOUBLE,
-                MPI_SUM,
-                platform->comm.mpiComm());
-
-  return std::pow(total_integral, 1.0 / N);
 }
 
 double
