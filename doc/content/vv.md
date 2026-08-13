@@ -25,3 +25,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Backward Facing Step (RANS)](vv/nekrs/bfs.md)
 - [Low-Mach Test](vv/nekrs/lowMach.md)
 - [Moving Cylinder (Low-mach)](vv/nekrs/mv_cyl.md)
+- [Conjugate Heat Transfer](vv/nekrs/cht.md)
