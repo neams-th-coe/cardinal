@@ -1,7 +1,7 @@
 [Tests]
   [verify_openmc_temperature_transfer]
     type = CSVDiff
-    input = "test.i"
-    csvdiff = "openmc_out_openmc_temp_field_0001.csv"
+    input = "openmc.i"
+    csvdiff = "openmc_out_openmc_temp_field_0001.csv openmc_out_openmc_temp_field_0002.csv"
   []
 []
