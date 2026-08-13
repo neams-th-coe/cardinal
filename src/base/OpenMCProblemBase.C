@@ -119,7 +119,7 @@ OpenMCProblemBase::validParams()
       "depending on the local ratio of the total to majorant cross section.");
   params.addRangeCheckedParam<Real>(
       "energy_threshold_neutron",
-      5e4,
+      1e1,
       "energy_threshold_neutron > 0.0",
       "The energy threshold for neutrons when running hybrid-in-energy delta tracking. "
       "Neutrons with energies greater than 'energy_threshold_neutron' will use delta "
@@ -127,7 +127,7 @@ OpenMCProblemBase::validParams()
       "use surface tracking.");
   params.addRangeCheckedParam<Real>(
       "energy_threshold_photon",
-      1e6,
+      1e5,
       "energy_threshold_photon > 0.0",
       "The energy threshold for photons when running hybrid-in-energy delta tracking. "
       "Photons with energies greater than 'energy_threshold_photon' will use delta "
