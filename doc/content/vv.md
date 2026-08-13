@@ -24,3 +24,4 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Turbulent Pipe Flow (LES)](vv/nekrs/turbPipePeriodic.md)
 - [Backward Facing Step (RANS)](vv/nekrs/bfs.md)
 - [Low-Mach Test](vv/nekrs/lowMach.md)
+- [Moving Cylinder (Low-mach)](vv/nekrs/mv_cyl.md)
