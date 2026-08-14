@@ -58,7 +58,7 @@ T=1-\frac{z}{H}.
 
 ## Verification criterion
 
-The CI test restarts from a statistically developed flow field and advances the solution for four nondimensional time units using a seventh-order spectral-element discretization.
+The simulation restarts from a statistically developed flow field and advances the solution for four nondimensional time units using a seventh-order spectral-element discretization.
 During this interval, the instantaneous vertical convective heat flux $wT$ is accumulated in time.
 The time-averaged field is then integrated over the domain to compute the volumetric Nusselt number,
 
@@ -67,7 +67,7 @@ Nu_V = 1 + \sqrt{RaPr}\left\langle\overline{wT}\right\rangle_V = 1 + \sqrt{RaPr}
 
 where the overbar denotes a time average and $\left\langle\cdot\right\rangle\_V$ denotes a volume average.
 The computed value is compared with the reference value $Nu_V=5.0$ reported by Togni *et al.* [!citep](togni2015physical).
-The test passes when
+The simulation results are considered to adequately match the reference data when
 
 !equation id=eq\:rbc-tolerance
 \left|Nu_V-5.0\right| < 10^{-1}.

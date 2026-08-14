@@ -1,9 +1,9 @@
 # Periodic Hill Flow (RANS and Hybrid RANS/LES)
 
 The *periodicHill* case models turbulent flow over a periodic array of two-dimensional hills.
-The benchmark configuration and reference large-eddy simulation (LES) results are adopted from Fröhlich *et al.* [!citep](frohlich2005highly).
+The benchmark configuration and reference [!ac](LES) results are adopted from Fröhlich *et al.* [!citep](frohlich2005highly).
 The adverse pressure gradient downstream of each hill produces flow separation, a recirculation region, and subsequent reattachment along the lower wall.
-The case verifies the $k$-$\tau$ shear-stress transport (SST) model and its delayed detached-eddy simulation (DDES) and improved delayed detached-eddy simulation (IDDES) variants in NekRS.
+The case verifies the $k$-$\tau$ [!ac](SST) model and its [!ac](DDES) and [!ac](IDDES) variants in NekRS.
 The $k$-$\tau$ SST formulation is described by Tomboulides *et al.* [!citep](tomboulides2025robust), while the hybrid RANS/LES formulations are discussed by Chang *et al.* [!citep](chang2023evaluation).
 
 ## Computational domain
@@ -49,16 +49,16 @@ The corresponding nondimensional molecular viscosity is
 
 A constant bulk flow rate is maintained in the streamwise direction throughout the simulation.
 
-## CI modes
+## Test Case
 
-Three CI modes are used to verify the turbulence-model implementations.
+Three simulations are used to verify the turbulence-model implementations.
 Each mode restarts from a statistically developed flow field and advances the solution for 0.5 nondimensional time units.
 During this interval, the three velocity components are accumulated in time to obtain the mean velocity field.
 
-The turbulence models and qualification tolerances for the three CI modes are summarized in [tab:periodic-hill-ci-modes].
+The turbulence models and qualification tolerances for the three test cases are summarized in [tab:periodic-hill-ci-modes].
 
-!table id=tab:periodic-hill-ci-modes caption=Periodic-hill CI modes and skin-friction error tolerances.
-| CI mode | Turbulence model | Restart field | Error tolerance |
+!table id=tab:periodic-hill-ci-modes caption=Periodic-hill test cases and skin-friction error tolerances.
+| Test Case | Turbulence model | Restart field | Error tolerance |
 | --- | --- | --- | ---: |
 | 1 | $k$-$\tau$ SST | `sst.fld` | $1.04\times10^{-2}$ |
 | 2 | $k$-$\tau$ SST DDES | `ddes.fld` | $1.14\times10^{-2}$ |
@@ -75,13 +75,13 @@ C_f(x)
 \frac{2\tau_w(x)}{\rho U_b^2},
 
 where $\tau_w$ is the viscous wall shear stress.
-Because $\rho=1$ and $U_b=1$ for this case, the coefficient evaluated by the CI test reduces to
+Because $\rho=1$ and $U_b=1$ for this case, the coefficient evaluated by the test reduces to
 
 !equation id=eq\:periodic-hill-skin-friction-reduced
 C_f(x)=2\tau_w(x).
 
 The computed skin-friction coefficient is compared with the reference LES results of Fröhlich *et al.* [!citep](frohlich2005highly).
-The CI test uses the corresponding digitized skin-friction data available through the [NASA Turbulence Modeling Resource](https://turbmodels.larc.nasa.gov/Other_LES_Data/2Dhill_periodic/hill_LES_cf_digitized.dat).
+The test uses the corresponding digitized skin-friction data available through the [NASA Turbulence Modeling Resource](https://turbmodels.larc.nasa.gov/Other_LES_Data/2Dhill_periodic/hill_LES_cf_digitized.dat).
 The reference coefficient is linearly interpolated onto the surface quadrature points of the NekRS mesh.
 The pointwise absolute error is
 
@@ -92,7 +92,7 @@ e_{C_f}(x)
 C_f(x)-C_{f,\mathrm{ref}}(x)
 \right|.
 
-The CI qualification metric is the wall-area-averaged absolute error,
+The test qualification metric is the wall-area-averaged absolute error,
 
 !equation id=eq\:periodic-hill-area-error
 \varepsilon_{C_f}
@@ -107,4 +107,4 @@ C_f-C_{f,\mathrm{ref}}
 },
 
 where $\Gamma_w$ denotes the periodic-hill wall.
-Each CI mode passes when $\varepsilon_{C_f}$ is below its corresponding tolerance in [tab:periodic-hill-ci-modes].
+Each case passes when $\varepsilon_{C_f}$ is below its corresponding tolerance in [tab:periodic-hill-ci-modes].

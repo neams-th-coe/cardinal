@@ -1,8 +1,8 @@
 # Backward-Facing Step
 
-The backward-facing step experiment of Driver and Seegmiller [!citep](driver1985features) is a standard validation benchmark for Reynolds-averaged Navier--Stokes (RANS) turbulence models.
+The backward-facing step experiment of Driver and Seegmiller [!citep](driver1985features) is a standard validation benchmark for [!ac](RANS) turbulence models.
 The predicted reattachment length downstream of the step is commonly used as a primary metric for assessing turbulence-model performance.
-The *bfs* case verifies the $k$-$\tau$ RANS model in NekRS by comparing the predicted skin-friction coefficient along the downstream wall with the experimental measurements of Driver and Seegmiller [!citep](driver1985features).
+The *backward-facing step* case verifies the $k$-$\tau$ [!ac](RANS) model in NekRS by comparing the predicted skin-friction coefficient along the downstream wall with the experimental measurements of Driver and Seegmiller [!citep](driver1985features).
 
 ## Computational domain
 
@@ -20,20 +20,20 @@ The simulation is advanced to a quasi-steady state before the validation metrics
 
 ## Verification criterion
 
-The CI test is qualified by comparing the computed skin-friction coefficient along the downstream wall, $x>0$, with the experimental measurements of Driver and Seegmiller [!citep](driver1985features).
+The test is qualified by comparing the computed skin-friction coefficient along the downstream wall, $x>0$, with the experimental measurements of Driver and Seegmiller [!citep](driver1985features).
 The skin-friction coefficient is defined as
 
 !equation id=eq\:bfs-skin-friction
 C_f = \frac{2\tau_w}{\rho_0 U^2},
 
 where $\tau_w$ is the wall shear stress, $\rho_0$ is the reference density, and $U$ is the reference inlet velocity.
-The CI test evaluates the $L_2$ norm of the difference between the computed and experimental skin-friction coefficients,
+The test evaluates the $L_2$ norm of the difference between the computed and experimental skin-friction coefficients,
 
 !equation id=eq\:bfs-error
 \left\lVert C_f-C_f^{\mathrm{exp}}\right\rVert_{L_2}.
 
 [fig:bfs2] compares the computed skin-friction coefficient profile with the experimental measurements.
-A polynomial fit to the experimental data is used to evaluate the error norm for CI qualification.
+A polynomial fit to the experimental data is used to evaluate the error norm.
 
 !media media/bfs-cf.png
        id=fig:bfs2

@@ -1,6 +1,6 @@
 # Turbulent Pipe Flow (LES)
 
-This case verifies the large-eddy simulation (LES) capability in NekRS using fully developed turbulent pipe flow.
+This case verifies the [!ac](LES) capability in NekRS using fully developed turbulent pipe flow.
 
 ## Flow parameters
 

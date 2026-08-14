@@ -1,4 +1,4 @@
-# Low-Mach Test
+# Low-Mach Compressible Flow
 
 The low-Mach governing equations are obtained by filtering acoustic waves from the fully compressible Navier--Stokes equations.
 The pressure is decomposed into a spatially uniform, leading-order thermodynamic component and a first-order hydrodynamic component that appears in the momentum equation [!citep](tomboulides1997numerical).
@@ -41,21 +41,19 @@ Dirichlet boundary conditions are imposed at $x=-1$ and $x=1$ using the analytic
 
 ## Verification results
 
-The CI tests are performed using a polynomial order of seven and two CI modes.
-Both CI modes verify the low-Mach solver in NekRS.
-CI mode 2 additionally enables characteristic subcycling for the fluid and temperature solvers.
+Two simulations are performed using a polynomial order of seven; the second simulation enables characteristic subcycling for the fluid and temperature solvers.
 Errors are evaluated at $t=0.3$.
-[fig:lowMach1] and [fig:lowMach2] present the volume-integrated error norms for the two CI modes.
+[fig:lowMach1] and [fig:lowMach2] present the volume-integrated error norms for the two cases.
 The results demonstrate spectral convergence for the $x$-velocity, hydrodynamic pressure, and temperature fields, thereby verifying the accuracy of the low-Mach solver.
 
 !media media/lowMach_1.png
        id=fig:lowMach1
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *lowMach* case using CI mode 1.
-       alt=Volume-integrated error norms for velocity, pressure, and temperature using CI mode 1
+       caption=Volume-integrated error norms for the *lowMach* case without characteristic subcycling.
+       alt=Volume-integrated error norms for velocity, pressure, and temperature without characteristic subcycling.
 
 !media media/lowMach_2.png
        id=fig:lowMach2
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *lowMach* case using CI mode 2.
-       alt=Volume-integrated error norms for velocity, pressure, and temperature using CI mode 2
+       caption=Volume-integrated error norms for the *lowMach* case with characteristic subcycling.
+       alt=Volume-integrated error norms for velocity, pressure, and temperature with characteristic subcycling.

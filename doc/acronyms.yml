@@ -10,6 +10,7 @@ CHT: Conjugate Heat Transfer
 CPU: Central Processing Unit
 CSG: Constructive Solid Geometry
 DAGMC: Direct Accelerated Geometry Monte Carlo
+DDES: Delayed Detached Eddy Simulation
 DNPs: Delayed Neutron Precursors
 DNS: Direct Numerical Simulation
 ECP: Exascale Computing Project
@@ -20,12 +21,15 @@ GCE: General Computing Environment
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
+IDDES: Improved Delayed Detached Eddy Simulation
 LES: Large Eddy Simulation
 LWR: Light Water Reactor
 MGXS: Multi-Group Cross Sections
+MMS: Method of Manufactured Solution
 MSFR: Molten Salt Fast Reactor
 NRIC: National Reactor Innovation Center
 OCCA: Open Concurrent Compute Abstraction
+OIFS: Operator-Integration Factor Scheme
 ORNL: Oak Ridge National Laboratory
 PB-FHR: Pebble Bed Fluoride-Salt-Cooled High-Temperature Reactor
 PBR: Pebble Bed Reactor

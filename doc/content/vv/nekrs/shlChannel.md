@@ -41,10 +41,8 @@ The symmetry condition at $y=0$ is satisfied because the velocity gradient vanis
 
 ## Verification criteria
 
-Two CI modes are provided for this case.
-CI mode 1 uses the channel geometry described above.
-CI mode 2 verifies the same solution on a geometry rotated by $45^\circ$.
-Both CI modes are qualified by evaluating the volume-integrated error norm of the velocity field with respect to the analytical Poiseuille solution,
+Two simulations are performed; the first uses the channel geometry described above, whereas the second rotates the geometry by $45^\circ$.
+The accuracy of the simulations is assessed by evaluating the volume-integrated error norm of the velocity field with respect to the analytical Poiseuille solution,
 
 !equation id=eq\:shl-channel-velocity-error
 \varepsilon_{\boldsymbol{u}}

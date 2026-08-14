@@ -43,20 +43,21 @@ Here, $y_p(t)$ is the piston location, $V_0$ is the initial domain volume, $V(t)
 
 ## Verification criterion
 
-The CI tests are qualified by evaluating the absolute errors in $\{V(t),dV(t)/dt,p_t(t),dp_t/dt,y_p(t),\overline{T}(t)\}$ at a specified time.
+The tests are qualified by evaluating the absolute errors in $\{V(t),dV(t)/dt,p_t(t),dp_t/dt,y_p(t),\overline{T}(t)\}$ at a specified time.
 Because these quantities are spatially uniform, the case also verifies the expected temporal convergence rate.
 
-For CI modes 1, 2, and 5, the mesh velocity is prescribed analytically as
+For the various tests, the mesh velocity is either prescribed analytically as,
 
 !equation id=eq\:mv-cyl-mesh-velocity
 v_m(y,t)=v_p(t)\frac{y-y_{\max}(t)}{y_{\min}(t)-y_{\max}(t)}.
 
-For CI modes 3 and 6, the mesh motion is computed using the elasticity solver with the piston velocity prescribed as a Dirichlet boundary condition.
+or the mesh motion is computed using the elasticity solver with the piston velocity prescribed as a Dirichlet boundary condition.
 The resulting temporal convergence is presented below.
+The tests are organized into various solver modes, as follows:
 
-## CI mode 1
+## Mode 1
 
-This CI mode tests:
+This solver mode tests:
 
 - Low-Mach solver.
 - Passive scalar solver.
@@ -67,14 +68,14 @@ Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-1].
 !media media/mv_cyl_1.png
        id=fig:mv-cyl-1
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Temporal convergence for the *mv_cyl* case using CI mode 1.
-       alt=Temporal convergence results for the moving-cylinder case using CI mode 1
+       caption=Temporal convergence for the *mv_cyl* case using solver mode 1.
+       alt=Temporal convergence results for the moving-cylinder case using solver mode 1
 
-## CI mode 2
+## Mode 2
 
-This CI mode tests:
+This solver mode tests:
 
-- All capabilities exercised in CI mode 1.
+- All capabilities exercised in solver mode 1.
 - Characteristic subcycling.
 
 Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-2].
@@ -82,14 +83,14 @@ Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-2].
 !media media/mv_cyl_2.png
        id=fig:mv-cyl-2
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Temporal convergence for the *mv_cyl* case using CI mode 2.
-       alt=Temporal convergence results for the moving-cylinder case using CI mode 2
+       caption=Temporal convergence for the *mv_cyl* case using solver mode 2.
+       alt=Temporal convergence results for the moving-cylinder case using solver mode 2
 
-## CI mode 3
+## Mode 3
 
-This CI mode tests:
+This solver mode tests:
 
-- All capabilities exercised in CI mode 2.
+- All capabilities exercised in solver mode 2.
 - Elasticity mesh solver.
 - Mesh projection.
 
@@ -98,27 +99,27 @@ Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-3].
 !media media/mv_cyl_3.png
        id=fig:mv-cyl-3
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Temporal convergence for the *mv_cyl* case using CI mode 3.
-       alt=Temporal convergence results for the moving-cylinder case using CI mode 3
+       caption=Temporal convergence for the *mv_cyl* case using solver mode 3.
+       alt=Temporal convergence results for the moving-cylinder case using solver mode 3
 
-## CI mode 5
+## Mode 5
 
-This CI mode verifies the capabilities of CI mode 1 on an unaligned mesh.
+This solver mode verifies the capabilities of solver mode 1 on an unaligned mesh.
 Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-5].
 
 !media media/mv_cyl_5.png
        id=fig:mv-cyl-5
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Temporal convergence for the *mv_cyl* case using CI mode 5.
-       alt=Temporal convergence results for the moving-cylinder case using CI mode 5
+       caption=Temporal convergence for the *mv_cyl* case using solver mode 5.
+       alt=Temporal convergence results for the moving-cylinder case using solver mode 5
 
-## CI mode 6
+## Mode 6
 
-This CI mode verifies the capabilities of CI mode 3 on an unaligned mesh.
+This solver mode verifies the capabilities of solver mode 3 on an unaligned mesh.
 Errors are computed at $t=0.1$ and are shown in [fig:mv-cyl-6].
 
 !media media/mv_cyl_6.png
        id=fig:mv-cyl-6
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Temporal convergence for the *mv_cyl* case using CI mode 6.
-       alt=Temporal convergence results for the moving-cylinder case using CI mode 6
+       caption=Temporal convergence for the *mv_cyl* case using solver mode 6.
+       alt=Temporal convergence results for the moving-cylinder case using solver mode 6

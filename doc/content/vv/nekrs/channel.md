@@ -1,7 +1,7 @@
 # Stokes Flow
 
 NekRS provides the option to solve unsteady Stokes flow with constant or variable viscosity.
-The *channel* case verifies the Stokes flow solver using the method of manufactured solutions (MMS).
+The *channel* case verifies the Stokes flow solver using the [!ac](MMS).
 The problem is solved in a quasi-two-dimensional square domain with edge length 2 and an arbitrary user-specified orientation angle $\alpha$.
 
 ## Governing equations
@@ -20,7 +20,7 @@ The nondimensional unsteady Stokes equations for an incompressible fluid with sp
 \end{aligned}
 
 where $\boldsymbol{u}$ is the velocity vector, $p$ is the hydrodynamic pressure, $\nu$ is the kinematic viscosity, and $\boldsymbol{f}$ is a prescribed forcing function.
-The nonlinear advection term is omitted from the momentum equation, distinguishing Stokes flow from the full incompressible Navier--Stokes equations.
+The nonlinear advection term is omitted from the momentum equation, distinguishing Stokes flow from the full incompressible Navier-Stokes equations.
 
 ## Manufactured solution
 
@@ -51,8 +51,8 @@ The corresponding manufactured forcing function is
 
 ## Verification criteria
 
-The CI tests are performed using a polynomial order of seven and two CI modes.
-CI mode 1 uses the original geometry, while CI mode 2 rotates the geometry by $45^\circ$.
+The simulations are performed using a polynomial order of seven and two geometrical configurations.
+The first configuration uses the original geometry, while the second rotates the geometry by $45^\circ$.
 Errors are evaluated at $t=0.1$.
 The volume-integrated velocity error is defined as
 
@@ -67,17 +67,17 @@ The volume-integrated velocity error is defined as
 \,d\Omega
 \right]^{1/2}.
 
-[fig:channel1] and [fig:channel2] present the volume-integrated error norms for the two CI modes.
+[fig:channel1] and [fig:channel2] present the volume-integrated error norms for the two configurations.
 The results demonstrate spectral convergence of the velocity solution, thereby verifying the accuracy of the Stokes flow solver.
 
 !media media/channel_1.png
        id=fig:channel1
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *channel* case using CI mode 1.
-       alt=Volume-integrated velocity error norms for the Stokes flow case using CI mode 1
+       caption=Volume-integrated error norms for the *channel* case with original geometry
+       alt=Volume-integrated velocity error norms for the Stokes flow case using original geometry
 
 !media media/channel_2.png
        id=fig:channel2
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *channel* case using CI mode 2.
-       alt=Volume-integrated velocity error norms for the Stokes flow case using CI mode 2
+       caption=Volume-integrated error norms for the *channel* case using rotated geometry
+       alt=Volume-integrated velocity error norms for the Stokes flow case using rotated geometry
