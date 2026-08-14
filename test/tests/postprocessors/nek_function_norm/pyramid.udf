@@ -26,7 +26,7 @@ void UDF_Setup()
 
     // y-velocity is chosen to be the temperature minus the function we intend
     // to compare against for the L1 norm
-    U[n + 1 * nrs->fieldOffset] = (exp(x[n]) + sin(y[n]) + x[n] * y[n] * z[n] -
+    U[n + 1 * nrs->fieldOffset] = std::abs(exp(x[n]) + sin(y[n]) + x[n] * y[n] * z[n] -
                                    (exp(x[n] * x[n]) + 0.7 * y[n] + 0.8 * z[n] + 1));
 
     // temperature
