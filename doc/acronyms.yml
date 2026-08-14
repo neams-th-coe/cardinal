@@ -38,6 +38,7 @@ QOI: Quantity of Interest
 RANS: Reynolds Averaged Navier-Stokes
 RSA: Random Sequential Addition
 SFR: Sodium Fast Reactor
+SST: Shear-stress Transport
 STM: Stochastic Tools Module
 T/H: Thermal-Hydraulic
 THM: Thermal Hydraulics Module
