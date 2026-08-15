@@ -789,7 +789,7 @@ OpenMCCellAverageProblem::setupProblem()
   // will probably go away once we update the skinner to more modern approach of density
   // multipliers rather than unique materials per bin). For large problems, determining
   // how the subdomains map to OpenMC materials can be costly, so we should make this optional
-  if (_verbose || _skinner)
+  if (_verbose || _using_skinner)
     subdomainsToMaterials();
 
   initializeTallies();
