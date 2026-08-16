@@ -78,17 +78,13 @@ drho = 50.0
 [UserObjects]
   [moab]
     type = MoabSkinner
+    fields = 'temp density'
+    fields_min = '0 ${fparse rho0 - drho}'
+    fields_max = '1000 ${fparse rho0 + 2 * drho}'
+    n_field_bins = '1 4'
 
     # just one temperature bin
-    temperature_min = 0.0
-    temperature_max = 1000.0
-    n_temperature_bins = 1
-    temperature = temp
 
-    density_min = ${fparse rho0 - drho}
-    density_max = ${fparse rho0 + 2 * drho}
-    n_density_bins = 4
-    density = density
 
     build_graveyard = true
   []

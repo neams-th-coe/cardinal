@@ -18,6 +18,14 @@
     requirement = "The system shall bin elements according to temperature, on multiple subdomains, and be able to visualize the bins."
     capabilities = 'dagmc'
   []
+  [three_fields]
+    type = Exodiff
+    input = three_fields.i
+    exodiff = three_fields_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin elements according to more than two fields, on multiple subdomains, and be able to visualize the bins."
+    capabilities = 'dagmc'
+  []
   [convert_to_gmsh_step0]
     type = RunCommand
     prereq = bins

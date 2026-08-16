@@ -17,6 +17,9 @@
 #include "libmesh/system.h"
 #include "libmesh/mesh_tools.h"
 
+#include <array>
+#include <set>
+
 registerMooseObject("CardinalApp", MoabSkinner);
 
 InputParameters
@@ -25,22 +28,23 @@ MoabSkinner::validParams()
   InputParameters params = GeneralUserObject::validParams();
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
-  // temperature binning
-  params.addRequiredParam<std::string>("temperature",
-                                       "Temperature variable by which to bin elements");
-  params.addRangeCheckedParam<Real>(
-      "temperature_min", 0.0, "temperature_min >= 0.0", "Lower bound of temperature bins");
-  params.addRequiredParam<Real>("temperature_max", "Upper bound of temperature bins");
-  params.addRequiredRangeCheckedParam<unsigned int>(
-      "n_temperature_bins", "n_temperature_bins > 0", "Number of temperature bins");
+  // Field binning (generic)
+  params.addParam<std::vector<std::string>>(
+      "fields", "Variable(s) to bin elements by, e.g. temperature, density, etc.");
+  params.addParam<std::vector<Real>>("fields_min", "Lower bounds of the bins for each field");
+  params.addParam<std::vector<Real>>("fields_max", "Upper bounds of the bins for each field");
+  params.addParam<std::vector<unsigned int>>("n_field_bins", "Number of bins for each field");
 
-  // density binning
-  params.addParam<std::string>("density", "Density variable by which to bin elements");
-  params.addRangeCheckedParam<Real>(
-      "density_min", 0.0, "density_min >= 0.0", "Lower bound of density bins");
-  params.addParam<Real>("density_max", "Upper bound of density bins");
-  params.addRangeCheckedParam<unsigned int>(
-      "n_density_bins", "n_density_bins > 0", "Number of density bins");
+  // Deprecated legacy parameters; use 'fields' instead
+  params.addDeprecatedParam<std::string>("temperature", "", "Temperature variable by which to bin elements", "Use 'fields' instead");
+  params.addDeprecatedParam<Real>("temperature_min", 0.0, "Lower bound of temperature bins", "Use 'fields_min' instead");
+  params.addDeprecatedParam<Real>("temperature_max", 0.0, "Upper bound of temperature bins", "Use 'fields_max' instead");
+  params.addDeprecatedParam<unsigned int>("n_temperature_bins", 1, "Number of temperature bins", "Use 'n_field_bins' instead");
+  params.addDeprecatedParam<std::string>("density", "", "Density variable by which to bin elements", "Use 'fields' instead");
+  params.addDeprecatedParam<Real>("density_min", 0.0, "Lower bound of density bins", "Use 'fields_min' instead");
+  params.addDeprecatedParam<Real>("density_max", 0.0, "Upper bound of density bins", "Use 'fields_max' instead");
+  params.addDeprecatedParam<unsigned int>("n_density_bins", 1, "Number of density bins", "Use 'n_field_bins' instead");
+
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
@@ -113,12 +117,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _verbose(getParam<bool>("verbose")),
-    _temperature_name(getParam<std::string>("temperature")),
-    _temperature_min(getParam<Real>("temperature_min")),
-    _temperature_max(getParam<Real>("temperature_max")),
-    _n_temperature_bins(getParam<unsigned int>("n_temperature_bins")),
-    _temperature_bin_width((_temperature_max - _temperature_min) / _n_temperature_bins),
-    _bin_by_density(isParamValid("density")),
     _faceting_tol(getParam<Real>("faceting_tol")),
     _geom_tol(getParam<Real>("geom_tol")),
     _graveyard_scale_inner(getParam<double>("graveyard_scale_inner")),
@@ -147,6 +145,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   if (!getMooseMesh().getMesh().is_serial())
     mooseError("MoabSkinner does not yet support distributed meshes!");
 
+  readFieldParameters();
+
   // Create MOAB interface
   _moab = std::make_shared<moab::Core>();
 
@@ -155,30 +155,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
 
   // Create a geom topo tool
   gtt = std::make_unique<moab::GeomTopoTool>(_moab.get());
-
-  if (_bin_by_density)
-  {
-    checkRequiredParam(parameters, "density_min", "binning by density");
-    checkRequiredParam(parameters, "density_max", "binning by density");
-    checkRequiredParam(parameters, "n_density_bins", "binning by density");
-
-    _density_min = getParam<Real>("density_min");
-    _density_max = getParam<Real>("density_max");
-    _n_density_bins = getParam<unsigned int>("n_density_bins");
-    _density_name = getParam<std::string>("density");
-    _density_bin_width = (_density_max - _density_min) / _n_density_bins;
-
-    if (_density_max < _density_min)
-      paramError("density_max", "'density_max' must be greater than 'density_min'");
-  }
-  else
-  {
-    checkUnusedParam(parameters, "density_min", "not binning by density");
-    checkUnusedParam(parameters, "density_max", "not binning by density");
-    checkUnusedParam(parameters, "n_density_bins", "not binning by density");
-
-    _n_density_bins = 1;
-  }
 
   if (_build_graveyard)
   {
@@ -191,25 +167,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     checkUnusedParam(parameters, "graveyard_scale_inner", "'build_graveyard' is false");
     checkUnusedParam(parameters, "graveyard_scale_outer", "'build_graveyard' is false");
   }
-
-  // get variable numbers
-  _temperature_var_num = getAuxiliaryVariableNumber(_temperature_name, "temperature");
-  if (_bin_by_density)
-  {
-    if (_temperature_name == _density_name)
-      mooseError("The 'temperature' and 'density' variables cannot be the same!");
-
-    _density_var_num = getAuxiliaryVariableNumber(_density_name, "density");
-  }
-
-  if (_temperature_max <= _temperature_min)
-    paramError("temperature_max", "'temperature_max' must be greater than 'temperature_min'");
-
-  for (unsigned int i = 0; i < _n_temperature_bins + 1; ++i)
-    _temperature_bin_bounds.push_back(_temperature_min + i * _temperature_bin_width);
-
-  for (unsigned int i = 0; i < _n_density_bins + 1; ++i)
-    _density_bin_bounds.push_back(_density_min + i * _density_bin_width);
 
   // node numberings for first-order tets
   _tet4_nodes.push_back({0, 1, 2, 3});
@@ -255,6 +212,111 @@ MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
     paramError(param_name, "Auxiliary variable '", name, "' must be a CONSTANT MONOMIAL type!");
 
   return _fe_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number();
+}
+
+void
+MoabSkinner::readFieldParameters()
+{
+  const bool has_fields = isParamSetByUser("fields");
+  const bool has_legacy = isParamSetByUser("temperature") || isParamSetByUser("density");
+
+  if (has_fields && has_legacy)
+    paramError("fields",
+               "You cannot specify 'fields' together with the deprecated 'temperature' or "
+               "'density' parameters.");
+
+  std::vector<std::string> names;
+  std::vector<Real> mins;
+  std::vector<Real> maxs;
+  std::vector<unsigned int> n_bins;
+
+  if (!has_fields && !has_legacy)
+    paramError("fields",
+               "You must specify either 'fields' (with 'fields_min', 'fields_max', and "
+               "'n_field_bins') or the deprecated 'temperature'/'density' parameters.");
+
+  if (has_legacy)
+  {
+    const auto & temperature = getParam<std::string>("temperature");
+    if (temperature.empty())
+      mooseError("When using the deprecated 'temperature'/'density' parameters, you must specify "
+                 "a 'temperature' variable.");
+
+    names.push_back(temperature);
+    mins.push_back(getParam<Real>("temperature_min"));
+    maxs.push_back(getParam<Real>("temperature_max"));
+    n_bins.push_back(getParam<unsigned int>("n_temperature_bins"));
+
+    if (isParamSetByUser("density"))
+    {
+      if (names.back() == getParam<std::string>("density"))
+        mooseError("The 'temperature' and 'density' variables cannot be the same!");
+
+      checkRequiredParam(parameters(), "density_max", "binning by density");
+      checkRequiredParam(parameters(), "n_density_bins", "binning by density");
+
+      names.push_back(getParam<std::string>("density"));
+      mins.push_back(getParam<Real>("density_min"));
+      maxs.push_back(getParam<Real>("density_max"));
+      n_bins.push_back(getParam<unsigned int>("n_density_bins"));
+    }
+  }
+  else
+  {
+    checkRequiredParam(parameters(), "fields_min", "specifying 'fields'");
+    checkRequiredParam(parameters(), "fields_max", "specifying 'fields'");
+    checkRequiredParam(parameters(), "n_field_bins", "specifying 'fields'");
+
+    names = getParam<std::vector<std::string>>("fields");
+    mins = getParam<std::vector<Real>>("fields_min");
+    maxs = getParam<std::vector<Real>>("fields_max");
+    n_bins = getParam<std::vector<unsigned int>>("n_field_bins");
+  }
+
+  std::vector<std::string> vnames = {"fields", "fields_min", "fields_max", "n_field_bins"};
+  std::array<std::size_t, 4> sizes = {names.size(), mins.size(), maxs.size(), n_bins.size()};
+  for (const auto i : index_range(sizes))
+    if (sizes[i] != sizes[0])
+      paramError(vnames[i],
+                 "'" + vnames[i] + "' (length " + Moose::stringify(sizes[i]) +
+                     ") must be the same length as 'fields' (length " +
+                     Moose::stringify(sizes[0]) + ")");
+
+  if (names.empty())
+    paramError("fields", "You must specify at least one field to bin by.");
+
+  std::set<std::string> seen_names;
+  _fields.clear();
+  for (const auto i : index_range(names))
+  {
+    const std::string & param_name = has_legacy ? (i == 0 ? "temperature" : "density")
+                                                : "fields";
+    if (seen_names.count(names[i]))
+      paramError("fields", "Field '", names[i], "' was listed more than once in 'fields'!");
+    seen_names.insert(names[i]);
+
+    if (maxs[i] <= mins[i])
+      paramError("fields_max",
+                 "The maximum bound for field '",
+                 names[i],
+                 "' (" + Moose::stringify(maxs[i]) +
+                     ") must be greater than its minimum bound (" + Moose::stringify(mins[i]) +
+                     ").");
+
+    if (n_bins[i] == 0)
+      paramError("n_field_bins", "Number of bins must be positive for field '" + names[i] + "'.");
+
+    BinnedField f;
+    f.name = names[i];
+    f.var_num = getAuxiliaryVariableNumber(names[i], param_name);
+    f.min = mins[i];
+    f.max = maxs[i];
+    f.width = (maxs[i] - mins[i]) / n_bins[i];
+    f.n_bins = n_bins[i];
+    for (unsigned int j = 0; j < n_bins[i] + 1; ++j)
+      f.bounds.push_back(mins[i] + j * f.width);
+    _fields.push_back(f);
+  }
 }
 
 MooseMesh &
@@ -440,9 +502,13 @@ MoabSkinner::setUseDisplacedMesh(const bool & use)
 void
 MoabSkinner::update()
 {
-  _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
-           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... "
-           << std::endl;
+  std::string field_string;
+  for (const auto & f : _fields)
+    field_string += (field_string.empty() ? "" : ", ") + Moose::stringify(f.n_bins) + " " +
+                    f.name + " bins";
+
+  _console << "Skinning geometry into " << _n_block_bins << " block bins and " << field_string
+           << "... " << std::endl;
 
   if (_use_displaced && _standalone)
   {
@@ -713,7 +779,10 @@ MoabSkinner::setTagData(moab::Tag tag, moab::EntityHandle ent, void * data)
 unsigned int
 MoabSkinner::nBins() const
 {
-  return _n_block_bins * _n_density_bins * _n_temperature_bins;
+  unsigned int n = _n_block_bins;
+  for (const auto & f : _fields)
+    n *= f.n_bins;
+  return n;
 }
 
 void
@@ -724,8 +793,24 @@ MoabSkinner::sortElemsByResults()
 
   // accumulate information for printing diagnostics
   std::vector<unsigned int> n_block_hits(_n_block_bins, 0);
-  std::vector<unsigned int> n_temp_hits(_n_temperature_bins, 0);
-  std::vector<unsigned int> n_density_hits(_n_density_bins, 0);
+  std::vector<std::vector<unsigned int>> n_field_hits(_fields.size());
+  for (const auto i : index_range(_fields))
+    n_field_hits[i].resize(_fields[i].n_bins, 0);
+
+  // compute the total bin index for an element from its individual field and subdomain bins.
+  // the first-listed field is the fastest-varying index.
+  auto total_bin = [this](const std::vector<unsigned int> & field_bins,
+                          const unsigned int block_bin)
+  {
+    unsigned int total = 0;
+    unsigned int bins_per_field = 1;
+    for (const auto i : index_range(field_bins))
+    {
+      total += field_bins[i] * bins_per_field;
+      bins_per_field *= _fields[i].n_bins;
+    }
+    return total + bins_per_field * block_bin;
+  };
 
   if (!_tet_mesh)
   {
@@ -738,13 +823,14 @@ MoabSkinner::sortElemsByResults()
       auto iMat = getSubdomainBin(elem);
       n_block_hits[iMat] += 1;
 
-      auto iDenBin = getDensityBin(elem);
-      n_density_hits[iDenBin] += 1;
+      std::vector<unsigned int> fbins(_fields.size());
+      for (const auto i : index_range(_fields))
+      {
+        fbins[i] = getFieldBin(i, elem);
+        n_field_hits[i][fbins[i]] += 1;
+      }
 
-      auto iBin = getTemperatureBin(elem);
-      n_temp_hits[iBin] += 1;
-
-      _elem_bins.at(getBin(iBin, iDenBin, iMat)).insert(elem->id());
+      _elem_bins.at(total_bin(fbins, iMat)).insert(elem->id());
     }
   }
   else
@@ -764,13 +850,14 @@ MoabSkinner::sortElemsByResults()
       auto iMat = getSubdomainBin(elem);
       n_block_hits[iMat] += 1;
 
-      auto iDenBin = getDensityBin(elem);
-      n_density_hits[iDenBin] += 1;
+      std::vector<unsigned int> fbins(_fields.size());
+      for (const auto i : index_range(_fields))
+      {
+        fbins[i] = getFieldBin(i, elem);
+        n_field_hits[i][fbins[i]] += 1;
+      }
 
-      auto iBin = getTemperatureBin(elem);
-      n_temp_hits[iBin] += 1;
-
-      orig_id_to_bin[elem->id()] = getBin(iBin, iDenBin, iMat);
+      orig_id_to_bin[elem->id()] = total_bin(fbins, iMat);
     }
 
     // insert each tet ID into its parent's bin.
@@ -791,101 +878,95 @@ MoabSkinner::sortElemsByResults()
 
   if (_verbose)
   {
-    VariadicTable<unsigned int, std::string, unsigned int> vtt({"Bin", "Range (K)", "# Elems"});
-    VariadicTable<unsigned int, std::string, unsigned int> vtd({"Bin", "Range (kg/m3)", "# Elems"});
-
-    for (unsigned int i = 0; i < _n_temperature_bins; ++i)
-      vtt.addRow(i,
-                 std::to_string(_temperature_bin_bounds[i]) + " to " +
-                     std::to_string(_temperature_bin_bounds[i + 1]),
-                 n_temp_hits[i]);
-
-    for (unsigned int i = 0; i < _n_density_bins; ++i)
-      vtd.addRow(i,
-                 std::to_string(_density_bin_bounds[i]) + " to " +
-                     std::to_string(_density_bin_bounds[i + 1]),
-                 n_density_hits[i]);
-
-    _console << "\nMapping of Elements to Temperature Bins:" << std::endl;
-    vtt.print(_console);
-    _console << std::endl;
-
-    if (_bin_by_density)
+    for (const auto i : index_range(_fields))
     {
-      _console << "\n\nMapping of Elements to Density Bins:" << std::endl;
-      vtd.print(_console);
+      VariadicTable<unsigned int, std::string, unsigned int> vt(
+          {"Bin", "Range", "# Elems"});
+
+      for (unsigned int b = 0; b < _fields[i].n_bins; ++b)
+        vt.addRow(b,
+                  std::to_string(_fields[i].bounds[b]) + " to " +
+                      std::to_string(_fields[i].bounds[b + 1]),
+                  n_field_hits[i][b]);
+
+      _console << "\nMapping of Elements to " << _fields[i].name << " Bins:" << std::endl;
+      vt.print(_console);
       _console << std::endl;
     }
   }
 }
 
 unsigned int
-MoabSkinner::getTemperatureBin(const Elem * const elem) const
+MoabSkinner::getFieldBin(const BinnedField & field, const Elem * const elem) const
 {
-  auto dof = elem->dof_number(_fe_problem.getAuxiliarySystem().number(), _temperature_var_num, 0);
+  auto dof = elem->dof_number(_fe_problem.getAuxiliarySystem().number(), field.var_num, 0);
   auto value = (*_serialized_solution)(dof);
 
   // TODO: add option to truncate instead
-  if ((_temperature_min - value) > BIN_TOLERANCE)
+  if ((field.min - value) > BIN_TOLERANCE)
     mooseError("Variable '",
-               _temperature_name,
+               field.name,
                "' has value below minimum range of bins. "
-               "Please decrease 'temperature_min'.\n\n"
+               "Please decrease the minimum bound for this field.\n\n"
                "  value: ",
                value,
-               "\n  temperature_min: ",
-               _temperature_min);
+               "\n  field minimum: ",
+               field.min);
 
-  if ((value - _temperature_max) > BIN_TOLERANCE)
+  if ((value - field.max) > BIN_TOLERANCE)
     mooseError("Variable '",
-               _temperature_name,
+               field.name,
                "' has value above maximum range of bins. "
-               "Please increase 'temperature_max'.\n\n"
+               "Please increase the maximum bound for this field.\n\n"
                "  value: ",
                value,
-               "\n  temperature_max: ",
-               _temperature_max);
+               "\n  field maximum: ",
+               field.max);
 
-  return bin_utility::linearBin(value, _temperature_bin_bounds);
+  return bin_utility::linearBin(value, field.bounds);
 }
 
 unsigned int
-MoabSkinner::getDensityBin(const Elem * const elem) const
+MoabSkinner::getFieldBin(const unsigned int & field_index, const Elem * const elem) const
 {
-  if (!_bin_by_density)
-    return 0;
+  mooseAssert(field_index < _fields.size(), "Invalid field index " + Moose::stringify(field_index));
+  return getFieldBin(_fields[field_index], elem);
+}
 
-  auto dof = elem->dof_number(_fe_problem.getAuxiliarySystem().number(), _density_var_num, 0);
-  auto value = (*_serialized_solution)(dof);
+unsigned int
+MoabSkinner::getFieldBin(const std::string & name, const Elem * const elem) const
+{
+  for (const auto i : index_range(_fields))
+    if (_fields[i].name == name)
+      return getFieldBin(_fields[i], elem);
 
-  // TODO: add option to truncate instead
-  if ((_density_min - value) > BIN_TOLERANCE)
-    mooseError("Variable '",
-               _density_name,
-               "' has value below minimum range of bins. "
-               "Please decrease 'density_min'.\n\n"
-               "  value: ",
-               value,
-               "\n  density_min: ",
-               _density_min);
+  mooseError("MoabSkinner does not bin by variable '",
+             name,
+             "'. Binned fields are ",
+             Moose::stringify(binnedFieldNames()));
+  return 0;
+}
 
-  if ((value - _density_max) > BIN_TOLERANCE)
-    mooseError("Variable '",
-               _density_name,
-               "' has value above maximum range of bins. "
-               "Please increase 'density_max'.\n\n"
-               "  value: ",
-               value,
-               "\n  density_max: ",
-               _density_max);
+bool
+MoabSkinner::binsByField(const std::string & name) const
+{
+  for (const auto & f : _fields)
+    if (f.name == name)
+      return true;
+  return false;
+}
 
-  return bin_utility::linearBin(value, _density_bin_bounds);
+std::vector<std::string>
+MoabSkinner::binnedFieldNames() const
+{
+  std::vector<std::string> names;
+  for (const auto & f : _fields)
+    names.push_back(f.name);
+  return names;
 }
 
 std::string
-MoabSkinner::materialName(const unsigned int & block,
-                          const unsigned int & density,
-                          const unsigned int & temp) const
+MoabSkinner::materialName(const unsigned int & block) const
 {
   for (const auto & [subdomain_id, block_index] : _blocks)
   {
@@ -1205,38 +1286,34 @@ MoabSkinner::findSurfaces()
   // Counter for surfaces
   unsigned int surf_id = 0;
 
+  // Number of bins that fit within a single block bin; the fields are the
+  // fastest-varying indices and the block bin is the slowest-varying index
+  unsigned int bins_per_block = 1;
+  for (const auto & f : _fields)
+    bins_per_block *= f.n_bins;
+
   // Loop over material bins
-  for (unsigned int iMat = 0; iMat < _n_block_bins; iMat++)
+  for (unsigned int iSortBin = 0; iSortBin < nBins(); ++iSortBin)
   {
-    // Loop over density bins
-    for (unsigned int iDen = 0; iDen < _n_density_bins; iDen++)
+    // Update material name
+    auto updated_mat_name = materialName(iSortBin / bins_per_block);
+
+    // Create a material group
+    // For DagMC to fill a cell with a material, we first create a group
+    // with that name, and then assign it with createVol (called inside findSurface)
+    moab::EntityHandle group_set;
+    unsigned int group_id = iSortBin + 1;
+    createGroup(group_id, updated_mat_name, group_set);
+
+    // Sort elems in this bin into local regions
+    std::vector<moab::Range> regions;
+    groupLocalElems(_elem_bins.at(iSortBin), regions);
+
+    // Loop over all regions and find surfaces
+    for (const auto & region : regions)
     {
-      // Loop over temperature bins
-      for (unsigned int iVar = 0; iVar < _n_temperature_bins; iVar++)
-      {
-        // Update material name
-        auto updated_mat_name = materialName(iMat, iDen, iVar);
-
-        // Create a material group
-        int iSortBin = getBin(iVar, iDen, iMat);
-
-        // For DagMC to fill a cell with a material, we first create a group
-        // with that name, and then assign it with createVol (called inside findSurface)
-        moab::EntityHandle group_set;
-        unsigned int group_id = iSortBin + 1;
-        createGroup(group_id, updated_mat_name, group_set);
-
-        // Sort elems in this mat-density-temp bin into local regions
-        std::vector<moab::Range> regions;
-        groupLocalElems(_elem_bins.at(iSortBin), regions);
-
-        // Loop over all regions and find surfaces
-        for (const auto & region : regions)
-        {
-          moab::EntityHandle volume_set;
-          findSurface(region, group_set, vol_id, surf_id, volume_set);
-        }
-      }
+      moab::EntityHandle volume_set;
+      findSurface(region, group_set, vol_id, surf_id, volume_set);
     }
   }
 
@@ -1386,11 +1463,16 @@ MoabSkinner::reset()
 }
 
 unsigned int
-MoabSkinner::getBin(const unsigned int & i_temp,
-                    const unsigned int & i_density,
-                    const unsigned int & i_block) const
+MoabSkinner::getBin(const Elem * const elem) const
 {
-  return _n_temperature_bins * (_n_density_bins * i_block + i_density) + i_temp;
+  unsigned int total = 0;
+  unsigned int bins_per_field = 1;
+  for (const auto & f : _fields)
+  {
+    total += getFieldBin(f, elem) * bins_per_field;
+    bins_per_field *= f.n_bins;
+  }
+  return total + bins_per_field * getSubdomainBin(elem);
 }
 
 void
