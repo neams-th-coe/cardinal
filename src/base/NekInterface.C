@@ -946,8 +946,7 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
 double
 volumeIntegral(const field::NekFieldEnum & integrand,
                const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh,
-               const Real & time)
+               const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
