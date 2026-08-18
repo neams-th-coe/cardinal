@@ -53,7 +53,7 @@ The corresponding manufactured forcing function is
 
 The simulations are performed using a polynomial order of seven and two geometrical configurations.
 The first configuration uses the original geometry, while the second rotates the geometry by $45^\circ$.
-Errors are evaluated at $t=0.1$.
+Errors are evaluated at $t=0.1$; because the initial condition is the exact solution, this time is short enough for the test to run quickly, but long enough such that any code changes or inconsistencies in the implementation would manifest as errors.
 The volume-integrated velocity error is defined as
 
 !equation id=eq\:channel-velocity-error
