@@ -17,7 +17,7 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 - [Backward Facing Step (RANS)](vv/nekrs/bfs.md)
 - [Low-Mach Compressible Flow](vv/nekrs/lowMach.md)
 - [Moving Cylinder (Low-mach)](vv/nekrs/mv_cyl.md)
-- [Conjugate Heat Transfer](vv/nekrs/cht.md)
+- [Conjugate Heat Transfer](vv/nekrs/cht_nek.md)
 - [Stokes Flow](vv/nekrs/channel.md)
 - [Poiseuille Flow](vv/nekrs/shlChannel.md)
 - [Periodic Hills (RANS and Hybrid RANS)](vv/nekrs/periodicHill.md)
