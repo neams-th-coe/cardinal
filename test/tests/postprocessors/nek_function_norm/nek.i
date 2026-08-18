@@ -19,6 +19,8 @@
 [AuxVariables]
   [temperature_minus_function]
   []
+  [temperature]
+  []
 []
 
 [AuxKernels]
@@ -26,6 +28,11 @@
     type = FunctionAux
     variable = temperature_minus_function
     function = temperature_minus_function
+  []
+  [temperature]
+    type = FunctionAux
+    variable = temperature
+    function = temperature
   []
 []
 
@@ -36,15 +43,19 @@
 []
 
 [Functions]
+  [temperature]
+    type = ParsedFunction
+    expression = 'exp(x)+sin(y)+x*y*z'
+  []
   [function_to_compare]
     type = ParsedFunction
     expression = 'exp(x*x)+0.7*y+0.8*z+1'
   []
   [temperature_minus_function]
     type = ParsedFunction
-    expression = 'abs(exp(x)+sin(y)+x*y*z-function_to_compare)'
-    symbol_names = 'function_to_compare'
-    symbol_values = 'function_to_compare'
+    expression = 'abs(temperature-function_to_compare)'
+    symbol_names = 'temperature function_to_compare'
+    symbol_values = 'temperature function_to_compare'
   []
 []
 
@@ -84,5 +95,15 @@
   [temp_linf_comparison]
     type = NodalExtremeValue
     variable = temperature_minus_function
+  []
+
+  [temp_without_function_linf]
+    type = NekVolumeNorm
+    field = temperature
+    N = infinity
+  []
+  [temp_without_function_linf_comparison]
+    type = NodalExtremeValue
+    variable = temperature
   []
 []
