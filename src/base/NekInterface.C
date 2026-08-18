@@ -987,40 +987,8 @@ volumeNorm(const field::NekFieldEnum & integrand,
 
   double (*f)(int, int);
   f = solutionPointer(integrand);
-
-  // L-infinity norm
-  if (std::isinf(N))
-  {
-    double local_max = 0.0;
-
-    for (int k = 0; k < mesh->Nelements; ++k)
-    {
-      const int offset = k * mesh->Np;
-
-      for (int v = 0; v < mesh->Np; ++v)
-      {
-        const int n = offset + v;
-        const auto shift = evaluateFunctionOnMesh(function, time, n);
-        const double error = std::abs(f(n, 0 /* unused */) - shift);
-
-        local_max = std::max(local_max, error);
-      }
-    }
-
-    double global_max = 0.0;
-
-    MPI_Allreduce(&local_max,
-                  &global_max,
-                  1,
-                  MPI_DOUBLE,
-                  MPI_MAX,
-                  platform->comm.mpiComm());
-
-    return global_max;
-  }
-
-  // Finite L^N norm
   double integral = 0.0;
+  double total_integral = 0.0;
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -1032,20 +1000,22 @@ volumeNorm(const field::NekFieldEnum & integrand,
       const auto shift = evaluateFunctionOnMesh(function, time, n);
       const double error = std::abs(f(n, 0 /* unused */) - shift);
 
-      integral += std::pow(error, N) *
-                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      if (std::isinf(N))
+        integral = std::max(integral, error);
+      else
+        integral += std::pow(error, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
-  double total_integral;
+  auto reduction_type = std::isinf(N) ? MPI_MAX : MPI_SUM;
   MPI_Allreduce(&integral,
                 &total_integral,
                 1,
                 MPI_DOUBLE,
-                MPI_SUM,
+                reduction_type,
                 platform->comm.mpiComm());
 
-  return std::pow(total_integral, 1.0 / N);
+  return std::isinf(N) ? total_integral : std::pow(total_integral, 1.0 / N);
 }
 
 double
