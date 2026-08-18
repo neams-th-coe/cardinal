@@ -4,16 +4,18 @@
 
 ## Description
 
-This postprocessor computes the integral of
-a specified field over the volume of the NekRS mesh,
+This postprocessor computes the integral of a specified field over the volume of the NekRS mesh.
+When the optional `function` parameter is provided, the field is weighted by that function,
 
 \begin{equation}
-p=\int_{\Omega}f\ d\Omega
+p=\int_{\Omega}f g\ d\Omega,
 \end{equation}
 
 where $p$ is the value of the postprocessor,
-$\Omega$ is the volume of the nekrs mesh, and
-$f$ is the specified field.
+$\Omega$ is the volume of the NekRS mesh,
+$f$ is the specified field, and
+$g$ is the optional MOOSE function.
+When `function` is omitted, $g=1$.
 To be clear, this postprocessor is *not* evaluated on the
 [NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.

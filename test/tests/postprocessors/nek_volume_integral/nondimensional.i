@@ -71,6 +71,10 @@
     type = ParsedFunction
     expression = 'exp(z/2)+1'
   []
+  [two]
+    type = ParsedFunction
+    expression = '2'
+  []
 []
 
 [Mesh]

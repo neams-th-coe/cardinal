@@ -56,6 +56,10 @@
     type = ParsedFunction
     expression = 'exp(z)+1'
   []
+  [two]
+    type = ParsedFunction
+    expression = '2'
+  []
 []
 
 [Mesh]
@@ -97,6 +101,11 @@
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
+  []
+  [temp_times_two_int]
+    type = NekVolumeIntegral
+    field = temperature
+    function = two
   []
   [s01_int]
     type = NekVolumeIntegral
