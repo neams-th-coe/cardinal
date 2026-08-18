@@ -46,5 +46,5 @@ public:
 
 protected:
   /// Order of the norm
-  const Real _N;
+  Real _N;
 };

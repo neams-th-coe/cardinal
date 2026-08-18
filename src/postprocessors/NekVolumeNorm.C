@@ -29,52 +29,6 @@
 
 registerMooseObject("CardinalApp", NekVolumeNorm);
 
-namespace
-{
-Real
-parseNormOrder(const std::string & input)
-{
-  std::string value = input;
-
-  std::transform(value.begin(),
-                 value.end(),
-                 value.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
-
-  if (value == "inf" || value == "infinity")
-    return std::numeric_limits<Real>::infinity();
-
-  std::size_t parsed_characters = 0;
-  Real N;
-
-  try
-  {
-    N = std::stod(value, &parsed_characters);
-  }
-  catch (const std::exception &)
-  {
-    mooseError("Invalid value '",
-               input,
-               "' for NekVolumeNorm parameter 'N'. "
-               "Specify a finite real value N >= 1, or use 'infinity'.");
-  }
-
-  if (parsed_characters != value.size())
-    mooseError("Invalid value '",
-               input,
-               "' for NekVolumeNorm parameter 'N'. "
-               "Specify a finite real value N >= 1, or use 'infinity'.");
-
-  if (!std::isfinite(N) || N < 1.0)
-    mooseError("Invalid value '",
-               input,
-               "' for NekVolumeNorm parameter 'N'. "
-               "Finite norm orders must satisfy N >= 1.");
-
-  return N;
-}
-}
-
 InputParameters
 NekVolumeNorm::validParams()
 {
@@ -93,14 +47,40 @@ NekVolumeNorm::validParams()
 }
 
 NekVolumeNorm::NekVolumeNorm(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters),
-    _N(parseNormOrder(getParam<std::string>("N")))
+  : NekFieldPostprocessor(parameters)
 {
   if (_nek_problem->nondimensional())
     mooseError(
         "The NekVolumeNorm object does not yet support non-dimensional runs! "
         "Please contact the development team to accelerate this feature "
         "addition to support your use case.");
+
+  auto value = getParam<std::string>("N");
+
+  std::transform(value.begin(),
+                 value.end(),
+                 value.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (value == "infinity")
+    _N = std::numeric_limits<Real>::infinity();
+
+  std::size_t parsed_characters = 0;
+
+  try
+  {
+    _N = std::stod(value, &parsed_characters);
+  }
+  catch (const std::exception &)
+  {
+    paramError("N", "Specify a finite real value N >= 1, or use 'infinity'.");
+  }
+
+  if (parsed_characters != value.size())
+    paramError("N", "Specify a finite real value N >= 1, or use 'infinity'.");
+
+  if (_N < 1.0)
+    paramError("N", "Norm orders must satisfy N >= 1.");
 }
 
 Real
