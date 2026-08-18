@@ -9,7 +9,13 @@ InputParameters
 NekFieldInterface::validParams()
 {
   InputParameters params = emptyInputParameters();
+  params += FunctionInterface::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to apply this object to");
+  params.addParam<FunctionName>(
+      "function",
+      "Function to shift the field by, when applying this object. For example, if 'field = "
+      "temperature', using this parameter will apply this object to the new combined quantity "
+      "'temperature - f', where 'f' is this shifting function.");
   params.addParam<Point>("velocity_direction",
                          "Unit vector to dot with velocity, for 'field = velocity_component'. For "
                          "example, velocity_direction = '1 1 0' will get the velocity dotted with "
@@ -25,7 +31,9 @@ NekFieldInterface::validParams()
 NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
                                      const InputParameters & parameters,
                                      const bool allow_normal_velocity)
-  : _field(moose_object->getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
+  : FunctionInterface(moose_object),
+    _field(moose_object->getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
+    _function(moose_object->isParamValid("function") ? &this->getFunction("function") : nullptr),
     _velocity_component(moose_object->getParam<MooseEnum>("velocity_component")
                             .getEnum<component::BinnedVelocityComponentEnum>())
 {

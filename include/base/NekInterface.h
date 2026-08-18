@@ -22,6 +22,7 @@
 #include "MooseTypes.h"
 #include "NekBoundaryCoupling.h"
 #include "NekVolumeCoupling.h"
+#include "Function.h"
 
 #include "inipp.hpp"
 #include "nekrs.hpp"
@@ -537,6 +538,30 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 double volumeIntegral(const field::NekFieldEnum & integrand,
                       const double & volume,
                       const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Transform the point and time passed into a function into dimensional form, because
+ * the functions on the MOOSE side are defined in dimensional form.
+ * @param[in] f function to query
+ * @param[in] time time
+ * @param[in] id element ID
+ */
+double evaluateFunctionOnMesh(const Function * f, const Real time, const int id);
+
+/**
+ * Compute the L^N norm of a given integrand over the mesh
+ * @param[in] integrand field to integrate
+ * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
+ * @param[in] N order of the norm
+ * @return integrated L^N norm of the NekRS field, relative to a function
+ */
+double volumeNorm(const field::NekFieldEnum & integrand,
+                  const nek_mesh::NekMeshEnum pp_mesh,
+                  const Function * function,
+                  const Real & time,
+                  const Real & N);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs
