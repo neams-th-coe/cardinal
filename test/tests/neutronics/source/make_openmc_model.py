@@ -107,7 +107,7 @@ geometry.export_to_xml()
 settings = openmc.Settings()
 settings.batches = 20
 settings.inactive = 2
-settings.particles = 500
+settings.particles = 200
 
 # Create an initial uniform spatial source distribution
 lower_left = (-pitch/2, -pitch/2, 0.0)
