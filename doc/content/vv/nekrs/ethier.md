@@ -100,7 +100,7 @@ Errors are evaluated at $t=0.06$ and are shown in [fig:ethier-2].
 This solver mode verifies:
 
 - Velocity and pressure projection.
-- SEMFEM pressure preconditioner.
+- SEMFEM (low-order finite element) pressure preconditioner.
 
 Errors are evaluated at $t=0.06$ and are shown in [fig:ethier-3].
 
