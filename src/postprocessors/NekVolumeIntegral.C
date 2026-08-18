@@ -37,10 +37,6 @@ NekVolumeIntegral::validParams()
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
-  if (_function && _nek_problem->nondimensional())
-    mooseError(
-        "NekVolumeIntegral does not yet support use of the 'function' "
-        "parameter for non-dimensional NekRS cases.");
 }
 
 Real
@@ -88,16 +84,16 @@ NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 
   if (_field == field::velocity_component)
   {
-    const Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, _function, _t);
-    const Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, _function, _t);
-    const Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, _function, _t);
+    const Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, _t);
+    const Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, _t);
+    const Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, _t);
 
     const Point velocity(vx, vy, vz);
 
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, vol, mesh, _function, _t);
+  return nekrs::volumeIntegral(_field, vol, mesh, _t);
 }
 
 #endif

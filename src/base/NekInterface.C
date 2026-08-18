@@ -926,8 +926,6 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
     integral += add * area(boundary_id, pp_mesh);
 }
 
-namespace
-{
 double
 evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
 {
@@ -935,22 +933,20 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
   if (f)
   {
     // the function is given in dimensional form from MOOSE, so we need to
-    // convert to non-dimensional form before we shift the field
+    // convert to non-dimensional form before we have NekRS evaluate it
     Point p(x[id], y[id], z[id]);
-    p *= scales.L_ref;
-    auto t = time * scales.t_ref;
+    p /= scales.L_ref;
+    auto t = time / scales.t_ref;
     shift = f->value(t, p);
   }
 
   return shift;
-}
 }
 
 double
 volumeIntegral(const field::NekFieldEnum & integrand,
                const Real & volume,
                const nek_mesh::NekMeshEnum pp_mesh,
-               const Function * function,
                const Real & time)
 {
   mesh_t * mesh = getMesh(pp_mesh);
@@ -967,9 +963,7 @@ volumeIntegral(const field::NekFieldEnum & integrand,
     for (int v = 0; v < mesh->Np; ++v)
     {
       const int n = offset + v;
-      const auto function_value = function ? evaluateFunctionOnMesh(function, time, n) : 1.0;
-      integral += f(n, 0 /* unused */) * function_value *
-                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += f(n, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
@@ -1007,7 +1001,6 @@ volumeNorm(const field::NekFieldEnum & integrand,
       {
         const int n = offset + v;
         const auto shift = evaluateFunctionOnMesh(function, time, n);
-
         const double error = std::abs(f(n, 0 /* unused */) - shift);
 
         local_max = std::max(local_max, error);
@@ -1037,7 +1030,6 @@ volumeNorm(const field::NekFieldEnum & integrand,
     {
       const int n = offset + v;
       const auto shift = evaluateFunctionOnMesh(function, time, n);
-
       const double error = std::abs(f(n, 0 /* unused */) - shift);
 
       integral += std::pow(error, N) *

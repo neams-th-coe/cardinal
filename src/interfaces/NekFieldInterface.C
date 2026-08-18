@@ -70,15 +70,4 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
   }
 }
 
-Real
-NekFieldInterface::evaluateShiftFunction(const Real & time, const Point & point) const
-{
-  // the input functions are dimensional quantities; first, need to transform
-  // them into non-dimensional form before NekRS evaluates them
-  auto t = time / nekrs::referenceTime();
-  auto p = point / nekrs::referenceLength();
-
-  // if there is a shifting function, evaluate that function
-  return _function ? _function->value(t, p) : 0.0;
-}
 #endif
