@@ -623,6 +623,11 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         if (t->direction() == "to_nek")
           t->sendDataToNek();
 
+      // update any user-defined properties (could be used for UQ)
+      auto nrs = nekrs::nrsPtr();
+      if (nrs->userProperties)
+        nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
+
       // copy host-side arrays which were filled to the device
       copyHostToDevice();
 
@@ -792,7 +797,8 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  nekrs::copyDeformationToDevice();
+  if (nekrs::hasMovingMesh())
+    nekrs::copyDeformationToDevice();
 }
 
 bool
