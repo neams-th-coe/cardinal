@@ -3,8 +3,9 @@
 #include "InputParameters.h"
 #include "MooseObject.h"
 #include "CardinalEnums.h"
+#include "FunctionInterface.h"
 
-class NekFieldInterface
+class NekFieldInterface : public FunctionInterface
 {
 public:
   static InputParameters validParams();
@@ -22,6 +23,9 @@ public:
 protected:
   /// NekRS solution field
   const field::NekFieldEnum _field;
+
+  /// Function to shift the field by, if provided by the 'function' parameter
+  const Function * _function;
 
   /**
    * Direction in which to evaluate velocity, if using 'field = velocity_component'.
