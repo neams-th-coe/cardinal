@@ -974,7 +974,6 @@ volumeIntegral(const field::NekFieldEnum & integrand,
   return total_integral;
 }
 
-
 double
 volumeNorm(const field::NekFieldEnum & integrand,
            const nek_mesh::NekMeshEnum pp_mesh,
@@ -1007,12 +1006,8 @@ volumeNorm(const field::NekFieldEnum & integrand,
   }
 
   auto reduction_type = std::isinf(N) ? MPI_MAX : MPI_SUM;
-  MPI_Allreduce(&integral,
-                &total_integral,
-                1,
-                MPI_DOUBLE,
-                reduction_type,
-                platform->comm.mpiComm());
+  MPI_Allreduce(
+      &integral, &total_integral, 1, MPI_DOUBLE, reduction_type, platform->comm.mpiComm());
 
   return std::isinf(N) ? total_integral : std::pow(total_integral, 1.0 / N);
 }

@@ -33,34 +33,28 @@ InputParameters
 NekVolumeNorm::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
-  params.addParam<std::string>(
-      "N",
-      "2",
-      "Order of the volume norm. Specify a finite real value N >= 1, "
-      "or use 'infinity' for the L-infinity norm.");
+  params.addParam<std::string>("N",
+                               "2",
+                               "Order of the volume norm. Specify a finite real value N >= 1, "
+                               "or use 'infinity' for the L-infinity norm.");
 
-  params.addClassDescription(
-      "Computes a finite L^N norm or an L-infinity norm of the difference "
-      "between a NekRS solution field and an optional analytical function.");
+  params.addClassDescription("Computes a finite L^N norm or an L-infinity norm of the difference "
+                             "between a NekRS solution field and an optional analytical function.");
 
   return params;
 }
 
-NekVolumeNorm::NekVolumeNorm(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters)
+NekVolumeNorm::NekVolumeNorm(const InputParameters & parameters) : NekFieldPostprocessor(parameters)
 {
   if (_nek_problem->nondimensional())
-    mooseError(
-        "The NekVolumeNorm object does not yet support non-dimensional runs! "
-        "Please contact the development team to accelerate this feature "
-        "addition to support your use case.");
+    mooseError("The NekVolumeNorm object does not yet support non-dimensional runs! "
+               "Please contact the development team to accelerate this feature "
+               "addition to support your use case.");
 
   auto value = getParam<std::string>("N");
 
-  std::transform(value.begin(),
-                 value.end(),
-                 value.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  std::transform(
+      value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
 
   if (value == "infinity")
     _N = std::numeric_limits<Real>::infinity();
