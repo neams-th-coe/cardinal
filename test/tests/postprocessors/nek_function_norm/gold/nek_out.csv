@@ -1,0 +1,2 @@
+time,temp_l1,temp_l1_comparison,temp_l2,temp_l2_comparison,temp_linf,temp_linf_comparison,temp_without_function_linf,temp_without_function_linf_comparison
+0.0005,0.16873839798797,0.16873839798797,0.40653707007511,0.40653707007511,1.4111184483664,1.4111184483664,1.4236534637728,1.4236534637728

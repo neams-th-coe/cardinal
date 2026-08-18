@@ -926,6 +926,62 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 }
 
 double
+evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
+{
+  double shift = 0.0;
+  if (f)
+  {
+    // the function is given in dimensional form from MOOSE, so we need to
+    // convert the x,y,z points we loop through on NekRS's mesh into the
+    // dimensional form before passing them into the dimensional function
+    Point p(x[id], y[id], z[id]);
+    p *= scales.L_ref;
+    auto t = time * scales.t_ref;
+    shift = f->value(t, p);
+  }
+
+  return shift;
+}
+
+double
+volumeNorm(const field::NekFieldEnum & integrand,
+           const nek_mesh::NekMeshEnum pp_mesh,
+           const Function * function,
+           const Real & time,
+           const Real & N)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double (*f)(int, int);
+  f = solutionPointer(integrand);
+  double integral = 0.0;
+  double total_integral = 0.0;
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    const int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      const int n = offset + v;
+      const auto shift = evaluateFunctionOnMesh(function, time, n);
+      const double error = std::abs(f(n, 0 /* unused */) - shift);
+
+      if (std::isinf(N))
+        integral = std::max(integral, error);
+      else
+        integral += std::pow(error, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  auto reduction_type = std::isinf(N) ? MPI_MAX : MPI_SUM;
+  MPI_Allreduce(
+      &integral, &total_integral, 1, MPI_DOUBLE, reduction_type, platform->comm.mpiComm());
+
+  return std::isinf(N) ? total_integral : std::pow(total_integral, 1.0 / N);
+}
+
+double
 volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
                const nek_mesh::NekMeshEnum pp_mesh)
 {

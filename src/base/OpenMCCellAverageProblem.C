@@ -784,7 +784,13 @@ OpenMCCellAverageProblem::setupProblem()
   for (const auto & c : _cell_to_elem)
     _cell_to_n_contained[c.first] = numContainedMaterialCells(c.first);
 
-  subdomainsToMaterials();
+  // the _subdomain_to_material member variable is only used if printing out verbose
+  // information or if the skinner is used (TODO: though, that statement about the skinner
+  // will probably go away once we update the skinner to more modern approach of density
+  // multipliers rather than unique materials per bin). For large problems, determining
+  // how the subdomains map to OpenMC materials can be costly, so we should make this optional
+  if (_verbose || _using_skinner)
+    subdomainsToMaterials();
 
   initializeTallies();
 }
