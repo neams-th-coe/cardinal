@@ -1,3 +1,5 @@
+!include csg_step_2_comp.i
+
 [Mesh]
   type = FileMesh
   file = slab.e
@@ -42,6 +44,7 @@ dT = 50.0
     [Mesh]
       type = MeshTally
       mesh_template = slab.e
+      output = 'unrelaxed_tally_std_dev'
     []
   []
 []
@@ -62,6 +65,10 @@ dT = 50.0
   [k]
     type = KEigenvalue
   []
+  [k_std_dev]
+    type = KEigenvalue
+    output = 'std_dev'
+  []
 []
 
 [Executioner]
@@ -71,4 +78,8 @@ dT = 50.0
 
 [Outputs]
   exodus = true
+  execute_on = 'FINAL'
+  hide := 'kappa_fission_csg kappa_fission
+           kappa_fission_std_dev_csg kappa_fission_std_dev
+           k k_std_dev k_csg_pp k_std_dev_csg_pp'
 []

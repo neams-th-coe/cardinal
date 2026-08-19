@@ -6,14 +6,11 @@
     type = CSVDiff
     input = 'openmc.i'
     csvdiff = 'openmc_out.csv'
+    cli_args = "Outputs/hide='heat_source k k_std_dev' Outputs/execute_on='FINAL'"
     requirement = "The system shall be capable of solving the S2 thermal expansion benchmark "
-                  "problem with OpenMC's random ray solver."
+                  "problem with OpenMC's random ray solver. We gold against whether the final "
+                  "value of k_eff is less than the initial value, indicating the slab has expanded."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    # k_std_dev diffs at t=1: 1.297e-09 ~ 1.311e-09 = 1.107e-02 (1.107e-02)
-    # with -march=x86-64-v3; bump abs_zero
-    override_columns = "k_std_dev"
-    override_rel_err = "5.5e-6" # default value
-    override_abs_zero = "5e-9"
   []
 []

@@ -2,6 +2,15 @@
   issues = '#567'
   design = 'MoabSkinner.md OpenMCCellAverageProblem.md MeshTally.md'
 
+  [csg_step_2]
+    type = RunApp
+    input = csg_step_2_openmc.i
+    requirement = "The system shall be able to generate a CSG reference solution for the DAGMC tests "
+                  "that require a reference."
+    mesh_mode = 'replicated'
+    capabilities = 'dagmc'
+  []
+
   [null_skin]
     type = Exodiff
     input = one_bin.i
@@ -17,46 +26,37 @@
     type = Exodiff
     input = openmc.i
     exodiff = openmc_out.e
-    cli_args = 'Outputs/hide="cell_instance"'
-    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning "
-                  "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
-                  "directory."
+    requirement = "The system shall give identical Monte Carlo solution within three sigma "
+                  "(file mesh tallies and k) when skinning as compared to a CSG-equivalent "
+                  "version of the geometry, which is in the csg_step_2 directory."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    # diffs with -march=x86-64-v3; set:
-    # - k rel to 3e-2
-    # - kappa_fission elemental abs_zero to 4e-3 OR rel 7e-1
-    custom_cmp = skin.cmp
+    prereq = 'csg_step_2'
   []
   [skin_direct]
     type = Exodiff
     input = direct_tally.i
-    cli_args = 'Outputs/file_base=openmc_out Outputs/hide="cell_instance"'
+    cli_args = 'Outputs/file_base=openmc_out'
     exodiff = openmc_out.e
-    requirement = "The system shall give identical Monte Carlo solution (direct mesh tallies and k) when skinning "
-                  "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
-                  "directory."
+    requirement = "The system shall give identical Monte Carlo solution within three sigma "
+                  "(direct mesh tallies and k) when skinning as compared to a CSG-equivalent "
+                  "version of the geometry, which is in the csg_step_2 directory."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    # diffs with -march=x86-64-v3; set:
-    # - k rel to 5e-3
-    # - kappa_fission elemental abs_zero to 5e-5 OR rel 7e-1
-    custom_cmp = skin_direct.cmp
+    prereq = 'csg_step_2'
   []
   [disjoint_bins]
     type = Exodiff
     input = disjoint_bins.i
     exodiff = disjoint_bins_out.e
     cli_args = 'Problem/output_cell_mapping=false'
-    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning "
-                  "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
-                  "directory. For this case, a bin is split across disjoint elements."
+    requirement = "The system shall give identical Monte Carlo solution within three sigma "
+                  "(file mesh tallies and k) when skinning as compared to a CSG-equivalent "
+                  "version of the geometry, which is in the csg_step_2 directory. For this "
+                  "case, a bin is split across disjoint elements."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    # diffs with -march=x86-64-v3; set:
-    # - k rel to 2e-2
-    # - kappa_fission elemental abs_zero to 4e-3 OR rel 8e-1
-    custom_cmp = disjoint_bins.cmp
+    prereq = 'csg_step_2'
   []
   [scale_mesh]
     type = RunApp
