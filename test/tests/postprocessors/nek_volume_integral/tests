@@ -17,6 +17,21 @@
     requirement = 'nondimensional form'
     capabilities = 'nekrs'
   []
+  [missing_field_and_function]
+    type = RunException
+    input = invalid.i
+    expect_err = "NekVolumeIntegral requires exactly one of 'field' or 'function'."
+    requirement = "The system shall report an error when neither a field nor a function is provided for volume integration."
+    capabilities = 'nekrs'
+  []
+  [field_and_function]
+    type = RunException
+    input = invalid.i
+    cli_args = 'Postprocessors/invalid/field=unity Postprocessors/invalid/function=unit_function'
+    expect_err = "NekVolumeIntegral requires exactly one of 'field' or 'function'."
+    requirement = "The system shall report an error when both a field and a function are provided for volume integration."
+    capabilities = 'nekrs'
+  []
   [scalar_values_no_temp]
     type = CSVDiff
     input = nek_no_temp.i

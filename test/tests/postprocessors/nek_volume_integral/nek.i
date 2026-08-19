@@ -56,10 +56,6 @@
     type = ParsedFunction
     expression = 'exp(z)+1'
   []
-  [unitFunction]
-    type = ParsedFunction
-    expression = '1'
-  []
 []
 
 [Mesh]
@@ -104,8 +100,7 @@
   []
   [function_int]
     type = NekVolumeIntegral
-    field = unity
-    function = unitFunction
+    function = usrwrk00
   []
   [s01_int]
     type = NekVolumeIntegral

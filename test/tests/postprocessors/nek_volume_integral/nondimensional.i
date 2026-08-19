@@ -71,10 +71,6 @@
     type = ParsedFunction
     expression = 'exp(z/2)+1'
   []
-  [unitFunction]
-    type = ParsedFunction
-    expression = '1'
-  []
 []
 
 [Mesh]
@@ -97,10 +93,13 @@
 []
 
 [Postprocessors]
+  [function_int]
+    type = NekVolumeIntegral
+    function = usrwrk00
+  []
   [unity_int]
     type = NekVolumeIntegral
     field = unity
-    function = unitFunction
   []
   [temp_int]
     type = NekVolumeIntegral

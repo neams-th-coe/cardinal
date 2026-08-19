@@ -26,13 +26,23 @@ InputParameters
 NekVolumeIntegral::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
-  params.addClassDescription("Integral of a NekRS field or a MOOSE function over the NekRS volume mesh");
+  params.makeParamNotRequired("field");
+  params.set<MooseEnum>("field") = "unity";
+  params.setDocString(
+      "function", "MOOSE function to evaluate and integrate on the native NekRS GLL mesh");
+  params.addClassDescription(
+      "Integral of either a NekRS field or a MOOSE function over the NekRS volume mesh");
   return params;
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
+  const bool field_is_set = parameters.isParamSetByUser("field");
+  const bool function_is_set = parameters.isParamSetByUser("function");
+
+  if (field_is_set == function_is_set)
+    mooseError("NekVolumeIntegral requires exactly one of 'field' or 'function'.");
 }
 
 Real
