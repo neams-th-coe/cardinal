@@ -145,6 +145,13 @@ eV_to_J = 1.602e-19 # J/eV
     value_type = 'tracklength'
     output = 'std_dev'
   []
+  [k_less_than_initial]
+    type = ParsedPostprocessor
+    expression = 'if (k < initial_k, 1, 0)'
+    pp_names = 'k'
+    constant_names = 'initial_k'
+    constant_expressions = '0.31361125245905'
+  []
 []
 
 [UserObjects]

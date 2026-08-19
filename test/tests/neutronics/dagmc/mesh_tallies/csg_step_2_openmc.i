@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = ../slab.e
+  file = slab.e
 []
 
 x0 = 12.5
@@ -48,10 +48,13 @@ dT = 50.0
   cell_level = 0
   power = 100.0
 
+  xml_directory = './csg_step_2'
+
   [Tallies]
     [Mesh]
       type = MeshTally
-      mesh_template = ../slab.e
+      mesh_template = slab.e
+      output = 'unrelaxed_tally_std_dev'
     []
   []
 []
@@ -59,6 +62,10 @@ dT = 50.0
 [Postprocessors]
   [k]
     type = KEigenvalue
+  []
+  [k_std_dev]
+    type = KEigenvalue
+    output = 'std_dev'
   []
 []
 
@@ -69,4 +76,6 @@ dT = 50.0
 
 [Outputs]
   exodus = true
+  csv = true
+  execute_on = 'FINAL'
 []
