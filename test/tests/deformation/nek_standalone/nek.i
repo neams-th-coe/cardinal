@@ -3,13 +3,6 @@
   volume = true
 []
 
-[Functions]
-  [y_coordinate]
-    type = ParsedFunction
-    expression = 'y'
-  []
-[]
-
 [Problem]
   type = NekRSProblem
   casename = 'mv_cyl'
@@ -34,15 +27,15 @@
     boundary = '1 2 3'
   []
 
-  [y_integral]
-    type = NekVolumeIntegral
-    function = y_coordinate
+  [min_y]
+    type = NekMeshInfoPostprocessor
+    test_type = min_node_y
   []
 
   [host_coordinates_updated]
     type = ParsedPostprocessor
-    expression = 'if(abs(y_integral / volume + 0.25) > 1e-3, 1, 0)'
-    pp_names = 'y_integral volume'
+    expression = 'if(min_y > -0.99, 1, 0)'
+    pp_names = 'min_y'
   []
 
   # these will not reflect the changing mesh, because we do not copy displacements
@@ -59,5 +52,5 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-  hide = 'y_integral'
+  hide = 'min_y'
 []
