@@ -523,12 +523,17 @@ NekRSProblem::externalSolve()
 
   bool moose_controls_mesh = false;
 
-  for (const auto & t : _field_transfers)
+  // With the user mesh solver, MOOSE provides the full volume deformation. With a
+  // blending solver, MOOSE only provides boundary velocities and NekRS moves the volume mesh.
+  if (nekrs::hasUserMeshSolver())
   {
-    if (dynamic_cast<NekMeshDeformation *>(t))
+    for (const auto & t : _field_transfers)
     {
-      moose_controls_mesh = true;
-      break;
+      if (dynamic_cast<NekMeshDeformation *>(t))
+      {
+        moose_controls_mesh = true;
+        break;
+      }
     }
   }
 
@@ -831,12 +836,17 @@ NekRSProblem::copyHostToDevice()
 
   bool moose_controls_mesh = false;
 
-  for (const auto & t : _field_transfers)
+  // With the user mesh solver, MOOSE provides the full volume deformation. With a
+  // blending solver, MOOSE only provides boundary velocities and NekRS moves the volume mesh.
+  if (nekrs::hasUserMeshSolver())
   {
-    if (dynamic_cast<NekMeshDeformation *>(t))
+    for (const auto & t : _field_transfers)
     {
-      moose_controls_mesh = true;
-      break;
+      if (dynamic_cast<NekMeshDeformation *>(t))
+      {
+        moose_controls_mesh = true;
+        break;
+      }
     }
   }
 
