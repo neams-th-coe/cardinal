@@ -8,8 +8,9 @@
   polynomialOrder = 2
   checkpointControl = steps
   checkpointInterval = 1
+  scalars = temperature
 
-[MESH]
+[GEOM]
   solver = user
 
 [FLUID VELOCITY]
@@ -21,7 +22,7 @@
   residualTol = 1.0e-5
 
 [SCALAR TEMPERATURE]
-  conductivity = 1.0
-  rhoCp = 0.0
+  diffusionCoeff = 1.0
+  transportCoeff = 0.0
   residualTol = 1.0e-5
   boundaryTypeMap = t, t, t, t, t, t
