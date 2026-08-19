@@ -19,7 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekMeshInfoPostprocessor.h"
-#include "NekInterface.h"
 #include "SubProblem.h"
 #include "MooseMesh.h"
 
@@ -31,7 +30,7 @@ NekMeshInfoPostprocessor::validParams()
   InputParameters params = GeneralPostprocessor::validParams();
   params += NekBase::validParams();
 
-  MooseEnum test_type("num_elems num_nodes node_x node_y node_z min_node_y");
+  MooseEnum test_type("num_elems num_nodes node_x node_y node_z");
   params.addRequiredParam<MooseEnum>("test_type",
                                      test_type,
                                      "The type of info to fetch; "
@@ -114,18 +113,6 @@ NekMeshInfoPostprocessor::getValue() const
     comm->broadcast(coord, p_id);
 
     return coord;
-  }
-  else if (_test_type == "min_node_y")
-  {
-    Real min_y = std::numeric_limits<Real>::max();
-    auto mesh = nekrs::entireMesh();
-
-    for (int e = 0; e < mesh->Nelements; ++e)
-      for (int n = 0; n < mesh->Np; ++n)
-        min_y = std::min(min_y, nekrs::gllPoint(e, n)(1));
-
-    getMooseApp().getCommunicator()->min(min_y);
-    return min_y;
   }
   else
     mooseError("Unhandled 'test_type' enum!");
