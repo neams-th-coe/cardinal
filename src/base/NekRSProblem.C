@@ -521,6 +521,23 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
+  bool moose_controls_mesh = false;
+
+  for (const auto & t : _field_transfers)
+  {
+    if (dynamic_cast<NekMeshDeformation *>(t))
+    {
+      moose_controls_mesh = true;
+      break;
+    }
+  }
+
+  if (nekrs::hasMovingMesh() && !moose_controls_mesh)
+  {
+    nekrs::copyMeshToHost();
+    nekrs::updateHostMeshParameters();
+  }
+
   if (nekrs::printStepInfoFreq())
     if (_t_step % nekrs::printStepInfoFreq() == 0)
       nekrs::printStepInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
@@ -797,7 +814,18 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  if (nekrs::hasMovingMesh())
+  bool moose_controls_mesh = false;
+
+  for (const auto & t : _field_transfers)
+  {
+    if (dynamic_cast<NekMeshDeformation *>(t))
+    {
+      moose_controls_mesh = true;
+      break;
+    }
+  }
+
+  if (moose_controls_mesh)
     nekrs::copyDeformationToDevice();
 }
 
