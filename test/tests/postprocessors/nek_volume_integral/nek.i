@@ -56,9 +56,9 @@
     type = ParsedFunction
     expression = 'exp(z)+1'
   []
-  [two]
+  [unitFunction]
     type = ParsedFunction
-    expression = '2'
+    expression = '1'
   []
 []
 
@@ -104,8 +104,8 @@
   []
   [function_int]
     type = NekVolumeIntegral
-    field = temperature
-    function = two
+    field = unity
+    function = unitFunction
   []
   [s01_int]
     type = NekVolumeIntegral

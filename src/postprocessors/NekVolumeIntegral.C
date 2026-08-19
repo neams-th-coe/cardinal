@@ -26,20 +26,13 @@ InputParameters
 NekVolumeIntegral::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
-
-  params.addClassDescription(
-      "Integral of a NekRS field or a MOOSE function over the NekRS volume mesh.");
-
+  params.addClassDescription("Integral of a NekRS field or a MOOSE function over the NekRS volume mesh");
   return params;
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
-  if (_function && _nek_problem->nondimensional())
-    mooseError(
-        "NekVolumeIntegral does not yet support use of the 'function' "
-        "parameter for non-dimensional NekRS cases.");
 }
 
 Real
@@ -49,13 +42,10 @@ NekVolumeIntegral::volume() const
   {
     case nek_mesh::fluid:
       return nekrs::volume(nek_mesh::fluid);
-
     case nek_mesh::all:
       return nekrs::volume(nek_mesh::all);
-
     case nek_mesh::solid:
       return nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
-
     default:
       mooseError("Unhandled NekMeshEnum in volume()!");
   }
@@ -68,13 +58,10 @@ NekVolumeIntegral::getValue() const
   {
     case nek_mesh::fluid:
       return getIntegralOnMesh(nek_mesh::fluid);
-
     case nek_mesh::all:
       return getIntegralOnMesh(nek_mesh::all);
-
     case nek_mesh::solid:
       return getIntegralOnMesh(nek_mesh::all) - getIntegralOnMesh(nek_mesh::fluid);
-
     default:
       mooseError("Unhandled NekMeshEnum in getValue()!");
   }

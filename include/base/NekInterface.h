@@ -534,7 +534,7 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @param[in] function optional MOOSE function to integrate instead of the field
- * @param[in] time time at which to evaluate the function
+ * @param[in] time at which to evaluate the function
  * @return volume integral of either a field or a function
  */
 double volumeIntegral(const field::NekFieldEnum & integrand,

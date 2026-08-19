@@ -992,7 +992,8 @@ volumeIntegral(const field::NekFieldEnum & integrand,
 
   double integral = 0.0;
 
-  double (*f)(int, int) = function ? nullptr : solutionPointer(integrand);
+  double (*f)(int, int);
+  f = solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -1001,9 +1002,8 @@ volumeIntegral(const field::NekFieldEnum & integrand,
     for (int v = 0; v < mesh->Np; ++v)
     {
       const int n = offset + v;
-      const auto value =
-          function ? evaluateFunctionOnMesh(function, time, n) : f(n, 0 /* unused */);
-      integral += value * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      const auto function_value = function ? evaluateFunctionOnMesh(function, time, n) : 1.0;
+      integral += f(n, 0 /* unused */) * function_value * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
@@ -1011,7 +1011,7 @@ volumeIntegral(const field::NekFieldEnum & integrand,
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
-  dimensionalizeVolumeIntegral(function ? field::unity : integrand, volume, total_integral);
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
 
   return total_integral;
 }

@@ -17,14 +17,6 @@
     requirement = 'nondimensional form'
     capabilities = 'nekrs'
   []
-  [function_nondimensional_error]
-    type = RunException
-    input = nondimensional.i
-    cli_args = 'Postprocessors/temp_int/function=two'
-    expect_err = "NekVolumeIntegral does not yet support use of the 'function' parameter for non-dimensional NekRS cases."
-    requirement = "The system shall report an error when function weighting is requested for a non-dimensional NekRS case."
-    capabilities = 'nekrs'
-  []
   [scalar_values_no_temp]
     type = CSVDiff
     input = nek_no_temp.i
