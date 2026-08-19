@@ -1,9 +1,6 @@
-!include csg_step_2_comp.i
-
 [Mesh]
   type = FileMesh
   file = slab.e
-  allow_renumbering = false
 []
 
 x0 = 12.5
@@ -51,7 +48,7 @@ dT = 50.0
   cell_level = 0
   power = 100.0
 
-  skinner = moab
+  xml_directory = './csg_step_2'
 
   [Tallies]
     [Mesh]
@@ -59,17 +56,6 @@ dT = 50.0
       mesh_template = slab.e
       output = 'unrelaxed_tally_std_dev'
     []
-  []
-[]
-
-[UserObjects]
-  [moab]
-    type = MoabSkinner
-    temperature_min = ${fparse T0 - dT}
-    temperature_max = ${fparse T0 + 2 * dT}
-    n_temperature_bins = 4
-    temperature = temp
-    build_graveyard = true
   []
 []
 
@@ -90,5 +76,6 @@ dT = 50.0
 
 [Outputs]
   exodus = true
+  csv = true
   execute_on = 'FINAL'
 []
