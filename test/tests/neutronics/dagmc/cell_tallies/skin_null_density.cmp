@@ -1,0 +1,5 @@
+GLOBAL VARIABLES (all)
+	k                   relative 2e-2
+
+ELEMENT VARIABLES (all)
+	kappa_fission       relative 5.5e-6 floor 3e-3

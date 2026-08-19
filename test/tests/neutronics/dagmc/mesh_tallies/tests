@@ -23,6 +23,10 @@
                   "directory."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3; set:
+    # - k rel to 3e-2
+    # - kappa_fission elemental abs_zero to 4e-3 OR rel 7e-1
+    custom_cmp = skin.cmp
   []
   [skin_direct]
     type = Exodiff
@@ -34,6 +38,10 @@
                   "directory."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3; set:
+    # - k rel to 5e-3
+    # - kappa_fission elemental abs_zero to 5e-5 OR rel 7e-1
+    custom_cmp = skin_direct.cmp
   []
   [disjoint_bins]
     type = Exodiff
@@ -45,6 +53,10 @@
                   "directory. For this case, a bin is split across disjoint elements."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3; set:
+    # - k rel to 2e-2
+    # - kappa_fission elemental abs_zero to 4e-3 OR rel 8e-1
+    custom_cmp = disjoint_bins.cmp
   []
   [scale_mesh]
     type = RunApp
