@@ -27,11 +27,9 @@ NekVolumeIntegral::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
   params.makeParamNotRequired("field");
-  params.set<MooseEnum>("field") = "unity";
-  params.setDocString(
-      "function", "MOOSE function to evaluate and integrate on the native NekRS GLL mesh");
-  params.addClassDescription(
-      "Integral of either a NekRS field or a MOOSE function over the NekRS volume mesh");
+  params.set<MooseEnum>("field", true) = "unity";
+  params.setDocString("function", "MOOSE function to evaluate and integrate on the native NekRS GLL mesh");
+  params.addClassDescription("Integral of either a NekRS field or a MOOSE function over the NekRS volume mesh");
   return params;
 }
 
