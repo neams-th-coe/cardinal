@@ -69,7 +69,10 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_partial_counts(nullptr)
 {
   if (_function)
-    paramError("function", "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived classes! Please contact the Cardinal developer team to accelerate this feature addition.");
+    paramError(
+        "function",
+        "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived "
+        "classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 
   _fixed_mesh = !nekrs::hasMovingMesh();
 
