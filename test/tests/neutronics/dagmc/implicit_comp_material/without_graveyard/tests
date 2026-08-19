@@ -14,5 +14,11 @@
                   "statistics to the CSG reference."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3:
+    # k: 1.399e+00 ~ 1.400e+00 = 8.266e-04 (8.266e-04)
+    # k_std_dev: 3.711e-03 ~ 4.808e-03 = 2.283e-01 (2.283e-01)
+    override_columns = "k k_std_dev"
+    override_rel_err = "9e-4 4e-1"
+    override_abs_zero = "1e-10 1e-10" # default values
   []
 []

@@ -23,6 +23,10 @@
                   "directory."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3; set:
+    # - k rel to 2e-2
+    # - kappa_fission elemental abs_zero to 3e-3 OR rel 2e-1
+    custom_cmp = skin.cmp
   []
   [skin_null_density]
     type = Exodiff
@@ -32,6 +36,10 @@
     requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning with a single density bin when compared to a case without any density skinning at all."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
+    # diffs with -march=x86-64-v3; set:
+    # - k rel to 2e-2
+    # - kappa_fission elemental abs_zero to 3e-3 OR rel 2e-1
+    custom_cmp = skin_null_density.cmp
   []
   [scale_mesh]
     type = RunApp
