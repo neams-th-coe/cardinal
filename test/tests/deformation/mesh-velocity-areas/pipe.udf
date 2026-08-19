@@ -1,56 +1,36 @@
-#include <math.h>
-#include "udf.hpp"
+#ifdef __okl__
 
-void uservp(nrs_t *nrs, double time, occa::memory o_U, occa::memory o_S,
-            occa::memory o_UProp, occa::memory o_SProp)
+#include "pipe.oudf"
+
+#endif
+
+void uservp(double time)
 {
-  mesh_t *mesh = nrs->meshV;
-
-  if(platform->options.compareArgs("MESH SOLVER", "ELASTICITY")){
-    // moving mesh parameters
-    const dfloat vnu = 0.4;
-    const dfloat ce = 1.0 / (1.0 + vnu);
-    const dfloat c2 = vnu * ce / (1.0 - 2.0 * vnu);
-    const dfloat c3 = 0.5 * ce;
-    auto o_mesh_diff = o_UProp + 2 * nrs->fieldOffset * sizeof(dfloat);
-    auto o_mesh_rho  = o_UProp + 3 * nrs->fieldOffset * sizeof(dfloat);
-    platform->linAlg->fill(nrs->meshV->Nlocal, c2, o_mesh_diff);
-    platform->linAlg->fill(nrs->meshV->Nlocal, c3, o_mesh_rho);
+  if (!platform->options.compareArgs("GEOM SOLVER", "NONE"))
+  {
+    const dfloat nu = 1.0;
+    platform->linAlg->fill(nrs->meshV->Nlocal, nu, nrs->geom->o_prop);
   }
 }
 
-void UDF_LoadKernels(occa::properties& kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
-
 
 void UDF_Setup()
 {
-  udf.properties = &uservp;
-  nrs->p0th[0] = 1.0;
-  nrs->p0th[1] = 1.0;
-  nrs->p0th[2] = 1.0;
+  nrs->userProperties = &uservp;
 
-  mesh_t* mesh = nrs->cds->mesh[0];
-  int num_quadrature_points = mesh->Np * mesh->Nelements;
+  auto mesh = nrs->meshV;
+  std::vector<dfloat> velocity(nrs->fluid->fieldOffsetSum, 0.0);
+  std::vector<dfloat> pressure(mesh->Nlocal, 1.0);
+  std::vector<dfloat> temperature(mesh->Nlocal, 0.0);
 
-  for (int n = 0; n < num_quadrature_points; n++) {
-    float xx = mesh->x[n];
-    float yy = mesh->y[n];
-    float zz = mesh->z[n];
-
-    nrs->U[n + 0 * nrs->fieldOffset] = 0;
-    nrs->U[n + 1 * nrs->fieldOffset] = 0;
-    nrs->U[n + 2 * nrs->fieldOffset] = 0;
-
-    nrs->P[n] = 1.0;
-
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 0.0;
-  }
-
-
+  nrs->fluid->o_U.copyFrom(velocity.data(), velocity.size());
+  nrs->fluid->o_P.copyFrom(pressure.data(), pressure.size());
+  nrs->scalar->o_solution("temperature").copyFrom(temperature.data(), temperature.size());
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
 }
