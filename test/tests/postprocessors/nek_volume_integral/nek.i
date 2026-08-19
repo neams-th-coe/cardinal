@@ -102,7 +102,7 @@
     type = NekVolumeIntegral
     field = temperature
   []
-  [temp_times_two_int]
+  [function_int]
     type = NekVolumeIntegral
     field = temperature
     function = two

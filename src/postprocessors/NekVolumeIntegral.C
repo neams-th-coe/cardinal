@@ -28,8 +28,7 @@ NekVolumeIntegral::validParams()
   InputParameters params = NekFieldPostprocessor::validParams();
 
   params.addClassDescription(
-      "Integral of a field, optionally multiplied by an analytical "
-      "function, over the NekRS volume mesh.");
+      "Integral of a NekRS field or a MOOSE function over the NekRS volume mesh.");
 
   return params;
 }
@@ -86,18 +85,21 @@ NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 {
   const Real vol = nekrs::volume(mesh);
 
+  if (_function)
+    return nekrs::volumeIntegral(_field, vol, mesh, _function, _t);
+
   if (_field == field::velocity_component)
   {
-    const Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, _function, _t);
-    const Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, _function, _t);
-    const Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, _function, _t);
+    const Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, nullptr, _t);
+    const Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, nullptr, _t);
+    const Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, nullptr, _t);
 
     const Point velocity(vx, vy, vz);
 
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, vol, mesh, _function, _t);
+  return nekrs::volumeIntegral(_field, vol, mesh, nullptr, _t);
 }
 
 #endif
