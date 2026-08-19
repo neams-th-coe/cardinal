@@ -12,10 +12,5 @@
                   "value of k_eff is less than the initial value, indicating the slab has expanded."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
-    # k_std_dev diffs at t=1: 1.297e-09 ~ 1.311e-09 = 1.107e-02 (1.107e-02)
-    # with -march=x86-64-v3; bump abs_zero
-    override_columns = "k_std_dev"
-    override_rel_err = "5.5e-6" # default value
-    override_abs_zero = "5e-9"
   []
 []
