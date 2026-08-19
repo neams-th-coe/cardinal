@@ -41,6 +41,9 @@ NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters)
 {
   if (_field == field::velocity_component)
     mooseError("Setting 'field = velocity_component' is not yet implemented!");
+
+  if (_function)
+    paramError("function", "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 }
 
 Real
