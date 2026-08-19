@@ -33,6 +33,11 @@ NekVolumeIntegral::validParams()
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
+  if (_function)
+    paramError(
+        "function",
+        "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived "
+        "classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 }
 
 Real
