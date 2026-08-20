@@ -9,16 +9,17 @@ a specified field over the volume of the NekRS mesh. For `value_type = max`,
 this postprocessor computes
 
 \begin{equation}
-p=\max_\Omega{f}
+p=\max_\Omega{v-f}
 \end{equation}
 
 where $p$ is the value of the postprocessor,
-$\Omega$ is the volume of the NekRS mesh, and
-$f$ is the specified field. For `value_type = min`, this postprocessor
+$\Omega$ is the volume of the NekRS mesh,
+$v$ is the specified field, and `f` is an optional function
+provided by the `function` parameter. For `value_type = min`, this postprocessor
 instead computes
 
 \begin{equation}
-p=\min_\Omega{f}
+p=\min_\Omega{v-f}
 \end{equation}
 
 To be clear, this postprocessor is *not* evaluated on the
@@ -34,6 +35,12 @@ Setting `field = unity` is equivalent to computing
 of more use for other postprocessors).
 
 !include /nondimensional.md
+
+The `function`, like all
+quantities in Cardinal input files, is given in dimensional form.
+If the `function` depends on time, that time is either the time of
+the start of the next timestep (if using the default of `execute_on = timestep_end`),
+or the time of the current timestep (if using `execute_on = timestep_begin`).
 
 ## Example Input Syntax
 
