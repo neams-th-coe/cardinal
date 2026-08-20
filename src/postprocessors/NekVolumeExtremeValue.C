@@ -41,12 +41,6 @@ NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters)
 {
   if (_field == field::velocity_component)
     mooseError("Setting 'field = velocity_component' is not yet implemented!");
-
-  if (_function)
-    paramError(
-        "function",
-        "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived "
-        "classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 }
 
 Real
@@ -55,10 +49,10 @@ NekVolumeExtremeValue::getValue() const
   switch (_type)
   {
     case operation::max:
-      return nekrs::volumeExtremeValue(_field, _pp_mesh, true /* max */);
+      return nekrs::volumeExtremeValue(_field, _pp_mesh, _function, _t, true /* max */);
       break;
     case operation::min:
-      return nekrs::volumeExtremeValue(_field, _pp_mesh, false /* min */);
+      return nekrs::volumeExtremeValue(_field, _pp_mesh, _function, _t, false /* min */);
       break;
     default:
       mooseError("Unhandled 'OperationEnum'!");

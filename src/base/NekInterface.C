@@ -715,7 +715,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max)
+volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const Function * function, const Real & time, const bool max)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -748,10 +748,17 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
+      const auto n = i * mesh->Np + j;
+      auto shift = evaluateFunctionOnMesh(function, time, n);
+
+      // then, because we are going to subtract this from the non-dimensional field
+      // in NekRS, we need to non-dimensionalize this dimensional result
+      shift = (shift == 0) ? shift : (shift - nondimensionalAdditive(field)) / nondimensionalDivisor(field);
+
       if (max)
-        value = std::max(value, f(i * mesh->Np + j, 0 /* unused */));
+        value = std::max(value, f(n, 0 /* unused */) - shift);
       else
-        value = std::min(value, f(i * mesh->Np + j, 0 /* unused */));
+        value = std::min(value, f(n, 0 /* unused */) - shift);
     }
   }
 
@@ -933,11 +940,12 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
   {
     // the function is given in dimensional form from MOOSE, so we need to
     // convert the x,y,z points we loop through on NekRS's mesh into the
-    // dimensional form before passing them into the dimensional function
+    // dimensional form before passing them into the dimensional function;
+    // we don't need to transform time because we get time passed in via
+    // MOOSE (not NekRS), so it is already dimensional
     Point p(x[id], y[id], z[id]);
     p *= scales.L_ref;
-    auto t = time * scales.t_ref;
-    shift = f->value(t, p);
+    shift = f->value(time, p);
   }
 
   return shift;

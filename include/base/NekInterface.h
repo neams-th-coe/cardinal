@@ -545,6 +545,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand,
  * @param[in] f function to query
  * @param[in] time time
  * @param[in] id element ID
+ * @return function evaluation, in dimensional form
  */
 double evaluateFunctionOnMesh(const Function * f, const Real time, const int id);
 
@@ -628,11 +629,15 @@ void gradient(const int offset,
  * Find the extreme value of a given field over the entire nekRS domain
  * @param[in] field field to find the minimum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
  * @param[in] max whether to take the maximum (or if false, the minimum)
  * @return max or min value of field in volume
  */
 double volumeExtremeValue(const field::NekFieldEnum & field,
                           const nek_mesh::NekMeshEnum pp_mesh,
+                          const Function * function,
+                          const Real & time,
                           const bool max);
 
 /**
