@@ -3,6 +3,11 @@
   file = ../meshes/pyramid.exo
 []
 
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
 [AuxVariables]
   [temp_test]
   []
@@ -16,6 +21,8 @@
   []
   [z_velocity_test]
   []
+  [temp_minus_f]
+  []
 []
 
 [ICs]
@@ -23,6 +30,11 @@
     type = FunctionIC
     variable = temp_test
     function = temp
+  []
+  [temp_minus_f]
+    type = FunctionIC
+    variable = temp_minus_f
+    function = temp_minus_f
   []
   [pressure_test]
     type = FunctionIC
@@ -51,24 +63,11 @@
   []
 []
 
-[Variables]
-  [dummy]
-  []
-[]
-
-[Kernels]
-  [dummy]
-    type = Diffusion
-    variable = dummy
-  []
-[]
-
-[BCs]
-  [fixed]
-    type = DirichletBC
-    variable = dummy
-    value = 1.0
-    boundary = '1'
+[AuxKernels]
+  [temp_minus_f]
+    type = FunctionAux
+    variable = temp_minus_f
+    function = temp_minus_f
   []
 []
 
@@ -97,6 +96,16 @@
     type = ParsedFunction
     expression = 'exp(x*y*z)'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
+  [temp_minus_f]
+    type = ParsedFunction
+    expression = 'temp - f'
+    symbol_names = 'temp f'
+    symbol_values = 'temp f'
+  []
 []
 
 [Executioner]
@@ -121,6 +130,16 @@
   [min_temp]
     type = NodalExtremeValue
     variable = temp_test
+    value_type = min
+  []
+  [max_tempf]
+    type = NodalExtremeValue
+    variable = temp_minus_f
+    value_type = max
+  []
+  [min_tempf]
+    type = NodalExtremeValue
+    variable = temp_minus_f
     value_type = min
   []
   [max_p]

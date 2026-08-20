@@ -16,6 +16,13 @@
   []
 []
 
+[Functions]
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
+[]
+
 [Outputs]
   csv = true
   execute_on = 'final'
@@ -31,6 +38,20 @@
     type = NekVolumeExtremeValue
     field = temperature
     value_type = min
+  []
+  [max_tempf]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = max
+    function = f
+    execute_on = timestep_begin
+  []
+  [min_tempf]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = min
+    function = f
+    execute_on = timestep_begin
   []
   [max_p]
     type = NekVolumeExtremeValue
