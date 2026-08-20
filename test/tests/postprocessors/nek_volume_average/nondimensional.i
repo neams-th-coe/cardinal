@@ -94,6 +94,10 @@
 []
 
 [Postprocessors]
+  [zero_average]
+    type = NekVolumeAverage
+    field = zero
+  []
   [unity_average]
     type = NekVolumeAverage
     field = unity
