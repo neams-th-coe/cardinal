@@ -715,7 +715,11 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const Function * function, const Real & time, const bool max)
+volumeExtremeValue(const field::NekFieldEnum & field,
+                   const nek_mesh::NekMeshEnum pp_mesh,
+                   const Function * function,
+                   const Real & time,
+                   const bool max)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -753,7 +757,8 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
 
       // then, because we are going to subtract this from the non-dimensional field
       // in NekRS, we need to non-dimensionalize this dimensional result
-      shift = (shift == 0) ? shift : (shift - nondimensionalAdditive(field)) / nondimensionalDivisor(field);
+      shift = (shift == 0) ? shift
+                           : (shift - nondimensionalAdditive(field)) / nondimensionalDivisor(field);
 
       if (max)
         value = std::max(value, f(n, 0 /* unused */) - shift);

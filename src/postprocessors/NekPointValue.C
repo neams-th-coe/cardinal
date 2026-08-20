@@ -179,7 +179,8 @@ NekPointValue::execute()
   // called with execute_on = timestep_begin; otherwise, it will be the time corresponding to
   // the next time step if called with execute_on = timestep_end (the default)
   auto function_value = _function ? _function->value(_t, _point) : 0.0;
-  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field) - function_value;
+  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field) -
+           function_value;
 }
 
 Real
