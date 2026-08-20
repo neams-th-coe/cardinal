@@ -1,6 +1,6 @@
 [Tests]
   design = 'NekVolumeIntegral.md'
-  issues = '#1065 #1345'
+  issues = '#1065 #1345 #1046'
   requirement = 'The system shall integrate the NekRS solution over a volume. This is tested by comparing against the output files of an identical setup in MOOSE, where identical integrals are computed using existing MOOSE postprocessors on the same mesh in'
 
   [nek]

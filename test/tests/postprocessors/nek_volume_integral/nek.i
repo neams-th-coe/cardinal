@@ -72,6 +72,13 @@
   []
 []
 
+[Functions]
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
+[]
+
 [Outputs]
   csv = true
   execute_on = 'final'
@@ -101,6 +108,12 @@
   [s01_int]
     type = NekVolumeIntegral
     field = scalar01
+  []
+  [s01_intf]
+    type = NekVolumeIntegral
+    field = scalar01
+    function = f
+    execute_on = timestep_begin
   []
   [s02_int]
     type = NekVolumeIntegral
