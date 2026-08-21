@@ -114,8 +114,6 @@
     field = temperature
   []
 
-  # subtracting off a constant should give temp_intf same value as temp_int but subtracting
-  # off 10 * volume
   [temp_intf]
     type = NekVolumeIntegral
     field = temperature
