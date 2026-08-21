@@ -22,18 +22,18 @@
   []
 
   [Dimensionalize]
-    L = 2
+    L = 2.0
     U = 0.2
-    T = 10
-    dT = 100
-    s01 = 15
-    ds01 = 150
-    s02 = 20
-    ds02 = 200
-    s03 = 30
-    ds03 = 300
-    rho = 1000
-    Cp = 4000
+    T = 10.0
+    dT = 100.0
+    s01 = 15.0
+    ds01 = 150.0
+    s02 = 20.0
+    ds02 = 200.0
+    s03 = 30.0
+    ds03 = 300.0
+    rho = 1000.0
+    Cp = 4000.0
   []
 []
 
@@ -73,11 +73,7 @@
   []
   [f]
     type = ParsedFunction
-    expression = 'x+y+z*z+t*100'
-  []
-  [g]
-    type = ParsedFunction
-    expression = '10.0'
+    expression = '10.0*(x+y+z)'
   []
 []
 
@@ -105,6 +101,14 @@
     type = NekVolumeIntegral
     field = unity
   []
+
+  # subtracting off 3 means that this value should be -2 * unity_int
+  [unity_intf]
+    type = NekVolumeIntegral
+    field = unity
+    function = '3'
+  []
+
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
@@ -115,11 +119,8 @@
   [temp_intf]
     type = NekVolumeIntegral
     field = temperature
-    function = g
-  []
-  [volume]
-    type = NekVolumeIntegral
-    field = unity
+    function = f
+    execute_on = timestep_end
   []
 
   [u00_int]
@@ -138,12 +139,6 @@
     type = NekVolumeIntegral
     field = scalar01
   []
-  #[s01_intf]
-  #  type = NekVolumeIntegral
-  #  field = scalar01
-  #  function = f
-  #  execute_on = timestep_begin
-  #[]
   [s02_int]
     type = NekVolumeIntegral
     field = scalar02

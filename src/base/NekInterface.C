@@ -995,7 +995,7 @@ volumeNorm(const field::NekFieldEnum & integrand,
 }
 
 double
-volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
+functionVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
                const nek_mesh::NekMeshEnum pp_mesh, const Function * function,
                const Real & time)
 {
@@ -1003,24 +1003,19 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 
   double integral = 0.0;
 
-  double (*f)(int, int);
-  f = solutionPointer(integrand);
-
   for (int k = 0; k < mesh->Nelements; ++k)
   {
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
     {
-      const auto n = offset + v;
-      auto shift = evaluateFunctionOnMesh(function, time, n);
-      std::cout << shift << std::endl;
+      auto shift = evaluateFunctionOnMesh(function, time, offset + v);
 
       // then, because we are going to subtract this from the non-dimensional field
       // in NekRS, we need to non-dimensionalize this dimensional result
       shift = (shift == 0) ? shift
                            : (shift - nondimensionalAdditive(integrand)) / nondimensionalDivisor(integrand);
-      integral += (f(n, 0 /* unused */) - shift) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += shift * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
@@ -1029,6 +1024,38 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  return total_integral;
+}
+
+double
+volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
+               const nek_mesh::NekMeshEnum pp_mesh, const Function * function,
+               const Real & time)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  double integral = 0.0;
+
+  double (*f)(int, int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
+
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  // this treats the overall term as \int (v - f) dV, subtracting off the dimensional
+  // contribution -\int f dV at the end
+  if (function)
+    total_integral -= functionVolumeIntegral(integrand, volume, pp_mesh, function, time);
 
   return total_integral;
 }
