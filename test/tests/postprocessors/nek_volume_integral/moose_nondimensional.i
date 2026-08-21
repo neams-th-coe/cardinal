@@ -147,6 +147,10 @@
     type = ParsedFunction
     expression = 'z/2'
   []
+  [f]
+   type = ParsedFunction
+   expression = 'x+y+z'
+  []
   [temp]
     type = ParsedFunction
     expression = '(exp(xx)+sin(yy)+xx*yy*zz)*100+10'

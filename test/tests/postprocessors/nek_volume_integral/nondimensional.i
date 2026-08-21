@@ -71,6 +71,14 @@
     type = ParsedFunction
     expression = 'exp(z/2)+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z*z+t*100'
+  []
+  [g]
+    type = ParsedFunction
+    expression = '10.0'
+  []
 []
 
 [Mesh]
@@ -101,6 +109,19 @@
     type = NekVolumeIntegral
     field = temperature
   []
+
+  # subtracting off a constant should give temp_intf same value as temp_int but subtracting
+  # off 10 * volume
+  [temp_intf]
+    type = NekVolumeIntegral
+    field = temperature
+    function = g
+  []
+  [volume]
+    type = NekVolumeIntegral
+    field = unity
+  []
+
   [u00_int]
     type = NekVolumeIntegral
     field = usrwrk00
@@ -117,6 +138,12 @@
     type = NekVolumeIntegral
     field = scalar01
   []
+  #[s01_intf]
+  #  type = NekVolumeIntegral
+  #  field = scalar01
+  #  function = f
+  #  execute_on = timestep_begin
+  #[]
   [s02_int]
     type = NekVolumeIntegral
     field = scalar02

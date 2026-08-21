@@ -996,7 +996,8 @@ volumeNorm(const field::NekFieldEnum & integrand,
 
 double
 volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh)
+               const nek_mesh::NekMeshEnum pp_mesh, const Function * function,
+               const Real & time)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -1010,7 +1011,17 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    {
+      const auto n = offset + v;
+      auto shift = evaluateFunctionOnMesh(function, time, n);
+      std::cout << shift << std::endl;
+
+      // then, because we are going to subtract this from the non-dimensional field
+      // in NekRS, we need to non-dimensionalize this dimensional result
+      shift = (shift == 0) ? shift
+                           : (shift - nondimensionalAdditive(integrand)) / nondimensionalDivisor(integrand);
+      integral += (f(n, 0 /* unused */) - shift) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
   }
 
   // sum across all processes
