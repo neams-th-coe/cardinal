@@ -8,12 +8,13 @@ This postprocessor computes the integral of
 a specified field over the volume of the NekRS mesh,
 
 \begin{equation}
-p=\int_{\Omega}f\ d\Omega
+p=\int_{\Omega}(v-f)\ d\Omega
 \end{equation}
 
 where $p$ is the value of the postprocessor,
-$\Omega$ is the volume of the nekrs mesh, and
-$f$ is the specified field.
+$\Omega$ is the volume of the nekrs mesh,
+$v$ is the specified field, and $f$ is an optional function
+provided by the `function` parameter.
 To be clear, this postprocessor is *not* evaluated on the
 [NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
@@ -23,6 +24,12 @@ used for computation in NekRS.
 Setting `field = unity` is equivalent to computing the volume.
 
 !include /nondimensional.md
+
+The `function`, like all
+quantities in Cardinal input files, is given in dimensional form.
+If the `function` depends on time, that time is either the time of
+the start of the next timestep (if using the default of `execute_on = timestep_end`),
+or the time of the current timestep (if using `execute_on = timestep_begin`).
 
 ## Example Input Syntax
 

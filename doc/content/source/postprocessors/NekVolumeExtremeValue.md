@@ -14,7 +14,7 @@ p=\max_\Omega{v-f}
 
 where $p$ is the value of the postprocessor,
 $\Omega$ is the volume of the NekRS mesh,
-$v$ is the specified field, and `f` is an optional function
+$v$ is the specified field, and $f$ is an optional function
 provided by the `function` parameter. For `value_type = min`, this postprocessor
 instead computes
 
