@@ -101,6 +101,11 @@
     type = NekVolumeIntegral
     field = unity
   []
+  [unity_intf]
+    type = NekVolumeIntegral
+    field = unity
+    function = '3.0'
+  []
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
