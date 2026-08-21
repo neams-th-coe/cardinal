@@ -995,9 +995,11 @@ volumeNorm(const field::NekFieldEnum & integrand,
 }
 
 double
-functionVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh, const Function * function,
-               const Real & time)
+functionVolumeIntegral(const field::NekFieldEnum & integrand,
+                       const Real & volume,
+                       const nek_mesh::NekMeshEnum pp_mesh,
+                       const Function * function,
+                       const Real & time)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -1013,8 +1015,9 @@ functionVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volum
 
       // then, because we are going to subtract this from the non-dimensional field
       // in NekRS, we need to non-dimensionalize this dimensional result
-      shift = (shift == 0) ? shift
-                           : (shift - nondimensionalAdditive(integrand)) / nondimensionalDivisor(integrand);
+      shift = (shift == 0)
+                  ? shift
+                  : (shift - nondimensionalAdditive(integrand)) / nondimensionalDivisor(integrand);
       integral += shift * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
@@ -1029,8 +1032,10 @@ functionVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volum
 }
 
 double
-volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh, const Function * function,
+volumeIntegral(const field::NekFieldEnum & integrand,
+               const Real & volume,
+               const nek_mesh::NekMeshEnum pp_mesh,
+               const Function * function,
                const Real & time)
 {
   mesh_t * mesh = getMesh(pp_mesh);

@@ -538,10 +538,10 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
  * @return volume integral of a field
  */
 double functionVolumeIntegral(const field::NekFieldEnum & integrand,
-                      const double & volume,
-                      const nek_mesh::NekMeshEnum pp_mesh,
-                      const Function * function,
-                      const Real & time);
+                              const double & volume,
+                              const nek_mesh::NekMeshEnum pp_mesh,
+                              const Function * function,
+                              const Real & time);
 
 /**
  * Compute the volume integral of a given integrand over the entire scalar mesh
