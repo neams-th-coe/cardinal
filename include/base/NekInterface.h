@@ -834,6 +834,13 @@ double get_temperature(const int id, const int surf_offset);
 double get_pressure(const int id, const int surf_offset);
 
 /**
+ * Return unity, for cases where the integrand or operator we are generalizing acts on 0
+ * @param[in] id GLL index
+ * @return zero
+ */
+double get_zero(const int id, const int surf_offset);
+
+/**
  * Return unity, for cases where the integrand or operator we are generalizing acts on 1
  * @param[in] id GLL index
  * @return unity

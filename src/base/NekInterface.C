@@ -1660,6 +1660,12 @@ get_pressure(const int id, const int surf_offset)
 }
 
 double
+get_zero(const int /* id */, const int surf_offset)
+{
+  return 0.0;
+}
+
+double
 get_unity(const int /* id */, const int surf_offset)
 {
   return 1.0;
@@ -1870,6 +1876,9 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
     case field::usrwrk02:
       f = &get_usrwrk02;
       break;
+    case field::zero:
+      f = &get_zero;
+      break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
@@ -2030,6 +2039,9 @@ nondimensionalDivisor(const field::NekFieldEnum & field)
       return scratchUnits(1);
     case field::usrwrk02:
       return scratchUnits(2);
+    case field::zero:
+      // no dimensionalization needed
+      return 1.0;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }

@@ -14,3 +14,4 @@ The field is specified with the `field` parameter, which may be one of:
 - `scalar02`: second non-temperature passive scalar
 - `scalar03`: third non-temperature passive scalar
 - `unity`: the value 1.0
+- `zero`: the value 0.0 (this is typically used when combining with a function shift, to only apply the operation to the function)
