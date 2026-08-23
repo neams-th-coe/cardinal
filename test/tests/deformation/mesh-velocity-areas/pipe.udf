@@ -4,23 +4,12 @@
 
 #endif
 
-void uservp(double time)
-{
-  if (!platform->options.compareArgs("GEOM SOLVER", "NONE"))
-  {
-    const dfloat nu = 1.0;
-    platform->linAlg->fill(nrs->meshV->Nlocal, nu, nrs->geom->o_prop);
-  }
-}
-
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
 
 void UDF_Setup()
 {
-  nrs->userProperties = &uservp;
-
   auto mesh = nrs->meshV;
   std::vector<dfloat> velocity(nrs->fluid->fieldOffsetSum, 0.0);
   std::vector<dfloat> pressure(mesh->Nlocal, 1.0);
