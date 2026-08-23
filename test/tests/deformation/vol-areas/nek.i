@@ -44,40 +44,40 @@
 
 [Postprocessors]
   [nekbdry_icar1]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '1'
-    field = unity
+    use_displaced_mesh = true
     execute_on = INITIAL
   []
   [nekbdry_ar1]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '1'
-    field = unity
+    use_displaced_mesh = true
   []
   [nekbdry_ar2]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '2'
-    field = unity
+    use_displaced_mesh = true
   []
   [nekbdry_ar3]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '3'
-    field = unity
+    use_displaced_mesh = true
   []
   [nekbdry_ar4]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '4'
-    field = unity
+    use_displaced_mesh = true
   []
   [nekbdry_ar5]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '5'
-    field = unity
+    use_displaced_mesh = true
   []
   [nekbdry_ar6]
-    type = NekSideIntegral
+    type = AreaPostprocessor
     boundary = '6'
-    field = unity
+    use_displaced_mesh = true
   []
 []
 
