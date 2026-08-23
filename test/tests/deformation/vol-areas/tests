@@ -1,18 +1,18 @@
 [Tests]
-  design = 'NekRSProblem.md NekRSMesh.md NekMeshDeformation.md NekSideIntegral.md'
   [deformed_areas]
     type = CSVDiff
     input = box-test.i
     csvdiff = 'box-test_out_nek0.csv box-test_out.csv'
     min_parallel = 4
     abs_zero = 1e-6
-    requirement = "An arbitrary mesh displacement in the main app will displace the NekRS mesh "
-                  "in the sub-app equivalently at each time step. This shall be verified by "
-                  "comparing NekRS side integrals against the areas of each sideset in the main app. "
-                  "The domain is a cube, with the initial area of each sideset equal to 4.0. "
-                  "The areas across the main and sub-app should match exactly, provided we use "
-                  "Gauss-Lobatto quadrature for the MOOSE area postprocessors to match NekRS's "
-                  "GLL quadrature."
+    design = 'NekRSProblem.md NekRSMesh.md NekMeshDeformation'
+    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
+                  "in the sub-app equivalently at each time-step. This shall be verified by"
+                  "comparing the areas of each sideset in both the main and the sub-app."
+                  "The domain is a cube, with the initial area of each of the"
+                  "sidesets being 4.0. The areas across the main and sub-app should match"
+                  "exactly, provided we are using Gauss Lobatto quadrature for MOOSE's area"
+                  "post-processors, in order to match NekRS's GLL quadrature."
     capabilities = 'nekrs'
   []
 []
