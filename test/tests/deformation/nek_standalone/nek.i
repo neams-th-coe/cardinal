@@ -17,8 +17,6 @@
 []
 
 [Postprocessors]
-  # TODO: After NekVolumeIntegral function support is merged, add a y-coordinate
-  # integral to directly verify that Nek-controlled motion updates the host coordinates.
   [volume]
     type = NekVolumeIntegral
     field = unity

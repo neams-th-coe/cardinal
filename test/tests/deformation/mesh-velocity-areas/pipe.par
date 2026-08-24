@@ -13,6 +13,9 @@
   initialGuess = projection+nVector=1
   residualTol = 1e-6
 
+[PROBLEMTYPE]
+equation = navierStokes + variableViscosity
+
 [FLUID PRESSURE]
   residualTol = 1e-4
   preconditioner = multigrid

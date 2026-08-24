@@ -1,6 +1,6 @@
 void udfDirichlet(bcData *bc)
 {
-  if (isField("fluid velocity"))
+  if (isField("fluid velocity") && bc->id == 1)
   {
     bc->uxFluid = 0.0;
     bc->uyFluid = 0.0;

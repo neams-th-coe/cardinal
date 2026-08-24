@@ -101,22 +101,25 @@
 
 [Transfers]
    [bdisp_x_to_nek]
-     type = MultiAppGeneralFieldNearestLocationTransfer
+     type = MultiAppGeometricInterpolationTransfer
      source_variable = disp_x_o
      to_multi_app = nek
      variable = disp_x
+     use_displaced_mesh = true
    []
    [bdisp_y_to_nek]
-     type = MultiAppGeneralFieldNearestLocationTransfer
+     type = MultiAppGeometricInterpolationTransfer
      source_variable = disp_y_o
      to_multi_app = nek
      variable = disp_y
+     use_displaced_mesh = true
    []
    [bdisp_z_to_nek]
-     type = MultiAppGeneralFieldNearestLocationTransfer
+     type = MultiAppGeometricInterpolationTransfer
      source_variable = disp_z_o
      to_multi_app = nek
      variable = disp_z
+     use_displaced_mesh = true
    []
 []
 
