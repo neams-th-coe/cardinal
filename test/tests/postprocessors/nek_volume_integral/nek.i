@@ -106,6 +106,11 @@
     field = unity
     function = '3.0'
   []
+  [unity_zero_field] # should give same value as unity_int
+    type = NekVolumeIntegral
+    field = zero
+    function = '-1'
+  []
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
