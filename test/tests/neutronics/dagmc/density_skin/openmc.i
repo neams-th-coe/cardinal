@@ -82,10 +82,6 @@ drho = 50.0
     fields_min = '0 ${fparse rho0 - drho}'
     fields_max = '1000 ${fparse rho0 + 2 * drho}'
     n_field_bins = '1 4'
-
-    # just one temperature bin
-
-
     build_graveyard = true
   []
 []

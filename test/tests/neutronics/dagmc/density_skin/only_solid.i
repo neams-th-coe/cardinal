@@ -36,10 +36,6 @@
     fields_min = '0 0'
     fields_max = '1000 100'
     n_field_bins = '1 4'
-
-    # just one temperature bin
-
-
     build_graveyard = true
   []
 []
