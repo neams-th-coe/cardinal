@@ -230,11 +230,13 @@ MoabSkinner::readFieldParameters()
   std::vector<Real> maxs;
   std::vector<unsigned int> n_bins;
 
+  // used to skin using only block ids
   if (!has_fields && !has_legacy)
-    paramError("fields",
-               "You must specify either 'fields' (with 'fields_min', 'fields_max', and "
-               "'n_field_bins') or the deprecated 'temperature'/'density' parameters.");
-
+  {
+    _console << "Skinning using block ID's only..." << std::endl;
+    return;
+  }
+  
   if (has_legacy)
   {
     const auto & temperature = getParam<std::string>("temperature");
