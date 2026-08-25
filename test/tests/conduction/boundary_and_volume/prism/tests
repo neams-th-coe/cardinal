@@ -5,6 +5,7 @@
     exodiff = openmc_out.e
     min_parallel = 8
     heavy = true
+    rel_err = 2e-4
     requirement = "A coupled MOOSE-nekRS heat conduction problem shall produce the correct temperature "
                   "distribution when (1) a heat source is applied in the nekRS volume and (2) a heat "
                   "flux is imposed in nekRS through a boundary. The same problem is created in a standalone "

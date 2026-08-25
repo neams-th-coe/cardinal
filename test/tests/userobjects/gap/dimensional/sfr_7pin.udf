@@ -28,9 +28,9 @@ void UDF_Setup()
     U[n + 1 * nrs->fieldOffset] = y[n];
     U[n + 2 * nrs->fieldOffset] = exp(z[n]);
 
-    P[n] = x[n]+y[n]+z[n];
+    P[n] = x[n]+y[n]+z[n]+1;
 
-    temp[n] = x[n]+y[n]+z[n];
+    temp[n] = x[n]+y[n]+z[n]+1;
   }
 
   // copy host data into the device data
