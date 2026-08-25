@@ -56,6 +56,10 @@
     type = ParsedFunction
     expression = 'exp(z)+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
 []
 
 [Mesh]
@@ -101,6 +105,12 @@
   [s01_average]
     type = NekVolumeAverage
     field = scalar01
+  []
+  [s01_averagef]
+    type = NekVolumeAverage
+    field = scalar01
+    function = f
+    execute_on = timestep_begin
   []
   [s02_average]
     type = NekVolumeAverage

@@ -1,6 +1,11 @@
+L_ref = 5.0
+U = 0.2
+
 [Mesh]
-  type = FileMesh
-  file = ../meshes/pyramid.exo
+  [f]
+    type = FileMeshGenerator
+    file = ../meshes/pyramid.exo
+  []
 []
 
 [Problem]
@@ -96,9 +101,9 @@
     type = ParsedFunction
     expression = 'exp(x*y*z)'
   []
-  [f]
+  [f] # express the function, nondimensional form
     type = ParsedFunction
-    expression = 'x+y+z+100*t'
+    expression = '((x+y+z)*${L_ref}-30)/200'
   []
   [temp_minus_f]
     type = ParsedFunction
@@ -136,11 +141,13 @@
     type = NodalExtremeValue
     variable = temp_minus_f
     value_type = max
+    execute_on = timestep_end
   []
   [min_tempf]
     type = NodalExtremeValue
     variable = temp_minus_f
     value_type = min
+    execute_on = timestep_end
   []
   [max_p]
     type = NodalExtremeValue

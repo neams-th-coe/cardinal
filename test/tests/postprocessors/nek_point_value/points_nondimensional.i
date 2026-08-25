@@ -74,6 +74,10 @@ Lref = 5.0
     type = ParsedFunction
     expression = 'exp(z/${Lref})+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z*z+t*100'
+  []
 []
 
 [Mesh]
@@ -96,6 +100,13 @@ Lref = 5.0
     type = NekPointValue
     field = temperature
     point = '0.25 0.3 0.27'
+  []
+  [tempf]
+    type = NekPointValue
+    field = temperature
+    point = '0.25 0.3 0.27'
+    function = f
+    execute_on = timestep_begin
   []
   [vx]
     type = NekPointValue

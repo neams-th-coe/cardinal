@@ -72,6 +72,13 @@
   []
 []
 
+[Functions]
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
+[]
+
 [Outputs]
   csv = true
   execute_on = 'final'
@@ -94,6 +101,16 @@
     type = NekVolumeIntegral
     field = unity
   []
+  [unity_intf]
+    type = NekVolumeIntegral
+    field = unity
+    function = '3.0'
+  []
+  [unity_zero_field] # should give same value as unity_int
+    type = NekVolumeIntegral
+    field = zero
+    function = '-1'
+  []
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
@@ -101,6 +118,12 @@
   [s01_int]
     type = NekVolumeIntegral
     field = scalar01
+  []
+  [s01_intf]
+    type = NekVolumeIntegral
+    field = scalar01
+    function = f
+    execute_on = timestep_begin
   []
   [s02_int]
     type = NekVolumeIntegral

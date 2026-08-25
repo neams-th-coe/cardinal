@@ -36,6 +36,16 @@
   []
   [scalar03]
   []
+  [scalar01_minus_f]
+  []
+[]
+
+[AuxKernels]
+  [scalar01_minus_f]
+    type = FunctionAux
+    variable = scalar01_minus_f
+    function = scalar01_minus_f
+  []
 []
 
 [ICs]
@@ -147,6 +157,16 @@
     type = ParsedFunction
     expression = 'exp(x)+sin(y)+x*y*z+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+100*t'
+  []
+  [scalar01_minus_f]
+    type = ParsedFunction
+    expression = 'scalar01 - f'
+    symbol_names = 'scalar01 f'
+    symbol_values = 'scalar01 f'
+  []
   [scalar02]
     type = ParsedFunction
     expression = 'exp(x)+sin(y)+x*y*z+2'
@@ -231,6 +251,10 @@
   [s01_average]
     type = ElementAverageValue
     variable = scalar01
+  []
+  [s01_averagef]
+    type = ElementAverageValue
+    variable = scalar01_minus_f
   []
   [s02_average]
     type = ElementAverageValue

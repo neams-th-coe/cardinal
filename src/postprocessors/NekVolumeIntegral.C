@@ -33,11 +33,6 @@ NekVolumeIntegral::validParams()
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
-  if (_function)
-    paramError(
-        "function",
-        "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived "
-        "classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 }
 
 Real
@@ -79,14 +74,14 @@ NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 
   if (_field == field::velocity_component)
   {
-    Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh);
-    Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh);
-    Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh);
+    Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh, _function, _t);
+    Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh, _function, _t);
+    Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh, _function, _t);
     Point velocity(vx, vy, vz);
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, vol, mesh);
+  return nekrs::volumeIntegral(_field, vol, mesh, _function, _t);
 }
 
 #endif

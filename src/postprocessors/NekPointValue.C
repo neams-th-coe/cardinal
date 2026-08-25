@@ -36,19 +36,16 @@ NekPointValue::validParams()
 NekPointValue::NekPointValue(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters), _point(getParam<Point>("point")), _value(0)
 {
-  if (_function)
-    paramError(
-        "function",
-        "Providing a shifting function is not yet supported by the NekSpatialBinUserObject derived "
-        "classes! Please contact the Cardinal developer team to accelerate this feature addition.");
 }
 
 void
 NekPointValue::execute()
 {
+  // convert to non-dimensional before we use the points to get the solution from NekRS
   std::vector<dfloat> x = {_point(0) / nekrs::referenceLength()};
   std::vector<dfloat> y = {_point(1) / nekrs::referenceLength()};
   std::vector<dfloat> z = {_point(2) / nekrs::referenceLength()};
+
   int n = x.size();
 
   auto nrs = nekrs::nrsPtr();
@@ -177,7 +174,13 @@ NekPointValue::execute()
       mooseError("Unhandled NekFieldEnum in NekPointValue!");
   }
 
-  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field);
+  // function value to subtract off; the function is dimensional, so evaluate at the
+  // dimensional position and dimensional time. This time will be the time of the timestep if
+  // called with execute_on = timestep_begin; otherwise, it will be the time corresponding to
+  // the next time step if called with execute_on = timestep_end (the default)
+  auto function_value = _function ? _function->value(_t, _point) : 0.0;
+  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field) -
+           function_value;
 }
 
 Real

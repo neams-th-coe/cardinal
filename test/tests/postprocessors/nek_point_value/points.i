@@ -56,6 +56,10 @@
     type = ParsedFunction
     expression = 'exp(z)+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z+t*100'
+  []
 []
 
 [Mesh]
@@ -158,6 +162,27 @@
     type = NekPointValue
     field = usrwrk02
     point = '0.25 0.3 0.27'
+  []
+
+  # the value of _t used when evaluating the function will either be the time of the time step (timestep_begin)
+  # or at the end of the timestep after time has already been incremented (timestep_end). Also, there is no
+  # need to test all the fields individually, since the shift is applied after dimensionalizing (equivalent
+  # operation for every field).
+  [compf_end]
+    type = NekPointValue
+    field = velocity_component
+    velocity_direction = '0.5 0.5 0.5'
+    point = '0.25 0.3 0.27'
+    function = f
+    execute_on = timestep_end
+  []
+  [compf_begin]
+    type = NekPointValue
+    field = velocity_component
+    velocity_direction = '0.5 0.5 0.5'
+    point = '0.25 0.3 0.27'
+    function = f
+    execute_on = timestep_begin
   []
 []
 
