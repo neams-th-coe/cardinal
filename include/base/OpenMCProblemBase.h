@@ -437,6 +437,12 @@ protected:
   /// Whether OpenMC cell transforms are being applied to the geometry
   bool hasCellTransform() const;
 
+  /**
+   * Whether the OpenMC geometry is being moved by a cell transform
+   * or a geometry changing criticality search
+   */
+  bool movesOpenMCGeometry() const;
+
   /// Ensure that the IDs of OpenMC objects in UserObjects don't clash
   void checkOpenMCUserObjectIDs() const;
 
