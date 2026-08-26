@@ -65,13 +65,20 @@ cmake -DCMAKE_INSTALL_PREFIX=$HOME/vtk/install \
       -DVTK_BUILD_TESTING=OFF \
       ../source
 
-make -j4
+make -j12
 make install
+```
+
+Add the following to your bashrc:
+
+```
+export LD_LIBRARY_PATH="${VTK_DIR}/lib:${LD_LIBRARY_PATH}"
 ```
 
 [!ac](VTK) is also used for some routines during the flow solve. As such, you will need to make
 [!ac](VTK) accessible to NekRS's `.udf` files. Edit the `cardinal/contrib/nekRS/src/udf/CMakeLists.txt` file
-to add the following:
+to add the following. Note that if you used a different version from 9.3, some lines below will need to
+be updated to reflect your version number.
 
 ```
 set(VTK_DIR "${HOME}/vtk/install")
@@ -89,13 +96,19 @@ if (VTK_FOUND)
     MODULES ${VTK_LIBRARIES}
   )
 else()
-  message(FATAL_ERROR "VTK 9.3 NOT FOUND! Please check VTK installation.")
+  message(FATAL_ERROR "VTK NOT FOUND! Please check VTK installation.")
 endif()
+```
+
+Then, add the following to your `.bashrc`:
+
+```
+export NEKRS_UDF_INCLUDES="${VTK_DIR}/include/vtk-9.3"
 ```
 
 ## CGAL
 
-[!ac](CGAL) is a header-only library that is used for . To install [!ac](CGAL) into a
+[!ac](CGAL) is a header-only library that is used for AYA FILL OUT. To install [!ac](CGAL) into a
 folder at `${HOME}/cgal`, follow the instructions below.
 
 ```
@@ -107,6 +120,28 @@ wget "https://github.com/CGAL/cgal/releases/download/v6.2/CGAL-6.2.tar.xz"
 tar -xf CGAL-6.2.tar.xz --strip-components=1 -C source
 ```
 
+Then, add the following to your `.bashrc`:
+
+```
+export CPLUS_INCLUDE_PATH="${HOME}/cgal/source/include:${CPLUS_INCLUDE_PATH}"
+```
+
+A dependency of CGAL is boost. Many HPC systems will have a boost module already,
+which you can load with a command similar to
+
+```
+module load boost
+```
+
+You will then need to add to your `.bashrc` the location where boost is installed
+(ask your system admin for this path if unknown):
+
+```
+export CPLUS_INCLUDE_PATH="/software/boost-1.91.0/include:${CPLUS_INCLUDE_PATH}"
+export LIBRARY_PATH="/software/boost-1.91.0/lib:${LIBRARY_PATH}"
+```
+
+
 ## Immersed Boundary Method Algorithm
 id=alg
 
@@ -116,7 +151,7 @@ This section describes how immersed boundary methods are implemented in NekRS.
    surface as a tesselation, using triangles. An [!ac](STL) file can be
    represented in either binary or ASCII format. Each triangle on the surface can be uniquely
    described with a unit normal and the $(x,y,z)$ coordinates of the three vertices. For example,
-   below is the [!ac](STL) file we will use in this tutorial.
+   below is the [!ac](STL) file we will use in this tutorial; this file is in ASCII format.
 
 !include /tutorials/ibm_sphere/small_sphere.stl
 
@@ -167,6 +202,8 @@ g++ -I${HOME}/vtk/install/include/vtk-9.3 -L${HOME}/vtk/install/lib -o delete_en
 ```
 cardinal-opt -i add_sidesets.i --mesh-only
 ```
+
+   For this tutorial, we have assigned the following sideset numbers: (1) inlet, (2) outlet, (3) four side-walls, and (4) surface of the cut elements that span the sphere surface.
 
 4. Run `exo2nek` to convert the background mesh into NekRS's `.re2` format. In this example, we would enter
    `add_sidesets_in` as the name of our mesh when prompted. We will name the output mesh `cube` to create a
