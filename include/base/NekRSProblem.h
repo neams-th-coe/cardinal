@@ -570,7 +570,4 @@ protected:
 
   /// Usrwrk slots managed by Cardinal
   std::set<unsigned int> _usrwrk_slots;
-
-  /// Whether the mesh in NekRS is controlled/moved by MOOSE
-  bool _moose_controls_mesh;
 };
