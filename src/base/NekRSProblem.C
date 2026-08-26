@@ -95,7 +95,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _elapsedStepSum(0.0),
     _elapsedTime(nekrs::getNekSetupTime()),
     _tSolveStepMin(std::numeric_limits<double>::max()),
-    _tSolveStepMax(std::numeric_limits<double>::min())
+    _tSolveStepMax(std::numeric_limits<double>::min()),
+    _moose_controls_mesh(false)
 {
   // fetch data from device to host; this needs to be here in case there are any Cardinal objects
   // executing on 'initial', so that this will execute even before NekRS has run any time steps
@@ -521,23 +522,17 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  bool moose_controls_mesh = false;
-
   // With the user mesh solver, MOOSE provides the full volume deformation. With a
   // blending solver, MOOSE only provides boundary velocities and NekRS moves the volume mesh.
   if (nekrs::hasUserMeshSolver())
-  {
     for (const auto & t : _field_transfers)
-    {
       if (dynamic_cast<NekMeshDeformation *>(t))
       {
-        moose_controls_mesh = true;
+        _moose_controls_mesh = true;
         break;
       }
-    }
-  }
 
-  if (nekrs::hasMovingMesh() && !moose_controls_mesh)
+  if (nekrs::hasMovingMesh() && !_moose_controls_mesh)
   {
     nekrs::copyMeshToHost();
     nekrs::updateHostMeshParameters();
@@ -834,23 +829,7 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  bool moose_controls_mesh = false;
-
-  // With the user mesh solver, MOOSE provides the full volume deformation. With a
-  // blending solver, MOOSE only provides boundary velocities and NekRS moves the volume mesh.
-  if (nekrs::hasUserMeshSolver())
-  {
-    for (const auto & t : _field_transfers)
-    {
-      if (dynamic_cast<NekMeshDeformation *>(t))
-      {
-        moose_controls_mesh = true;
-        break;
-      }
-    }
-  }
-
-  if (moose_controls_mesh)
+  if (_moose_controls_mesh)
     nekrs::copyDeformationToDevice();
 }
 
