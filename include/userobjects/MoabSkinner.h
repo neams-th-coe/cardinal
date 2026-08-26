@@ -84,8 +84,7 @@ public:
    * @param[in] elem element
    * @return field bin index
    */
-  virtual unsigned int getFieldBin(const unsigned int & field_index,
-                                   const Elem * const elem) const;
+  virtual unsigned int getFieldBin(const unsigned int & field_index, const Elem * const elem) const;
 
   /**
    * Get the bin index for a given binned field

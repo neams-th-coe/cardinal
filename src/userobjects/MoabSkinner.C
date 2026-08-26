@@ -229,8 +229,8 @@ MoabSkinner::readFieldParameters()
     if (sizes[i] != sizes[0])
       paramError(vnames[i],
                  "'" + vnames[i] + "' (length " + Moose::stringify(sizes[i]) +
-                     ") must be the same length as 'fields' (length " +
-                     Moose::stringify(sizes[0]) + ")");
+                     ") must be the same length as 'fields' (length " + Moose::stringify(sizes[0]) +
+                     ")");
 
   if (names.empty())
     paramError("fields", "You must specify at least one field to bin by.");
@@ -247,9 +247,8 @@ MoabSkinner::readFieldParameters()
       paramError("fields_max",
                  "The maximum bound for field '",
                  names[i],
-                 "' (" + Moose::stringify(maxs[i]) +
-                     ") must be greater than its minimum bound (" + Moose::stringify(mins[i]) +
-                     ").");
+                 "' (" + Moose::stringify(maxs[i]) + ") must be greater than its minimum bound (" +
+                     Moose::stringify(mins[i]) + ").");
 
     if (n_bins[i] == 0)
       paramError("n_field_bins", "Number of bins must be positive for field '" + names[i] + "'.");
@@ -452,8 +451,8 @@ MoabSkinner::update()
 {
   std::string field_string;
   for (const auto & f : _fields)
-    field_string += (field_string.empty() ? "" : ", ") + Moose::stringify(f.n_bins) + " " +
-                    f.name + " bins";
+    field_string +=
+        (field_string.empty() ? "" : ", ") + Moose::stringify(f.n_bins) + " " + f.name + " bins";
 
   _console << "Skinning geometry into " << _n_block_bins << " block bins and " << field_string
            << "... " << std::endl;
@@ -747,8 +746,8 @@ MoabSkinner::sortElemsByResults()
 
   // compute the total bin index for an element from its individual field and subdomain bins.
   // the first-listed field is the fastest-varying index.
-  auto total_bin = [this](const std::vector<unsigned int> & field_bins,
-                          const unsigned int block_bin)
+  auto total_bin =
+      [this](const std::vector<unsigned int> & field_bins, const unsigned int block_bin)
   {
     unsigned int total = 0;
     unsigned int bins_per_field = 1;
@@ -828,8 +827,7 @@ MoabSkinner::sortElemsByResults()
   {
     for (const auto i : index_range(_fields))
     {
-      VariadicTable<unsigned int, std::string, unsigned int> vt(
-          {"Bin", "Range", "# Elems"});
+      VariadicTable<unsigned int, std::string, unsigned int> vt({"Bin", "Range", "# Elems"});
 
       for (unsigned int b = 0; b < _fields[i].n_bins; ++b)
         vt.addRow(b,
