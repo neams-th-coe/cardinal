@@ -197,7 +197,7 @@ protected:
    */
   virtual unsigned int getFieldBin(const BinnedField & field, const Elem * const elem) const;
 
-  /// Read the 'fields' (or deprecated 'temperature'/'density') parameters and populate _fields
+  /// Read the 'fields' parameters and populate _fields
   void readFieldParameters();
 
   std::unique_ptr<NumericVector<Number>> _serialized_solution;

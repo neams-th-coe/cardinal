@@ -9,5 +9,5 @@ skin a mesh according to fields such as burnup, enrichment, or any other auxilia
 addition to temperature and density.
 
 The deprecated `temperature`, `temperature_min`, `temperature_max`, `n_temperature_bins`,
-`density`, `density_min`, `density_max`, and `n_density_bins` parameters are still supported,
-but new models should use the `fields` syntax.
+`density`, `density_min`, `density_max`, and `n_density_bins` parameters have been removed.
+Inputs using these parameters will now error; use the `fields` syntax instead.

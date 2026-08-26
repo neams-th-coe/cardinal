@@ -35,16 +35,6 @@ MoabSkinner::validParams()
   params.addParam<std::vector<Real>>("fields_max", "Upper bounds of the bins for each field");
   params.addParam<std::vector<unsigned int>>("n_field_bins", "Number of bins for each field");
 
-  // Deprecated legacy parameters; use 'fields' instead
-  params.addDeprecatedParam<std::string>("temperature", "", "Temperature variable by which to bin elements", "Use 'fields' instead");
-  params.addDeprecatedParam<Real>("temperature_min", 0.0, "Lower bound of temperature bins", "Use 'fields_min' instead");
-  params.addDeprecatedParam<Real>("temperature_max", 0.0, "Upper bound of temperature bins", "Use 'fields_max' instead");
-  params.addDeprecatedParam<unsigned int>("n_temperature_bins", 1, "Number of temperature bins", "Use 'n_field_bins' instead");
-  params.addDeprecatedParam<std::string>("density", "", "Density variable by which to bin elements", "Use 'fields' instead");
-  params.addDeprecatedParam<Real>("density_min", 0.0, "Lower bound of density bins", "Use 'fields_min' instead");
-  params.addDeprecatedParam<Real>("density_max", 0.0, "Upper bound of density bins", "Use 'fields_max' instead");
-  params.addDeprecatedParam<unsigned int>("n_density_bins", 1, "Number of density bins", "Use 'n_field_bins' instead");
-
   params.addParam<std::vector<SubdomainName>>(
       "material_blocks",
       "List of mesh subdomain names (or IDs) for which to assign material names in the generated "
@@ -217,63 +207,21 @@ MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
 void
 MoabSkinner::readFieldParameters()
 {
-  const bool has_fields = isParamSetByUser("fields");
-  const bool has_legacy = isParamSetByUser("temperature") || isParamSetByUser("density");
-
-  if (has_fields && has_legacy)
-    paramError("fields",
-               "You cannot specify 'fields' together with the deprecated 'temperature' or "
-               "'density' parameters.");
-
-  std::vector<std::string> names;
-  std::vector<Real> mins;
-  std::vector<Real> maxs;
-  std::vector<unsigned int> n_bins;
-
   // used to skin using only block ids
-  if (!has_fields && !has_legacy)
+  if (!isParamSetByUser("fields"))
   {
     _console << "Skinning using block ID's only..." << std::endl;
     return;
   }
-  
-  if (has_legacy)
-  {
-    const auto & temperature = getParam<std::string>("temperature");
-    if (temperature.empty())
-      mooseError("When using the deprecated 'temperature'/'density' parameters, you must specify "
-                 "a 'temperature' variable.");
 
-    names.push_back(temperature);
-    mins.push_back(getParam<Real>("temperature_min"));
-    maxs.push_back(getParam<Real>("temperature_max"));
-    n_bins.push_back(getParam<unsigned int>("n_temperature_bins"));
+  checkRequiredParam(parameters(), "fields_min", "specifying 'fields'");
+  checkRequiredParam(parameters(), "fields_max", "specifying 'fields'");
+  checkRequiredParam(parameters(), "n_field_bins", "specifying 'fields'");
 
-    if (isParamSetByUser("density"))
-    {
-      if (names.back() == getParam<std::string>("density"))
-        mooseError("The 'temperature' and 'density' variables cannot be the same!");
-
-      checkRequiredParam(parameters(), "density_max", "binning by density");
-      checkRequiredParam(parameters(), "n_density_bins", "binning by density");
-
-      names.push_back(getParam<std::string>("density"));
-      mins.push_back(getParam<Real>("density_min"));
-      maxs.push_back(getParam<Real>("density_max"));
-      n_bins.push_back(getParam<unsigned int>("n_density_bins"));
-    }
-  }
-  else
-  {
-    checkRequiredParam(parameters(), "fields_min", "specifying 'fields'");
-    checkRequiredParam(parameters(), "fields_max", "specifying 'fields'");
-    checkRequiredParam(parameters(), "n_field_bins", "specifying 'fields'");
-
-    names = getParam<std::vector<std::string>>("fields");
-    mins = getParam<std::vector<Real>>("fields_min");
-    maxs = getParam<std::vector<Real>>("fields_max");
-    n_bins = getParam<std::vector<unsigned int>>("n_field_bins");
-  }
+  const auto & names = getParam<std::vector<std::string>>("fields");
+  const auto & mins = getParam<std::vector<Real>>("fields_min");
+  const auto & maxs = getParam<std::vector<Real>>("fields_max");
+  const auto & n_bins = getParam<std::vector<unsigned int>>("n_field_bins");
 
   std::vector<std::string> vnames = {"fields", "fields_min", "fields_max", "n_field_bins"};
   std::array<std::size_t, 4> sizes = {names.size(), mins.size(), maxs.size(), n_bins.size()};
@@ -291,8 +239,6 @@ MoabSkinner::readFieldParameters()
   _fields.clear();
   for (const auto i : index_range(names))
   {
-    const std::string & param_name = has_legacy ? (i == 0 ? "temperature" : "density")
-                                                : "fields";
     if (seen_names.count(names[i]))
       paramError("fields", "Field '", names[i], "' was listed more than once in 'fields'!");
     seen_names.insert(names[i]);
@@ -310,7 +256,7 @@ MoabSkinner::readFieldParameters()
 
     BinnedField f;
     f.name = names[i];
-    f.var_num = getAuxiliaryVariableNumber(names[i], param_name);
+    f.var_num = getAuxiliaryVariableNumber(names[i], "fields");
     f.min = mins[i];
     f.max = maxs[i];
     f.width = (maxs[i] - mins[i]) / n_bins[i];
