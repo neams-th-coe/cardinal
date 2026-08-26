@@ -40,8 +40,7 @@ SkinnedBins::validParams()
 }
 
 SkinnedBins::SkinnedBins(const InputParameters & parameters)
-  : AuxKernel(parameters),
-    _skin_by(getParam<std::string>("skin_by"))
+  : AuxKernel(parameters), _skin_by(getParam<std::string>("skin_by"))
 {
   const UserObjectBase & base = getUserObjectBase("skinner");
   _skinner = dynamic_cast<const MoabSkinner *>(&base);
