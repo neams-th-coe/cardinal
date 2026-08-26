@@ -95,8 +95,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _elapsedStepSum(0.0),
     _elapsedTime(nekrs::getNekSetupTime()),
     _tSolveStepMin(std::numeric_limits<double>::max()),
-    _tSolveStepMax(std::numeric_limits<double>::min()),
-    _moose_controls_mesh(false)
+    _tSolveStepMax(std::numeric_limits<double>::min())
 {
   // fetch data from device to host; this needs to be here in case there are any Cardinal objects
   // executing on 'initial', so that this will execute even before NekRS has run any time steps
@@ -522,17 +521,7 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  // With the user mesh solver, MOOSE provides the full volume deformation. With a
-  // blending solver, MOOSE only provides boundary velocities and NekRS moves the volume mesh.
-  if (nekrs::hasUserMeshSolver())
-    for (const auto & t : _field_transfers)
-      if (dynamic_cast<NekMeshDeformation *>(t))
-      {
-        _moose_controls_mesh = true;
-        break;
-      }
-
-  if (nekrs::hasMovingMesh() && !_moose_controls_mesh)
+  if (nekrs::hasMovingMesh())
   {
     nekrs::copyMeshToHost();
     nekrs::updateHostMeshParameters();
@@ -829,7 +818,7 @@ NekRSProblem::copyHostToDevice()
   for (const auto & slot : _usrwrk_slots)
     copyIndividualScratchSlot(slot);
 
-  if (_moose_controls_mesh)
+  if (nekrs::hasMovingMesh())
     nekrs::copyDeformationToDevice();
 }
 
