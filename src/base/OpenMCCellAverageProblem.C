@@ -715,6 +715,22 @@ OpenMCCellAverageProblem::initialSetup()
                    density_var,
                    "' to the skinner's 'fields' parameter.");
 
+    for (const auto & field : _skinner->binnedFieldNames())
+    {
+      const bool has_temp = _temp_vars_to_blocks.count(field);
+      const bool has_density = _density_vars_to_blocks.count(field);
+      if (!has_temp && !has_density)
+        mooseError("Detected inconsistent settings for the '",
+                   name,
+                   "' skinner and this problem's feedback. The skinner bins by field '",
+                   field,
+                   "', but no temperature or density feedback is applied with a variable of "
+                   "that name. Please add feedback for '",
+                   field,
+                   "' (via 'temperature_blocks' or 'density_blocks'), or remove it from the "
+                   "skinner's 'fields' parameter.");
+    }
+
     if (_initial_condition == coupling::hdf5)
       paramError("initial_properties",
                  "Cannot load initial temperature and density properties from "
