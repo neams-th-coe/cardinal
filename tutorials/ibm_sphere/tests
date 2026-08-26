@@ -1,0 +1,11 @@
+[Tests]
+  design = 'NekRSProblem.md'
+  issues = '#1398'
+  [background_mesh]
+    type = CSVDiff
+    input = background_mesh.i
+    csvdiff = background_mesh_out.csv
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh of a rectangular prism for use as a background mesh.'
+  []
+[]
