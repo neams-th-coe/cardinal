@@ -4,7 +4,7 @@
   boundary = '2'
   parallel_type = replicated
   displacements = 'disp_x disp_y disp_z'
-  use_displaced_mesh =true
+  use_displaced_mesh = true
 []
 
 [Problem]
