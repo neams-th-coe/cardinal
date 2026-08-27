@@ -64,24 +64,6 @@
 []
 
 [Postprocessors]
-  [max_T]
-    type = ElementExtremeValue
-    variable = temp
-  []
-  [min_T]
-    type = ElementExtremeValue
-    variable = temp
-    value_type = min
-  []
-  [max_v]
-    type = ElementExtremeValue
-    variable = velocity
-  []
-  [min_v]
-    type = ElementExtremeValue
-    variable = velocity
-    value_type = min
-  []
   [max_T_diff]
     type = ElementExtremeValue
     variable = diff_T
@@ -90,30 +72,20 @@
     type = ElementExtremeValue
     variable = diff_v
   []
-  [fraction_T]
-    type = ParsedPostprocessor
-    expression = 'max_T_diff/(max_T-min_T)'
-    pp_names = 'max_T_diff max_T min_T'
-  []
   [pass_T]
     type = ParsedPostprocessor
-    expression = 'if (fraction_T < 0.2, 1, 0)'
-    pp_names = 'fraction_T'
-  []
-  [fraction_v]
-    type = ParsedPostprocessor
-    expression = 'max_v_diff/(max_v-min_v)'
-    pp_names = 'max_v_diff max_v min_v'
+    expression = 'if (max_T_diff < 0.2, 1, 0)'
+    pp_names = 'max_T_diff'
   []
   [pass_v]
     type = ParsedPostprocessor
-    expression = 'if (fraction_v < 0.2, 1, 0)'
-    pp_names = 'fraction_v'
+    expression = 'if (max_v_diff < 0.2, 1, 0)'
+    pp_names = 'max_v_diff'
   []
 []
 
 [Outputs]
   exodus = true
   csv = true
-  hide = 'max_T_diff max_v_diff fraction_T fraction_v max_T min_T max_v min_v'
+  hide = 'max_T_diff max_v_diff'
 []
