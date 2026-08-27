@@ -15,7 +15,7 @@
 #SBATCH --mail-type=all
 
 module purge
-module load openmpi/4.1.5_ucx1.14.1 cmake/3.29.3
+module load gcc/10.5.0-gcc-8.5.0-to6d openmpi/4.1.5-ucx1.14.1 cmake/3.29.3-gcc-10.5.0-gdyz python/3.10-miniforge-24.3.0
 
 # Total number of MPI ranks is the number of NUMBA nodes per compute node multiplied by the number of compute nodes requested by the user.
 let tasks=${SLURM_NNODES}*${SLURM_NTASKS_PER_NODE}
