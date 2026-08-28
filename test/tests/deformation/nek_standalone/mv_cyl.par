@@ -1,3 +1,5 @@
+userSections = CASEDATA
+
 [GENERAL]
 polynomialOrder = 3
 stopAt = numSteps
@@ -6,8 +8,10 @@ dt = 1e-3
 timeStepper = tombo3
 checkpointInterval = 50
 
-[MESH]
-boundaryTypeMap = codedFixedValue, zeroValue, sym
+scalars = TEMPERATURE
+
+[GEOM]
+boundaryTypeMap = udfDirichlet, zeroDirichlet, zeroDirichletN/zeroNeumann
 residualTol = 1e-6
 solver = pcg+block
 initialGuess = projection+nVector=1
@@ -17,11 +21,11 @@ residualTol = 1e-8
 initialGuess = previous
 
 [FLUID VELOCITY]
-boundaryTypeMap = codedFixedValue, zeroValue, sym
+boundaryTypeMap = udfDirichlet, zeroDirichlet, zeroDirichletN/zeroNeumann
 residualTol = 1e-12
 
 [SCALAR TEMPERATURE]
-boundaryTypeMap = zeroGradient,zeroGradient,zeroGradient
+boundaryTypeMap = zeroNeumann, zeroNeumann, zeroNeumann
 residualTol = 1e-12
 
 [CASEDATA]
@@ -30,7 +34,6 @@ YLEN = 1.5
 ZLEN = 0.1
 
 P_GAMMA = 1.4
-P_DELTA = 0.2
 P_OMEGA = 3.141592653589793
 P_AMP = 1.5707963267948966
 P_ROT = 0.0

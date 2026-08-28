@@ -715,7 +715,11 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max)
+volumeExtremeValue(const field::NekFieldEnum & field,
+                   const nek_mesh::NekMeshEnum pp_mesh,
+                   const Function * function,
+                   const Real & time,
+                   const bool max)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -748,10 +752,18 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
+      const auto n = i * mesh->Np + j;
+      auto shift = evaluateFunctionOnMesh(function, time, n);
+
+      // then, because we are going to subtract this from the non-dimensional field
+      // in NekRS, we need to non-dimensionalize this dimensional result
+      shift = (shift == 0) ? shift
+                           : (shift - nondimensionalAdditive(field)) / nondimensionalDivisor(field);
+
       if (max)
-        value = std::max(value, f(i * mesh->Np + j, 0 /* unused */));
+        value = std::max(value, f(n, 0 /* unused */) - shift);
       else
-        value = std::min(value, f(i * mesh->Np + j, 0 /* unused */));
+        value = std::min(value, f(n, 0 /* unused */) - shift);
     }
   }
 
@@ -933,11 +945,12 @@ evaluateFunctionOnMesh(const Function * f, const Real time, const int id)
   {
     // the function is given in dimensional form from MOOSE, so we need to
     // convert the x,y,z points we loop through on NekRS's mesh into the
-    // dimensional form before passing them into the dimensional function
+    // dimensional form before passing them into the dimensional function;
+    // we don't need to transform time because we get time passed in via
+    // MOOSE (not NekRS), so it is already dimensional
     Point p(x[id], y[id], z[id]);
     p *= scales.L_ref;
-    auto t = time * scales.t_ref;
-    shift = f->value(t, p);
+    shift = f->value(time, p);
   }
 
   return shift;
@@ -982,11 +995,50 @@ volumeNorm(const field::NekFieldEnum & integrand,
 }
 
 double
-volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const nek_mesh::NekMeshEnum pp_mesh)
+functionVolumeIntegral(const field::NekFieldEnum & integrand,
+                       const Real & volume,
+                       const nek_mesh::NekMeshEnum pp_mesh,
+                       const Function * function,
+                       const Real & time)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
+  double integral = 0.0;
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      auto shift = evaluateFunctionOnMesh(function, time, offset + v);
+
+      // then, because we are going to subtract this from the non-dimensional field
+      // in NekRS, we need to non-dimensionalize this dimensional result
+      shift = (shift == 0)
+                  ? shift
+                  : (shift - nondimensionalAdditive(integrand)) / nondimensionalDivisor(integrand);
+      integral += shift * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
+
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  return total_integral;
+}
+
+double
+volumeIntegral(const field::NekFieldEnum & integrand,
+               const Real & volume,
+               const nek_mesh::NekMeshEnum pp_mesh,
+               const Function * function,
+               const Real & time)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
   double integral = 0.0;
 
   double (*f)(int, int);
@@ -995,7 +1047,6 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
   for (int k = 0; k < mesh->Nelements; ++k)
   {
     int offset = k * mesh->Np;
-
     for (int v = 0; v < mesh->Np; ++v)
       integral += f(offset + v, 0 /* unused */) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
@@ -1005,6 +1056,11 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  // this treats the overall term as \int (v - f) dV, subtracting off the dimensional
+  // contribution -\int f dV at the end
+  if (function)
+    total_integral -= functionVolumeIntegral(integrand, volume, pp_mesh, function, time);
 
   return total_integral;
 }
@@ -1660,6 +1716,12 @@ get_pressure(const int id, const int surf_offset)
 }
 
 double
+get_zero(const int /* id */, const int surf_offset)
+{
+  return 0.0;
+}
+
+double
 get_unity(const int /* id */, const int surf_offset)
 {
   return 1.0;
@@ -1870,6 +1932,9 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
     case field::usrwrk02:
       f = &get_usrwrk02;
       break;
+    case field::zero:
+      f = &get_zero;
+      break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
@@ -2030,6 +2095,9 @@ nondimensionalDivisor(const field::NekFieldEnum & field)
       return scratchUnits(1);
     case field::usrwrk02:
       return scratchUnits(2);
+    case field::zero:
+      // no dimensionalization needed
+      return 1.0;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }

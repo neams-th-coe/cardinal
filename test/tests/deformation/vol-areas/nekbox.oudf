@@ -1,20 +1,16 @@
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  bc->u = 0.0;
-  bc->v = 0.0;
-  bc->w = 0.0;
+  bc->sScalar = (sin(bc->x) * sin(bc->y) * sin(bc->z)) + 5;
 }
 
-void scalarDirichletConditions(bcData *bc)
+@kernel void mooseHeatSource(const dlong Nelements,
+                             const dlong offset,
+                             @ restrict const dfloat * source,
+                             @ restrict dfloat * QVOL)
 {
-  bc->s = (sin(bc->x)*sin(bc->y)*sin(bc->z))+5;
-}
-
-@kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
-{
-  for(dlong e=0;e<Nelements;++e;@outer(0)){
-    for(int n=0;n<p_Np;++n;@inner(0)){
-      const int id = e*p_Np + n;
+  for (dlong e = 0; e < Nelements; ++e; @outer(0)) {
+    for (int n = 0; n < p_Np; ++n; @inner(0)) {
+      const int id = e * p_Np + n;
       QVOL[id] = source[offset + id];
     }
   }

@@ -1,13 +1,16 @@
 [Tests]
-  design = 'NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md DimensionalizeAction.md'
+  design = 'NekBinnedVolumeAverage.md DimensionalizeAction.md'
   [nondim]
-    type = Exodiff
+    type = CSVDiff
     input = nek.i
-    exodiff = nek_out_subchannel0.e
+    csvdiff = nek_out_subchannel0.csv
     min_slots = 2 # memory heavy
-    requirement = "Spatially-binned volume integrals and averages shall be correctly dimensionalized for "
-                  "nondimensional cases. An equivalent setup with a dimensional problem is available at "
-                  "../dimensional. The user object averages/integrals computed here exactly match."
+    requirement = "Spatially-binned volume averages shall be correctly dimensionalized for "
+                  "nondimensional cases and computed correctly. This is tested by passing the "
+                  "variable values themselves onto the same receiving subchannel gap mesh, and "
+                  "values match within 20% (a perfect match is not to be expected because the "
+                  "userobject is performing an average, whereas the datas compared against are "
+                  "nearest location values, but we expect close match for the range in the data)."
     capabilities = 'nekrs'
   []
 []

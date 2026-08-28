@@ -529,15 +529,34 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
                                 const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
+ * Compute the volume integral of a given function over the entire scalar mesh
+ * @param[in] integrand field to integrate
+ * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
+ * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
+ * @return volume integral of a field
+ */
+double functionVolumeIntegral(const field::NekFieldEnum & integrand,
+                              const double & volume,
+                              const nek_mesh::NekMeshEnum pp_mesh,
+                              const Function * function,
+                              const Real & time);
+
+/**
  * Compute the volume integral of a given integrand over the entire scalar mesh
  * @param[in] integrand field to integrate
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
  * @return volume integral of a field
  */
 double volumeIntegral(const field::NekFieldEnum & integrand,
                       const double & volume,
-                      const nek_mesh::NekMeshEnum pp_mesh);
+                      const nek_mesh::NekMeshEnum pp_mesh,
+                      const Function * function,
+                      const Real & time);
 
 /**
  * Transform the point and time passed into a function into dimensional form, because
@@ -545,6 +564,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand,
  * @param[in] f function to query
  * @param[in] time time
  * @param[in] id element ID
+ * @return function evaluation, in dimensional form
  */
 double evaluateFunctionOnMesh(const Function * f, const Real time, const int id);
 
@@ -628,11 +648,15 @@ void gradient(const int offset,
  * Find the extreme value of a given field over the entire nekRS domain
  * @param[in] field field to find the minimum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
+ * @param[in] function MOOSE function to use to shift the field
+ * @param[in] time time to evaluate function at
  * @param[in] max whether to take the maximum (or if false, the minimum)
  * @return max or min value of field in volume
  */
 double volumeExtremeValue(const field::NekFieldEnum & field,
                           const nek_mesh::NekMeshEnum pp_mesh,
+                          const Function * function,
+                          const Real & time,
                           const bool max);
 
 /**
@@ -832,6 +856,13 @@ double get_temperature(const int id, const int surf_offset);
  * @return pressure value at index
  */
 double get_pressure(const int id, const int surf_offset);
+
+/**
+ * Return unity, for cases where the integrand or operator we are generalizing acts on 0
+ * @param[in] id GLL index
+ * @return zero
+ */
+double get_zero(const int id, const int surf_offset);
 
 /**
  * Return unity, for cases where the integrand or operator we are generalizing acts on 1

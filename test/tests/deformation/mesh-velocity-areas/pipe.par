@@ -5,15 +5,16 @@
   dt = 2e-3
   timeStepper = tombo2
   checkpointInterval = 50
+  scalars = temperature
 
-[MESH]
-  boundaryTypeMap = zeroValue,codedFixedValue,zeroValue
+[GEOM]
+  boundaryTypeMap = zeroDirichlet, udfDirichlet, zeroDirichlet
   solver = pcg+block
   initialGuess = projection+nVector=1
   residualTol = 1e-6
 
 [PROBLEMTYPE]
-  stressFormulation = true
+equation = navierStokes + variableViscosity
 
 [FLUID PRESSURE]
   residualTol = 1e-4
@@ -23,7 +24,7 @@
 [FLUID VELOCITY]
   density = 1.0
   viscosity = 0.01
-  boundaryTypeMap = codedFixedValue,codedFixedValue,zeroGradient
+  boundaryTypeMap = udfDirichlet, udfDirichlet, zeroNeumann
   residualTol = 1e-6
 
 [SCALAR TEMPERATURE]

@@ -34,7 +34,3 @@ If you do want to use DAGMC with Embree, set:
 export ENABLE_DOUBLE_DOWN=yes
 ```
 !alert-end!
-
-!alert! note title=External HDF5
-Double-Down does not compile if using an external HDF5, such as when loading by a module on an HPC system. The easiest way to compile with Double-Down is to let PETSc handle the HDF5 download for you (by disabling any HDF5 module load).
-!alert-end!

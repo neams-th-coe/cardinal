@@ -1,28 +1,15 @@
-// Boundary conditions
-void velocityDirichletConditions(bcData *bc)
+void udfDirichlet(bcData *bc)
 {
-  if (bc->id==1)
+  if (isField("fluid velocity") && bc->id == 1)
   {
-    bc->u = 0.0;
-    bc->v = 0.0;
-    bc->w = 0.0;
+    bc->uxFluid = 0.0;
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 0.0;
   }
-}
-
-void meshVelocityDirichletConditions(bcData *bc)
-{
-  // note: when running with Cardinal, Cardinal will allocate the usrwrk
-  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
-  // replace the usrwrk with some other value or allocate it youself from
-  // the udf and populate it with values.
-  if (bc->id==2)
+  else if (isField("geom") && bc->id == 2)
   {
-    bc->meshu = bc->usrwrk[bc->idM + 1*bc->fieldOffset];
-    bc->meshv = bc->usrwrk[bc->idM + 2*bc->fieldOffset];
-    bc->meshw = bc->usrwrk[bc->idM + 3*bc->fieldOffset];
+    bc->uxGeom = bc->usrwrk[1 * bc->fieldOffset + bc->idxVol];
+    bc->uyGeom = bc->usrwrk[2 * bc->fieldOffset + bc->idxVol];
+    bc->uzGeom = bc->usrwrk[3 * bc->fieldOffset + bc->idxVol];
   }
-}
-
-void pressureDirichletConditions(bcData *bc)
-{
 }

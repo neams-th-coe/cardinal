@@ -521,6 +521,12 @@ NekRSProblem::externalSolve()
   auto nrs = nekrs::nrsPtr();
   nrs->copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
+  if (nekrs::hasMovingMesh())
+  {
+    nekrs::copyMeshToHost();
+    nekrs::updateHostMeshParameters();
+  }
+
   if (nekrs::printStepInfoFreq())
     if (_t_step % nekrs::printStepInfoFreq() == 0)
       nekrs::printStepInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
@@ -613,20 +619,35 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       solution.localize(*_serialized_solution);
 
+      bool data_transferred_to_nek = false;
+
       // execute all incoming field transfers
       for (const auto & t : _field_transfers)
+      {
         if (t->direction() == "to_nek")
+        {
           t->sendDataToNek();
+          data_transferred_to_nek = true;
+        }
+      }
 
       // execute all incoming scalar transfers
       for (const auto & t : _scalar_transfers)
+      {
         if (t->direction() == "to_nek")
+        {
           t->sendDataToNek();
+          data_transferred_to_nek = true;
+        }
+      }
 
       // update any user-defined properties (could be used for UQ)
-      auto nrs = nekrs::nrsPtr();
-      if (nrs->userProperties)
-        nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
+      if (data_transferred_to_nek)
+      {
+        auto nrs = nekrs::nrsPtr();
+        if (nrs->userProperties)
+          nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
+      }
 
       // copy host-side arrays which were filled to the device
       copyHostToDevice();

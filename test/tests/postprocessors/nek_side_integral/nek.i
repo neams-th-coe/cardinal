@@ -22,6 +22,11 @@
 []
 
 [Postprocessors]
+  [zero]
+    type = NekSideIntegral
+    field = zero
+    boundary = '1'
+  []
   [area_side1]
     type = NekSideIntegral
     field = unity

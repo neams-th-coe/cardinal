@@ -26,17 +26,36 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [integral_T]
+  [temp]
     family = MONOMIAL
     order = CONSTANT
   []
-  [integral_p]
+  [velocity]
     family = MONOMIAL
     order = CONSTANT
   []
-  [integral_v]
+  [diff_T]
     family = MONOMIAL
     order = CONSTANT
+  []
+  [diff_v]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [diff_T]
+    type = ParsedAux
+    variable= diff_T
+    expression = 'abs(temp-avg_T)/abs(temp)'
+    coupled_variables = 'temp avg_T'
+  []
+  [diff_v]
+    type = ParsedAux
+    variable= diff_v
+    expression = 'abs(velocity-avg_v)/abs(velocity)'
+    coupled_variables = 'velocity avg_v'
   []
 []
 
@@ -44,6 +63,29 @@
   type = Transient
 []
 
+[Postprocessors]
+  [max_T_diff]
+    type = ElementExtremeValue
+    variable = diff_T
+  []
+  [max_v_diff]
+    type = ElementExtremeValue
+    variable = diff_v
+  []
+  [pass_T]
+    type = ParsedPostprocessor
+    expression = 'if (max_T_diff < 0.2, 1, 0)'
+    pp_names = 'max_T_diff'
+  []
+  [pass_v]
+    type = ParsedPostprocessor
+    expression = 'if (max_v_diff < 0.2, 1, 0)'
+    pp_names = 'max_v_diff'
+  []
+[]
+
 [Outputs]
   exodus = true
+  csv = true
+  hide = 'max_T_diff max_v_diff'
 []

@@ -6,16 +6,16 @@
   [Dimensionalize]
     L = 2
     U = 0.2
-    T = 10
-    dT = 100
-    s01 = 15
-    ds01 = 150
-    s02 = 20
-    ds02 = 200
-    s03 = 30
-    ds03 = 300
-    rho = 1000
-    Cp = 4000
+    T = 10.0
+    dT = 100.0
+    s01 = 15.0
+    ds01 = 150.0
+    s02 = 20.0
+    ds02 = 200.0
+    s03 = 30.0
+    ds03 = 300.0
+    rho = 1000.0
+    Cp = 4000.0
   []
 
   [FieldTransfers]
@@ -71,8 +71,11 @@
     type = ParsedFunction
     expression = 'exp(z/2)+1'
   []
+  [f]
+    type = ParsedFunction
+    expression = '10.0*(x+y+z)'
+  []
 []
-
 
 [Mesh]
   type = NekRSMesh
@@ -94,14 +97,33 @@
 []
 
 [Postprocessors]
+  [zero_average]
+    type = NekVolumeAverage
+    field = zero
+  []
   [unity_average]
     type = NekVolumeAverage
     field = unity
   []
+
+  # subtracting off any constant value will result in a value of 1 minus that constant value (-344)
+  [unity_averagef]
+    type = NekVolumeAverage
+    field = unity
+    function = '345.0'
+  []
+
   [temp_average]
     type = NekVolumeAverage
     field = temperature
   []
+  [temp_averagef]
+    type = NekVolumeAverage
+    field = temperature
+    function = f
+    execute_on = timestep_end
+  []
+
   [u00_average]
     type = NekVolumeAverage
     field = usrwrk00

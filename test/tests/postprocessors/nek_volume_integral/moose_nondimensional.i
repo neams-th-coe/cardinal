@@ -14,6 +14,8 @@
 [AuxVariables]
   [temp]
   []
+  [temp_f]
+  []
   [pressure]
   []
   [velocity]
@@ -51,6 +53,11 @@
     type = FunctionIC
     variable = temp
     function = temp
+  []
+  [temp_f]
+    type = FunctionIC
+    variable = temp_f
+    function = temp_f
   []
   [scalar01]
     type = FunctionIC
@@ -150,6 +157,12 @@
   [temp]
     type = ParsedFunction
     expression = '(exp(xx)+sin(yy)+xx*yy*zz)*100+10'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
+  []
+  [temp_f]
+    type = ParsedFunction
+    expression = '(exp(xx)+sin(yy)+xx*yy*zz)*100+10-10*(x+y+z)'
     symbol_names = 'xx yy zz'
     symbol_values = 'xx yy zz'
   []
@@ -268,6 +281,10 @@
   [temp_int]
     type = ElementIntegralVariablePostprocessor
     variable = temp
+  []
+  [temp_intf]
+    type = ElementIntegralVariablePostprocessor
+    variable = temp_f
   []
   [u00_int]
     type = ElementIntegralVariablePostprocessor

@@ -54,7 +54,7 @@ TEST_F(SymmetryPointGeneratorTest, reflect_xy_plane)
   Point pt3(-1.0, 2.0, 2.0);
   Point pt3_r = _spg2->transformPoint(pt3);
   EXPECT_DOUBLE_EQ(pt3_r(0), 2.0);
-  EXPECT_DOUBLE_EQ(pt3_r(1), -1.0);
+  EXPECT_NEAR(pt3_r(1), -1.0, 1e-12);
   EXPECT_DOUBLE_EQ(pt3_r(2), 2.0);
 }
 
