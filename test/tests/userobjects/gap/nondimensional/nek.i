@@ -28,20 +28,10 @@
       direction = from_nek
       field = pressure
     []
-    [vel_x]
+    [velocity]
       type = NekFieldVariable
       direction = from_nek
-      field = velocity_x
-    []
-    [vel_y]
-      type = NekFieldVariable
-      direction = from_nek
-      field = velocity_y
-    []
-    [vel_z]
-      type = NekFieldVariable
-      direction = from_nek
-      field = velocity_z
+      field = velocity
     []
   []
 []
@@ -56,18 +46,6 @@
     order = CONSTANT
   []
   [avg_v]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_T]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_p]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_v]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -88,21 +66,6 @@
     type = SpatialUserObjectAux
     variable = avg_v
     user_object = avg_v
-  []
-  [integral_T]
-    type = SpatialUserObjectAux
-    variable = integral_T
-    user_object = integral_T
-  []
-  [integral_p]
-    type = SpatialUserObjectAux
-    variable = integral_p
-    user_object = integral_p
-  []
-  [integral_v]
-    type = SpatialUserObjectAux
-    variable = integral_v
-    user_object = integral_v
   []
 []
 
@@ -131,21 +94,6 @@
   []
   [avg_v]
     type = NekBinnedVolumeAverage
-    bins = 'subchannel_binning axial_binning'
-    field = velocity
-  []
-  [integral_T]
-    type = NekBinnedVolumeIntegral
-    bins = 'subchannel_binning axial_binning'
-    field = temperature
-  []
-  [integral_p]
-    type = NekBinnedVolumeIntegral
-    bins = 'subchannel_binning axial_binning'
-    field = pressure
-  []
-  [integral_v]
-    type = NekBinnedVolumeIntegral
     bins = 'subchannel_binning axial_binning'
     field = velocity
   []
@@ -178,23 +126,17 @@
     to_multi_app = subchannel
     variable = avg_v
   []
-  [uo4_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_T
+  [var1_to_sub]
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    source_variable = temp
     to_multi_app = subchannel
-    variable = integral_T
+    variable = temp
   []
-  [uo5_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_p
+  [var3_to_sub]
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    source_variable = velocity
     to_multi_app = subchannel
-    variable = integral_p
-  []
-  [uo6_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_v
-    to_multi_app = subchannel
-    variable = integral_v
+    variable = velocity
   []
 []
 

@@ -32,14 +32,14 @@ void UDF_Setup()
 
     // same ICs as in ../dimensional, except that we've non-dimensionalized
     // with some arbitrary characteristic scales
-    U[n + 0 * nrs->fieldOffset] = xdim / 2.0;
-    U[n + 1 * nrs->fieldOffset] = ydim / 2.0;
-    U[n + 2 * nrs->fieldOffset] = exp(zdim) / 2.0;
+    U[n + 0 * nrs->fieldOffset] = xdim * 100 / 2.0;
+    U[n + 1 * nrs->fieldOffset] = ydim * 100 / 2.0;
+    U[n + 2 * nrs->fieldOffset] = exp(zdim * 2) / 2.0;
 
     dfloat kp = 834.5 * 2.0 * 2.0;
-    P[n] = (xdim+ydim+zdim) / kp;
+    P[n] = (xdim*10+ydim*10+zdim*10+1) / kp;
 
-    temp[n] = (xdim+ydim+zdim - 100.0) / 50.0;
+    temp[n] = (xdim*10+ydim*10+zdim*10+1 - 100.0) / 50.0;
   }
 
   // copy host data into the device data

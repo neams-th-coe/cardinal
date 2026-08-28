@@ -26,18 +26,6 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [integral_T]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_p]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_v]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [Executioner]

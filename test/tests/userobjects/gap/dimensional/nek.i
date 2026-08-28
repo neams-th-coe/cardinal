@@ -53,18 +53,6 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [integral_T]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_p]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [integral_v]
-    family = MONOMIAL
-    order = CONSTANT
-  []
 []
 
 [AuxKernels]
@@ -87,21 +75,6 @@
     type = SpatialUserObjectAux
     variable = avg_v
     user_object = avg_v
-  []
-  [integral_T]
-    type = SpatialUserObjectAux
-    variable = integral_T
-    user_object = integral_T
-  []
-  [integral_p]
-    type = SpatialUserObjectAux
-    variable = integral_p
-    user_object = integral_p
-  []
-  [integral_v]
-    type = SpatialUserObjectAux
-    variable = integral_v
-    user_object = integral_v
   []
 []
 
@@ -138,21 +111,6 @@
     bins = 'subchannel_binning axial_binning'
     field = velocity
   []
-  [integral_T]
-    type = NekBinnedVolumeIntegral
-    bins = 'subchannel_binning axial_binning'
-    field = temperature
-  []
-  [integral_p]
-    type = NekBinnedVolumeIntegral
-    bins = 'subchannel_binning axial_binning'
-    field = pressure
-  []
-  [integral_v]
-    type = NekBinnedVolumeIntegral
-    bins = 'subchannel_binning axial_binning'
-    field = velocity
-  []
 []
 
 [MultiApps]
@@ -181,24 +139,6 @@
     source_user_object = avg_v
     to_multi_app = subchannel
     variable = avg_v
-  []
-  [uo4_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_T
-    to_multi_app = subchannel
-    variable = integral_T
-  []
-  [uo5_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_p
-    to_multi_app = subchannel
-    variable = integral_p
-  []
-  [uo6_to_sub]
-    type = MultiAppGeneralFieldUserObjectTransfer
-    source_user_object = integral_v
-    to_multi_app = subchannel
-    variable = integral_v
   []
 []
 
