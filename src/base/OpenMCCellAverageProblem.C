@@ -43,6 +43,7 @@
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
 #include "openmc/settings.h"
+#include "openmc/simulation.h"
 #include "openmc/summary.h"
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
@@ -72,6 +73,12 @@ OpenMCCellAverageProblem::validParams()
                         false,
                         "Whether to export OpenMC's temperature and density properties to an HDF5 "
                         "file after updating them from MOOSE.");
+
+  params.addParam<bool>("temperature_field_transfer",
+                        false,
+                        "Whether to transfer temperature to OpenMC from an OpenMC temperature "
+                        "field.");
+
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -199,6 +206,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
+    _temperature_field_transfer(getParam<bool>("temperature_field_transfer")),
     _using_skinner(isParamValid("skinner")),
     // 'used_displaced' is added to '_need_to_reinit_coupling' later in the ctor.
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
@@ -2458,6 +2466,33 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
   if (!_specified_temperature_feedback)
     return;
+
+  if (_temperature_field_transfer) {
+    _console << "Sending temperature to OpenMC temperature field... " << std::endl;
+
+    const auto & sys_number = _aux->number();
+
+    // Go through elements from the MOOSE mirror mesh
+    for (const auto & c : _local_cell_to_elem) {
+      for (const auto & e : c.second) {
+
+        // Get element
+        unsigned int global_id = globalElemID(e);
+        const auto * elem = getMooseMesh().queryElemPtr(global_id);
+
+        // Get DoF index for temperature on this element
+        auto v = _subdomain_to_temp_vars.at(elem->subdomain_id()).first;
+        auto dof_idx = elem->dof_number(sys_number, v, 0);
+
+        // Retrieve temperature from the serialized solution
+        Real element_temperature = _serialized_solution(dof_idx);
+
+        // Send the temperature to OpenMC using the same ID
+        openmc_temperature_field_set_temperature(global_id, element_temperature);
+      }
+    }
+    return;
+  }
 
   _console << "Sending temperature to OpenMC cells... " << std::endl;
 
