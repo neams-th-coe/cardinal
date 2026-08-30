@@ -52,6 +52,11 @@ public:
   virtual void gatherLinkedSum() override;
 
   /**
+   * Override the relaxation function for mesh tallies to handle projection for adaptivity.
+   */
+  virtual void relaxAndNormalizeTally() override;
+
+  /**
    * A function to return if this object is adding a global tally. MeshTally modifies this behavior
    * to add a single global tally for distributed mesh tallies (which then communicate with
    * tally linkages).
@@ -59,6 +64,14 @@ public:
   virtual bool addingGlobalTally() const override { return _needs_global_tally && _instance == 0; }
 
 protected:
+  /// An enum for the relaxation case.
+  enum class AMRRelaxation
+  {
+    CaseI = 0,
+    CaseII = 1,
+    CaseIII = 2
+  };
+
   /**
    * A function which stores the results of this tally into the created
    * auxvariables. This implements the copy transfer between the tally mesh and the MOOSE mesh.
@@ -81,6 +94,16 @@ protected:
    * are indeed identical.
    */
   void checkMeshTemplateAndTranslations();
+
+  /**
+   * Classify an element according to the three AMR relaxation cases.
+   */
+  AMRRelaxation classifyRelaxationCase(const libMesh::Elem * current_element) const;
+
+  /**
+   * TODO: Doxygen
+   */
+  void projectAndRelaxAMR(Real alpha, const OMCTensor & previous, const OMCTensor & current_raw, OMCTensor & current_relaxed);
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
@@ -111,13 +134,13 @@ protected:
   /// Whether we're using an indirection layer to map between the OpenMC mesh tally and the MOOSE mesh.
   const bool _use_dof_map;
 
-  /**
-   * For use with block restriction only. A copy of the mesh is made which only contains elements in
-   * the blocks the user wishes to tally on. This is necessary at the moment as the point locators
-   * used in OpenMC to find collision sites are not passed a set of block IDs to filter elements.
-   * TODO: Fix this in OpenMC
-   */
-  std::unique_ptr<libMesh::ReplicatedMesh> _libmesh_mesh_copy;
   /// A mapping between the OpenMC bins (active block restricted elements) and all elements.
   std::vector<unsigned int> _bin_to_element_mapping;
+  /// Dual of the above map.
+  std::vector<int64_t> _element_to_bin_mapping;
+
+  /// The previous bin to element mapping.
+  std::vector<unsigned int> _prev_bin_to_element_mapping;
+  /// The dual of the above map.
+  std::vector<int64_t> _prev_elem_to_bin_mapping;
 };

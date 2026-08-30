@@ -134,6 +134,11 @@ MeshTally::spatialFilter()
     if (_use_dof_map)
     {
       _bin_to_element_mapping.clear();
+      if (_relaxation_type != relaxation::none)
+      {
+        _element_to_bin_mapping.clear();
+        _element_to_bin_mapping.resize(msh->n_elem(), -1);
+      }
 
       auto begin = _tally_blocks.size() > 0
                        ? msh->active_subdomain_set_elements_begin(_tally_blocks)
@@ -141,9 +146,17 @@ MeshTally::spatialFilter()
       auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
                                           : msh->active_elements_end();
       for (const auto & old_elem : libMesh::as_range(begin, end))
+      {
         _bin_to_element_mapping.push_back(old_elem->id());
 
+        if (_relaxation_type != relaxation::none)
+          _element_to_bin_mapping[old_elem->id()] = _bin_to_element_mapping.size() - 1;
+      }
+
       _bin_to_element_mapping.shrink_to_fit();
+
+      if (_relaxation_type != relaxation::none)
+        _element_to_bin_mapping.shrink_to_fit();
     }
 
     openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
@@ -196,6 +209,88 @@ MeshTally::gatherLinkedSum()
             _openmc_problem.tallySumAcrossBins({other->getWrappedGlobalTally()}, score);
     }
   }
+}
+
+void
+MeshTally::relaxAndNormalizeTally()
+{
+  // Only need to project solution vectors for relaxation when
+  // adaptivity is used.
+  if (!_is_adaptive)
+  {
+    TallyBase::relaxAndNormalizeTally();
+    return;
+  }
+
+  Real alpha;
+  switch (_relaxation_type)
+  {
+    case relaxation::none:
+    {
+      alpha = 1.0;
+      break;
+    }
+    case relaxation::constant:
+    {
+      alpha = _relaxation_factor;
+      break;
+    }
+    case relaxation::robbins_monro:
+    {
+      alpha = 1.0 / (_openmc_problem.fixedPointIteration() + 1);
+      break;
+    }
+    case relaxation::dufek_gudowski:
+    {
+      alpha = static_cast<float>(_openmc_problem.nParticles()) /
+              static_cast<float>(_openmc_problem.nTotalParticles());
+      break;
+    }
+    default:
+      mooseError("Unhandled RelaxationEnum in TallyBase!");
+  }
+
+  for (unsigned int score = 0; score < _tally_score.size(); ++score)
+  {
+    if (_check_tally_sum && _needs_global_tally)
+      checkTallySum(score);
+
+    const Real norm = tallyNormalization(score);
+
+    auto & current = _current_tally[score];
+    auto & previous = _previous_tally[score];
+    auto & current_raw = _current_raw_tally[score];
+    auto & current_raw_rel_error = _current_raw_tally_rel_error[score];
+    auto & current_raw_std_dev = _current_raw_tally_std_dev[score];
+
+    auto mean_tally = _openmc_problem.tallySum(_local_tally, score);
+    /**
+     * If the value over the whole domain is zero, then the values in the individual bins must be
+     * zero. We need to avoid divide-by-zeros.
+     */
+    current_raw = mean_tally;
+    current_raw *= std::abs(norm) < ZERO_TALLY_THRESHOLD ? 0.0 : (1.0 / norm);
+
+    auto sum_sq = OMCTensor(_local_tally->results_.slice(
+        openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
+    current_raw_rel_error =
+        _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+    current_raw_std_dev = current_raw_rel_error * current_raw;
+
+
+    if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+    {
+      current = current_raw;
+      previous = current_raw;
+      continue;
+    }
+
+    projectAndRelaxAMR(alpha, previous, current_raw, current);
+  }
+
+  // Need to save the old mapping data structures.
+  _prev_bin_to_element_mapping = _bin_to_element_mapping;
+  _prev_elem_to_bin_mapping = _element_to_bin_mapping;
 }
 
 Real
@@ -302,6 +397,112 @@ MeshTally::checkMeshTemplateAndTranslations()
               " in the 'mesh_template' with instance " + Moose::stringify(_instance) +
               " (cm): " + _openmc_problem.printPoint(centroid_template) +
               "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
+  }
+}
+
+MeshTally::AMRRelaxation
+MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
+{
+  const auto current_elem_id = current_element->id();
+
+  // Determine the case we're dealing with.
+  if (_prev_elem_to_bin_mapping[current_elem_id] != -1)
+    return AMRRelaxation::CaseI;
+  else
+  {
+    // Check for Case II or Case III.
+    const auto parent = current_element->parent();
+    const auto child = current_element->has_children() ? current_element->child_ptr(0) : nullptr;
+    if (parent && _prev_elem_to_bin_mapping[parent->id()] != -1)
+      return AMRRelaxation::CaseII;
+    else if (child && _prev_elem_to_bin_mapping[child->id()] != -1)
+      return AMRRelaxation::CaseIII;
+  }
+
+  // Should never get here.
+  mooseError("Internal error: MeshTally::classifyRelaxationCase() failed to classify an element!");
+  return AMRRelaxation::CaseI;
+}
+
+void
+MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
+                              const OMCTensor & current_raw, OMCTensor & current_relaxed)
+{
+  // Initialize storage to a zero tensor.
+  current_relaxed = openmc::tensor::zeros<Real>(current_raw.shape());
+
+  // Pre-allocate storage for projection.
+  std::vector<double> projection_storage;
+  projection_storage.reserve(8);
+  for (size_t ext_filter = 0; ext_filter < _num_ext_filter_bins; ++ext_filter)
+  {
+    for (size_t spatial_bin = 0; spatial_bin < _mesh_filter->n_bins(); ++spatial_bin)
+    {
+      const auto current_elem_tally_bin = _mesh_filter->n_bins() * ext_filter + spatial_bin;
+      const auto current_elem_id = _bin_to_element_mapping[spatial_bin];
+      const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(current_elem_id);
+
+      // There are three cases for relaxation with AMR mesh tallies:
+      // i)   A spatial bin from the previous solution and a spatial bin from the current
+      //      solution correspond one-to-one. Can relax in-place.
+      // ii)  A spatial bin from the previous solution maps to N spatial bins from the current
+      //      solution (previous element was at a lower refinement level). Need
+      //      to accumulate the N spatial bins from the current solution up to the level
+      //      of the previous solution. Then, relaxation can be performed. Finally,
+      //      the relaxed value can be distributed to the N current solution tally
+      //      bins according to how much that bin contributed.
+      // iii) N spatial bins from the previous solution map to a single spatial bin
+      //      from the current solution (previous element was at a higher refinement
+      //      level). Need to accumulate the N spatial bins from the previous step
+      //      down to the level of the current solution. Then, relaxation can then
+      //      be performed. The relaxed value can then be used in-place.
+      // For simplicity, this implementation assumes that only a single step of AMR
+      // has been applied between two OpenMC solves (i.e. no projection substeping).
+      // TODO: relax this restriction if it proves to be onerous for h-p refinement.
+      switch (classifyRelaxationCase(curr_elem))
+      {
+        case AMRRelaxation::CaseI:
+        {
+          current_relaxed(current_elem_tally_bin)
+            = (1.0 - alpha) * previous(current_elem_tally_bin) + alpha * current_raw(current_elem_tally_bin);
+          break;
+        }
+        case AMRRelaxation::CaseII:
+        {
+          const auto parent = curr_elem->parent();
+          const auto parent_prev_spatial_bin = _prev_elem_to_bin_mapping[parent->id()];
+
+          // Gather the integral over the current element and its siblings.
+          Real coarsened_proj = 0.0;
+          for (size_t child_idx = 0; child_idx < parent->n_children(); ++child_idx)
+          {
+            const auto sibling_spatial_bin = _element_to_bin_mapping[parent->child_ptr(child_idx)->id()];
+            coarsened_proj += current_raw(_mesh_filter->n_bins() * ext_filter + sibling_spatial_bin);
+          }
+
+          // Relax said integral
+          const Real relaxed_coarsened
+            = (1.0 - alpha) * previous(_mesh_filter->n_bins() * ext_filter + parent_prev_spatial_bin)
+              + alpha * coarsened_proj;
+
+          // The fraction contributed to the coarsened integral by the current element.
+          const auto current_elem_frac = current_raw(current_elem_tally_bin) / coarsened_proj;
+
+          // Redistribute the result.
+          current_relaxed(current_elem_tally_bin) = relaxed_coarsened * current_elem_frac;
+          break;
+        }
+        case AMRRelaxation::CaseIII:
+        {
+          break;
+        }
+        default:
+        {
+          mooseError("Internal error: Unhandled AMRRelaxation enum in MeshTally::relaxAndNormalizeTally");
+          break;
+        }
+      }
+    }
   }
 }
 #endif
