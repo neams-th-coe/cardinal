@@ -119,7 +119,7 @@ public:
    * @param[in] is_relaxation_allowed whether the OpenMCCellAverageProblem allows tally relaxation
    * or not
    */
-  void relaxAndNormalizeTally(bool is_relaxation_allowed);
+  virtual void relaxAndNormalizeTally(bool is_relaxation_allowed);
 
   /**
    * Add a linked tally for normalization.
