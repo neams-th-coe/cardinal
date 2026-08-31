@@ -285,7 +285,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // guarantee that the tallies from iteration to iteration correspond to exactly
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
-  if ((_use_displaced || _has_adaptivity) && _relaxation != relaxation::none)
+  if (_use_displaced && _relaxation != relaxation::none)
     paramError(
         "relaxation",
         "When adaptivity is requested or a displaced problem is used, the mapping from the "
