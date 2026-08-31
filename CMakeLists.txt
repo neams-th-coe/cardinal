@@ -211,6 +211,18 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
     DEPENDS    moose)
+
+  # petsc's and wasp's *configure* steps (the full, non-`--fast` script) each
+  # run `git submodule update --init --recursive <path>` against the same
+  # shared MOOSE_DIR checkout. wasp only DEPENDS on moose, so with no
+  # ordering between the two, ExternalProject can start both configure steps
+  # at once -- and they race on MOOSE_DIR/.git/config:
+  #   error: could not lock config file .git/config: File exists
+  #   fatal: Failed to register url for submodule path 'framework/contrib/wasp'
+  # Serialize just the configure steps (not the whole build) so PETSc's slow
+  # build can still overlap with WASP's much faster one once both
+  # submodules are fetched.
+  add_dependencies(wasp-configure petsc-configure)
 else()
   # ---------------------------------------------------------------------------
   # Tier 1: locate the pre-built install (container). Never builds these.
