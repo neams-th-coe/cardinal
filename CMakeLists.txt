@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)  # find_program(... NO_CACHE) used below
 project(CardinalSuperbuild NONE)
 
 # This is a *superbuild*: it never compiles Cardinal itself. It resolves and
@@ -15,6 +15,7 @@ endif()
 include(ExternalProject)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(CardinalDependency)
+include(CardinalMoosePrereq)
 
 # The final "hand off to make" step (below) relies on the $(MAKE) recursive-
 # invocation convention so it shares the *same* jobserver `cmake --build -jN`
@@ -47,54 +48,6 @@ endif()
 
 set(CARDINAL_BUILD_TYPE "Release" CACHE STRING "Build type forwarded to dependency CMake sub-builds (Release or Debug)")
 set_property(CACHE CARDINAL_BUILD_TYPE PROPERTY STRINGS Release Debug)
-
-# -----------------------------------------------------------------------------
-# Pre-built dependency locations (container-provided; Makefile:1-38, and the
-# WASP_DIR/LIBMESH_DIR/PETSC_DIR/... env vars the build container sets).
-# Phase 1 only *locates* these -- it never builds them, and it never touches
-# MOOSE's own build system.
-# -----------------------------------------------------------------------------
-set(WASP_DIR    "$ENV{WASP_DIR}"    CACHE PATH "Top-level WASP install")
-set(LIBMESH_DIR "$ENV{LIBMESH_DIR}" CACHE PATH "Top-level libMesh install")
-set(PETSC_DIR   "$ENV{PETSC_DIR}"   CACHE PATH "Top-level PETSc install")
-set(HDF5_ROOT   "$ENV{HDF5_ROOT}"   CACHE PATH "Top-level HDF5 install (default: PETSC_DIR)")
-
-foreach(_var WASP_DIR LIBMESH_DIR PETSC_DIR)
-  if(NOT ${_var})
-    message(FATAL_ERROR
-      "${_var} is not set. Source the build container's environment "
-      "(it sets WASP_DIR/LIBMESH_DIR/PETSC_DIR), or configure with "
-      "-D${_var}=<path>.")
-  endif()
-endforeach()
-
-if(NOT HDF5_ROOT)
-  set(HDF5_ROOT ${PETSC_DIR})
-endif()
-
-if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
-  message(FATAL_ERROR "Could not find ${LIBMESH_DIR}/bin/libmesh-config -- is LIBMESH_DIR (${LIBMESH_DIR}) correct?")
-endif()
-
-# Discover the exact compiler triple libMesh (and therefore MOOSE/Cardinal)
-# was built with. The Makefile normally derives this deep inside
-# framework/build.mk, which only runs once `make` starts -- too late for our
-# ExternalProject configure steps, which need it up front. See
-# cmake/PLAN.md, "Compiler discovery".
-execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cc
-  OUTPUT_VARIABLE LIBMESH_CC OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cxx
-  OUTPUT_VARIABLE LIBMESH_CXX OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --fc
-  OUTPUT_VARIABLE LIBMESH_FC OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-foreach(_c LIBMESH_CC LIBMESH_CXX LIBMESH_FC)
-  if(NOT ${_c})
-    message(FATAL_ERROR "libmesh-config did not report a compiler for ${_c}")
-  endif()
-endforeach()
-
-message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 
 # -----------------------------------------------------------------------------
 # Layout
@@ -142,6 +95,154 @@ cardinal_add_submodule_dependency(moose
   MARKER_FILE     .git
   NO_BUILD
   NO_GIT_SUBMODULES)
+
+# -----------------------------------------------------------------------------
+# WASP/libMesh/PETSc: either a pre-built install (container; Phase 1/2) or
+# built from source via MOOSE's own scripts (Phase 3). All three set, or all
+# three unset -- never touches MOOSE's own build system beyond invoking
+# these scripts exactly as BUILD/SETENV already document. See cmake/PLAN.md,
+# "Phase 3".
+# -----------------------------------------------------------------------------
+set(WASP_DIR    "$ENV{WASP_DIR}"    CACHE PATH "Top-level WASP install (leave unset, along with LIBMESH_DIR/PETSC_DIR, to build all three from source)")
+set(LIBMESH_DIR "$ENV{LIBMESH_DIR}" CACHE PATH "Top-level libMesh install (see WASP_DIR)")
+set(PETSC_DIR   "$ENV{PETSC_DIR}"   CACHE PATH "Top-level PETSc install (see WASP_DIR)")
+set(HDF5_ROOT   "$ENV{HDF5_ROOT}"   CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)")
+
+if(WASP_DIR AND LIBMESH_DIR AND PETSC_DIR)
+  set(CARDINAL_BUILD_MOOSE_PREREQS FALSE)
+elseif(NOT WASP_DIR AND NOT LIBMESH_DIR AND NOT PETSC_DIR)
+  set(CARDINAL_BUILD_MOOSE_PREREQS TRUE)
+else()
+  message(FATAL_ERROR
+    "Cardinal: WASP_DIR/LIBMESH_DIR/PETSC_DIR must be either all set (use "
+    "a pre-built install, e.g. the container) or all unset (build all "
+    "three from source) -- got a mix "
+    "(WASP_DIR='${WASP_DIR}' LIBMESH_DIR='${LIBMESH_DIR}' PETSC_DIR='${PETSC_DIR}').")
+endif()
+
+if(CARDINAL_BUILD_MOOSE_PREREQS)
+  # ---------------------------------------------------------------------------
+  # Tier 3: build PETSc, then libMesh, then WASP (independent) from source.
+  # ---------------------------------------------------------------------------
+  message(STATUS "Cardinal: WASP_DIR/LIBMESH_DIR/PETSC_DIR not set -- building all three from source")
+
+  # No chicken-and-egg trick available here (libMesh doesn't exist yet, so
+  # libmesh-config can't be asked anything) -- pick compilers directly
+  # instead, matching what SETENV/RUNME already rely on for the
+  # non-container path. See cmake/PLAN.md, Phase 3, "Compiler discovery".
+  if(DEFINED ENV{CC})
+    set(LIBMESH_CC $ENV{CC})
+  else()
+    find_program(LIBMESH_CC NAMES mpicc NO_CACHE)
+  endif()
+  if(DEFINED ENV{CXX})
+    set(LIBMESH_CXX $ENV{CXX})
+  else()
+    find_program(LIBMESH_CXX NAMES mpicxx NO_CACHE)
+  endif()
+  if(DEFINED ENV{FC})
+    set(LIBMESH_FC $ENV{FC})
+  else()
+    find_program(LIBMESH_FC NAMES mpif90 NO_CACHE)
+  endif()
+
+  foreach(_c LIBMESH_CC LIBMESH_CXX LIBMESH_FC)
+    if(NOT ${_c})
+      message(FATAL_ERROR
+        "Cardinal: could not find a compiler for ${_c} -- set CC/CXX/FC in "
+        "the environment, or make sure mpicc/mpicxx/mpif90 are on PATH.")
+    endif()
+  endforeach()
+
+  message(STATUS "Cardinal: building PETSc/libMesh/WASP with CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
+
+  # These scripts call `make -jN` with an explicit numeric N internally, not
+  # $(MAKE) -- an explicit -jN on a recursive make always starts its own
+  # independent job pool rather than joining an inherited jobserver (the
+  # same mechanism behind the earlier "-j128 forced in submake" surprise,
+  # generalized). Since we won't patch MOOSE's scripts, there's no way to
+  # make them jobserver-aware, so -- rather than guess a number -- require
+  # an explicit choice. See cmake/PLAN.md, Phase 3, "Parallelism".
+  set(CARDINAL_MOOSE_BUILD_PARALLELISM "" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Required when building from source.")
+  if(NOT CARDINAL_MOOSE_BUILD_PARALLELISM)
+    message(FATAL_ERROR
+      "Cardinal: building PETSc/libMesh/WASP from source requires "
+      "-DCARDINAL_MOOSE_BUILD_PARALLELISM=<N> -- these scripts can't share "
+      "cmake --build's own -j. See cmake/PLAN.md, Phase 3, Parallelism.")
+  endif()
+
+  set(PETSC_ARCH "arch-moose" CACHE STRING "PETSc build arch (matches update_and_rebuild_petsc.sh/Makefile's own default)")
+
+  if(CARDINAL_BUILD_TYPE STREQUAL "Debug")
+    set(_moose_method dbg)
+  else()
+    set(_moose_method opt)
+  endif()
+
+  # Matches what each script installs to by default (Makefile:73-75) --
+  # PETSc installs in place at $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX set).
+  set(_moose_dir     ${CARDINAL_STAGE_DIR}/contrib/moose)
+  set(_moose_scripts ${_moose_dir}/scripts)
+  set(PETSC_DIR   ${_moose_dir}/petsc)
+  set(LIBMESH_DIR ${_moose_dir}/libmesh/installed)
+  set(WASP_DIR    ${_moose_dir}/framework/contrib/wasp/install)
+  set(HDF5_ROOT   ${PETSC_DIR}/${PETSC_ARCH})
+
+  cardinal_add_moose_prereq(petsc
+    SCRIPT     ${_moose_scripts}/update_and_rebuild_petsc.sh
+    SOURCE_DIR ${_moose_dir}/petsc
+    ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+               PETSC_ARCH=${PETSC_ARCH}
+               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+    DEPENDS    moose)
+
+  cardinal_add_moose_prereq(libmesh
+    SCRIPT     ${_moose_scripts}/update_and_rebuild_libmesh.sh
+    SOURCE_DIR ${_moose_dir}/libmesh
+    ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+               PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
+               METHOD=${_moose_method}
+               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+    DEPENDS    moose petsc)
+
+  cardinal_add_moose_prereq(wasp
+    SCRIPT     ${_moose_scripts}/update_and_rebuild_wasp.sh
+    SOURCE_DIR ${_moose_dir}/framework/contrib/wasp
+    ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+    DEPENDS    moose)
+else()
+  # ---------------------------------------------------------------------------
+  # Tier 1: locate the pre-built install (container). Never builds these.
+  # ---------------------------------------------------------------------------
+  if(NOT HDF5_ROOT)
+    set(HDF5_ROOT ${PETSC_DIR})
+  endif()
+
+  if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
+    message(FATAL_ERROR "Could not find ${LIBMESH_DIR}/bin/libmesh-config -- is LIBMESH_DIR (${LIBMESH_DIR}) correct?")
+  endif()
+
+  # Discover the exact compiler triple libMesh (and therefore MOOSE/Cardinal)
+  # was built with. The Makefile normally derives this deep inside
+  # framework/build.mk, which only runs once `make` starts -- too late for
+  # our ExternalProject configure steps, which need it up front. See
+  # cmake/PLAN.md, "Compiler discovery".
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cc
+    OUTPUT_VARIABLE LIBMESH_CC OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cxx
+    OUTPUT_VARIABLE LIBMESH_CXX OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --fc
+    OUTPUT_VARIABLE LIBMESH_FC OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  foreach(_c LIBMESH_CC LIBMESH_CXX LIBMESH_FC)
+    if(NOT ${_c})
+      message(FATAL_ERROR "libmesh-config did not report a compiler for ${_c}")
+    endif()
+  endforeach()
+
+  message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
+endif()
 
 # -----------------------------------------------------------------------------
 # nuclear_data -- required whenever ENABLE_OPENMC is on (check_deps.mk); just
@@ -219,6 +320,9 @@ endif()
 # Final step: hand off to Cardinal's existing, unmodified Makefile.
 # -----------------------------------------------------------------------------
 set(_cardinal_depends mirror_source moose)
+if(CARDINAL_BUILD_MOOSE_PREREQS)
+  list(APPEND _cardinal_depends wasp libmesh)  # libmesh pulls in petsc transitively
+endif()
 set(_make_enable_args
   ENABLE_NEK=$<IF:$<BOOL:${ENABLE_NEK}>,yes,no>
   ENABLE_OPENMC=$<IF:$<BOOL:${ENABLE_OPENMC}>,yes,no>
