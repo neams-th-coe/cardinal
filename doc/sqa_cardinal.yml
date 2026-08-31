@@ -1,5 +1,6 @@
 directories:
     - ${ROOT_DIR}/test/tests
+    - ${ROOT_DIR}/test/tests/nek_ci
 specs:
     - tests
 dependencies: # commented-out categories are not available

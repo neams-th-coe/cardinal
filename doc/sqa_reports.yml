@@ -61,4 +61,5 @@ Requirements:
             - ${MOOSE_DIR}/modules/thermal_hydraulics/doc/content
         directories:
             - ${ROOT_DIR}/test
+            - ${ROOT_DIR}/test/tests/nek_ci
         show_warning: false
