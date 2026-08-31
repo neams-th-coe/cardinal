@@ -72,6 +72,9 @@ endfunction()
 #   [NO_BUILD]     # source-only: resolve/mirror the source but run no CMake
 #                  # configure/build/install of its own (e.g. MOOSE, which
 #                  # Cardinal's own Makefile compiles directly)
+#   [NO_GIT_SUBMODULES]  # tier 3 (clone) only: don't recursively pull the
+#                  # dependency's own submodules (e.g. MOOSE's bundled,
+#                  # unused copies of libmesh/petsc/wasp/large_media)
 #   [DEPENDS ...])
 #
 # Three-tier resolution (see cmake/PLAN.md):
@@ -84,8 +87,15 @@ endfunction()
 #
 # In both cases the actual CMake configure/build/install of the dependency
 # (when not NO_BUILD) happens entirely under the CMake build tree.
+#
+# Note on NO_BUILD/NO_GIT_SUBMODULES implementation: CMake unquoted-expands
+# an empty string ("") inside a list variable unreliably, so
+# CONFIGURE_COMMAND/BUILD_COMMAND/INSTALL_COMMAND are overridden with a real
+# no-op (`${CMAKE_COMMAND} -E true`) rather than "", and GIT_SUBMODULES ""
+# (CMake's documented way to fetch no submodules) is written literally at
+# each call site below rather than forwarded through a variable.
 function(cardinal_add_submodule_dependency name)
-  set(options NO_BUILD)
+  set(options NO_BUILD NO_GIT_SUBMODULES)
   set(oneValueArgs SUBMODULE_PATH SOURCE_DIR BINARY_DIR INSTALL_DIR MARKER_FILE)
   set(multiValueArgs CMAKE_ARGS DEPENDS)
   cmake_parse_arguments(DEP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -98,7 +108,10 @@ function(cardinal_add_submodule_dependency name)
 
   set(_no_build_args "")
   if(DEP_NO_BUILD)
-    set(_no_build_args CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
+    set(_no_build_args
+      CONFIGURE_COMMAND ${CMAKE_COMMAND} -E true
+      BUILD_COMMAND     ${CMAKE_COMMAND} -E true
+      INSTALL_COMMAND   ${CMAKE_COMMAND} -E true)
   endif()
 
   if(_populated)
@@ -130,19 +143,37 @@ function(cardinal_add_submodule_dependency name)
     endif()
     message(STATUS "Cardinal: '${DEP_SUBMODULE_PATH}' not present in-source; ${name} will be cloned from ${_url} @ ${_commit} directly into the build tree")
 
-    ExternalProject_Add(${name}
-      SOURCE_DIR             ${DEP_SOURCE_DIR}
-      BINARY_DIR              ${DEP_BINARY_DIR}
-      GIT_REPOSITORY          ${_url}
-      GIT_TAG                 ${_commit}
-      GIT_SHALLOW             FALSE
-      CMAKE_ARGS               ${DEP_CMAKE_ARGS}
-      INSTALL_DIR             ${DEP_INSTALL_DIR}
-      DEPENDS                 ${DEP_DEPENDS}
-      ${_no_build_args}
-      STEP_TARGETS            download;configure;build;install
-      USES_TERMINAL_DOWNLOAD  TRUE
-      USES_TERMINAL_BUILD     TRUE
-      USES_TERMINAL_INSTALL   TRUE)
+    if(DEP_NO_GIT_SUBMODULES)
+      ExternalProject_Add(${name}
+        SOURCE_DIR             ${DEP_SOURCE_DIR}
+        BINARY_DIR              ${DEP_BINARY_DIR}
+        GIT_REPOSITORY          ${_url}
+        GIT_TAG                 ${_commit}
+        GIT_SHALLOW             FALSE
+        GIT_SUBMODULES          ""
+        CMAKE_ARGS               ${DEP_CMAKE_ARGS}
+        INSTALL_DIR             ${DEP_INSTALL_DIR}
+        DEPENDS                 ${DEP_DEPENDS}
+        ${_no_build_args}
+        STEP_TARGETS            download;configure;build;install
+        USES_TERMINAL_DOWNLOAD  TRUE
+        USES_TERMINAL_BUILD     TRUE
+        USES_TERMINAL_INSTALL   TRUE)
+    else()
+      ExternalProject_Add(${name}
+        SOURCE_DIR             ${DEP_SOURCE_DIR}
+        BINARY_DIR              ${DEP_BINARY_DIR}
+        GIT_REPOSITORY          ${_url}
+        GIT_TAG                 ${_commit}
+        GIT_SHALLOW             FALSE
+        CMAKE_ARGS               ${DEP_CMAKE_ARGS}
+        INSTALL_DIR             ${DEP_INSTALL_DIR}
+        DEPENDS                 ${DEP_DEPENDS}
+        ${_no_build_args}
+        STEP_TARGETS            download;configure;build;install
+        USES_TERMINAL_DOWNLOAD  TRUE
+        USES_TERMINAL_BUILD     TRUE
+        USES_TERMINAL_INSTALL   TRUE)
+    endif()
   endif()
 endfunction()
