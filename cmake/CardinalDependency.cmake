@@ -106,6 +106,13 @@ function(cardinal_add_submodule_dependency name)
   endif()
   cardinal_submodule_populated(${DEP_SUBMODULE_PATH} _populated ${_marker_args})
 
+  # ExternalProject's own bookkeeping (stamp files, internal helper scripts --
+  # nothing a user ever needs to look at) defaults to <name>-prefix next to
+  # the build directory root. Tuck it inside CMakeFiles/ instead, alongside
+  # CMake's own generated per-target bookkeeping, so it doesn't clutter the
+  # top level next to cardinal/.
+  set(_prefix ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${name}-prefix)
+
   set(_no_build_args "")
   if(DEP_NO_BUILD)
     set(_no_build_args
@@ -120,6 +127,7 @@ function(cardinal_add_submodule_dependency name)
 
     set(_sync_cmd ${CMAKE_COMMAND} -E copy_directory_if_newer ${_in_source_dir} ${DEP_SOURCE_DIR})
     ExternalProject_Add(${name}
+      PREFIX                  ${_prefix}
       SOURCE_DIR             ${DEP_SOURCE_DIR}
       BINARY_DIR              ${DEP_BINARY_DIR}
       DOWNLOAD_COMMAND        ${_sync_cmd}
@@ -145,6 +153,7 @@ function(cardinal_add_submodule_dependency name)
 
     if(DEP_NO_GIT_SUBMODULES)
       ExternalProject_Add(${name}
+        PREFIX                  ${_prefix}
         SOURCE_DIR             ${DEP_SOURCE_DIR}
         BINARY_DIR              ${DEP_BINARY_DIR}
         GIT_REPOSITORY          ${_url}
@@ -161,6 +170,7 @@ function(cardinal_add_submodule_dependency name)
         USES_TERMINAL_INSTALL   TRUE)
     else()
       ExternalProject_Add(${name}
+        PREFIX                  ${_prefix}
         SOURCE_DIR             ${DEP_SOURCE_DIR}
         BINARY_DIR              ${DEP_BINARY_DIR}
         GIT_REPOSITORY          ${_url}
