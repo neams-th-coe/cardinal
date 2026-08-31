@@ -293,11 +293,21 @@ if(ENABLE_OPENMC)
     set(_openmc_vendored OFF)
   endif()
 
+  # OpenMC's own CMakeLists does find_package(LIBMESH) (pkg_check_modules
+  # against CMAKE_PREFIX_PATH) -- in tier 1 libMesh always pre-exists at
+  # configure time so no ordering is needed, but in tier 3 (Phase 3) it
+  # doesn't exist until the libmesh target actually finishes building.
+  set(_openmc_depends "")
+  if(CARDINAL_BUILD_MOOSE_PREREQS)
+    list(APPEND _openmc_depends libmesh)
+  endif()
+
   cardinal_add_submodule_dependency(openmc
     SUBMODULE_PATH contrib/openmc
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/openmc
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/openmc
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_openmc_depends}
     CMAKE_ARGS
       -DCMAKE_BUILD_TYPE=${CARDINAL_BUILD_TYPE}
       -DOPENMC_USE_LIBMESH=ON
