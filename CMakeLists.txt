@@ -188,12 +188,27 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   set(WASP_DIR    ${_moose_dir}/framework/contrib/wasp/install)
   set(HDF5_ROOT   ${PETSC_DIR}/${PETSC_ARCH})
 
+  # These scripts' CONFIGURE_COMMAND/BUILD_COMMAND run as a plain custom
+  # command (bash ${DEP_SCRIPT}, not the literal $(MAKE) token), so they
+  # never get CMake's special jobserver-fd-preserving recipe treatment --
+  # the inherited MAKEFLAGS text (e.g. "-j16 --jobserver-auth=3,4") still
+  # leaks into their environment, but fds 3/4 no longer point at the real
+  # jobserver pipe by the time it reaches them. PETSc's own libs rule
+  # (lib/petsc/conf/rules_doc.mk) sees that stale "-j" in MAKEFLAGS,
+  # assumes a real jobserver is already handing out tokens, and
+  # deliberately adds none of its own -- silently building one file at a
+  # time. Overriding MAKEFLAGS here to a clean "-jN" (no jobserver-auth
+  # reference) makes GNU Make bootstrap its own fresh, working jobserver
+  # for the invocation instead of trusting the broken inherited fds.
+  set(_moose_makeflags MAKEFLAGS=-j${CARDINAL_MOOSE_BUILD_PARALLELISM})
+
   cardinal_add_moose_prereq(petsc
     SCRIPT     ${_moose_scripts}/update_and_rebuild_petsc.sh
     SOURCE_DIR ${_moose_dir}/petsc
     ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                PETSC_ARCH=${PETSC_ARCH}
                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+               ${_moose_makeflags}
     DEPENDS    moose)
 
   cardinal_add_moose_prereq(libmesh
@@ -203,6 +218,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
                PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
                METHOD=${_moose_method}
                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+               ${_moose_makeflags}
     DEPENDS    moose petsc)
 
   cardinal_add_moose_prereq(wasp
@@ -210,6 +226,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     SOURCE_DIR ${_moose_dir}/framework/contrib/wasp
     ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+               ${_moose_makeflags}
     DEPENDS    moose)
 
   # petsc's and wasp's *configure* steps (the full, non-`--fast` script) each
