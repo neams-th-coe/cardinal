@@ -292,6 +292,22 @@ endif()
 # NekRS (config/nekrs.mk)
 # -----------------------------------------------------------------------------
 if(ENABLE_NEK)
+  # NekRS's own CMakeLists sets OCCA_ENABLE_CUDA/HIP/OPENCL/DPCPP to ON via
+  # set(... CACHE BOOL ...) (CMakeLists.txt:143-147) -- ENABLE_CUDA/
+  # ENABLE_HIP/ENABLE_OPENCL below only gate nekrs's own solver-level
+  # compile definitions (CMakeLists.txt:287), they do NOT stop OCCA itself
+  # from probing for and building against whatever CUDA/HIP toolkits
+  # happen to be on PATH. On a bare HPC host (unlike the container, which
+  # has neither) that silently builds OCCA's CUDA/HIP backends -- and,
+  # transitively, nekRS's own bundled device-enabled HYPRE
+  # (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR
+  # OCCA_HIP_ENABLED))`) -- even though we asked for none of it. Found by
+  # actually running the build: OCCA's HIP backend failed outright
+  # (no hip/hip_runtime_api.h dev headers, only the runtime lib), and the
+  # CUDA-enabled HYPRE failed to compile against CUDA 13's Thrust
+  # (thrust::pair no longer exists). Seed OCCA's own cache variables
+  # directly (a non-FORCE `set(... CACHE ...)` doesn't overwrite a cache
+  # entry that already exists) so none of this is ever attempted.
   cardinal_add_submodule_dependency(nekrs
     SUBMODULE_PATH contrib/nekRS
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nekRS
@@ -310,7 +326,11 @@ if(ENABLE_NEK)
       -DENABLE_CUDA=0
       -DENABLE_OPENCL=0
       -DENABLE_HIP=0
-      -DENABLE_AMGX=0)
+      -DENABLE_AMGX=0
+      -DOCCA_ENABLE_CUDA=OFF
+      -DOCCA_ENABLE_HIP=OFF
+      -DOCCA_ENABLE_OPENCL=OFF
+      -DOCCA_ENABLE_DPCPP=OFF)
 endif()
 
 # -----------------------------------------------------------------------------
