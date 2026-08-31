@@ -32,6 +32,8 @@
 #include "CriticalitySearchBase.h"
 #include "ModelModifiersBase.h"
 
+#include "openmc/particle_type.h"
+
 // For filtering \beta_eff by DNP group.
 #include "openmc/tallies/filter_delayedgroup.h"
 #include "openmc/random_lcg.h"
@@ -94,6 +96,43 @@ OpenMCProblemBase::validParams()
 
   params.addParam<FileName>(
       "xml_directory", "./", "The directory in which to look for OpenMC XML files.");
+
+  // Delta tracking parameters. The defaults for the hybrid scheme are based on
+  // results in literature and whole-core studies.
+  params.addParam<bool>(
+      "delta_tracking", false, "Whether delta tracking should be used for transport or not.");
+  MooseEnum hybrid_tracking_type("cross_section energy", "cross_section");
+  params.addParam<MooseEnum>(
+      "delta_hybrid_type",
+      hybrid_tracking_type,
+      "The type of hybrid delta tracking to use. 'cross_section' refers to the "
+      "hybrid-in-cross-section scheme, which is analogous to the approach implemented in "
+      "Serpent. 'energy' refers to the hybrid-in-energy scheme as proposed by Morgan et "
+      "al.");
+  params.addRangeCheckedParam<Real>(
+      "xs_threshold",
+      0.9,
+      "xs_threshold >= 0.0 & xs_threshold <= 1.0",
+      "The threshold to use when running hybrid-in-cross-section delta tracking. "
+      "A value of 0 results in surface tracking, while a value of 1.0 results in "
+      "delta tracking. A value inbetween yields a combination of the tracking approaches "
+      "depending on the local ratio of the total to majorant cross section.");
+  params.addRangeCheckedParam<Real>(
+      "energy_threshold_neutron",
+      1e1,
+      "energy_threshold_neutron > 0.0",
+      "The energy threshold for neutrons when running hybrid-in-energy delta tracking. "
+      "Neutrons with energies greater than 'energy_threshold_neutron' will use delta "
+      "tracking, while neutrons with an energy below 'energy_threshold_neutron' will "
+      "use surface tracking.");
+  params.addRangeCheckedParam<Real>(
+      "energy_threshold_photon",
+      1e5,
+      "energy_threshold_photon > 0.0",
+      "The energy threshold for photons when running hybrid-in-energy delta tracking. "
+      "Photons with energies greater than 'energy_threshold_photon' will use delta "
+      "tracking, while photons with an energy below 'energy_threshold_photon' will "
+      "use surface tracking.");
 
   // Kinetics parameters.
   params.addParam<bool>("calc_kinetics_params",
@@ -265,6 +304,60 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     if (openmc::settings::ifp_n_generation > openmc::settings::n_inactive)
       paramError("ifp_generations",
                  "'ifp_generations' must be less than or equal to the number of inactive batches!");
+  }
+
+  // Perform error checks that we miss when overriding delta tracking outside of
+  // the OpenMC XML files. We use isParamSetByUser as the user may want to turn
+  // off delta tracking.
+  if (params.isParamSetByUser("delta_tracking"))
+  {
+    openmc::settings::delta_tracking = getParam<bool>("delta_tracking");
+    if (getParam<MooseEnum>("delta_hybrid_type") == "cross_section")
+    {
+      openmc::settings::hybrid_delta_type = openmc::HybridTrackingType::CrossSection;
+      openmc::settings::hybrid_xs_threshold = getParam<Real>("xs_threshold");
+    }
+    else if (getParam<MooseEnum>("delta_hybrid_type") == "energy")
+    {
+      openmc::settings::hybrid_delta_type = openmc::HybridTrackingType::Energy;
+      const auto i_neutron = openmc::ParticleType::neutron().transport_index();
+      const auto i_photon = openmc::ParticleType::photon().transport_index();
+      openmc::settings::hybrid_energy_threshold[i_neutron] = getParam<Real>("energy_threshold_neutron");
+      openmc::settings::hybrid_energy_threshold[i_photon] = getParam<Real>("energy_threshold_photon");
+    }
+
+    // Collision estimators cannot be used when running delta tracking.
+    for (const auto & tally : openmc::model::tallies)
+    {
+      if (tally->estimator_ == openmc::TallyEstimator::TRACKLENGTH)
+      {
+        mooseWarning("The tally with an ID of " + Moose::stringify(tally->id_) + " is using a "
+                     "tracklength estimator, but you've set `delta_tracking` = true. Delta "
+                     "tracking does not support tracklength estimators - this tally will "
+                     "have its estimator set to `collision` instead.");
+        tally->estimator_ == openmc::TallyEstimator::COLLISION;
+      }
+    }
+
+    // NCrystal materials are not supported when running delta tracking in OpenMC.
+    for (const auto & mat : openmc::model::materials)
+      if (mat->ncrystal_mat())
+        paramError("delta_tracking",
+                   "Delta tracking does not support NCrystal material(s)! Please set "
+                   "`delta_tracking` = false.");
+
+    // Windowed multipole cross sections are not supported when running delta tracking
+    // in OpenMC.
+    if (openmc::settings::temperature_multipole)
+      paramError("delta_tracking",
+                 "Delta tracking does not support windowed multipole cross sections! "
+                 "Please set `delta_tracking` = false.");
+
+    // Delta tracking does not support multiigroup mode (yet).
+    if (!openmc::settings::run_CE)
+      paramError("delta_tracking",
+                 "Delta tracking does not support multi-group mode! Please set "
+                 "`delta_tracking` = false.");
   }
 }
 

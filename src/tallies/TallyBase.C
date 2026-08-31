@@ -204,13 +204,16 @@ TallyBase::TallyBase(const InputParameters & parameters)
       if (estimator != tally::analog && nu_scatter)
         paramError("estimator", "Non-analog estimators are not supported for nu_scatter scores!");
 
+      if (estimator == tally::tracklength && openmc::settings::delta_tracking)
+        paramError("estimator", "Tracklength estimators are not supported when running delta tracking!");
+
       _estimator = _openmc_problem.tallyEstimator(estimator);
     }
     else
     {
       // Set a default of tracklength. This must be overridden in derived classes that use different
       // spatial filters (e.g. unstructured mesh tallies).
-      _estimator = openmc::TallyEstimator::TRACKLENGTH;
+      _estimator = openmc::settings::delta_tracking ? openmc::TallyEstimator::COLLISION : openmc::TallyEstimator::TRACKLENGTH;
 
       // Heating tallies in photon transport and nu_scatter tallies require collision/analog scores.
       if (nu_scatter && !(heating && openmc::settings::photon_transport))
