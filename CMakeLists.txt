@@ -13,9 +13,20 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 endif()
 
 include(ExternalProject)
-include(ProcessorCount)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(CardinalDependency)
+
+# The final "hand off to make" step (below) relies on the $(MAKE) recursive-
+# invocation convention so it shares the *same* jobserver `cmake --build -jN`
+# (or plain `make -jN` in this build dir) already establishes, rather than
+# this CMakeLists.txt guessing a parallelism number of its own. That
+# convention is specific to the Makefiles generator.
+if(NOT CMAKE_GENERATOR MATCHES "Makefiles")
+  message(FATAL_ERROR
+    "Cardinal's CMake superbuild requires a Makefiles generator (got "
+    "'${CMAKE_GENERATOR}'), so its final build step can share the "
+    "invoking make's -j setting via the $(MAKE) convention.")
+endif()
 
 # -----------------------------------------------------------------------------
 # Options mirroring the Makefile's own ENABLE_* switches (Makefile:41-51)
@@ -85,20 +96,6 @@ endforeach()
 
 message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 
-# Default to 16, not nproc: on the shared login node, requesting more than
-# 16 jobs gets throttled by the OS in fairness to other users regardless,
-# so a higher nproc-derived default would be actively misleading there.
-# Override with -DCARDINAL_BUILD_PARALLELISM=<N> on a dedicated allocation
-# (e.g. a Slurm job) where more parallelism is actually available.
-ProcessorCount(_nproc)
-if(_nproc EQUAL 0)
-  set(_nproc 16)
-endif()
-if(_nproc GREATER 16)
-  set(_nproc 16)
-endif()
-set(CARDINAL_BUILD_PARALLELISM ${_nproc} CACHE STRING "Parallelism passed to the dependency and Make builds")
-
 # -----------------------------------------------------------------------------
 # Layout
 #
@@ -122,6 +119,7 @@ add_custom_target(mirror_source ALL
           --exclude=/contrib/moose
           --exclude=/contrib/nekRS
           --exclude=/contrib/openmc
+          --exclude=/contrib/nuclear_data
           --exclude=/build
           --exclude=/install
           --exclude=/.git
@@ -144,6 +142,21 @@ cardinal_add_submodule_dependency(moose
   MARKER_FILE     framework/build.mk
   NO_BUILD
   NO_GIT_SUBMODULES)
+
+# -----------------------------------------------------------------------------
+# nuclear_data -- required whenever ENABLE_OPENMC is on (check_deps.mk); just
+# a header (ADDITIONAL_INCLUDES in the Makefile), not a CMake project.
+# -----------------------------------------------------------------------------
+if(ENABLE_OPENMC)
+  cardinal_add_submodule_dependency(nuclear_data
+    SUBMODULE_PATH contrib/nuclear_data
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nuclear_data
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nuclear_data
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    MARKER_FILE     NuclearData.h
+    NO_BUILD
+    NO_GIT_SUBMODULES)
+endif()
 
 # -----------------------------------------------------------------------------
 # NekRS (config/nekrs.mk)
@@ -216,7 +229,7 @@ if(ENABLE_NEK)
   list(APPEND _cardinal_depends nekrs)
 endif()
 if(ENABLE_OPENMC)
-  list(APPEND _cardinal_depends openmc)
+  list(APPEND _cardinal_depends openmc nuclear_data)
 endif()
 
 add_custom_target(cardinal ALL
@@ -226,11 +239,18 @@ add_custom_target(cardinal ALL
   # this override list on purpose: it must come from whatever the user has
   # exported in the shell that invokes `cmake --build`/`make`, not get
   # frozen at CMake *configure* time via $ENV{...}.
+  #
+  # $(MAKE), not a literal `make`/`make -jN`: CMake's Makefiles generator
+  # substitutes this with a recursive make invocation that shares the
+  # invoking make's jobserver, so this step's parallelism is always exactly
+  # whatever `-j` the user passed to `cmake --build`/`make` in this build
+  # directory -- never a number this CMakeLists.txt invents itself, and
+  # never more cores than were actually requested.
   COMMAND ${CMAKE_COMMAND} -E env
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
           --
-          make -j${CARDINAL_BUILD_PARALLELISM} ${_make_enable_args}
+          $(MAKE) ${_make_enable_args}
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
   DEPENDS ${_cardinal_depends}
   COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
