@@ -101,7 +101,7 @@ public:
   virtual void renormalizeLinkedTallies();
 
   /**
-   * Relax the tally and normalize it according to some normalization factor 'norm'. This tends to
+   * Relax the tally and normalize it according to some normalization factor. This tends to
    * either be the sum of the over all bins OR a global tally over the entire problem.
    *
    * NOTE: This function relaxes the tally _distribution_, and not the actual magnitude of the sum.
@@ -313,6 +313,19 @@ protected:
    * @param[in] score tally score
    */
   void checkNormalization(const Real & sum, unsigned int score) const;
+
+  /**
+   * A function which extracts the tally results for a given score index
+   * and normalizes it according to some normalization factor. This tends to
+   * either be the sum of the over all bins OR a global tally over the entire problem.
+   */
+  void extractAndNormalizeRaw(unsigned int score);
+
+  /**
+   * Get the relaxation factor which is being applied to tally results.
+   * @return the relaxation factor
+   */
+  Real getRelaxationFactor() const;
 
   /// The OpenMCCellAverageProblem using the tally system.
   OpenMCCellAverageProblem & _openmc_problem;

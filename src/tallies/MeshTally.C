@@ -329,69 +329,25 @@ MeshTally::relaxAndNormalizeTally()
     return;
   }
 
-  Real alpha;
-  switch (_relaxation_type)
-  {
-    case relaxation::none:
-    {
-      alpha = 1.0;
-      break;
-    }
-    case relaxation::constant:
-    {
-      alpha = _relaxation_factor;
-      break;
-    }
-    case relaxation::robbins_monro:
-    {
-      alpha = 1.0 / (_openmc_problem.fixedPointIteration() + 1);
-      break;
-    }
-    case relaxation::dufek_gudowski:
-    {
-      alpha = static_cast<float>(_openmc_problem.nParticles()) /
-              static_cast<float>(_openmc_problem.nTotalParticles());
-      break;
-    }
-    default:
-      mooseError("Unhandled RelaxationEnum in TallyBase!");
-  }
-
+  const auto alpha = getRelaxationFactor();
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
-    if (_check_tally_sum && _needs_global_tally)
-      checkTallySum(score);
+    // Extract raw results.
+    extractAndNormalizeRaw(score);
 
-    const Real norm = tallyNormalization(score);
-
-    auto & current = _current_tally[score];
-    auto & previous = _previous_tally[score];
-    auto & current_raw = _current_raw_tally[score];
-    auto & current_raw_rel_error = _current_raw_tally_rel_error[score];
-    auto & current_raw_std_dev = _current_raw_tally_std_dev[score];
-
-    auto mean_tally = _openmc_problem.tallySum(_local_tally, score);
-    /**
-     * If the value over the whole domain is zero, then the values in the individual bins must be
-     * zero. We need to avoid divide-by-zeros.
-     */
-    current_raw = mean_tally;
-    current_raw *= std::abs(norm) < ZERO_TALLY_THRESHOLD ? 0.0 : (1.0 / norm);
-
-    auto sum_sq = OMCTensor(_local_tally->results_.slice(
-        openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
-    current_raw_rel_error =
-        _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-    current_raw_std_dev = current_raw_rel_error * current_raw;
-
+    // Shortcut if relaxation isn't being applied.
     if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
     {
-      current = current_raw;
-      previous = current_raw;
+      _current_tally[score] = _current_raw_tally[score];
+      _previous_tally[score] = _current_raw_tally[score];
       continue;
     }
 
-    projectAndRelaxAMR(alpha, previous, current_raw, current);
+    // Save the current tally (from the previous iteration) into the previous one.
+    std::copy(_current_tally[score].cbegin(), _current_tally[score].cend(), _previous_tally[score].begin());
+
+    // Apply relaxation to the AMR mesh tally.
+    projectAndRelaxAMR(alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
   }
 
   // Need to save the old mapping data structures.
@@ -457,7 +413,7 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
       //      be performed. The relaxed value can then be used in-place.
       // For simplicity, this implementation assumes that only a single step of AMR
       // has been applied between two OpenMC solves (i.e. no projection substeping).
-      // TODO: relax this restriction if it proves to be onerous for h-p refinement.
+      // TODO: Remove this restriction if it proves to be onerous for h-p refinement.
       switch (classifyRelaxationCase(curr_elem))
       {
         case AMRRelaxation::CaseI:
