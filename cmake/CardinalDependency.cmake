@@ -40,14 +40,22 @@ function(cardinal_gitmodule_commit path out_var)
   endif()
 endfunction()
 
-# cardinal_submodule_populated(<relative submodule path> <out var>)
+# cardinal_submodule_populated(<relative submodule path> <out var> [MARKER_FILE <relative path>])
 #
 # True if the submodule has actually been checked out in the source tree
 # (as opposed to being an empty/absent placeholder for an uninitialized
-# submodule). Keyed off CMakeLists.txt existing, the same file each
-# dependency's own config/*.mk rule already keys its build off of.
+# submodule). Keyed off MARKER_FILE existing under that path -- default
+# CMakeLists.txt, the same file each CMake-based dependency's own
+# config/*.mk rule already keys its build off of. MOOSE has no top-level
+# CMakeLists.txt (it isn't a CMake project), so callers handling it pass a
+# marker specific to it instead.
 function(cardinal_submodule_populated path out_var)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/${path}/CMakeLists.txt)
+  set(oneValueArgs MARKER_FILE)
+  cmake_parse_arguments(ARG "" "${oneValueArgs}" "" ${ARGN})
+  if(NOT ARG_MARKER_FILE)
+    set(ARG_MARKER_FILE CMakeLists.txt)
+  endif()
+  if(EXISTS ${CMAKE_SOURCE_DIR}/${path}/${ARG_MARKER_FILE})
     set(${out_var} TRUE PARENT_SCOPE)
   else()
     set(${out_var} FALSE PARENT_SCOPE)
@@ -60,6 +68,10 @@ endfunction()
 #   BINARY_DIR     <where the dependency's own CMake build happens>
 #   INSTALL_DIR    <shared install prefix>
 #   CMAKE_ARGS     <args forwarded to the dependency's own CMake configure>
+#   [MARKER_FILE <relative path>]  # see cardinal_submodule_populated
+#   [NO_BUILD]     # source-only: resolve/mirror the source but run no CMake
+#                  # configure/build/install of its own (e.g. MOOSE, which
+#                  # Cardinal's own Makefile compiles directly)
 #   [DEPENDS ...])
 #
 # Three-tier resolution (see cmake/PLAN.md):
@@ -71,13 +83,23 @@ endfunction()
 #      URL/pinned commit; the source tree is never touched.
 #
 # In both cases the actual CMake configure/build/install of the dependency
-# happens entirely under the CMake build tree.
+# (when not NO_BUILD) happens entirely under the CMake build tree.
 function(cardinal_add_submodule_dependency name)
-  set(oneValueArgs SUBMODULE_PATH SOURCE_DIR BINARY_DIR INSTALL_DIR)
+  set(options NO_BUILD)
+  set(oneValueArgs SUBMODULE_PATH SOURCE_DIR BINARY_DIR INSTALL_DIR MARKER_FILE)
   set(multiValueArgs CMAKE_ARGS DEPENDS)
-  cmake_parse_arguments(DEP "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  cmake_parse_arguments(DEP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  cardinal_submodule_populated(${DEP_SUBMODULE_PATH} _populated)
+  set(_marker_args "")
+  if(DEP_MARKER_FILE)
+    set(_marker_args MARKER_FILE ${DEP_MARKER_FILE})
+  endif()
+  cardinal_submodule_populated(${DEP_SUBMODULE_PATH} _populated ${_marker_args})
+
+  set(_no_build_args "")
+  if(DEP_NO_BUILD)
+    set(_no_build_args CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
+  endif()
 
   if(_populated)
     set(_in_source_dir ${CMAKE_SOURCE_DIR}/${DEP_SUBMODULE_PATH})
@@ -92,6 +114,7 @@ function(cardinal_add_submodule_dependency name)
       CMAKE_ARGS              ${DEP_CMAKE_ARGS}
       INSTALL_DIR             ${DEP_INSTALL_DIR}
       DEPENDS                 ${DEP_DEPENDS}
+      ${_no_build_args}
       STEP_TARGETS            download;configure;build;install
       USES_TERMINAL_DOWNLOAD  TRUE
       USES_TERMINAL_BUILD     TRUE
@@ -116,6 +139,7 @@ function(cardinal_add_submodule_dependency name)
       CMAKE_ARGS               ${DEP_CMAKE_ARGS}
       INSTALL_DIR             ${DEP_INSTALL_DIR}
       DEPENDS                 ${DEP_DEPENDS}
+      ${_no_build_args}
       STEP_TARGETS            download;configure;build;install
       USES_TERMINAL_DOWNLOAD  TRUE
       USES_TERMINAL_BUILD     TRUE
