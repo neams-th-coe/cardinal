@@ -85,9 +85,17 @@ endforeach()
 
 message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 
+# Default to 16, not nproc: on the shared login node, requesting more than
+# 16 jobs gets throttled by the OS in fairness to other users regardless,
+# so a higher nproc-derived default would be actively misleading there.
+# Override with -DCARDINAL_BUILD_PARALLELISM=<N> on a dedicated allocation
+# (e.g. a Slurm job) where more parallelism is actually available.
 ProcessorCount(_nproc)
 if(_nproc EQUAL 0)
-  set(_nproc 4)
+  set(_nproc 16)
+endif()
+if(_nproc GREATER 16)
+  set(_nproc 16)
 endif()
 set(CARDINAL_BUILD_PARALLELISM ${_nproc} CACHE STRING "Parallelism passed to the dependency and Make builds")
 
@@ -134,7 +142,8 @@ cardinal_add_submodule_dependency(moose
   BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moose
   INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
   MARKER_FILE     framework/build.mk
-  NO_BUILD)
+  NO_BUILD
+  NO_GIT_SUBMODULES)
 
 # -----------------------------------------------------------------------------
 # NekRS (config/nekrs.mk)
