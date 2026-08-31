@@ -23,6 +23,14 @@ Periodic boundary conditions are imposed in the streamwise $x$ and spanwise $z$ 
 No-slip boundary conditions are imposed on the lower hill surface and the upper wall.
 The turbulent quantities $k$ and $\tau$ are assigned zero Dirichlet boundary conditions at the walls.
 
+[fig:periodic-hill-mesh] shows the regression-test mesh. Spectral elements use polynomial order $p=5$.
+
+!media media/phill_mesh.png
+       id=fig:periodic-hill-mesh
+       style=width:75%;margin-left:auto;margin-right:auto;
+       caption=Mesh for the periodic-hill regression test with fifth-order spectral elements.
+       alt=Spectral-element mesh for the periodic-hill regression test
+
 ## Flow parameters
 
 The bulk velocity, fluid density, and hill height are nondimensionalized as
@@ -54,6 +62,27 @@ A constant bulk flow rate is maintained in the streamwise direction throughout t
 Three simulations are used to verify the turbulence-model implementations.
 Each mode restarts from a statistically developed flow field and advances the solution for 0.5 nondimensional time units.
 During this interval, the three velocity components are accumulated in time to obtain the mean velocity field.
+
+The time-averaged velocity-magnitude contours and streamlines for the three turbulence models are shown in [fig:periodic-hill-sst], [fig:periodic-hill-ddes], and [fig:periodic-hill-iddes].
+The separated flow region downstream of the hill and its subsequent reattachment are resolved by each model.
+
+!media media/phill_sst.png
+       id=fig:periodic-hill-sst
+       style=width:80%;margin-left:auto;margin-right:auto;
+       caption=Time-averaged velocity-magnitude contours and streamlines for the $k$-$\tau$ SST model.
+       alt=Periodic-hill velocity-magnitude contours and streamlines for the SST model
+
+!media media/phill_ddes.png
+       id=fig:periodic-hill-ddes
+       style=width:80%;margin-left:auto;margin-right:auto;
+       caption=Time-averaged velocity-magnitude contours and streamlines for the $k$-$\tau$ SST DDES model.
+       alt=Periodic-hill velocity-magnitude contours and streamlines for the SST DDES model
+
+!media media/phill_iddes.png
+       id=fig:periodic-hill-iddes
+       style=width:80%;margin-left:auto;margin-right:auto;
+       caption=Time-averaged velocity-magnitude contours and streamlines for the $k$-$\tau$ SST IDDES model.
+       alt=Periodic-hill velocity-magnitude contours and streamlines for the SST IDDES model
 
 The turbulence models and qualification tolerances for the three test cases are summarized in [tab:periodic-hill-ci-modes].
 
@@ -108,3 +137,12 @@ C_f-C_{f,\mathrm{ref}}
 
 where $\Gamma_w$ denotes the periodic-hill wall.
 Each case passes when $\varepsilon_{C_f}$ is below its corresponding tolerance in [tab:periodic-hill-ci-modes].
+
+[fig:periodic-hill-cf] compares the bottom-wall skin-friction coefficient obtained with the three turbulence models against the reference LES profile of Fröhlich *et al.* [!citep](frohlich2005highly).
+The profiles in this comparison were generated using polynomial order $p=7$ and a velocity averaging interval of $\Delta t=100$; they provide a higher-resolution comparison than the modest configurations used for routine regression testing.
+
+!media media/phill_cf.png
+       id=fig:periodic-hill-cf
+       style=width:70%;margin-left:auto;margin-right:auto;
+       caption=Bottom-wall skin-friction coefficient from the turbulence models compared with the reference LES profile of Fröhlich *et al.* [!citep](frohlich2005highly).
+       alt=Periodic-hill bottom-wall skin-friction coefficients compared with reference LES data

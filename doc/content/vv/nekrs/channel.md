@@ -67,17 +67,18 @@ The volume-integrated velocity error is defined as
 \,d\Omega
 \right]^{1/2}.
 
-[fig:channel1] and [fig:channel2] present the volume-integrated error norms for the two configurations.
-The results demonstrate spectral convergence of the velocity solution, thereby verifying the accuracy of the Stokes flow solver.
+For both geometries, the final-time pass criterion requires the $L_2$ errors in both velocity components to be below $9.27\times10^{-7}$.
+
+[fig:channel1] and [fig:channel2] present separate $p$-refinement studies for the two configurations. These refinement sweeps are not part of the routine regression tests, which use polynomial order $N=7$; the figures showcase spectral convergence of the velocity solution and provide additional evidence of the Stokes flow solver's accuracy.
 
 !media media/channel_1.png
        id=fig:channel1
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *channel* case with original geometry
+       caption=Spectral convergence under p refinement for the original-geometry *channel* case; the routine regression test uses polynomial order seven.
        alt=Volume-integrated velocity error norms for the Stokes flow case using original geometry
 
 !media media/channel_2.png
        id=fig:channel2
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *channel* case using rotated geometry
+       caption=Spectral convergence under p refinement for the rotated-geometry *channel* case; the routine regression test uses polynomial order seven.
        alt=Volume-integrated velocity error norms for the Stokes flow case using rotated geometry

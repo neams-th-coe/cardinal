@@ -70,4 +70,4 @@ The computed value is compared with the reference value $Nu_V=5.0$ reported by T
 The simulation results are considered to adequately match the reference data when
 
 !equation id=eq\:rbc-tolerance
-\left|Nu_V-5.0\right| < 10^{-1}.
+\left|Nu_V-5.0\right| < 1.63\times10^{-1}.
