@@ -139,7 +139,7 @@ cardinal_add_submodule_dependency(moose
   SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moose
   BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moose
   INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
-  MARKER_FILE     framework/build.mk
+  MARKER_FILE     .git
   NO_BUILD
   NO_GIT_SUBMODULES)
 
@@ -153,7 +153,7 @@ if(ENABLE_OPENMC)
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nuclear_data
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nuclear_data
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
-    MARKER_FILE     NuclearData.h
+    MARKER_FILE     .git
     NO_BUILD
     NO_GIT_SUBMODULES)
 endif()
