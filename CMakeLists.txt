@@ -111,6 +111,7 @@ file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 # the manual `rsync -a` in SYNC_tmp/SYNC_nvme, but automatic.
 add_custom_target(mirror_source ALL
   COMMAND rsync -a --delete
+          --exclude=/contrib/moose
           --exclude=/contrib/nekRS
           --exclude=/contrib/openmc
           --exclude=/build
@@ -119,6 +120,21 @@ add_custom_target(mirror_source ALL
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
   COMMENT "Mirroring Cardinal source into the build tree"
   VERBATIM)
+
+# -----------------------------------------------------------------------------
+# MOOSE (framework + modules) -- always required. Not a CMake project (MOOSE
+# has its own, separate CMake port in progress upstream, which this
+# deliberately does not depend on -- see cmake/PLAN.md, Non-goals), so its
+# source is resolved with NO_BUILD: Cardinal's own Makefile compiles it
+# directly, exactly as it does today.
+# -----------------------------------------------------------------------------
+cardinal_add_submodule_dependency(moose
+  SUBMODULE_PATH contrib/moose
+  SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moose
+  BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moose
+  INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+  MARKER_FILE     framework/build.mk
+  NO_BUILD)
 
 # -----------------------------------------------------------------------------
 # NekRS (config/nekrs.mk)
@@ -180,7 +196,7 @@ endif()
 # -----------------------------------------------------------------------------
 # Final step: hand off to Cardinal's existing, unmodified Makefile.
 # -----------------------------------------------------------------------------
-set(_cardinal_depends mirror_source)
+set(_cardinal_depends mirror_source moose)
 set(_make_enable_args
   ENABLE_NEK=$<IF:$<BOOL:${ENABLE_NEK}>,yes,no>
   ENABLE_OPENMC=$<IF:$<BOOL:${ENABLE_OPENMC}>,yes,no>
