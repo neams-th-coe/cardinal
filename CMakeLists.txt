@@ -195,10 +195,15 @@ if(ENABLE_OPENMC)
 endif()
 
 add_custom_target(cardinal ALL
+  # NEKRS_HOME/CONTRIB_INSTALL_DIR are computed paths we deliberately force
+  # regardless of the ambient environment (check_nekrs.mk hard-requires
+  # NEKRS_HOME == CONTRIB_INSTALL_DIR). OPENMC_CROSS_SECTIONS is left out of
+  # this override list on purpose: it must come from whatever the user has
+  # exported in the shell that invokes `cmake --build`/`make`, not get
+  # frozen at CMake *configure* time via $ENV{...}.
   COMMAND ${CMAKE_COMMAND} -E env
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
-          OPENMC_CROSS_SECTIONS=$ENV{OPENMC_CROSS_SECTIONS}
           --
           make -j${CARDINAL_BUILD_PARALLELISM} ${_make_enable_args}
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
