@@ -95,8 +95,16 @@ file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 # CMake/Make build byproducts. Reruns every build (add_custom_target has no
 # tracked OUTPUT, so it's always considered out of date) -- the same role as
 # the manual `rsync -a` in SYNC_tmp/SYNC_nvme, but automatic.
+#
+# -rlpgo, not -a: -a is -rlptgoD, and the -t (preserve source mtime) is
+# exactly wrong here. The source tree can keep being edited while a long
+# build runs, and Cardinal's Makefile relies on ordinary mtime comparisons
+# to decide what needs recompiling -- copying a source mtime through
+# verbatim (rather than stamping the destination with the actual copy
+# time) is what copy_directory_if_newer avoids too. -D (devices/specials)
+# is dropped as well since it's meaningless for a source tree.
 add_custom_target(mirror_source ALL
-  COMMAND rsync -a --delete
+  COMMAND rsync -rlpgo --delete
           --exclude=/contrib/moose
           --exclude=/contrib/nekRS
           --exclude=/contrib/openmc
