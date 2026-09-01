@@ -4,7 +4,7 @@ project(CardinalSuperbuild NONE)
 # This is a *superbuild*: it never compiles Cardinal itself. It resolves and
 # builds the third-party dependencies that have their own CMake sub-build
 # (currently NekRS and OpenMC) and then hands off to Cardinal's existing,
-# unmodified Makefile to compile the app. See cmake/PLAN.md for the design.
+# unmodified Makefile to compile the app.
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(FATAL_ERROR
@@ -89,7 +89,6 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
 # (below) resolves that by mirroring everything else normally but copying
 # Makefile itself under a different name (Makefile.cardinal), and the final
 # "cardinal" target invokes that explicitly via `$(MAKE) -f Makefile.cardinal`.
-# See cmake/PLAN.md.
 # -----------------------------------------------------------------------------
 set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR})
 set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
@@ -189,9 +188,8 @@ add_custom_target(mirror_source ALL
 # -----------------------------------------------------------------------------
 # MOOSE (framework + modules) -- always required. Not a CMake project (MOOSE
 # has its own, separate CMake port in progress upstream, which this
-# deliberately does not depend on -- see cmake/PLAN.md, Non-goals), so its
-# source is resolved with NO_BUILD: Cardinal's own Makefile compiles it
-# directly, exactly as it does today.
+# deliberately does not depend on), so its source is resolved with NO_BUILD:
+# Cardinal's own Makefile compiles it directly, exactly as it does today.
 # -----------------------------------------------------------------------------
 cardinal_add_submodule_dependency(moose
   SUBMODULE_PATH contrib/moose
@@ -204,9 +202,9 @@ cardinal_add_submodule_dependency(moose
 
 # -----------------------------------------------------------------------------
 # WASP/libMesh/PETSc: each independently either a pre-built install or built
-# from source via MOOSE's own scripts (Phase 3) -- never touches MOOSE's own
-# build system beyond invoking these scripts exactly as BUILD/SETENV already
-# document. See cmake/PLAN.md, "Phase 3".
+# from source via MOOSE's own scripts -- never touches MOOSE's own build
+# system beyond invoking these scripts exactly as BUILD/SETENV already
+# document.
 #
 # The three are independent except for one real constraint: a pre-built
 # LIBMESH_DIR was compiled against some specific PETSc, and there's no way
@@ -252,8 +250,7 @@ endif()
 # matching what SETENV/RUNME already rely on for the non-container path.
 # Trust that the user knows what they're doing if PETSC_DIR is externally
 # provided (e.g. a module load already implies a compatible compiler)
-# rather than trying to reverse-engineer PETSc's own build. See
-# cmake/PLAN.md, "Compiler discovery".
+# rather than trying to reverse-engineer PETSc's own build.
 if(NOT CARDINAL_BUILD_LIBMESH)
   if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
     message(FATAL_ERROR "Could not find ${LIBMESH_DIR}/bin/libmesh-config -- is LIBMESH_DIR (${LIBMESH_DIR}) correct?")
@@ -313,12 +310,14 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
   # independent job pool rather than joining an inherited jobserver (the
   # same mechanism behind the earlier "-j128 forced in submake" surprise,
   # generalized). Since we won't patch MOOSE's scripts, there's no way to
-  # make them jobserver-aware, so -- rather than guess a number -- require
-  # an explicit choice. Defaults from CMake's own standard
-  # CMAKE_BUILD_PARALLEL_LEVEL env var if that's set at configure time
-  # (note it's only read once, at configure time -- a later `cmake --build
-  # -jN` with a different N won't retroactively change this). See
-  # cmake/PLAN.md, Phase 3, "Parallelism".
+  # make them jobserver-aware, so some concrete number is unavoidable here
+  # (unlike the final "cardinal" step below, which shares cmake --build's
+  # own jobserver and so never needs to guess). Defaults from CMake's own
+  # standard CMAKE_BUILD_PARALLEL_LEVEL env var if that's set at configure
+  # time (note it's only read once, at configure time -- a later
+  # `cmake --build -jN` with a different N won't retroactively change
+  # this); if that's not set either, see the min(available cores, 16)
+  # default below.
   set(MOOSE_BUILD_PARALLELISM "$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment, else min(available cores, 16).")
   if(NOT MOOSE_BUILD_PARALLELISM)
     # Unlike the final "cardinal" build step (which shares cmake --build's

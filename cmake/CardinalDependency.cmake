@@ -77,7 +77,7 @@ endfunction()
 #                  # unused copies of libmesh/petsc/wasp/large_media)
 #   [DEPENDS ...])
 #
-# Three-tier resolution (see cmake/PLAN.md):
+# Three-tier resolution:
 #   1. (handled by the caller -- this function only covers submodules
 #      Cardinal itself builds; pre-built installs are just located)
 #   2. Submodule already checked out in-source: mirror it into SOURCE_DIR,
