@@ -54,3 +54,5 @@ The accuracy of the simulations is assessed by evaluating the volume-integrated 
 \left|\boldsymbol{u}-\boldsymbol{u}_{\mathrm{exact}}\right|^2
 \,d\Omega
 \right]^{1/2}.
+
+The final-time pass criterion requires the component errors to be below the tolerance of $10^{-11}$.

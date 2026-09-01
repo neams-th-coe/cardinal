@@ -3,8 +3,7 @@
 ## Description
 
 The `ParticleFilter` object provides a thin wrapper around an OpenMC [ParticleFilter](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.ParticleFilter.html) which local tallies (added through the [tally system](AddTallyAction.md)) can access. This filter allows for events to
-be filtered by the incident particle (provided in `particles`). This can be any combination of the following: `neutron`,
-`photon`, `electron`, or `positron`.
+be filtered by the incident particle (provided in `particles`).
 
 ## Example Input File Syntax
 

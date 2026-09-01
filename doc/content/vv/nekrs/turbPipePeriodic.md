@@ -38,9 +38,11 @@ Here, $\vec{v}$ is the time-averaged velocity, $\tau_w$ is the computed wall she
 The computed friction velocity is compared with the direct numerical simulation (DNS) reference of El Khoury *et al.* [!citep](el2013direct) using
 
 !equation id=eq\:turb-pipe-error
-\mathrm{err} = \left|u_\tau-u_{\tau,\mathrm{DNS}}\right|,
+\mathrm{err} = \frac{\left|u_\tau-u_{\tau,\mathrm{DNS}}\right|}{u_{\tau,\mathrm{DNS}}},
 
 where
 
 !equation id=eq\:turb-pipe-dns-friction-velocity
 u_{\tau,\mathrm{DNS}} = 5.79\times10^{-2}.
+
+The case passes when the relative friction-velocity error is below $2.00\times10^{-2}$ ($2\%$).

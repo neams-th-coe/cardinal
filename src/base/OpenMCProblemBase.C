@@ -400,7 +400,7 @@ OpenMCProblemBase::externalSolve()
   {
     err = openmc_reset_timers();
     if (err)
-      mooseError(openmc_err_msg);
+      mooseError(openmc_get_err_msg());
   }
 
   if (_criticality_search)
@@ -413,7 +413,7 @@ OpenMCProblemBase::externalSolve()
       err = openmc_run();
 
     if (err)
-      mooseError(openmc_err_msg);
+      mooseError(openmc_get_err_msg());
   }
 
   _total_n_particles += nParticles();
@@ -564,7 +564,7 @@ OpenMCProblemBase::setCellTemperature(const int32_t & index,
 
     mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
                    Moose::stringify(T) + " (K), OpenMC reported:\n\n",
-               std::string(openmc_err_msg) + "\n\n" +
+               std::string(openmc_get_err_msg()) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
                    "OpenMC's first run.");
@@ -648,7 +648,7 @@ OpenMCProblemBase::setCellDensity(const int32_t & index,
 
     mooseError("In attempting to set cell " + printCell(cell_info) + " to density " +
                    Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
-               std::string(openmc_err_msg) + "\n\n" +
+               std::string(openmc_get_err_msg()) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
                    "OpenMC's first run.");

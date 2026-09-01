@@ -119,7 +119,7 @@ getSingleTallyScoreEnum()
 MooseEnum
 getSingleParticleFilterEnum()
 {
-  return MooseEnum("neutron photon electron positron");
+  return MooseEnum("neutron photon");
 }
 
 MooseEnum

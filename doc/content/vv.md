@@ -10,6 +10,10 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 
 ## Thermal-Fluids
 
+The thermal-fluids cases below are configured as practical, repeatable regression tests.
+To keep routine continuous-integration costs manageable, the cases use deliberately modest mesh resolutions, and their qualifying criteria reflect the selected resolutions and associated discretization errors. 
+Further spatial refinement can reduce these errors and support tighter qualifying criteria.
+
 - [Laminar natural convection in a 2-D square cavity](vv/square_cavity_natural_convection.md)
 - [Turbulent Channel (RANS)](vv/nekrs/ktauChannel.md)
 - [Rayleigh-Bénard Convection](vv/nekrs/rbc.md)
@@ -27,4 +31,3 @@ through the [!ac](DOE) [!ac](NEAMS) Program.
 
 - [1D Doppler slab benchmark](vv/doppler_slab.md)
 - [1D thermal expansion slab benchmark](vv/s2_thermal_expansion.md)
-
