@@ -294,10 +294,22 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   # PETSc installs in place at $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX set).
   set(_moose_dir     ${CARDINAL_STAGE_DIR}/contrib/moose)
   set(_moose_scripts ${_moose_dir}/scripts)
+  # PETSC_DIR/LIBMESH_DIR/WASP_DIR deliberately stay plain (non-cache)
+  # local overrides here, not written back with CACHE ... FORCE: the
+  # empty-vs-set state of these three specific variables in the cache is
+  # what the tier-1-vs-tier-3 branch above keys off of. Force-writing
+  # them would make a from-source build look like a pre-built install
+  # was given on the *next* reconfigure, permanently flipping into tier
+  # 1 (and failing, since nothing was actually installed at those
+  # computed paths as a "pre-built" install).
   set(PETSC_DIR   ${_moose_dir}/petsc)
   set(LIBMESH_DIR ${_moose_dir}/libmesh/installed)
   set(WASP_DIR    ${_moose_dir}/framework/contrib/wasp/install)
-  set(HDF5_ROOT   ${PETSC_DIR}/${PETSC_ARCH})
+  # HDF5_ROOT carries no such meaning -- nothing branches on whether it
+  # was user-set vs derived -- so FORCE it into the cache so ccmake
+  # actually shows the value in use instead of the empty default from
+  # its initial declaration above.
+  set(HDF5_ROOT ${PETSC_DIR}/${PETSC_ARCH} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
 
   # These scripts' CONFIGURE_COMMAND/BUILD_COMMAND run as a plain custom
   # command (bash ${DEP_SCRIPT}, not the literal $(MAKE) token), so they
@@ -402,7 +414,7 @@ else()
   # Tier 1: locate the pre-built install (container). Never builds these.
   # ---------------------------------------------------------------------------
   if(NOT HDF5_ROOT)
-    set(HDF5_ROOT ${PETSC_DIR})
+    set(HDF5_ROOT ${PETSC_DIR} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
   endif()
 
   if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
