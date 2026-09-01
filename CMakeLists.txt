@@ -254,9 +254,6 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   else()
     set(_petsc_with_hip 0)
   endif()
-  # PETSc's SYCL package (--with-sycl) uses the same auto-probe mechanism
-  # as CUDA/HIP -- tie it to ENABLE_DPCPP too rather than leave the same
-  # gap open.
   if(ENABLE_DPCPP)
     set(_petsc_with_sycl 1)
   else()
