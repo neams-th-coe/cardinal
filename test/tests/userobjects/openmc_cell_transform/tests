@@ -68,4 +68,12 @@
     expect_err = "UserObjects/translate_cells/vector_value: Provide exactly 3 values/postprocessors: 'dx dy dz' in mesh units for translationtransform or 'φ, θ, ψ' in degrees for rotation transform."
     capabilities = 'openmc'
   []
+  [mismatching_geometry_and_mesh]
+    type = RunException
+    input = cells_shadow.i
+    cli_args = '--error'
+    expect_err = "The OpenMC geometry is being moved \(via an OpenMCCellTransform user object or a geometry changing criticality search\), but your problem has a fixed mesh. The underlying OpenMC geometry will change, but the \[Mesh\] will not move. Unexpected behavior may occur."
+    requirement = 'The system shall warn the user when the OpenMC geometry is moved by a cell transform while the mesh remains stationary.'
+    capabilities = 'openmc'
+  []
 []

@@ -48,4 +48,12 @@
     requirement = 'The system shall error if the user disables tallies and does not request a critical state calculation.'
     capabilities = 'openmc'
   []
+  [rotation_mismatching_geometry]
+    type = RunException
+    input = coupling.i
+    cli_args = '--error'
+    expect_err = "The OpenMC geometry is being moved"
+    requirement = 'The system shall warn the user when a criticality search rotates the OpenMC geometry while the mesh remains stationary.'
+    capabilities = 'openmc'
+  []
 []
