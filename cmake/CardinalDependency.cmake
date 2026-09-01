@@ -125,7 +125,18 @@ function(cardinal_add_submodule_dependency name)
     set(_in_source_dir ${CMAKE_SOURCE_DIR}/${DEP_SUBMODULE_PATH})
     message(STATUS "Cardinal: '${DEP_SUBMODULE_PATH}' found checked out in-source; mirroring into the build tree for ${name}")
 
-    set(_sync_cmd ${CMAKE_COMMAND} -E copy_directory_if_newer ${_in_source_dir} ${DEP_SOURCE_DIR})
+    # Plain rsync, not a CMake copy_directory_if_* mode: we're already
+    # using rsync -rlpgo --update for mirror_source in CMakeLists.txt
+    # (mtime-based skip-if-unchanged, without -t so the destination gets
+    # stamped with the actual copy time rather than a possibly-stale
+    # source mtime -- see that comment for the full reasoning), and there's
+    # no reason to duplicate that reasoning against a *different*
+    # mechanism here. No --delete: like Cardinal's own source, MOOSE's
+    # NO_BUILD sources get compiled in place by Cardinal's Makefile, so a
+    # generated file that doesn't exist in the pristine checked-out
+    # submodule (e.g. MooseRevision.h) must not be deleted just because
+    # of that.
+    set(_sync_cmd rsync -rlpgo --update ${_in_source_dir}/ ${DEP_SOURCE_DIR}/)
     ExternalProject_Add(${name}
       PREFIX                  ${_prefix}
       SOURCE_DIR             ${DEP_SOURCE_DIR}
