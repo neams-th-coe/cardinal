@@ -255,10 +255,8 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     set(_petsc_with_hip 0)
   endif()
   # PETSc's SYCL package (--with-sycl) uses the same auto-probe mechanism
-  # as CUDA/HIP -- harmless today (no oneAPI/DPCPP toolkit on this host
-  # at all, confirmed via OCCA's own failed SYCL probe earlier), but tie
-  # it to ENABLE_DPCPP too rather than leave the same gap for whenever
-  # this runs somewhere that does have one.
+  # as CUDA/HIP -- tie it to ENABLE_DPCPP too rather than leave the same
+  # gap open.
   if(ENABLE_DPCPP)
     set(_petsc_with_sycl 1)
   else()
