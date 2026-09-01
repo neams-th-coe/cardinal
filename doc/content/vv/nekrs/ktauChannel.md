@@ -58,3 +58,4 @@ For both simulations, the relative error is evaluated using
 
 The nondimensional quantities $u_\tau^*$ and $u_{\tau,\mathrm{DNS}}^*$ are used when the solve is performed in non-dimensional form.
 This comparison verifies that dimensional scaling preserves the predicted friction velocity and the nondimensional flow behavior.
+The tests pass when the relative friction-velocity error is below $4.0\times10^{-3}$ ($0.4\%$).

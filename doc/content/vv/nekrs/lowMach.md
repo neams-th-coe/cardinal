@@ -39,21 +39,24 @@ u(x)=T(x)=\frac{1}{2}\left[3+\tanh\left(\frac{x}{\delta}\right)\right],
 where $\delta$ is a user-specified parameter that controls the sharpness of the solution profile.
 Dirichlet boundary conditions are imposed at $x=-1$ and $x=1$ using the analytical solution.
 
-## Verification results
+## Verification criteria and results
 
 Two simulations are performed using a polynomial order of seven; the second simulation enables characteristic subcycling for the fluid and temperature solvers.
 Errors are evaluated at $t=0.3$.
-[fig:lowMach1] and [fig:lowMach2] present the volume-integrated error norms for the two cases.
-The results demonstrate spectral convergence for the $x$-velocity, hydrodynamic pressure, and temperature fields, thereby verifying the accuracy of the low-Mach solver.
+The test evaluates $L_\infty$ errors in velocity, temperature, and hydrodynamic pressure.
+For the solver mode without characteristic subcycling, the stored reference values are $1.59\times10^{-5}$, $3.07\times10^{-7}$, and $3.19\times10^{-3}$, respectively.
+For the solver mode with characteristic subcycling, the corresponding reference values are $2.19\times10^{-5}$, $1.05\times10^{-6}$, and $3.22\times10^{-3}$.
+Each normalized difference between a computed error and its stored reference value must be below $1\%$.
+[fig:lowMach1] and [fig:lowMach2] present separate $p$-refinement studies for the solver modes without and with characteristic subcycling. These refinement sweeps are not part of the routine regression tests, which use polynomial order $N=7$; the figures showcase spectral convergence of the velocity, hydrodynamic pressure, and temperature fields and provide additional evidence of the low-Mach solver's accuracy.
 
 !media media/lowMach_1.png
        id=fig:lowMach1
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *lowMach* case without characteristic subcycling.
+       caption=Spectral convergence under p refinement without characteristic subcycling; the routine regression test uses polynomial order seven.
        alt=Volume-integrated error norms for velocity, pressure, and temperature without characteristic subcycling.
 
 !media media/lowMach_2.png
        id=fig:lowMach2
        style=width:60%;margin-left:auto;margin-right:auto;
-       caption=Volume-integrated error norms for the *lowMach* case with characteristic subcycling.
+       caption=Spectral convergence under p refinement with characteristic subcycling; the routine regression test uses polynomial order seven.
        alt=Volume-integrated error norms for velocity, pressure, and temperature with characteristic subcycling.

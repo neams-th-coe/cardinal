@@ -27,13 +27,20 @@ The skin-friction coefficient is defined as
 C_f = \frac{2\tau_w}{\rho_0 U^2},
 
 where $\tau_w$ is the wall shear stress, $\rho_0$ is the reference density, and $U$ is the reference inlet velocity.
-The test evaluates the $L_2$ norm of the difference between the computed and experimental skin-friction coefficients,
+The test evaluates the area-normalized absolute error in the skin-friction coefficient along the downstream-wall boundary,
 
 !equation id=eq\:bfs-error
-\left\lVert C_f-C_f^{\mathrm{exp}}\right\rVert_{L_2}.
+\varepsilon_{C_f}
+=
+\frac{
+\displaystyle\int_{\Gamma_w}\left|C_f-C_f^{\mathrm{exp}}\right|\,dA
+}{
+\displaystyle\int_{\Gamma_w}dA
+}.
 
 [fig:bfs2] compares the computed skin-friction coefficient profile with the experimental measurements.
 A polynomial fit to the experimental data is used to evaluate the error norm.
+The case passes when $\varepsilon_{C_f}<1.38\times10^{-3}$.
 
 !media media/bfs-cf.png
        id=fig:bfs2
