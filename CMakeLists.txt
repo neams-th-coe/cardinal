@@ -211,15 +211,23 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
                ${_moose_makeflags}
     DEPENDS    moose)
 
+  # HPC login nodes commonly lack libtirpc-devel (no rpc/xdr.h) -- unlike
+  # the container image, which bundles it. libMesh's configure hard-fails
+  # on that ("XDR was not found, but --enable-xdr-required was
+  # specified.") since update_and_rebuild_libmesh.sh always passes
+  # --enable-xdr-required by default. doc/content/hpc_build_run_tips.md
+  # documents the fix: build with XDR (legacy binary I/O; Cardinal
+  # normally uses Exodus) disabled outright via these two flags.
   cardinal_add_moose_prereq(libmesh
-    SCRIPT     ${_moose_scripts}/update_and_rebuild_libmesh.sh
-    SOURCE_DIR ${_moose_dir}/libmesh
-    ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
-               PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
-               METHOD=${_moose_method}
-               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
-               ${_moose_makeflags}
-    DEPENDS    moose petsc)
+    SCRIPT      ${_moose_scripts}/update_and_rebuild_libmesh.sh
+    SOURCE_DIR  ${_moose_dir}/libmesh
+    ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+                PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
+                METHOD=${_moose_method}
+                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+                ${_moose_makeflags}
+    SCRIPT_ARGS --disable-xdr-required --disable-xdr
+    DEPENDS     moose petsc)
 
   cardinal_add_moose_prereq(wasp
     SCRIPT     ${_moose_scripts}/update_and_rebuild_wasp.sh
