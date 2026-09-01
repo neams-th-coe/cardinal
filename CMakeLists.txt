@@ -166,11 +166,20 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # the renamed copy the same "only touch it if content actually
 # changed" correctness the --update rsync above has, without needing
 # rsync just for one file.
+# test/tests/nek_ci is its own submodule outside contrib/, resolved
+# independently (like contrib's own submodules) only when ENABLE_NEK is
+# on -- see that block below. Exclude it here too in that case so the
+# two don't fight over the same destination; when ENABLE_NEK is off
+# there's no dedicated resolver for it, so let it just get copied
+# normally along with everything else (a no-op if it isn't checked out).
+set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile)
+if(ENABLE_NEK)
+  list(APPEND _mirror_excludes --exclude=/test/tests/nek_ci)
+endif()
+
 add_custom_target(mirror_source ALL
   COMMAND rsync -rlpgo --update
-          --exclude=/contrib
-          --exclude=/.git
-          --exclude=/Makefile
+          ${_mirror_excludes}
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
@@ -479,6 +488,19 @@ if(ENABLE_NEK)
       -DOCCA_ENABLE_OPENCL=${ENABLE_OPENCL}
       -DOCCA_ENABLE_DPCPP=${ENABLE_DPCPP}
       -DOCCA_ENABLE_METAL=${ENABLE_METAL})
+
+  # NekRS's own CI test fixtures -- a separate submodule outside contrib/
+  # (test/tests/nek_ci), not needed to build Cardinal itself, only to
+  # run its NekRS-related tests. Not a CMake project, just test input
+  # files -- same NO_BUILD/MARKER_FILE .git treatment as nuclear_data.
+  cardinal_add_submodule_dependency(nek_ci
+    SUBMODULE_PATH test/tests/nek_ci
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/test/tests/nek_ci
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nek_ci
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    MARKER_FILE     .git
+    NO_BUILD
+    NO_GIT_SUBMODULES)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -537,7 +559,7 @@ set(_make_enable_args
   ENABLE_DOUBLE_DOWN=$<IF:$<BOOL:${ENABLE_DOUBLE_DOWN}>,yes,no>)
 
 if(ENABLE_NEK)
-  list(APPEND _cardinal_depends nekrs)
+  list(APPEND _cardinal_depends nekrs nek_ci)
 endif()
 if(ENABLE_OPENMC)
   list(APPEND _cardinal_depends openmc nuclear_data)
