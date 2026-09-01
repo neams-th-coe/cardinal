@@ -12,8 +12,7 @@ include(ExternalProject)
 #
 # These scripts couple configure+build into one call in their default mode,
 # but ExternalProject tracks configure/build as independent steps with
-# independent staleness -- see cmake/PLAN.md, "Phase 3", for the full
-# reasoning. Deliberately split:
+# independent staleness. Deliberately split:
 #   - CONFIGURE_COMMAND = the full non-`--fast` script: the *slow* one. It
 #     wipes and reconfigures+rebuilds from scratch, including fetching its
 #     own MOOSE-nested submodule (petsc/libmesh/wasp) if not already
