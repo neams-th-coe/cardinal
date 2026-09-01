@@ -51,6 +51,16 @@ option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
 option(ENABLE_DPCPP  "Build NekRS/OCCA with SYCL/DPCPP support" OFF)
 option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 
+# PETSc's configure_petsc.sh always builds its downloaded OpenBLAS with
+# DYNAMIC_ARCH=1 -- kernels for every x86 microarchitecture it knows
+# about (Prescott, Core2, ..., Zen, SkylakeX, ...), auto-selected at
+# runtime via CPUID. Safe on a cluster where the build host and the
+# nodes you'll actually run on might differ, but much slower to build.
+# ON (safe) by default; turn OFF with ccmake only when you know the
+# build host's CPU is representative of every node you'll run on.
+option(CARDINAL_OPENBLAS_DYNAMIC_ARCH
+  "Build PETSc's OpenBLAS for many x86 microarchitectures (portable across mixed-CPU clusters, slower); turn OFF to build only for the host's own CPU" ON)
+
 if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
   message(FATAL_ERROR "ENABLE_DOUBLE_DOWN requires ENABLE_DAGMC")
 endif()
@@ -216,14 +226,46 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   # for the invocation instead of trusting the broken inherited fds.
   set(_moose_makeflags MAKEFLAGS=-j${CARDINAL_MOOSE_BUILD_PARALLELISM})
 
+  # configure_petsc.sh hardcodes --download-openblas-make-options=
+  # 'DYNAMIC_ARCH=1'; PETSc's own configure treats repeated --key=value
+  # options as last-one-wins, and update_and_rebuild_petsc.sh appends our
+  # SCRIPT_ARGS after its own hardcoded options, so this cleanly
+  # overrides it without touching the MOOSE script.
+  if(CARDINAL_OPENBLAS_DYNAMIC_ARCH)
+    set(_petsc_openblas_dynamic_arch 1)
+  else()
+    set(_petsc_openblas_dynamic_arch 0)
+  endif()
+
+  # Same story as OCCA/HYPRE above, but for PETSc's own --download-kokkos/
+  # --download-kokkos-kernels: configure_petsc.sh never says --with-cuda
+  # or --with-hip either way, so PETSc's configure auto-detects whatever
+  # CUDA/HIP toolkit happens to be on this host and silently builds
+  # GPU-enabled Kokkos. Tie this to the same ENABLE_CUDA/ENABLE_HIP
+  # toggles used for NekRS/OCCA above, so one ccmake switch controls GPU
+  # support consistently across the whole from-source build.
+  if(ENABLE_CUDA)
+    set(_petsc_with_cuda 1)
+  else()
+    set(_petsc_with_cuda 0)
+  endif()
+  if(ENABLE_HIP)
+    set(_petsc_with_hip 1)
+  else()
+    set(_petsc_with_hip 0)
+  endif()
+
   cardinal_add_moose_prereq(petsc
-    SCRIPT     ${_moose_scripts}/update_and_rebuild_petsc.sh
-    SOURCE_DIR ${_moose_dir}/petsc
-    ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
-               PETSC_ARCH=${PETSC_ARCH}
-               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
-               ${_moose_makeflags}
-    DEPENDS    moose)
+    SCRIPT      ${_moose_scripts}/update_and_rebuild_petsc.sh
+    SOURCE_DIR  ${_moose_dir}/petsc
+    ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+                PETSC_ARCH=${PETSC_ARCH}
+                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+                ${_moose_makeflags}
+    SCRIPT_ARGS --download-openblas-make-options=DYNAMIC_ARCH=${_petsc_openblas_dynamic_arch}
+                --with-cuda=${_petsc_with_cuda}
+                --with-hip=${_petsc_with_hip}
+    DEPENDS     moose)
 
   # HPC login nodes commonly lack libtirpc-devel (no rpc/xdr.h) -- unlike
   # the container image, which bundles it. libMesh's configure hard-fails
