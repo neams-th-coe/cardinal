@@ -44,7 +44,7 @@ Here, $y_p(t)$ is the piston location, $V_0$ is the initial domain volume, $V(t)
 ## Verification criterion
 
 The tests are qualified by evaluating the absolute errors in $\{V(t),dV(t)/dt,p_t(t),dp_t/dt,y_p(t),\overline{T}(t)\}$ at a specified time.
-The volume, piston-position, and mean-temperature errors are compared with stored reference errors using a normalized regression limit of $\mathrm{CI\_EPS}=5\%$.
+The volume, piston-position, and mean-temperature errors are compared with stored reference errors using a normalized regression limit of $5\%$.
 Solver modes 3, 5, and 6 additionally require the Cardinal mesh-velocity error to be below $10^{-11}$.
 Solver modes 1 and 2 use the three physical regression checks in the overall pass criterion, while solver modes 3, 5, and 6 include the mesh-velocity check as well.
 
