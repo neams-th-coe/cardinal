@@ -58,7 +58,7 @@ option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 # nodes you'll actually run on might differ, but much slower to build.
 # ON (safe) by default; turn OFF with ccmake only when you know the
 # build host's CPU is representative of every node you'll run on.
-option(CARDINAL_OPENBLAS_DYNAMIC_ARCH
+option(OPENBLAS_DYNAMIC_ARCH
   "Build PETSc's OpenBLAS for many x86 microarchitectures (portable across mixed-CPU clusters, slower); turn OFF to build only for the host's own CPU" ON)
 
 if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
@@ -70,8 +70,12 @@ if(ENABLE_DAGMC)
   message(FATAL_ERROR "ENABLE_DAGMC is not implemented yet in the CMake build (Phase 2); configure with -DENABLE_DAGMC=OFF for now.")
 endif()
 
-set(CARDINAL_BUILD_TYPE "Release" CACHE STRING "Build type forwarded to dependency CMake sub-builds (Release or Debug)")
-set_property(CACHE CARDINAL_BUILD_TYPE PROPERTY STRINGS Release Debug)
+# Reuse CMake's own standard CMAKE_BUILD_TYPE rather than inventing a
+# separate variable -- this superbuild's own project() has no compiled
+# languages (it only forwards this to the dependency sub-builds below),
+# but CMAKE_BUILD_TYPE is still the conventional place for it.
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type forwarded to dependency CMake sub-builds (Release or Debug)")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
 
 # -----------------------------------------------------------------------------
 # Layout
@@ -186,18 +190,23 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   # same mechanism behind the earlier "-j128 forced in submake" surprise,
   # generalized). Since we won't patch MOOSE's scripts, there's no way to
   # make them jobserver-aware, so -- rather than guess a number -- require
-  # an explicit choice. See cmake/PLAN.md, Phase 3, "Parallelism".
-  set(CARDINAL_MOOSE_BUILD_PARALLELISM "" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Required when building from source.")
-  if(NOT CARDINAL_MOOSE_BUILD_PARALLELISM)
+  # an explicit choice. Defaults from CMake's own standard
+  # CMAKE_BUILD_PARALLEL_LEVEL env var if that's set at configure time
+  # (note it's only read once, at configure time -- a later `cmake --build
+  # -jN` with a different N won't retroactively change this). See
+  # cmake/PLAN.md, Phase 3, "Parallelism".
+  set(MOOSE_BUILD_PARALLELISM "$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Required when building from source (defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment).")
+  if(NOT MOOSE_BUILD_PARALLELISM)
     message(FATAL_ERROR
       "Cardinal: building PETSc/libMesh/WASP from source requires "
-      "-DCARDINAL_MOOSE_BUILD_PARALLELISM=<N> -- these scripts can't share "
-      "cmake --build's own -j. See cmake/PLAN.md, Phase 3, Parallelism.")
+      "-DMOOSE_BUILD_PARALLELISM=<N> (or CMAKE_BUILD_PARALLEL_LEVEL in the "
+      "environment) -- these scripts can't share cmake --build's own -j. "
+      "See cmake/PLAN.md, Phase 3, Parallelism.")
   endif()
 
   set(PETSC_ARCH "arch-moose" CACHE STRING "PETSc build arch (matches update_and_rebuild_petsc.sh/Makefile's own default)")
 
-  if(CARDINAL_BUILD_TYPE STREQUAL "Debug")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(_moose_method dbg)
   else()
     set(_moose_method opt)
@@ -224,14 +233,14 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   # time. Overriding MAKEFLAGS here to a clean "-jN" (no jobserver-auth
   # reference) makes GNU Make bootstrap its own fresh, working jobserver
   # for the invocation instead of trusting the broken inherited fds.
-  set(_moose_makeflags MAKEFLAGS=-j${CARDINAL_MOOSE_BUILD_PARALLELISM})
+  set(_moose_makeflags MAKEFLAGS=-j${MOOSE_BUILD_PARALLELISM})
 
   # configure_petsc.sh hardcodes --download-openblas-make-options=
   # 'DYNAMIC_ARCH=1'; PETSc's own configure treats repeated --key=value
   # options as last-one-wins, and update_and_rebuild_petsc.sh appends our
   # SCRIPT_ARGS after its own hardcoded options, so this cleanly
   # overrides it without touching the MOOSE script.
-  if(CARDINAL_OPENBLAS_DYNAMIC_ARCH)
+  if(OPENBLAS_DYNAMIC_ARCH)
     set(_petsc_openblas_dynamic_arch 1)
   else()
     set(_petsc_openblas_dynamic_arch 0)
@@ -265,7 +274,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     SOURCE_DIR  ${_moose_dir}/petsc
     ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                 PETSC_ARCH=${PETSC_ARCH}
-                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+                MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                 ${_moose_makeflags}
     SCRIPT_ARGS --download-openblas-make-options=DYNAMIC_ARCH=${_petsc_openblas_dynamic_arch}
                 --with-cuda=${_petsc_with_cuda}
@@ -286,7 +295,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                 PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
                 METHOD=${_moose_method}
-                MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+                MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                 ${_moose_makeflags}
     SCRIPT_ARGS --disable-xdr-required --disable-xdr
     DEPENDS     moose petsc)
@@ -295,7 +304,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     SCRIPT     ${_moose_scripts}/update_and_rebuild_wasp.sh
     SOURCE_DIR ${_moose_dir}/framework/contrib/wasp
     ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
-               MOOSE_JOBS=${CARDINAL_MOOSE_BUILD_PARALLELISM}
+               MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                ${_moose_makeflags}
     DEPENDS    moose)
 
@@ -383,7 +392,7 @@ if(ENABLE_NEK)
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nekrs
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=${CARDINAL_BUILD_TYPE}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_C_COMPILER=${LIBMESH_CC}
       -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
       -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
@@ -428,7 +437,7 @@ if(ENABLE_OPENMC)
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
     DEPENDS         ${_openmc_depends}
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=${CARDINAL_BUILD_TYPE}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DOPENMC_USE_LIBMESH=ON
       -DOPENMC_USE_MPI=ON
       -DOPENMC_USE_DAGMC=OFF
