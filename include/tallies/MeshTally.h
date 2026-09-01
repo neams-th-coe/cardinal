@@ -69,7 +69,8 @@ protected:
   {
     CaseI = 0,
     CaseII = 1,
-    CaseIII = 2
+    CaseIII = 2,
+    Unknown = 3
   };
 
   /**
@@ -135,12 +136,15 @@ protected:
   const bool _use_dof_map;
 
   /// A mapping between the OpenMC bins (active block restricted elements) and all elements.
-  std::vector<unsigned int> _bin_to_element_mapping;
+  std::vector<dof_id_type> _bin_to_element_mapping;
   /// Dual of the above map.
   std::vector<int64_t> _element_to_bin_mapping;
 
   /// The previous bin to element mapping.
-  std::vector<unsigned int> _prev_bin_to_element_mapping;
+  std::vector<dof_id_type> _prev_bin_to_element_mapping;
   /// The dual of the above map.
   std::vector<int64_t> _prev_elem_to_bin_mapping;
+  /// A map of element IDs to the IDs of their immediate children. Used
+  /// to get around libMesh not keeping coarsened elements.
+  std::unordered_map<dof_id_type, std::array<dof_id_type, 10>> _prev_elem_to_children;
 };
