@@ -80,16 +80,19 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
 # -----------------------------------------------------------------------------
 # Layout
 #
-# Everything Make-related (mirrored app source, contrib/<dep>, build/<dep>,
-# install/) lives under one subdirectory of the CMake build tree rather than
-# at its root, so CMake's own generated build files (Makefile,
-# CMakeCache.txt, ...) don't collide with Cardinal's own hand-written
-# top-level Makefile of the same name. See cmake/PLAN.md.
+# Everything -- mirrored app source, contrib/<dep>, build/<dep>, install/ --
+# lives directly in the CMake build tree, so the result of a CMake build
+# looks like the result of an in-tree Makefile build (cardinal-opt, lib/,
+# src/, ... right at the top), not nested inside an extra subdirectory. The
+# one real collision this creates is Cardinal's own hand-written top-level
+# Makefile against CMake's own generated one of the same name; mirror_source
+# (below) resolves that by mirroring everything else normally but copying
+# Makefile itself under a different name (Makefile.cardinal), and the final
+# "cardinal" target invokes that explicitly via `$(MAKE) -f Makefile.cardinal`.
+# See cmake/PLAN.md.
 # -----------------------------------------------------------------------------
-set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR}/cardinal)
+set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR})
 set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
-
-file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 
 # Mirror everything except the large, separately-managed submodules and
 # CMake/Make build byproducts. Reruns every build (add_custom_target has no
@@ -135,6 +138,14 @@ file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 # --filter loads Cardinal's own .gitignore so none of that generated
 # cruft gets copied FROM the source side either, in case any is
 # sitting in your own checkout.
+#
+# --exclude=/Makefile, plus the separate copy_if_different below: since
+# CARDINAL_STAGE_DIR is now the CMake build directory itself (see
+# "Layout" above), rsync-ing Makefile normally would collide with
+# CMake's own generated one of the same name. copy_if_different gives
+# the renamed copy the same "only touch it if content actually
+# changed" correctness the --update rsync above has, without needing
+# rsync just for one file.
 add_custom_target(mirror_source ALL
   COMMAND rsync -rlpgo --update
           "--filter=:- ${CMAKE_SOURCE_DIR}/.gitignore"
@@ -143,7 +154,10 @@ add_custom_target(mirror_source ALL
           --exclude=/contrib/openmc
           --exclude=/contrib/nuclear_data
           --exclude=/.git
+          --exclude=/Makefile
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
   COMMENT "Mirroring Cardinal source into the build tree"
   VERBATIM)
 
@@ -531,7 +545,7 @@ add_custom_target(cardinal ALL
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
           --
-          $(MAKE) ${_make_enable_args}
+          $(MAKE) -f Makefile.cardinal ${_make_enable_args}
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
   DEPENDS ${_cardinal_depends}
   COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
