@@ -135,9 +135,29 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # Makefile happens to produce, just drop --delete: the cost is a stale
 # copy lingering if a source file is later removed/renamed upstream,
 # which is far cheaper than silently rebuilding the world every time.
-# --filter loads Cardinal's own .gitignore so none of that generated
-# cruft gets copied FROM the source side either, in case any is
-# sitting in your own checkout.
+# Just copy everything (only excluding what we must for functional
+# reasons below), rather than trying to filter out generated/ignored
+# content: a .gitignore-pattern filter got this wrong in a way that
+# actually broke tests -- .gitignore only hides *untracked* files from
+# git, so a file that's explicitly tracked despite matching a broad
+# ignore pattern (e.g. test/tests/.../model.xml, tracked despite the
+# repo's blanket "*.xml" ignore -- that pattern exists to keep
+# *generated* XML out, not this fixture) stays tracked and visible to
+# git regardless, but rsync's --filter has no such "tracked overrides
+# ignore" concept and excluded it unconditionally. Mirroring exactly
+# what `git ls-files` tracks instead would dodge that specific problem,
+# but silently misses any file the user has created but not yet even
+# `git add`ed -- also wrong. Simplest and most robust: don't try to be
+# clever about what belongs in the mirror at all.
+#
+# --exclude=/contrib covers all 14 submodules under it (the 4 this
+# superbuild manages -- moose/nekRS/openmc/nuclear_data, each resolved
+# independently by its own cardinal_add_submodule_dependency call above
+# or below -- plus 10 more for not-yet-implemented Phase 2 features
+# like DAGMC/SAM/bison/embree/... that we don't want mirrored at all
+# even if a user happens to have them checked out locally). Confirmed
+# nothing else lives directly under contrib/ -- every path there is a
+# submodule mount point, nothing Cardinal-specific.
 #
 # --exclude=/Makefile, plus the separate copy_if_different below: since
 # CARDINAL_STAGE_DIR is now the CMake build directory itself (see
@@ -148,11 +168,7 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # rsync just for one file.
 add_custom_target(mirror_source ALL
   COMMAND rsync -rlpgo --update
-          "--filter=:- ${CMAKE_SOURCE_DIR}/.gitignore"
-          --exclude=/contrib/moose
-          --exclude=/contrib/nekRS
-          --exclude=/contrib/openmc
-          --exclude=/contrib/nuclear_data
+          --exclude=/contrib
           --exclude=/.git
           --exclude=/Makefile
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
