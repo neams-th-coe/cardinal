@@ -319,13 +319,29 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
   # (note it's only read once, at configure time -- a later `cmake --build
   # -jN` with a different N won't retroactively change this). See
   # cmake/PLAN.md, Phase 3, "Parallelism".
-  set(MOOSE_BUILD_PARALLELISM "$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Required when building any of them from source (defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment).")
+  set(MOOSE_BUILD_PARALLELISM "$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment, else min(available cores, 16).")
   if(NOT MOOSE_BUILD_PARALLELISM)
-    message(FATAL_ERROR
-      "Cardinal: building PETSc/libMesh/WASP from source requires "
-      "-DMOOSE_BUILD_PARALLELISM=<N> (or CMAKE_BUILD_PARALLEL_LEVEL in the "
-      "environment) -- these scripts can't share cmake --build's own -j. "
-      "See cmake/PLAN.md, Phase 3, Parallelism.")
+    # Unlike the final "cardinal" build step (which shares cmake --build's
+    # own jobserver via $(MAKE) and so must never guess a number), these
+    # scripts genuinely can't share that jobserver -- some concrete number
+    # is unavoidable. Default to something reasonable (capped at 16 so an
+    # unattended default doesn't grab an entire shared/login-node machine)
+    # rather than hard-failing; it's just a CACHE STRING, so -DMOOSE_BUILD_
+    # PARALLELISM=<N> or editing it directly in ccmake overrides it same as
+    # any other cache variable.
+    cmake_host_system_information(RESULT _ncpu QUERY NUMBER_OF_LOGICAL_CORES)
+    if(_ncpu GREATER 16)
+      set(_default_moose_build_parallelism 16)
+    else()
+      set(_default_moose_build_parallelism ${_ncpu})
+    endif()
+    set(MOOSE_BUILD_PARALLELISM ${_default_moose_build_parallelism} CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment, else min(available cores, 16)." FORCE)
+    message(WARNING
+      "Cardinal: MOOSE_BUILD_PARALLELISM not set (nor CMAKE_BUILD_PARALLEL_LEVEL "
+      "in the environment) -- defaulting to ${MOOSE_BUILD_PARALLELISM} "
+      "(min(available cores, 16)); these scripts can't share cmake --build's "
+      "own -j. Set -DMOOSE_BUILD_PARALLELISM=<N> (or edit it in ccmake) to "
+      "override.")
   endif()
 
   # These scripts' CONFIGURE_COMMAND/BUILD_COMMAND run as a plain custom
