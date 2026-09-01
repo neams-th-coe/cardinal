@@ -37,6 +37,17 @@ option(ENABLE_OPENMC      "Build Cardinal with OpenMC coupling"   ON)
 option(ENABLE_DAGMC       "Build OpenMC with DAGMC support"       OFF)
 option(ENABLE_DOUBLE_DOWN "Use Double-Down for DAGMC ray tracing" OFF)
 
+# NekRS's own OCCA device backends -- off by default (matching what the
+# container build effectively gets, since it has no GPU toolkits), but
+# exposed here (rather than hardcoded) so `ccmake` can turn them back on
+# for a GPU-enabled build. See the ENABLE_NEK block below for why these
+# have to be forwarded as OCCA_ENABLE_* specifically.
+option(CARDINAL_NEKRS_ENABLE_CUDA   "Build NekRS/OCCA with CUDA support"       OFF)
+option(CARDINAL_NEKRS_ENABLE_HIP    "Build NekRS/OCCA with HIP support"        OFF)
+option(CARDINAL_NEKRS_ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
+option(CARDINAL_NEKRS_ENABLE_DPCPP  "Build NekRS/OCCA with SYCL/DPCPP support" OFF)
+option(CARDINAL_NEKRS_ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
+
 if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
   message(FATAL_ERROR "ENABLE_DOUBLE_DOWN requires ENABLE_DAGMC")
 endif()
@@ -300,22 +311,21 @@ endif()
 # NekRS (config/nekrs.mk)
 # -----------------------------------------------------------------------------
 if(ENABLE_NEK)
-  # NekRS's own CMakeLists sets OCCA_ENABLE_CUDA/HIP/OPENCL/DPCPP to ON via
-  # set(... CACHE BOOL ...) (CMakeLists.txt:143-147) -- ENABLE_CUDA/
+  # NekRS's own CMakeLists sets OCCA_ENABLE_CUDA/HIP/OPENCL/DPCPP/METAL to
+  # ON via set(... CACHE BOOL ...) (CMakeLists.txt:143-147) -- ENABLE_CUDA/
   # ENABLE_HIP/ENABLE_OPENCL below only gate nekrs's own solver-level
   # compile definitions (CMakeLists.txt:287), they do NOT stop OCCA itself
   # from probing for and building against whatever CUDA/HIP toolkits
-  # happen to be on PATH. On a bare HPC host (unlike the container, which
-  # has neither) that silently builds OCCA's CUDA/HIP backends -- and,
-  # transitively, nekRS's own bundled device-enabled HYPRE
-  # (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR
-  # OCCA_HIP_ENABLED))`) -- even though we asked for none of it. Found by
-  # actually running the build: OCCA's HIP backend failed outright
-  # (no hip/hip_runtime_api.h dev headers, only the runtime lib), and the
-  # CUDA-enabled HYPRE failed to compile against CUDA 13's Thrust
-  # (thrust::pair no longer exists). Seed OCCA's own cache variables
-  # directly (a non-FORCE `set(... CACHE ...)` doesn't overwrite a cache
-  # entry that already exists) so none of this is ever attempted.
+  # happen to be on PATH. On a bare HPC host with GPU toolkits present
+  # (unlike the container, which has neither) that silently builds OCCA's
+  # CUDA/HIP backends -- and, transitively, nekRS's own bundled
+  # device-enabled HYPRE (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND
+  # (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`) -- even if that's not what
+  # was asked for. Forward our own CARDINAL_NEKRS_ENABLE_* cache variables
+  # (default OFF, toggle with ccmake) directly as OCCA's own cache
+  # variables so a plain set(... CACHE ...) can't turn them back on (that
+  # never overwrites a cache entry that already exists, and -D on the
+  # command line always creates/wins one first).
   cardinal_add_submodule_dependency(nekrs
     SUBMODULE_PATH contrib/nekRS
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nekRS
@@ -331,14 +341,15 @@ if(ENABLE_NEK)
       "-DNEK5000_PPLIST=PARRSB DPROCMAP"
       -DOCCA_CXX=${LIBMESH_CC}
       "-DOCCA_CXXFLAGS=-O2 -ftree-vectorize -funroll-loops -march=native -mtune=native"
-      -DENABLE_CUDA=0
-      -DENABLE_OPENCL=0
-      -DENABLE_HIP=0
+      -DENABLE_CUDA=${CARDINAL_NEKRS_ENABLE_CUDA}
+      -DENABLE_OPENCL=${CARDINAL_NEKRS_ENABLE_OPENCL}
+      -DENABLE_HIP=${CARDINAL_NEKRS_ENABLE_HIP}
       -DENABLE_AMGX=0
-      -DOCCA_ENABLE_CUDA=OFF
-      -DOCCA_ENABLE_HIP=OFF
-      -DOCCA_ENABLE_OPENCL=OFF
-      -DOCCA_ENABLE_DPCPP=OFF)
+      -DOCCA_ENABLE_CUDA=${CARDINAL_NEKRS_ENABLE_CUDA}
+      -DOCCA_ENABLE_HIP=${CARDINAL_NEKRS_ENABLE_HIP}
+      -DOCCA_ENABLE_OPENCL=${CARDINAL_NEKRS_ENABLE_OPENCL}
+      -DOCCA_ENABLE_DPCPP=${CARDINAL_NEKRS_ENABLE_DPCPP}
+      -DOCCA_ENABLE_METAL=${CARDINAL_NEKRS_ENABLE_METAL})
 endif()
 
 # -----------------------------------------------------------------------------
