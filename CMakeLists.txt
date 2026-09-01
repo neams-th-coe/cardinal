@@ -103,8 +103,20 @@ file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 # verbatim (rather than stamping the destination with the actual copy
 # time) is what copy_directory_if_newer avoids too. -D (devices/specials)
 # is dropped as well since it's meaningless for a source tree.
+#
+# --checksum is required alongside dropping -t, not optional: without -t,
+# the destination's mtime is just "whenever it was last copied", which
+# will essentially never equal the source's current mtime -- so rsync's
+# default quick check (size+mtime) sees every file as changed and
+# re-copies (and re-stamps) the entire tree on every single build,
+# forcing a full recompile+relink every time regardless of whether
+# anything actually changed. Comparing by content instead means a
+# genuinely-unchanged file is skipped (destination mtime stays put) and
+# only real changes get a fresh mtime -- the same effective skip-if-
+# unchanged behavior -a's mtime comparison gave us, without trusting a
+# source mtime that a concurrent edit could make misleading.
 add_custom_target(mirror_source ALL
-  COMMAND rsync -rlpgo --delete
+  COMMAND rsync -rlpgo --checksum --delete
           --exclude=/contrib/moose
           --exclude=/contrib/nekRS
           --exclude=/contrib/openmc
