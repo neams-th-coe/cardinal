@@ -119,14 +119,29 @@ file(MAKE_DIRECTORY ${CARDINAL_STAGE_DIR})
 # own actual semantics more closely than a content-hash comparison
 # would, without trusting a source mtime a concurrent edit could make
 # misleading.
+# Cardinal builds in-place: object files, libraries, dependency files,
+# and the *Revision.h headers all land inline next to their sources
+# (e.g. src/base/CardinalApp.o), not confined to /build. None of that
+# exists in the pristine source tree, so --delete removed it all on
+# every single mirror_source run, as soon as it was produced -- forcing
+# a full rebuild+relink every time regardless of the mtime/--update fix
+# above (confirmed live: CardinalRevision.h was getting deleted and
+# regenerated on every build; a missing prerequisite is obviously
+# "changed", no mtime trickery needed for that). Rather than try to
+# comprehensively protect every in-tree generated pattern Cardinal's
+# Makefile happens to produce, just drop --delete: the cost is a stale
+# copy lingering if a source file is later removed/renamed upstream,
+# which is far cheaper than silently rebuilding the world every time.
+# --filter loads Cardinal's own .gitignore so none of that generated
+# cruft gets copied FROM the source side either, in case any is
+# sitting in your own checkout.
 add_custom_target(mirror_source ALL
-  COMMAND rsync -rlpgo --update --delete
+  COMMAND rsync -rlpgo --update
+          "--filter=:- ${CMAKE_SOURCE_DIR}/.gitignore"
           --exclude=/contrib/moose
           --exclude=/contrib/nekRS
           --exclude=/contrib/openmc
           --exclude=/contrib/nuclear_data
-          --exclude=/build
-          --exclude=/install
           --exclude=/.git
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
   COMMENT "Mirroring Cardinal source into the build tree"
