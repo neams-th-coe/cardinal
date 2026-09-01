@@ -54,7 +54,7 @@
   [Filters]
     [Particle]
       type = ParticleFilter
-      particles = 'neutron photon electron positron'
+      particles = 'neutron photon'
     []
   []
 []
@@ -89,36 +89,6 @@
     type = PointValue
     point = '0 0 8'
     variable = heating_photon
-  []
-  [Pebble_1_heating_electron]
-    type = PointValue
-    point = '0 0 0'
-    variable = heating_electron
-  []
-  [Pebble_2_heating_electron]
-    type = PointValue
-    point = '0 0 4'
-    variable = heating_electron
-  []
-  [Pebble_3_heating_electron]
-    type = PointValue
-    point = '0 0 8'
-    variable = heating_electron
-  []
-  [Pebble_1_heating_positron]
-    type = PointValue
-    point = '0 0 0'
-    variable = heating_positron
-  []
-  [Pebble_2_heating_positron]
-    type = PointValue
-    point = '0 0 4'
-    variable = heating_positron
-  []
-  [Pebble_3_heating_positron]
-    type = PointValue
-    point = '0 0 8'
-    variable = heating_positron
   []
 []
 

@@ -138,7 +138,7 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
     {
       err = openmc_reset_timers();
       if (err)
-        mooseError(openmc_err_msg);
+        mooseError(openmc_get_err_msg());
     }
 
     // re-run the model
@@ -148,7 +148,7 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
       err = openmc_run();
 
     if (err)
-      mooseError(openmc_err_msg);
+      mooseError(openmc_get_err_msg());
 
     // fetch k and print values to console
     Real k = kMean(_estimator);
@@ -190,7 +190,7 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
 
     int err = openmc_run();
     if (err)
-      mooseError(openmc_err_msg);
+      mooseError(openmc_get_err_msg());
   }
 
   // fill the converged value into a postprocessor

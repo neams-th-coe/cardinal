@@ -54,22 +54,6 @@
     requirement = "The system shall be hide tally variables added for MGXS generation unless requested by the user."
     capabilities = 'openmc'
   []
-  [electron]
-    type = RunException
-    input = hide_tally_vars.i
-    cli_args = "Problem/MGXS/particle='electron'"
-    expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
-    requirement = "The system shall error if the user requests electron cross sections."
-    capabilities = 'openmc'
-  []
-  [positron]
-    type = RunException
-    input = hide_tally_vars.i
-    cli_args = "Problem/MGXS/particle='positron'"
-    expect_err = "Multi-group cross sections can only be generated for neutrons or photons."
-    requirement = "The system shall error if the user requests positron cross sections."
-    capabilities = 'openmc'
-  []
   [photon_fission_xs]
     type = RunException
     input = hide_tally_vars.i
