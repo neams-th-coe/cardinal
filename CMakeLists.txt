@@ -254,6 +254,16 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
   else()
     set(_petsc_with_hip 0)
   endif()
+  # PETSc's SYCL package (--with-sycl) uses the same auto-probe mechanism
+  # as CUDA/HIP -- harmless today (no oneAPI/DPCPP toolkit on this host
+  # at all, confirmed via OCCA's own failed SYCL probe earlier), but tie
+  # it to ENABLE_DPCPP too rather than leave the same gap for whenever
+  # this runs somewhere that does have one.
+  if(ENABLE_DPCPP)
+    set(_petsc_with_sycl 1)
+  else()
+    set(_petsc_with_sycl 0)
+  endif()
 
   cardinal_add_moose_prereq(petsc
     SCRIPT      ${_moose_scripts}/update_and_rebuild_petsc.sh
@@ -265,6 +275,7 @@ if(CARDINAL_BUILD_MOOSE_PREREQS)
     SCRIPT_ARGS --download-openblas-make-options=DYNAMIC_ARCH=${_petsc_openblas_dynamic_arch}
                 --with-cuda=${_petsc_with_cuda}
                 --with-hip=${_petsc_with_hip}
+                --with-sycl=${_petsc_with_sycl}
     DEPENDS     moose)
 
   # HPC login nodes commonly lack libtirpc-devel (no rpc/xdr.h) -- unlike
