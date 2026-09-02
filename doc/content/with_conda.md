@@ -9,7 +9,8 @@ conda compiler wrappers.
 
 You MUST set `export ENABLE_NEK=false` if you want to use the conda environment.
 Otherwise, if you do want NekRS features, you need to instead follow the
-[instructions for building without the conda environment](without_conda.md).
+[instructions for building without the conda environment](without_conda.md), or the
+*experimental* [CMake-based build](with_cmake.md).
 We hope to relax this restriction in the future - if this
 is impacting your work, please let us know so that we can increase its priority.
 !alert-end!
