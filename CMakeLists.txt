@@ -444,22 +444,6 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
       DEPENDS     moose)
   endif()
 
-  # HDF5_ROOT: derived from PETSC_DIR either way, but the layout differs --
-  # our own from-source PETSc uses $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX
-  # set), while an externally-provided PETSC_DIR is a flat, complete prefix
-  # with no arch subdirectory (matching how libMesh's own configure treats
-  # PETSC_DIR when PETSC_ARCH is left unset). FORCE it into the cache so
-  # ccmake shows the value actually in use; safe here (unlike
-  # PETSC_DIR/LIBMESH_DIR/WASP_DIR below) since nothing branches on whether
-  # HDF5_ROOT itself was user-set vs. derived.
-  if(NOT HDF5_ROOT)
-    if(CARDINAL_BUILD_PETSC)
-      set(HDF5_ROOT ${PETSC_DIR}/${PETSC_ARCH} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
-    else()
-      set(HDF5_ROOT ${PETSC_DIR} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
-    endif()
-  endif()
-
   if(CARDINAL_BUILD_LIBMESH)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       set(_moose_method dbg)
@@ -529,6 +513,36 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
   # it on the *next* reconfigure, permanently flipping it to "pre-built"
   # (and failing, since nothing was actually installed at that computed
   # path as a genuine pre-built install).
+endif()
+
+# HDF5_ROOT: derived from PETSC_DIR either way, but the layout differs -- our
+# own from-source PETSc uses $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX set),
+# while an externally-provided PETSC_DIR is a flat, complete prefix with no
+# arch subdirectory (matching how libMesh's own configure treats PETSC_DIR
+# when PETSC_ARCH is left unset). FORCE it into the cache so ccmake shows the
+# value actually in use; safe here (unlike PETSC_DIR/LIBMESH_DIR/WASP_DIR
+# above) since nothing branches on whether HDF5_ROOT itself was user-set vs.
+# derived.
+#
+# Deliberately placed *outside* (after) the CARDINAL_BUILD_PETSC/LIBMESH/WASP
+# block above, not inside it: this used to live inside that block, which
+# meant it silently never ran at all -- HDF5_ROOT stayed permanently empty in
+# the cache -- whenever PETSc/libMesh/WASP were all pre-built (i.e. the
+# common container case, where that whole block is skipped). MOAB's and
+# OpenMC's own CMAKE_ARGS forward this value explicitly regardless (so their
+# own sub-builds were never affected), but nothing forwarded the *computed*
+# value on to Cardinal's own native Makefile step -- it fell back to
+# whatever HDF5_ROOT happened to already be in the ambient shell environment
+# invoking `cmake --build`/`make`, silently wrong (or empty) if the user
+# hadn't separately exported it themselves. Found live: a user reported
+# needing to export HDF5_ROOT manually for it to "make it to the moose
+# sub-dependencies" despite this superbuild computing it correctly.
+if(NOT HDF5_ROOT)
+  if(CARDINAL_BUILD_PETSC)
+    set(HDF5_ROOT ${PETSC_DIR}/${PETSC_ARCH} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
+  else()
+    set(HDF5_ROOT ${PETSC_DIR} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------
@@ -645,6 +659,22 @@ if(ENABLE_DAGMC)
       -DENABLE_BLASLAPACK=OFF
       -DEIGEN3_DIR=${EIGEN3_DIR}
       -DHDF5_DIR=${HDF5_ROOT}
+      # -DHDF5_DIR alone (moab.mk's own flag, matched above) isn't enough:
+      # MOAB's CMakeLists.txt calls plain `find_package(HDF5 REQUIRED
+      # COMPONENTS C HL)`, resolved in MODULE mode by CMake's own bundled
+      # FindHDF5.cmake -- that module doesn't consult HDF5_DIR at all, only
+      # HDF5_ROOT (as a CMake variable/cache entry, falling back to
+      # $ENV{HDF5_ROOT} only if that's unset -- confirmed by reading
+      # FindHDF5.cmake directly). Cardinal's own native moab.mk gets this
+      # for free because the Makefile itself `export HDF5_ROOT`s (Makefile:
+      # 93-95) before config/moab.mk's cmake invocation ever runs; our own
+      # independent ExternalProject_Add sub-build has no such ambient
+      # export to inherit, so it must be passed explicitly. Found live:
+      # MOAB's own configure failed with "Could NOT find HDF5" as soon as
+      # HDF5_ROOT wasn't already exported in the invoking shell -- i.e. this
+      # superbuild's own carefully-computed HDF5_ROOT (above) wasn't
+      # actually reaching MOAB's configure at all without this.
+      -DHDF5_ROOT=${HDF5_ROOT}
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_C_COMPILER=${LIBMESH_CC}
       -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
@@ -845,12 +875,17 @@ if(ENABLE_DAGMC)
 endif()
 
 add_custom_target(cardinal ALL
-  # NEKRS_HOME/CONTRIB_INSTALL_DIR are computed paths we deliberately force
-  # regardless of the ambient environment (check_nekrs.mk hard-requires
-  # NEKRS_HOME == CONTRIB_INSTALL_DIR). OPENMC_CROSS_SECTIONS is left out of
-  # this override list on purpose: it must come from whatever the user has
-  # exported in the shell that invokes `cmake --build`/`make`, not get
-  # frozen at CMake *configure* time via $ENV{...}.
+  # NEKRS_HOME/CONTRIB_INSTALL_DIR/HDF5_ROOT are computed paths we
+  # deliberately force regardless of the ambient environment
+  # (check_nekrs.mk hard-requires NEKRS_HOME == CONTRIB_INSTALL_DIR; without
+  # forcing HDF5_ROOT here too, Cardinal's own native Makefile step falls
+  # back to whatever HDF5_ROOT happens to already be in the ambient shell
+  # environment invoking `cmake --build`/`make`, silently wrong or empty if
+  # the user hasn't separately exported it themselves -- found live).
+  # OPENMC_CROSS_SECTIONS is left out of this override list on purpose: it
+  # must come from whatever the user has exported in the shell that invokes
+  # `cmake --build`/`make`, not get frozen at CMake *configure* time via
+  # $ENV{...}.
   #
   # $(MAKE), not a literal `make`/`make -jN`: CMake's Makefiles generator
   # substitutes this with a recursive make invocation that shares the
@@ -880,6 +915,7 @@ add_custom_target(cardinal ALL
   COMMAND ${CMAKE_COMMAND} -E env
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          HDF5_ROOT=${HDF5_ROOT}
           ${_make_enable_args}
           --
           $(MAKE) -f Makefile.cardinal
