@@ -5,14 +5,11 @@
 
   dt = 2.0e-05
   timeStepper = tombo2
-  subCyclingSteps = 2
 
   writeControl = steps
   writeInterval = 2000
 
-  filtering = hpfrt
-  filterWeight = 0.2/${dt}
-  filterModes = 2
+  regularization = hpfrt+nModes=2+scalingCoeff=0.2/${dt}
   scalars = temperature
 
 [FLUID PRESSURE]

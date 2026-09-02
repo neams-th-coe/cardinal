@@ -1,5 +1,9 @@
 #include "udf.hpp"
 
+#ifdef __okl__
+#include "../read_from_checkpoints/pyramid.oudf"
+#endif
+
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
 }
