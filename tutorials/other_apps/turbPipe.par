@@ -20,10 +20,10 @@
   filterWeight = 0.1/${dt}
   filterModes = 1
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-04
 
-[VELOCITY]
+[FLUID VELOCITY]
   boundaryTypeMap = inlet, outlet, wall
   density = 1.0
   viscosity = -19000

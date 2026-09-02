@@ -33,17 +33,17 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-04
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = -223214
   density = 1.0
   boundaryTypeMap = v, o, W
   residualTol = 1e-06
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   rhoCp = 1.0
   conductivity = -146205
   boundaryTypeMap = t, o, f
