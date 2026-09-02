@@ -989,6 +989,12 @@ OpenMCProblemBase::hasCellTransform() const
   return !_cell_transform_uos.empty();
 }
 
+bool
+OpenMCProblemBase::movesOpenMCGeometry() const
+{
+  return hasCellTransform() || (_criticality_search && _criticality_search->changingGeometry());
+}
+
 void
 OpenMCProblemBase::checkOpenMCUserObjectIDs() const
 {

@@ -568,19 +568,23 @@ OpenMCCellAverageProblem::initialSetup()
   }
 
   getOpenMCUserObjects();
+  if (_needs_to_map_cells)
+  {
+    if (_use_displaced && !_using_skinner && !movesOpenMCGeometry())
+      mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner', an "
+                   "OpenMCCellTransform user object, or a geometry changing criticality search "
+                   "(all of which move the OpenMC geometry). The [Mesh] will move, but the "
+                   "underlying OpenMC geometry will remain unchanged. Unexpected behavior may "
+                   "occur.");
+    else if (!_use_displaced && movesOpenMCGeometry())
+      mooseWarning("The OpenMC geometry is being moved (via an OpenMCCellTransform user object "
+                   "or a geometry changing criticality search), but your problem has a fixed "
+                   "mesh. The underlying OpenMC geometry will change, but the [Mesh] will not "
+                   "move. Unexpected behavior may occur.");
+  }
 
-  if (_use_displaced && !_using_skinner && !hasCellTransform())
-    mooseWarning("Your problem has a moving mesh, but you have not provided a 'skinner' or an "
-                 "OpenMCCellTransform user object (both of which move the OpenMC geometry). The "
-                 "[Mesh] will move, but the underlying OpenMC geometry will remain unchanged. "
-                 "Unexpected behavior may occur.");
-
-  // Coupling re-initialization should be triggered if we have cell transforms which can happen
-  // even if the mesh isn't moving or adaptive.
-  _need_to_reinit_coupling |= hasCellTransform();
-  // The criticality search may modify the geometry.
-  if (_criticality_search)
-    _need_to_reinit_coupling |= _criticality_search->changingGeometry();
+  // Coupling re-initialization should be triggered if the OpenMC geometry is being moved
+  _need_to_reinit_coupling |= movesOpenMCGeometry();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
