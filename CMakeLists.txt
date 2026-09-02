@@ -858,11 +858,31 @@ add_custom_target(cardinal ALL
   # whatever `-j` the user passed to `cmake --build`/`make` in this build
   # directory -- never a number this CMakeLists.txt invents itself, and
   # never more cores than were actually requested.
+  #
+  # _make_enable_args go through this same -E env, as environment variables,
+  # rather than as trailing `make VAR=value` command-line arguments: GNU
+  # Make gives a command-line-set variable unconditional priority over any
+  # plain `VAR := value` assignment the makefile itself makes later --
+  # only `override VAR := value` can beat it, which Cardinal's Makefile
+  # doesn't use. Cardinal's own Makefile relies on exactly that freedom:
+  # check_deps.mk/the Makefile itself canonicalize ENABLE_DAGMC/
+  # ENABLE_DOUBLE_DOWN from yes/no into ON/OFF (and, when OpenMC is off,
+  # silently downgrade ENABLE_DAGMC to no) via plain `:=`. Passing
+  # ENABLE_DAGMC=yes on the make command line silently blocks that
+  # canonicalization -- confirmed directly: build_embree/build_doubledown
+  # never get their ON/OFF-gated stub definitions (Makefile:308-314) in
+  # that case, so `make` fails with "No rule to make target 'build_embree'"
+  # despite ENABLE_DOUBLE_DOWN being off, not because it's mis-detected.
+  # An environment variable doesn't have this problem: it's the lowest-
+  # precedence source of a variable's value, so the makefile's own
+  # reassignments apply normally, exactly like a native user's `export
+  # ENABLE_DAGMC=yes; make` would.
   COMMAND ${CMAKE_COMMAND} -E env
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          ${_make_enable_args}
           --
-          $(MAKE) -f Makefile.cardinal ${_make_enable_args}
+          $(MAKE) -f Makefile.cardinal
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
   DEPENDS ${_cardinal_depends}
   COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
