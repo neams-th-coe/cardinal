@@ -9,6 +9,7 @@
   polynomialOrder = 5
   writeControl = steps
   writeInterval = 2
+  scalars = temperature
 
 [FLUID VELOCITY]
   solver = none

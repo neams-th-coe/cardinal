@@ -13,6 +13,7 @@
   filtering = hpfrt
   filterWeight = 0.2/${dt}
   filterModes = 2
+  scalars = temperature
 
 [FLUID PRESSURE]
   residualTol = 1e-04

@@ -21,6 +21,7 @@
   polynomialOrder = 7
   dt = 6e-3
   timeStepper = BDF2
+  scalars = temperature, one, two
 
   # end the simulation at specified number of time steps
   stopAt = numSteps
@@ -49,14 +50,14 @@
   boundaryTypeMap = t, o, f
   residualTol = 1e-06
 
-[SCALAR01] # k
+[SCALAR ONE] # k
   solver = none
   boundaryTypeMap = t, I, o
   residualTol = 1e-06
   rho = 1.0
   diffusivity = -223214
 
-[SCALAR02] # tau
+[SCALAR TWO] # tau
   solver = none
   boundaryTypeMap = t, I, o
   residualTol = 1e-06
