@@ -65,9 +65,19 @@ if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
   message(FATAL_ERROR "ENABLE_DOUBLE_DOWN requires ENABLE_DAGMC")
 endif()
 
-# DAGMC/MOAB/Embree/double-down sub-builds are not wired up yet (Phase 2).
-if(ENABLE_DAGMC)
-  message(FATAL_ERROR "ENABLE_DAGMC is not implemented yet in the CMake build (Phase 2); configure with -DENABLE_DAGMC=OFF for now.")
+# check_deps.mk silently downgrades ENABLE_DAGMC to no when ENABLE_OPENMC is
+# off (DAGMC only matters as an OpenMC geometry backend) -- fail loudly at
+# configure time instead, matching how ENABLE_DOUBLE_DOWN-without-ENABLE_
+# DAGMC is handled just above, rather than silently building nothing.
+if(ENABLE_DAGMC AND NOT ENABLE_OPENMC)
+  message(FATAL_ERROR "ENABLE_DAGMC requires ENABLE_OPENMC")
+endif()
+
+if(ENABLE_DAGMC AND NOT ENABLE_DOUBLE_DOWN)
+  message(WARNING
+    "Cardinal: building with DAGMC but without Double-Down. For mesh-based "
+    "geometries, Double-Down can yield speedups of ~100x and is highly "
+    "recommended (-DENABLE_DOUBLE_DOWN=ON).")
 endif()
 
 # Reuse CMake's own standard CMAKE_BUILD_TYPE rather than inventing a
@@ -595,6 +605,167 @@ if(ENABLE_NEK)
 endif()
 
 # -----------------------------------------------------------------------------
+# DAGMC/MOAB/Embree/double-down (config/moab.mk, embree.mk, double_down.mk,
+# dagmc.mk) -- CAD/mesh-based geometry support, consumed by OpenMC (below)
+# via -DDAGMC_DIR. Same pattern as NekRS/OpenMC above: each gets its own
+# independent CMake sub-build via cardinal_add_submodule_dependency (not
+# NO_BUILD), with CMAKE_ARGS matching config/*.mk's own cmake invocations
+# exactly, and BINARY_DIR/INSTALL_DIR matching the *_BUILDDIR/*_INSTALL_DIR
+# paths those *.mk files themselves compute (Makefile:136-146) so Cardinal's
+# own build_moab/build_embree/build_doubledown/build_dagmc rules -- run
+# unconditionally as part of the final `make -f Makefile.cardinal` step --
+# find our already-configured build trees and just do a cheap, idempotent
+# `make install` rather than reconfiguring from scratch.
+#
+# Build order mirrors the *.mk files' own prerequisite chain (Makefile:281-
+# 314): MOAB and Embree are independent of each other; double-down needs
+# both; DAGMC needs MOAB always, and additionally double-down/Embree only
+# when ENABLE_DOUBLE_DOWN is on (check_deps.mk only requires double-down/
+# Embree in that case -- DAGMC can build without ray-tracing acceleration).
+# -----------------------------------------------------------------------------
+if(ENABLE_DAGMC)
+  # Matches the Makefile's own default (Makefile:88): EIGEN3_DIR ?=
+  # $(LIBMESH_DIR)/include. Only relevant when DAGMC is on (MOAB/DAGMC are
+  # the only consumers), so declared here rather than alongside HDF5_ROOT
+  # above.
+  set(EIGEN3_DIR "$ENV{EIGEN3_DIR}" CACHE PATH "Top-level eigen3 dir (should contain FindEigen3.cmake); default: derived from LIBMESH_DIR")
+  if(NOT EIGEN3_DIR)
+    set(EIGEN3_DIR ${LIBMESH_DIR}/include CACHE PATH "Top-level eigen3 dir (should contain FindEigen3.cmake); default: derived from LIBMESH_DIR" FORCE)
+  endif()
+
+  cardinal_add_submodule_dependency(moab
+    SUBMODULE_PATH contrib/moab
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moab
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moab
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    CMAKE_ARGS
+      -DENABLE_MPI=ON
+      -DENABLE_HDF5=ON
+      -DENABLE_TESTING=OFF
+      -DENABLE_BLASLAPACK=OFF
+      -DEIGEN3_DIR=${EIGEN3_DIR}
+      -DHDF5_DIR=${HDF5_ROOT}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      # A real semicolon-separated CMake list value threaded through
+      # ExternalProject_Add's CMAKE_ARGS needs $<SEMICOLON> -- a bare ';'
+      # here would just split this into two separate CMAKE_ARGS entries.
+      -DCMAKE_INSTALL_RPATH=${HDF5_ROOT}/lib$<SEMICOLON>${CARDINAL_INSTALL_DIR}/lib
+      -DCMAKE_INSTALL_LIBDIR=lib
+      -DCMAKE_INSTALL_MESSAGE=LAZY)
+
+  # Works around a real bug in MOAB's own exported CMake config -- see
+  # CardinalFixupMoabConfig.cmake for the full explanation. Runs after
+  # moab's own install step (STEP_TARGETS above includes "install", giving
+  # us the moab-install target to hang this off of) and before anything
+  # that consumes MOABConfig.cmake, i.e. DAGMC always, and double-down when
+  # enabled.
+  #
+  # Patches *two* copies, not just the installed one: the final "build
+  # cardinal" step below hands off to Cardinal's own native Makefile,
+  # which -- entirely independently of everything above -- always redoes
+  # its own build_moab (`make -C $(MOAB_BUILDDIR) install`) on every
+  # invocation (build_moab is a .PHONY target with no staleness check of
+  # its own; this is normal, pre-existing behavior of Cardinal's Makefile,
+  # unrelated to this superbuild). That `make install` blindly re-copies
+  # MOAB's own build-tree MOABConfig.cmake -- the un-patched template CMake
+  # generates during MOAB's *configure* step -- over our patched installed
+  # copy, silently reverting the fix (observed directly). Patching that
+  # build-tree template too means every later re-install, ours or
+  # Cardinal's native one, keeps re-copying an already-fixed file instead
+  # of reverting it: self-healing rather than a one-time patch.
+  add_custom_target(moab_fixup
+    COMMAND ${CMAKE_COMMAND}
+            -DMOAB_CONFIG=${CARDINAL_STAGE_DIR}/build/moab/MOABConfig.cmake
+            -P ${CMAKE_SOURCE_DIR}/cmake/CardinalFixupMoabConfig.cmake
+    COMMAND ${CMAKE_COMMAND}
+            -DMOAB_CONFIG=${CARDINAL_INSTALL_DIR}/lib/cmake/MOAB/MOABConfig.cmake
+            -P ${CMAKE_SOURCE_DIR}/cmake/CardinalFixupMoabConfig.cmake
+    DEPENDS moab-install
+    COMMENT "Cardinal: patching MOABConfig.cmake (CMP0004 workaround)"
+    VERBATIM)
+
+  if(ENABLE_DOUBLE_DOWN)
+    cardinal_add_submodule_dependency(embree
+      SUBMODULE_PATH contrib/embree
+      SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/embree
+      BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/embree
+      INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+      CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+        -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+        -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_INSTALL_MESSAGE=LAZY
+        -DEMBREE_TUTORIALS=OFF
+        -DEMBREE_TUTORIALS_GLFW=OFF
+        -DEMBREE_TASKING_SYSTEM=INTERNAL
+        -DEMBREE_IGNORE_CMAKE_CXX_FLAGS=OFF)
+
+    cardinal_add_submodule_dependency(doubledown
+      SUBMODULE_PATH contrib/double-down
+      SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/double-down
+      BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/double-down
+      INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+      DEPENDS         moab moab_fixup embree
+      CMAKE_ARGS
+        -DEMBREE_DIR=${CARDINAL_INSTALL_DIR}
+        -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+        -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+        -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_INSTALL_MESSAGE=LAZY)
+  endif()
+
+  set(_dagmc_depends moab moab_fixup)
+  if(ENABLE_DOUBLE_DOWN)
+    list(APPEND _dagmc_depends doubledown embree)
+  endif()
+
+  # DOUBLE_DOWN/Eigen3_DIR/MOAB_DIR spellings below (as opposed to the
+  # ENABLE_DOUBLE_DOWN/EIGEN3_DIR/CARDINAL_INSTALL_DIR vars they're forwarded
+  # from) match dagmc.mk's own -D flags exactly (Cardinal's own DAGMC
+  # CMakeLists.txt expects this exact casing).
+  cardinal_add_submodule_dependency(dagmc
+    SUBMODULE_PATH contrib/DAGMC
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/DAGMC
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/DAGMC
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_dagmc_depends}
+    CMAKE_ARGS
+      -DBUILD_TALLY=OFF
+      -DBUILD_TESTS=OFF
+      -DBUILD_CI_TESTS=OFF
+      -DBUILD_STATIC_LIBS=OFF
+      -DBUILD_STATIC_EXE=OFF
+      -DBUILD_UWUW=OFF
+      -DENABLE_NETCDF=ON
+      -DDOUBLE_DOWN=${ENABLE_DOUBLE_DOWN}
+      -DDOUBLE_DOWN_DIR=${CARDINAL_INSTALL_DIR}
+      -DEigen3_DIR=${EIGEN3_DIR}
+      -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_INSTALL_LIBDIR=lib
+      -DCMAKE_INSTALL_MESSAGE=LAZY)
+endif()
+
+# -----------------------------------------------------------------------------
 # OpenMC (config/openmc.mk)
 # -----------------------------------------------------------------------------
 if(ENABLE_OPENMC)
@@ -607,10 +778,14 @@ if(ENABLE_OPENMC)
   # against CMAKE_PREFIX_PATH) -- if libMesh is pre-built it always
   # pre-exists at configure time so no ordering is needed, but if we're
   # building it ourselves it doesn't exist until the libmesh target
-  # actually finishes building.
+  # actually finishes building. Same story for DAGMC: only needed once it
+  # actually finishes building, and only when ENABLE_DAGMC is on.
   set(_openmc_depends "")
   if(CARDINAL_BUILD_LIBMESH)
     list(APPEND _openmc_depends libmesh)
+  endif()
+  if(ENABLE_DAGMC)
+    list(APPEND _openmc_depends dagmc)
   endif()
 
   cardinal_add_submodule_dependency(openmc
@@ -623,7 +798,8 @@ if(ENABLE_OPENMC)
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DOPENMC_USE_LIBMESH=ON
       -DOPENMC_USE_MPI=ON
-      -DOPENMC_USE_DAGMC=OFF
+      -DOPENMC_USE_DAGMC=${ENABLE_DAGMC}
+      -DDAGMC_DIR=${CARDINAL_INSTALL_DIR}
       -DOPENMC_FORCE_VENDORED_LIBS=${_openmc_vendored}
       -DCMAKE_C_COMPILER=${LIBMESH_CC}
       -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
@@ -658,6 +834,14 @@ if(ENABLE_NEK)
 endif()
 if(ENABLE_OPENMC)
   list(APPEND _cardinal_depends openmc nuclear_data)
+endif()
+# dagmc's own DEPENDS (moab, and doubledown/embree when ENABLE_DOUBLE_DOWN)
+# already chains transitively through openmc's DEPENDS above -- listed
+# explicitly anyway, matching this file's style of spelling out the full
+# dependency set for the final step rather than relying on a reader to
+# trace it through openmc's own DEPENDS.
+if(ENABLE_DAGMC)
+  list(APPEND _cardinal_depends dagmc)
 endif()
 
 add_custom_target(cardinal ALL
