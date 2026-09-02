@@ -51,6 +51,20 @@ option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
 option(ENABLE_DPCPP  "Build NekRS/OCCA with SYCL/DPCPP support" OFF)
 option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 
+# NekRS's own bundled HYPRE builds a CUDA/HIP device variant whenever
+# ENABLE_CUDA/ENABLE_HIP is on (cmake/hypre.cmake:
+# `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`),
+# defaulting ON regardless of caller. This can fail to build against a
+# given GPU toolchain independent of anything Cardinal or this superbuild
+# controls -- e.g. bundled HYPRE 2.32.0's CUDA device code doesn't build
+# against CUDA >=13.3 (CCCL >=3.3 stopped transitively including
+# thrust/tuple.h; see PLAN.md), and Cardinal's own doc/content/hpc.md
+# documents needing this off on Frontier (HIP) too, historically by
+# hand-editing config/nekrs.mk's CMake flags. Expose it here instead so a
+# superbuild user hitting the same class of problem can just pass
+# -DENABLE_HYPRE_GPU=OFF at configure time.
+option(ENABLE_HYPRE_GPU "Build NekRS's bundled HYPRE with GPU (CUDA/HIP) device support" ON)
+
 # PETSc's configure_petsc.sh always builds its downloaded OpenBLAS with
 # DYNAMIC_ARCH=1 -- kernels for every x86 microarchitecture it knows
 # about (Prescott, Core2, ..., Zen, SkylakeX, ...), auto-selected at
@@ -598,6 +612,7 @@ if(ENABLE_NEK)
       -DENABLE_OPENCL=${ENABLE_OPENCL}
       -DENABLE_HIP=${ENABLE_HIP}
       -DENABLE_AMGX=0
+      -DENABLE_HYPRE_GPU=${ENABLE_HYPRE_GPU}
       -DOCCA_ENABLE_CUDA=${ENABLE_CUDA}
       -DOCCA_ENABLE_HIP=${ENABLE_HIP}
       -DOCCA_ENABLE_OPENCL=${ENABLE_OPENCL}
