@@ -58,11 +58,12 @@ option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 # given GPU toolchain independent of anything Cardinal or this superbuild
 # controls -- e.g. bundled HYPRE 2.32.0's CUDA device code doesn't build
 # against CUDA >=13.3 (CCCL >=3.3 stopped transitively including
-# thrust/tuple.h; see PLAN.md), and Cardinal's own doc/content/hpc.md
-# documents needing this off on Frontier (HIP) too, historically by
-# hand-editing config/nekrs.mk's CMake flags. Expose it here instead so a
-# superbuild user hitting the same class of problem can just pass
-# -DENABLE_HYPRE_GPU=OFF at configure time.
+# thrust/tuple.h, fixed upstream in hypre-space/hypre#1547, well after
+# 2.32.0 -- see doc/content/cmake_details.md), and Cardinal's own
+# doc/content/hpc.md documents needing this off on Frontier (HIP) too,
+# historically by hand-editing config/nekrs.mk's CMake flags. Expose it
+# here instead so a superbuild user hitting the same class of problem can
+# just pass -DENABLE_HYPRE_GPU=OFF at configure time.
 option(ENABLE_HYPRE_GPU "Build NekRS's bundled HYPRE with GPU (CUDA/HIP) device support" ON)
 
 # PETSc's configure_petsc.sh always builds its downloaded OpenBLAS with
@@ -347,6 +348,27 @@ else()
   message(STATUS "Cardinal: building libMesh with CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 endif()
 
+# Cardinal's own Makefile (Makefile:322-324: LIBMESH_CC_LIST := $(subst
+# $(space),;,$(libmesh_CC)), etc) converts these to a semicolon-separated
+# CMake list before handing them to any CMake-based dependency's own
+# configure as CMAKE_C_COMPILER/CMAKE_CXX_COMPILER/CMAKE_Fortran_COMPILER.
+# CMake accepts a semicolon-list value for these variables, treating
+# entries after the first as required compiler arguments -- a bare string
+# with embedded spaces (e.g. a compiler wrapper reported as "ccache
+# mpicc", or a compound CC/CXX/FC override) would otherwise be misread as
+# a single, invalid executable path. Only used for CMAKE_ARGS below, not
+# for OCCA_CXX or the plain CC/CXX/FC exports to the PETSc/libMesh/WASP
+# scripts further down -- config/nekrs.mk's own -DOCCA_CXX and Makefile:
+# 262-264's own `export CC := ...` etc likewise pass these raw,
+# unconverted. $<SEMICOLON>, not a literal ';': the result is itself one
+# CMAKE_ARGS list entry threaded through ExternalProject_Add -- a literal
+# ';' here would instead split it into two separate CMAKE_ARGS entries
+# (see the CMAKE_INSTALL_RPATH note in the MOAB block below for the same
+# issue).
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_CC_LIST  "${LIBMESH_CC}")
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_CXX_LIST "${LIBMESH_CXX}")
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_FC_LIST  "${LIBMESH_FC}")
+
 if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
   set(_moose_dir     ${CARDINAL_STAGE_DIR}/contrib/moose)
   set(_moose_scripts ${_moose_dir}/scripts)
@@ -578,12 +600,16 @@ endif()
 # NekRS (config/nekrs.mk)
 # -----------------------------------------------------------------------------
 if(ENABLE_NEK)
-  # NekRS's own CMakeLists sets OCCA_ENABLE_CUDA/HIP/OPENCL/DPCPP/METAL to
-  # ON via set(... CACHE BOOL ...) (CMakeLists.txt:143-147) -- ENABLE_CUDA/
-  # ENABLE_HIP/ENABLE_OPENCL below only gate nekrs's own solver-level
-  # compile definitions (CMakeLists.txt:287), they do NOT stop OCCA itself
-  # from probing for and building against whatever CUDA/HIP toolkits
-  # happen to be on PATH. On a bare HPC host with GPU toolkits present
+  # NekRS's own CMakeLists.txt defaults some of its own OCCA_ENABLE_*
+  # cache variables to ON regardless of caller -- OCCA_ENABLE_CUDA/HIP/
+  # DPCPP, via set(... CACHE BOOL ...) (CMakeLists.txt:143-145;
+  # OCCA_ENABLE_OPENCL/METAL default OFF there already, :146-147).
+  # Separately, our own ENABLE_CUDA/ENABLE_HIP/ENABLE_OPENCL below
+  # (matching config/nekrs.mk's own -D flags exactly) do NOT stop OCCA
+  # itself from probing for and building against whatever CUDA/HIP
+  # toolkits happen to be on PATH -- OCCA's actual backend build is gated
+  # on its own downstream-computed OCCA_CUDA_ENABLED/OCCA_HIP_ENABLED/etc,
+  # not on these input flags. On a bare HPC host with GPU toolkits present
   # (unlike the container, which has neither) that silently builds OCCA's
   # CUDA/HIP backends -- and, transitively, nekRS's own bundled
   # device-enabled HYPRE (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND
@@ -600,9 +626,9 @@ if(ENABLE_NEK)
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
     CMAKE_ARGS
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DCMAKE_C_COMPILER=${LIBMESH_CC}
-      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
       -DCMAKE_INSTALL_MESSAGE=LAZY
       "-DNEK5000_PPLIST=PARRSB DPROCMAP"
@@ -691,9 +717,9 @@ if(ENABLE_DAGMC)
       # actually reaching MOAB's configure at all without this.
       -DHDF5_ROOT=${HDF5_ROOT}
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DCMAKE_C_COMPILER=${LIBMESH_CC}
-      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
       -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
       # A real semicolon-separated CMake list value threaded through
@@ -742,9 +768,9 @@ if(ENABLE_DAGMC)
       INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
       CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_C_COMPILER=${LIBMESH_CC}
-        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
         -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
         -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
         -DCMAKE_INSTALL_LIBDIR=lib
@@ -764,9 +790,9 @@ if(ENABLE_DAGMC)
         -DEMBREE_DIR=${CARDINAL_INSTALL_DIR}
         -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_C_COMPILER=${LIBMESH_CC}
-        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
         -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
         -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
         -DCMAKE_INSTALL_LIBDIR=lib
@@ -801,9 +827,9 @@ if(ENABLE_DAGMC)
       -DEigen3_DIR=${EIGEN3_DIR}
       -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DCMAKE_C_COMPILER=${LIBMESH_CC}
-      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
       -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
       -DCMAKE_INSTALL_LIBDIR=lib
@@ -846,9 +872,9 @@ if(ENABLE_OPENMC)
       -DOPENMC_USE_DAGMC=${ENABLE_DAGMC}
       -DDAGMC_DIR=${CARDINAL_INSTALL_DIR}
       -DOPENMC_FORCE_VENDORED_LIBS=${_openmc_vendored}
-      -DCMAKE_C_COMPILER=${LIBMESH_CC}
-      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX}
-      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
       -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
       -DHDF5_ROOT=${HDF5_ROOT}
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
