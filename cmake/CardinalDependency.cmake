@@ -125,18 +125,27 @@ function(cardinal_add_submodule_dependency name)
     set(_in_source_dir ${CMAKE_SOURCE_DIR}/${DEP_SUBMODULE_PATH})
     message(STATUS "Cardinal: '${DEP_SUBMODULE_PATH}' found checked out in-source; mirroring into the build tree for ${name}")
 
-    # Plain rsync, not a CMake copy_directory_if_* mode: we're already
-    # using rsync -rlpgo --update for mirror_source in CMakeLists.txt
-    # (mtime-based skip-if-unchanged, without -t so the destination gets
-    # stamped with the actual copy time rather than a possibly-stale
-    # source mtime -- see that comment for the full reasoning), and there's
-    # no reason to duplicate that reasoning against a *different*
-    # mechanism here. No --delete: like Cardinal's own source, MOOSE's
+    # rsync -rlpgo --update, not a CMake copy_directory_if_* mode: matches
+    # mirror_source in CMakeLists.txt (mtime-based skip-if-unchanged,
+    # without -t so the destination gets stamped with the actual copy time
+    # rather than a possibly-stale source mtime -- see that comment for the
+    # full reasoning). No --delete: like Cardinal's own source, MOOSE's
     # NO_BUILD sources get compiled in place by Cardinal's Makefile, so a
     # generated file that doesn't exist in the pristine checked-out
     # submodule (e.g. MooseRevision.h) must not be deleted just because
     # of that.
-    set(_sync_cmd rsync -rlpgo --update ${_in_source_dir}/ ${DEP_SOURCE_DIR}/)
+    #
+    # Delegated to CardinalMirrorSubmodule.cmake rather than a bare rsync
+    # command, so it can also repair the mirrored copy's own git metadata
+    # (a submodule's .git is a gitlink pointing outside the build tree
+    # entirely -- see that script for the full explanation of why this
+    # matters: MOOSE's own on-demand libmesh/petsc/wasp submodule fetch,
+    # and OpenMC's own vendored-submodule fetch, both run `git submodule
+    # update --init` from *inside* the mirrored copy).
+    set(_sync_cmd ${CMAKE_COMMAND}
+      -DIN_SOURCE_DIR=${_in_source_dir}
+      -DDEST_DIR=${DEP_SOURCE_DIR}
+      -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CardinalMirrorSubmodule.cmake)
     ExternalProject_Add(${name}
       PREFIX                  ${_prefix}
       SOURCE_DIR             ${DEP_SOURCE_DIR}
@@ -162,39 +171,37 @@ function(cardinal_add_submodule_dependency name)
     endif()
     message(STATUS "Cardinal: '${DEP_SUBMODULE_PATH}' not present in-source; ${name} will be cloned from ${_url} @ ${_commit} directly into the build tree")
 
+    # A custom DOWNLOAD_COMMAND (CardinalGitFetchBySha.cmake) is used here
+    # instead of ExternalProject's own GIT_REPOSITORY/GIT_TAG support: that
+    # built-in mechanism does a plain `git clone` + `git checkout <sha>`,
+    # which fails whenever the pinned commit isn't reachable from any
+    # upstream branch/tag tip -- which happens for real (contrib/moab, at
+    # least). Fetching the exact commit by SHA (what `git submodule update`
+    # itself does under the hood) works regardless. See that script for the
+    # full explanation.
+    set(_init_submodules TRUE)
     if(DEP_NO_GIT_SUBMODULES)
-      ExternalProject_Add(${name}
-        PREFIX                  ${_prefix}
-        SOURCE_DIR             ${DEP_SOURCE_DIR}
-        BINARY_DIR              ${DEP_BINARY_DIR}
-        GIT_REPOSITORY          ${_url}
-        GIT_TAG                 ${_commit}
-        GIT_SHALLOW             FALSE
-        GIT_SUBMODULES          ""
-        CMAKE_ARGS               ${DEP_CMAKE_ARGS}
-        INSTALL_DIR             ${DEP_INSTALL_DIR}
-        DEPENDS                 ${DEP_DEPENDS}
-        ${_no_build_args}
-        STEP_TARGETS            download;configure;build;install
-        USES_TERMINAL_DOWNLOAD  TRUE
-        USES_TERMINAL_BUILD     TRUE
-        USES_TERMINAL_INSTALL   TRUE)
-    else()
-      ExternalProject_Add(${name}
-        PREFIX                  ${_prefix}
-        SOURCE_DIR             ${DEP_SOURCE_DIR}
-        BINARY_DIR              ${DEP_BINARY_DIR}
-        GIT_REPOSITORY          ${_url}
-        GIT_TAG                 ${_commit}
-        GIT_SHALLOW             FALSE
-        CMAKE_ARGS               ${DEP_CMAKE_ARGS}
-        INSTALL_DIR             ${DEP_INSTALL_DIR}
-        DEPENDS                 ${DEP_DEPENDS}
-        ${_no_build_args}
-        STEP_TARGETS            download;configure;build;install
-        USES_TERMINAL_DOWNLOAD  TRUE
-        USES_TERMINAL_BUILD     TRUE
-        USES_TERMINAL_INSTALL   TRUE)
+      set(_init_submodules FALSE)
     endif()
+    ExternalProject_Add(${name}
+      PREFIX                  ${_prefix}
+      SOURCE_DIR              ${DEP_SOURCE_DIR}
+      BINARY_DIR              ${DEP_BINARY_DIR}
+      DOWNLOAD_COMMAND        ${CMAKE_COMMAND}
+                              -DGIT_REPOSITORY=${_url}
+                              -DGIT_TAG=${_commit}
+                              -DSOURCE_DIR=${DEP_SOURCE_DIR}
+                              -DINIT_SUBMODULES=${_init_submodules}
+                              -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CardinalGitFetchBySha.cmake
+      # Pinned to an exact commit; nothing to re-sync on later reconfigures.
+      UPDATE_COMMAND          ${CMAKE_COMMAND} -E true
+      CMAKE_ARGS              ${DEP_CMAKE_ARGS}
+      INSTALL_DIR             ${DEP_INSTALL_DIR}
+      DEPENDS                 ${DEP_DEPENDS}
+      ${_no_build_args}
+      STEP_TARGETS            download;configure;build;install
+      USES_TERMINAL_DOWNLOAD  TRUE
+      USES_TERMINAL_BUILD     TRUE
+      USES_TERMINAL_INSTALL   TRUE)
   endif()
 endfunction()
