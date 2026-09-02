@@ -22,13 +22,13 @@
   initialGuess = projectionAconj + nVector = 30
 
 [FLUID VELOCITY]
-  boundaryTypeMap = inlet, outlet, wall, wall
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
   density = 1.0
   viscosity = -1460.0
   residualTol = 1e-06
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = t, I, I, f
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, udfNeumann
   residualTol = 1e-06
   rhoCp = 1.0
   conductivity = -1036.0

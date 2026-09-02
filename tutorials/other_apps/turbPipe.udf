@@ -1,46 +1,86 @@
 #include <math.h>
-#include "udf.hpp"
-#include "plugins/velRecycling.hpp"
-#include "plugins/avg.hpp"
+#include "planarCopy.hpp"
+#include "tavg.hpp"
 
 #define ZLENGTH  20.0  /* diameters  */
 #define NSLABS 60
 #define NELSLAB 108
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+#ifdef __okl__
+#include "turbPipe.oudf"
+#endif
+
+deviceMemory<int> o_bID;
+planarCopy* recyc = nullptr;
+dfloat area;
+std::unique_ptr<tavg> avg;
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
-  velRecycling::buildKernel(kernelInfo);
-  avg::buildKernel(kernelInfo);
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
-  // setup scratch space
-  platform_t* platform = platform_t::getInstance();
-  nrs->o_usrwrk = platform->device.malloc(nrs->NVfields*nrs->fieldOffset,  sizeof(dfloat));
+  auto mesh = nrs->meshV;
 
-  // recycling
-  const dfloat wbar  = 1.0;
-  const int bID      = 1;
-  dfloat zRecycLayer = 0.25*ZLENGTH;
-  const hlong offset = NELSLAB * round(NSLABS * zRecycLayer/ZLENGTH);
-  velRecycling::setup(nrs, nrs->o_usrwrk, offset, bID, wbar);
+  // scratch space that holds the recycled inlet velocity
+  platform->app->bc->o_usrwrk.resize(mesh->dim * nrs->fluid->fieldOffset);
 
-  avg::setup(nrs);
+  // velocity recycling: copy the velocity from a plane a quarter of the way
+  // down the pipe back onto the inlet (boundary 1)
+  const dfloat zRecycLayer = 0.25 * ZLENGTH;
+
+  std::vector<int> bID = {1};
+  o_bID.resize(bID.size());
+  o_bID.copyFrom(bID);
+
+  deviceMemory<dfloat> o_tmp(mesh->Nlocal);
+  platform->linAlg->fill(o_tmp.size(), 1.0, o_tmp);
+  area = mesh->surfaceAreaMultiplyIntegrate(o_bID, o_tmp);
+
+  recyc = new planarCopy(mesh,
+                         nrs->fluid->o_solution(),
+                         mesh->dim,
+                         nrs->fluid->fieldOffset,
+                         0.0,
+                         0.0,
+                         zRecycLayer,
+                         bID[0],
+                         platform->app->bc->o_usrwrk);
+
+  // running time-average of the velocity components
+  deviceMemory<dfloat> o_ux(nrs->fluid->o_solution("x"));
+  deviceMemory<dfloat> o_uy(nrs->fluid->o_solution("y"));
+  deviceMemory<dfloat> o_uz(nrs->fluid->o_solution("z"));
+
+  std::vector<tavg::field> tavgFields;
+  tavgFields.push_back({"ux", std::vector{o_ux}});
+  tavgFields.push_back({"uy", std::vector{o_uy}});
+  tavgFields.push_back({"uz", std::vector{o_uz}});
+
+  avg = std::make_unique<tavg>(nrs->fluid->fieldOffset, tavgFields);
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
-  mesh_t *mesh = nrs->meshV;
+  auto mesh = nrs->meshV;
 
-  velRecycling::copy();
-  avg::run(time);
+  // recycle the inlet plane and rescale to the target bulk velocity
+  recyc->execute();
 
-  if (nrs->isOutputStep) {
-    occa::memory o_UZ = nrs->o_U + 2*nrs->fieldOffset * sizeof(dfloat);
-    const dfloat ubar = platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_LMM, platform->comm.mpiComm)/mesh->volume;
-    if (platform->comm.mpiRank == 0) printf(" uBulk: %g\n", ubar);
+  const auto wbar = 1.0;
+  const auto flux = mesh->surfaceAreaNormalMultiplyVectorIntegrate(nrs->fluid->fieldOffset, o_bID, platform->app->bc->o_usrwrk);
+  platform->linAlg->scale(nrs->fluid->fieldOffsetSum, -wbar * area / flux, platform->app->bc->o_usrwrk);
 
-    avg::outfld();
+  if (nrs->timeStepConverged)
+    avg->run(time);
+
+  if (nrs->checkpointStep) {
+    auto o_UZ = nrs->fluid->o_U + 2 * nrs->fluid->fieldOffset;
+    const dfloat ubar =
+        platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_Jw, platform->comm.mpiComm()) / mesh->volume;
+    if (platform->comm.mpiRank() == 0) printf(" uBulk: %g\n", ubar);
+
+    avg->writeToFile(mesh);
   }
 }

@@ -24,7 +24,7 @@
   residualTol = 1e-04
 
 [FLUID VELOCITY]
-  boundaryTypeMap = inlet, outlet, wall
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet
   density = 1.0
   viscosity = -19000
   residualTol = 1e-06
