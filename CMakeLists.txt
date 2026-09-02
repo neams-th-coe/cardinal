@@ -875,13 +875,25 @@ if(ENABLE_DAGMC)
 endif()
 
 add_custom_target(cardinal ALL
-  # NEKRS_HOME/CONTRIB_INSTALL_DIR/HDF5_ROOT are computed paths we
-  # deliberately force regardless of the ambient environment
-  # (check_nekrs.mk hard-requires NEKRS_HOME == CONTRIB_INSTALL_DIR; without
-  # forcing HDF5_ROOT here too, Cardinal's own native Makefile step falls
-  # back to whatever HDF5_ROOT happens to already be in the ambient shell
-  # environment invoking `cmake --build`/`make`, silently wrong or empty if
-  # the user hasn't separately exported it themselves -- found live).
+  # NEKRS_HOME/CONTRIB_INSTALL_DIR/HDF5_ROOT/PETSC_DIR/LIBMESH_DIR/WASP_DIR
+  # are computed paths we deliberately force regardless of the ambient
+  # environment (check_nekrs.mk hard-requires NEKRS_HOME ==
+  # CONTRIB_INSTALL_DIR). Without forcing PETSC_DIR/LIBMESH_DIR/WASP_DIR/
+  # HDF5_ROOT here too, Cardinal's own native Makefile step falls back to
+  # whatever each happens to already be in the ambient shell environment
+  # invoking `cmake --build`/`make` -- and when unset there, to Cardinal's
+  # own from-source-layout defaults (Makefile:73,75, moose.mk:94:
+  # PETSC_DIR ?= $(MOOSE_DIR)/petsc, LIBMESH_DIR ?= $(MOOSE_DIR)/libmesh/
+  # installed, WASP_DIR ?= $(MOOSE_DIR)/framework/contrib/wasp/install),
+  # silently pointing at nothing whether the actual (pre-built or
+  # from-source) install is really there or not. This went unnoticed for a
+  # while because a real ambient environment (e.g. the moose-dev
+  # container's own /opt/* variables) happens to make it work by accident
+  # -- surfaced only by testing with those unset and given purely via -D
+  # instead: `make: *** No rule to make target '.../contrib/moose/petsc/
+  # lib/petsc/conf/petscvariables'` despite -DPETSC_DIR=/opt/petsc having
+  # been given at configure time.
+  #
   # OPENMC_CROSS_SECTIONS is left out of this override list on purpose: it
   # must come from whatever the user has exported in the shell that invokes
   # `cmake --build`/`make`, not get frozen at CMake *configure* time via
@@ -916,6 +928,9 @@ add_custom_target(cardinal ALL
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
           HDF5_ROOT=${HDF5_ROOT}
+          PETSC_DIR=${PETSC_DIR}
+          LIBMESH_DIR=${LIBMESH_DIR}
+          WASP_DIR=${WASP_DIR}
           ${_make_enable_args}
           --
           $(MAKE) -f Makefile.cardinal
