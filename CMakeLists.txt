@@ -171,7 +171,29 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # two don't fight over the same destination; when ENABLE_NEK is off
 # there's no dedicated resolver for it, so let it just get copied
 # normally along with everything else (a no-op if it isn't checked out).
-set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile)
+#
+# --exclude=/build --exclude=/install: Cardinal's own native Makefile
+# defaults both to exactly these names directly under the source checkout
+# (Makefile:69,76: CARDINAL_DIR/build, CARDINAL_DIR/install -- the same
+# *_BUILDDIR/*_INSTALL_DIR paths this file's own dependency blocks are
+# careful to match). Since CARDINAL_STAGE_DIR *is* the CMake build
+# directory, a bare rsync of the whole source tree into it would, for
+# anyone who has ever run (or runs concurrently) a native build in that
+# same checkout, copy that leftover/live build/install tree wholesale on
+# top of our own ExternalProject build trees living at those same relative
+# paths -- silently corrupting them (observed directly: a stale
+# build/openmc/CMakeCache.txt from an earlier native build clobbered a
+# freshly-configured ExternalProject build/openmc here). Excluded
+# unconditionally, not just when such a directory happens to exist.
+#
+# --exclude=/CMakeLists.txt --exclude=/cmake: this superbuild's own files
+# (this file, and the helper modules under cmake/). Cardinal's native
+# Makefile has no use for either -- they exist purely to drive this CMake
+# configure -- so mirroring them into CARDINAL_STAGE_DIR (which, again, is
+# the CMake build directory itself) would just leave a redundant, easily
+# stale copy sitting next to CMake's own CMakeCache.txt/CMakeFiles for no
+# purpose.
+set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile --exclude=/build --exclude=/install --exclude=/CMakeLists.txt --exclude=/cmake)
 if(ENABLE_NEK)
   list(APPEND _mirror_excludes --exclude=/test/tests/nek_ci)
 endif()
