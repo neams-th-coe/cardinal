@@ -3,8 +3,8 @@
 !alert! warning title=Experimental
 This CMake-based build is an *experimental* alternative to Cardinal's normal Makefile-based
 build, described in [the instructions for building without MOOSE's conda environment](without_conda.md)
-(and, for the OpenMC-only conda workflow, [with_conda.md](with_conda.md)). It has **not**
-replaced either of those as Cardinal's primary, best-supported build system, and it does **not**
+(and, for the OpenMC-only conda workflow, [with_conda.md](with_conda.md)). It has +not+
+replaced either of those as Cardinal's primary, best-supported build system, and it does +not+
 replace or depend on MOOSE's own (separately in-progress) CMake port. If you run into trouble here,
 or just want the most battle-tested path, please use [without_conda.md](without_conda.md) instead.
 See [cmake_details.md](cmake_details.md) for the design and implementation notes behind this build.
@@ -54,7 +54,7 @@ only job is to resolve and build the dependencies that have their own CMake sub-
 OpenMC, and -- for [!ac](DAGMC) support -- MOAB, Embree, and Double-Down), then hand off to
 Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few things follow from that:
 
-- **The build directory *is* the equivalent of a normal Cardinal checkout.** Running
+- +The build directory *is* the equivalent of a normal Cardinal checkout.+ Running
   `cmake -S . -B build` mirrors your whole source tree into `build/` (excluding the dependencies
   managed below), lays out each dependency exactly where the Makefile already expects it, and then
   `cmake --build build` invokes `make` there for you. The result looks just like an in-place
@@ -62,17 +62,17 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
   `build/` -- not nested inside an extra `cardinal/` subdirectory. Because of this, you should treat
   `build/` as a real (if regeneratable) Cardinal checkout, e.g. `NEKRS_HOME` below points *into*
   it, and `cardinal-opt` needs to be run from there.
-- **No `./scripts/get-dependencies.sh` step.** Configuring resolves MOOSE/NekRS/OpenMC/MOAB/
+- +No `./scripts/get-dependencies.sh` step.+ Configuring resolves MOOSE/NekRS/OpenMC/MOAB/
   Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` automatically: if you already have a submodule
   checked out under `contrib/`, it's used (mirrored into `build/` on every build); otherwise it's
   cloned directly into the build tree at the exact pinned commit from `.gitmodules`. Either way,
   your own source checkout under `contrib/` is never modified.
-- **PETSc/libMesh/WASP are built from source automatically if you don't already have them.**
+- +PETSc/libMesh/WASP are built from source automatically if you don't already have them.+
   Unlike the Makefile workflow, there's no separate `update_and_rebuild_{petsc,libmesh,wasp}.sh`
   step to run yourself -- `cmake --build build` does it as part of the same build, using those
   same scripts under the hood. If you already have any of them built (e.g. a system/module-provided
   PETSc), point at it instead with `-DPETSC_DIR=...` etc (see [#env] below) and that one is skipped.
-- **Options are CMake cache variables, not environment variables** -- set with `-D<option>=<value>`
+- +Options are CMake cache variables, not environment variables+ -- set with `-D<option>=<value>`
   at configure time, or interactively with `ccmake build` (toggle values, `c` to configure, `g` to
   generate, then `cmake --build build`). See [#options].
 

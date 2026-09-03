@@ -14,8 +14,8 @@ building PETSc/libMesh/WASP from source on a bare HPC host.
 
 Explicit non-goals:
 
-- **Not replacing or depending on MOOSE's own (separately in-progress) CMake port.**
-- **Not replacing Cardinal's own Make-based app compile** (`framework/build.mk`, `app.mk`, etc) --
+- +Not replacing or depending on MOOSE's own (separately in-progress) CMake port.+
+- +Not replacing Cardinal's own Make-based app compile+ (`framework/build.mk`, `app.mk`, etc) --
   that stays exactly as it is today, including its own `config/*.mk` files. The CMake project only
   ever invokes MOOSE's/the dependencies' own existing build scripts unmodified, and finishes by
   handing off to Cardinal's own `Makefile`, unpatched.
@@ -43,7 +43,7 @@ dependencies via `ExternalProject_Add`, with the actual project handled separate
 
 Rather than staging dependencies in some separate area and then pointing the *existing* Make-based
 app build at them (which would require patching `config/check_deps.mk`'s hard requirement that
-`contrib/<dep>` be populated), this superbuild mirrors the **whole** Cardinal source tree directly
+`contrib/<dep>` be populated), this superbuild mirrors the +whole+ Cardinal source tree directly
 into `${CMAKE_BINARY_DIR}` and lays out each dependency at exactly the path the Makefile already
 expects, relative to that directory. The build directory *is* the equivalent of a Cardinal checkout
 -- the result of a CMake build looks like the result of an in-tree Makefile build (`cardinal-opt`,
@@ -60,7 +60,7 @@ expects, relative to that directory. The build directory *is* the equivalent of 
 | Their own CMake builds | `${CMAKE_BINARY_DIR}/build/{moab,embree,double-down,DAGMC}` | `{...}_BUILDDIR` |
 | Shared install prefix | `${CMAKE_BINARY_DIR}/install` | `CONTRIB_INSTALL_DIR` |
 
-**The one real collision:** Cardinal's own hand-written top-level `Makefile` against CMake's own
++The one real collision:+ Cardinal's own hand-written top-level `Makefile` against CMake's own
 generated `Makefile` of the same name at the build directory root. Resolved by having the source
 mirror (below) exclude `/Makefile` from its normal copy and instead copy it under a different name
 (`Makefile.cardinal`); the final `cardinal` target invokes that explicitly
@@ -69,8 +69,8 @@ mirror (below) exclude `/Makefile` from its normal copy and instead copy it unde
 
 Because everything else lines up exactly, once `ExternalProject_Add` has configured, built, and
 installed a dependency, the Makefile's own `build_<dep>` rule sees its sub-Makefile already exists
-and `check_deps.mk`'s gate sees the submodule populated -- **no patch to the Makefile/`config/*.mk`
-is needed.** `make` runs unmodified as the final build step.
+and `check_deps.mk`'s gate sees the submodule populated -- +no patch to the Makefile/`config/*.mk`
+is needed.+ `make` runs unmodified as the final build step.
 
 ## `mirror_source`: what gets copied, and how
 
@@ -93,7 +93,7 @@ add_custom_target(mirror_source ALL
 Reruns every build (`add_custom_target` has no tracked `OUTPUT`, so it's always considered out of
 date).
 
-**Why `-rlpgo --update`, not `-a`:** `-a` is `-rlptgoD`. The `-t` (preserve source mtime) is wrong
++Why `-rlpgo --update`, not `-a`:+ `-a` is `-rlptgoD`. The `-t` (preserve source mtime) is wrong
 here for two reasons:
 
 1. Cardinal's Makefile relies on ordinary mtime comparisons to decide what needs recompiling.
@@ -105,7 +105,7 @@ here for two reasons:
    would see every file as changed on every build and re-copy the entire tree every time, forcing a
    full recompile+relink regardless of whether anything actually changed.
 
-**Why no `--delete`:** Cardinal builds in-place -- object files, libraries, `.d` dependency files,
++Why no `--delete`:+ Cardinal builds in-place -- object files, libraries, `.d` dependency files,
 and generated `*Revision.h` headers all land inline next to their sources (e.g.
 `src/base/CardinalApp.o`), not confined to `/build`. None of that exists in the pristine source
 tree, so `--delete` would remove it all on every single `mirror_source` run, as soon as it was
@@ -114,7 +114,7 @@ in-tree generated pattern Cardinal's Makefile happens to produce, `mirror_source
 `--delete` outright: the cost is a stale copy lingering if a source file is later removed/renamed
 upstream, far cheaper than silently rebuilding the world every time.
 
-**Why "copy everything" rather than filtering by `.gitignore`:** `.gitignore` only hides
++Why "copy everything" rather than filtering by `.gitignore`:+ `.gitignore` only hides
 *untracked* files from git -- a file that's explicitly tracked despite matching a broad ignore
 pattern (e.g. a fixture under `test/tests/` tracked despite the repo's blanket `*.xml` pattern,
 which exists to keep *generated* XML out, not checked-in fixtures) stays tracked and visible to git
@@ -124,21 +124,21 @@ problem but would silently miss any file a user has created in the source tree b
 add`ed. Simplest and most robust: don't try to be clever about what belongs in the mirror --
 just copy everything except what's excluded for concrete, functional reasons below.
 
-- **`--exclude=/contrib`** covers every submodule under it in one line -- the ones this build
+- +`--exclude=/contrib`+ covers every submodule under it in one line -- the ones this build
   manages (moose/nekRS/openmc/nuclear_data/moab/embree/double-down/DAGMC), each resolved
   independently, plus the rest (SAM/bison/iapws95/potassium/sockeye/sodium) that shouldn't be
   mirrored at all even if a user happens to have them checked out locally.
-- **`--exclude=/build --exclude=/install`:** Cardinal's own native Makefile defaults both to exactly
+- +`--exclude=/build --exclude=/install`:+ Cardinal's own native Makefile defaults both to exactly
   these names directly under the source checkout. Since the CMake build directory *is* the app
   checkout, a bare rsync of the whole source tree into it would, for anyone who has ever run (or
   runs concurrently) a native build in that same checkout, copy that leftover/live build/install
   tree wholesale on top of this build's own `ExternalProject_Add` trees living at those same
   relative paths -- silently corrupting them. Excluded unconditionally, not just when such a
   directory happens to exist.
-- **`--exclude=/CMakeLists.txt --exclude=/cmake`:** this build's own files. Cardinal's native
+- +`--exclude=/CMakeLists.txt --exclude=/cmake`:+ this build's own files. Cardinal's native
   Makefile has no use for either, so mirroring them would just leave a redundant, easily stale copy
   sitting next to CMake's own `CMakeCache.txt`/`CMakeFiles` for no purpose.
-- **`test/tests/nek_ci`** is a submodule *outside* `contrib/` (NekRS's own CI test fixtures),
+- +`test/tests/nek_ci`+ is a submodule *outside* `contrib/` (NekRS's own CI test fixtures),
   resolved independently the same way, but only when `ENABLE_NEK` is on -- excluded from the
   generic mirror in that case too, so the two don't fight over the same destination.
 
@@ -146,14 +146,14 @@ just copy everything except what's excluded for concrete, functional reasons bel
 
 For each managed dependency, in priority order:
 
-1. **Pre-built install already known** (WASP/libMesh/PETSc only -- see below; not handled by this
+1. +Pre-built install already known+ (WASP/libMesh/PETSc only -- see below; not handled by this
    function at all).
-2. **Submodule already initialized in the source tree.** Treated as the authoritative source,
+2. +Submodule already initialized in the source tree.+ Treated as the authoritative source,
    mirrored into the build tree on every build via `ExternalProject_Add`'s
    `DOWNLOAD_COMMAND`/`UPDATE_COMMAND`, delegated to `CardinalMirrorSubmodule.cmake` (plain
    `rsync -rlpgo --update`, matching `mirror_source`'s own reasoning, plus a git-metadata repair --
    see below).
-3. **Not initialized anywhere.** Cloned straight into the build tree, delegated to
+3. +Not initialized anywhere.+ Cloned straight into the build tree, delegated to
    `CardinalGitFetchBySha.cmake` rather than `ExternalProject_Add`'s own built-in
    `GIT_REPOSITORY`/`GIT_TAG` support (see below). The URL comes from `.gitmodules`; the pinned
    commit comes from `git ls-tree HEAD -- <path>` on the superproject at configure time, so the pin
@@ -214,11 +214,11 @@ Each of `WASP_DIR`/`LIBMESH_DIR`/`PETSC_DIR` is independently either a pre-built
 `contrib/moose/scripts/update_and_rebuild_{petsc,libmesh,wasp}.sh` scripts, matching the
 non-container Makefile workflow. They're independent except for one real constraint:
 
-- **WASP** has no build or link dependency on libMesh or PETSc at all -- a standalone CMake+Ninja
+- +WASP+ has no build or link dependency on libMesh or PETSc at all -- a standalone CMake+Ninja
   tool -- so it's fully independent of the other two.
-- **PETSc** is independent too, and by far the slowest and most painful of the three to build from
+- +PETSc+ is independent too, and by far the slowest and most painful of the three to build from
   source -- exactly the one most worth being able to skip via a system/module-provided install.
-- **libMesh** has one real constraint: a pre-built `LIBMESH_DIR` was compiled against some specific
+- +libMesh+ has one real constraint: a pre-built `LIBMESH_DIR` was compiled against some specific
   PETSc, and there's no way to discover which one from `LIBMESH_DIR` alone -- so `LIBMESH_DIR` set
   without `PETSC_DIR` is a configure-time error. Otherwise independent.
 
@@ -226,14 +226,14 @@ non-container Makefile workflow. They're independent except for one real constra
 their own `cardinal_add_moose_prereq` call, `DEPENDS` entries, and whether the final `cardinal`
 target depends on that dependency's own CMake target at all.
 
-**Compiler discovery** is a single top-level decision, independent of what else needs building:
++Compiler discovery+ is a single top-level decision, independent of what else needs building:
 
-- **If libMesh is pre-built:** ask it directly via `${LIBMESH_DIR}/bin/libmesh-config --cc/--cxx/
+- +If libMesh is pre-built:+ ask it directly via `${LIBMESH_DIR}/bin/libmesh-config --cc/--cxx/
   --fc` -- most authoritative, and applies to whatever else needs building too, for toolchain
   consistency. Cardinal's own `config/*.mk` files normally get this from `$(libmesh_CC)` etc,
   computed deep inside `framework/build.mk` which only runs once `make` starts -- too late for
   `ExternalProject_Add` configure steps, which need it up front.
-- **Otherwise** (building libMesh ourselves): no chicken-and-egg trick available (libMesh doesn't
+- +Otherwise+ (building libMesh ourselves): no chicken-and-egg trick available (libMesh doesn't
   exist yet), so pick `CC`/`CXX`/`FC` directly from the environment if set, else
   `find_program(mpicc/mpicxx/mpif90)` -- matching what the Makefile workflow already relies on.
 
@@ -243,7 +243,7 @@ compiler/ABI mismatch between what libMesh's `configure` uses and what PETSc was
 is a real risk. The user is expected to have a consistent `CC`/`CXX`/`FC` for whatever `PETSC_DIR`
 they hand us, rather than this build system reverse-engineering it.
 
-**Compiler list conversion:** Cardinal's own Makefile (`Makefile:322-324`) converts `libmesh_CC`/
++Compiler list conversion:+ Cardinal's own Makefile (`Makefile:322-324`) converts `libmesh_CC`/
 `libmesh_CXX`/`libmesh_F90` into a semicolon-separated CMake list (`LIBMESH_CC_LIST`, etc) before
 passing them to any dependency's own CMake configure as `CMAKE_C_COMPILER`/`CMAKE_CXX_COMPILER`/
 `CMAKE_Fortran_COMPILER`. CMake accepts a semicolon-list value for these variables, treating entries
@@ -271,7 +271,7 @@ relying on the ambient container environment:
    environment -- which, in a container, "happens to work" because the container sets `/opt/*`
    variables anyway, masking the fact that nothing was actually being forwarded. Confirmed with
    every `/opt/*` variable unset: the build failed outright
-   (`make: *** No rule to make target '.../contrib/moose/petsc/lib/petsc/conf/petscvariables'`)
+   (`make: +* No rule to make target '.../contrib/moose/petsc/lib/petsc/conf/petscvariables'`)
    despite `-DPETSC_DIR=/opt/petsc` having been given at configure time.
 
 Fixed by explicitly forwarding `NEKRS_HOME`/`CONTRIB_INSTALL_DIR`/`HDF5_ROOT`/`PETSC_DIR`/
@@ -285,7 +285,7 @@ Makefile itself `export HDF5_ROOT`s before that `cmake` invocation ever runs; th
 independent `ExternalProject_Add` sub-build for MOAB has no such ambient export to inherit, so
 `-DHDF5_ROOT=${HDF5_ROOT}` is passed explicitly in its own `CMAKE_ARGS`.
 
-`OPENMC_CROSS_SECTIONS` is deliberately **not** given the same forced treatment: unlike the six
+`OPENMC_CROSS_SECTIONS` is deliberately +not+ given the same forced treatment: unlike the six
 computed values above, it must come from whatever the user has exported at *run* time, not get
 frozen in as of CMake *configure* time.
 
@@ -318,15 +318,15 @@ add_custom_target(cardinal ALL
 
 Two details matter here, both found by actually running the build rather than by inspection:
 
-**`$(MAKE)`, not a literal `make`/`make -jN`:** CMake's Makefiles generator substitutes this with a
++`$(MAKE)`, not a literal `make`/`make -jN`:+ CMake's Makefiles generator substitutes this with a
 recursive make invocation that shares the invoking make's jobserver, so this step's parallelism is
 always exactly whatever `-j` the user passed to `cmake --build`/`make` -- never a number this
 project invents itself. (An earlier version defaulted it via `ProcessorCount()`, which reported the
 full core count of a shared login node and forced that regardless of what the user actually asked
 for.) This requires the Makefiles generator, which is checked for at configure time.
 
-**`ENABLE_*` go through `-E env` as environment variables, not as trailing `make VAR=value`
-command-line arguments.** GNU Make gives a variable set on the command line unconditional priority
++`ENABLE_*` go through `-E env` as environment variables, not as trailing `make VAR=value`
+command-line arguments.+ GNU Make gives a variable set on the command line unconditional priority
 over any plain `VAR := value` assignment the makefile itself makes afterwards -- only
 `override VAR := value` can beat it, which Cardinal's Makefile doesn't use anywhere. Cardinal's own
 Makefile relies on exactly that freedom: `config/check_deps.mk` and the Makefile itself canonicalize
@@ -336,7 +336,7 @@ canonicalized `ON`/`OFF` values. Passing `ENABLE_DAGMC=yes ENABLE_DOUBLE_DOWN=no
 command-line arguments silently blocks that canonicalization, so `ENABLE_DOUBLE_DOWN` never becomes
 `OFF`, the `ifeq ($(ENABLE_DOUBLE_DOWN), OFF)` stub-definition block never fires, and
 `build_embree`/`build_doubledown` are never defined at all -- surfacing as
-`make: *** No rule to make target 'build_embree'` even with `ENABLE_DOUBLE_DOWN` correctly left at
+`make: +* No rule to make target 'build_embree'` even with `ENABLE_DOUBLE_DOWN` correctly left at
 its default off. An environment variable doesn't have this problem: it's the *lowest*-precedence
 source of a variable's value, so the makefile's own reassignments apply normally, exactly like a
 native user's `export ENABLE_DAGMC=yes; make` would.
@@ -355,7 +355,7 @@ backends), `set(... CACHE PATH ...)` pre-filled from the environment for
 
 ## Building PETSc/libMesh/WASP from source
 
-**What the three scripts actually do**, read directly from the cloned MOOSE tree:
++What the three scripts actually do+, read directly from the cloned MOOSE tree:
 
 - `update_and_rebuild_petsc.sh` builds `contrib/moose/petsc` via autotools + `make`. With no
   `PETSC_PREFIX` override, PETSc installs *in place* at `$PETSC_DIR/$PETSC_ARCH` (default
@@ -371,7 +371,7 @@ backends), `set(... CACHE PATH ...)` pre-filled from the environment for
   skips configure and requires a pre-existing build dir (build+install only, no wipe). All three
   self-manage their own MOOSE-nested submodule fetch inside their non-`--fast` run.
 
-**CONFIGURE/BUILD split, not "always run the full script":** `ExternalProject_Add` tracks
++CONFIGURE/BUILD split, not "always run the full script":+ `ExternalProject_Add` tracks
 configure/build as independent steps, so:
 
 - `CONFIGURE_COMMAND` is the full non-`--fast` script (the slow one).
@@ -380,14 +380,14 @@ configure/build as independent steps, so:
 - `INSTALL_COMMAND` is a no-op: both of the above already install internally.
 - `DOWNLOAD_COMMAND` is a no-op: the script handles its own submodule fetch.
 
-**libMesh's XDR requirement (HPC hosts without `libtirpc-devel`):** HPC login nodes commonly lack
++libMesh's XDR requirement (HPC hosts without `libtirpc-devel`):+ HPC login nodes commonly lack
 `libtirpc-devel` (no `rpc/xdr.h`) -- unlike the container image, which bundles it -- so libMesh's
 `configure` hard-fails since `update_and_rebuild_libmesh.sh` always passes `--enable-xdr-required`
 by default. Fixed per [the documented workaround](hpc_build_run_tips.md): forward
 `--disable-xdr-required --disable-xdr` (Cardinal normally uses Exodus output, not libMesh's legacy
 XDR format, so this costs nothing in practice).
 
-**`petsc`/`wasp` configure-step git-lock race:** both scripts' full (non-`--fast`) configure run
++`petsc`/`wasp` configure-step git-lock race:+ both scripts' full (non-`--fast`) configure run
 `git submodule update --init --recursive <path>` against the same shared `MOOSE_DIR` checkout. With
 no ordering between them, `ExternalProject` could start both configure steps at once when building
 both from source -- and they race on `MOOSE_DIR/.git/config`
@@ -396,7 +396,7 @@ both from source -- and they race on `MOOSE_DIR/.git/config`
 whole build, so PETSc's slow build can still overlap with WASP's much faster one), and only when
 building both.
 
-**Jobserver/parallelism can't be shared here**, unlike the `$(MAKE)` trick used for the final
++Jobserver/parallelism can't be shared here+, unlike the `$(MAKE)` trick used for the final
 "build cardinal" step:
 
 - These scripts call `make -jN` with an explicit numeric `N` internally, not `$(MAKE)` -- an
@@ -433,13 +433,13 @@ CAD/mesh-based geometry support, consumed by OpenMC via `-DDAGMC_DIR`. Same patt
 each dependency gets its own independent CMake sub-build, with `CMAKE_ARGS` matching
 `config/moab.mk`/`embree.mk`/`double_down.mk`/`dagmc.mk`'s own `cmake` invocations.
 
-**Build order** mirrors the `*.mk` files' own prerequisite chain: MOAB and Embree are independent of
++Build order+ mirrors the `*.mk` files' own prerequisite chain: MOAB and Embree are independent of
 each other; double-down needs both; DAGMC needs MOAB always, and additionally double-down/Embree
 only when `ENABLE_DOUBLE_DOWN` is on (`config/check_deps.mk` only requires double-down/Embree in
 that case -- DAGMC can build without ray-tracing acceleration). OpenMC depends on DAGMC (when
 `ENABLE_DAGMC`) and on libMesh (when building it from source).
 
-**Configure-time validation**, matching `config/check_deps.mk`'s own logic, enforced earlier and
++Configure-time validation+, matching `config/check_deps.mk`'s own logic, enforced earlier and
 more clearly by CMake instead: `check_deps.mk` silently downgrades `ENABLE_DAGMC` to `no` when
 `ENABLE_OPENMC` is off (DAGMC only matters as an OpenMC geometry backend) -- this is a configure-time
 error here instead, so a misconfiguration fails loudly rather than silently building nothing.
@@ -474,7 +474,7 @@ the raw string literally doesn't work, since that literal text has no leading/tr
 its own; only the *evaluated* value does.
 
 Applied via a `moab_fixup` custom target run after `moab`'s own install step, and -- this part
-matters -- patches **two** copies: the build-tree template CMake generates during MOAB's *configure*
+matters -- patches +two+ copies: the build-tree template CMake generates during MOAB's *configure*
 step, and the installed copy. Patching only the installed copy isn't enough: the final "build
 cardinal" step hands off to Cardinal's own native Makefile, which -- entirely independently of
 everything else -- always redoes its own `build_moab` (`make -C $(MOAB_BUILDDIR) install`) on every
@@ -504,7 +504,7 @@ Building with `-DENABLE_CUDA=ON` against a CUDA 13.3 toolchain fails inside NekR
 which CUDA 13.3's bundled Thrust/CCCL (&ge;3.3.0) no longer transitively includes
 (`thrust/tuple.h` must now be included explicitly) -- a genuine upstream incompatibility between
 HYPRE 2.32.0 and CUDA 13.3, unrelated to anything this build does. This is confirmed to also affect
-**Cardinal's native (non-CMake) build**: `config/nekrs.mk` forwards only `-DENABLE_CUDA`/
++Cardinal's native (non-CMake) build+: `config/nekrs.mk` forwards only `-DENABLE_CUDA`/
 `-DENABLE_OPENCL`/`-DENABLE_HIP`/`-DENABLE_AMGX` to NekRS's CMake configure -- never
 `-DENABLE_HYPRE_GPU` -- so it hits the identical failure whenever building against CUDA 13.3.
 
@@ -519,7 +519,7 @@ vendored HYPRE past this point -- out of scope for this build (per the standing 
 modifying vendored/submodule source), but a concrete, actionable report-upstream item for
 NekRS/Cardinal maintainers.
 
-**Workaround:** `-DENABLE_HYPRE_GPU=OFF` skips `HYPRE_BUILD_DEVICE` entirely; NekRS/OCCA's CUDA
++Workaround:+ `-DENABLE_HYPRE_GPU=OFF` skips `HYPRE_BUILD_DEVICE` entirely; NekRS/OCCA's CUDA
 backend then builds and links completely. This also uncovered a second, unrelated,
 driver-less-build-environment nuance on a host with no NVIDIA driver at all: `libocca.so` records
 `NEEDED libcuda.so.1`, and the only real `libcuda.so.1` available in that case is the driver
