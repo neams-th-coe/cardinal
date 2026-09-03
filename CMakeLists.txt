@@ -116,6 +116,26 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
 # "cardinal" target invokes that explicitly via `$(MAKE) -f Makefile.cardinal`.
 # -----------------------------------------------------------------------------
 set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR})
+
+# CARDINAL_INSTALL_DIR is nekRS/OpenMC/MOAB/Embree/double-down/DAGMC/
+# nuclear_data's shared install prefix -- but deliberately a *fixed*,
+# build-tree-local path, not CMAKE_INSTALL_PREFIX, and not user-facing at
+# all. Every one of those dependencies forwards it as their own
+# ExternalProject_Add -DCMAKE_INSTALL_PREFIX=..., which becomes part of
+# their CONFIGURE_COMMAND -- and ExternalProject_Add stamps/reconfigures
+# based on a hash of that whole command. If this tracked CMAKE_INSTALL_
+# PREFIX instead, changing where the user wants the *final* result to end
+# up (e.g. via ccmake) would silently change every dependency's own
+# CMAKE_ARGS too, forcing a full reconfigure+rebuild of all of them just
+# to relocate an already-good build -- exactly the "changing the install
+# directory makes the build go stale" trap CMAKE_INSTALL_PREFIX is meant
+# to avoid (a real, plain CMake install prefix is never consulted at
+# build time, only at `cmake --install`/`--target install` time). See
+# "Installing the app itself" below for how CMAKE_INSTALL_PREFIX (the
+# real, user-facing, ccmake-editable prefix -- left alone during the
+# ordinary build, exactly like any other CMake project) is actually used:
+# only as the *destination* of a copy of this staging tree, done once,
+# on demand, at install time.
 set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 
 # Mirror everything except the large, separately-managed submodules and
@@ -1014,3 +1034,77 @@ add_custom_target(cardinal ALL
   COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
   USES_TERMINAL
   VERBATIM)
+
+# -----------------------------------------------------------------------------
+# Installing the app itself (cardinal-opt today; cardinal-dbg once METHOD
+# forwarding to the `cardinal` target above is fixed separately -- see
+# doc/content/cmake_details.md).
+#
+# CARDINAL_INSTALL_DIR (see above) already holds nekRS/OpenMC/MOAB/Embree/
+# double-down/DAGMC/nuclear_data -- but it's the fixed, internal staging
+# location, populated as a side effect of the ordinary build, not the
+# real (CMAKE_INSTALL_PREFIX) install prefix a user actually asked for.
+# Neither it nor the app itself (cardinal-opt, plus the MOOSE framework/
+# module libraries it links -- nothing installs *those* anywhere at all
+# today) end up in CMAKE_INSTALL_PREFIX without this step.
+#
+# CMAKE_INSTALL_PREFIX defaults to CARDINAL_STAGE_DIR/dist (via the same
+# CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT idiom used elsewhere in this
+# file) -- deliberately *not* CARDINAL_INSTALL_DIR itself: CardinalInstall
+# App.cmake (below) always nests the staged dependency tree one level
+# under CMAKE_INSTALL_PREFIX (CMAKE_INSTALL_PREFIX/install -- see that
+# script), so defaulting CMAKE_INSTALL_PREFIX to CARDINAL_INSTALL_DIR
+# would ask it to copy CARDINAL_INSTALL_DIR into CARDINAL_INSTALL_DIR/
+# install -- a directory copied into its own new subdirectory. Unlike the
+# CARDINAL_INSTALL_DIR mistake this replaced, nothing above this point
+# reads CMAKE_INSTALL_PREFIX, so editing it (--install-prefix, or in
+# ccmake) never touches any dependency's own CMAKE_ARGS or forces a
+# rebuild -- only this install step, run on demand, ever sees it.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX ${CARDINAL_STAGE_DIR}/dist CACHE PATH
+    "Real install prefix for the whole build (app + all dependencies)." FORCE)
+endif()
+
+# CardinalInstallApp.cmake does the actual work: copies CARDINAL_INSTALL_
+# DIR's own staged tree into CMAKE_INSTALL_PREFIX/install (kept in its
+# own subdirectory rather than CMAKE_INSTALL_PREFIX's root, since it's a
+# merge of six independent projects' own install trees -- matches
+# Cardinal's own Makefile.cardinal, which merges them the same way), then
+# copies the app and every shared library it needs that lives inside
+# CARDINAL_STAGE_DIR into CMAKE_INSTALL_PREFIX's own bin/lib/share,
+# rewriting RPATH (via patchelf) on every copy so the result is genuinely
+# self-contained -- see that script for the full explanation of why a
+# plain file copy alone isn't enough (RUNPATH isn't transitive), and for
+# why the app's own bin/lib/share can't also be nested under install/
+# (MOOSE's own installed-data-file lookup requires it not to be).
+#
+# Exposed two ways: a plain custom target (cardinal-install, this
+# project's own established idiom -- e.g. moab_fixup above) for
+# `cmake --build build --target cardinal-install`, and, since "install" is
+# also the natural/standard CMake spelling for this, a real hook into
+# CMake's own built-in `install` target too. The latter reruns the exact
+# same cardinal-install target (rather than duplicating its logic) via a
+# nested `cmake --build`, which is also what guarantees the app actually
+# gets (re)built first -- CMake's own `install` target, unlike ours, does
+# *not* imply a prior build on its own.
+add_custom_target(cardinal-install
+  COMMAND ${CMAKE_COMMAND}
+          -DCARDINAL_APP=${CARDINAL_STAGE_DIR}/cardinal-opt
+          -DCARDINAL_STAGE_DIR=${CARDINAL_STAGE_DIR}
+          -DCARDINAL_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          -DCARDINAL_FINAL_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}
+          -DCARDINAL_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalInstallApp.cmake
+  DEPENDS cardinal
+  COMMENT "Installing Cardinal (app + all dependencies) into ${CMAKE_INSTALL_PREFIX}"
+  USES_TERMINAL
+  VERBATIM)
+
+install(CODE "
+  execute_process(
+    COMMAND \"${CMAKE_COMMAND}\" --build \"${CMAKE_BINARY_DIR}\" --target cardinal-install
+    RESULT_VARIABLE _cardinal_install_rc)
+  if(NOT _cardinal_install_rc EQUAL 0)
+    message(FATAL_ERROR \"Cardinal: 'cmake --build ... --target cardinal-install' failed\")
+  endif()
+")

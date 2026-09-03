@@ -58,7 +58,27 @@ expects, relative to that directory. The build directory *is* the equivalent of 
 | OpenMC's own CMake build | `${CMAKE_BINARY_DIR}/build/openmc` | `OPENMC_BUILDDIR` |
 | MOAB/Embree/double-down/DAGMC checkouts | `${CMAKE_BINARY_DIR}/contrib/{moab,embree,double-down,DAGMC}` | `{MOAB,EMBREE,DOUBLEDOWN,DAGMC}_DIR` |
 | Their own CMake builds | `${CMAKE_BINARY_DIR}/build/{moab,embree,double-down,DAGMC}` | `{...}_BUILDDIR` |
-| Shared install prefix | `${CMAKE_BINARY_DIR}/install` | `CONTRIB_INSTALL_DIR` |
+| Shared install prefix (`CARDINAL_INSTALL_DIR`, fixed -- see below) | `${CMAKE_BINARY_DIR}/install` | `CONTRIB_INSTALL_DIR` |
+
+`CARDINAL_INSTALL_DIR` looks like it should just be CMake's own standard `CMAKE_INSTALL_PREFIX` --
+tried exactly that at one point -- but it deliberately is *not*: it's a fixed, build-tree-local
+path, forwarded as every one of nekRS/OpenMC/MOAB/Embree/double-down/DAGMC/`nuclear_data`'s own
+`ExternalProject_Add -DCMAKE_INSTALL_PREFIX=...`, which becomes part of their `CONFIGURE_COMMAND`
+-- and `ExternalProject_Add` reconfigures based on a hash of that whole command. Tying it to
+`CMAKE_INSTALL_PREFIX` meant editing where the user wants the *final* result to end up (in
+`ccmake`, say) silently changed every dependency's own `CMAKE_ARGS` too, forcing a full
+reconfigure+rebuild of all of them just to relocate an already-good build -- found live, and
+exactly the trap a real install prefix is supposed to avoid (never consulted at build time, only
+at `cmake --install`/`--target install` time). `CMAKE_INSTALL_PREFIX` itself defaults to
+`CARDINAL_STAGE_DIR/dist` (via the same `CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT` idiom used
+elsewhere in this file) -- deliberately *not* this same staging path, since the install step (see
+"Installing the app itself" below) always nests the staged dependency tree one level under
+`CMAKE_INSTALL_PREFIX`; defaulting it to `CARDINAL_INSTALL_DIR` directly would ask that step to
+copy `CARDINAL_INSTALL_DIR` into its own new subdirectory. Nothing upstream of the install step
+ever reads `CMAKE_INSTALL_PREFIX` at all, though -- so overriding it (`--install-prefix <dir>`, or
+in `ccmake`) never touches a dependency's `CMAKE_ARGS` or forces a rebuild. Verified directly: with
+`CMAKE_INSTALL_PREFIX` changed via a reconfigure, nekRS's and OpenMC's own generated
+`*-cfgcmd.txt` (the file `ExternalProject_Add` hashes for staleness) came out byte-identical.
 
 +The one real collision:+ Cardinal's own hand-written top-level `Makefile` against CMake's own
 generated `Makefile` of the same name at the build directory root. Resolved by having the source
@@ -343,6 +363,121 @@ native user's `export ENABLE_DAGMC=yes; make` would.
 
 Note the `ON`/`OFF` &rarr; `yes`/`no` translation via `$<IF:$<BOOL:...>,yes,no>`: CMake `option()`
 cache variables are boolean, the Makefile's are `yes`/`no` strings.
+
+## Installing the app itself (`cmake/CardinalInstallApp.cmake`)
+
+Two things don't reach `CMAKE_INSTALL_PREFIX` (the real, user-facing install prefix, deliberately
+decoupled from `CARDINAL_INSTALL_DIR` -- see above) on their own: nekRS/OpenMC/MOAB/Embree/
+double-down/DAGMC/`nuclear_data`, whose own `ExternalProject_Add` install step only ever reaches
+the fixed `CARDINAL_INSTALL_DIR` staging location; and `cardinal-opt` plus the MOOSE framework/
+module libraries it links, which have no install step of their own *anywhere*, staged or not.
+Closed by a real hook into CMake's own `install` target, running a dedicated `cmake -P` script
+(`cmake/CardinalInstallApp.cmake`) after ensuring `cardinal-opt` is built, in two steps:
+
+1. +Bring the staged dependencies along.+ `CARDINAL_INSTALL_DIR`'s tree (already a complete
+   install of those six, courtesy of their own `ExternalProject_Add`, all merged into one shared
+   prefix -- `CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install` in Cardinal's own
+   `Makefile.cardinal` does the exact same merge, so this isn't a superbuild-specific choice) is
+   copied wholesale (`rsync -a`, to preserve libtool-style symlink chains) into
+   `CMAKE_INSTALL_PREFIX/install` -- kept in its own subdirectory, not `CMAKE_INSTALL_PREFIX`'s
+   root, because it's a merge of six independent projects' own install trees (nekRS's own scatters
+   a fair amount of loose top-level content -- `LICENSE`, `examples/`, `gslib/`, `modulefiles/`,
+   ... -- found live) that would otherwise bury `cardinal-opt` itself in a pile of unrelated files.
+2. +Add the app.+ `cardinal-opt` and the MOOSE framework/module libraries it needs go directly into
+   `CMAKE_INSTALL_PREFIX`'s own `bin`/`lib`/`share` -- *not* nested under `install/` alongside step
+   1, since MOOSE's own installed-data-file lookup (below) hardcodes an `<exe-dir>/../share/<name>/
+   data` convention that requires the app to sit directly under the real prefix.
+
++Root symlink+, added only when `CARDINAL_FINAL_INSTALL_DIR` *is* `CARDINAL_SOURCE_DIR` (i.e.
+`--install-prefix $(pwd)` from inside the checkout): `CMAKE_INSTALL_PREFIX/cardinal-opt` &rarr;
+`bin/cardinal-opt`, matching where the native Makefile build puts the binary (the checkout root,
+no `bin/` of its own) -- skipped for any other prefix, where there's no checkout layout for it to
+be matching, so it'd just be clutter. Safe regardless of how it's invoked: MOOSE's own
+`Moose::getExec()` (`framework/src/utils/ExecutablePath.C`) resolves the running executable's path
+via `readlink("/proc/<pid>/exe")`, which the kernel always resolves to the real underlying file
+regardless of which symlink was used to invoke it, so the data-file lookup above still finds
+`CMAKE_INSTALL_PREFIX/share/<name>/data` correctly either way.
+
++Why a plain copy isn't enough, for either step:+ RUNPATHs throughout this build are a mix of
+absolute `CARDINAL_STAGE_DIR` paths and genuinely external ones (`/opt/petsc/lib`,
+`/opt/openmpi/lib`, ...) -- confirmed directly with `readelf -d`, on both `cardinal-opt`/MOOSE
+libraries (paths into `contrib/moose/framework`, `contrib/moose/modules/*/lib`, `lib/`,
+`test/lib/`) and step 1's own dependencies (e.g. MOAB's own `CMAKE_INSTALL_RPATH` is set to the
+literal, absolute `CARDINAL_INSTALL_DIR/lib` -- see above). `DT_RUNPATH` is *not* transitive --
+glibc's loader only consults the RUNPATH of the object doing the lookup, not the top-level
+executable's -- which is exactly why each library carries its own RUNPATH pointing at its
+siblings. So copying files without also rewriting each one's own RUNPATH would still reach back
+into the (deleted) build tree the moment the loader resolves a second-level dependency. Fixed with
+`patchelf --set-rpath` on every copy.
+
+The two steps need different rewriting strategies, though, both implemented as their own function:
+
+- Step 2 (`cardinal_install_relink`) *flattens* everything it touches into one destination
+  directory (`lib/`), so every stripped build-tree RPATH entry collapses to one shared
+  `$ORIGIN`-relative value (`$ORIGIN/../lib` for the app in `bin/`, `$ORIGIN` for libraries in
+  `lib/`).
+- Step 1 (`cardinal_install_relink_mirrored`) is a structure-*preserving* mirror -- `rsync -a`
+  reproduces `CARDINAL_INSTALL_DIR`'s own internal layout exactly, so collapsing wouldn't just
+  point at the wrong place, it would silently drop information: nekRS's own `bin/nekrs`, for
+  example, has *two different* build-tree RPATH entries on the same binary (confirmed with
+  readelf) -- one for its `lib/`, a separate one for `occa/lib/`, not interchangeable. Each old
+  entry gets its *own*, individually-computed `$ORIGIN`-relative replacement instead: relative to
+  `CARDINAL_INSTALL_DIR`, then re-anchored under `CMAKE_INSTALL_PREFIX/install`. An entry already
+  `$ORIGIN`-relative (e.g. Embree's own CMake install already uses it) is left completely alone --
+  found live: naively resolving the literal string `"$ORIGIN"` as if it were a real relative
+  filesystem path (`get_filename_component(... ABSOLUTE)`) mangled it into a bogus path that could
+  spuriously look like it was inside the build tree. An old entry inside `CARDINAL_STAGE_DIR` but
+  *outside* `CARDINAL_INSTALL_DIR` specifically (a from-source PETSc/libMesh/WASP library, which
+  step 1 doesn't copy at all) has no corresponding new location to compute -- left as its original
+  absolute path, with a `message(WARNING ...)`, a real (if narrow) surviving limitation rather
+  than something worth silently mishandling.
+
++Discovering what step 2 needs to copy:+ deliberately *not* `ldd`, which resolves each
+`DT_NEEDED` name through the object's actual RUNPATH. Found live: that approach broke from the
+*second* install onward -- by then `cardinal-opt`'s own RUNPATH already contains
+`CARDINAL_INSTALL_DIR/lib` (Cardinal's own Makefile bakes `CONTRIB_INSTALL_DIR` in there, ahead of
+the build-tree paths), which already holds copies of these same libraries from the earlier run.
+`ldd` resolved straight to that earlier copy instead of the authoritative `CARDINAL_STAGE_DIR`
+original, silently poisoning every install after the first into never picking up a rebuilt library
+again. Fixed by building an index (basename &rarr; realpath) of every `*.so*` under
+`CARDINAL_STAGE_DIR`'s own `lib/`, `test/lib/`, and `contrib/moose` (framework/modules, and
+PETSc/libMesh/WASP too when built from source), then walking the transitive closure of
+`patchelf --print-needed` (which does no path resolution at all) against that index -- immune to
+an already-installed copy shadowing the real one, by construction. A name absent from the index is
+left alone: either a genuine system/container library, or one of step 1's own dependencies, neither
+of which step 2 is responsible for. Every copy in both steps is unconditional (no "skip if it
+already exists"), for the same staleness reason -- an install should always reflect the current
+build.
+
++Data files, not just libraries:+ "whatever it needs to run" turned out to include more than
+shared libraries. MOOSE's own `Registry::determineDataFilePath`
+(`framework/src/base/Registry.C`) looks for each registered app/module's `data/` directory at a
+documented, already-relocatable convention: `<exe-dir>/../share/<name>/data`. Found live:
+`cardinal-opt`, run with `CARDINAL_STAGE_DIR` moved out of the way, immediately `mooseError`'d on
+startup ("Failed to determine data file path for 'moose'") since neither that path nor the
+(now-gone) in-tree fallback existed. Since `Registry.C` enforces that any such directory be
+literally named `data`, checking for `contrib/moose/framework/data` (always, registered as
+`"moose"`) plus, for every module library actually copied, whether `contrib/moose/modules/<module>/
+data` exists (module directory name matches the registered name in every case observed, e.g.
+`solid_mechanics`) is a purely filesystem-based check -- no need to grep source or hardcode which
+of Cardinal's linked modules happen to register a data path today.
+
++Validated+ end-to-end against a real build, several ways:
+
+- `cmake --build build --target install`, then moving the entire build directory out of the way
+  (`mv`, not `rm` -- cheap to restore for the next iteration) and running `cardinal-opt --version`
+  from the install tree alone -- confirmed working (and confirmed *not* working, with the exact
+  same `mooseError`, before the data-file fix above).
+- Idempotency: a second `--target install` against an already-populated prefix, with nothing
+  rebuilt, still finds and relinks the full set (not a partial one -- the regression the
+  `ldd`-based approach had).
+- The `CMAKE_INSTALL_PREFIX`/`CARDINAL_INSTALL_DIR` decoupling itself: configured with
+  `-DCMAKE_INSTALL_PREFIX=/root` (unwritable), the ordinary build (`cmake --build build`, no
+  explicit install target) still succeeded outright. Reconfigured to a real, writable path on a
+  different filesystem (`/work/nvme/...`) and installed there -- `nekrs`'s own two-entry RUNPATH
+  (`lib/` and `occa/lib/`) came out correctly re-anchored, `libembree4.so`'s pre-existing
+  `$ORIGIN` entry survived untouched, and both `cardinal-opt --version` and `nekrs --help` ran
+  correctly with the build directory moved out of the way.
 
 ## Interactive configuration (`ccmake`)
 
