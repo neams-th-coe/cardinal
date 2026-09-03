@@ -64,15 +64,6 @@ public:
   virtual bool addingGlobalTally() const override { return _needs_global_tally && _instance == 0; }
 
 protected:
-  /// An enum for the relaxation case.
-  enum class AMRRelaxation
-  {
-    CaseI = 0,
-    CaseII = 1,
-    CaseIII = 2,
-    Unknown = 3
-  };
-
   /**
    * A function which stores the results of this tally into the created
    * auxvariables. This implements the copy transfer between the tally mesh and the MOOSE mesh.
@@ -96,15 +87,57 @@ protected:
    */
   void checkMeshTemplateAndTranslations();
 
+  /// An enum for the different cases when applying relaxation to an adaptive mesh tally.
+  enum class AMRRelaxation
+  {
+    CaseI = 0,
+    CaseII = 1,
+    CaseIII = 2
+  };
+
   /**
-   * Classify an element according to the three AMR relaxation cases.
+   * There are three cases for relaxation with AMR mesh tallies:
+   * i)   A spatial bin from the previous solution and a spatial bin from the current
+   *      solution correspond one-to-one.
+   * ii)  A spatial bin from the previous solution maps to N spatial bins from the current
+   *      solution (previous element was at a lower refinement level).
+   * iii) N spatial bins from the previous solution map to a single spatial bin
+   *      from the current solution (previous element was at a higher refinement
+   *      level).
+   *
+   * This function classifies an element according to these three cases described above.
+   * @param[in] current_element the element to classify
+   * @return an enum corresponding to the classification
    */
   AMRRelaxation classifyRelaxationCase(const libMesh::Elem * current_element) const;
 
   /**
-   * TODO: Doxygen
+   * This function performs relaxation on the solution vectors from two different
+   * Picard iterations: 'previous' and 'current_raw'. Results are saved to
+   * 'current_relaxed'. As mentioned above, there are three relaxation cases:
+   * Case I:   The spatial bin can be relaxed in place.
+   * Case II:  The N spatial bins from the current solution need to be accumulated
+   *           up to the level of the previous solution. Then, relaxation can be
+   *           performed. Finally, the relaxed value can be distributed to the
+   *           N current solution spatial bins according to how much that bin
+   *           contributed to the integral.
+   * Case III: The N spatial bins from the previous step must be accumulated down
+   *           to the level of the current solution. Then, relaxation can then be
+   *           performed. The relaxed value can then be used in-place.
+   * @param[in] alpha the relaxation factor being applied to tally values
+   * @param[in] previous the relaxed tally value from the previous iteration
+   * @param[in] current_raw the raw (unrelaxed) tally value from the current iteration
+   * @param[out] current_relaxed the relaxed tally value on the current iteration
    */
-  void projectAndRelaxAMR(Real alpha, const OMCTensor & previous, const OMCTensor & current_raw, OMCTensor & current_relaxed);
+  void projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
+                          const OMCTensor & current_raw, OMCTensor & current_relaxed);
+
+  /**
+   * Determine which ancestor of 'active_elem' was active on the previous step.
+   * @param[in] active_elem the element to find the active ancestor of
+   * @return the previous active ancestor
+   */
+  const Elem * previousActiveAncestor(const Elem * active_elem) const;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
@@ -137,14 +170,20 @@ protected:
 
   /// A mapping between the OpenMC bins (active block restricted elements) and all elements.
   std::vector<dof_id_type> _bin_to_element_mapping;
-  /// Dual of the above map.
-  std::vector<int64_t> _element_to_bin_mapping;
 
+  ///----------------------------------------------------------------------------///
+  /// The following variables are only maintained when adaptivity is being used  ///
+  /// and relaxation is requested. They are used to map between solution vectors ///
+  /// in different Picard iterations to apply relaxation.                        ///
+  ///----------------------------------------------------------------------------///
+  /// Dual of '_bin_to_element_mapping'.
+  std::vector<int64_t> _element_to_bin_mapping;
   /// The previous bin to element mapping.
   std::vector<dof_id_type> _prev_bin_to_element_mapping;
-  /// The dual of the above map.
+  /// The dual of '_prev_bin_to_element_mapping'.
   std::vector<int64_t> _prev_elem_to_bin_mapping;
-  /// A map of element IDs to the IDs of their immediate children. Used
-  /// to get around libMesh not keeping coarsened elements.
-  std::unordered_map<dof_id_type, std::array<dof_id_type, 10>> _prev_elem_to_children;
+  /// A map of active elements to their family trees. Used to get around libMesh
+  /// deleting subactive elements.
+  std::unordered_map<dof_id_type, std::vector<dof_id_type>> _prev_ancestors_to_elem;
+  ///----------------------------------------------------------------------------///
 };
