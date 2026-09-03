@@ -420,10 +420,12 @@ cache variables are boolean, the Makefile's are `yes`/`no` strings.
 Two things don't reach `CMAKE_INSTALL_PREFIX` (the real, user-facing install prefix, deliberately
 decoupled from `CARDINAL_INSTALL_DIR` -- see above) on their own: nekRS/OpenMC/MOAB/Embree/
 double-down/DAGMC/`nuclear_data`, whose own `ExternalProject_Add` install step only ever reaches
-the fixed `CARDINAL_INSTALL_DIR` staging location; and `cardinal-opt` plus the MOOSE framework/
-module libraries it links, which have no install step of their own *anywhere*, staged or not.
-Closed by a real hook into CMake's own `install` target, running a dedicated `cmake -P` script
-(`cmake/CardinalInstallApp.cmake`) after ensuring `cardinal-opt` is built, in two steps:
+the fixed `CARDINAL_INSTALL_DIR` staging location; and `cardinal-<method>` (whichever `METHOD` --
+see above -- this configuration actually built; `cardinal-opt` below stands in for it as the
+common case) plus the MOOSE framework/module libraries it links, which have no install step of
+their own *anywhere*, staged or not. Closed by a real hook into CMake's own `install` target,
+running a dedicated `cmake -P` script (`cmake/CardinalInstallApp.cmake`) after ensuring the app is
+built, in two steps:
 
 1. +Bring the staged dependencies along.+ `CARDINAL_INSTALL_DIR`'s tree (already a complete
    install of those six, courtesy of their own `ExternalProject_Add`, all merged into one shared
@@ -513,6 +515,35 @@ data` exists (module directory name matches the registered name in every case ob
 `solid_mechanics`) is a purely filesystem-based check -- no need to grep source or hardcode which
 of Cardinal's linked modules happen to register a data path today.
 
+The per-module check matches library basenames against `_app_method` (read straight off
+`CARDINAL_APP`'s own name, `cardinal-<method>` -- not re-derived independently, so it automatically
+tracks whatever `CMakeLists.txt`'s `_cardinal_method` resolved to), not a hardcoded `opt`/`dbg`
+alternation -- MOOSE names every module library `lib<module>-<method>.so` for all five methods, not
+just those two, so this covers `devel`/`prof`/`oprof` for free instead of needing a list kept in
+sync with libMesh's own `libmesh_method.m4`. If `CARDINAL_APP`'s name doesn't parse as
+`cardinal-<method>` at all (only reachable by invoking this script directly with a hand-set
+`-DCARDINAL_APP=...`, never through the real `cardinal-install` target), that's a `FATAL_ERROR`, not
+a warning: `determineDataFilePath` above `mooseError`s *immediately*, at the registering module's
+static-init time, not lazily on first use -- and `solid_mechanics` (`SolidMechanicsApp.C`) registers
+one and is always linked into Cardinal's own module set today. Skipping that data directory doesn't
+degrade some rarely-used feature; it produces a binary that refuses to start at all, on every
+invocation, while `cardinal-install` still reports success -- exactly the kind of failure a
+`WARNING` (easy to miss in a long build log) is the wrong severity for.
+
++Multiple `METHOD`s, same build and install directories:+ nothing this script does is
+method-exclusive -- `CARDINAL_APP` (and therefore `_app_method`) is just whatever `cardinal-install`
+was most recently pointed at, and every copy it makes is unconditional, never "skip if already
+installed" (see above). So building `opt`, installing, then reconfiguring for `dbg` (`METHOD=dbg
+cmake build` or `-DCMAKE_BUILD_TYPE=Debug`) and installing again -- into the *same* build directory
+and the *same* `CMAKE_INSTALL_PREFIX` -- works with no extra steps: `cardinal-opt` and `cardinal-dbg`
+end up coexisting side by side in `bin/`, each linked only against its own `-opt`/`-dbg`-suffixed
+libraries in `lib/` (MOOSE's own method-suffixed naming keeps them from colliding, confirmed
+directly with `ldd`: 0 cross-matches either direction). Validated with all three of `opt`/`dbg`/
+`devel` installed into one prefix this way; all three ran correctly afterward. The one thing this
+does *not* do is clean up: nothing here removes a previous method's `bin`/`lib` entries, so a
+prefix built up this way only ever grows -- matching how a native Makefile checkout would look if
+you built multiple methods there too, not a superbuild-specific quirk.
+
 +Validated+ end-to-end against a real build, several ways:
 
 - `cmake --build build --target install`, then moving the entire build directory out of the way
@@ -529,6 +560,12 @@ of Cardinal's linked modules happen to register a data path today.
   (`lib/` and `occa/lib/`) came out correctly re-anchored, `libembree4.so`'s pre-existing
   `$ORIGIN` entry survived untouched, and both `cardinal-opt --version` and `nekrs --help` ran
   correctly with the build directory moved out of the way.
+- `CARDINAL_APP` tracking `_cardinal_method` (rather than a hardcoded `cardinal-opt`): built and
+  installed `opt`, `dbg`, and `devel` in turn, all into the same build directory and the same
+  `CMAKE_INSTALL_PREFIX`, by reconfiguring (`METHOD=dbg`/`METHOD=devel` env, `-UCMAKE_BUILD_TYPE`)
+  and reinstalling between each. All three binaries ended up coexisting in the resulting prefix's
+  `bin/`, each ran correctly (`--version`), and `ldd` confirmed each linked exclusively against its
+  own method-suffixed libraries -- 0 cross-matches in either direction.
 
 ## Interactive configuration (`ccmake`)
 

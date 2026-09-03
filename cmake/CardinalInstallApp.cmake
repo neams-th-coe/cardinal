@@ -1,8 +1,8 @@
-# cmake -P script: installs Cardinal -- the app (cardinal-opt today;
-# cardinal-dbg once METHOD forwarding is fixed separately), the MOOSE
-# framework/module libraries it links, and nekRS/OpenMC/MOAB/Embree/
-# double-down/DAGMC/nuclear_data -- into CARDINAL_FINAL_INSTALL_DIR as a
-# self-contained, relocatable install: one that keeps working after
+# cmake -P script: installs Cardinal -- the app (cardinal-opt, cardinal-dbg,
+# or whichever METHOD this build was configured for -- see CARDINAL_APP
+# below), the MOOSE framework/module libraries it links, and nekRS/OpenMC/
+# MOAB/Embree/double-down/DAGMC/nuclear_data -- into CARDINAL_FINAL_INSTALL_
+# DIR as a self-contained, relocatable install: one that keeps working after
 # CARDINAL_STAGE_DIR (the CMake build tree, which includes
 # CARDINAL_INSTALL_DIR, the *staging* copy of those last six dependencies
 # built up as a side effect of the ordinary build) is deleted.
@@ -422,6 +422,35 @@ endwhile()
 list(REMOVE_DUPLICATES _installed_libs)
 
 get_filename_component(_app_name "${CARDINAL_APP}" NAME)
+
+# The METHOD this build was actually configured for (opt, dbg, devel, prof,
+# oprof, ...) -- not re-derived independently here, just read back off
+# CARDINAL_APP's own name (cardinal-<method>), so this script automatically
+# tracks whatever CMakeLists.txt's own _cardinal_method resolved to without
+# needing that value passed in separately, and without hardcoding which
+# METHOD values exist. Used below for the module data-dir check, matching
+# MOOSE's own library naming convention (lib<module>-<method>.so).
+#
+# FATAL_ERROR, not a warning, if this can't be determined: it's not a
+# cosmetic gap. Registry::determineDataFilePath (framework/src/base/
+# Registry.C) mooseErrors immediately -- not lazily, not only if that
+# module's functionality is actually used -- the moment a registered data
+# path can't be found, and that registration runs via a static initializer
+# at process load, before main() does anything (confirmed directly: a
+# missing MOOSE-framework data dir made cardinal-opt mooseError "on
+# startup", every single invocation). solid_mechanics (SolidMechanicsApp.C)
+# registers one and is always linked into Cardinal's own module set today,
+# so an install missing its data/ directory isn't degraded -- it's a binary
+# that refuses to start at all, while `cardinal-install` reports success.
+if(_app_name MATCHES "^cardinal-(.+)$")
+  set(_app_method "${CMAKE_MATCH_1}")
+else()
+  message(FATAL_ERROR "CardinalInstallApp.cmake: '${_app_name}' doesn't "
+    "match cardinal-<method> -- can't determine which METHOD's module "
+    "data directories (e.g. solid_mechanics/data) to install, and skipping "
+    "them would silently produce a binary that mooseErrors on startup")
+endif()
+
 set(_app_dest "${_final_install_dir}/bin/${_app_name}")
 file(COPY_FILE "${CARDINAL_APP}" "${_app_dest}")
 file(CHMOD "${_app_dest}" PERMISSIONS
@@ -471,6 +500,13 @@ endif()
 # name in every case observed, e.g. modules/solid_mechanics/data ->
 # "solid_mechanics") -- a plain filesystem check, so it stays correct
 # regardless of which modules a given ENABLE_* configuration links in.
+#
+# The METHOD-matching regex below uses _app_method (read off CARDINAL_APP's
+# own name above), not a hardcoded opt/dbg alternation -- MOOSE module
+# libraries are named lib<module>-<method>.so for every METHOD (devel,
+# prof, oprof included, not just opt/dbg), so matching literally whatever
+# method the app itself was built for is both simpler and correct for all
+# five, rather than needing this list kept in sync with libmesh_method.m4's.
 function(cardinal_install_data_dir name data_dir)
   if(IS_DIRECTORY "${data_dir}")
     file(MAKE_DIRECTORY "${_final_install_dir}/share/${name}")
@@ -481,7 +517,7 @@ endfunction()
 
 cardinal_install_data_dir(moose "${CARDINAL_STAGE_DIR}/contrib/moose/framework/data")
 foreach(_lib_name IN LISTS _installed_libs)
-  if(_lib_name MATCHES "^lib(.+)-(opt|dbg)\\.so")
+  if(_lib_name MATCHES "^lib(.+)-${_app_method}\\.so")
     cardinal_install_data_dir("${CMAKE_MATCH_1}" "${CARDINAL_STAGE_DIR}/contrib/moose/modules/${CMAKE_MATCH_1}/data")
   endif()
 endforeach()

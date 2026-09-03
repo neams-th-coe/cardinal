@@ -277,6 +277,20 @@ Installing directly into your source checkout (`cmake --install build --prefix $
 inside the checkout) additionally symlinks `cardinal-opt` at the checkout root to
 `bin/cardinal-opt`, matching where the native Makefile build puts it -- skipped for any other
 install prefix, where there's no checkout layout for it to be matching.
+
+Installing always installs whichever `cardinal-<method>` this configuration last built (see
+[#compiling] above) -- so you can have both `cardinal-opt` and `cardinal-dbg` (or any other
+`METHOD`) installed at once, in the *same* `build/` and the *same* `/path/to/install`, just by
+reconfiguring and reinstalling in between, e.g.:
+
+```
+cmake --build build -j8 && cmake --install build --prefix /path/to/install   # cardinal-opt
+METHOD=dbg cmake build && cmake --build build -j8 && cmake --install build --prefix /path/to/install   # cardinal-dbg
+```
+
+Each install only adds files, never removes them, so both binaries (and only their own
+method-suffixed libraries -- no risk of `cardinal-opt` picking up a Debug library or vice versa)
+end up sitting side by side in `/path/to/install/bin`.
 !alert-end!
 
 ## Checking the Install
