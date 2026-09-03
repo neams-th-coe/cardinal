@@ -208,8 +208,29 @@ cmake --build build -j8
 This mirrors your source into `build/`, resolves/builds whichever dependencies are needed, and
 finally invokes Cardinal's own `Makefile` there, all in one command -- always at whatever
 parallelism `-j` you asked for. This produces the executable `build/cardinal-<mode>`, where
-`<mode>` is `opt` normally, or `dbg` if configured with `-DCMAKE_BUILD_TYPE=Debug`. If you
-encounter issues while compiling, check out our [compile-time troubleshooting guide](compiletime.md)
+`<mode>` is MOOSE's own build method (`opt`, `dbg`, `devel`, `prof`, or `oprof`).
+
++How `<mode>` is chosen mirrors the interface you actually use to ask for it:+
+
+- By default, the `METHOD` +environment variable+ controls it, exactly as in the native Makefile
+  build (`export METHOD=dbg`) -- unset `METHOD` means `opt`, same as MOOSE's own default. `METHOD`
+  is read fresh from the environment at each `cmake` +configure+ (never cached) -- +not+ at
+  `cmake --build`/`make` time, so changing `METHOD` and running `cmake --build` alone, without a
+  fresh `cmake` reconfigure first, has no effect on what actually gets built. If you do that, a
+  build-time check catches the mismatch and errors out rather than silently building the
+  already-configured method as if nothing had changed.
+- If you instead set `-DCMAKE_BUILD_TYPE=Debug` or `=Release` (either via `cmake -D` or `ccmake`),
+  +that becomes a normal, cached CMake setting -- sticky across every future build in this
+  directory+, just like any other CMake project, until you change it the same CMake way. With
+  `CMAKE_BUILD_TYPE` set this way, `METHOD` (if also present in your environment) must agree with
+  it -- `METHOD=dbg` requires `CMAKE_BUILD_TYPE=Debug`, and every other `METHOD` requires
+  `CMAKE_BUILD_TYPE=Release` (Cardinal's own Makefile has no notion of a "Debug `devel`/`prof`/
+  `oprof` build") -- a mismatch is a configure-time error rather than one silently winning over the
+  other. Run `cmake -UCMAKE_BUILD_TYPE build` to uncache it and hand control back to `METHOD`.
+- `CMAKE_BUILD_TYPE=RelWithDebInfo`/`MinSizeRel` are rejected outright: neither has a corresponding
+  MOOSE method.
+
+If you encounter issues while compiling, check out our [compile-time troubleshooting guide](compiletime.md)
 (most of which still applies -- the actual compile step is Cardinal's ordinary Makefile build).
 
 ## Running

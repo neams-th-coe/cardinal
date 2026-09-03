@@ -314,10 +314,48 @@ cache the way `HDF5_ROOT` does: their empty-vs-set state in the cache is exactly
 `CARDINAL_BUILD_*` branches above key off of. Force-writing a computed from-source path would make
 that dependency look pre-built on the *next* reconfigure, permanently (and incorrectly) flipping it.
 
+## `CMAKE_BUILD_TYPE` vs `METHOD`
+
+MOOSE/libMesh have their own, older build-type axis: `METHOD` (`opt`, `dbg`, `devel`, `prof`,
+`oprof` -- `framework/build.mk`, libmesh's own `m4/libmesh_method.m4`). It picks which libMesh
+variant a from-source build links, and which framework/module/app libraries Cardinal's own
+`Makefile.cardinal` builds and links (`libmoose-$(METHOD).la` etc). Native builds set it with a
+plain environment variable (`export METHOD=dbg; make`, per `without_conda.md`'s own
+instructions) -- `METHOD` is deliberately *not* a new CMake cache variable here either, so a build
+invoked exactly the native way (only `METHOD` in the environment, no `-D` anything) behaves
+identically under this superbuild.
+
+Every `METHOD` except `dbg` is Release-family: Cardinal's own Makefile has no notion of a "Debug
+`devel`/`prof`/`oprof` build". So the two variables collapse onto the same two-valued axis --
+`METHOD=dbg` &harr; `CMAKE_BUILD_TYPE=Debug`, every other `METHOD` &harr;
+`CMAKE_BUILD_TYPE=Release` -- and the interface actually used to invoke the build decides which
+one is in charge:
+
+- +`CMAKE_BUILD_TYPE` left unset (the default -- genuinely empty, not `"Release"`; the same
+  empty-vs-set-state-is-the-source-of-truth convention as `PETSC_DIR`/`LIBMESH_DIR`/`WASP_DIR`
+  above):+ `METHOD` (read fresh from the environment on every configure, never cached) controls,
+  exactly like `framework/build.mk`'s own `METHOD ?= opt`. Unset `METHOD` too defaults to `opt`.
+- +`CMAKE_BUILD_TYPE` explicitly set (`-DCMAKE_BUILD_TYPE=...` or `ccmake`):+ the CMake-native
+  path -- becomes an ordinary cached, sticky setting, standing until changed the same CMake way, on
+  every future build in this directory. A `METHOD` in the environment on some later
+  `cmake --build`/`make` that doesn't match it (`dbg` &harr; `Debug`, anything else &harr;
+  `Release`) is then a configure-time error rather than one silently overriding the other --
+  `cmake -UCMAKE_BUILD_TYPE build` uncaches it and hands control back to `METHOD`.
+- `CMAKE_BUILD_TYPE=RelWithDebInfo`/`MinSizeRel` are rejected outright in both paths: neither has a
+  corresponding MOOSE method.
+
+The resulting value (`_cardinal_method`) feeds two places: the from-source libMesh sub-build's own
+`METHOD=` (unchanged from before -- see "WASP/libMesh/PETSc: three independent toggles" above), and
+the final "build cardinal" step's `-E env` below, which is new -- previously the one forced
+variable missing from that list, so `-DCMAKE_BUILD_TYPE=Debug` silently still built `cardinal-opt`,
+linked against whatever `METHOD` libMesh actually had installed, regardless of what was asked for.
+
 ## The final "build cardinal" step
 
 ```cmake
 add_custom_target(cardinal ALL
+  COMMAND ${CMAKE_COMMAND} -DCARDINAL_METHOD=${_cardinal_method}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMethod.cmake
   COMMAND ${CMAKE_COMMAND} -E env
           NEKRS_HOME=${CARDINAL_INSTALL_DIR}
           CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
@@ -325,6 +363,7 @@ add_custom_target(cardinal ALL
           PETSC_DIR=${PETSC_DIR}
           LIBMESH_DIR=${LIBMESH_DIR}
           WASP_DIR=${WASP_DIR}
+          METHOD=${_cardinal_method}
           ENABLE_NEK=$<IF:$<BOOL:${ENABLE_NEK}>,yes,no>
           ENABLE_OPENMC=$<IF:$<BOOL:${ENABLE_OPENMC}>,yes,no>
           ENABLE_DAGMC=$<IF:$<BOOL:${ENABLE_DAGMC}>,yes,no>
@@ -336,7 +375,19 @@ add_custom_target(cardinal ALL
   USES_TERMINAL VERBATIM)
 ```
 
-Two details matter here, both found by actually running the build rather than by inspection:
+Three details matter here, all found by actually running the build rather than by inspection:
+
++`CardinalCheckMethod.cmake` runs first, as its own `COMMAND`, ahead of the `-E env` wrapper.+
+`METHOD=${_cardinal_method}` below is frozen into this recipe at *configure* time (see
+"`CMAKE_BUILD_TYPE` vs `METHOD`" above) -- CMake's generated Makefiles never re-read
+`$ENV{METHOD}` on a plain `cmake --build`/`make`, only on an actual reconfigure. Confirmed directly
+by testing: with a build already configured for `METHOD=dbg`, `METHOD=opt cmake --build build` (no
+reconfigure) silently kept building `cardinal-dbg` -- the new `METHOD` was never consulted
+anywhere, and nothing indicated it had been ignored. `CardinalCheckMethod.cmake` closes that gap:
+run as a separate `COMMAND` *before* the `-E env METHOD=${_cardinal_method}` override (so it still
+sees the real, unmasked ambient environment), it compares `$ENV{METHOD}` against
+`-DCARDINAL_METHOD=${_cardinal_method}` and `FATAL_ERROR`s on a mismatch instead of silently
+building the stale, already-configured method.
 
 +`$(MAKE)`, not a literal `make`/`make -jN`:+ CMake's Makefiles generator substitutes this with a
 recursive make invocation that shares the invoking make's jobserver, so this step's parallelism is
