@@ -706,11 +706,27 @@ if(ENABLE_DAGMC)
     set(EIGEN3_DIR ${LIBMESH_DIR}/include CACHE PATH "Top-level eigen3 dir (should contain FindEigen3.cmake); default: derived from LIBMESH_DIR" FORCE)
   endif()
 
+  # moab's CMakeLists.txt does a hard `find_package(HDF5 REQUIRED ...)`
+  # (matched below at -DHDF5_ROOT) against whatever HDF5_ROOT resolves to --
+  # when building PETSc from source, that's ${PETSC_DIR}/${PETSC_ARCH}, which
+  # doesn't exist until PETSc's own build/install actually finishes. With no
+  # DEPENDS on petsc, ExternalProject could start moab-configure immediately
+  # (found live: "Could NOT find HDF5" as soon as moab-configure won the
+  # race). No corresponding libmesh dependency is needed here: moab's own
+  # Eigen3 lookup (matched below at -DEIGEN3_DIR) is `find_package(Eigen3
+  # OPTIONAL_COMPONENTS)` in moab's CMakeLists.txt -- a missing/nonexistent
+  # path there is a non-fatal "not found", not a hard configure failure.
+  set(_moab_depends "")
+  if(CARDINAL_BUILD_PETSC)
+    list(APPEND _moab_depends petsc)
+  endif()
+
   cardinal_add_submodule_dependency(moab
     SUBMODULE_PATH contrib/moab
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moab
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moab
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_moab_depends}
     CMAKE_ARGS
       -DENABLE_MPI=ON
       -DENABLE_HDF5=ON
