@@ -411,6 +411,21 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
       "override.")
   endif()
 
+  # Escape hatches for anything not already exposed as its own CMake option
+  # above (ENABLE_CUDA/ENABLE_HIP/..., OPENBLAS_DYNAMIC_ARCH, etc) -- forwarded
+  # verbatim, after our own hard-coded args, to each script's underlying
+  # configure (PETSc's own `configure`, libMesh's `configure`, WASP's `cmake`;
+  # all three already accept and forward arbitrary extra arguments this way).
+  # Since PETSc's/libMesh's configure treat repeated --key=value options as
+  # last-one-wins, anything set here can also override one of our hard-coded
+  # args below rather than just add to them.
+  set(PETSC_SCRIPT_ARGS   "" CACHE STRING "Extra arguments appended to update_and_rebuild_petsc.sh's full (non-\"--fast\") configure run.")
+  set(LIBMESH_SCRIPT_ARGS "" CACHE STRING "Extra arguments appended to update_and_rebuild_libmesh.sh's full (non-\"--fast\") configure run.")
+  set(WASP_SCRIPT_ARGS    "" CACHE STRING "Extra arguments appended to update_and_rebuild_wasp.sh's full (non-\"--fast\") configure run.")
+  separate_arguments(PETSC_SCRIPT_ARGS)
+  separate_arguments(LIBMESH_SCRIPT_ARGS)
+  separate_arguments(WASP_SCRIPT_ARGS)
+
   # These scripts' CONFIGURE_COMMAND/BUILD_COMMAND run as a plain custom
   # command (bash ${DEP_SCRIPT}, not the literal $(MAKE) token), so they
   # never get CMake's special jobserver-fd-preserving recipe treatment --
@@ -477,6 +492,7 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
                   --with-cuda=${_petsc_with_cuda}
                   --with-hip=${_petsc_with_hip}
                   --with-sycl=${_petsc_with_sycl}
+                  ${PETSC_SCRIPT_ARGS}
       DEPENDS     moose)
   endif()
 
@@ -508,6 +524,7 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
                   MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                   ${_moose_makeflags}
       SCRIPT_ARGS --disable-xdr-required --disable-xdr
+                  ${LIBMESH_SCRIPT_ARGS}
       DEPENDS     ${_libmesh_depends})
 
     # Plain set, not CACHE FORCE -- see the note below.
@@ -521,6 +538,7 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
       ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
                  MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                  ${_moose_makeflags}
+      SCRIPT_ARGS ${WASP_SCRIPT_ARGS}
       DEPENDS    moose)
 
     # Plain set, not CACHE FORCE -- see the note below.
