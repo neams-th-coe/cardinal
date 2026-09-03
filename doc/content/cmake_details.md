@@ -449,7 +449,15 @@ each dependency gets its own independent CMake sub-build, with `CMAKE_ARGS` matc
 each other; double-down needs both; DAGMC needs MOAB always, and additionally double-down/Embree
 only when `ENABLE_DOUBLE_DOWN` is on (`config/check_deps.mk` only requires double-down/Embree in
 that case -- DAGMC can build without ray-tracing acceleration). OpenMC depends on DAGMC (when
-`ENABLE_DAGMC`) and on libMesh (when building it from source).
+`ENABLE_DAGMC`) and on libMesh (when building it from source). MOAB additionally depends on `petsc`
+when building it from source: MOAB's own `CMakeLists.txt` does a hard `find_package(HDF5 REQUIRED
+...)` against whatever `HDF5_ROOT` resolves to, which (see above) is `${PETSC_DIR}/${PETSC_ARCH}`
+when building PETSc ourselves -- a path that doesn't exist until PETSc's own build/install actually
+finishes. Found live: with no `DEPENDS` at all on `moab`, `ExternalProject` was free to start
+`moab-configure` immediately, well before PETSc, failing with "Could NOT find HDF5" every time.
+(No corresponding `libmesh` dependency is needed for MOAB: its own Eigen3 lookup, matched at
+`-DEIGEN3_DIR`, is `find_package(Eigen3 OPTIONAL_COMPONENTS)` -- a missing/nonexistent path there is
+a non-fatal "not found", not a hard configure failure, unlike HDF5.)
 
 +Configure-time validation+, matching `config/check_deps.mk`'s own logic, enforced earlier and
 more clearly by CMake instead: `check_deps.mk` silently downgrades `ENABLE_DAGMC` to `no` when
