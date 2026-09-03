@@ -75,6 +75,9 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
 - +Options are CMake cache variables, not environment variables+ -- set with `-D<option>=<value>`
   at configure time, or interactively with `ccmake build` (toggle values, `c` to configure, `g` to
   generate, then `cmake --build build`). See [#options].
+- +`CMAKE_INSTALL_PREFIX` is a real, standard CMake install prefix+ -- untouched by the ordinary
+  build (`cmake --build build`), exactly like any other CMake project. Nothing lands there until
+  you explicitly ask, with `cmake --build build --target install`; see [#running] below.
 
 ## Configuration Options
   id=options
@@ -216,6 +219,34 @@ encounter issues while compiling, check out our [compile-time troubleshooting gu
 
 Note that, per [#overview] above, `cardinal-opt` here lives in `build/`, not in the top-level
 repository checkout.
+
+!alert note title=Installing
+`build/` isn't meant to be kept around forever, but by default nothing needed to actually *run*
+Cardinal -- `cardinal-opt` itself, the MOOSE framework/module libraries it links, and
+nekRS/OpenMC/MOAB/Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` -- exists anywhere else.
+Running:
+
+```
+cmake --install build --prefix /path/to/install
+```
+
+(equivalently, `cmake --build build --target install`, or set `CMAKE_INSTALL_PREFIX` at configure
+time with `--install-prefix /path/to/install`; default is `build/dist` -- see [#options] above)
+copies all of it into `/path/to/install`, rewriting RPATHs so the result no longer depends on
+`build/` at all -- safe to run from `/path/to/install/bin/cardinal-opt` even after deleting
+`build/` entirely. Laid out to look like `cardinal-opt`'s own checkout, not a pile of every
+dependency's files merged together: `cardinal-opt`, its own `lib/`, and `share/` sit directly
+under `/path/to/install`, while nekRS/OpenMC/MOAB/Embree/Double-Down/DAGMC/`nuclear_data` --
+which install as one shared tree, matching the native Makefile build's own `CARDINAL_DIR/install`
+-- go into `/path/to/install/install`. Nothing is copied there until you ask for it: like any
+other CMake project, `CMAKE_INSTALL_PREFIX` is left alone during the ordinary build, and changing
+it (`ccmake` included) never invalidates anything already built.
+
+Installing directly into your source checkout (`cmake --install build --prefix $(pwd)`, from
+inside the checkout) additionally symlinks `cardinal-opt` at the checkout root to
+`bin/cardinal-opt`, matching where the native Makefile build puts it -- skipped for any other
+install prefix, where there's no checkout layout for it to be matching.
+!alert-end!
 
 ## Checking the Install
 
