@@ -318,6 +318,7 @@ protected:
    * A function which extracts the tally results for a given score index
    * and normalizes it according to some normalization factor. This tends to
    * either be the sum of the over all bins OR a global tally over the entire problem.
+   * @param[in] the index of the score to extract
    */
   void extractAndNormalizeRaw(unsigned int score);
 

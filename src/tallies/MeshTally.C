@@ -141,18 +141,33 @@ MeshTally::spatialFilter()
       auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
                                           : msh->active_elements_end();
 
-      size_t max_elem_id = 0;
-      for (const auto & old_elem : libMesh::as_range(begin, end))
-        max_elem_id = std::max(old_elem->id(), max_elem_id);
-      _element_to_bin_mapping.resize(max_elem_id + 1, -1);
+      std::ofstream log("element_log.txt", std::ios_base::app | std::ios_base::out);
+      log << "Timestep " << _openmc_problem.fixedPointIteration() << "\n";
 
+      dof_id_type max_elem_id = 0;
       for (const auto & old_elem : libMesh::as_range(begin, end))
       {
-        _bin_to_element_mapping.push_back(old_elem->id());
-        _element_to_bin_mapping[old_elem->id()] = _bin_to_element_mapping.size() - 1;
-      }
+        if (!old_elem)
+          continue;
 
+        log << "Element: " << old_elem->id() << " h-level: " << old_elem->level();
+        if (old_elem->parent())
+          log << " parent: " << old_elem->parent()->id();
+        log << "\n";
+
+        max_elem_id = std::max(max_elem_id, old_elem->id());
+        _bin_to_element_mapping.push_back(old_elem->id());
+      }
       _bin_to_element_mapping.shrink_to_fit();
+      log.close();
+
+      std::cout << "msh->max_elem_id(): " << msh->max_elem_id() << std::endl;
+      std::cout << "max_elem_id: " << max_elem_id << std::endl;
+
+      _element_to_bin_mapping.resize(max_elem_id + 1, -1);
+      for (size_t i = 0; i < _bin_to_element_mapping.size(); ++i)
+        _element_to_bin_mapping[_bin_to_element_mapping[i]] = i;
+
       _element_to_bin_mapping.shrink_to_fit();
     }
 
@@ -326,6 +341,11 @@ MeshTally::relaxAndNormalizeTally()
     return;
   }
 
+  if (_openmc_problem.getMooseMesh().getMesh().allow_renumbering())
+  {
+    _console << "Mesh is allowing renumbering!!!" << std::endl;
+  }
+
   const auto alpha = getRelaxationFactor();
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
@@ -347,29 +367,52 @@ MeshTally::relaxAndNormalizeTally()
     projectAndRelaxAMR(alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
   }
 
-  // Rebuild the map of parent to immediate-child elements.
-  // libMesh deletes elements on coarsening, and so we don't
-  // have a way to grab their IDs without a separate data structure.
-  _prev_elem_to_children.clear();
+  // Store the mapping of element ancestors to active elements on
+  // this iteration. This is necesssary as libMesh contracts the mesh,
+  // deleting more refined elements that aren't active to save memory.
+  _prev_ancestors_to_elem.clear();
+  std::vector<dof_id_type> ancestors;
   for (const auto & current_elem_id : _bin_to_element_mapping)
   {
     const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(current_elem_id);
+    if (!curr_elem)
+      continue;
     if (curr_elem->level() == 0)
       continue;
 
-    // Only need to do this once per parent.
-    const auto parent = curr_elem->parent();
-    if (_prev_elem_to_children.count(parent->id()))
-      continue;
+    const Elem * curr_parent = curr_elem->parent();
+    while (curr_parent != nullptr)
+    {
+      ancestors.push_back(curr_parent->id());
+      curr_parent = curr_parent->parent();
+    }
+    for (const auto & ancestor_id : ancestors)
+    {
+      if (_prev_ancestors_to_elem.count(ancestor_id) == 0)
+        _prev_ancestors_to_elem[ancestor_id] = std::vector<dof_id_type>();
 
-    _prev_elem_to_children[parent->id()] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    for (unsigned int i = 0; i < parent->n_children(); ++i)
-      _prev_elem_to_children[parent->id()][i] = parent->child_ptr(i)->id();
+      _prev_ancestors_to_elem[ancestor_id].push_back(current_elem_id);
+    }
+    ancestors.clear();
   }
+  _console << "Number of entries in _prev_ancestors_to_elem: " << std::to_string(_prev_ancestors_to_elem.size()) << std::endl;
+  std::ofstream log("ancestor_log.txt", std::ios_base::app | std::ios_base::out);
+  log << "Timestep " << _openmc_problem.fixedPointIteration() << "\n";
+  for (const auto & [ancestor, descendants] : _prev_ancestors_to_elem)
+  {
+    log << "Ancestor: " << ancestor << ", h-level: " << _openmc_problem.getMooseMesh().queryElemPtr(ancestor)->level();
+    for (const auto descendant : descendants)
+      log << "\n  " << descendant << " h-level: " << _openmc_problem.getMooseMesh().queryElemPtr(descendant)->level();
+    log << "\n";
+  }
+  log << "\n";
+  log.close();
 
   // Need to save the old mapping data structures.
-  _prev_bin_to_element_mapping = _bin_to_element_mapping;
-  _prev_elem_to_bin_mapping = _element_to_bin_mapping;
+  _prev_bin_to_element_mapping.clear();
+  std::copy(_bin_to_element_mapping.begin(), _bin_to_element_mapping.end(), std::back_inserter(_prev_bin_to_element_mapping));
+  _prev_elem_to_bin_mapping.clear();
+  std::copy(_element_to_bin_mapping.begin(), _element_to_bin_mapping.end(), std::back_inserter(_prev_elem_to_bin_mapping));
 }
 
 MeshTally::AMRRelaxation
@@ -383,31 +426,21 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
       return AMRRelaxation::CaseI;
 
   // Check for Case II.
-  const auto parent = current_element->parent();
-  if (parent)
-    if (parent->id() < _prev_elem_to_bin_mapping.size())
-      if (_prev_elem_to_bin_mapping[parent->id()] != -1)
-        return AMRRelaxation::CaseII;
+  if (previousActiveAncestor(current_element))
+    return AMRRelaxation::CaseII;
 
   // Check for Case III.
-  if (_prev_elem_to_children.count(current_element->id()))
-  {
-    unsigned int in_prev = 0;
-    for (unsigned int i = 0; i < current_element->n_children(); ++i)
-    {
-      const auto child = _prev_elem_to_children.at(current_element->id())[i];
-      if (child < _prev_elem_to_bin_mapping.size())
-        if (_prev_elem_to_bin_mapping[child] != -1)
-          in_prev++;
-    }
-
-    if (in_prev == current_element->n_children())
-      return AMRRelaxation::CaseIII;
-  }
+  if (_prev_ancestors_to_elem.count(current_elem_id))
+    return AMRRelaxation::CaseIII;
 
   // Fallthrough.
-  _console << current_element->get_info() << std::endl;
-  return AMRRelaxation::Unknown;
+  std::string err("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
+  err += "\nallow_renumbering: " + std::to_string(_openmc_problem.getMooseMesh().getMesh().allow_renumbering());
+  err += "\nSize of _element_to_bin_mapping: " + std::to_string(_element_to_bin_mapping.size());
+  err += "\nSize of _prev_elem_to_bin_mapping: " + std::to_string(_prev_elem_to_bin_mapping.size());
+  err += "\n" + current_element->get_info();
+  mooseError(err);
+  return AMRRelaxation::CaseI;
 }
 
 void
@@ -417,67 +450,57 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
   // Initialize storage to a zero tensor.
   current_relaxed = openmc::tensor::zeros<Real>(current_raw.shape());
 
-  size_t num_skipped_elem = 0;
   for (size_t ext_filter = 0; ext_filter < _num_ext_filter_bins; ++ext_filter)
   {
+    size_t case_i   = 0;
+    size_t case_ii  = 0;
+    size_t case_iii = 0;
     for (size_t spatial_bin = 0; spatial_bin < _bin_to_element_mapping.size(); ++spatial_bin)
     {
       const auto current_elem_tally_bin = _bin_to_element_mapping.size() * ext_filter + spatial_bin;
       const auto current_elem_id = _bin_to_element_mapping[spatial_bin];
       const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(current_elem_id);
+      if (!curr_elem)
+        continue;
 
-      // There are three cases for relaxation with AMR mesh tallies:
-      // i)   A spatial bin from the previous solution and a spatial bin from the current
-      //      solution correspond one-to-one. Can relax in-place.
-      // ii)  A spatial bin from the previous solution maps to N spatial bins from the current
-      //      solution (previous element was at a lower refinement level). Need
-      //      to accumulate the N spatial bins from the current solution up to the level
-      //      of the previous solution. Then, relaxation can be performed. Finally,
-      //      the relaxed value can be distributed to the N current solution tally
-      //      bins according to how much that bin contributed to the integral.
-      // iii) N spatial bins from the previous solution map to a single spatial bin
-      //      from the current solution (previous element was at a higher refinement
-      //      level). Need to accumulate the N spatial bins from the previous step
-      //      down to the level of the current solution. Then, relaxation can then
-      //      be performed. The relaxed value can then be used in-place.
-      // For simplicity, this implementation assumes that only a single step of AMR
-      // has been applied between two OpenMC solves (i.e. no projection substeping).
-      // TODO: Remove this restriction if it proves to be onerous for h-p refinement.
       switch (classifyRelaxationCase(curr_elem))
       {
         case AMRRelaxation::CaseI:
         {
-          const auto curr_elem_old_bin = _prev_elem_to_bin_mapping[current_elem_id];
+          const auto curr_elem_old_spatial_bin = _prev_elem_to_bin_mapping.at(current_elem_id);
+          const auto curr_elem_old_bin = _prev_bin_to_element_mapping.size() * ext_filter + curr_elem_old_spatial_bin;
+
           current_relaxed(current_elem_tally_bin)
             = (1.0 - alpha) * previous(curr_elem_old_bin) + alpha * current_raw(current_elem_tally_bin);
+
+          case_i++;
           break;
         }
         case AMRRelaxation::CaseII:
         {
-          const auto parent = curr_elem->parent();
-          const auto parent_prev_tally_bin = _prev_bin_to_element_mapping.size() * ext_filter
-                                             + _prev_elem_to_bin_mapping[parent->id()];
+          const auto prev_active_parent = previousActiveAncestor(curr_elem);
+          const auto prev_par_tally_bin = _prev_bin_to_element_mapping.size() * ext_filter
+                                          + _prev_elem_to_bin_mapping[prev_active_parent->id()];
 
           // Gather the integral over the current element and its siblings.
           Real coarsened_proj = 0.0;
-          for (size_t child_idx = 0; child_idx < parent->n_children(); ++child_idx)
+          std::vector<const Elem *> family;
+          prev_active_parent->family_tree(family, true);
+          for (const auto desc : family)
           {
-            const auto sibling = parent->child_ptr(child_idx);
-            if (!sibling)
+            if (!desc->active())
               continue;
-            if (_element_to_bin_mapping[sibling->id()] == -1)
-              continue;
-            if (!sibling->active())
+            if (_element_to_bin_mapping[desc->id()] == -1)
               continue;
 
-            const auto sibling_tally_bin = _bin_to_element_mapping.size() * ext_filter
-                                           + _element_to_bin_mapping[sibling->id()];
-            coarsened_proj += current_raw(sibling_tally_bin);
+            const auto desc_tally_bin = _bin_to_element_mapping.size() * ext_filter
+                                        + _element_to_bin_mapping[desc->id()];
+            coarsened_proj += current_raw(desc_tally_bin);
           }
 
           // Relax said integral.
           const Real relaxed_coarsened
-            = (1.0 - alpha) * previous(parent_prev_tally_bin) + alpha * coarsened_proj;
+            = (1.0 - alpha) * previous(prev_par_tally_bin) + alpha * coarsened_proj;
 
           // The fraction contributed to the coarsened integral by the current element.
           const auto current_elem_frac =
@@ -485,29 +508,38 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
 
           // Redistribute the result.
           current_relaxed(current_elem_tally_bin) = relaxed_coarsened * current_elem_frac;
+          case_ii++;
           break;
         }
         case AMRRelaxation::CaseIII:
         {
-          // Gather the integral over the children of this element.
+          // Case III is non-conservative?
+          // Gather the integral over the previouly active descendants on this element.
           Real refined_proj = 0.0;
-          for (unsigned int i = 0; i < curr_elem->n_children(); ++i)
+          size_t num_case_iii_mapped = 0;
+          for (const auto & descendant : _prev_ancestors_to_elem.at(current_elem_id))
           {
-            const auto child_id = _prev_elem_to_children[current_elem_id][i];
-            const auto child_spatial_bin = _prev_elem_to_bin_mapping[child_id];
-            refined_proj += previous(_prev_bin_to_element_mapping.size() * ext_filter + child_spatial_bin);
+            if (descendant >= _prev_elem_to_bin_mapping.size())
+              continue;
+            if (_prev_elem_to_bin_mapping[descendant] == -1)
+              continue;
+
+            // Need to exclude elements that are still active. Attempting to fix the
+            // discovered non-conservatism.
+            if (descendant < _element_to_bin_mapping.size())
+              if (_element_to_bin_mapping[descendant] != -1)
+                continue;
+
+            const auto descendant_spatial_bin = _prev_elem_to_bin_mapping[descendant];
+            refined_proj += previous(_prev_bin_to_element_mapping.size() * ext_filter + descendant_spatial_bin);
+            num_case_iii_mapped++;
           }
+          _console << "Current element " << current_elem_id << " mapped to " << num_case_iii_mapped << " descendants from the past iteration." << std::endl;
 
           // Relax the current (coarser) tally bin in-place.
           current_relaxed(current_elem_tally_bin)
             = (1.0 - alpha) * refined_proj + alpha * current_raw(current_elem_tally_bin);
-          break;
-        }
-        case AMRRelaxation::Unknown:
-        {
-          // Skip relaxing this element as we cannot determine the previous AMR state.
-          current_relaxed(current_elem_tally_bin) = current_raw(current_elem_tally_bin);
-          num_skipped_elem++;
+          case_iii++;
           break;
         }
         default:
@@ -517,13 +549,28 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
         }
       }
     }
+    if (ext_filter == 0)
+    {
+      _console << "Relaxed " << case_i << " Case I elements, "
+               << case_ii << " Case II elements, and " << case_iii
+               << " Case III elements." << std::endl;
+    }
+  }
+}
+
+const Elem *
+MeshTally::previousActiveAncestor(const Elem * active_elem) const
+{
+  const Elem * curr_parent = active_elem->parent();
+  while (curr_parent != nullptr)
+  {
+    if (curr_parent->id() < _prev_elem_to_bin_mapping.size())
+      if (_prev_elem_to_bin_mapping[curr_parent->id()] != -1)
+        return curr_parent;
+
+    curr_parent = curr_parent->parent();
   }
 
-  if (num_skipped_elem > 0)
-  {
-    _console << "Skipped relaxing " << num_skipped_elem
-             << " elements as their previous refinement state could not be determined."
-             << std::endl;
-  }
+  return nullptr;
 }
 #endif
