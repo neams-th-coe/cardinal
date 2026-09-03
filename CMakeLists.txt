@@ -1141,11 +1141,14 @@ add_custom_target(cardinal ALL
   VERBATIM)
 
 # -----------------------------------------------------------------------------
-# Installing the app itself. Still hardcoded to cardinal-opt below
-# (CARDINAL_APP) even though the `cardinal` target above now forwards METHOD
-# correctly and can produce cardinal-dbg -- installing cardinal-dbg (and
-# keeping Debug libs out of a same-tree cardinal-opt install) is deliberately
-# a separate piece of work; see doc/content/cmake_details.md.
+# Installing the app itself. CARDINAL_APP below is cardinal-${_cardinal_method}
+# -- whichever method this configuration actually built (see the
+# CMAKE_BUILD_TYPE/METHOD block near the top of this file), not hardcoded to
+# cardinal-opt. No risk of cross-contamination between methods: MOOSE's own
+# method-suffixed library names (lib<name>-<method>.so, for every METHOD --
+# see libmesh_method.m4) mean CardinalInstallApp.cmake's
+# patchelf --print-needed discovery (see that script) only ever finds the
+# libraries actually matching whichever cardinal-<method> it was given.
 #
 # CARDINAL_INSTALL_DIR (see above) already holds nekRS/OpenMC/MOAB/Embree/
 # double-down/DAGMC/nuclear_data -- but it's the fixed, internal staging
@@ -1196,7 +1199,7 @@ endif()
 # *not* imply a prior build on its own.
 add_custom_target(cardinal-install
   COMMAND ${CMAKE_COMMAND}
-          -DCARDINAL_APP=${CARDINAL_STAGE_DIR}/cardinal-opt
+          -DCARDINAL_APP=${CARDINAL_STAGE_DIR}/cardinal-${_cardinal_method}
           -DCARDINAL_STAGE_DIR=${CARDINAL_STAGE_DIR}
           -DCARDINAL_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
           -DCARDINAL_FINAL_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}
