@@ -62,6 +62,16 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
   `build/` -- not nested inside an extra `cardinal/` subdirectory. Because of this, you should treat
   `build/` as a real (if regeneratable) Cardinal checkout, e.g. `NEKRS_HOME` below points *into*
   it, and `cardinal-opt` needs to be run from there.
+- +The build directory doesn't have to be named `build`, or even live inside your checkout.+
+  `cmake -S /path/to/cardinal -B /tmp/cardinal_build` works just as well, and putting it on fast
+  local scratch (`/tmp`, or another non-networked filesystem) instead of a networked home directory
+  can noticeably speed up the build. If you do keep it in-tree under a name other than `build`,
+  though, make sure `.gitignore` actually covers it: resolving dependencies clones real git
+  checkouts (each with their own `.git`) directly into the build tree, and `git status`/`git add`
+  from the checkout root will treat any such directory *not* covered by `.gitignore` as an
+  [embedded git repository](https://git-scm.com/book/en/v2/Git-Tools-Submodules) -- shown as one
+  opaque untracked entry, and, if ever `git add`-ed, staged as a bare commit-hash pointer rather
+  than its actual files, silently losing track of everything in it.
 - +No `./scripts/get-dependencies.sh` step.+ Configuring resolves MOOSE/NekRS/OpenMC/MOAB/
   Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` automatically: if you already have a submodule
   checked out under `contrib/`, it's used (mirrored into `build/` on every build); otherwise it's
