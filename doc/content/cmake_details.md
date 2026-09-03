@@ -24,7 +24,7 @@ Explicit non-goals:
 
 Per `Makefile` and `config/check_deps.mk`, the dependencies that run their own CMake sub-build today
 (independent of MOOSE's framework compile) are NekRS, OpenMC, and -- DAGMC's CAD/mesh-geometry
-stack -- [!ac](MOAB), Embree, Double-Down, and DAGMC itself. MOOSE, `nuclear_data`, and
+stack -- MOAB, Embree, Double-Down, and DAGMC itself. MOOSE, `nuclear_data`, and
 `test/tests/nek_ci` have no CMake sub-build of their own but are still required (unconditionally, or
 gated on `ENABLE_NEK`) -- resolved the same way as the others but with a `NO_BUILD` mode: mirrored or
 cloned like any other managed dependency, but never itself configured/built (Cardinal's own Makefile

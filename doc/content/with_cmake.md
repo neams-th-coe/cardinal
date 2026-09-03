@@ -3,7 +3,7 @@
 !alert! warning title=Experimental
 This CMake-based build is an *experimental* alternative to Cardinal's normal Makefile-based
 build, described in [the instructions for building without MOOSE's conda environment](without_conda.md)
-(and, for the [!ac](OpenMC)-only conda workflow, [with_conda.md](with_conda.md)). It has **not**
+(and, for the OpenMC-only conda workflow, [with_conda.md](with_conda.md)). It has **not**
 replaced either of those as Cardinal's primary, best-supported build system, and it does **not**
 replace or depend on MOOSE's own (separately in-progress) CMake port. If you run into trouble here,
 or just want the most battle-tested path, please use [without_conda.md](without_conda.md) instead.
@@ -51,7 +51,7 @@ Cardinal's own compile (`framework/build.mk`, `app.mk`, etc, and its `config/*.m
 rules) is unchanged and still does the real work. This CMake project is a
 *superbuild*: a separate, out-of-source `CMakeLists.txt` at the top level of the repository whose
 only job is to resolve and build the dependencies that have their own CMake sub-build (NekRS,
-OpenMC, and -- for [!ac](DAGMC) support -- [!ac](MOAB), Embree, and Double-Down), then hand off to
+OpenMC, and -- for [!ac](DAGMC) support -- MOAB, Embree, and Double-Down), then hand off to
 Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few things follow from that:
 
 - **The build directory *is* the equivalent of a normal Cardinal checkout.** Running
@@ -62,7 +62,7 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
   `build/` -- not nested inside an extra `cardinal/` subdirectory. Because of this, you should treat
   `build/` as a real (if regeneratable) Cardinal checkout, e.g. `NEKRS_HOME` below points *into*
   it, and `cardinal-opt` needs to be run from there.
-- **No `./scripts/get-dependencies.sh` step.** Configuring resolves MOOSE/NekRS/OpenMC/[!ac](MOAB)/
+- **No `./scripts/get-dependencies.sh` step.** Configuring resolves MOOSE/NekRS/OpenMC/MOAB/
   Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` automatically: if you already have a submodule
   checked out under `contrib/`, it's used (mirrored into `build/` on every build); otherwise it's
   cloned directly into the build tree at the exact pinned commit from `.gitmodules`. Either way,
@@ -108,7 +108,7 @@ cmake -S . -B build -DENABLE_DAGMC=ON -DENABLE_DOUBLE_DOWN=ON
 
 !alert! note title=Optional dependencies not managed here
 SAM, Sockeye, and BISON coupling (see [dependencies.md](dependencies.md)) are out of scope for this
-CMake build -- none of them have their own CMake sub-build the way NekRS/OpenMC/[!ac](MOAB)/Embree/
+CMake build -- none of them have their own CMake sub-build the way NekRS/OpenMC/MOAB/Embree/
 Double-Down/[!ac](DAGMC) do, and several require INL/ANL-internal credentials just to check out. If
 you need one of these, use the [Makefile-based workflow](without_conda.md) instead.
 !alert-end!
