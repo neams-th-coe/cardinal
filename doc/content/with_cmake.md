@@ -181,6 +181,12 @@ a pre-built `LIBMESH_DIR` was compiled against some specific PETSc, so `LIBMESH_
 `PETSC_DIR` to also be given. `HDF5_ROOT` defaults to a location derived from `PETSC_DIR`
 (matching the Makefile workflow's own default) and can also be set explicitly if needed.
 
+If you're building one of these from source and need to pass it something not already covered
+by another CMake option (an extra `--with-...` PETSc configure flag, say), `PETSC_SCRIPT_ARGS`,
+`LIBMESH_SCRIPT_ARGS`, and `WASP_SCRIPT_ARGS` are appended to that dependency's own
+`update_and_rebuild_*.sh` configure run, e.g.
+`-DPETSC_SCRIPT_ARGS="--with-debugging=0 --download-slepc"`.
+
 !alert tip
 Building PETSc/libMesh from source is just as time consuming here as in the Makefile workflow.
 Set `-DMOOSE_BUILD_PARALLELISM=<N>` (defaults to `CMAKE_BUILD_PARALLEL_LEVEL` from the
