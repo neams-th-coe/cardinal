@@ -370,6 +370,18 @@ backends), `set(... CACHE PATH ...)` pre-filled from the environment for
 - All three: the non-`--fast` invocation wipes and reconfigures+rebuilds from scratch; `--fast`
   skips configure and requires a pre-existing build dir (build+install only, no wipe). All three
   self-manage their own MOOSE-nested submodule fetch inside their non-`--fast` run.
+- All three also accept and forward arbitrary extra arguments straight through to their underlying
+  configure (PETSc's own `configure`, libMesh's `configure`, WASP's `cmake`), after stripping the
+  flags they interpret themselves (`--fast`, `--skip-submodule-update`, etc) -- confirmed directly
+  in each script's own argument-parsing loop.
+
++`PETSC_SCRIPT_ARGS`/`LIBMESH_SCRIPT_ARGS`/`WASP_SCRIPT_ARGS`:+ user-facing escape hatches (plain
+`CACHE STRING`s, whitespace-split via `separate_arguments`) appended, in that order, after our own
+hard-coded args in each `cardinal_add_moose_prereq(... SCRIPT_ARGS ...)` call -- covers anything not
+already surfaced as its own CMake option (an extra PETSc `--download-` package, say). Since
+PETSc's/libMesh's configure treat repeated `--key=value` options as last-one-wins, these can also
+override one of our own hard-coded args (e.g. `PETSC_SCRIPT_ARGS=--with-cuda=1`) rather than just
+add to them.
 
 +CONFIGURE/BUILD split, not "always run the full script":+ `ExternalProject_Add` tracks
 configure/build as independent steps, so:
