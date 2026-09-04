@@ -22,9 +22,7 @@ void UDF_Setup()
   auto mesh = nrs->meshV;
 
   // apply initial conditions: unit z-velocity
-  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 0.0);
-  for (int n = 0; n < mesh->Nlocal; ++n)
-    U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 1.0);
   nrs->fluid->o_U.copyFrom(U.data(), U.size());
 
   // set the property callback so that NekRS will modify the diffusive properties
