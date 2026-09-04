@@ -30,6 +30,68 @@ if(NOT CMAKE_GENERATOR MATCHES "Makefiles")
 endif()
 
 # -----------------------------------------------------------------------------
+# Container checks -- two independent ones, each with its own FATAL/warning
+# option: ignoring a stale MOOSE version pin is plausibly fine (it's exactly
+# what MOOSE's own premake.py itself only ever warns about, never fails on),
+# but a build tree currently disagreeing with the container it was
+# configured under (below) means the compiler paths and other
+# environment-derived settings it's about to build with likely belong to a
+# *different* container than the one about to run -- a much easier way to
+# silently corrupt a build, and unlikely to ever be intentional.
+#   * cardinal-check-container (cmake/CardinalCheckContainer.cmake, below):
+#     the running container vs. the one this build tree was configured
+#     under.
+#   * moose-check-container (cmake/CardinalCheckMooseVersion.cmake, further
+#     down, alongside the "moose" target): the running container vs. what
+#     contrib/moose's own versioner.yaml says it should be -- MOOSE's own
+#     native build does this in scripts/premake.py (the "WARNING: Container
+#     ... is currently at version ..." message); that check is silently
+#     disabled entirely in this build (see that file), so this gives it
+#     real teeth here instead.
+# -----------------------------------------------------------------------------
+option(CONTAINER_DRIFT_CHECK_FATAL
+  "FATAL_ERROR (rather than just a warning) when the running apptainer \
+container doesn't match the one this build tree was configured under" ON)
+option(CONTAINER_VERSION_CHECK_FATAL
+  "FATAL_ERROR (rather than just a warning) when the running apptainer \
+container doesn't match what MOOSE's own versioner.py says the pinned \
+contrib/moose commit requires" ON)
+
+# Snapshot the container identity present right now, at *configure* time --
+# compared again at *build* time (cardinal-check-container, below) against
+# whatever's actually running then, to catch the tree being built under a
+# different container than it was configured under. CACHE INTERNAL: pure
+# bookkeeping, not a user-facing setting -- doesn't show up in ccmake, and
+# (unlike a plain `set`) persists across a build tree's later reconfigures
+# that don't re-list it, so it keeps reflecting whatever `cmake`
+# invocation *first* established the rest of this cache's still-standing
+# container-derived settings, not just the most recent one -- see
+# CardinalCheckContainer.cmake for why that's the comparison that matters.
+if(NOT DEFINED CARDINAL_CONFIGURE_CONTAINER_NAME)
+  set(CARDINAL_CONFIGURE_CONTAINER_NAME "$ENV{MOOSE_APPTAINER_GENERATOR_NAME}"
+    CACHE INTERNAL "Container name recorded at configure time")
+  set(CARDINAL_CONFIGURE_CONTAINER_VERSION "$ENV{MOOSE_APPTAINER_GENERATOR_VERSION}"
+    CACHE INTERNAL "Container version recorded at configure time")
+endif()
+
+# Checks the currently-running container against the one this tree was
+# configured under -- see cmake/CardinalCheckContainer.cmake for the full
+# story. Deliberately has no DEPENDS of its own (unlike moose-check-container
+# below, this doesn't need contrib/moose to exist) and is instead added as a
+# DEPENDS of every other target that has none of its own -- mirror_source,
+# moose-add, nuclear_data, nek_ci -- so it's unconditionally the first thing
+# any build does, before anything else (a source mirror, a submodule fetch,
+# ...) gets a chance to run under, and possibly be silently corrupted by, the
+# wrong container.
+add_custom_target(cardinal-check-container
+  COMMAND ${CMAKE_COMMAND} -DCONTAINER_DRIFT_CHECK_FATAL=${CONTAINER_DRIFT_CHECK_FATAL}
+          -DCONFIGURE_CONTAINER_NAME=${CARDINAL_CONFIGURE_CONTAINER_NAME}
+          -DCONFIGURE_CONTAINER_VERSION=${CARDINAL_CONFIGURE_CONTAINER_VERSION}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckContainer.cmake
+  COMMENT "Cardinal: checking the running container against configure time"
+  VERBATIM)
+
+# -----------------------------------------------------------------------------
 # Options mirroring the Makefile's own ENABLE_* switches (Makefile:41-51)
 # -----------------------------------------------------------------------------
 option(ENABLE_NEK         "Build Cardinal with NekRS coupling"    ON)
@@ -383,6 +445,7 @@ add_custom_target(mirror_source ALL
           ${CARDINAL_STAGE_DIR}/unit
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${CMAKE_SOURCE_DIR}/unit/Makefile ${CARDINAL_STAGE_DIR}/unit/Makefile.unit
+  DEPENDS cardinal-check-container
   COMMENT "Mirroring Cardinal source into the build tree"
   VERBATIM)
 
@@ -395,15 +458,51 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/UnitMakefile
 # has its own, separate CMake port in progress upstream, which this
 # deliberately does not depend on), so its source is resolved with NO_BUILD:
 # Cardinal's own Makefile compiles it directly, exactly as it does today.
+#
+# Split into moose-add (the actual fetch) and moose-check-container (the
+# versioner.yaml check below, which needs moose-add's source but nothing
+# built) so the check doesn't block on anything beyond that fetch -- "moose"
+# itself is just their aggregate, kept as the name every other target below
+# already DEPENDS on, so both come along for free without touching those.
 # -----------------------------------------------------------------------------
-cardinal_add_submodule_dependency(moose
+cardinal_add_submodule_dependency(moose-add
   SUBMODULE_PATH contrib/moose
   SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moose
   BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moose
   INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
   MARKER_FILE     .git
+  DEPENDS         cardinal-check-container
   NO_BUILD
   NO_GIT_SUBMODULES)
+
+# Version-pin check: is contrib/moose's own versioner.yaml (now fetched by
+# moose-add) satisfied by the running container? See
+# cmake/CardinalCheckMooseVersion.cmake for the full story, and
+# cardinal-check-container (above) for the *other*, unrelated container
+# check every target -- this one included, via moose-add -- also depends on.
+#
+# Its own standalone add_custom_target (no OUTPUT/BYPRODUCTS), same reason
+# as cardinal-check-container above: that's what makes it genuinely
+# always-run, not just run-once. Every dependency target below whose own
+# configure or build could itself fail confusingly under the wrong
+# container -- petsc/libmesh/wasp (when built from source), nekrs, moab,
+# embree, doubledown, dagmc, openmc -- DEPENDS on "moose" (directly, or
+# transitively through another of these), so this check is reported clearly
+# *before* any of those get a chance to fail on their own with something
+# unrelated-looking (found live: an older container's different VTK layout
+# made OpenMC's own configure fail with "Imported target ... includes
+# non-existent path .../vtk-9.7", well before this check -- back when it
+# only ran as part of the final `cardinal` target's own recipe -- ever got a
+# chance to run).
+add_custom_target(moose-check-container
+  COMMAND ${CMAKE_COMMAND} -DMOOSE_DIR=${CARDINAL_STAGE_DIR}/contrib/moose
+          -DCONTAINER_VERSION_CHECK_FATAL=${CONTAINER_VERSION_CHECK_FATAL}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMooseVersion.cmake
+  DEPENDS moose-add
+  COMMENT "Cardinal: checking container against contrib/moose's versioner.yaml"
+  VERBATIM)
+
+add_custom_target(moose DEPENDS moose-add moose-check-container)
 
 # -----------------------------------------------------------------------------
 # WASP/libMesh/PETSc: each independently either a pre-built install or built
@@ -651,11 +750,11 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
                   --with-hip=${_petsc_with_hip}
                   --with-sycl=${_petsc_with_sycl}
                   ${PETSC_SCRIPT_ARGS}
-      DEPENDS     moose)
+      DEPENDS     moose cardinal-check-container)
   endif()
 
   if(CARDINAL_BUILD_LIBMESH)
-    set(_libmesh_depends moose)
+    set(_libmesh_depends moose cardinal-check-container)
     if(CARDINAL_BUILD_PETSC)
       list(APPEND _libmesh_depends petsc)
     endif()
@@ -691,7 +790,7 @@ if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
                  MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
                  ${_moose_makeflags}
       SCRIPT_ARGS ${WASP_SCRIPT_ARGS}
-      DEPENDS    moose)
+      DEPENDS    moose cardinal-check-container)
 
     # Plain set, not CACHE FORCE -- see the note below.
     set(WASP_DIR ${_moose_dir}/framework/contrib/wasp/install)
@@ -762,6 +861,7 @@ if(ENABLE_OPENMC)
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nuclear_data
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
     MARKER_FILE     .git
+    DEPENDS         cardinal-check-container
     NO_BUILD
     NO_GIT_SUBMODULES)
 endif()
@@ -794,6 +894,7 @@ if(ENABLE_NEK)
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nekRS
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nekrs
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         cardinal-check-container
     CMAKE_ARGS
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
@@ -825,6 +926,7 @@ if(ENABLE_NEK)
     BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nek_ci
     INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
     MARKER_FILE     .git
+    DEPENDS         cardinal-check-container
     NO_BUILD
     NO_GIT_SUBMODULES)
 endif()
@@ -868,7 +970,7 @@ if(ENABLE_DAGMC)
   # Eigen3 lookup (matched below at -DEIGEN3_DIR) is `find_package(Eigen3
   # OPTIONAL_COMPONENTS)` in moab's CMakeLists.txt -- a missing/nonexistent
   # path there is a non-fatal "not found", not a hard configure failure.
-  set(_moab_depends "")
+  set(_moab_depends cardinal-check-container)
   if(CARDINAL_BUILD_PETSC)
     list(APPEND _moab_depends petsc)
   endif()
@@ -952,6 +1054,7 @@ if(ENABLE_DAGMC)
       SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/embree
       BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/embree
       INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+      DEPENDS         cardinal-check-container
       CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
@@ -971,7 +1074,7 @@ if(ENABLE_DAGMC)
       SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/double-down
       BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/double-down
       INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
-      DEPENDS         moab moab_fixup embree
+      DEPENDS         moab moab_fixup embree cardinal-check-container
       CMAKE_ARGS
         -DEMBREE_DIR=${CARDINAL_INSTALL_DIR}
         -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
@@ -985,7 +1088,7 @@ if(ENABLE_DAGMC)
         -DCMAKE_INSTALL_MESSAGE=LAZY)
   endif()
 
-  set(_dagmc_depends moab moab_fixup)
+  set(_dagmc_depends moab moab_fixup cardinal-check-container)
   if(ENABLE_DOUBLE_DOWN)
     list(APPEND _dagmc_depends doubledown embree)
   endif()
@@ -1037,7 +1140,7 @@ if(ENABLE_OPENMC)
   # building it ourselves it doesn't exist until the libmesh target
   # actually finishes building. Same story for DAGMC: only needed once it
   # actually finishes building, and only when ENABLE_DAGMC is on.
-  set(_openmc_depends "")
+  set(_openmc_depends cardinal-check-container)
   if(CARDINAL_BUILD_LIBMESH)
     list(APPEND _openmc_depends libmesh)
   endif()
@@ -1073,7 +1176,7 @@ endif()
 # -----------------------------------------------------------------------------
 # Final step: hand off to Cardinal's existing, unmodified Makefile.
 # -----------------------------------------------------------------------------
-set(_cardinal_depends mirror_source moose)
+set(_cardinal_depends mirror_source moose cardinal-check-container)
 if(CARDINAL_BUILD_WASP)
   list(APPEND _cardinal_depends wasp)
 endif()

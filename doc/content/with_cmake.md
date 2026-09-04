@@ -139,6 +139,31 @@ ccmake build
 ## Building
   id=build
 
+#### Container checks
+  id=container_checks
+
+Every build (not just the first) automatically checks, before doing anything else, that:
+
+- the container you're building in right now is the same one you configured this build tree
+  under -- catches a swapped/rebuilt sandbox, or a build tree reused under a different container
+  entirely; and
+- that container matches what the checked-out `contrib/moose` commit's own version pin expects
+  (the same check MOOSE's native build does, and normally warns about, in `scripts/premake.py`).
+
+Both fail the build by default. If you need to downgrade either to a warning instead:
+
+```
+cmake -S . -B build -DCONTAINER_DRIFT_CHECK_FATAL=OFF    # container swapped since configure
+cmake -S . -B build -DCONTAINER_VERSION_CHECK_FATAL=OFF  # container doesn't match MOOSE's pin
+```
+
+Ignoring a stale MOOSE version pin is usually fine -- but ignoring a swapped container is not:
+compiler paths and other settings (`PETSC_DIR`, `LIBMESH_DIR`, `HDF5_ROOT`, ...) are all resolved
+once, at `cmake` configure time, from whichever container was running then, so continuing anyway
+is likely to build with settings that belong to a different container than the one actually
+running. If you hit this and want to switch containers, the fix is to start a fresh build
+directory, not to reconfigure this one -- see [cmake_details.md](cmake_details.md) for why.
+
 #### Set Environment Variables
   id=env
 
