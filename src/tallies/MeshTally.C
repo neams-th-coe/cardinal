@@ -441,6 +441,9 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
           prev_active_parent->family_tree(family, true);
           for (const auto desc : family)
           {
+            if (!desc->active())
+              continue;
+
             const auto desc_tally_bin = _bin_to_element_mapping.size() * ext_filter
                                         + _element_to_bin_mapping[desc->id()];
             coarsened_proj += current_raw(desc_tally_bin);
