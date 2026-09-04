@@ -10,13 +10,13 @@
     working_directory = 'create_checkpoints'
     input = 'main.i'
     requirement = "The system shall be able to read a checkpoint file in MOOSE. This is checked by evaluating the restarted field to show that the simulation picks up where it had left off in the restart case."
-    prereq = 'create_checkpoints'
+    prereq = 'create_moose_checkpoints'
   []
   [create_nek_checkpoints]
     type = CheckFiles
     working_directory = 'create_checkpoints'
     input = 'nek.i'
-    check_files = 'pyramid0.f0000'
+    check_files = 'pyramid0.f00000'
     requirement = "The system shall generate a NekRS output file at the expected frequency."
     capabilities = 'nekrs'
     design = 'NekRSProblem.md'
