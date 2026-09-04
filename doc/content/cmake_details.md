@@ -890,6 +890,123 @@ tree permanently "dirty" in `git status` (a real, tracked repository whose worki
 constantly out of sync with its index), a worse trade than the current cosmetic traceback. Reported
 upstream: [idaholab/moose#33665](https://github.com/idaholab/moose/issues/33665).
 
+## Container checks (`cardinal-check-container`/`moose-check-container`)
+
+Two independent checks, both `add_custom_target()`s with no tracked `OUTPUT`/`BYPRODUCTS` (so, like
+`mirror_source`, they genuinely rerun -- and can fail -- on every build, not just once at configure
+time):
+
+- +`cardinal-check-container`+ (`cmake/CardinalCheckContainer.cmake`): is the container running
+  *right now* the same one this build tree was `cmake` *configured* under?
+- +`moose-check-container`+ (`cmake/CardinalCheckMooseVersion.cmake`): does the running container
+  satisfy what the checked-out `contrib/moose` commit's own `scripts/versioner.yaml` pins?
+
+Each has its own `FATAL_ERROR`-vs-`WARNING` option, `CONTAINER_DRIFT_CHECK_FATAL` and
+`CONTAINER_VERSION_CHECK_FATAL` respectively (both default `ON`), rather than one option for both:
+ignoring a stale MOOSE version pin is plausibly fine -- it's exactly what MOOSE's own `premake.py`
+itself only ever warns about, never fails the build over -- but a build tree currently disagreeing
+with the container it was configured under means the compiler paths and other environment-derived
+settings it's about to build with (`HDF5_ROOT`, `LIBMESH_DIR`, `PETSC_DIR`, ...; see above) likely
+belong to a *different* container than the one about to run -- a much easier way to silently corrupt
+a build, and unlikely to ever be intentional.
+
+### Why a reimplementation, not MOOSE's own `premake.py` check
+
+MOOSE's native build runs this version-pin check unconditionally via `premake.py`'s `Versioner`
+class (the `"WARNING: Container ... is currently at version ..."` message some Cardinal builds are
+already familiar with) -- but, per "Known non-blocking rough edge" above, that mechanism is silently,
+completely disabled in this build tree.
+
+Rather than route around that bug (e.g. faking a git checkout just for this one call),
+`moose-check-container` reads `contrib/moose/scripts/versioner.yaml` directly. Reading
+`versioner.py`'s own source (`get_apptainer_package()` and the `packages` loop around it) shows that,
+for `moose-dev` -- the only apptainer package Cardinal's build ever actually runs inside -- the
+"required version" premake.py computes reduces to nothing more than that package's own `version:`
+YAML field, with `_<build_number>` appended only if a `build_number:` field is also present (which
+`moose-dev` has never had). No hashing (`get_package_hash`), no git history walk, no
+dependency-graph traversal is actually needed for this one value -- confirmed both by reading the
+source and empirically, by monkey-patching `get_app_info` in a scratch script and printing
+`packages["moose-dev"].apptainer.tag`, which matched `versioner.yaml`'s literal `version:` field
+exactly. The resulting script (`CardinalCheckMooseVersion.cmake`) is a plain `file(STRINGS ...)`
+scan of the `packages:` block for the package named by `$ENV{MOOSE_APPTAINER_GENERATOR_LIBRARY}`
+(2-space-indented `<name>:` keys, 4-space-indented `version:`/`build_number:` fields under each),
+with no MOOSE-internals dependency at all -- and, matching `premake.py`'s own tolerance for an
+environment it can't check, fails open (silently returns) if `MOOSE_APPTAINER_GENERATOR_LIBRARY`
+isn't set, if `versioner.yaml` doesn't exist, or if the named package has no `version:` field.
+
+### `cardinal-check-container`: catching a container swap the version pin can't
+
+Two containers can each individually satisfy `moose-check-container`'s version pin while still
+differing in ways nothing else in this build tracks: `PETSC_DIR`/`LIBMESH_DIR`/`HDF5_ROOT`/compiler
+paths (see above) are all resolved exactly once, at `cmake` *configure* time, from whichever
+container happened to be running then. Found live while testing against a genuinely older,
+real container (`moose-dev-oras-7-30.sif` vs. the current `2026.08.23` one): a build tree fully
+configured and built under the current container, then rebuilt from the same directory under the
+older one, hit `openmc-configure` failing with `CMake Error ... Imported target "PkgConfig::LIBMESH"
+includes non-existent path "/opt/vtk/include/vtk-9.7"` -- a real difference in the two containers'
+VTK layout, version-pin-satisfying or not, and a far more confusing failure than a clear
+container-mismatch message.
+
+`cardinal-check-container` catches exactly this: at `cmake` configure time,
+`$ENV{MOOSE_APPTAINER_GENERATOR_NAME}`/`_VERSION` are snapshotted into `CACHE INTERNAL` variables
+(`CARDINAL_CONFIGURE_CONTAINER_NAME`/`_VERSION`); at build time, the running container's own
+`MOOSE_APPTAINER_GENERATOR_NAME`/`_VERSION` are compared against those cached values, firing on any
+difference -- including a tree configured with no container at all now being built inside one, or
+vice versa (empty-vs-empty is the only silent case).
+
++Why this needed its own target, not just a `COMMAND` on the final `cardinal` target's recipe+ (an
+earlier version of this check worked exactly that way): a plain `COMMAND` there only ever runs
+*after* every dependency (`nekrs`, `openmc`, `moab`, ...) has already been visited -- confirmed live
+with the same `openmc-configure` failure above, which happened well before that `COMMAND` was ever
+reached, since `openmc`'s own `ExternalProject` dependency chain ran first. Splitting the check into
+its own standalone `add_custom_target()` and adding it as a `DEPENDS` of every heavier target instead
+(`petsc`/`libmesh`/`wasp` when built from source, `nekrs`, `moab`, `embree`, `doubledown`, `dagmc`,
+`openmc` -- transitively, `moose` too, via `moose-check-container`, see below) means it's reported
+clearly *before* any of those get a chance to fail on their own with something unrelated-looking.
+
++Why `cardinal-check-container` doesn't itself `DEPENDS` on anything+ (unlike `moose-check-container`,
+below): the drift check only needs environment variables and this build's own cache, nothing from
+`contrib/moose`, so it doesn't need to wait on that fetch at all. That, plus needing to run before
+*every* dependency (not just the moose-dependent ones), is what makes it a `DEPENDS` of the four
+targets that otherwise have no dependency of their own -- `mirror_source`, `moose-add`,
+`nuclear_data`, `nek_ci` -- rather than the other way around; this is what makes it unconditionally
+the first thing any build does, confirmed by inspecting the generated `Makefile2`: every one of the
+targets above lists `CMakeFiles/cardinal-check-container.dir/all` as its own first prerequisite.
+
++A subtlety in the fix-it message+: the natural instinct is to tell the user to just reconfigure. But
+`CARDINAL_CONFIGURE_CONTAINER_NAME`/`_VERSION` are `CACHE INTERNAL` -- like `PETSC_DIR`/`LIBMESH_DIR`/
+`HDF5_ROOT` above, a `set(... CACHE ...)` without `FORCE` only takes effect the *first* time a given
+build directory is configured; a later plain `cmake` reconfigure of the same directory leaves an
+already-cached value alone. This was found by testing, not reasoned out in advance: an aborted
+configure attempt (run outside a container, by mistake) still wrote an empty
+`CARDINAL_CONFIGURE_CONTAINER_NAME` into the cache before failing later on an unrelated missing path,
+and a subsequent, successful reconfigure *inside* the intended container silently left that stale
+empty value in place, since it was already defined. The message reflects this: it tells the user to
+start a fresh build tree, not to reconfigure the existing one.
+
+### `moose`: split into `moose-add` + `moose-check-container`
+
+`moose-check-container` needs `contrib/moose/scripts/versioner.yaml` to exist, so it `DEPENDS` on the
+plain fetch step -- renamed `moose-add` (previously just `moose`) to make room for this. `moose`
+itself is now a third, pure aggregate target with no `COMMAND` of its own,
+`DEPENDS moose-add moose-check-container` -- kept as the name every other target already `DEPENDS`
+on (`petsc`/`libmesh`/`wasp`/`_cardinal_depends`/etc), so the version-pin check reaches all of them
+for free, with no other call site needing to change.
+
+### Validation
+
+Both checks were tested against a real, older container (`moose-dev-oras-7-30.sif`, genuinely
+`2026.07.30` against a pinned `2026.08.23`), not just a faked environment-variable mismatch: correct
+`FATAL_ERROR`/`WARNING` messages (including the real `oras://` URL, constructed from that container's
+actual, differently-named `moose-dev-openmpi-x86_64` generator name) for both the version-pin and the
+drift check, independently toggleable via their own options, and a silent pass in every
+matching-container/matching-configure case, including entirely outside any container (built on a
+bare HPC login node, no `apptainer` at all -- `CARDINAL_CONFIGURE_CONTAINER_NAME`/`_VERSION` and the
+running environment both empty). The end-to-end scenario this was built to fix was confirmed
+directly too: `make openmc-configure` under the mismatched older container now stops at
+`cardinal-check-container` before OpenMC's own configure step ever runs, rather than surfacing only
+that unrelated VTK-path failure.
+
 ## Status
 
 Phases 1-3 (container build against pre-built dependencies; Phase 2's DAGMC/MOAB/Embree/
