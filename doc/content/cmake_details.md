@@ -162,6 +162,117 @@ just copy everything except what's excluded for concrete, functional reasons bel
   resolved independently the same way, but only when `ENABLE_NEK` is on -- excluded from the
   generic mirror in that case too, so the two don't fight over the same destination.
 
+### `unit/Makefile`: a second renamed-copy, for a different reason
+
+`unit/Makefile` gets a similar renamed-copy treatment to the top-level `Makefile`, but for a
+different reason. The top-level `Makefile` is renamed because it *collides* with a file CMake
+itself generates (`<build-dir>/Makefile`); nothing here `add_subdirectory()`s `unit/`, so there's
+no such collision for `unit/Makefile`. The problem instead is that it's a fully independent
+native-Makefile build (its own `ENABLE_NEK`/`ENABLE_OPENMC`/`ENABLE_DAGMC`/`ENABLE_DOUBLE_DOWN`/
+`PETSC_DIR`/`LIBMESH_DIR`/`WASP_DIR`/`HDF5_ROOT` `?=` defaults, entirely separate from anything
+this superbuild computes) with no built-in way to know how *this* build was actually configured --
+invoking it directly against a tree built with different settings doesn't error out, it silently
+rebuilds/reinstalls whichever dependency disagrees (confirmed directly: running it with the default
+`ENABLE_DAGMC=no` against a tree built with DAGMC on rebuilt `libopenmc.so` *without* DAGMC
+support, breaking the link of the already-built `libcardinal-opt.so` with `undefined reference to
+openmc::DAGSurface`/`DAGUniverse` the next time `cardinal-unit-<method>` was linked).
+
+Renamed to `unit/Makefile.unit` (byte-identical to upstream) and replaced with `cmake/UnitMakefile`
+-- a tiny, fully static forwarder, not a settings-forcing wrapper. The two are deliberately handled
+by *different* mechanisms:
+
+```cmake
+add_custom_target(mirror_source ALL
+  ...
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_SOURCE_DIR}/unit/Makefile ${CARDINAL_STAGE_DIR}/unit/Makefile.unit
+  ...)
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/UnitMakefile
+                ${CARDINAL_STAGE_DIR}/unit/Makefile
+                COPYONLY)
+```
+
+- +`unit/Makefile.unit`+ is real Cardinal source, copied as an ordinary `mirror_source` build step
+  (like `Makefile.cardinal`) so a locally-edited `unit/Makefile`, or a fresh `git pull` picking one
+  up, is reflected on the next build like any other source file -- not just on the next `cmake`
+  reconfigure.
+- +`cmake/UnitMakefile`+ is *this superbuild's own* file instead (same category as
+  `CMakeLists.txt`/`cmake/` itself, excluded from the mirror for the same reason) -- fully static,
+  with no configuration-specific content of any kind, so `configure_file(COPYONLY)` writes it once
+  at `cmake` configure time with no need to wait on a build step at all.
+
+`cmake/UnitMakefile` doesn't try to reconstruct a matching environment itself; it just forwards
+whatever target it's given straight through to this build's own **`cardinal-unit`** target:
+
+```make
+.DEFAULT_GOAL := cardinal-unit
+
+%:
+	$(MAKE) -C $(CURDIR)/.. $@
+```
+
+`cardinal-unit` (a real `add_custom_target()`, alongside `cardinal`/`cardinal-install` further
+down) does the actual settings-forcing, the same `-E env ... $(MAKE)` pattern `cardinal` itself
+uses -- `METHOD`/`ENABLE_NEK`/`ENABLE_OPENMC`/`ENABLE_DAGMC`/`ENABLE_DOUBLE_DOWN`/`PETSC_DIR`/
+`LIBMESH_DIR`/`WASP_DIR`/`HDF5_ROOT` all forced from this build's own cached configuration, then
+`$(MAKE) -C unit -f Makefile.unit`. `NEKRS_HOME` is left out (`Makefile.unit` computes it
+unconditionally itself, `export NEKRS_HOME=$(CARDINAL_DIR)`, not `?=`); `OPENMC_CROSS_SECTIONS` is
+left out for the same reason `cardinal` itself leaves it out of its own forced-env list -- it must
+come from the caller's shell, never get frozen at configure time.
+
++An earlier version of this put all of that settings-forcing logic directly into a generated
+`unit/Makefile`, which `include`d `Makefile.unit` directly (no separate CMake target at all).+ That
+had two real problems, both avoided by going through a proper target instead:
+
+1. Since that generated `unit/Makefile` was itself written via `configure_file()`, and
+   `Makefile.unit` was *also* written via `configure_file()`, there was no dependency edge
+   enforcing that the latter existed before the former tried to `include` it -- on a build tree
+   that had never had a build step run against it at all, `include Makefile.unit` failed
+   immediately with a missing-file error. (Moving `Makefile.unit`'s copy into `mirror_source`, a
+   build step, doesn't fix this on its own either -- something still has to guarantee
+   `mirror_source` ran first.)
+2. It's tempting to assume `unit/Makefile.unit` needs `cardinal`'s own `cardinal-<method>` already
+   linked, since `cardinal-unit-<method>` links against `lib/libcardinal-<method>.so` -- but
+   `unit/Makefile.unit` is actually fully self-contained: it `include`s `$(FRAMEWORK_DIR)/app.mk`
+   *twice*, once for `APPLICATION_NAME=cardinal` (building that exact same library itself, from the
+   main app's own source) and again for `APPLICATION_NAME=cardinal-unit` (its own test binary), and
+   separately `include`s `config/nekrs.mk`/`openmc.mk`/etc, the very same `build_nekrs`/
+   `build_openmc`/... rules `Makefile.cardinal` itself uses. So `cardinal-unit` correctly `DEPENDS`
+   the same dependency list `cardinal` does (`mirror_source`, `moose`, and whichever of
+   `nekrs`/`openmc`/`dagmc`/etc are enabled) -- not the `cardinal` target itself. Depending on
+   `cardinal` was tried first, and confirmed wrong directly: since custom targets have no output
+   tracking and always re-run, it forced `cmake --build --target cardinal-unit` to also fully
+   re-run the *entire* `$(MAKE) -f Makefile.cardinal` invocation every time (a 10,000+ line
+   sub-log), on top of `Makefile.unit`'s own already-redundant self-contained rebuild of the same
+   dependencies -- doubling the missing-order-only-prereqs slowness below rather than just
+   inheriting it once.
+
+Depending on the same list `cardinal` depends on (which includes `mirror_source`) is what actually
+solves problem 1 too, and more robustly than either `configure_file()` alone or a `mirror_source`
+build step alone could: CMake's own dependency graph *guarantees* `mirror_source` has completed --
+and so `unit/Makefile.unit` already exists -- before `cardinal-unit`'s recipe ever runs, regardless
+of whether it's reached via `cmake --build --target cardinal-unit` directly or via
+`cmake/UnitMakefile`'s forwarding shim. `cmake/UnitMakefile` itself needs no such guarantee (it
+never touches `Makefile.unit`), which is exactly why it's safe to write at configure time with no
+dependency on any build step at all.
+
+This does *not* fix `unit/Makefile.unit`'s own separate, pre-existing slowness -- like the main
+`Makefile.cardinal`, `build_nekrs`/`build_moab`/`build_embree`/`build_doubledown`/`build_dagmc`/
+`build_openmc` are regular (not order-only) prerequisites there too, so `make -C unit` still
+re-walks and re-verifies every one of those dependencies' full sub-builds on every invocation
+(commit `f972f335` upstream fixes this, but isn't applied in this checkout).
+
++Validated+ on two differently-configured build trees (CPU w/ DAGMC+double-down, CUDA w/o): both
+`make -C unit -j16` and `cmake --build --target cardinal-unit -j16`, with no environment variables
+set beyond a plain shell, correctly build and link `cardinal-unit-<method>` with the right settings
+either way, without re-running `cardinal`'s own `Makefile.cardinal` (confirmed by grepping the
+build log for zero occurrences of that step), and `./unit/run_tests` passes all 9 unit tests in
+every case. `unit/Makefile` confirmed to exist immediately after a bare `cmake -S -B` reconfigure
+(no build step needed); `unit/Makefile.unit` confirmed to correctly *not* exist until
+`mirror_source` runs, and to stay byte-identical to `git show HEAD:unit/Makefile` across repeated
+`mirror_source` reruns.
+
 ## Per-submodule three-tier resolution (`cardinal_add_submodule_dependency`)
 
 For each managed dependency, in priority order:
