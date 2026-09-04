@@ -428,8 +428,12 @@ public:
   const openmc::Tally & getMGBetaTally();
 
 protected:
-  /// A virtual function to allow for execution prior to each step in a criticality search.
-  virtual void critSearchStep() = 0;
+  /**
+   * A virtual function to allow for execution prior to each step in a criticality search.
+   * @param[in] apply_feedback whether temperatures/densities should be sent to OpenMC
+   * on a criticality search iteration or not
+   */
+  virtual void critSearchStep(bool apply_feedback) = 0;
 
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
