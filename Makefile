@@ -374,9 +374,16 @@ endif
 include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
-# We need to build these first so we get include dirs
-$(app_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
-$(test_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
+# We need to build these first so we get include dirs. Order-only (the '|'): these
+# are .PHONY guard targets with no file of their own, so as normal prerequisites they
+# would make every app/test object perpetually "out of date" (a .PHONY prerequisite
+# is never considered up to date), forcing a full rebuild on every invocation of make
+# regardless of whether anything actually changed. Order-only prerequisites still
+# guarantee these run first, without that side effect; genuine staleness from an
+# actual header/library change is already tracked separately, per file, via the
+# compiler-generated .d dependency files included above.
+$(app_objects): | build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
+$(test_objects): | build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
