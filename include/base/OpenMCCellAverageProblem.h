@@ -75,6 +75,8 @@ public:
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
   virtual bool converged(unsigned int) override { return true; }
 
+  virtual void meshChanged(bool intermediate_change, bool contract_mesh, bool clean_refinement_flags) override;
+
   /**
    * Read a 2d vector of subdomain names, and check that there are no duplications
    * and that all provided values exist on the mesh.
@@ -942,6 +944,9 @@ protected:
 
   /// Whether any cell tallies exist.
   bool _has_cell_tallies = false;
+
+  /// Whether any mesh tallies exist.
+  bool _has_mesh_tallies = false;
 
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
   bool _needs_to_map_cells;

@@ -178,12 +178,11 @@ protected:
   ///----------------------------------------------------------------------------///
   /// Dual of '_bin_to_element_mapping'.
   std::vector<int64_t> _element_to_bin_mapping;
+
   /// The previous bin to element mapping.
   std::vector<dof_id_type> _prev_bin_to_element_mapping;
+
   /// The dual of '_prev_bin_to_element_mapping'.
   std::vector<int64_t> _prev_elem_to_bin_mapping;
-  /// A map of active elements to their family trees. Used to get around libMesh
-  /// deleting subactive elements.
-  std::unordered_map<dof_id_type, std::vector<dof_id_type>> _prev_ancestors_to_elem;
   ///----------------------------------------------------------------------------///
 };
