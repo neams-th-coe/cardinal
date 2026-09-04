@@ -5,7 +5,7 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'turbPipe'
+  casename = 'brick'
 []
 
 [MultiApps]
@@ -16,7 +16,7 @@
     execute_on = timestep_end
 
     # change this for wherever you have Chickadee located
-    library_path = '/home/anovak/Chickadee/lib'
+    library_path = '/home/ajnovak2/Chickadee/lib'
   []
 []
 

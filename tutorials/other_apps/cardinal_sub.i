@@ -5,7 +5,7 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'turbPipe'
+  casename = 'brick'
 []
 
 [Executioner]

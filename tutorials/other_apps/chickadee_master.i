@@ -41,7 +41,7 @@
     execute_on = timestep_end
 
     # change this for wherever you have Cardinal located
-    library_path = '/home/anovak/cardinal/lib'
+    library_path = '/home/ajnovak2/cardinal/lib'
   []
 []
 
