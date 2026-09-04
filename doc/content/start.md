@@ -42,3 +42,8 @@ Please select your case:
 
 - [I want to use MOOSE's conda environment](with_conda.md)
 - [I do NOT want to use MOOSE's conda environment](without_conda.md)
+
+!alert! note
+An *experimental* CMake-based build is also available, as an alternative to the Makefile-based
+workflows above - see [with_cmake.md](with_cmake.md).
+!alert-end!
