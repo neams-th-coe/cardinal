@@ -65,20 +65,20 @@ tried exactly that at one point -- but it deliberately is *not*: it's a fixed, b
 path, forwarded as every one of nekRS/OpenMC/MOAB/Embree/double-down/DAGMC/`nuclear_data`'s own
 `ExternalProject_Add -DCMAKE_INSTALL_PREFIX=...`, which becomes part of their `CONFIGURE_COMMAND`
 -- and `ExternalProject_Add` reconfigures based on a hash of that whole command. Tying it to
-`CMAKE_INSTALL_PREFIX` meant editing where the user wants the *final* result to end up (in
-`ccmake`, say) silently changed every dependency's own `CMAKE_ARGS` too, forcing a full
-reconfigure+rebuild of all of them just to relocate an already-good build -- found live, and
-exactly the trap a real install prefix is supposed to avoid (never consulted at build time, only
-at `cmake --install`/`--target install` time). `CMAKE_INSTALL_PREFIX` itself defaults to
+`CMAKE_INSTALL_PREFIX` would mean editing where the user wants the *final* result to end up (in
+`ccmake`, say) silently changing every dependency's own `CMAKE_ARGS` too, forcing a full
+reconfigure+rebuild of all of them just to relocate an already-good build -- exactly the trap a
+real install prefix is supposed to avoid (never consulted at build time, only at
+`cmake --install`/`--target install` time). `CMAKE_INSTALL_PREFIX` itself defaults to
 `CARDINAL_STAGE_DIR/dist` (via the same `CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT` idiom used
 elsewhere in this file) -- deliberately *not* this same staging path, since the install step (see
 "Installing the app itself" below) always nests the staged dependency tree one level under
 `CMAKE_INSTALL_PREFIX`; defaulting it to `CARDINAL_INSTALL_DIR` directly would ask that step to
 copy `CARDINAL_INSTALL_DIR` into its own new subdirectory. Nothing upstream of the install step
-ever reads `CMAKE_INSTALL_PREFIX` at all, though -- so overriding it (`--install-prefix <dir>`, or
-in `ccmake`) never touches a dependency's `CMAKE_ARGS` or forces a rebuild. Verified directly: with
-`CMAKE_INSTALL_PREFIX` changed via a reconfigure, nekRS's and OpenMC's own generated
-`*-cfgcmd.txt` (the file `ExternalProject_Add` hashes for staleness) came out byte-identical.
+ever reads `CMAKE_INSTALL_PREFIX` at all, so overriding it (`--install-prefix <dir>`, or in
+`ccmake`) never touches a dependency's `CMAKE_ARGS` or forces a rebuild -- confirmed by
+reconfiguring with a different `CMAKE_INSTALL_PREFIX` and diffing nekRS's/OpenMC's generated
+`*-cfgcmd.txt` (the file `ExternalProject_Add` hashes for staleness): byte-identical.
 
 +The one real collision:+ Cardinal's own hand-written top-level `Makefile` against CMake's own
 generated `Makefile` of the same name at the build directory root. Resolved by having the source
@@ -172,10 +172,10 @@ native-Makefile build (its own `ENABLE_NEK`/`ENABLE_OPENMC`/`ENABLE_DAGMC`/`ENAB
 `PETSC_DIR`/`LIBMESH_DIR`/`WASP_DIR`/`HDF5_ROOT` `?=` defaults, entirely separate from anything
 this superbuild computes) with no built-in way to know how *this* build was actually configured --
 invoking it directly against a tree built with different settings doesn't error out, it silently
-rebuilds/reinstalls whichever dependency disagrees (confirmed directly: running it with the default
-`ENABLE_DAGMC=no` against a tree built with DAGMC on rebuilt `libopenmc.so` *without* DAGMC
+rebuilds/reinstalls whichever dependency disagrees. Concretely: running it with the default
+`ENABLE_DAGMC=no` against a tree built with DAGMC on rebuilds `libopenmc.so` *without* DAGMC
 support, breaking the link of the already-built `libcardinal-opt.so` with `undefined reference to
-openmc::DAGSurface`/`DAGUniverse` the next time `cardinal-unit-<method>` was linked).
+openmc::DAGSurface`/`DAGUniverse` the next time `cardinal-unit-<method>` is linked.
 
 Renamed to `unit/Makefile.unit` (byte-identical to upstream) and replaced with `cmake/UnitMakefile`
 -- a tiny, fully static forwarder, not a settings-forcing wrapper. The two are deliberately handled
@@ -221,41 +221,34 @@ unconditionally itself, `export NEKRS_HOME=$(CARDINAL_DIR)`, not `?=`); `OPENMC_
 left out for the same reason `cardinal` itself leaves it out of its own forced-env list -- it must
 come from the caller's shell, never get frozen at configure time.
 
-+An earlier version of this put all of that settings-forcing logic directly into a generated
-`unit/Makefile`, which `include`d `Makefile.unit` directly (no separate CMake target at all).+ That
-had two real problems, both avoided by going through a proper target instead:
++Why a dedicated `cardinal-unit` target, rather than folding the settings-forcing straight into a
+generated `unit/Makefile`+ (a `:=`-overridden `include Makefile.unit`, no separate CMake target at
+all): that shape has no dependency edge to guarantee `Makefile.unit` exists before the `include`
+runs -- both files would be written by their own, separately-timed `configure_file()` calls, so on
+a build tree with no build step run against it yet, the `include` just fails outright. Moving only
+`Makefile.unit`'s copy into `mirror_source` doesn't fix that on its own either; something still has
+to guarantee `mirror_source` ran first, which a plain `include` gives no way to express.
 
-1. Since that generated `unit/Makefile` was itself written via `configure_file()`, and
-   `Makefile.unit` was *also* written via `configure_file()`, there was no dependency edge
-   enforcing that the latter existed before the former tried to `include` it -- on a build tree
-   that had never had a build step run against it at all, `include Makefile.unit` failed
-   immediately with a missing-file error. (Moving `Makefile.unit`'s copy into `mirror_source`, a
-   build step, doesn't fix this on its own either -- something still has to guarantee
-   `mirror_source` ran first.)
-2. It's tempting to assume `unit/Makefile.unit` needs `cardinal`'s own `cardinal-<method>` already
-   linked, since `cardinal-unit-<method>` links against `lib/libcardinal-<method>.so` -- but
-   `unit/Makefile.unit` is actually fully self-contained: it `include`s `$(FRAMEWORK_DIR)/app.mk`
-   *twice*, once for `APPLICATION_NAME=cardinal` (building that exact same library itself, from the
-   main app's own source) and again for `APPLICATION_NAME=cardinal-unit` (its own test binary), and
-   separately `include`s `config/nekrs.mk`/`openmc.mk`/etc, the very same `build_nekrs`/
-   `build_openmc`/... rules `Makefile.cardinal` itself uses. So `cardinal-unit` correctly `DEPENDS`
-   the same dependency list `cardinal` does (`mirror_source`, `moose`, and whichever of
-   `nekrs`/`openmc`/`dagmc`/etc are enabled) -- not the `cardinal` target itself. Depending on
-   `cardinal` was tried first, and confirmed wrong directly: since custom targets have no output
-   tracking and always re-run, it forced `cmake --build --target cardinal-unit` to also fully
-   re-run the *entire* `$(MAKE) -f Makefile.cardinal` invocation every time (a 10,000+ line
-   sub-log), on top of `Makefile.unit`'s own already-redundant self-contained rebuild of the same
-   dependencies -- doubling the missing-order-only-prereqs slowness below rather than just
-   inheriting it once.
-
-Depending on the same list `cardinal` depends on (which includes `mirror_source`) is what actually
-solves problem 1 too, and more robustly than either `configure_file()` alone or a `mirror_source`
-build step alone could: CMake's own dependency graph *guarantees* `mirror_source` has completed --
-and so `unit/Makefile.unit` already exists -- before `cardinal-unit`'s recipe ever runs, regardless
-of whether it's reached via `cmake --build --target cardinal-unit` directly or via
-`cmake/UnitMakefile`'s forwarding shim. `cmake/UnitMakefile` itself needs no such guarantee (it
-never touches `Makefile.unit`), which is exactly why it's safe to write at configure time with no
-dependency on any build step at all.
+Routing through a real target closes that gap for a more fundamental reason: `unit/Makefile.unit`
+is fully self-contained, so it can `DEPENDS` exactly what `cardinal` itself depends on. It
+`include`s `$(FRAMEWORK_DIR)/app.mk` *twice* -- once for `APPLICATION_NAME=cardinal` (rebuilding
+`lib/libcardinal-<method>.so` itself, from the main app's own source) and again for
+`APPLICATION_NAME=cardinal-unit` (its own test binary) -- and separately `include`s
+`config/nekrs.mk`/`openmc.mk`/etc, the very same `build_nekrs`/`build_openmc`/... rules
+`Makefile.cardinal` itself uses. So, despite `cardinal-unit-<method>` linking against
+`lib/libcardinal-<method>.so`, it needs `cardinal`'s own dependency list (`mirror_source`, `moose`,
+whichever of `nekrs`/`openmc`/`dagmc`/etc are enabled) -- not a `cardinal-<method>` already linked.
+`cardinal-unit` `DEPENDS` that list, deliberately *not* the `cardinal` target itself: since custom
+targets have no output tracking and always re-run, depending on `cardinal` would force its *entire*
+`$(MAKE) -f Makefile.cardinal` invocation to also re-run on every `cardinal-unit` build, on top of
+`Makefile.unit`'s own already-redundant self-contained rebuild of the same dependencies -- doubling
+the missing-order-only-prereqs slowness below rather than just inheriting it once. Depending on
+`cardinal`'s own dependency list solves both problems in one move: CMake's own dependency graph
+guarantees `mirror_source` (and so `unit/Makefile.unit`) exists before `cardinal-unit`'s recipe
+ever runs, whether reached via `cmake --build --target cardinal-unit` directly or via
+`cmake/UnitMakefile`'s forwarding shim -- without re-running any of `cardinal`'s own build to get
+there. `cmake/UnitMakefile` itself needs no such guarantee (it never touches `Makefile.unit`),
+which is why it's safe to write at configure time with no dependency on any build step at all.
 
 This does *not* fix `unit/Makefile.unit`'s own separate, pre-existing slowness -- like the main
 `Makefile.cardinal`, `build_nekrs`/`build_moab`/`build_embree`/`build_doubledown`/`build_dagmc`/
@@ -263,15 +256,10 @@ This does *not* fix `unit/Makefile.unit`'s own separate, pre-existing slowness -
 re-walks and re-verifies every one of those dependencies' full sub-builds on every invocation
 (commit `f972f335` upstream fixes this, but isn't applied in this checkout).
 
-+Validated+ on two differently-configured build trees (CPU w/ DAGMC+double-down, CUDA w/o): both
-`make -C unit -j16` and `cmake --build --target cardinal-unit -j16`, with no environment variables
-set beyond a plain shell, correctly build and link `cardinal-unit-<method>` with the right settings
-either way, without re-running `cardinal`'s own `Makefile.cardinal` (confirmed by grepping the
-build log for zero occurrences of that step), and `./unit/run_tests` passes all 9 unit tests in
-every case. `unit/Makefile` confirmed to exist immediately after a bare `cmake -S -B` reconfigure
-(no build step needed); `unit/Makefile.unit` confirmed to correctly *not* exist until
-`mirror_source` runs, and to stay byte-identical to `git show HEAD:unit/Makefile` across repeated
-`mirror_source` reruns.
+Validated on two differently-configured build trees (CPU with DAGMC+double-down, CUDA without):
+both `make -C unit -j16` and `cmake --build --target cardinal-unit -j16` build and link
+`cardinal-unit-<method>` correctly with no environment variables set beyond a plain shell, without
+re-running `Makefile.cardinal`, and `./unit/run_tests` passes all 9 unit tests every time.
 
 ## Per-submodule three-tier resolution (`cardinal_add_submodule_dependency`)
 
@@ -400,8 +388,8 @@ relying on the ambient container environment:
    `LIBMESH_DIR`/`WASP_DIR`, to the final "build cardinal" step's environment. Cardinal's own native
    Makefile step then fell back to whatever each happened to already be in the *ambient* shell
    environment -- which, in a container, "happens to work" because the container sets `/opt/*`
-   variables anyway, masking the fact that nothing was actually being forwarded. Confirmed with
-   every `/opt/*` variable unset: the build failed outright
+   variables anyway, masking the fact that nothing was actually being forwarded. With every
+   `/opt/*` variable unset, the build fails outright
    (`make: +* No rule to make target '.../contrib/moose/petsc/lib/petsc/conf/petscvariables'`)
    despite `-DPETSC_DIR=/opt/petsc` having been given at configure time.
 
@@ -486,26 +474,26 @@ add_custom_target(cardinal ALL
   USES_TERMINAL VERBATIM)
 ```
 
-Three details matter here, all found by actually running the build rather than by inspection:
+Three details matter here:
 
 +`CardinalCheckMethod.cmake` runs first, as its own `COMMAND`, ahead of the `-E env` wrapper.+
 `METHOD=${_cardinal_method}` below is frozen into this recipe at *configure* time (see
-"`CMAKE_BUILD_TYPE` vs `METHOD`" above) -- CMake's generated Makefiles never re-read
-`$ENV{METHOD}` on a plain `cmake --build`/`make`, only on an actual reconfigure. Confirmed directly
-by testing: with a build already configured for `METHOD=dbg`, `METHOD=opt cmake --build build` (no
-reconfigure) silently kept building `cardinal-dbg` -- the new `METHOD` was never consulted
-anywhere, and nothing indicated it had been ignored. `CardinalCheckMethod.cmake` closes that gap:
-run as a separate `COMMAND` *before* the `-E env METHOD=${_cardinal_method}` override (so it still
-sees the real, unmasked ambient environment), it compares `$ENV{METHOD}` against
-`-DCARDINAL_METHOD=${_cardinal_method}` and `FATAL_ERROR`s on a mismatch instead of silently
-building the stale, already-configured method.
+"`CMAKE_BUILD_TYPE` vs `METHOD`" above) -- CMake's generated Makefiles never re-read `$ENV{METHOD}`
+on a plain `cmake --build`/`make`, only on an actual reconfigure, so with a build already
+configured for `METHOD=dbg`, `METHOD=opt cmake --build build` (no reconfigure) silently keeps
+building `cardinal-dbg`: the new `METHOD` is never consulted anywhere, and nothing indicates it was
+ignored. `CardinalCheckMethod.cmake` closes that gap: run as a separate `COMMAND` *before* the
+`-E env METHOD=${_cardinal_method}` override (so it still sees the real, unmasked ambient
+environment), it compares `$ENV{METHOD}` against `-DCARDINAL_METHOD=${_cardinal_method}` and
+`FATAL_ERROR`s on a mismatch instead of silently building the stale, already-configured method.
 
 +`$(MAKE)`, not a literal `make`/`make -jN`:+ CMake's Makefiles generator substitutes this with a
 recursive make invocation that shares the invoking make's jobserver, so this step's parallelism is
 always exactly whatever `-j` the user passed to `cmake --build`/`make` -- never a number this
-project invents itself. (An earlier version defaulted it via `ProcessorCount()`, which reported the
-full core count of a shared login node and forced that regardless of what the user actually asked
-for.) This requires the Makefiles generator, which is checked for at configure time.
+project invents itself. (A `ProcessorCount()`-based default was rejected for exactly that reason:
+on a shared login node it reports the full host core count and forces that regardless of what the
+user actually asked for.) This requires the Makefiles generator, which is checked for at configure
+time.
 
 +`ENABLE_*` go through `-E env` as environment variables, not as trailing `make VAR=value`
 command-line arguments.+ GNU Make gives a variable set on the command line unconditional priority
@@ -546,7 +534,7 @@ built, in two steps:
    `CMAKE_INSTALL_PREFIX/install` -- kept in its own subdirectory, not `CMAKE_INSTALL_PREFIX`'s
    root, because it's a merge of six independent projects' own install trees (nekRS's own scatters
    a fair amount of loose top-level content -- `LICENSE`, `examples/`, `gslib/`, `modulefiles/`,
-   ... -- found live) that would otherwise bury `cardinal-opt` itself in a pile of unrelated files.
+   ...) that would otherwise bury `cardinal-opt` itself in a pile of unrelated files.
 2. +Add the app.+ `cardinal-opt` and the MOOSE framework/module libraries it needs go directly into
    `CMAKE_INSTALL_PREFIX`'s own `bin`/`lib`/`share` -- *not* nested under `install/` alongside step
    1, since MOOSE's own installed-data-file lookup (below) hardcodes an `<exe-dir>/../share/<name>/
@@ -564,10 +552,10 @@ regardless of which symlink was used to invoke it, so the data-file lookup above
 
 +Why a plain copy isn't enough, for either step:+ RUNPATHs throughout this build are a mix of
 absolute `CARDINAL_STAGE_DIR` paths and genuinely external ones (`/opt/petsc/lib`,
-`/opt/openmpi/lib`, ...) -- confirmed directly with `readelf -d`, on both `cardinal-opt`/MOOSE
-libraries (paths into `contrib/moose/framework`, `contrib/moose/modules/*/lib`, `lib/`,
-`test/lib/`) and step 1's own dependencies (e.g. MOAB's own `CMAKE_INSTALL_RPATH` is set to the
-literal, absolute `CARDINAL_INSTALL_DIR/lib` -- see above). `DT_RUNPATH` is *not* transitive --
+`/opt/openmpi/lib`, ..., per `readelf -d`), on both `cardinal-opt`/MOOSE libraries (paths into
+`contrib/moose/framework`, `contrib/moose/modules/*/lib`, `lib/`, `test/lib/`) and step 1's own
+dependencies (e.g. MOAB's own `CMAKE_INSTALL_RPATH` is set to the literal, absolute
+`CARDINAL_INSTALL_DIR/lib` -- see above). `DT_RUNPATH` is *not* transitive --
 glibc's loader only consults the RUNPATH of the object doing the lookup, not the top-level
 executable's -- which is exactly why each library carries its own RUNPATH pointing at its
 siblings. So copying files without also rewriting each one's own RUNPATH would still reach back
@@ -583,25 +571,25 @@ The two steps need different rewriting strategies, though, both implemented as t
 - Step 1 (`cardinal_install_relink_mirrored`) is a structure-*preserving* mirror -- `rsync -a`
   reproduces `CARDINAL_INSTALL_DIR`'s own internal layout exactly, so collapsing wouldn't just
   point at the wrong place, it would silently drop information: nekRS's own `bin/nekrs`, for
-  example, has *two different* build-tree RPATH entries on the same binary (confirmed with
-  readelf) -- one for its `lib/`, a separate one for `occa/lib/`, not interchangeable. Each old
-  entry gets its *own*, individually-computed `$ORIGIN`-relative replacement instead: relative to
-  `CARDINAL_INSTALL_DIR`, then re-anchored under `CMAKE_INSTALL_PREFIX/install`. An entry already
-  `$ORIGIN`-relative (e.g. Embree's own CMake install already uses it) is left completely alone --
-  found live: naively resolving the literal string `"$ORIGIN"` as if it were a real relative
-  filesystem path (`get_filename_component(... ABSOLUTE)`) mangled it into a bogus path that could
-  spuriously look like it was inside the build tree. An old entry inside `CARDINAL_STAGE_DIR` but
-  *outside* `CARDINAL_INSTALL_DIR` specifically (a from-source PETSc/libMesh/WASP library, which
-  step 1 doesn't copy at all) has no corresponding new location to compute -- left as its original
+  example, has *two different* build-tree RPATH entries on the same binary -- one for its `lib/`,
+  a separate one for `occa/lib/`, not interchangeable. Each old entry gets its *own*,
+  individually-computed `$ORIGIN`-relative replacement instead: relative to `CARDINAL_INSTALL_DIR`,
+  then re-anchored under `CMAKE_INSTALL_PREFIX/install`. An entry already `$ORIGIN`-relative (e.g.
+  Embree's own CMake install already uses it) is left completely alone -- naively resolving the
+  literal string `"$ORIGIN"` as if it were a real relative filesystem path
+  (`get_filename_component(... ABSOLUTE)`) mangles it into a bogus path that can spuriously look
+  like it's inside the build tree. An old entry inside `CARDINAL_STAGE_DIR` but *outside*
+  `CARDINAL_INSTALL_DIR` specifically (a from-source PETSc/libMesh/WASP library, which step 1
+  doesn't copy at all) has no corresponding new location to compute -- left as its original
   absolute path, with a `message(WARNING ...)`, a real (if narrow) surviving limitation rather
   than something worth silently mishandling.
 
 +Discovering what step 2 needs to copy:+ deliberately *not* `ldd`, which resolves each
-`DT_NEEDED` name through the object's actual RUNPATH. Found live: that approach broke from the
-*second* install onward -- by then `cardinal-opt`'s own RUNPATH already contains
+`DT_NEEDED` name through the object's actual RUNPATH -- rejected because it breaks from the
+*second* install onward: by then `cardinal-opt`'s own RUNPATH already contains
 `CARDINAL_INSTALL_DIR/lib` (Cardinal's own Makefile bakes `CONTRIB_INSTALL_DIR` in there, ahead of
 the build-tree paths), which already holds copies of these same libraries from the earlier run.
-`ldd` resolved straight to that earlier copy instead of the authoritative `CARDINAL_STAGE_DIR`
+`ldd` resolves straight to that earlier copy instead of the authoritative `CARDINAL_STAGE_DIR`
 original, silently poisoning every install after the first into never picking up a rebuilt library
 again. Fixed by building an index (basename &rarr; realpath) of every `*.so*` under
 `CARDINAL_STAGE_DIR`'s own `lib/`, `test/lib/`, and `contrib/moose` (framework/modules, and
@@ -613,14 +601,14 @@ of which step 2 is responsible for. Every copy in both steps is unconditional (n
 already exists"), for the same staleness reason -- an install should always reflect the current
 build.
 
-+Data files, not just libraries:+ "whatever it needs to run" turned out to include more than
-shared libraries. MOOSE's own `Registry::determineDataFilePath`
-(`framework/src/base/Registry.C`) looks for each registered app/module's `data/` directory at a
-documented, already-relocatable convention: `<exe-dir>/../share/<name>/data`. Found live:
-`cardinal-opt`, run with `CARDINAL_STAGE_DIR` moved out of the way, immediately `mooseError`'d on
-startup ("Failed to determine data file path for 'moose'") since neither that path nor the
-(now-gone) in-tree fallback existed. Since `Registry.C` enforces that any such directory be
-literally named `data`, checking for `contrib/moose/framework/data` (always, registered as
++Data files, not just libraries:+ "whatever it needs to run" includes more than shared libraries.
+MOOSE's own `Registry::determineDataFilePath` (`framework/src/base/Registry.C`) looks for each
+registered app/module's `data/` directory at a documented, already-relocatable convention:
+`<exe-dir>/../share/<name>/data`. Skip it and `cardinal-opt`, run with `CARDINAL_STAGE_DIR` moved
+out of the way, immediately `mooseError`s on startup ("Failed to determine data file path for
+'moose'"), since neither that path nor the (now-gone) in-tree fallback exists. `Registry.C`
+enforces that any such directory be literally named `data`, so checking for
+`contrib/moose/framework/data` (always, registered as
 `"moose"`) plus, for every module library actually copied, whether `contrib/moose/modules/<module>/
 data` exists (module directory name matches the registered name in every case observed, e.g.
 `solid_mechanics`) is a purely filesystem-based check -- no need to grep source or hardcode which
@@ -648,35 +636,22 @@ installed" (see above). So building `opt`, installing, then reconfiguring for `d
 cmake build` or `-DCMAKE_BUILD_TYPE=Debug`) and installing again -- into the *same* build directory
 and the *same* `CMAKE_INSTALL_PREFIX` -- works with no extra steps: `cardinal-opt` and `cardinal-dbg`
 end up coexisting side by side in `bin/`, each linked only against its own `-opt`/`-dbg`-suffixed
-libraries in `lib/` (MOOSE's own method-suffixed naming keeps them from colliding, confirmed
-directly with `ldd`: 0 cross-matches either direction). Validated with all three of `opt`/`dbg`/
-`devel` installed into one prefix this way; all three ran correctly afterward. The one thing this
-does *not* do is clean up: nothing here removes a previous method's `bin`/`lib` entries, so a
+libraries in `lib/` (MOOSE's own method-suffixed naming keeps them from colliding -- `ldd` confirms
+0 cross-matches either direction). Tested with all three of `opt`/`dbg`/`devel` installed into one
+prefix this way; all three ran correctly afterward. The one thing this does *not* do is clean up:
+nothing here removes a previous method's `bin`/`lib` entries, so a
 prefix built up this way only ever grows -- matching how a native Makefile checkout would look if
 you built multiple methods there too, not a superbuild-specific quirk.
 
-+Validated+ end-to-end against a real build, several ways:
-
-- `cmake --build build --target install`, then moving the entire build directory out of the way
-  (`mv`, not `rm` -- cheap to restore for the next iteration) and running `cardinal-opt --version`
-  from the install tree alone -- confirmed working (and confirmed *not* working, with the exact
-  same `mooseError`, before the data-file fix above).
-- Idempotency: a second `--target install` against an already-populated prefix, with nothing
-  rebuilt, still finds and relinks the full set (not a partial one -- the regression the
-  `ldd`-based approach had).
-- The `CMAKE_INSTALL_PREFIX`/`CARDINAL_INSTALL_DIR` decoupling itself: configured with
-  `-DCMAKE_INSTALL_PREFIX=/root` (unwritable), the ordinary build (`cmake --build build`, no
-  explicit install target) still succeeded outright. Reconfigured to a real, writable path on a
-  different filesystem (`/work/nvme/...`) and installed there -- `nekrs`'s own two-entry RUNPATH
-  (`lib/` and `occa/lib/`) came out correctly re-anchored, `libembree4.so`'s pre-existing
-  `$ORIGIN` entry survived untouched, and both `cardinal-opt --version` and `nekrs --help` ran
-  correctly with the build directory moved out of the way.
-- `CARDINAL_APP` tracking `_cardinal_method` (rather than a hardcoded `cardinal-opt`): built and
-  installed `opt`, `dbg`, and `devel` in turn, all into the same build directory and the same
-  `CMAKE_INSTALL_PREFIX`, by reconfiguring (`METHOD=dbg`/`METHOD=devel` env, `-UCMAKE_BUILD_TYPE`)
-  and reinstalling between each. All three binaries ended up coexisting in the resulting prefix's
-  `bin/`, each ran correctly (`--version`), and `ldd` confirmed each linked exclusively against its
-  own method-suffixed libraries -- 0 cross-matches in either direction.
++Validated+ end-to-end against a real build: installing, then moving the entire build directory out
+of the way and running from the install tree alone -- both `cardinal-opt --version` and
+`nekrs --help` work correctly with the build directory gone, including with `nekrs`'s own two-entry
+RUNPATH (`lib/`, `occa/lib/`) and Embree's pre-existing `$ORIGIN` entry. Also confirmed idempotent
+(a second `--target install` against an already-populated prefix, nothing rebuilt, still finds and
+relinks the full set, not a partial one), decoupled from `CARDINAL_INSTALL_DIR` as intended
+(`-DCMAKE_INSTALL_PREFIX=/root`, unwritable, doesn't block the ordinary build at all), and correct
+across `opt`/`dbg`/`devel` installed side by side into one prefix via successive reconfigure +
+reinstall, each linked exclusively against its own method-suffixed libraries.
 
 ## Interactive configuration (`ccmake`)
 
@@ -706,8 +681,8 @@ backends), `set(... CACHE PATH ...)` pre-filled from the environment for
   self-manage their own MOOSE-nested submodule fetch inside their non-`--fast` run.
 - All three also accept and forward arbitrary extra arguments straight through to their underlying
   configure (PETSc's own `configure`, libMesh's `configure`, WASP's `cmake`), after stripping the
-  flags they interpret themselves (`--fast`, `--skip-submodule-update`, etc) -- confirmed directly
-  in each script's own argument-parsing loop.
+  flags they interpret themselves (`--fast`, `--skip-submodule-update`, etc), per each script's own
+  argument-parsing loop.
 
 +`PETSC_SCRIPT_ARGS`/`LIBMESH_SCRIPT_ARGS`/`WASP_SCRIPT_ARGS`:+ user-facing escape hatches (plain
 `CACHE STRING`s, whitespace-split via `separate_arguments`) appended, in that order, after our own
@@ -787,8 +762,8 @@ that case -- DAGMC can build without ray-tracing acceleration). OpenMC depends o
 when building it from source: MOAB's own `CMakeLists.txt` does a hard `find_package(HDF5 REQUIRED
 ...)` against whatever `HDF5_ROOT` resolves to, which (see above) is `${PETSC_DIR}/${PETSC_ARCH}`
 when building PETSc ourselves -- a path that doesn't exist until PETSc's own build/install actually
-finishes. Found live: with no `DEPENDS` at all on `moab`, `ExternalProject` was free to start
-`moab-configure` immediately, well before PETSc, failing with "Could NOT find HDF5" every time.
+finishes. Without a `DEPENDS` on `petsc`, `ExternalProject` is free to start `moab-configure`
+immediately, well before PETSc, failing with "Could NOT find HDF5" every time.
 (No corresponding `libmesh` dependency is needed for MOAB: its own Eigen3 lookup, matched at
 `-DEIGEN3_DIR`, is `find_package(Eigen3 OPTIONAL_COMPONENTS)` -- a missing/nonexistent path there is
 a non-fatal "not found", not a hard configure failure, unlike HDF5.)
@@ -883,22 +858,17 @@ forward-compatibility shim under `/usr/local/cuda-<ver>/compat/`, which isn't on
 
 ### Validated end-to-end on real GPU hardware
 
-Beyond a driver-less build-only check, this was validated on an actual GPU node (NCSA Delta, A100),
-confirming the workaround produces a fully functional binary, not just one that compiles:
-
-- `cardinal-opt` runs correctly with a real driver present (`--nv` is required on
-  `apptainer exec`/`shell` even on an actual GPU node -- it's what binds the host driver into the
-  container at all; without it, the failure mode is identical to a driver-less host).
-- A real NekRS-coupled case (`test/tests/nek_standalone/conj_ht`, run with
-  `--nekrs-backend CUDA`) exercises NekRS's on-the-fly per-case compilation
-  (`src/core/udf/udfMake.hpp`, which runs a fresh `cmake`+`make` at the start of every run to
-  compile the case's `.udf`/`.oudf` into `libudf.so`) followed by OCCA's CUDA kernel JIT
-  compilation. Both succeed, and the run executes real timesteps and converges.
-- Notably, the case's multigrid coarse solver location is `CPU` (BoomerAMG/HYPRE on the host), while
-  velocity/pressure/scalar solves run GPU-resident via CUDA -- i.e. `ENABLE_HYPRE_GPU=OFF` isn't
-  just a way to get the build to compile; the resulting binary is fully functional, correctly
-  falling back to HYPRE's CPU path for the coarse solve while everything else runs on the GPU as
-  intended.
+Beyond a driver-less build-only check, this was validated on an actual GPU node (NCSA Delta, A100)
+with a real driver present (`--nv` is required on `apptainer exec`/`shell` even there -- it's what
+binds the host driver into the container at all; without it, the failure mode matches a
+driver-less host). A real NekRS-coupled case (`test/tests/nek_standalone/conj_ht`, run with
+`--nekrs-backend CUDA`) exercises NekRS's on-the-fly per-case compilation
+(`src/core/udf/udfMake.hpp`, which runs a fresh `cmake`+`make` at the start of every run to compile
+the case's `.udf`/`.oudf` into `libudf.so`) followed by OCCA's CUDA kernel JIT compilation -- both
+succeed, and the run executes real timesteps and converges, with the multigrid coarse solver
+correctly falling back to `CPU` (BoomerAMG/HYPRE on the host) while velocity/pressure/scalar solves
+run GPU-resident via CUDA. So `ENABLE_HYPRE_GPU=OFF` isn't just a way to get the build to compile --
+the resulting binary is fully functional.
 
 (A job-script comment in `scripts/job_frontier`, `export ENABLE_HYPRE_GPU=OFF`, might suggest a
 *runtime* environment variable of the same name also matters. It doesn't: `ENABLE_HYPRE_GPU` is only
@@ -909,12 +879,16 @@ That comment doesn't affect anything this build controls.)
 ## Known non-blocking rough edge
 
 A `premake.py`/`versioner.py` `AttributeError: 'NoneType' object has no attribute 'name'` traceback
-appears partway through the Cardinal compile step in every build observed so far
-(`Versioner.get_app_info()` returns `None`). It does not block the build -- `make` continues and
-`cardinal-opt` still links successfully -- but it's suspected to trace back to `mirror_source`
-deliberately excluding `/.git` from the staged tree, leaving MOOSE's own versioning script unable to
-determine Cardinal's app git info from the mirrored copy. Not yet investigated further since it
-isn't blocking anything.
+appears partway through the Cardinal compile step in every build observed so far. It does not
+block the build -- `make` continues and `cardinal-opt` still links successfully. Root cause:
+`mirror_source` deliberately excludes `/.git` from the staged tree (see above), so
+`Versioner.get_app_info()` -- which requires the current working directory to be inside a git work
+tree -- returns `None`; `get_packages()` has no per-package error isolation, so that one package's
+failure prevents every one of `PreMake`'s checks from running at all, not just the one that
+depended on it. Not fixable from this side: including `/.git` in the mirror would leave the staged
+tree permanently "dirty" in `git status` (a real, tracked repository whose working tree is
+constantly out of sync with its index), a worse trade than the current cosmetic traceback. Reported
+upstream: [idaholab/moose#33665](https://github.com/idaholab/moose/issues/33665).
 
 ## Status
 
