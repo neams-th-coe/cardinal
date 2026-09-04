@@ -2,7 +2,7 @@
   backend = CPU
 
 [GENERAL]
-  startFrom = pyramid.restart
+  startFrom = restart.fld
   stopAt = numSteps
   numSteps = 1
   dt = 5.0e-4
