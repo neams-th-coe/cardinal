@@ -1,0 +1,32 @@
+# ==============================================================================
+# Copied by Cardinal's CMake superbuild at `cmake` configure time
+# (configure_file(COPYONLY) in CMakeLists.txt) -- do not edit the copy
+# directly (a fresh `cmake <build-dir>` reconfigure overwrites it); edit
+# this file, cmake/UnitMakefile, in the source tree instead.
+#
+# This replaces unit/Makefile in the build tree (the original, unmodified
+# unit/Makefile lives right next to it as unit/Makefile.unit -- see
+# CMakeLists.txt's mirror_source target for why). It doesn't do any of the
+# actual work itself: it forwards straight through to this build's own
+# "cardinal-unit" target in the main CMake build directory, which forces
+# the settings this build was actually configured with (see that target's
+# own comments in CMakeLists.txt) before invoking Makefile.unit -- so
+# `make -C unit` (or `cd unit && make`, matching native muscle memory)
+# keeps working without duplicating any of that logic here.
+#
+# $(MAKE), not a literal `make`: shares -j/MAKEFLAGS/the caller's own
+# jobserver token pool with whatever invoked this Makefile in the first
+# place, rather than defaulting to a serial build -- see the "cardinal"
+# target's own comments in CMakeLists.txt for the full explanation of why
+# this distinction matters.
+#
+# `%:` (a catch-all pattern rule), not a single hardcoded target: forwards
+# whatever target name was actually requested (e.g. `make -C unit clean`
+# reaches CMake's own generated "clean"), defaulting to "cardinal-unit"
+# when none was given at all via .DEFAULT_GOAL.
+# ==============================================================================
+
+.DEFAULT_GOAL := cardinal-unit
+
+%:
+	$(MAKE) -C $(CURDIR)/.. $@
