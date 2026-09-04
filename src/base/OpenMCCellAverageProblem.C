@@ -48,6 +48,14 @@
 #include "openmc/volume_calc.h"
 #include "openmc/universe.h"
 
+// These includes are required as we're overriding meshChanged.
+#ifdef MOOSE_KOKKOS_ENABLED
+#include "KokkosMaterialPropertyStorage.h"
+#endif
+
+#include "MaterialPropertyStorage.h"
+#include "ProjectMaterialProperties.h"
+
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
 bool OpenMCCellAverageProblem::_first_transfer = true;
@@ -257,11 +265,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _need_to_reinit_coupling |= _use_displaced;
   }
 
-  // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
-  // cells.
+  // Look through the list of AddTallyActions to see what tallies we're adding.
+  // If we're adding a CellTally, we need to map cells to elements. If we're
+  // adding a mesh tally (and are using AMR with relaxation), during adaptivity we
+  // need to disable mesh contraction.
   const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : tally_actions)
+  {
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+    _has_mesh_tallies |= act->getMooseObjectType() == "MeshTally";
+  }
 
   // Repeat the same check for SetUpMGXSActions.
   const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
@@ -2770,6 +2783,169 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
+}
+
+// I wish there was a better way to do this in MOOSE...
+void
+OpenMCCellAverageProblem::meshChanged(bool intermediate_change,
+                                      bool contract_mesh,
+                                      bool clean_refinement_flags)
+{
+  // Disable mesh contraction so we keep elements around for the next
+  // iteration. This is necessary to figure out which tally bins existed
+  // after coarsening when using integral relaxation with AMR mesh tallies.
+  const bool should_contract = !(_has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity);
+
+  TIME_SECTION("meshChanged", 3, "Handling Mesh Changes");
+
+  _app.markMeshChangedForBackup();
+
+  if (_material_props.hasStatefulProperties() || _bnd_material_props.hasStatefulProperties() ||
+      _neighbor_material_props.hasStatefulProperties())
+    _mesh.cacheChangedLists(); // Currently only used with adaptivity and stateful material
+                               // properties
+
+  // Clear these out because they corresponded to the old mesh
+  _ghosted_elems.clear();
+  ghostGhostedBoundaries();
+
+  // The mesh changed.  We notify the MooseMesh first, because
+  // callbacks (e.g. for sparsity calculations) triggered by the
+  // EquationSystems reinit may require up-to-date MooseMesh caches.
+  _mesh.meshChanged();
+
+  // If we're just going to alter the mesh again, all we need to
+  // handle here is AMR and projections, not full system reinit
+  if (intermediate_change)
+    es().reinit_solutions();
+  else
+    es().reinit();
+
+  if (contract_mesh && should_contract)
+    // Once vectors are restricted, we can delete children of coarsened elements
+    _mesh.getMesh().contract();
+  if (clean_refinement_flags)
+  {
+    // Finally clear refinement flags so that if someone tries to project vectors again without
+    // an intervening mesh refinement to clear flags they won't run into trouble
+    libMesh::MeshRefinement refinement(_mesh.getMesh());
+    refinement.clean_refinement_flags();
+  }
+
+  if (!intermediate_change)
+  {
+    // Since the mesh has changed, we need to make sure that we update any of our
+    // MOOSE-system specific data.
+    for (auto & sys : _solver_systems)
+      sys->reinit();
+    _aux->reinit();
+  }
+
+  // Updating MooseMesh first breaks other adaptivity code, unless we
+  // then *again* update the MooseMesh caches.  E.g. the definition of
+  // "active" and "local" may have been *changed* by refinement and
+  // repartitioning done in EquationSystems::reinit().
+  _mesh.meshChanged();
+
+  // If we have finite volume variables, we will need to recompute additional elemental/face
+  // quantities
+  if (haveFV() && _mesh.isFiniteVolumeInfoDirty())
+    _mesh.setupFiniteVolumeMeshData();
+
+  // Let the meshChangedInterface notify the mesh changed event before we update the active
+  // semilocal nodes, because the set of ghosted elements may potentially be updated during a mesh
+  // changed event.
+  for (const auto & mci : _notify_when_mesh_changes)
+    mci->meshChanged();
+
+  // Since the Mesh changed, update the PointLocator object used by DiracKernels.
+  _dirac_kernel_info.updatePointLocator(_mesh);
+
+  // Need to redo ghosting
+  _geometric_search_data.reinit();
+
+  if (_displaced_problem)
+  {
+    _displaced_problem->meshChanged(contract_mesh && should_contract, clean_refinement_flags);
+    _displaced_mesh->updateActiveSemiLocalNodeRange(_ghosted_elems);
+  }
+
+  _mesh.updateActiveSemiLocalNodeRange(_ghosted_elems);
+
+  _evaluable_local_elem_range.reset();
+  _nl_evaluable_local_elem_range.reset();
+
+  // Just like we reinitialized our geometric search objects, we also need to reinitialize our
+  // mortar meshes. Note that this needs to happen after DisplacedProblem::meshChanged because the
+  // mortar mesh discretization will depend necessarily on the displaced mesh being re-displaced
+  _mortar_data->meshChanged();
+
+  // Nonlinear systems hold the mortar mesh functors. The domains of definition of the mortar
+  // functors might have changed when the mesh changed.
+  for (auto & nl_sys : _nl)
+    nl_sys->reinitMortarFunctors();
+
+  reinitBecauseOfGhostingOrNewGeomObjects(/*mortar_changed=*/true);
+
+  // We need to create new storage for newly active elements, and copy
+  // stateful properties from the old elements.
+  if (_has_initialized_stateful &&
+      (_material_props.hasStatefulProperties() || _bnd_material_props.hasStatefulProperties()))
+  {
+    if (havePRefinement())
+      _mesh.buildPRefinementAndCoarseningMaps(_assembly[0][0].get());
+
+    // Prolong properties onto newly refined elements' children
+    {
+      ProjectMaterialProperties pmp(
+          /* refine = */ true, *this, _material_props, _bnd_material_props, _assembly);
+      const auto & range = *_mesh.refinedElementRange();
+      Threads::parallel_reduce(range, pmp);
+
+      // Concurrent erasure from the shared hash map is not safe while we are reading from it in
+      // ProjectMaterialProperties, so we handle erasure here. Moreover, erasure based on key is
+      // not thread safe in and of itself because it is a read-write operation. Note that we do not
+      // do the erasure for p-refinement because the coarse level element is the same as our active
+      // refined level element
+      if (!doingPRefinement())
+        for (const auto & elem : range)
+        {
+          _material_props.eraseProperty(elem);
+          _bnd_material_props.eraseProperty(elem);
+          _neighbor_material_props.eraseProperty(elem);
+        }
+    }
+
+    // Restrict properties onto newly coarsened elements
+    {
+      ProjectMaterialProperties pmp(
+          /* refine = */ false, *this, _material_props, _bnd_material_props, _assembly);
+      const auto & range = *_mesh.coarsenedElementRange();
+      Threads::parallel_reduce(range, pmp);
+      // Note that we do not do the erasure for p-refinement because the coarse level element is the
+      // same as our active refined level element
+      if (!doingPRefinement())
+        for (const auto & elem : range)
+        {
+          auto && coarsened_children = _mesh.coarsenedElementChildren(elem);
+          for (auto && child : coarsened_children)
+          {
+            _material_props.eraseProperty(child);
+            _bnd_material_props.eraseProperty(child);
+            _neighbor_material_props.eraseProperty(child);
+          }
+        }
+    }
+  }
+
+  if (_calculate_jacobian_in_uo)
+    setVariableAllDoFMap(_uo_jacobian_moose_vars[0]);
+
+  _has_jacobian = false; // we have to recompute jacobian when mesh changed
+
+  // Now for backwards compatibility with user code that overrode the old no-arg meshChanged we must
+  // call it here
+  FEProblemBase::meshChanged();
 }
 
 void
