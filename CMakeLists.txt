@@ -326,7 +326,49 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # the CMake build directory itself) would just leave a redundant, easily
 # stale copy sitting next to CMake's own CMakeCache.txt/CMakeFiles for no
 # purpose.
-set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile --exclude=/build --exclude=/install --exclude=/CMakeLists.txt --exclude=/cmake)
+#
+# --exclude=/unit/Makefile: same collision-avoidance idea as /Makefile
+# above, but for a different reason -- unit/Makefile doesn't collide with
+# anything CMake generates (nothing here add_subdirectory()s unit/), but it
+# has its own independent set of ENABLE_NEK/ENABLE_OPENMC/ENABLE_DAGMC/
+# ENABLE_DOUBLE_DOWN/PETSC_DIR/LIBMESH_DIR/WASP_DIR/HDF5_ROOT `?=` defaults
+# that must match how *this* build was actually configured, or its own
+# build_openmc/etc steps silently rebuild those dependencies with different
+# settings (confirmed directly: invoking it with the wrong ENABLE_DAGMC
+# rebuilt libopenmc.so without DAGMC support, breaking the link of the
+# already-built, DAGMC-enabled libcardinal-opt.so with "undefined reference
+# to openmc::DAGSurface/DAGUniverse"). Renamed to unit/Makefile.unit (copied
+# from CMAKE_SOURCE_DIR directly, like Makefile.cardinal above, so there's
+# no risk of ever reading back our own generated substitute) and replaced
+# with cmake/UnitMakefile -- a tiny, fully static forwarder that just hands
+# off to the "cardinal-unit" target further down this file, which forces
+# those settings from this build's own cached configuration before
+# invoking Makefile.unit -- so `make -C unit` just works without the
+# caller needing to reconstruct a matching environment by hand.
+#
+# unit/Makefile.unit is copied as an ordinary mirror_source build step,
+# same as Makefile.cardinal (below) -- it's real Cardinal source, so a
+# locally-edited unit/Makefile (or a fresh `git pull` picking up an
+# upstream change to it) should be picked up on the next build like any
+# other source file, not just on the next `cmake` reconfigure. This is
+# safe even though it's a build- rather than configure-time step
+# specifically because "cardinal-unit" DEPENDS the same dependency list
+# "cardinal" does (below), which includes mirror_source -- so CMake's own
+# dependency graph guarantees mirror_source has completed, and
+# unit/Makefile.unit already exists, before anything ever tries to
+# actually invoke it.
+#
+# cmake/UnitMakefile (the forwarder placed at unit/Makefile) is different:
+# unlike unit/Makefile.unit, it's *this superbuild's own* file (same
+# category as CMakeLists.txt/cmake/ itself, excluded from the mirror just
+# above for the same reason), entirely static -- it carries no
+# configuration-specific content at all, just a fixed forwarding recipe --
+# so there's no "picks up an upstream edit" reason for it to wait for a
+# build step, and configure_file(COPYONLY) (right after this target)
+# writes it immediately at `cmake` configure time instead, same idea as
+# Makefile.cardinal/Makefile.unit but without needing to wait on
+# mirror_source at all.
+set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile --exclude=/unit/Makefile --exclude=/build --exclude=/install --exclude=/CMakeLists.txt --exclude=/cmake)
 if(ENABLE_NEK)
   list(APPEND _mirror_excludes --exclude=/test/tests/nek_ci)
 endif()
@@ -337,8 +379,16 @@ add_custom_target(mirror_source ALL
           ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          ${CARDINAL_STAGE_DIR}/unit
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_SOURCE_DIR}/unit/Makefile ${CARDINAL_STAGE_DIR}/unit/Makefile.unit
   COMMENT "Mirroring Cardinal source into the build tree"
   VERBATIM)
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/UnitMakefile
+                ${CARDINAL_STAGE_DIR}/unit/Makefile
+                COPYONLY)
 
 # -----------------------------------------------------------------------------
 # MOOSE (framework + modules) -- always required. Not a CMake project (MOOSE
@@ -1036,6 +1086,7 @@ set(_make_enable_args
   ENABLE_DAGMC=$<IF:$<BOOL:${ENABLE_DAGMC}>,yes,no>
   ENABLE_DOUBLE_DOWN=$<IF:$<BOOL:${ENABLE_DOUBLE_DOWN}>,yes,no>)
 
+
 if(ENABLE_NEK)
   list(APPEND _cardinal_depends nekrs nek_ci)
 endif()
@@ -1137,6 +1188,77 @@ add_custom_target(cardinal ALL
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
   DEPENDS ${_cardinal_depends}
   COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
+  USES_TERMINAL
+  VERBATIM)
+
+# -----------------------------------------------------------------------------
+# Cardinal's unit tests (unit/Makefile.unit -- see the mirror_source target
+# near the top of this file for why it's a renamed copy of unit's own,
+# unmodified Makefile). Not ALL: like cardinal-install below, this is
+# opt-in, matching the native build's own "you have to separately cd unit
+# && make" convention -- run_tests (via `cardinal`, ALL) is the test suite
+# that runs by default.
+#
+# unit/Makefile.unit is its own fully independent native-Makefile build
+# (its own ENABLE_NEK/ENABLE_OPENMC/ENABLE_DAGMC/ENABLE_DOUBLE_DOWN/
+# PETSC_DIR/LIBMESH_DIR/WASP_DIR/HDF5_ROOT `?=` defaults, entirely separate
+# from anything this superbuild computes), with no built-in way to know how
+# *this* build was actually configured -- invoking it with mismatched
+# settings doesn't error out, it silently rebuilds/reinstalls whichever
+# dependency disagrees (confirmed directly: the default ENABLE_DAGMC=no
+# against a tree built with DAGMC on rebuilt libopenmc.so *without* DAGMC
+# support, breaking the link of the already-built, DAGMC-enabled
+# libcardinal-opt.so with "undefined reference to
+# openmc::DAGSurface/DAGUniverse"). Force the same settings the "cardinal"
+# target above forces, for exactly the same reasons (see its own comments)
+# -- NEKRS_HOME is left out here too: unit/Makefile.unit computes it
+# unconditionally itself (`export NEKRS_HOME=$(CARDINAL_DIR)`, not `?=`),
+# so forcing it here would be redundant, not safer.
+#
+# DEPENDS ${_cardinal_depends}, deliberately *not* DEPENDS cardinal: it's
+# tempting to assume unit/Makefile.unit needs the "cardinal" target's own
+# cardinal-<method> already linked, since its own cardinal-unit-<method>
+# links against lib/libcardinal-<method>.so -- but unit/Makefile.unit is
+# actually fully self-contained: it `include`s $(FRAMEWORK_DIR)/app.mk
+# *twice*, once for APPLICATION_NAME=cardinal (building that exact same
+# library itself, from the main app's own source) and again for
+# APPLICATION_NAME=cardinal-unit (its own test binary) -- and separately
+# `include`s config/nekrs.mk/openmc.mk/etc, the same build_nekrs/
+# build_openmc/... rules Makefile.cardinal itself uses. It needs the
+# *sources* (and ideally the already-built installs) of MOOSE/NekRS/OpenMC/
+# etc to exist, exactly like "cardinal" itself does -- so DEPENDS the same
+# list "cardinal" depends on, not the "cardinal" target itself. Depending
+# on "cardinal" would force `cmake --build --target cardinal-unit` to also
+# fully re-run the *entire* `$(MAKE) -f Makefile.cardinal` invocation every
+# time (custom targets have no output tracking, so a DEPENDS on one always
+# re-runs it) -- on top of unit/Makefile.unit's own already-redundant
+# self-contained rebuild of the same dependencies, doubling the missing-
+# order-only-prereqs slowness rather than just inheriting it once.
+# Confirmed directly: with DEPENDS cardinal, `make -C unit` produced a
+# 30,000+ line log that fully rebuilt/re-verified "cardinal" (Makefile.
+# cardinal's own ~10,000-line run) before ever reaching unit's own build.
+#
+# ${_cardinal_depends} still (transitively) includes mirror_source, so this
+# guarantees unit/Makefile.unit already exists before this target's own
+# recipe ever runs, regardless of whether it's reached via
+# `cmake --build --target cardinal-unit` directly or via unit/Makefile's
+# own forwarding shim (cmake/UnitMakefile, copied in by mirror_source too).
+add_custom_target(cardinal-unit
+  COMMAND ${CMAKE_COMMAND} -DCARDINAL_METHOD=${_cardinal_method}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMethod.cmake
+  COMMAND ${CMAKE_COMMAND} -E env
+          CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          HDF5_ROOT=${HDF5_ROOT}
+          PETSC_DIR=${PETSC_DIR}
+          LIBMESH_DIR=${LIBMESH_DIR}
+          WASP_DIR=${WASP_DIR}
+          METHOD=${_cardinal_method}
+          ${_make_enable_args}
+          --
+          $(MAKE) -C unit -f Makefile.unit
+  WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
+  DEPENDS ${_cardinal_depends}
+  COMMENT "Building Cardinal's unit tests via unit/Makefile.unit in ${CARDINAL_STAGE_DIR}/unit"
   USES_TERMINAL
   VERBATIM)
 
