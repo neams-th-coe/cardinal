@@ -2751,7 +2751,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 }
 
 void
-OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
+OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback(bool apply_feedback)
 {
 #ifdef ENABLE_DAGMC
   if (_skinner)
@@ -2816,9 +2816,12 @@ OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
   // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
   // to be setting the temperature of all of the cells in cell_to_elem - only for the density
   // transfer do we need to filter for the fluid cells
-  sendTemperatureToOpenMC();
+  if (apply_feedback)
+  {
+    sendTemperatureToOpenMC();
 
-  sendDensityToOpenMC();
+    sendDensityToOpenMC();
+  }
 
   if (_export_properties)
     openmc_properties_export("properties.h5");
@@ -2841,13 +2844,13 @@ OpenMCCellAverageProblem::reinitCouplingAndApplyFeedback()
 }
 
 void
-OpenMCCellAverageProblem::critSearchStep()
+OpenMCCellAverageProblem::critSearchStep(bool apply_feedback)
 {
   _aux->serializeSolution();
 
   // Reinitialize the OpenMC coupling prior to the execution of
   // a criticality search step.
-  reinitCouplingAndApplyFeedback();
+  reinitCouplingAndApplyFeedback(apply_feedback);
 
   _aux->solution().close();
   _aux->system().update();

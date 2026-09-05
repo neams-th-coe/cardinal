@@ -61,6 +61,16 @@ CriticalitySearchBase::validParams()
       "Whether non-eigenvalue tallies should be disabled during the search process as a "
       "performance optimization. If set to 'false', `run_critical_state` must be set to 'true' "
       "to ensure tallies are computed on the last iteration.");
+  params.addParam<bool>(
+      "apply_feedback_in_search",
+      true,
+      "Whether temperature/density feedback should be re-applied when performing a criticality "
+      "search iteration. Setting this to 'false' will skip sending feedback to OpenMC on every "
+      "criticality search iteration, which improves performance at the cost of ignoring the "
+      "effect of remapping feedback on the final critical state. This optimization means that "
+      "your critical state is based on the temperatures/densities fed into OpenMC at the "
+      "beginning of the Picard iteration, which themselves could change as the OpenMC model "
+      "is changed during the criticality search.");
 
   params.addClassDescription(
       "Base class for defining parameters used in a criticality search in OpenMC.");
@@ -80,7 +90,8 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
     _estimator(getParam<MooseEnum>("estimator").getEnum<eigenvalue::EigenvalueEnum>()),
     _run_critical_state(getParam<bool>("run_critical_state")),
     _tally_during_search(getParam<bool>("tally_during_search")),
-    _target(getParam<Real>("target"))
+    _target(getParam<Real>("target")),
+    _apply_feedback_in_search(getParam<bool>("apply_feedback_in_search"))
 {
   if (_minimum >= _maximum)
     paramError("minimum",
@@ -99,7 +110,7 @@ CriticalitySearchBase::CriticalitySearchBase(const InputParameters & parameters)
 }
 
 void
-CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
+CriticalitySearchBase::searchForCriticality(std::function<void(bool)> step_callback)
 {
   _console << "Running criticality search in OpenMC for " << quantity() << " in range "
            << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " " << units() << " "
@@ -124,7 +135,7 @@ CriticalitySearchBase::searchForCriticality(std::function<void()> step_callback)
     // we need to ensure the correct temperatures and densities are applied to OpenMC cells
     // to maintain a critical state on the final solve. This also ensures that cell tallies
     // are extracted using the correct cell->element maps.
-    step_callback();
+    step_callback(_apply_feedback_in_search);
 
     // Disable tallies during the search. We need to run this on each step as Cardinal wrapped
     // tallies have been reset.

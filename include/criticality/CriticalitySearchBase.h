@@ -42,9 +42,10 @@ public:
   /**
    * Use Brent's method to search for criticality
    * @param[in] step_callback a callback to execute after the OpenMC model has been updated prior to
-   * running the OpenMC solve.
+   * running the OpenMC solve. This function takes a boolean parameter to determine if feedback
+   * should be sent to OpenMC on a given step or not
    */
-  virtual void searchForCriticality(std::function<void()> step_callback);
+  virtual void searchForCriticality(std::function<void(bool)> step_callback);
 
   /**
    * Whether this criticality search is modifying the OpenMC geometry.
@@ -94,4 +95,8 @@ protected:
 
   /// Postprocessor that holds the result of the criticality search
   const std::string _pp_name = "critical_value";
+
+  /// Whether temperature/density feedback should be applied in a
+  /// criticality search or not.
+  const bool & _apply_feedback_in_search;
 };

@@ -1,6 +1,6 @@
 [Tests]
   design = 'RotationSearch.md'
-  issues = '#1294 #1336'
+  issues = '#1294 #1336 #1454'
   [bad_lower_bound]
     type = RunException
     input = openmc.i
@@ -54,6 +54,18 @@
     cli_args = '--error'
     expect_err = "The OpenMC geometry is being moved"
     requirement = 'The system shall warn the user when a criticality search rotates the OpenMC geometry while the mesh remains stationary.'
+  []
+  [disable_feedback_in_search]
+    type = CSVDiff
+    input = disable_feedback.i
+    min_parallel = 6
+    csvdiff = disable_feedback_out.csv
+    # for computational expediency, the test is run with much fewer particles
+    requirement = 'The system shall allow users to skip the re-applying feedback in criticality searches. '
+                  'This test checks to see if the cell temperature is the same as the cell temperature '
+                  'sent to OpenMC when a criticality search is not in use. Setting apply_feedback_in_search '
+                  'to true (or a failure) will result in a mapped temperature of 600 K instead of the '
+                  'reported value of 408 K.'
     capabilities = 'openmc'
   []
 []
