@@ -67,7 +67,10 @@ CriticalitySearchBase::validParams()
       "Whether temperature/density feedback should be re-applied when performing a criticality "
       "search iteration. Setting this to 'false' will skip sending feedback to OpenMC on every "
       "criticality search iteration, which improves performance at the cost of ignoring the "
-      "effect of remapping feedback on the final critical state.");
+      "effect of remapping feedback on the final critical state. This optimization means that "
+      "your critical state is based on the temperatures/densities fed into OpenMC at the "
+      "beginning of the Picard iteration, which themselves could change as the OpenMC model "
+      "is changed during the criticality search.");
 
   params.addClassDescription(
       "Base class for defining parameters used in a criticality search in OpenMC.");
