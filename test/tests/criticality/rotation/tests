@@ -63,7 +63,9 @@
     # for computational expediency, the test is run with much fewer particles
     requirement = 'The system shall allow users to skip the re-applying feedback in criticality searches. '
                   'This test checks to see if the cell temperature is the same as the cell temperature '
-                  'sent to OpenMC when a criticality search is not in use.'
+                  'sent to OpenMC when a criticality search is not in use. Setting apply_feedback_in_search '
+                  'to true (or a failure) will result in a mapped temperature of 600 K instead of the '
+                  'reported value of 408 K.'
     capabilities = 'openmc'
   []
 []
