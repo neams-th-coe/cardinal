@@ -68,13 +68,13 @@
     type = SkinnedBins
     variable = rho_bins
     skinner = moab
-    skin_by = density
+    skin_by = rho
   []
   [temp_bins]
     type = SkinnedBins
     variable = temp_bins
     skinner = moab
-    skin_by = temperature
+    skin_by = temp
   []
   [subdomain_bins]
     type = SkinnedBins
@@ -103,19 +103,15 @@
 [UserObjects]
   [moab]
     type = MoabSkinner
+    fields = 'temp rho'
+    fields_min = '996 996'
+    fields_max = '1070 1070'
+    n_field_bins = '10 10'
     verbose = true
     material_blocks = "1"
     material_names = "mat"
 
-    temperature = temp
-    n_temperature_bins = 10
-    temperature_min = 996.0
-    temperature_max = 1070.0
 
-    density = rho
-    n_density_bins = 10
-    density_min = 996.0
-    density_max = 1070.0
 
     output_skins = true
   []

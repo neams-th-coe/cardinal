@@ -56,15 +56,11 @@ dT = 50.0
 [UserObjects]
   [moab]
     type = MoabSkinner
-    density_min = ${fparse T0 - dT}
-    density_max = ${fparse T0 + 2 * dT}
-    n_density_bins = 4
-    density = density
+    fields = 'temp density'
+    fields_min = '0 ${fparse T0 - dT}'
+    fields_max = '1000 ${fparse T0 + 2 * dT}'
+    n_field_bins = '1 4'
 
-    temperature = temp
-    n_temperature_bins = 1
-    temperature_min = 0.0
-    temperature_max = 1000.0
 
     build_graveyard = true
     output_skins = true

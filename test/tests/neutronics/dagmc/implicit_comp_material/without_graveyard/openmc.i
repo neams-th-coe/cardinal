@@ -47,10 +47,10 @@ dT = 50.0
 [UserObjects]
   [moab]
     type = MoabSkinner
-    temperature_min = ${fparse T0 - dT}
-    temperature_max = ${fparse T0 + 2 * dT}
-    n_temperature_bins = 4
-    temperature = temp
+    fields = 'temp'
+    fields_min = '${fparse T0 - dT}'
+    fields_max = '${fparse T0 + 2 * dT}'
+    n_field_bins = '4'
     build_graveyard = false
     implicit_complement_material="h2o"
   []

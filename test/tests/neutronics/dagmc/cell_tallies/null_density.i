@@ -70,18 +70,14 @@ dT = 50.0
 [UserObjects]
   [moab]
     type = MoabSkinner
-    temperature_min = ${fparse T0 - dT}
-    temperature_max = ${fparse T0 + 2 * dT}
-    n_temperature_bins = 4
-    temperature = temp
+    fields = 'temp density'
+    fields_min = '${fparse T0 - dT} 0'
+    fields_max = '${fparse T0 + 2 * dT} 15000'
+    n_field_bins = '4 1'
     build_graveyard = true
 
     # Effectively no density skinning at all, because theres just one bin.
     # Results should be the same as if there was no density skinning enabled.
-    density_min = 0.0
-    density_max = 15000.0
-    n_density_bins = 1
-    density = density
   []
 []
 
