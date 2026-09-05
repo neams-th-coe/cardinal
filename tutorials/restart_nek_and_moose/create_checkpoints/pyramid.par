@@ -8,11 +8,12 @@
   polynomialOrder = 2
   writeControl = steps
   writeInterval = 2
+  scalars = temperature
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
 
-[PRESSURE]
+[FLUID PRESSURE]
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   solver = none

@@ -11,8 +11,8 @@ cd cardinal/tutorials/other_apps
 ```
 
 For convenience purposes, Cardinal contains several other MOOSE applications
-as submodules - Sockeye and SAM, allowing you to simply build those
-applications in tandem with Cardinal and even run Sockeye/SAM input files
+as submodules, allowing you to simply build those
+applications in tandem with Cardinal and even run other app's input files
 with Cardinal's executable. But in the general case, you might want to couple
 Cardinal to an *arbitrary* MOOSE application. This tutorial will show how to
 use dynamic linking in order to couple Cardinal to a generic MOOSE application
