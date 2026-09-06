@@ -1,0 +1,17 @@
+[Tests]
+  issues = '#1459'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [control_relaxation]
+    type = CSVDiff
+    input = control_relax.i
+    csvdiff = control_relax_out.csv
+    requirement = "The system shall allow the MOOSE control system to enable/disable relaxation. "
+                  "This test golds against whether the relaxed and raw tally results are the same "
+                  "or not to harden the test against floating point optimizations. The control system "
+                  "enables relaxation on the third timestep, which is when the relaxed and raw tallies "
+                  "should be different due to relaxation. Otherwise, we expect the relaxed and raw tallies "
+                  "to be the same on timesteps one and two."
+    capabilities = 'openmc'
+  []
+[]
