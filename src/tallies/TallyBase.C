@@ -600,7 +600,7 @@ TallyBase::renormalizeLinkedTallies()
 }
 
 void
-TallyBase::relaxAndNormalizeTally()
+TallyBase::relaxAndNormalizeTally(bool is_relaxation_allowed)
 {
   Real alpha;
   switch (_relaxation_type)
@@ -629,6 +629,11 @@ TallyBase::relaxAndNormalizeTally()
     default:
       mooseError("Unhandled RelaxationEnum in TallyBase!");
   }
+
+  // Override the above if OpenMCCellAverageProblem is disabling relaxation
+  // (e.g. due to controls)
+  if (!is_relaxation_allowed)
+    alpha = 1.0;
 
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {

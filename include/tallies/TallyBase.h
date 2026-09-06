@@ -116,8 +116,10 @@ public:
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
+   * @param[in] is_relaxation_allowed whether the OpenMCCellAverageProblem allows tally relaxation
+   * or not
    */
-  void relaxAndNormalizeTally();
+  void relaxAndNormalizeTally(bool is_relaxation_allowed);
 
   /**
    * Add a linked tally for normalization.
