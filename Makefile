@@ -452,6 +452,10 @@ endif
 # build. unit/Makefile forwards to this target generically (`$(MAKE) -C ..
 # $@`), so the same unit/Makefile works under any build system that defines
 # an equivalent "cardinal-unit" (e.g. the CMake superbuild).
+# Line 213 above reassigns NEKRS_HOME from $(CONTRIB_INSTALL_DIR) to
+# $(CARDINAL_DIR), for NekRS's own runtime use. Without resetting it back
+# here, the recursive $(MAKE) below would inherit that reassigned value and
+# fail its own check_nekrs.mk, which expects $(CONTRIB_INSTALL_DIR).
 .PHONY: cardinal-unit
 cardinal-unit: $(app_LIB)
-	$(MAKE) -C $(CARDINAL_DIR) CARDINAL_UNIT_BUILD=yes
+	NEKRS_HOME=$(CONTRIB_INSTALL_DIR) $(MAKE) -C $(CARDINAL_DIR) CARDINAL_UNIT_BUILD=yes
