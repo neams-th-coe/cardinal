@@ -180,9 +180,12 @@ export NEKRS_HOME=$HOME/cardinal/build/install
 export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 ```
 
-If you want to control which compilers are used (rather than letting the configure step pick them
-up from a pre-built `LIBMESH_DIR`, or find `mpicc`/`mpicxx`/`mpif90` on `PATH`), set `CC`/`CXX`/`FC`
-in the environment *before* configuring, the same as the Makefile workflow.
+If libMesh is pre-built (`LIBMESH_DIR` given), the compilers used to build it are read back from it
+directly and used for everything else too, for toolchain consistency -- `CC`/`CXX`/`FC` in the
+environment don't come into it. Otherwise (building libMesh from source), the real MPI compilers are
+found automatically -- there's no need to set `CC`/`CXX`/`FC` yourself, and no need for the
+`export CC=mpicc`/`CXX=mpicxx`/`FC=mpif90` the Makefile workflow sometimes needs depending on which
+modules happen to be loaded. See [cmake_details.md](cmake_details.md) for the full story.
 
 #### GPU/OCCA Backend
   id=gpu
