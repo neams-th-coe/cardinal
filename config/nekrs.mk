@@ -8,7 +8,7 @@ OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 $(NEKRS_BUILDDIR)/Makefile: $(NEKRS_DIR)/CMakeLists.txt
 	mkdir -p $(NEKRS_BUILDDIR)
 	cd $(NEKRS_BUILDDIR) && \
-	cmake -L -Wno-dev -Wfatal-errors \
+	cmake -L -Wno-dev \
 	-DCMAKE_BUILD_TYPE="$(BUILD_TYPE)" \
 	-DCMAKE_C_COMPILER="$(LIBMESH_CC_LIST)" \
 	-DCMAKE_CXX_COMPILER="$(LIBMESH_CXX_LIST)" \
