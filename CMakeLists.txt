@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)  # find_program(... NO_CACHE) used below
+cmake_minimum_required(VERSION 3.21)
 project(CardinalSuperbuild NONE)
 
 # This is a *superbuild*: it never compiles Cardinal itself. It resolves and
@@ -550,11 +550,11 @@ endif()
 # Compiler discovery: if libMesh is pre-built, ask it directly (most
 # authoritative -- this is the same toolchain MOOSE/Cardinal itself needs to
 # use). Otherwise, libMesh doesn't exist yet so there's no chicken-and-egg
-# trick available -- pick compilers directly from the environment instead,
-# matching what SETENV/RUNME already rely on for the non-container path.
-# Trust that the user knows what they're doing if PETSC_DIR is externally
-# provided (e.g. a module load already implies a compatible compiler)
-# rather than trying to reverse-engineer PETSc's own build.
+# trick available -- ask CMake's own FindMPI to resolve the real MPI
+# compiler wrappers instead (see below). Trust that the user knows what
+# they're doing if PETSC_DIR is externally provided (e.g. a module load
+# already implies a compatible compiler) rather than trying to
+# reverse-engineer PETSc's own build.
 if(NOT CARDINAL_BUILD_LIBMESH)
   if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
     message(FATAL_ERROR "Could not find ${LIBMESH_DIR}/bin/libmesh-config -- is LIBMESH_DIR (${LIBMESH_DIR}) correct?")
@@ -578,29 +578,31 @@ if(NOT CARDINAL_BUILD_LIBMESH)
 
   message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 else()
-  if(DEFINED ENV{CC})
-    set(LIBMESH_CC $ENV{CC})
-  else()
-    find_program(LIBMESH_CC NAMES mpicc NO_CACHE)
-  endif()
-  if(DEFINED ENV{CXX})
-    set(LIBMESH_CXX $ENV{CXX})
-  else()
-    find_program(LIBMESH_CXX NAMES mpicxx NO_CACHE)
-  endif()
-  if(DEFINED ENV{FC})
-    set(LIBMESH_FC $ENV{FC})
-  else()
-    find_program(LIBMESH_FC NAMES mpif90 NO_CACHE)
-  endif()
-
-  foreach(_c LIBMESH_CC LIBMESH_CXX LIBMESH_FC)
-    if(NOT ${_c})
-      message(FATAL_ERROR
-        "Cardinal: could not find a compiler for ${_c} -- set CC/CXX/FC in "
-        "the environment, or make sure mpicc/mpicxx/mpif90 are on PATH.")
-    endif()
-  endforeach()
+  # Don't just trust CC/CXX/FC from the environment: it's easy to end up
+  # with a plain, non-MPI-aware one completely by accident (e.g. an HPC
+  # "compiler" module -- loaded for some unrelated reason, or left over
+  # from a previous session -- exporting its own CC=gcc as a generic
+  # convenience hint that has nothing to do with MPI). PETSc's/libMesh's
+  # own configure both require an MPI compiler; a wrong one doesn't fail
+  # here, it sails through and only blows up several minutes into one of
+  # those, with a message about that symptom rather than the actual cause
+  # -- see doc/content/hpc_build_run_tips.md's own `export CC=mpicc` /
+  # `CXX=mpicxx` / `FC=mpif90`, needed for exactly the same reason (and
+  # with exactly the same "depends on which modules happen to be loaded"
+  # unpredictability) in the old Make-based build.
+  #
+  # CMake's own FindMPI module already does this detection robustly and
+  # portably -- including cases a hand-rolled check wouldn't get right,
+  # e.g. Cray's cc/CC/ftn wrappers, which are already MPI-capable with no
+  # separate mpicc/mpicxx/mpif90 to find. Enabling the languages first
+  # means FindMPI can tell a plain CC=gcc apart from an actual MPI
+  # compiler and search PATH for mpicc/mpicxx/mpif90 on its own, rather
+  # than the CMakeLists.txt itself taking CC/CXX/FC at face value.
+  enable_language(C CXX Fortran)
+  find_package(MPI REQUIRED COMPONENTS C CXX Fortran)
+  set(LIBMESH_CC  ${MPI_C_COMPILER})
+  set(LIBMESH_CXX ${MPI_CXX_COMPILER})
+  set(LIBMESH_FC  ${MPI_Fortran_COMPILER})
 
   message(STATUS "Cardinal: building libMesh with CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
 endif()

@@ -353,8 +353,24 @@ target depends on that dependency's own CMake target at all.
   computed deep inside `framework/build.mk` which only runs once `make` starts -- too late for
   `ExternalProject_Add` configure steps, which need it up front.
 - +Otherwise+ (building libMesh ourselves): no chicken-and-egg trick available (libMesh doesn't
-  exist yet), so pick `CC`/`CXX`/`FC` directly from the environment if set, else
-  `find_program(mpicc/mpicxx/mpif90)` -- matching what the Makefile workflow already relies on.
+  exist yet), so ask CMake's own `FindMPI` instead: `enable_language(C CXX Fortran)` followed by
+  `find_package(MPI REQUIRED COMPONENTS C CXX Fortran)`, taking `MPI_C_COMPILER`/`MPI_CXX_COMPILER`/
+  `MPI_Fortran_COMPILER` as `CC`/`CXX`/`FC`.
+
+  Earlier revisions of this file just took `CC`/`CXX`/`FC` from the environment if set (else
+  `find_program(mpicc/mpicxx/mpif90)`), matching what the Makefile workflow already relies on --
+  but an explicit environment override is easy to get *wrong* by accident: an HPC "compiler" module
+  (loaded for some unrelated reason, or left over from a previous session) commonly exports its own
+  plain, non-MPI-aware `CC`/`CXX`/`FC` (e.g. `CC=gcc`) as a convenience hint that has nothing to do
+  with MPI -- see [the documented `export CC=mpicc`/`CXX=mpicxx`/`FC=mpif90` workaround](
+  hpc_build_run_tips.md) needed for the identical reason in the old Make-based build. Trusting that
+  at face value doesn't fail until libMesh's own `configure` gets around to needing MPI -- several
+  minutes in, with a message about *that* symptom rather than the actual cause. `find_package(MPI)`
+  sidesteps the problem entirely rather than just detecting it after the fact: with the languages
+  enabled, it tells a plain `CC=gcc` apart from an actual MPI compiler and searches `PATH` for
+  `mpicc`/`mpicxx`/`mpif90` on its own (or, e.g. on Cray systems, recognizes that the enabled
+  compiler is already MPI-capable, with no separate wrapper to find) -- so whatever ends up in
+  `CC`/`CXX`/`FC` is correct by construction, whether or not the environment agreed.
 
 Deliberately does *not* try to derive compilers from an externally provided `PETSC_DIR`'s own build
 info (e.g. reading its `petscvariables` for the exact compiler PETSc was built with), even though a
