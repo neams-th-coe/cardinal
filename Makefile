@@ -271,12 +271,30 @@ export LIBS := $(libmesh_LIBS)
 
 export CARDINAL_DIR
 
-APPLICATION_DIR    := $(CARDINAL_DIR)
-APPLICATION_NAME   := cardinal
+# Builds cardinal itself, unless CARDINAL_UNIT_BUILD=yes was passed on the
+# command line (see cardinal-unit's own recipe below) to build unit/'s
+# gtest-based unit tests against the same cardinal library instead, via a
+# separate recursive $(MAKE) rather than a second same-process app.mk
+# inclusion.
+#
+# A dedicated flag, not APPLICATION_DIR/APPLICATION_NAME themselves as ?=
+# defaults: modules.mk (included above) already assigns both internally
+# while building module_loader's combined-module library, so by the time
+# a cardinal-unit build would apply its own default, they're not merely
+# unset -- they're actively wrong. CARDINAL_UNIT_BUILD is untouched by that.
+ifeq ($(CARDINAL_UNIT_BUILD),yes)
+  APPLICATION_DIR    := $(CARDINAL_DIR)/unit
+  APPLICATION_NAME   := cardinal-unit
+  DEP_APPS           :=
+  INSTALLABLE_DIRS   :=
+else
+  APPLICATION_DIR    := $(CARDINAL_DIR)
+  APPLICATION_NAME   := cardinal
+  DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+  INSTALLABLE_DIRS   := test/tests->tests tutorials
+endif
 BUILD_EXEC         := yes
 GEN_REVISION       := yes
-DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-INSTALLABLE_DIRS   := test/tests->tests tutorials
 
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
@@ -371,6 +389,18 @@ ifneq (,$(findstring -lpng, $(LIBPNG_FLAGS)))
   $(info Linking libpng: $(LIBPNG_FLAGS))
 endif
 
+# cardinal-unit needs cardinal's own headers/library, plus GTEST. A plain +=
+# is safe here since this app.mk inclusion is the only one in this process.
+# Must be an exact match on "cardinal-unit", not merely "not cardinal":
+# MOOSE's own module-combining infrastructure (module_loader) also recurses
+# into this Makefile with APPLICATION_NAME set to its own module name.
+ifeq ($(APPLICATION_NAME),cardinal-unit)
+  ADDITIONAL_INCLUDES += -I$(CARDINAL_DIR)/build/header_symlinks
+  ADDITIONAL_LIBS     += -lcardinal-$(METHOD)
+  ADDITIONAL_INCLUDES += -I$(FRAMEWORK_DIR)/contrib/gtest
+  ADDITIONAL_LIBS     += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
+endif
+
 include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
@@ -405,75 +435,23 @@ $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 
-# ======================================================================================
-# Cardinal's unit tests (unit/src, unit/include -- gtest-based, linked against the
-# same cardinal library built above)
-# ======================================================================================
-
-# A second $(FRAMEWORK_DIR)/app.mk inclusion here is deliberate, not a copy/paste
-# leftover: MOOSE's own app.mk explicitly supports being included more than once in one
-# process ("Save off parameters for possible app.mk recursion", framework/app.mk) so a
-# second app can link against the library the first one just built -- app.mk
-# accumulates every included app's own library into app_LIBS (app.mk:268), which
-# becomes one of this second app's own depend_libs automatically (app.mk:254). No
-# separate "rebuild libcardinal" block is needed the way unit/Makefile used to carry
-# (and had to keep hand-copied in sync with everything above) -- this is the exact same
-# process/rule graph that already knows how to build lib/libcardinal-$(METHOD).la.
-#
-# Guarded so a plain `make`/`make cardinal-opt` (cardinal-unit not among the requested
-# goals) never even parses any of this: ADDITIONAL_INCLUDES/ADDITIONAL_LIBS (appended to
-# just below, for GTEST) are plain global variables read at recipe *execution* time, not
-# scoped to this include alone -- appending to them unconditionally would leak GTEST's
-# include path and library into cardinal-opt's own compile/link recipes too, even when
-# nobody asked to build cardinal-unit at all.
-ifneq ($(filter cardinal-unit%,$(MAKECMDGOALS)),)
-
-APPLICATION_DIR    := $(CARDINAL_DIR)/unit
-APPLICATION_NAME   := cardinal-unit
-BUILD_EXEC         := yes
-DEP_APPS           :=
-INSTALLABLE_DIRS   :=
-include            $(FRAMEWORK_DIR)/app.mk
-
-# Extra stuff for GTEST -- target-specific, not a plain += to the global
-# ADDITIONAL_INCLUDES/ADDITIONAL_LIBS, since a plain += to either would apply
-# to *every* recipe in this process, not just cardinal-unit's own, whenever
-# "cardinal" and "cardinal-unit" are both requested in the same `make`
-# invocation (this whole guarded block is parsed either way once
-# cardinal-unit is requested at all, so it can't tell the two cases apart on
-# its own). Confirmed live which of the two actually matters here:
-#   * ADDITIONAL_LIBS is referenced directly inside app.mk's own $(app_EXEC)
-#     link recipe text, expanded at recipe *execution* time like any
-#     recipe -- so without scoping this to cardinal-unit's own $(app_LIB)/
-#     $(app_test_LIB)/$(app_EXEC) (matching the EXTERNAL_FLAGS pattern
-#     already used above for "cardinal" itself), GTEST's library would
-#     silently link into cardinal-opt too.
-#   * ADDITIONAL_INCLUDES, by contrast, is only ever folded into app_INCLUDES
-#     (app.mk:270, a += done once, at *include-processing* time) -- so
-#     anything appended to it here, scoped or not, has no effect either way.
-#     Harmless either way regardless: MOOSE's own build.mk already adds
-#     framework/contrib/gtest to every app's own include path unconditionally,
-#     so cardinal-unit's own GTEST-based sources already have what they need
-#     without this. Left scoped anyway, in case that internal ever changes.
-$(app_objects) $(test_objects): ADDITIONAL_INCLUDES += -I$(FRAMEWORK_DIR)/contrib/gtest
-$(app_LIB) $(app_test_LIB) $(app_EXEC): ADDITIONAL_LIBS += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
-
-# app_objects/test_objects here are cardinal-unit's own (just reassigned by the
-# app.mk include above) -- matches the same order-only-ish dependency cardinal's own
-# app_objects/test_objects were given above.
-$(app_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
-$(test_objects): build_nekrs build_moab build_embree build_doubledown build_dagmc build_openmc
-
-$(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
-$(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
-$(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
-
-# Find all the cardinal unit test source files and include their dependencies.
-cardinal_unit_srcfiles := $(shell find $(APPLICATION_DIR)/src -name "*.C")
-cardinal_unit_deps := $(patsubst %.C, %.$(obj-suffix).d, $(cardinal_unit_srcfiles))
--include $(cardinal_unit_deps)
-
-.PHONY: cardinal-unit
-cardinal-unit: $(app_EXEC)
-
+ifeq ($(APPLICATION_NAME),cardinal-unit)
+  # -lcardinal-$(METHOD) above is just a linker flag, so make it a real
+  # prerequisite too: fails loudly if cardinal's library is missing, and
+  # relinks cardinal-unit if it's newer, even though this process has no
+  # rule to *build* it (only to check its mtime).
+  $(app_LIB) $(app_test_LIB) $(app_EXEC): $(CARDINAL_DIR)/lib/libcardinal-$(METHOD).la
 endif
+
+# cardinal-unit (unit/src, unit/include -- gtest-based) builds cardinal's
+# own library first (a normal, in-process prerequisite), then recurses with
+# CARDINAL_UNIT_BUILD=yes to build cardinal-unit against it -- rather than
+# including app.mk a second time in this same process, which would need a
+# `MAKECMDGOALS`-based guard to keep app.mk's own `all: $(app_EXEC)`
+# (app.mk:316,332) from folding cardinal-unit into a plain `make`'s default
+# build. unit/Makefile forwards to this target generically (`$(MAKE) -C ..
+# $@`), so the same unit/Makefile works under any build system that defines
+# an equivalent "cardinal-unit" (e.g. the CMake superbuild).
+.PHONY: cardinal-unit
+cardinal-unit: $(app_LIB)
+	$(MAKE) -C $(CARDINAL_DIR) CARDINAL_UNIT_BUILD=yes
