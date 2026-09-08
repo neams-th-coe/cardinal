@@ -841,7 +841,7 @@ protected:
    * Whether relaxation is allowed or not. Used to toggle relaxation with the MOOSE
    * controls system.
    */
-  const bool & _is_relaxation_allowed_by_controls;
+  const bool & _is_relaxation_enabled_by_controls;
 
   /// Type of relaxation to apply to the OpenMC tallies
   const relaxation::RelaxationEnum _relaxation;

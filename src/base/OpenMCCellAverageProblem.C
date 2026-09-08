@@ -160,11 +160,11 @@ OpenMCCellAverageProblem::validParams()
       "you to set 'identical_cell_fills' to speed up initialization");
 
   params.addParam<bool>(
-      "allow_relaxation",
+      "relaxation_on",
       true,
       "Whether relaxation should be enabled or not on a given Picard iteration. This boolean "
       "allows relaxation to be toggled on or off using the MOOSE control system.");
-  params.declareControllable("allow_relaxation");
+  params.declareControllable("relaxation_on");
 
   params.addParam<MooseEnum>(
       "relaxation", getRelaxationEnum(), "Type of relaxation to apply to the OpenMC solution");
@@ -203,7 +203,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
-    _is_relaxation_allowed_by_controls(getParam<bool>("allow_relaxation")),
+    _is_relaxation_enabled_by_controls(getParam<bool>("relaxation_on")),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
@@ -2730,7 +2730,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // results.
       for (unsigned int i = 0; i < _local_tallies.size(); ++i)
       {
-        _local_tallies[i]->relaxAndNormalizeTally(_is_relaxation_allowed_by_controls);
+        _local_tallies[i]->relaxAndNormalizeTally(_is_relaxation_enabled_by_controls);
 
         for (unsigned int score = 0; score < _local_tallies[i]->getScores().size(); ++score)
         {
