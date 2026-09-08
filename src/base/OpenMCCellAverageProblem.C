@@ -2401,8 +2401,14 @@ OpenMCCellAverageProblem::externalSolve()
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
-  if (_relaxation == relaxation::dufek_gudowski && !firstSolve())
-    dufekGudowskiParticleUpdate();
+  if (_relaxation == relaxation::dufek_gudowski)
+  {
+    // Update the particles per batch only if this isn't the first solve. Note that if relaxation
+    // is disabled by the control system, dufekGudowskiParticleUpdate() will not change the number
+    // of particles per batch as the total number of relaxed particles simulated is not incremented.
+    if (!firstSolve())
+      dufekGudowskiParticleUpdate();
+  }
   else
   {
     if (isParamValid("particles"))
@@ -2418,6 +2424,15 @@ OpenMCCellAverageProblem::externalSolve()
   }
 
   OpenMCProblemBase::externalSolve();
+
+  // Only update the number of relaxed fixed point iterations and total number of particles
+  // when relaxation is active. This ensures Robbins-Monro and Dufek-Gudowski sequences progress
+  // as expected when relaxation is enabled -> disabled -> enabled.
+  if (_is_relaxation_enabled_by_controls)
+  {
+    _relaxed_fp_iterations++;
+    _relaxed_total_n_particles += openmc::settings::n_particles;
+  }
 }
 
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
@@ -2672,7 +2687,7 @@ void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
   int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 +
-                                          4.0 * _n_particles_1 * _total_n_particles)) /
+                                          4.0 * _n_particles_1 * _relaxed_total_n_particles)) /
               2.0;
   openmc::settings::n_particles = n;
 }

@@ -617,13 +617,13 @@ TallyBase::relaxAndNormalizeTally(bool is_relaxation_allowed)
     }
     case relaxation::robbins_monro:
     {
-      alpha = 1.0 / (_openmc_problem.fixedPointIteration() + 1);
+      alpha = 1.0 / (_openmc_problem.relaxedFixedPointIteration() + 1);
       break;
     }
     case relaxation::dufek_gudowski:
     {
       alpha = static_cast<float>(_openmc_problem.nParticles()) /
-              static_cast<float>(_openmc_problem.nTotalParticles());
+              static_cast<float>(_openmc_problem.nRelaxedTotalParticles());
       break;
     }
     default:
