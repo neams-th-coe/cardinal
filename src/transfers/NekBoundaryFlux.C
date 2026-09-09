@@ -26,6 +26,10 @@ InputParameters
 NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
+  params.addParam<MooseEnum>(
+      "flux",
+      getNekFluxEnum(),
+      "Which type of flux this transfer corresponds to; this is only important if running in non-dimensional form. For instance, if 'heat_flux', then the quantity transferred between NekRS and MOOSE represents a heat flux. If 'scalar01', then the quantity transferred instead represents a flux of whatever scalar01 corresponds to, such as a mass flux. These quantities may have different characteristic scales and therefore require different scalings.");
   params.addParam<Real>(
       "initial_flux_integral",
       0,
@@ -52,14 +56,16 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _boundary(_nek_mesh->boundary()),
+    _flux_type(getParam<MooseEnum>("flux").getEnum<flux::NekFluxEnum>()),
+    _write_field(nekrs::fluxToWriteField(_flux_type)),
     _reference_flux_integral(nekrs::referenceArea() *
-                             nekrs::nondimensionalDivisor(field::heat_flux))
+                             nekrs::nondimensionalDivisor(_write_field))
 {
   if (!_boundary)
     mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
                "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
 
-  nekrs::checkFieldValidity(field::temperature);
+  nekrs::checkFieldValidity(nekrs::fluxToEquationField(_flux_type));
 
   // add the variables for the coupling and perform checks on problem setup
   if (_direction == "from_nek")
@@ -75,10 +81,10 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 
     // right now, all of our systems used for transferring data assume that if we have a volume
     // mesh mirror, that we will be writing data to that entire mesh mirror. But this is not the
-    // case if we want to write a heat flux - since the notion of a unit outward normal is s
+    // case if we want to write a flux - since the notion of a unit outward normal is s
     // surface quantity. For now, just prevent users from doing this.
     if (_nek_mesh->volume())
-      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary "
+      mooseError("The NekBoundaryFlux does not currently support writing flux on a boundary "
                  "when the Mesh has 'volume = true.' Please contact the Cardinal developer team if "
                  "you require this feature.");
   }
@@ -90,10 +96,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
-    // interpretation
-    auto d = nekrs::nondimensionalDivisor(field::heat_flux);
-    auto a = nekrs::nondimensionalAdditive(field::heat_flux);
+    auto d = nekrs::nondimensionalDivisor(_write_field);
+    auto a = nekrs::nondimensionalAdditive(_write_field);
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
     // Check that the correct flux boundary condition is set on all of nekRS's
@@ -103,18 +107,18 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     if (_boundary && nekrs::hasTemperatureSolve())
       for (const auto & b : *_boundary)
         if (!nekrs::isHeatFluxBoundary(b))
-          mooseError("In order to send a boundary heat flux to NekRS, you must have a heat flux "
+          mooseError("In order to send a boundary flux to NekRS, you must have a flux "
                      "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
                      std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
                      "' instead of 'udfNeumann'.");
 
     if (!nekrs::hasTemperatureSolve())
       mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
-                   ".par', NekRS will not solve for temperature. The heat flux sent by this object "
+                   ".par', NekRS will not solve for temperature. The flux sent by this object "
                    "will be unused.");
   }
 
-  // add postprocessors to hold integrated heat flux
+  // add postprocessors to hold integrated flux
   if (_direction == "to_nek")
   {
     // add the postprocessor that receives the flux integral for normalization
@@ -144,7 +148,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   }
   else
   {
-    // create a NekHeatFluxIntegral postprocessor to compute the heat flux
+    // create a NekHeatFluxIntegral postprocessor to compute the flux
     auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
     pp_params.set<std::vector<int>>("boundary") = *_boundary;
 
@@ -159,9 +163,9 @@ void
 NekBoundaryFlux::readDataFromNek()
 {
   if (!_nek_mesh->volume())
-    _nek_problem.boundarySolution(field::heat_flux, _external_data);
+    _nek_problem.boundarySolution(_write_field, _external_data);
   else
-    _nek_problem.volumeSolution(field::heat_flux, _external_data);
+    _nek_problem.volumeSolution(_write_field, _external_data);
 
   fillAuxVariable(_variable_number[_variable], _external_data);
 
@@ -173,8 +177,8 @@ NekBoundaryFlux::sendDataToNek()
 {
   _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
            << std::endl;
-  auto d = nekrs::nondimensionalDivisor(field::heat_flux);
-  auto a = nekrs::nondimensionalAdditive(field::heat_flux);
+  auto d = nekrs::nondimensionalDivisor(_write_field);
+  auto a = nekrs::nondimensionalAdditive(_write_field);
 
   if (!_nek_mesh->volume())
   {
@@ -204,12 +208,12 @@ NekBoundaryFlux::sendDataToNek()
   }
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
-  // the heat flux, we will need to normalize the flux on the nekRS side by the
+  // the flux, we will need to normalize the flux on the nekRS side by the
   // flux computed by the coupled MOOSE app. For this and the next check of the
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(_write_field);
 
   // integrate the flux over each individual boundary
   std::vector<double> nek_flux_sidesets =
@@ -288,7 +292,7 @@ void
 NekBoundaryFlux::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
 {
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(_write_field);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,

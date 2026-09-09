@@ -78,6 +78,42 @@ setStartTime(const double & start)
   platform->options.setArgs("START TIME", to_string_f(start));
 }
 
+field::NekWriteEnum
+fluxToWriteField(const flux::NekFluxEnum & f)
+{
+  switch (f)
+  {
+    case flux::heat_flux:
+      return field::heat_flux;
+    case flux::scalar01_flux:
+      return field::scalar01_flux;
+    case flux::scalar02_flux:
+      return field::scalar02_flux;
+    case flux::scalar03_flux:
+      return field::scalar03_flux;
+    default:
+      mooseError("Unhandled NekFluxEnum!");
+  }
+}
+
+field::NekFieldEnum
+fluxToEquationField(const flux::NekFluxEnum & f)
+{
+  switch (f)
+  {
+    case flux::heat_flux:
+      return field::temperature;
+    case flux::scalar01_flux:
+      return field::scalar01;
+    case flux::scalar02_flux:
+      return field::scalar02;
+    case flux::scalar03_flux:
+      return field::scalar03;
+    default:
+      mooseError("Unhandled NekFluxEnum!");
+  }
+}
+
 void
 write_usrwrk_field_file(const int & usrWriterSize,
                         const int & usrWriterIndex,

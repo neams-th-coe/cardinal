@@ -25,6 +25,7 @@ MooseEnum getSynchronizationEnum();
 MooseEnum getNekOrderEnum();
 MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
+MooseEnum getNekFluxEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getTallyEstimatorEnum();
@@ -88,6 +89,18 @@ enum BinnedVelocityComponentEnum
   user
 };
 } // namespace component
+
+namespace flux
+{
+/// Enumeration of possible fluxes to read/write with NekRS
+enum NekFluxEnum
+{
+  heat_flux,
+  scalar01_flux,
+  scalar02_flux,
+  scalar03_flux
+};
+}
 
 namespace field
 {
