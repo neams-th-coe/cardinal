@@ -11,14 +11,13 @@
   [control_relaxation]
     type = BoolFunctionControl
     function = 'turn_on_relaxation'
-    parameter = '*/*/allow_relaxation'
+    parameter = '*/*/relaxation_on'
     # Execute before we run OpenMC
     execute_on = 'TIMESTEP_BEGIN'
   []
 []
 
 [Problem]
-  allow_relaxation = false
   relaxation = 'constant'
 
   xml_directory = './cell_tallies'

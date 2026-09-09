@@ -2,16 +2,37 @@
   issues = '#1459'
   design = 'OpenMCCellAverageProblem.md'
 
-  [control_relaxation]
+  [control_const_relaxation]
     type = CSVDiff
-    input = control_relax.i
-    csvdiff = control_relax_out.csv
-    requirement = "The system shall allow the MOOSE control system to enable/disable relaxation. "
+    input = control_const_relax.i
+    csvdiff = control_const_relax_out.csv
+    requirement = "The system shall allow the MOOSE control system to enable/disable constant relaxation. "
                   "This test golds against whether the relaxed and raw tally results are the same "
                   "or not to harden the test against floating point optimizations. The control system "
                   "enables relaxation on the third timestep, which is when the relaxed and raw tallies "
                   "should be different due to relaxation. Otherwise, we expect the relaxed and raw tallies "
                   "to be the same on timesteps one and two."
+    capabilities = 'openmc'
+  []
+  [control_rm_relaxation]
+    type = CSVDiff
+    input = control_robbins_monro.i
+    csvdiff = control_robbins_monro_out.csv
+    requirement = "The system shall allow the MOOSE control system to enable/disable Robbins-Monro relaxation. "
+                  "This test golds against the values of the relaxation factor alpha (computed from tally "
+                  "fields), which are checked against manually computed values. The expected values of alpha "
+                  "can be found in the test input file."
+    capabilities = 'openmc'
+  []
+  [control_dg_relaxation]
+    type = CSVDiff
+    input = control_const_relax.i
+    csvdiff = control_const_relax_out.csv
+    requirement = "The system shall allow the MOOSE control system to enable/disable Dufek-Gudowski relaxation. "
+                  "This test golds against the values of the relaxation factor alpha (computed from tally "
+                  "fields), which are checked against manually computed values. The number of particles "
+                  "simulated are also golded against. The expected values of alpha can be found in the "
+                  "test input file."
     capabilities = 'openmc'
   []
 []
