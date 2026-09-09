@@ -429,9 +429,9 @@ public:
 
 protected:
   /**
-   * A virtual function to allow for execution prior to each step in a criticality search.
-   * @param[in] apply_feedback whether temperatures/densities should be sent to OpenMC
-   * on a criticality search iteration or not
+   * A virtual function to allow for execution prior to each guess in a criticality search.
+   * @param[in] apply_feedback whether or not to send temperatures/densities
+   *  to OpenMC before it runs transport to evaluate each guess.
    */
   virtual void critSearchStep(bool apply_feedback) = 0;
 

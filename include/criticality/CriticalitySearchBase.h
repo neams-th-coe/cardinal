@@ -43,7 +43,7 @@ public:
    * Use Brent's method to search for criticality
    * @param[in] step_callback a callback to execute after the OpenMC model has been updated prior to
    * running the OpenMC solve. This function takes a boolean parameter to determine if feedback
-   * should be sent to OpenMC on a given step or not
+   * should be sent to OpenMC before each guess or not
    */
   virtual void searchForCriticality(std::function<void(bool)> step_callback);
 
