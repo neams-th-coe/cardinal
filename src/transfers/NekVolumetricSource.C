@@ -71,15 +71,12 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
   // equations. NOTE: This check is imperfect, because even if there is a source kernel,
   // we cannot tell _which_ passive scalar equation that it is applied to (we have
   // source kernels for the RANS passive scalar equations, for instance).
+  nekrs::checkFieldValidity(field::temperature);
+
   if (nekrs::hasTemperatureSolve() && !nekrs::hasHeatSourceKernel())
     mooseWarning(
         "In order to use the volumetric heat source sent to NekRS, you must have an OCCA source "
         "kernel in the passive scalar equations! The heat source will currently be unused.");
-
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("In order to send a volumetric heat source to NekRS, your case files must have a "
-               "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
-               _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
 
   if (!nekrs::hasTemperatureSolve())
     mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +

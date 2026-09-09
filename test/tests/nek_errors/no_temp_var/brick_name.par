@@ -1,0 +1,24 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1000
+  dt = 5.0e-4
+  polynomialOrder = 3
+  checkpointControl = steps
+  checkpointInterval = 2
+  scalars = other
+  udf = "brick.udf"
+  oudf = "brick.oudf"
+
+[MESH]
+  file = "brick.re2"
+
+[FLUID VELOCITY]
+  solver = none
+
+[FLUID PRESSURE]
+
+[SCALAR OTHER]
+  solver = none
