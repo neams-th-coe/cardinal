@@ -106,6 +106,20 @@ std::vector<dfloat> yPlus(const std::vector<int> & boundary_id);
 std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
 
 /**
+ * Get the variable field that corresponds to a given flux
+ * @param[in] f type of flux
+ * @return type of equation this corresponds to
+ */
+field::NekFieldEnum fluxToEquationField(const flux::NekFluxEnum & f);
+
+/**
+ * Convert between a flux enumeration and write enumeration
+ * @param[in] f type of flux
+ * @return type of quantity to be written
+ */
+field::NekWriteEnum fluxToWriteField(const flux::NekFluxEnum & f);
+
+/**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
  * @param[in] tol tolerance
  */
