@@ -54,6 +54,7 @@
     cli_args = '--error'
     expect_err = "The OpenMC geometry is being moved"
     requirement = 'The system shall warn the user when a criticality search rotates the OpenMC geometry while the mesh remains stationary.'
+    capabilities = 'openmc'
   []
   [disable_feedback_in_search]
     type = CSVDiff
