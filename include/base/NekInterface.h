@@ -788,8 +788,8 @@ struct characteristicScales
   double V_ref = 1;
   double rho_ref = 1;
   double Cp_ref = 1;
-  double flux_ref = 1;
-  double source_ref = 1;
+  double heat_flux_ref = 1;
+  double heat_source_ref = 1;
   double t_ref = 1;
   double s01_ref = 0;
   double ds01_ref = 1;

@@ -1481,7 +1481,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // multiply by the reference heat flux and an area factor to dimensionalize
-  total_integral *= scales.flux_ref * scales.A_ref;
+  total_integral *= scales.heat_flux_ref * scales.A_ref;
 
   return total_integral;
 }
@@ -1800,7 +1800,7 @@ checkFieldValidity(const field::NekWriteEnum & field)
 {
   switch (field)
   {
-    case field::flux:
+    case field::heat_flux:
       if (!hasTemperatureVariable())
         mooseError("Cannot get NekRS heat flux "
                    "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
@@ -1882,7 +1882,7 @@ double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
 
   switch (field)
   {
-    case field::flux:
+    case field::heat_flux:
       f = &get_flux;
       break;
     default:
@@ -1996,8 +1996,8 @@ initializeDimensionalScales(const double U,
   scales.s03_ref = s03;
   scales.ds03_ref = ds03;
 
-  scales.flux_ref = rho * U * Cp * dT;
-  scales.source_ref = scales.flux_ref / L;
+  scales.heat_flux_ref = rho * U * Cp * dT;
+  scales.heat_source_ref = scales.heat_flux_ref / L;
 }
 
 double
@@ -2047,7 +2047,7 @@ nondimensionalAdditive(const field::NekWriteEnum & field)
 {
   switch (field)
   {
-    case field::flux:
+    case field::heat_flux:
     case field::heat_source:
     case field::x_displacement:
     case field::y_displacement:
@@ -2066,10 +2066,10 @@ nondimensionalDivisor(const field::NekWriteEnum & field)
 {
   switch (field)
   {
-    case field::flux:
-      return scales.flux_ref;
+    case field::heat_flux:
+      return scales.heat_flux_ref;
     case field::heat_source:
-      return scales.source_ref;
+      return scales.heat_source_ref;
     case field::x_displacement:
     case field::y_displacement:
     case field::z_displacement:
@@ -2128,10 +2128,10 @@ nondimensionalDivisor(const field::NekFieldEnum & field)
 Real
 scratchUnits(const int slot)
 {
-  // if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
-  //   return scales.flux_ref;
+  // if (indices.heat_flux != -1 && slot == indices.heat_flux / nekrs::fieldOffset())
+  //   return scales.heat_flux_ref;
   // else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
-  //   return scales.source_ref;
+  //   return scales.heat_source_ref;
   if (is_nondimensional)
   {
     mooseDoOnce(mooseWarning(
