@@ -36,9 +36,16 @@ t^\dagger\equiv\frac{t}{L_{ref}/u_{ref}}
 
 where $\dagger$ superscripts indicate nondimensional quantities.
 `U` is used to specify $u_{ref}$, `T` is used to specify $T_{ref}$,
-`dT` is used to specify $\Delta T$, `L` is used to specify $L_{ref}$,
+`dT` is used to specify $\Delta T$, `L` is used to specify $L_{ref}$.
 `rho` is used to specify $\rho_0$, and `Cp` is used to specify $C_{p,0}$
-(which does not appear above, but is necessary for scaling a volumetric heat source).
+(which does not appear above, but is necessary for scaling volumetric heat sources and boundary heat fluxes).
+Similar quantities, `transport_coeff_1`, `transport_coeff_2`, and `transport_coeff_3` indicate the coefficient on the time
+term in the generic passive scalar equations. For instance, if passive scalar 2 represents
+a mass concentraion equation, then `transport_coeff_2` would most likely be set to 1.0, since passive scalar equations
+for mass transport generally do not have a material property in front of the material derivative.
+Alternatively, if scalar 3 represents temperature, then `transport_coeff_3` would equal the volumetric specific heat
+(density times specific heat).
+
 Finally, the mesh mirror must be in the same units as used in the coupled MOOSE application,
 so the `scaling` parameter on [NekRSMesh](NekRSMesh.md) must be set to
 dimensionalize the nondimensional `.re2` mesh. In other words,
@@ -112,21 +119,21 @@ and for a heat flux $\vec{q}$ as
 \end{aligned}
 \end{equation}
 
-For a passive scalar $s$, for simplicity it is assumed that the coefficient on the material derivative is unity (so that `diffusionCoeff` is 1) so that
+For a passive scalar $s$, where $a_0$ represents the transport coefficient for this scalar,
 
 \begin{equation}
 \begin{aligned}
-\left(\frac{\partial s}{\partial t}+u_i\frac{\partial s}{\partial x_i}\right)=&\ D_0\frac{\partial^2 s}{\partial x_i\partial x_i}+\dot{c}\\
-\left(\frac{\partial (s^\dagger\Delta s+s_{ref})}{\partial (t^\dagger L_{ref}/u_{ref})}+u_i^\dagger u_{ref}\frac{\partial (s^\dagger\Delta s+s_{ref})}{\partial (x_i^\dagger L_{ref})}\right)=&\ D_0\frac{\partial^2 (s^\dagger\Delta s+s_{ref})}{\partial (x_i^\dagger L_{ref})\partial (x_i^\dagger L_{ref})}+\dot{c}^\dagger \dot{c}_0\\
-\frac{\Delta su_{ref}}{L_{ref}}\left(\frac{\partial s^\dagger}{\partial t^\dagger }+u_i^\dagger \frac{\partial s^\dagger}{\partial x_i^\dagger }\right)=&\ D_0\frac{\Delta s}{L_{ref}^2}\frac{\partial^2 s^\dagger}{\partial x_i^\dagger \partial x_i^\dagger }+\dot{c}^\dagger \dot{c}_0\\
-\frac{\partial s^\dagger}{\partial t^\dagger }+u_i^\dagger \frac{\partial s^\dagger}{\partial x_i^\dagger }=&\ \underbrace{\frac{D_0}{u_{ref}L_{ref}}}_{1/Pe}\frac{\partial^2 s^\dagger}{\partial x_i^\dagger \partial x_i^\dagger }+\dot{c}^\dagger \dot{c}_0\frac{L_{ref}}{u_{ref}\Delta s}\\
+a_0\left(\frac{\partial s}{\partial t}+u_i\frac{\partial s}{\partial x_i}\right)=&\ D_0\frac{\partial^2 s}{\partial x_i\partial x_i}+\dot{c}\\
+a_0\left(\frac{\partial (s^\dagger\Delta s+s_{ref})}{\partial (t^\dagger L_{ref}/u_{ref})}+u_i^\dagger u_{ref}\frac{\partial (s^\dagger\Delta s+s_{ref})}{\partial (x_i^\dagger L_{ref})}\right)=&\ D_0\frac{\partial^2 (s^\dagger\Delta s+s_{ref})}{\partial (x_i^\dagger L_{ref})\partial (x_i^\dagger L_{ref})}+\dot{c}^\dagger \dot{c}_0\\
+\frac{a_0\Delta su_{ref}}{L_{ref}}\left(\frac{\partial s^\dagger}{\partial t^\dagger }+u_i^\dagger \frac{\partial s^\dagger}{\partial x_i^\dagger }\right)=&\ D_0\frac{\Delta s}{L_{ref}^2}\frac{\partial^2 s^\dagger}{\partial x_i^\dagger \partial x_i^\dagger }+\dot{c}^\dagger \dot{c}_0\\
+\frac{\partial s^\dagger}{\partial t^\dagger }+u_i^\dagger \frac{\partial s^\dagger}{\partial x_i^\dagger }=&\ \underbrace{\frac{D_0}{a_0u_{ref}L_{ref}}}_{1/Pe}\frac{\partial^2 s^\dagger}{\partial x_i^\dagger \partial x_i^\dagger }+\dot{c}^\dagger \dot{c}_0\frac{L_{ref}}{a_0u_{ref}\Delta s}\\
 \end{aligned}
 \end{equation}
 
 The above shows that the reference scale for a volumetric scalar source, $\dot{c}_0$ is selected as
 
 \begin{equation}
-\dot{c}_0=\frac{u_{ref}\Delta s}{L_{ref}}
+\dot{c}_0=\frac{a_0u_{ref}\Delta s}{L_{ref}}
 \end{equation}
 
 and for a scalar flux $\vec{J}$ as
@@ -134,7 +141,7 @@ and for a scalar flux $\vec{J}$ as
 \begin{equation}
 \begin{aligned}
 \vec{J}_0=&\ \dot{c}_0L_{ref}\\
-=&\ u_{ref}\Delta s
+=&\ a_0u_{ref}\Delta s
 \end{aligned}
 \end{equation}
 

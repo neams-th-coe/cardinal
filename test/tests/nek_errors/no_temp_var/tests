@@ -3,7 +3,7 @@
   [flux]
     type = RunException
     input = nek.i
-    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file (i.e. in a \[SCALAR TEMPERATURE\] block). However, your par file does not have any passive scalars."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your par file does not have any passive scalars."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for flux coupling."
     capabilities = 'nekrs'
@@ -13,7 +13,7 @@
     type = RunException
     input = nek.i
     cli_args = 'Problem/casename="brick_name"'
-    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file (i.e. in a \[SCALAR TEMPERATURE\] block). However, your first passive scalar is named OTHER."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your first passive scalar is named OTHER."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS based on the name not matching 'temperature'"
     capabilities = 'nekrs'
@@ -22,7 +22,7 @@
   [source]
     type = RunException
     input = source.i
-    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file (i.e. in a \[SCALAR TEMPERATURE\] block). However, your par file does not have any passive scalars."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your par file does not have any passive scalars."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for source coupling."
     capabilities = 'nekrs'

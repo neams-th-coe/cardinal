@@ -88,14 +88,4 @@
     capabilities = 'nekrs'
     design = 'NekRSMesh.md NekRSProblem.md'
   []
-  [scalar_coeff]
-    type = RunException
-    input = coeff.i
-    expect_err = "The \[Dimensionalize\] block currently assumes that passive scalars use a transportCoeff (the coefficient on the time derivative term) of unity in the par file"
-    requirement = "The system shall error if the passive scalars need to be non-dimensionalized according to a non-unity coefficient on the time derivative"
-    max_parallel = 12
-    capabilities = 'nekrs'
-    design = 'NekRSProblem.md'
-    issues = '#1296'
-  []
 []

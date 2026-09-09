@@ -395,16 +395,6 @@ viscosity()
 }
 
 double
-scalarTransportCoeff(const int scalarId)
-{
-  // TODO: this does not account for the possibility that the user sets the coefficient from the udf
-  std::string scalar_id = std::to_string(scalarId + 1);
-  dfloat coeff;
-  platform->options.getArgs("SCALAR0" + scalar_id + " TRANSPORTCOEFF", coeff);
-  return coeff;
-}
-
-double
 Pr()
 {
   dfloat rho, rho_cp, k;
@@ -1692,11 +1682,11 @@ get_temperature(const int id, const int surf_offset)
 }
 
 double
-get_flux(const int id, const int surf_offset)
+get_flux(const int sid, const int id, const int surf_offset)
 {
-  // TODO: this function does not support non-constant thermal conductivity
+  // TODO: this function does not support non-constant diffusion coefficient
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+  platform->options.getArgs("SCALAR0" + std::to_string(sid) + " DIFFUSIONCOEFF", k);
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh
@@ -1704,7 +1694,6 @@ get_flux(const int id, const int surf_offset)
   int elem_id = id / mesh->Np;
   int vertex_id = id % mesh->Np;
 
-  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
   const int offset = sid * scalarFieldOffset();
   // This function is slightly inefficient, because we compute grad(T) for all nodes in
   // an element even though we only call this function for one node at a time
@@ -1717,6 +1706,30 @@ get_flux(const int id, const int surf_offset)
   freePointer(grad_T);
 
   return -k * normal_grad_T;
+}
+
+double
+get_heat_flux(const int id, const int surf_offset)
+{
+  return get_flux(0, id, surf_offset);
+}
+
+double
+get_scalar01_flux(const int id, const int surf_offset)
+{
+  return get_flux(1, id, surf_offset);
+}
+
+double
+get_scalar02_flux(const int id, const int surf_offset)
+{
+  return get_flux(2, id, surf_offset);
+}
+
+double
+get_scalar03_flux(const int id, const int surf_offset)
+{
+  return get_flux(3, id, surf_offset);
 }
 
 double
@@ -1815,6 +1828,36 @@ checkFieldValidity(const field::NekWriteEnum & field)
                    "because your Nek case files do not have a temperature variable! " +
                    firstPassiveScalarNamingError());
       break;
+    case field::scalar01_flux:
+      if (!hasScalarVariable(1))
+        mooseError("Cannot get NekRS scalar01 flux "
+                   "because your Nek case files do not have at least two scalars (the zeroth scalar is assumed to be temperature)");
+      break;
+    case field::scalar01_source:
+      if (!hasScalarVariable(1))
+        mooseError("Cannot get NekRS scalar01 volumetric source "
+                   "because your Nek case files do not have at least two scalars (the zeroth scalar is assumed to be temperature)");
+      break;
+    case field::scalar02_flux:
+      if (!hasScalarVariable(2))
+        mooseError("Cannot get NekRS scalar02 flux "
+                   "because your Nek case files do not have at least three scalars (the zeroth scalar is assumed to be temperature)");
+      break;
+    case field::scalar02_source:
+      if (!hasScalarVariable(2))
+        mooseError("Cannot get NekRS scalar02 volumetric source "
+                   "because your Nek case files do not have at least three scalars (the zeroth scalar is assumed to be temperature)");
+      break;
+    case field::scalar03_flux:
+      if (!hasScalarVariable(3))
+        mooseError("Cannot get NekRS scalar03 flux "
+                   "because your Nek case files do not have at least four scalars (the zeroth scalar is assumed to be temperature)");
+      break;
+    case field::scalar03_source:
+      if (!hasScalarVariable(3))
+        mooseError("Cannot get NekRS scalar03 volumetric source "
+                   "because your Nek case files do not have at least four scalars (the zeroth scalar is assumed to be temperature)");
+      break;
     case field::x_displacement:
     case field::y_displacement:
     case field::z_displacement:
@@ -1889,7 +1932,16 @@ double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
   switch (field)
   {
     case field::heat_flux:
-      f = &get_flux;
+      f = &get_heat_flux;
+      break;
+    case field::scalar01_flux:
+      f = &get_scalar01_flux;
+      break;
+    case field::scalar02_flux:
+      f = &get_scalar02_flux;
+      break;
+    case field::scalar03_flux:
+      f = &get_scalar03_flux;
       break;
     default:
       mooseError("Unhandled NekWriteEnum in solutionPointer!");
@@ -1977,6 +2029,9 @@ initializeDimensionalScales(const double U,
                             const double L,
                             const double rho,
                             const double Cp,
+                            const double transport_coeff_1,
+                            const double transport_coeff_2,
+                            const double transport_coeff_3,
                             const double s01,
                             const double ds01,
                             const double s02,
@@ -1992,6 +2047,9 @@ initializeDimensionalScales(const double U,
   scales.V_ref = L * L * L;
   scales.rho_ref = rho;
   scales.Cp_ref = Cp;
+  scales.transport_coeff_1_ref = transport_coeff_1;
+  scales.transport_coeff_2_ref = transport_coeff_2;
+  scales.transport_coeff_3_ref = transport_coeff_3;
   scales.t_ref = L / U;
   scales.P_ref = rho * U * U;
 
@@ -2004,6 +2062,13 @@ initializeDimensionalScales(const double U,
 
   scales.heat_flux_ref = rho * U * Cp * dT;
   scales.heat_source_ref = scales.heat_flux_ref / L;
+
+  scales.scalar01_flux_ref = transport_coeff_1 * U * ds01;
+  scales.scalar02_flux_ref = transport_coeff_2 * U * ds02;
+  scales.scalar02_flux_ref = transport_coeff_3 * U * ds03;
+  scales.scalar01_source_ref = scales.scalar01_flux_ref / L;
+  scales.scalar02_source_ref = scales.scalar02_flux_ref / L;
+  scales.scalar03_source_ref = scales.scalar03_flux_ref / L;
 }
 
 double
@@ -2055,6 +2120,12 @@ nondimensionalAdditive(const field::NekWriteEnum & field)
   {
     case field::heat_flux:
     case field::heat_source:
+    case field::scalar01_flux:
+    case field::scalar01_source:
+    case field::scalar02_flux:
+    case field::scalar02_source:
+    case field::scalar03_flux:
+    case field::scalar03_source:
     case field::x_displacement:
     case field::y_displacement:
     case field::z_displacement:
@@ -2076,6 +2147,18 @@ nondimensionalDivisor(const field::NekWriteEnum & field)
       return scales.heat_flux_ref;
     case field::heat_source:
       return scales.heat_source_ref;
+    case field::scalar01_flux:
+      return scales.scalar01_flux_ref;
+    case field::scalar01_source:
+      return scales.scalar01_source_ref;
+    case field::scalar02_flux:
+      return scales.scalar02_flux_ref;
+    case field::scalar02_source:
+      return scales.scalar02_source_ref;
+    case field::scalar03_flux:
+      return scales.scalar03_flux_ref;
+    case field::scalar03_source:
+      return scales.scalar03_source_ref;
     case field::x_displacement:
     case field::y_displacement:
     case field::z_displacement:
