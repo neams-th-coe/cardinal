@@ -2071,7 +2071,7 @@ initializeDimensionalScales(const double U,
 
   scales.scalar01_flux_ref = transport_coeff_1 * U * ds01;
   scales.scalar02_flux_ref = transport_coeff_2 * U * ds02;
-  scales.scalar02_flux_ref = transport_coeff_3 * U * ds03;
+  scales.scalar03_flux_ref = transport_coeff_3 * U * ds03;
   scales.scalar01_source_ref = scales.scalar01_flux_ref / L;
   scales.scalar02_source_ref = scales.scalar02_flux_ref / L;
   scales.scalar03_source_ref = scales.scalar03_flux_ref / L;
