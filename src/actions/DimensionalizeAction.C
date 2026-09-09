@@ -138,7 +138,7 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(0))
     {
       vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
-      vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::flux)));
+      vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::heat_flux)));
       vt.addRow("Power density",
                 "q / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
     }
