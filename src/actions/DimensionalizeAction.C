@@ -85,18 +85,30 @@ DimensionalizeAction::act()
     // check if the temperature actually exists
     if (!nekrs::hasTemperatureVariable())
     {
-      checkUnusedParam(parameters(), "T", "NekRS case files do not have a temperature variable");
-      checkUnusedParam(parameters(), "dT", "NekRS case files do not have a temperature variable");
+      checkUnusedParam(parameters(), "T", "NekRS case files do not have a temperature variable! " + nekrs::firstPassiveScalarNamingError());
+      checkUnusedParam(parameters(), "dT", "NekRS case files do not have a temperature variable! " + nekrs::firstPassiveScalarNamingError());
     }
 
-    // check if the scalars actually exist; we currently support 3 scalars
     for (int i = 0; i < 3; ++i)
     {
+      // check if the scalars actually exist; we currently support 3 scalars
       if (!nekrs::hasScalarVariable(i))
       {
         auto is = std::to_string(i);
         checkUnusedParam(parameters(), "s0" + is, "NekRS case files do not have a SCALAR" + is);
         checkUnusedParam(parameters(), "ds0" + is, "NekRS case files do not have a SCALAR" + is);
+      }
+      else
+      {
+        // if scalar does exist, confirm that the user sets its transport coeff to unity (otherwise,
+        // we'll just need to update this class to take more parameters as inputs, e.g. the equivalent
+        // of rho and Cp for each scalar equation).
+        auto coeff = nekrs::scalarTransportCoeff(i);
+        if (std::abs(coeff - 1.0) > 1e-6)
+        {
+          auto scalar_name = platform->options.getArgs("SCALAR0" + std::to_string(i + 1) + " NAME");
+          mooseError("The [Dimensionalize] block currently assumes that passive scalars use a transportCoeff (the coefficient on the time derivative term) of unity in the par file, but you have a transportCoeff of " + std::to_string(coeff) + " for scalar " + scalar_name + ". Either divide through your passive scalar equation so that the diffusionCoeff is divided by the transportCoeff, or contact the Cardinal developer team to add this capability.");
+        }
       }
     }
 
