@@ -52,7 +52,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _boundary(_nek_mesh->boundary()),
-    _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(field::heat_flux))
+    _reference_flux_integral(nekrs::referenceArea() *
+                             nekrs::nondimensionalDivisor(field::heat_flux))
 {
   if (!_boundary)
     mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
