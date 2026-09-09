@@ -86,6 +86,12 @@ void copyDeviceToHost();
 void computeWallDistance(const std::vector<int> & boundary_id);
 
 /**
+ * Get a helpful error message if the first passive scalar is not temperature
+ * @return error message string
+ */
+std::string firstPassiveScalarNamingError();
+
+/**
  * Compute y+ on the NekRS mesh
  * @param[in] boundary_id boundary(s) on which to compute y+
  * @return max, min, average y+
@@ -321,6 +327,13 @@ bool hasTemperatureSolve();
  * @return whether the nekRS problem includes the scalar0(scalarId) variable
  */
 bool hasScalarVariable(int scalarId);
+
+/**
+ * Get the coefficient on the time derivative term for a given passive scalar
+ * @param[in] scalarId scalar number, i.e. for scalar03 scalarId=3
+ @ return coefficient on the time derivative term as from the par file
+ */
+double scalarTransportCoeff(const int scalarId);
 
 /**
  * Whether nekRS contains an OCCA kernel to apply a source to the passive scalar equations

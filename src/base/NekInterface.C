@@ -395,6 +395,16 @@ viscosity()
 }
 
 double
+scalarTransportCoeff(const int scalarId)
+{
+  // TODO: this does not account for the possibility that the user sets the coefficient from the udf
+  std::string scalar_id = std::to_string(scalarId + 1);
+  dfloat coeff;
+  platform->options.getArgs("SCALAR0" + scalar_id + " TRANSPORTCOEFF", coeff);
+  return coeff;
+}
+
+double
 Pr()
 {
   dfloat rho, rho_cp, k;
