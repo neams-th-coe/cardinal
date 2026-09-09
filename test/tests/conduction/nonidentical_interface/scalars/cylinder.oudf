@@ -1,0 +1,15 @@
+void udfDirichlet(bcData *bc)
+{
+  if (bc->id == 1)
+    bc->sScalar = 500.0;
+}
+
+void udfNeumann(bcData *bc)
+{
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
+  if (bc->id == 2)
+    bc->fluxScalar = bc->usrwrk[bc->idxVol];
+}
