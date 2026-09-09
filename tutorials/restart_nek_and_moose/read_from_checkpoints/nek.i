@@ -16,10 +16,13 @@
   []
 []
 
-[MultiApps]
-  [sub]
-    type = TransientMultiApp
-    input_files = 'cardinal_sub.i'
-    execute_on = 'timestep_begin'
+[Postprocessors]
+  [max_T]
+    type = NekVolumeExtremeValue
+    field = temperature
   []
+[]
+
+[Outputs]
+  csv = true
 []

@@ -1,46 +1,37 @@
 #include <math.h>
 #include "udf.hpp"
 
-static occa::kernel cliptKernel;  // clipping
-static occa::kernel manipulateOutletKernel; // variable conductivity at the outlet
+#ifdef __okl__
+#include "pb67.oudf"
+#endif
 
-void uservp(nrs_t *nrs, double time, occa::memory o_U, occa::memory o_S,
-            occa::memory o_UProp, occa::memory o_SProp)
+void uservp(double time)
 {
   // pass the needed info into the outlet kernel
   mesh_t *mesh = nrs->meshV;
-  manipulateOutletKernel(mesh->Nelements, nrs->fieldOffset, nrs->cds->fieldOffset[0],
-               o_S, o_UProp, o_SProp, mesh->o_z);
+  manipulateOutlet(mesh->Nelements, nrs->fluid->fieldOffset, nrs->scalar->fieldOffset(),
+               nrs->scalar->o_S, nrs->fluid->o_prop, nrs->scalar->o_prop, mesh->o_z);
 }
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
-  // tell NekRS to JIT compile our two kernels
-  cliptKernel = oudfBuildKernel(kernelInfo, "clipTemperature");
-  manipulateOutletKernel = oudfBuildKernel(kernelInfo, "manipulateOutlet");
 }
 
-void UDF_Setup(nrs_t *nrs)
+void UDF_Setup()
 {
-  mesh_t * mesh = nrs->meshV;
-  int n_gll_points = mesh->Np * mesh->Nelements;
+  auto mesh = nrs->meshV;
 
-  // apply initial conditions
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
-  }
+  // apply initial conditions: unit z-velocity
+  std::vector<dfloat> U(nrs->fluid->fieldOffsetSum, 1.0);
+  nrs->fluid->o_U.copyFrom(U.data(), U.size());
 
-  // set the udf.properties so that NekRS will modify the diffusive properties
-  udf.properties = &uservp;
+  // set the property callback so that NekRS will modify the diffusive properties
+  nrs->userProperties = &uservp;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
+void UDF_ExecuteStep(double time, int tstep)
 {
   // clip temperature on each time step
-  mesh_t *mesh = nrs->cds->mesh[0];
-  cds_t* cds = nrs->cds;
-  cliptKernel(mesh->Nelements, cds->o_S);
+  mesh_t *mesh = nrs->meshV;
+  clipTemperature(mesh->Nelements, nrs->scalar->o_S);
 }

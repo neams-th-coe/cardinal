@@ -4,8 +4,8 @@
 []
 
 [Problem]
-  type = NekRSStandaloneProblem
-  casename = 'turbPipe'
+  type = NekRSProblem
+  casename = 'brick'
 []
 
 [Executioner]
