@@ -58,10 +58,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
                "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
 
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("In order to read or write NekRS's boundary heat flux, your case files must have a "
-               "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
-               _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
+  nekrs::checkFieldValidity(field::temperature);
 
   // add the variables for the coupling and perform checks on problem setup
   if (_direction == "from_nek")

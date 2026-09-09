@@ -1773,6 +1773,18 @@ get_velocity_z_squared(const int id, const int surf_offset)
   return std::pow(get_velocity_z(id, surf_offset), 2);
 }
 
+std::string
+firstPassiveScalarNamingError()
+{
+  std::string s = "Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file (i.e. in a [SCALAR TEMPERATURE] block).";
+  if (Nscalar() == 0)
+    s += " However, your par file does not have any passive scalars.";
+  else
+    s += " However, your first passive scalar is named " + platform->options.getArgs("SCALAR00 NAME") + ".";
+
+  return s;
+}
+
 void
 checkFieldValidity(const field::NekWriteEnum & field)
 {
@@ -1781,12 +1793,12 @@ checkFieldValidity(const field::NekWriteEnum & field)
     case field::flux:
       if (!hasTemperatureVariable())
         mooseError("Cannot get NekRS heat flux "
-                   "because your Nek case files do not have a temperature variable!");
+                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
       break;
     case field::heat_source:
       if (!hasTemperatureVariable())
         mooseError("Cannot get NekRS heat source "
-                   "because your Nek case files do not have a temperature variable!");
+                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
       break;
     case field::x_displacement:
     case field::y_displacement:
@@ -1817,7 +1829,7 @@ checkFieldValidity(const field::NekFieldEnum & field)
     case field::temperature:
       if (!hasTemperatureVariable())
         mooseError("Cannot find 'temperature' "
-                   "because your Nek case files do not have a temperature variable!");
+                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
       break;
     case field::scalar01:
       if (!hasScalarVariable(1))
