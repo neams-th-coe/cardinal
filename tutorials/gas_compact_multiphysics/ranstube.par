@@ -21,6 +21,7 @@
   polynomialOrder = 7
   dt = 6e-3
   timeStepper = BDF2
+  scalars = temperature, one, two
 
   # end the simulation at specified number of time steps
   stopAt = numSteps
@@ -33,32 +34,28 @@
 [PROBLEMTYPE]
   stressFormulation = true
 
-[PRESSURE]
+[FLUID PRESSURE]
   residualTol = 1e-04
 
-[VELOCITY]
+[FLUID VELOCITY]
   solver = none
   viscosity = -223214
   density = 1.0
-  boundaryTypeMap = v, o, W
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet
   residualTol = 1e-06
 
-[TEMPERATURE]
+[SCALAR TEMPERATURE]
   rhoCp = 1.0
   conductivity = -146205
-  boundaryTypeMap = t, o, f
+  boundaryTypeMap = udfDirichlet, zeroNeumann, udfNeumann
   residualTol = 1e-06
 
-[SCALAR01] # k
+[SCALAR ONE] # k
   solver = none
-  boundaryTypeMap = t, I, o
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann
   residualTol = 1e-06
-  rho = 1.0
-  diffusivity = -223214
 
-[SCALAR02] # tau
+[SCALAR TWO] # tau
   solver = none
-  boundaryTypeMap = t, I, o
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann
   residualTol = 1e-06
-  rho = 1.0
-  diffusivity = -223214
