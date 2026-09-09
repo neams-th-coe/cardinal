@@ -1786,11 +1786,14 @@ get_velocity_z_squared(const int id, const int surf_offset)
 std::string
 firstPassiveScalarNamingError()
 {
-  std::string s = "Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file (i.e. in a [SCALAR TEMPERATURE] block).";
+  std::string s =
+      "Cardinal assumes that the temperature variable is the first passive scalar, which must be "
+      "named 'temperature' in the par file (i.e. in a [SCALAR TEMPERATURE] block).";
   if (Nscalar() == 0)
     s += " However, your par file does not have any passive scalars.";
   else
-    s += " However, your first passive scalar is named " + platform->options.getArgs("SCALAR00 NAME") + ".";
+    s += " However, your first passive scalar is named " +
+         platform->options.getArgs("SCALAR00 NAME") + ".";
 
   return s;
 }
@@ -1803,12 +1806,14 @@ checkFieldValidity(const field::NekWriteEnum & field)
     case field::heat_flux:
       if (!hasTemperatureVariable())
         mooseError("Cannot get NekRS heat flux "
-                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
+                   "because your Nek case files do not have a temperature variable! " +
+                   firstPassiveScalarNamingError());
       break;
     case field::heat_source:
       if (!hasTemperatureVariable())
         mooseError("Cannot get NekRS heat source "
-                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
+                   "because your Nek case files do not have a temperature variable! " +
+                   firstPassiveScalarNamingError());
       break;
     case field::x_displacement:
     case field::y_displacement:
@@ -1839,7 +1844,8 @@ checkFieldValidity(const field::NekFieldEnum & field)
     case field::temperature:
       if (!hasTemperatureVariable())
         mooseError("Cannot find 'temperature' "
-                   "because your Nek case files do not have a temperature variable! " + firstPassiveScalarNamingError());
+                   "because your Nek case files do not have a temperature variable! " +
+                   firstPassiveScalarNamingError());
       break;
     case field::scalar01:
       if (!hasScalarVariable(1))
