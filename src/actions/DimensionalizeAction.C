@@ -39,9 +39,21 @@ DimensionalizeAction::validParams()
   params.addRangeCheckedParam<Real>("Cp", 1.0, "Cp > 0.0", "Reference isobaric specific heat");
 
   // for non-temperature passive scalars, these represent the coefficient on the time term
-  params.addRangeCheckedParam<Real>("transport_coeff_1", 1.0, "transport_coeff_1 > 0", "Reference coefficient on the time derivative term in the governing equation for scalar 1");
-  params.addRangeCheckedParam<Real>("transport_coeff_2", 1.0, "transport_coeff_2 > 0", "Reference coefficient on the time derivative term in the governing equation for scalar 2");
-  params.addRangeCheckedParam<Real>("transport_coeff_3", 1.0, "transport_coeff_3 > 0", "Reference coefficient on the time derivative term in the governing equation for scalar 3");
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_1",
+      1.0,
+      "transport_coeff_1 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 1");
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_2",
+      1.0,
+      "transport_coeff_2 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 2");
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_3",
+      1.0,
+      "transport_coeff_3 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 3");
 
   // for passive scalars, these are typically dimensionalized as (T - T0) / dT
   params.addRangeCheckedParam<Real>("T", 0.0, "T >= 0.0", "Reference temperature");
@@ -75,8 +87,21 @@ DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters)
 {
   // inform NekRS of the scaling that we are using; the NekInterface holds all
   // the reference scales and provides accessor methods
-  nekrs::initializeDimensionalScales(
-      _U, _T, _dT, _L, _rho, _Cp, _transport_coeff_1, _transport_coeff_2, _transport_coeff_3, _s01, _ds01, _s02, _ds02, _s03, _ds03);
+  nekrs::initializeDimensionalScales(_U,
+                                     _T,
+                                     _dT,
+                                     _L,
+                                     _rho,
+                                     _Cp,
+                                     _transport_coeff_1,
+                                     _transport_coeff_2,
+                                     _transport_coeff_3,
+                                     _s01,
+                                     _ds01,
+                                     _s02,
+                                     _ds02,
+                                     _s03,
+                                     _ds03);
 }
 
 void
@@ -112,7 +137,8 @@ DimensionalizeAction::act()
         auto is = std::to_string(i + 1);
         checkUnusedParam(parameters(), "s0" + is, "NekRS case files do not have a SCALAR" + is);
         checkUnusedParam(parameters(), "ds0" + is, "NekRS case files do not have a SCALAR" + is);
-        checkUnusedParam(parameters(), "transport_coeff" + is, "NekRS case files do not have a SCALAR" + is);
+        checkUnusedParam(
+            parameters(), "transport_coeff" + is, "NekRS case files do not have a SCALAR" + is);
       }
     }
 
@@ -150,7 +176,8 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(1))
     {
       vt.addRow("Scalar 01", "(s - " + compress(_s01) + ") /" + compress(_ds01));
-      vt.addRow("Scalar flux", "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar01_flux)));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar01_flux)));
       vt.addRow("Scalar volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar01_source)));
     }
@@ -158,7 +185,8 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(2))
     {
       vt.addRow("Scalar 02", "(s - " + compress(_s02) + ") /" + compress(_ds02));
-      vt.addRow("Scalar flux", "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar02_flux)));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar02_flux)));
       vt.addRow("Scalar volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar02_source)));
     }
@@ -166,7 +194,8 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(3))
     {
       vt.addRow("Scalar 03", "(s - " + compress(_s03) + ") /" + compress(_ds03));
-      vt.addRow("Scalar flux", "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar03_flux)));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar03_flux)));
       vt.addRow("Scalar volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar03_source)));
     }
