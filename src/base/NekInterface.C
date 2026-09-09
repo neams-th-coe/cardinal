@@ -1831,32 +1831,38 @@ checkFieldValidity(const field::NekWriteEnum & field)
     case field::scalar01_flux:
       if (!hasScalarVariable(1))
         mooseError("Cannot get NekRS scalar01 flux "
-                   "because your Nek case files do not have at least two scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least two scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::scalar01_source:
       if (!hasScalarVariable(1))
         mooseError("Cannot get NekRS scalar01 volumetric source "
-                   "because your Nek case files do not have at least two scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least two scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::scalar02_flux:
       if (!hasScalarVariable(2))
         mooseError("Cannot get NekRS scalar02 flux "
-                   "because your Nek case files do not have at least three scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least three scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::scalar02_source:
       if (!hasScalarVariable(2))
         mooseError("Cannot get NekRS scalar02 volumetric source "
-                   "because your Nek case files do not have at least three scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least three scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::scalar03_flux:
       if (!hasScalarVariable(3))
         mooseError("Cannot get NekRS scalar03 flux "
-                   "because your Nek case files do not have at least four scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least four scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::scalar03_source:
       if (!hasScalarVariable(3))
         mooseError("Cannot get NekRS scalar03 volumetric source "
-                   "because your Nek case files do not have at least four scalars (the zeroth scalar is assumed to be temperature)");
+                   "because your Nek case files do not have at least four scalars (the zeroth "
+                   "scalar is assumed to be temperature)");
       break;
     case field::x_displacement:
     case field::y_displacement:

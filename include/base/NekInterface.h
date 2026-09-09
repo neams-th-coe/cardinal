@@ -943,9 +943,12 @@ double get_velocity_z_squared(const int id, const int surf_offset);
  * @param[in] L reference length scale
  * @param[in] rho reference density
  * @param[in] Cp reference heat capacity
- * @param[in] transport_coeff_1 reference transport coefficient (on the time derivative) in the scalar01 equation
- * @param[in] transport_coeff_2 reference transport coefficient (on the time derivative) in the scalar02 equation
- * @param[in] transport_coeff_3 reference transport coefficient (on the time derivative) in the scalar03 equation
+ * @param[in] transport_coeff_1 reference transport coefficient (on the time derivative) in the
+ * scalar01 equation
+ * @param[in] transport_coeff_2 reference transport coefficient (on the time derivative) in the
+ * scalar02 equation
+ * @param[in] transport_coeff_3 reference transport coefficient (on the time derivative) in the
+ * scalar03 equation
  * @param[in] s01 reference scalar01
  * @param[in] ds01 reference s01 range
  * @param[in] s02 reference scalar02
