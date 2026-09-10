@@ -1,7 +1,13 @@
 [Tests]
   issues = '#567'
   design = 'MoabSkinner.md'
-
+  [bins_without_anyfields]
+    type = CheckFiles
+    input = not_temp_or_density.i
+    check_files = 'moab_skins_0.h5m moab_skins_1.h5m'
+    requirement = "The system shall bin elements using subdomain when no other fields are provided"
+    capabilities = 'dagmc'
+  []
   [bins]
     type = Exodiff
     input = all_bins.i
@@ -18,6 +24,14 @@
     requirement = "The system shall bin elements according to temperature, on multiple subdomains, and be able to visualize the bins."
     capabilities = 'dagmc'
   []
+  [bin_arbitrary]
+    type = Exodiff
+    input = bin_arbitrary.i
+    exodiff = bin_arbitrary_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin elements using an arbitrary field provided"
+    capabilities = 'dagmc'
+  []  
   [three_fields]
     type = Exodiff
     input = three_fields.i
