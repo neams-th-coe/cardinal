@@ -600,7 +600,7 @@ TallyBase::renormalizeLinkedTallies()
 }
 
 void
-TallyBase::relaxAndNormalizeTally()
+TallyBase::relaxAndNormalizeTally(bool is_relaxation_allowed)
 {
   Real alpha;
   switch (_relaxation_type)
@@ -617,18 +617,23 @@ TallyBase::relaxAndNormalizeTally()
     }
     case relaxation::robbins_monro:
     {
-      alpha = 1.0 / (_openmc_problem.fixedPointIteration() + 1);
+      alpha = 1.0 / (_openmc_problem.relaxedFixedPointIteration() + 1);
       break;
     }
     case relaxation::dufek_gudowski:
     {
       alpha = static_cast<float>(_openmc_problem.nParticles()) /
-              static_cast<float>(_openmc_problem.nTotalParticles());
+              static_cast<float>(_openmc_problem.nRelaxedTotalParticles());
       break;
     }
     default:
       mooseError("Unhandled RelaxationEnum in TallyBase!");
   }
+
+  // Override the above if OpenMCCellAverageProblem is disabling relaxation
+  // (e.g. due to controls)
+  if (!is_relaxation_allowed)
+    alpha = 1.0;
 
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
