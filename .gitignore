@@ -220,6 +220,7 @@ peacock_tmp_diff.exo
 
 # Cardinal
 bin/**
+lib/**
 share/**
 nndc*/**
 endf*/**
