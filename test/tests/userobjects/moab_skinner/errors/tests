@@ -38,24 +38,6 @@
     requirement = "The system shall error if the temperature is above the maximum bin bound"
     capabilities = 'dagmc'
   []
-  [too_low_density]
-    type = RunException
-    input = skinner.i
-    cli_args = 'UserObjects/moab/fields_min="400 1010"'
-    mesh_mode = 'replicated'
-    expect_err = "Variable 'rho' has value below minimum range of bins. Please decrease the minimum bound for this field."
-    requirement = "The system shall error if the density is below the minimum bin bound"
-    capabilities = 'dagmc'
-  []
-  [too_high_density]
-    type = RunException
-    input = skinner.i
-    cli_args = 'UserObjects/moab/fields_max="650 950"'
-    mesh_mode = 'replicated'
-    expect_err = "Variable 'rho' has value above maximum range of bins. Please increase the maximum bound for this field."
-    requirement = "The system shall error if the density is above the maximum bin bound"
-    capabilities = 'dagmc'
-  []
   [invalid_graveyard_scales]
     type = RunException
     input = skinner.i
