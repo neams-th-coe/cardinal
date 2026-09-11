@@ -501,7 +501,7 @@ protected:
    * 6. Reinitializes multi-group cross sections to take into account changing
    *    temperatures and densities.
    */
-  void reinitCouplingAndApplyFeedback();
+  void reinitCouplingAndApplyFeedback(bool apply_feedback = true);
 
   /**
    * Implement critSearchStep() to re-generate the cell-to-element (and dual)
@@ -509,7 +509,7 @@ protected:
    * re-mapped elements to ensure the state remains critical under changes to the
    * model with feedbacks.
    */
-  virtual void critSearchStep() override;
+  virtual void critSearchStep(bool apply_feedback) override;
 
   /**
    * Get the cell level in OpenMC to use for coupling

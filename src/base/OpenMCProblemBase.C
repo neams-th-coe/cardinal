@@ -404,7 +404,8 @@ OpenMCProblemBase::externalSolve()
   }
 
   if (_criticality_search)
-    _criticality_search->searchForCriticality([&]() { this->critSearchStep(); });
+    _criticality_search->searchForCriticality([&](bool apply_feedback)
+                                              { this->critSearchStep(apply_feedback); });
   else
   {
     if (runRandomRay())
