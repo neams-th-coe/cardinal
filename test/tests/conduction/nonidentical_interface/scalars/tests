@@ -1,0 +1,16 @@
+[Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md'
+  issues = '#1077'
+  [scalar01_coupling]
+    type = CSVDiff
+    input = main.i
+    exodiff = main_out.csv
+    min_parallel = 4
+    requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
+                  "the correct interface and volume temperatures that are obtained from a standalone "
+                  "MOOSE heat conduction simulation in the `../moose.i` file of both cylinders. "
+                  "This test specifically checks that conjugate transfer using non-temperature passive "
+                  "scalars functions the same as if the quantities were temperature."
+    capabilities = 'nekrs'
+  []
+[]

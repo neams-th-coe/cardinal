@@ -94,4 +94,13 @@ protected:
 
   /// Reference isobaric specific heat capacity
   const Real & _Cp;
+
+  /// Reference material property on the time derivative in the scalar 1 equation
+  const Real & _transport_coeff_1;
+
+  /// Reference material property on the time derivative in the scalar 2 equation
+  const Real & _transport_coeff_2;
+
+  /// Reference material property on the time derivative in the scalar 3 equation
+  const Real & _transport_coeff_3;
 };

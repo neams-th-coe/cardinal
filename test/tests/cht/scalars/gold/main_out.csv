@@ -1,0 +1,2 @@
+time,flux_integral,max_temp_bison,max_temp_interface,min_temp_bison,min_temp_interface,power,synchronization_to_nek
+1,19.481210621406,637.63845202949,632.22941257292,628.14999999958,628.15,19.895190973188,1

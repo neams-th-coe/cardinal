@@ -1,0 +1,36 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  numSteps = 2000
+  dt = 0.10467687224669604
+  checkpointInterval = 500
+  polynomialOrder = 3
+  scalars = temperature, one, two
+
+[MESH]
+  file = "../nondimensional/sfr_pin.re2"
+
+[FLUID VELOCITY]
+  # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
+  viscosity = -30.387881869873413
+  density = 1.0
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet, udfDirichlet, zeroNeumann
+  residualTol = 1.0e-7
+
+[FLUID PRESSURE]
+  residualTol = 1.0e-5
+
+[SCALAR TEMPERATURE]
+  solver = none
+
+[SCALAR ONE]
+  solver = none
+
+[SCALAR TWO]
+  # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
+  diffusionCoeff = -0.13773505042642078
+  transportCoeff = 1.0
+  boundaryTypeMap = udfNeumann, zeroNeumann, udfDirichlet, zeroNeumann
+  residualTol = 1.0e-7
+

@@ -1,17 +1,28 @@
 [Tests]
+  issues = '#1296'
   [flux]
     type = RunException
     input = nek.i
-    expect_err = "In order to read or write NekRS's boundary heat flux, your case files must have a \[TEMPERATURE\] block. Note that you can set 'solver = none' in 'brick.par' if you don't want to solve for temperature."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your par file does not have any passive scalars."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for flux coupling."
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
+  [scalar_name]
+    type = RunException
+    input = nek.i
+    cli_args = 'Problem/casename="brick_name"'
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your first passive scalar is named OTHER."
+    requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
+                  "variable initialized in nekRS based on the name not matching 'temperature'"
     capabilities = 'nekrs'
     design = 'NekBoundaryFlux.md'
   []
   [source]
     type = RunException
     input = source.i
-    expect_err = "In order to send a volumetric heat source to NekRS, your case files must have a \[TEMPERATURE\] block. Note that you can set 'solver = none' in 'brick.par' if you don't want to solve for temperature."
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable! Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your par file does not have any passive scalars."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS for source coupling."
     capabilities = 'nekrs'
