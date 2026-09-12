@@ -5,54 +5,54 @@
   [invalid_max_temp]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/temperature_max=350.0'
+    cli_args = 'UserObjects/moab/fields_max="400 350"'
     mesh_mode = 'replicated'
-    expect_err = "'temperature_max' must be greater than 'temperature_min'"
+    expect_err = "The maximum bound for field 'temp'"
     requirement = "The system shall error if the maximum temperature is lower than the minimum temperature for the skinner bins"
     capabilities = 'dagmc'
   []
   [invalid_max_density]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/density_max=-0.6'
+    cli_args = 'UserObjects/moab/fields_max="650 -0.6"'
     mesh_mode = 'replicated'
-    expect_err = "'density_max' must be greater than 'density_min'"
+    expect_err = "The maximum bound for field 'rho'"
     requirement = "The system shall error if the maximum density is lower than the minimum density for the skinner bins"
     capabilities = 'dagmc'
   []
   [too_low_temp]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/temperature_min=550.0'
+    cli_args = 'UserObjects/moab/fields_min="550 900"'
     mesh_mode = 'replicated'
-    expect_err = "Variable 'temp' has value below minimum range of bins. Please decrease 'temperature_min'."
+    expect_err = "Variable 'temp' has value below minimum range of bins. Please decrease the minimum bound for this field."
     requirement = "The system shall error if the temperature is below the minimum bin bound"
     capabilities = 'dagmc'
   []
   [too_high_temp]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/temperature_max=450.0'
+    cli_args = 'UserObjects/moab/fields_max="450 2000"'
     mesh_mode = 'replicated'
-    expect_err = "Variable 'temp' has value above maximum range of bins. Please increase 'temperature_max'."
+    expect_err = "Variable 'temp' has value above maximum range of bins. Please increase the maximum bound for this field."
     requirement = "The system shall error if the temperature is above the maximum bin bound"
     capabilities = 'dagmc'
   []
   [too_low_density]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/density_min=1010.0'
+    cli_args = 'UserObjects/moab/fields_min="400 1010"'
     mesh_mode = 'replicated'
-    expect_err = "Variable 'rho' has value below minimum range of bins. Please decrease 'density_min'."
+    expect_err = "Variable 'rho' has value below minimum range of bins. Please decrease the minimum bound for this field."
     requirement = "The system shall error if the density is below the minimum bin bound"
     capabilities = 'dagmc'
   []
   [too_high_density]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/density_max=950.0'
+    cli_args = 'UserObjects/moab/fields_max="650 950"'
     mesh_mode = 'replicated'
-    expect_err = "Variable 'rho' has value above maximum range of bins. Please increase 'density_max'."
+    expect_err = "Variable 'rho' has value above maximum range of bins. Please increase the maximum bound for this field."
     requirement = "The system shall error if the density is above the maximum bin bound"
     capabilities = 'dagmc'
   []
@@ -68,8 +68,8 @@
   [no_aux_temp]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/temperature=temperature'
-    expect_err = "Cannot find auxiliary variable 'temperature'!"
+    cli_args = 'UserObjects/moab/fields="nope rho"'
+    expect_err = "Cannot find auxiliary variable 'nope'!"
     mesh_mode = 'replicated'
     requirement = "The system shall error if the specified temperature auxiliary variable cannot be found"
     capabilities = 'dagmc'
@@ -77,7 +77,7 @@
   [no_aux_density]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/density=den'
+    cli_args = 'UserObjects/moab/fields="temp den"'
     mesh_mode = 'replicated'
     expect_err = "Cannot find auxiliary variable 'den'!"
     requirement = "The system shall error if the specified density auxiliary variable cannot be found"
@@ -86,9 +86,9 @@
   [overlap_t_rho]
     type = RunException
     input = skinner.i
-    cli_args = 'UserObjects/moab/density=temp'
+    cli_args = 'UserObjects/moab/fields="temp temp"'
     mesh_mode = 'replicated'
-    expect_err = "The 'temperature' and 'density' variables cannot be the same!"
+    expect_err = "Field 'temp' was listed more than once in 'fields'!"
     requirement = "The system shall error if the specified density and temperature auxiliary variables are the same"
     capabilities = 'dagmc'
   []

@@ -31,10 +31,10 @@ power = 3000
 [UserObjects]
   [skinner]
     type = MoabSkinner
-    temperature = temp
-    n_temperature_bins = 4
-    temperature_min = 800
-    temperature_max = 1000
+    fields = 'temp'
+    fields_min = '800'
+    fields_max = '1000'
+    n_field_bins = '4'
     build_graveyard = true
   []
 []

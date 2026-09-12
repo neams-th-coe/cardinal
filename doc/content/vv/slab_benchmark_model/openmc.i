@@ -161,12 +161,12 @@ initial_temperature = ${units 293 K}
   []
   [moab]
     type = MoabSkinner
+    fields = 'temperature'
+    fields_min = '0'
+    fields_max = '1000'
+    n_field_bins = '20'
     execute_on = 'timestep_begin'
     verbose = true
-    temperature = temperature
-    n_temperature_bins = 20.0
-    temperature_min = 0
-    temperature_max = 1000
     build_graveyard = true
     graveyard_scale_inner = 1.5
     graveyard_scale_outer = 1.6

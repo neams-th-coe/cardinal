@@ -7,8 +7,9 @@
 Displays how each element in the `[Mesh]` maps to a skinned bin distribution
 (created by a [MoabSkinner](MoabSkinner.md)). You can either
 view the entire individualized bin distribution with `skin_by = all` (the default),
-or inspect how elements map to the binning in temperature, density, and subdomain
-by setting `skin_by` to `temperature`, `density`, or `subdomain`, respectively.
+or inspect how elements map to the binning in a particular field (e.g., `temperature`,
+`density`, or any other field listed in `fields`) or to the subdomain binning,
+by setting `skin_by` to a field name or `subdomain`, respectively.
 
 For example, suppose the domain consists of two subdomains, with temperature and density
 distributions as shown in the top row of [moab_skinner2]. The elements are then grouped into

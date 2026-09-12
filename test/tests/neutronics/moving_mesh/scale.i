@@ -83,10 +83,10 @@
 [UserObjects]
   [skin]
     type = MoabSkinner
-    temperature = temp
-    n_temperature_bins = 1
-    temperature_min = 0
-    temperature_max = 2000
+    fields = 'temp'
+    fields_min = '0'
+    fields_max = '2000'
+    n_field_bins = '1'
     build_graveyard = true
     verbose = True
   []

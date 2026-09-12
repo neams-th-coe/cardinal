@@ -19,13 +19,12 @@
 #pragma once
 
 #include "AuxKernel.h"
-#include "MooseEnum.h"
 #include "MoabSkinner.h"
 
 /**
  * Auxkernel to display the mapping of [Mesh] elements to the spatial
- * bins created by a mesh skinner which skins by subdomain, temperature,
- * and density.
+ * bins created by a mesh skinner which skins by subdomain and arbitrary
+ * user-specified scalar fields (e.g. temperature, density).
  */
 class SkinnedBins : public AuxKernel
 {
@@ -41,8 +40,8 @@ protected:
   const MoabSkinner * _skinner;
 
   /**
-   * What skinning bins to display; this allows you to select just a single
-   * "dimension" of the skinning to explore more thoroughly.
+   * What skinning bins to display; either 'all', 'subdomain', or the name
+   * of one of the skinner's binned fields.
    */
-  const MooseEnum _skin_by;
+  const std::string _skin_by;
 };

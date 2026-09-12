@@ -10,11 +10,32 @@
 #include "MBTagConventions.hpp"
 
 /**
- * \brief Skins the [Mesh] according to individual bins for temperature, density, and subdomain ID
+ * A user-specified scalar field by which the [Mesh] elements are binned
+ */
+struct BinnedField
+{
+  /// Name of the auxiliary variable
+  std::string name;
+  /// Auxiliary variable number in the auxiliary system
+  unsigned int var_num;
+  /// Lower bound of the bins
+  Real min;
+  /// Upper bound of the bins
+  Real max;
+  /// Bin width
+  Real width;
+  /// Number of bins
+  unsigned int n_bins;
+  /// Bounds of the bins (size n_bins + 1)
+  std::vector<Real> bounds;
+};
+
+/**
+ * \brief Skins the [Mesh] according to individual bins for user-specified fields and subdomain ID
  *
- * Skins a [Mesh] according to temperature, density, and subdomain. The MOAB surfaces bounding
- * those grouped elements are then generated, providing geometry information needed for DAGMC
- * to then track particles on this new geometry.
+ * Skins a [Mesh] according to arbitrary user-specified scalar fields (e.g. temperature, density)
+ * and subdomain. The MOAB surfaces bounding those grouped elements are then generated, providing
+ * geometry information needed for DAGMC to then track particles on this new geometry.
  */
 class MoabSkinner : public GeneralUserObject
 {
@@ -38,9 +59,7 @@ public:
    */
   virtual moab::ErrorCode check(const moab::ErrorCode input) const;
 
-  std::string materialName(const unsigned int & block,
-                           const unsigned int & density,
-                           const unsigned int & temp) const;
+  std::string materialName(const unsigned int & block) const;
 
   /// Perform the skinning operation
   virtual void update();
@@ -60,18 +79,33 @@ public:
   unsigned int nBins() const;
 
   /**
-   * Get the bin index for the temperature
+   * Get the bin index for a given binned field
+   * @param[in] field_index index into the list of binned fields
    * @param[in] elem element
-   * @return temperature bin index
+   * @return field bin index
    */
-  virtual unsigned int getTemperatureBin(const Elem * const elem) const;
+  virtual unsigned int getFieldBin(const unsigned int & field_index, const Elem * const elem) const;
 
   /**
-   * Get the bin index for the density
+   * Get the bin index for a given binned field
+   * @param[in] name name of the binned field
    * @param[in] elem element
-   * @return density bin index
+   * @return field bin index
    */
-  virtual unsigned int getDensityBin(const Elem * const elem) const;
+  virtual unsigned int getFieldBin(const std::string & name, const Elem * const elem) const;
+
+  /**
+   * Whether the skinner bins elements by the given field name.
+   * @param[in] name field name
+   * @return whether the skinner bins by the field
+   */
+  bool binsByField(const std::string & name) const;
+
+  /**
+   * Get the names of the binned fields.
+   * @return names of the binned fields
+   */
+  std::vector<std::string> binnedFieldNames() const;
 
   /**
    * Get the bin index for the subdomain
@@ -120,15 +154,12 @@ public:
   void reset();
 
   /**
-   * Get total bin index given individual indices for the temperature, density, and subdomain bins
-   * @param[in] temp_bin temperature bin
-   * @param[in] density_bin density bin
-   * @param[in] subdomain_bin subdomain ID bin
+   * Get the total bin index (over all binned fields and subdomains), with the
+   * first-listed field being the fastest-varying index and the subdomain the slowest-varying.
+   * @param[in] elem element
    * @return total bin index
    */
-  virtual unsigned int getBin(const unsigned int & temp_bin,
-                              const unsigned int & density_bin,
-                              const unsigned int & subdomain_bin) const;
+  virtual unsigned int getBin(const Elem * const elem) const;
 
   /**
    * Whether the skinner builds a graveyard
@@ -141,19 +172,6 @@ public:
    * @param[in] build whether to build a graveyard
    */
   void setGraveyard(bool build);
-
-  /**
-   * Number of density bins; if greater than 1, this means we must be re-generating
-   * OpenMC materials during the course of the simulation.
-   * @return number of density bins
-   */
-  virtual unsigned int nDensityBins() const { return _n_density_bins; }
-
-  /**
-   * Whether density skinning is applied
-   * @return using density skinning
-   */
-  virtual bool hasDensitySkinning() const { return _bin_by_density; }
 
   /**
    * Get pointer to underlying moab interface
@@ -170,6 +188,17 @@ protected:
     Reflective
   };
 
+  /**
+   * Get the bin index for a given binned field
+   * @param[in] field binned field
+   * @param[in] elem element
+   * @return field bin index
+   */
+  virtual unsigned int getFieldBin(const BinnedField & field, const Elem * const elem) const;
+
+  /// Read the 'fields' parameters and populate _fields
+  void readFieldParameters();
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// MOAB interface
@@ -178,23 +207,8 @@ protected:
   /// Whether to print diagnostic information
   bool _verbose;
 
-  /// Name of the temperature variable
-  const std::string & _temperature_name;
-
-  /// Lower bound of temperature bins
-  const Real & _temperature_min;
-
-  /// Upper bound of temperature bins
-  const Real & _temperature_max;
-
-  /// Number of temperature bins
-  const unsigned int & _n_temperature_bins;
-
-  /// Temperature bin width
-  const Real _temperature_bin_width;
-
-  /// Whether elements are binned by density (in addition to temperature and block)
-  const bool _bin_by_density;
+  /// Fields by which elements are binned (in the order given by the user)
+  std::vector<BinnedField> _fields;
 
   /// Material names corresponding to each subdomain. These are used to name the
   /// new skinned volumes in MOAB
@@ -507,9 +521,6 @@ protected:
   /// Save the first tet entity handle
   moab::EntityHandle offset;
 
-  /// Name of the MOOSE variable containing the density
-  std::string _density_name;
-
   /// Resolved vacuum BC sideset IDs (from 'vacuum_bcs_surfaces' input parameter)
   std::set<BoundaryID> _vacuum_bcs_surface_ids;
 
@@ -525,18 +536,6 @@ protected:
 
   /// Whether to assign boundary conditions to surfaces
   bool _set_bcs;
-
-  /// Lower bound of density bins
-  Real _density_min;
-
-  /// Upper bound of density bins
-  Real _density_max;
-
-  /// Density bin width
-  Real _density_bin_width;
-
-  /// Number of density bins
-  unsigned int _n_density_bins;
 
   /// Number of block bins
   unsigned int _n_block_bins;
@@ -571,12 +570,6 @@ protected:
   /// Tag for name of entity set
   moab::Tag name_tag;
 
-  /// Bounds of the temperature bins
-  std::vector<Real> _temperature_bin_bounds;
-
-  /// Bounds of the density bins
-  std::vector<Real> _density_bin_bounds;
-
   /// Node ordering for a TET4 MOAB element, based on libMesh node numberings
   std::vector<std::vector<unsigned int>> _tet4_nodes;
 
@@ -585,12 +578,6 @@ protected:
    * for a TET10 element. We re-build the libMesh element into first-order MOAB elements.
    */
   std::vector<std::vector<unsigned int>> _tet10_nodes;
-
-  /// Auxiliary variable number for temperature
-  unsigned int _temperature_var_num;
-
-  /// Auxiliary variable number for density
-  unsigned int _density_var_num;
 
   /// Number of nodes per MOAB tet (which are first order, so TET4)
   const unsigned int NODES_PER_MOAB_TET = 4;
