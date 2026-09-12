@@ -37,4 +37,13 @@
     requirement = "The system shall error if both or none of the cell level options have been prescribed."
     capabilities = 'dagmc'
   []
+  [xml_and_properties_file]
+    type = RunException
+    input = xml_and_properties.i
+    cli_args = '--error'
+    expect_err = "You have specified 'initial_properties = xml' in addition to loading "
+                 "properties from settings.properties_file \(xml_and_properties/properties.h5\)"
+    requirement = "The system shall warn if cell properties and a properties file are both specified."
+    capabilities = 'openmc'
+  []
 []
