@@ -86,6 +86,11 @@ temp_print_trace.*
 compile_commands.json
 build
 
+# An optional, non-submodule local checkout for the CMake superbuild's
+# Nek5000 tools (genbox, genmap, ...) to mirror instead of cloning fresh --
+# see cmake/CardinalNek5000Tools.cmake.
+/contrib/Nek5000/
+
 # Allow certain files in gold directories
 !**/gold/*.e
 !**/gold/*.e-s*

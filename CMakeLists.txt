@@ -16,6 +16,7 @@ include(ExternalProject)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(CardinalDependency)
 include(CardinalMoosePrereq)
+include(CardinalNek5000Tools)
 
 # The final "hand off to make" step (below) relies on the $(MAKE) recursive-
 # invocation convention so it shares the *same* jobserver `cmake --build -jN`
@@ -136,6 +137,29 @@ endif()
 # here instead so a superbuild user hitting the same class of problem can
 # just pass -DENABLE_HYPRE_GPU=OFF at configure time.
 option(ENABLE_HYPRE_GPU "Build NekRS's bundled HYPRE with GPU (CUDA/HIP) device support" ON)
+
+# Nek5000's own mesh/conversion tools (genbox, genmap, ...), documented at
+# https://nek5000.github.io/NekDoc/tools.html -- of no use without NekRS/
+# Nek5000 meshes to work with, hence defaulting to ENABLE_NEK's own value
+# rather than a fixed ON/OFF.
+option(ENABLE_NEK5000_TOOLS "Build Nek5000's own mesh tools (genbox, genmap, ...)" ${ENABLE_NEK})
+
+# Not tools/maketools' own "core" keyword (genmap, genbox, n2to3,
+# reatore2, nekmerge) -- despite needing nothing beyond a C/Fortran
+# compiler, none of those are actually used anywhere in Cardinal's own
+# docs/tutorials. exo2nek/gmsh2nek (Exodus/Gmsh -> NekRS's .re2 mesh
+# format) are the only two tools Cardinal's tutorials and doc/content/
+# nek_tools.md reference -- so that's the default here instead, even
+# though (unlike every other default in this superbuild) each of them
+# separately `wget`s a third-party source tarball during their own build
+# (maketools.inc's chk_web), needing network access, `wget`, and
+# `openssl` beyond what building them would otherwise require. Override
+# with "core", "all", or a specific space-separated tool list.
+set(NEK5000_TOOLS_LIST "exo2nek gmsh2nek" CACHE STRING "Which Nek5000 tools to build: \"core\", \"all\", or a space-separated list of tool names (see tools/maketools)")
+
+# tools/maketools' own MAXNEL: the largest number of elements a tool like
+# genbox/genmap can be compiled to handle.
+set(NEK5000_TOOLS_MAXNEL "150000" CACHE STRING "Max number of elements Nek5000's tools are compiled to handle (maketools' own MAXNEL)")
 
 # PETSc's configure_petsc.sh always builds its downloaded OpenBLAS with
 # DYNAMIC_ARCH=1 -- kernels for every x86 microarchitecture it knows
@@ -951,6 +975,26 @@ if(ENABLE_NEK)
     DEPENDS         cardinal-check-container
     NO_BUILD
     NO_GIT_SUBMODULES)
+endif()
+
+# -----------------------------------------------------------------------------
+# Nek5000's own tools (genbox, genmap, ...) -- not one of Cardinal's own
+# dependencies (nothing here links against them), just a convenience build
+# of https://github.com/Nek5000/Nek5000.git's tools/ for users who want
+# them. Deliberately not a git submodule -- see CardinalNek5000Tools.cmake
+# for the full reasoning (no commit to pin, no CMake build of its own).
+# -----------------------------------------------------------------------------
+if(ENABLE_NEK5000_TOOLS)
+  cardinal_add_nek5000_tools(nek5000-tools
+    LOCAL_PATH  contrib/Nek5000
+    SOURCE_DIR  ${CARDINAL_STAGE_DIR}/contrib/Nek5000
+    INSTALL_DIR ${CARDINAL_INSTALL_DIR}/bin
+    GIT_URL     https://github.com/Nek5000/Nek5000.git
+    TOOLS       ${NEK5000_TOOLS_LIST}
+    FC          ${LIBMESH_FC}
+    CC          ${LIBMESH_CC}
+    MAXNEL      ${NEK5000_TOOLS_MAXNEL}
+    DEPENDS     cardinal-check-container)
 endif()
 
 # -----------------------------------------------------------------------------

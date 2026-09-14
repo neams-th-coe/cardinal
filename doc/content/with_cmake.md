@@ -136,6 +136,21 @@ Any of these can also be toggled interactively:
 ccmake build
 ```
 
+[Nek5000's own mesh tools](https://nek5000.github.io/NekDoc/tools.html) -- `exo2nek` and
+`gmsh2nek` by default, the two actually used in Cardinal's own tutorials and
+[nek_tools.md](nek_tools.md) -- are also built by default (`cmake --build build`), landing in
+`build/install/bin`. Building these two specifically needs network access, `wget`, and `openssl`
+(each separately fetches a third-party source tarball during its own build). Unlike every other
+dependency here, there's no pinned version to track -- it's always whatever the latest
+[Nek5000](https://github.com/Nek5000/Nek5000) is at the time you first configure/build (delete
+`build/` to pick up a newer one), fetched fresh unless you already have your own checkout at
+`contrib/Nek5000` (mirrored in instead, same as any other dependency here). Configure with
+`-DENABLE_NEK5000_TOOLS=OFF` to skip them, or `-DNEK5000_TOOLS_LIST="..."` to build a different
+set instead -- `"core"` (`genmap`, `genbox`, `n2to3`, `reatore2`, `nekmerge`; no network access
+needed), `"all"`, or a specific space-separated list of tool names -- and
+`-DNEK5000_TOOLS_MAXNEL=<n>` to raise the default element-count limit those tools are compiled
+with.
+
 ## Building
   id=build
 
