@@ -113,6 +113,15 @@ option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
 option(ENABLE_DPCPP  "Build NekRS/OCCA with SYCL/DPCPP support" OFF)
 option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 
+# Only available for an Nvidia GPU (Makefile:59-68). Matches the Makefile's
+# own "forgot to set OCCA_CUDA_ENABLED for AMGX" fixup: force CUDA on too,
+# rather than silently configuring an AMGX that can never be used.
+option(ENABLE_AMGX "Build NekRS with AMGX support" OFF)
+if(ENABLE_AMGX AND NOT ENABLE_CUDA)
+  message(STATUS "Cardinal: turning on CUDA backend because AMGX was requested")
+  set(ENABLE_CUDA ON CACHE BOOL "Build NekRS/OCCA with CUDA support" FORCE)
+endif()
+
 # NekRS's own bundled HYPRE builds a CUDA/HIP device variant whenever
 # ENABLE_CUDA/ENABLE_HIP is on (cmake/hypre.cmake:
 # `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`),
@@ -902,6 +911,13 @@ if(ENABLE_NEK)
       -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
       -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
       -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+      # Pinned empty (matching config/nekrs.mk's own always-empty
+      # NEKRS_C/CXX/FFLAGS) rather than left unset: unset would let CMake
+      # fall back to any ambient CFLAGS/CXXFLAGS/FFLAGS in the environment,
+      # which the Makefile build never picks up here either.
+      -DCMAKE_C_FLAGS=
+      -DCMAKE_CXX_FLAGS=
+      -DCMAKE_Fortran_FLAGS=
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
       -DCMAKE_INSTALL_MESSAGE=LAZY
       "-DNEK5000_PPLIST=PARRSB DPROCMAP"
@@ -910,7 +926,7 @@ if(ENABLE_NEK)
       -DENABLE_CUDA=${ENABLE_CUDA}
       -DENABLE_OPENCL=${ENABLE_OPENCL}
       -DENABLE_HIP=${ENABLE_HIP}
-      -DENABLE_AMGX=0
+      -DENABLE_AMGX=${ENABLE_AMGX}
       -DENABLE_HYPRE_GPU=${ENABLE_HYPRE_GPU}
       -DOCCA_ENABLE_CUDA=${ENABLE_CUDA}
       -DOCCA_ENABLE_HIP=${ENABLE_HIP}
