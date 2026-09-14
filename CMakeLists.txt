@@ -880,6 +880,19 @@ endif()
 # -----------------------------------------------------------------------------
 # NekRS (config/nekrs.mk)
 # -----------------------------------------------------------------------------
+
+# Same names, meanings, and defaults as config/nekrs.mk's own
+# NEKRS_CFLAGS/CXXFLAGS/FFLAGS/NEK5000_PPLIST and OCCA_CXXFLAGS
+# (config/nekrs.mk:2-6) -- real CACHE options here rather than hardcoded,
+# since that file's own comment ("These have the same names and meanings
+# as in makenrs") already marks them as user-tunable, not fixed constants.
+set(NEKRS_CFLAGS   "" CACHE STRING "Extra CMAKE_C_FLAGS for NekRS's own CMake build")
+set(NEKRS_CXXFLAGS "" CACHE STRING "Extra CMAKE_CXX_FLAGS for NekRS's own CMake build")
+set(NEKRS_FFLAGS   "" CACHE STRING "Extra CMAKE_Fortran_FLAGS for NekRS's own CMake build")
+set(NEKRS_NEK5000_PPLIST "PARRSB DPROCMAP" CACHE STRING "NekRS's own NEK5000_PPLIST")
+set(OCCA_CXXFLAGS "-O2 -ftree-vectorize -funroll-loops -march=native -mtune=native"
+  CACHE STRING "Compiler flags OCCA uses to JIT-compile its own CPU kernels at runtime (a NekRS build-time setting only in the sense that it's baked into the installed nekrs.conf; OCCA itself reads it fresh from the environment at every kernel compile)")
+
 if(ENABLE_NEK)
   # NekRS's own CMakeLists.txt defaults some of its own OCCA_ENABLE_*
   # cache variables to ON regardless of caller -- OCCA_ENABLE_CUDA/HIP/
@@ -911,18 +924,17 @@ if(ENABLE_NEK)
       -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
       -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
       -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
-      # Pinned empty (matching config/nekrs.mk's own always-empty
-      # NEKRS_C/CXX/FFLAGS) rather than left unset: unset would let CMake
-      # fall back to any ambient CFLAGS/CXXFLAGS/FFLAGS in the environment,
-      # which the Makefile build never picks up here either.
-      -DCMAKE_C_FLAGS=
-      -DCMAKE_CXX_FLAGS=
-      -DCMAKE_Fortran_FLAGS=
+      # Passed explicitly (default empty), not left unset: unset would let
+      # CMake fall back to any ambient CFLAGS/CXXFLAGS/FFLAGS in the
+      # environment, which the Makefile build never picks up here either.
+      "-DCMAKE_C_FLAGS=${NEKRS_CFLAGS}"
+      "-DCMAKE_CXX_FLAGS=${NEKRS_CXXFLAGS}"
+      "-DCMAKE_Fortran_FLAGS=${NEKRS_FFLAGS}"
       -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
       -DCMAKE_INSTALL_MESSAGE=LAZY
-      "-DNEK5000_PPLIST=PARRSB DPROCMAP"
+      "-DNEK5000_PPLIST=${NEKRS_NEK5000_PPLIST}"
       -DOCCA_CXX=${LIBMESH_CC}
-      "-DOCCA_CXXFLAGS=-O2 -ftree-vectorize -funroll-loops -march=native -mtune=native"
+      "-DOCCA_CXXFLAGS=${OCCA_CXXFLAGS}"
       -DENABLE_CUDA=${ENABLE_CUDA}
       -DENABLE_OPENCL=${ENABLE_OPENCL}
       -DENABLE_HIP=${ENABLE_HIP}
