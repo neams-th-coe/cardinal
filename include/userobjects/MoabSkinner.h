@@ -95,6 +95,14 @@ public:
   virtual unsigned int getFieldBin(const std::string & name, const Elem * const elem) const;
 
   /**
+   * Get the bin index for a given binned field
+   * @param[in] field binned field
+   * @param[in] elem element
+   * @return field bin index
+   */
+  virtual unsigned int getFieldBin(const BinnedField & field, const Elem * const elem) const;
+  
+  /**
    * Whether the skinner bins elements by the given field name.
    * @param[in] name field name
    * @return whether the skinner bins by the field
@@ -188,13 +196,6 @@ protected:
     Reflective
   };
 
-  /**
-   * Get the bin index for a given binned field
-   * @param[in] field binned field
-   * @param[in] elem element
-   * @return field bin index
-   */
-  virtual unsigned int getFieldBin(const BinnedField & field, const Elem * const elem) const;
 
   /// Read the 'fields' parameters and populate _fields
   void readFieldParameters();
