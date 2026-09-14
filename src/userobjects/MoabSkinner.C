@@ -210,7 +210,7 @@ MoabSkinner::readFieldParameters()
   // used to skin using only block ids
   if (!isParamSetByUser("fields"))
   {
-    _console << "Skinning using block ID's only..." << std::endl;
+    _console << "Skinning using block IDs only..." << std::endl;
     return;
   }
 
