@@ -897,22 +897,17 @@ if(ENABLE_NEK)
   # NekRS's own CMakeLists.txt defaults some of its own OCCA_ENABLE_*
   # cache variables to ON regardless of caller -- OCCA_ENABLE_CUDA/HIP/
   # DPCPP, via set(... CACHE BOOL ...) (CMakeLists.txt:143-145;
-  # OCCA_ENABLE_OPENCL/METAL default OFF there already, :146-147).
-  # Separately, our own ENABLE_CUDA/ENABLE_HIP/ENABLE_OPENCL below
-  # (matching config/nekrs.mk's own -D flags exactly) do NOT stop OCCA
-  # itself from probing for and building against whatever CUDA/HIP
-  # toolkits happen to be on PATH -- OCCA's actual backend build is gated
-  # on its own downstream-computed OCCA_CUDA_ENABLED/OCCA_HIP_ENABLED/etc,
-  # not on these input flags. On a bare HPC host with GPU toolkits present
-  # (unlike the container, which has neither) that silently builds OCCA's
-  # CUDA/HIP backends -- and, transitively, nekRS's own bundled
-  # device-enabled HYPRE (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND
-  # (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`) -- even if that's not what
-  # was asked for. Forward our own ENABLE_CUDA/HIP/OPENCL/DPCPP/METAL
-  # cache variables (default OFF, toggle with ccmake) directly as OCCA's
-  # own cache variables so a plain set(... CACHE ...) can't turn them
-  # back on (that never overwrites a cache entry that already exists, and
-  # -D on the command line always creates/wins one first).
+  # OCCA_ENABLE_OPENCL/METAL default OFF there already, :146-147). On a
+  # bare HPC host with GPU toolkits present (unlike the container, which
+  # has neither) that silently builds OCCA's CUDA/HIP backends -- and,
+  # transitively, nekRS's own bundled device-enabled HYPRE
+  # (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR
+  # OCCA_HIP_ENABLED))`) -- even if that's not what was asked for. Forward
+  # our own ENABLE_CUDA/HIP/OPENCL/DPCPP/METAL cache variables (default
+  # OFF, toggle with ccmake) directly as OCCA's own cache variables so a
+  # plain set(... CACHE ...) can't turn them back on (that never overwrites
+  # a cache entry that already exists, and -D on the command line always
+  # creates/wins one first).
   cardinal_add_submodule_dependency(nekrs
     SUBMODULE_PATH contrib/nekRS
     SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nekRS
@@ -935,9 +930,6 @@ if(ENABLE_NEK)
       "-DNEK5000_PPLIST=${NEKRS_NEK5000_PPLIST}"
       -DOCCA_CXX=${LIBMESH_CC}
       "-DOCCA_CXXFLAGS=${OCCA_CXXFLAGS}"
-      -DENABLE_CUDA=${ENABLE_CUDA}
-      -DENABLE_OPENCL=${ENABLE_OPENCL}
-      -DENABLE_HIP=${ENABLE_HIP}
       -DENABLE_AMGX=${ENABLE_AMGX}
       -DENABLE_HYPRE_GPU=${ENABLE_HYPRE_GPU}
       -DOCCA_ENABLE_CUDA=${ENABLE_CUDA}
