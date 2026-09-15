@@ -25,7 +25,7 @@ ClusteringUserObjectBase::ClusteringUserObjectBase(const InputParameters & param
     _serialized_metric_solution(_auxiliary_system.serializedSolution())
 {
   // check if the element type if CONSTANT MONOMIAL. If not then throw a mooseError.
-  if (_metric_variable.feType() != FEType(CONSTANT, MONOMIAL))
+  if (_metric_variable.feType().family != MONOMIAL || _metric_variable.feType().order != CONSTANT)
     paramError("metric_variable_name",
                _metric_variable_name + " must be of type CONSTANT MONOMIAL");
   // check if mesh is replicated. If not then throw a moose error.
