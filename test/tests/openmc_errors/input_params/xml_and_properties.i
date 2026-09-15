@@ -12,7 +12,7 @@
   temperature_blocks = '1'
   cell_level = 0
   initial_properties = xml
-  xml_directory = xml_and_properties
+  xml_directory = 'xml_and_properties'
 []
 
 [Executioner]
