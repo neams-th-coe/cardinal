@@ -746,8 +746,7 @@ MoabSkinner::sortElemsByResults()
 
   // compute the total bin index for an element from its individual field and subdomain bins.
   // the first-listed field is the fastest-varying index.
-  auto totalBin =
-      [this](const std::vector<unsigned int> & field_bins, const unsigned int block_bin)
+  auto totalBin = [this](const std::vector<unsigned int> & field_bins, const unsigned int block_bin)
   {
     unsigned int total = 0;
     unsigned int bins_per_field = 1;

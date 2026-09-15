@@ -101,7 +101,7 @@ public:
    * @return field bin index
    */
   virtual unsigned int getFieldBin(const BinnedField & field, const Elem * const elem) const;
-  
+
   /**
    * Whether the skinner bins elements by the given field name.
    * @param[in] name field name
@@ -195,7 +195,6 @@ protected:
     Vacuum,
     Reflective
   };
-
 
   /// Read the 'fields' parameters and populate _fields
   void readFieldParameters();
