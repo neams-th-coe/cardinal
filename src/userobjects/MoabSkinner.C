@@ -804,7 +804,7 @@ MoabSkinner::sortElemsByResults()
         n_field_hits[i][fbins[i]] += 1;
       }
 
-      orig_id_to_bin[elem->id()] = total_bin(fbins, iMat);
+      orig_id_to_bin[elem->id()] = totalBin(fbins, iMat);
     }
 
     // insert each tet ID into its parent's bin.
