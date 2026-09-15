@@ -80,4 +80,12 @@
     requirement = "The system shall error if the requirements for a binning variable type are violated."
     capabilities = 'dagmc'
   []
+  [not_enough_bins]
+    type = RunException
+    input = not_enough_bins.i
+    mesh_mode = 'replicated'
+    expect_err = "UserObjects/moab/n_field_bins: 'n_field_bins' (length 1) must be the same length as 'fields' (length 2)"
+    requirement = "The system shall error if the requirements for a binning variable type are violated."
+    capabilities = 'dagmc'
+  []
 []
