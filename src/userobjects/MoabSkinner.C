@@ -1307,7 +1307,8 @@ MoabSkinner::write()
     for (const auto & itsurf : surfsToVols)
       surfs.push_back(itsurf.first);
 
-    std::string filename = (_output_skin_name.empty() ? "moab_skins" : _output_skin_name) + extension;
+    std::string filename =
+        (_output_skin_name.empty() ? "moab_skins" : _output_skin_name) + extension;
 
     if (_verbose)
       _console << "Writing MOAB skins to " << filename << "...";
@@ -1663,3 +1664,4 @@ MoabSkinner::setGraveyard(bool build)
   _build_graveyard = build;
 }
 #endif
+OB
