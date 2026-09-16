@@ -115,10 +115,10 @@ SUBCHANNEL          := yes
 THERMAL_HYDRAULICS  := yes
 
 # Configure the optional dependencies (NekRS, OpenMC, submodules, etc.)
-include config/check_deps.mk
+include $(CARDINAL_DIR)/config/check_deps.mk
 
 # Report what MOOSE modules are being used
-include config/check_modules.mk
+include $(CARDINAL_DIR)/config/check_modules.mk
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
@@ -253,7 +253,7 @@ include $(MOOSE_DIR)/modules/modules.mk
 # Third-Party Dependencies
 # ======================================================================================
 
-include config/add_flags.mk
+include $(CARDINAL_DIR)/config/add_flags.mk
 
 # ======================================================================================
 # External apps
@@ -274,10 +274,22 @@ export CARDINAL_DIR
 
 APPLICATION_DIR    := $(CARDINAL_DIR)
 APPLICATION_NAME   := cardinal
+
+# Skipped when included from unit/Makefile (which sets CARDINAL_UNIT_INCLUDE
+# before including this file): that file wants this same "cardinal"
+# app.mk inclusion below too (for cardinal's own library, which
+# cardinal-unit links against), just without actually building cardinal's
+# own executable -- app.mk decides that from BUILD_EXEC alone (unset here
+# means "library only"), so only these four variables need guarding, not
+# APPLICATION_NAME or the include itself. Not a recursive $(MAKE), so none
+# of app.mk's own STACK-based save/restore or any cross-process concern
+# applies here.
+ifndef CARDINAL_UNIT_INCLUDE
 BUILD_EXEC         := yes
 GEN_REVISION       := yes
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 INSTALLABLE_DIRS   := test/tests->tests tutorials
+endif
 
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
