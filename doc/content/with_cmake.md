@@ -342,6 +342,23 @@ method-suffixed libraries -- no risk of `cardinal-opt` picking up a Debug librar
 end up sitting side by side in `/path/to/install/bin`.
 !alert-end!
 
+## Building Documentation
+  id=doc
+
+`cmake --build build --target doc` builds Cardinal's documentation the same way
+[developers.md](developers.md) describes (`./moosedocs.py build`), against whichever
+`cardinal-<method>` this configuration built (built automatically first if you haven't already,
+since this target depends on it). MOOSE's `large_media` submodule -- needed by `moosedocs.py`
+itself, but sizeable, and irrelevant to compiling Cardinal -- is fetched automatically too, the
+first time you build this target, rather than something you need to check out yourself.
+
+The rendered site lands in `build/doc-site`, not inside your checkout's own `doc/` -- this is the
+one target that reads directly from your checkout (`doc/content/*.md`, plus real git history,
+which MooseDocs' own SQA/requirement-traceability checks need to run against), but it writes
+nothing there: doxygen's own output, which the plain Makefile build always leaves inside the
+checkout itself (harmlessly -- it's `.gitignore`d), is redirected into `build/doc-site` too. See
+[cmake_details.md](cmake_details.md) for the full story.
+
 ## Checking the Install
 
 !include checking_install.md

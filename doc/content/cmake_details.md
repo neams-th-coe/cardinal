@@ -1023,6 +1023,83 @@ directly too: `make openmc-configure` under the mismatched older container now s
 `cardinal-check-container` before OpenMC's own configure step ever runs, rather than surfacing only
 that unrelated VTK-path failure.
 
+## Documentation (`doc` target)
+
+`cmake --build build --target doc` wires `doc/moosedocs.py build` (the command
+[developers.md](developers.md) documents for building Cardinal's docs) into the superbuild. Not
+`ALL`, matching `cardinal-unit`/`cardinal-install`'s own opt-in convention -- docs aren't part of
+an ordinary build.
+
++`moose-large-media`+: MOOSE's own `large_media` submodule (needed by `moosedocs.py` itself,
+unconditionally) isn't fetched by `moose-add`'s own submodule resolution (`NO_GIT_SUBMODULES`,
+above) -- most of MOOSE's own many submodules are irrelevant to compiling Cardinal, and
+`large_media` itself is sizeable (594MB, observed directly), not something every ordinary build
+should pay for. It's outside `cardinal_add_submodule_dependency`'s own three-tier resolution too,
+which is built around Cardinal's own `.gitmodules`/pinned commits -- `large_media` is a submodule
+of `contrib/moose`'s own `.gitmodules`, not Cardinal's. Resolved with its own small
+`add_custom_target`, `DEPENDS moose-add`, instead: a plain `git submodule update --init
+large_media` run inside `CARDINAL_STAGE_DIR/contrib/moose` needs no CMake-side bookkeeping of its
+own, since `moose-add` already leaves a real, ordinary `.git` clone there (`MARKER_FILE .git`, not
+a gitless mirror) that already knows `large_media`'s URL/pinned commit from MOOSE's own
+`.gitmodules` -- the same command the plain Makefile workflow's own instructions already tell a
+contributor to run by hand. `DEPENDS` of the "doc" target only (below), not `cardinal`/`ALL`, so
+an ordinary build never fetches it; confirmed idempotent (a second build after the first fetch
+completes in under half a second, doing nothing beyond re-checking `moose-add` and the submodule
+state).
+
++The one target that reads from `CMAKE_SOURCE_DIR`, not `CARDINAL_STAGE_DIR`.+ `moosedocs.py`'s
+own `MooseDocs` import sets `ROOT_DIR` from `mooseutils.git_root_dir()` -- a real git checkout is
+hard-required, since `moosesqa`'s requirement-traceability/SQA extensions run actual (read-only --
+`git rev-parse`/`ls-files`/`blame`/..., never a mutating command) git commands against it -- and
+Cardinal's `doc/content/*.md` source lives there too, not in the mirrored build tree (which
+`mirror_source` deliberately excludes `/.git` from). The only thing this target actually sources
+from the build tree is the executable itself: `appsyntax`'s class-syntax generation and
+`moosesqa`'s `SQAMooseAppReport` both need to run a real, already-built `cardinal-<method>` to
+introspect its registered MOOSE syntax, and that only ever exists in `CARDINAL_STAGE_DIR`.
+
++`CARDINAL_EXECUTABLE_DIR`+: `doc/config.yml`'s `appsyntax.executable` and
+`doc/sqa_reports.yml`'s `Applications.cardinal.exe_directory` both default to `${ROOT_DIR}` --
+correct for the plain Makefile build, where the executable really does land next to the checkout,
+but wrong here, since `ROOT_DIR` has to stay the real checkout for the git-dependent reasons
+above. `doc/moosedocs.py` introduces this variable, defaulting to `ROOT_DIR` (so the plain build
+is unaffected), and this target overrides it to `CARDINAL_STAGE_DIR`. `exe_name`/`app_name` also
+both need to be given explicitly (`cardinal`) alongside it: without a directory name to fall back
+on, `mooseutils.find_moose_executable`'s own name-inference (a Makefile's `APPLICATION_NAME`,
+else the directory's own basename) would otherwise silently pick up `CARDINAL_STAGE_DIR`'s own
+name instead of `cardinal` -- confirmed directly; it only ever worked for the plain build by
+coincidence, since a checkout's directory happens to be named `cardinal` too.
+
++Doxygen's own output+ (`doc/content/doxygen/Doxyfile`'s `OUTPUT_DIRECTORY`, a path resolved
+against `moosedocs.py`'s cwd, `ROOT_DIR`) is the one other thing that would otherwise land inside
+the checkout -- harmlessly for the plain build (`.gitignore`d), but unlike everything else this
+target touches. Rather than edit the checked-in Doxyfile (meaningful on its own to a contributor
+running doxygen by hand), `moosedocs.py` pipes the real, unmodified Doxyfile through `doxygen -`
+(reads its config from stdin) with one `CARDINAL_DOXYGEN_OUTPUT_DIR`-controlled `OUTPUT_DIRECTORY`
+assignment appended -- doxygen's config parser is a flat pass where the last assignment to a tag
+wins. This target points it directly at `doc-site/doxygen` -- the same subdirectory MooseDocs' own
+content-copy step would already put it in, had doxygen written under `doc/content`
+(`doc/content/doxygen.md` links to it relative to the rendered site) -- so no separate copy step
+is needed: doxygen finishes before MooseDocs' own build even starts, and its "Copying content"
+step only ever writes the specific files it discovers under `doc/content`, not a directory sync of
+the whole destination, so a `doxygen/` subdirectory it never discovered there is left alone. It
+does need `doc-site` to already exist first, since doxygen will create one missing leaf directory
+for `OUTPUT_DIRECTORY` but not two (confirmed directly) -- hence the leading `make_directory`.
+
++`--destination`+: `MooseDocs.base.Translator`'s own default (`~/.local/share/moose/site`) is
+independent of `ROOT_DIR` entirely, and `config.yml` doesn't override it -- left alone, the actual
+rendered site would land outside both `CMAKE_SOURCE_DIR` and `CARDINAL_STAGE_DIR`, in the invoking
+user's home directory. Pointed at `CARDINAL_STAGE_DIR/doc-site` instead, keeping this target's
+real output alongside everything else this file builds.
+
++Validated+ end-to-end against a real build (`ENABLE_NEK`/`ENABLE_OPENMC` off, to keep it cheap):
+`cmake --build build --target doc` correctly resolves `cardinal-opt` for both `appsyntax` and
+`moosesqa`, writes the rendered site (including doxygen's own output) entirely into
+`build/doc-site`, and leaves the checkout's own `doc/content/doxygen` untouched (`git status`
+confirmed clean before and after). The only failures reported (296) are `!syntax` references to
+Nek/OpenMC/DAGMC classes this stripped-down `cardinal-opt` never registers -- the same failure any
+build, CMake or plain Makefile, would produce against an executable built with those features off,
+not specific to this target.
+
 ## Status
 
 Phases 1-3 (container build against pre-built dependencies; Phase 2's DAGMC/MOAB/Embree/
