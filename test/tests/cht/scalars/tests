@@ -1,0 +1,18 @@
+[Tests]
+  design = 'NekRSProblem.md NekBoundaryFlux.md NekFieldVariable.md DimensionalizeAction.md'
+  issues = '#1077'
+
+  [sfr_pincell]
+    type = CSVDiff
+    input = main.i
+    exodiff = main_out.csv
+    min_parallel = 4
+    heavy = true
+    requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
+                  "conservation of energy and realistic thermal solutions when nekRS is run in "
+                  "nondimensional form. This case specifically tests functionality for scalar coupling "
+                  "by treating scalar 2 as if it were temperature. Results match identically with the "
+                  "same setup, but using a different scalar index as in the ../nondimensional directory."
+    capabilities = 'nekrs'
+  []
+[]

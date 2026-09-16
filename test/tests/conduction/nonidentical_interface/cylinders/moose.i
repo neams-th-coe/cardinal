@@ -44,7 +44,7 @@
 [Functions]
   [heat_source]
     type = ParsedFunction
-    value = 5000.0*cos(pi*z/0.5)*exp(x)
+    expression = 5000.0*cos(pi*z/0.5)*exp(x)
   []
 []
 

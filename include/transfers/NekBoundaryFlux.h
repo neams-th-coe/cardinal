@@ -87,6 +87,12 @@ protected:
   /// Boundaries through which the flux transfer occurs
   const std::vector<int> * _boundary;
 
+  /// NekRS equation to which this flux corresonds, in order to use correct non-dimensional scaling
+  flux::NekFluxEnum _flux_type;
+
+  /// NekRS quantity that will ultimately be written by this transfer
+  field::NekWriteEnum _write_field;
+
   /// Dimensional reference flux, computed from characteristic scales
   const Real _reference_flux_integral;
 
