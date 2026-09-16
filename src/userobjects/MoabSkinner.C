@@ -1298,7 +1298,7 @@ MoabSkinner::write()
   if (processor_id() != 0)
     return;
 
-  std::string extension = std::to_string(_n_write) + ".h5m";
+  std::string extension = '_' + std::to_string(_n_write) + ".h5m";
 
   if (_output_skins)
   {

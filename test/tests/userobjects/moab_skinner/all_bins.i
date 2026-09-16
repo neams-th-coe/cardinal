@@ -113,7 +113,7 @@
 
     output_skins = true
     # this is the test name in tests
-    output_skin_name = 'bins_skins_'
+    output_skin_name = 'bins_skins'
   []
 []
 
