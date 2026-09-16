@@ -1517,6 +1517,30 @@ install(CODE "
   endif()
 ")
 
+# large_media (MOOSE's own submodule, not one of Cardinal's -- so outside
+# cardinal_add_submodule_dependency's own three-tier resolution above, which
+# is built around Cardinal's own .gitmodules/pinned commits) is required by
+# moosedocs.py itself, unconditionally, but deliberately not fetched by
+# moose-add (NO_GIT_SUBMODULES, above) -- most of MOOSE's own many submodules
+# are irrelevant to compiling Cardinal, and large_media itself is sizeable
+# (documentation images/videos), not something every ordinary build should
+# pay for. Resolved lazily instead, exactly like every other genuinely
+# optional dependency in this file (nekrs/openmc/dagmc/nek5000-tools/...) --
+# only ever fetched when something that actually needs it (the "doc" target,
+# below) is built. moose-add's own .git (a real, ordinary clone -- MARKER_
+# FILE .git, not a gitless mirror) already knows large_media's URL/pinned
+# commit from MOOSE's own .gitmodules, so this needs no CMake-side
+# bookkeeping of its own, unlike a real Cardinal submodule -- just the same
+# `git submodule update --init` the plain Makefile workflow's own
+# instructions already tell a contributor to run by hand.
+add_custom_target(moose-large-media
+  COMMAND git submodule update --init --depth 1 large_media
+  WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}/contrib/moose
+  DEPENDS moose-add
+  COMMENT "Fetching MOOSE's large_media submodule"
+  USES_TERMINAL
+  VERBATIM)
+
 # -----------------------------------------------------------------------------
 # Cardinal's documentation (doc/moosedocs.py). Not ALL: matches cardinal-unit/
 # cardinal-install's own "opt-in" convention -- docs aren't part of an
@@ -1601,7 +1625,7 @@ add_custom_target(doc
           --
           python3 moosedocs.py build --destination ${CARDINAL_STAGE_DIR}/doc-site
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/doc
-  DEPENDS cardinal
+  DEPENDS cardinal moose-large-media
   COMMENT "Building Cardinal documentation from ${CMAKE_SOURCE_DIR}/doc"
   USES_TERMINAL
   VERBATIM)
