@@ -1412,6 +1412,13 @@ add_custom_target(cardinal ALL
 # recipe ever runs, regardless of whether it's reached via
 # `cmake --build --target cardinal-unit` directly or via unit/Makefile's
 # own forwarding shim (cmake/UnitMakefile, copied in by mirror_source too).
+#
+# CARDINAL_MAKEFILE=../Makefile.cardinal: unit/Makefile.unit's own default
+# (../Makefile) assumes the plain-Makefile build, where that name is
+# Cardinal's real top-level Makefile; here it's reserved for CMake's own
+# generated build-system Makefile instead (Makefile.cardinal above is
+# where Cardinal's real one actually landed), so tell it explicitly
+# rather than have it guess from which files happen to exist on disk.
 add_custom_target(cardinal-unit
   COMMAND ${CMAKE_COMMAND} -DCARDINAL_METHOD=${_cardinal_method}
           -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMethod.cmake
@@ -1424,7 +1431,7 @@ add_custom_target(cardinal-unit
           METHOD=${_cardinal_method}
           ${_make_enable_args}
           --
-          $(MAKE) -C unit -f Makefile.unit
+          $(MAKE) -C unit -f Makefile.unit CARDINAL_MAKEFILE=../Makefile.cardinal
   WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
   DEPENDS ${_cardinal_depends}
   COMMENT "Building Cardinal's unit tests via unit/Makefile.unit in ${CARDINAL_STAGE_DIR}/unit"
