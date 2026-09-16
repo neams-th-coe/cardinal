@@ -149,7 +149,9 @@ dependency here, there's no pinned version to track -- it's always whatever the 
 set instead -- `"core"` (`genmap`, `genbox`, `n2to3`, `reatore2`, `nekmerge`; no network access
 needed), `"all"`, or a specific space-separated list of tool names -- and
 `-DNEK5000_TOOLS_MAXNEL=<n>` to raise the default element-count limit those tools are compiled
-with.
+with. This target is entirely independent of the rest of the build -- it doesn't need MOOSE,
+PETSc, libMesh, or Cardinal itself, so `cmake --build build --target nek5000-tools` works right
+after configuring, with nothing else built first.
 
 ## Building
   id=build
