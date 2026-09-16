@@ -40,6 +40,19 @@ if MOOSE_PYTHON_DIR not in sys.path:
     sys.path.append(MOOSE_PYTHON_DIR)
 
 from MooseDocs import main
+
+# MooseDocs' own __init__ (just imported) has now set ROOT_DIR -- the git
+# checkout root, which SQA/git-based extensions need to find real history
+# in. appsyntax's own executable search wants a *different* answer for a
+# CMake-superbuild build, though: cardinal-opt lives in a separate,
+# out-of-source build directory (never inside ROOT_DIR, and never itself
+# a git repo, since that build tree is a plain mirror), so appsyntax's own
+# `executable:` config setting has its own variable to default from
+# ROOT_DIR (the normal, plain-Makefile-build case, where the executable
+# really does end up alongside the checkout) without forcing every other
+# git-dependent extension to also look somewhere that isn't a checkout.
+os.environ.setdefault("CARDINAL_EXECUTABLE_DIR", os.environ["ROOT_DIR"])
+
 if __name__ == '__main__':
     os.chdir("..")
     os.system("doxygen doc/content/doxygen/Doxyfile")
