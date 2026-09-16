@@ -3,6 +3,7 @@
   design = 'MoabSkinner.md'
   [bins_without_anyfields]
     type = CheckFiles
+    mesh_mode = 'replicated'
     input = not_temp_or_density.i
     check_files = 'moab_skins_0.h5m moab_skins_1.h5m'
     requirement = "The system shall bin elements using subdomain when no other fields are provided"
