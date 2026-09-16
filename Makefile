@@ -272,12 +272,30 @@ export LIBS := $(libmesh_LIBS)
 
 export CARDINAL_DIR
 
-APPLICATION_DIR    := $(CARDINAL_DIR)
-APPLICATION_NAME   := cardinal
+# Builds cardinal itself, unless CARDINAL_UNIT_BUILD=yes was passed on the
+# command line (see cardinal-unit's own recipe below) to build unit/'s
+# gtest-based unit tests against the same cardinal library instead, via a
+# separate recursive $(MAKE) rather than a second same-process app.mk
+# inclusion.
+#
+# A dedicated flag, not APPLICATION_DIR/APPLICATION_NAME themselves as ?=
+# defaults: modules.mk (included above) already assigns both internally
+# while building module_loader's combined-module library, so by the time
+# a cardinal-unit build would apply its own default, they're not merely
+# unset -- they're actively wrong. CARDINAL_UNIT_BUILD is untouched by that.
+ifeq ($(CARDINAL_UNIT_BUILD),yes)
+  APPLICATION_DIR    := $(CARDINAL_DIR)/unit
+  APPLICATION_NAME   := cardinal-unit
+  DEP_APPS           :=
+  INSTALLABLE_DIRS   :=
+else
+  APPLICATION_DIR    := $(CARDINAL_DIR)
+  APPLICATION_NAME   := cardinal
+  DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+  INSTALLABLE_DIRS   := test/tests->tests tutorials
+endif
 BUILD_EXEC         := yes
 GEN_REVISION       := yes
-DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-INSTALLABLE_DIRS   := test/tests->tests tutorials
 
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
@@ -372,6 +390,33 @@ ifneq (,$(findstring -lpng, $(LIBPNG_FLAGS)))
   $(info Linking libpng: $(LIBPNG_FLAGS))
 endif
 
+# cardinal-unit needs cardinal's own headers/library, plus GTEST. A plain +=
+# is safe here since this app.mk inclusion is the only one in this process.
+# Must be an exact match on "cardinal-unit", not merely "not cardinal":
+# MOOSE's own module-combining infrastructure (module_loader) also recurses
+# into this Makefile with APPLICATION_NAME set to its own module name.
+#
+# cardinal-unit's own app.mk inclusion (APPLICATION_DIR=$(CARDINAL_DIR)/unit)
+# only computes include paths for unit/include (app.mk's own depend_dirs is
+# just $(APPLICATION_DIR)/include, plus DEPEND_MODULES -- empty here), so it
+# has no way to see $(CARDINAL_DIR)/include on its own -- hence needing
+# cardinal's headers added explicitly, same as -lcardinal-$(METHOD) below.
+# header_symlinks (app.mk's flattened, all-headers-in-one-dir mode) is only
+# actually on disk when MOOSE_HEADER_SYMLINKS=true; when it's off (as CI's
+# own "Build unit" step sets it), fall back to the same raw per-directory
+# -I flags app.mk itself uses in that mode (app.mk's own "No Header
+# Symlinks" branch), scoped to cardinal's include tree specifically.
+ifeq ($(APPLICATION_NAME),cardinal-unit)
+  ifeq ($(MOOSE_HEADER_SYMLINKS),true)
+    ADDITIONAL_INCLUDES += -I$(CARDINAL_DIR)/build/header_symlinks
+  else
+    ADDITIONAL_INCLUDES += $(foreach i, $(shell find $(CARDINAL_DIR)/include -type d), -I$(i))
+  endif
+  ADDITIONAL_LIBS     += -lcardinal-$(METHOD)
+  ADDITIONAL_INCLUDES += -I$(FRAMEWORK_DIR)/contrib/gtest
+  ADDITIONAL_LIBS     += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
+endif
+
 include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
@@ -405,3 +450,28 @@ endif
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
+
+ifeq ($(APPLICATION_NAME),cardinal-unit)
+  # -lcardinal-$(METHOD) above is just a linker flag, so make it a real
+  # prerequisite too: fails loudly if cardinal's library is missing, and
+  # relinks cardinal-unit if it's newer, even though this process has no
+  # rule to *build* it (only to check its mtime).
+  $(app_LIB) $(app_test_LIB) $(app_EXEC): $(CARDINAL_DIR)/lib/libcardinal-$(METHOD).la
+endif
+
+# cardinal-unit (unit/src, unit/include -- gtest-based) builds cardinal's
+# own library first (a normal, in-process prerequisite), then recurses with
+# CARDINAL_UNIT_BUILD=yes to build cardinal-unit against it -- rather than
+# including app.mk a second time in this same process, which would need a
+# `MAKECMDGOALS`-based guard to keep app.mk's own `all: $(app_EXEC)`
+# (app.mk:316,332) from folding cardinal-unit into a plain `make`'s default
+# build. unit/Makefile forwards to this target generically (`$(MAKE) -C ..
+# $@`), so the same unit/Makefile works under any build system that defines
+# an equivalent "cardinal-unit" (e.g. the CMake superbuild).
+# Line 213 above reassigns NEKRS_HOME from $(CONTRIB_INSTALL_DIR) to
+# $(CARDINAL_DIR), for NekRS's own runtime use. Without resetting it back
+# here, the recursive $(MAKE) below would inherit that reassigned value and
+# fail its own check_nekrs.mk, which expects $(CONTRIB_INSTALL_DIR).
+.PHONY: cardinal-unit
+cardinal-unit: $(app_LIB)
+	NEKRS_HOME=$(CONTRIB_INSTALL_DIR) $(MAKE) -C $(CARDINAL_DIR) CARDINAL_UNIT_BUILD=yes
