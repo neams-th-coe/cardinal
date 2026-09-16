@@ -1516,3 +1516,92 @@ install(CODE "
     message(FATAL_ERROR \"Cardinal: 'cmake --build ... --target cardinal-install' failed\")
   endif()
 ")
+
+# -----------------------------------------------------------------------------
+# Cardinal's documentation (doc/moosedocs.py). Not ALL: matches cardinal-unit/
+# cardinal-install's own "opt-in" convention -- docs aren't part of an
+# ordinary build.
+#
+# Unlike every other target in this file, this one reads directly from
+# CMAKE_SOURCE_DIR rather than CARDINAL_STAGE_DIR. moosedocs.py's own
+# MooseDocs import sets ROOT_DIR from mooseutils.git_root_dir() -- a real
+# git checkout is hard-required, since moosesqa's requirement-traceability/
+# SQA extensions run actual (read-only -- git rev-parse/ls-files/blame/...,
+# never a mutating command) git commands against it -- and Cardinal's
+# doc/content/*.md source lives there too, not in the mirrored build tree
+# (which mirror_source deliberately excludes /.git from -- see mirror_source
+# above). The only thing this target actually sources from the build tree
+# is the executable itself: appsyntax's class-syntax generation and
+# moosesqa's SQAMooseAppReport both need to run a real, already-built
+# cardinal-<method> to introspect its registered MOOSE syntax, and that
+# only ever exists in CARDINAL_STAGE_DIR, never in CMAKE_SOURCE_DIR.
+#
+# This target writes nothing into CMAKE_SOURCE_DIR at all -- unlike the
+# plain Makefile build, where doxygen's own OUTPUT_DIRECTORY (doc/content/
+# doxygen/Doxyfile) always lands inside the checkout itself (harmlessly --
+# see doc/content/doxygen/html*'s own .gitignore entry -- but still inside
+# it). moosedocs.py overrides that via CARDINAL_DOXYGEN_OUTPUT_DIR (piping
+# the real, unmodified Doxyfile through `doxygen -` with one assignment
+# appended, rather than patching the checked-in file -- see its own
+# comment), pointed directly at doc-site/doxygen below -- exactly where
+# MooseDocs' own content-copy step would have put it had doxygen written
+# under doc/content in the first place (doc/content/doxygen.md links to
+# doxygen/html/classes.html, relative to the rendered site itself). No
+# separate copy step needed: doxygen runs before MooseDocs' own "Copying
+# content" step even starts, and that step only ever writes the specific
+# files it discovers under doc/content (not a directory sync/mirror of
+# the whole destination), so it leaves a doxygen/ subdirectory it never
+# discovered there alone.
+#
+# CARDINAL_EXECUTABLE_DIR: doc/config.yml's appsyntax.executable and
+# doc/sqa_reports.yml's Applications.cardinal.exe_directory both default to
+# ${ROOT_DIR} (correct for the plain build, where the executable really
+# does land next to the checkout) -- overridden here since ROOT_DIR must
+# stay the real checkout for the git-dependent reasons above.
+#
+# MOOSE_DIR mirrors every other target in this file that references it
+# (e.g. moose-check-container above): the actually-resolved submodule only
+# ever lives in CARDINAL_STAGE_DIR/contrib/moose, never in
+# CMAKE_SOURCE_DIR/contrib/moose (never checked out there at all, in the
+# normal superbuild workflow -- see mirror_source's own --exclude=/contrib).
+#
+# METHOD, forced for the same reason "cardinal"/"cardinal-unit" force it
+# above: without it, mooseutils.find_moose_executable falls back to probing
+# opt/oprof/dbg/devel in that fixed order, silently picking up the wrong
+# variant's executable if more than one happens to exist in
+# CARDINAL_EXECUTABLE_DIR.
+#
+# `build`, not `check`: this is the command doc/content/developers.md itself
+# documents as how a contributor builds Cardinal's docs (`./moosedocs.py
+# build`, run from within doc/) -- `check` is a separate, stricter SQA-lint
+# command with its own report format, not what "building the docs" means.
+#
+# --destination: MooseDocs.base.Translator's own default (~/.local/share/
+# moose/site) is independent of ROOT_DIR entirely -- config.yml doesn't
+# override it -- so left alone the actual rendered site would land outside
+# both CMAKE_SOURCE_DIR and CARDINAL_STAGE_DIR, in the invoking user's home
+# directory. Point it into CARDINAL_STAGE_DIR instead, keeping this
+# target's real build output alongside every other target's, in the same
+# build tree a fresh `rm -rf`/reconfigure actually cleans up.
+#
+# The leading `make_directory doc-site`, before doxygen ever runs: doxygen
+# will create a single missing leaf directory for OUTPUT_DIRECTORY (e.g.
+# doc-site/doxygen, if doc-site itself already exists) but refuses to
+# create more than one missing level at once ("Output directory '...' does
+# not exist and cannot be created", confirmed directly) -- and doc-site
+# itself doesn't exist yet at this point, since it's MooseDocs' own build
+# step (moosedocs.py, invoked after doxygen) that normally creates it.
+add_custom_target(doc
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CARDINAL_STAGE_DIR}/doc-site
+  COMMAND ${CMAKE_COMMAND} -E env
+          MOOSE_DIR=${CARDINAL_STAGE_DIR}/contrib/moose
+          CARDINAL_EXECUTABLE_DIR=${CARDINAL_STAGE_DIR}
+          CARDINAL_DOXYGEN_OUTPUT_DIR=${CARDINAL_STAGE_DIR}/doc-site/doxygen
+          METHOD=${_cardinal_method}
+          --
+          python3 moosedocs.py build --destination ${CARDINAL_STAGE_DIR}/doc-site
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/doc
+  DEPENDS cardinal
+  COMMENT "Building Cardinal documentation from ${CMAKE_SOURCE_DIR}/doc"
+  USES_TERMINAL
+  VERBATIM)

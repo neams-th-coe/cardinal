@@ -19,6 +19,7 @@
 
 import sys
 import os
+import subprocess
 
 # Locate MOOSE directory
 MOOSE_DIR = os.getenv('MOOSE_DIR', os.path.abspath(os.path.join(os.path.dirname(__name__), '..', 'contrib', 'moose')))
@@ -55,6 +56,30 @@ os.environ.setdefault("CARDINAL_EXECUTABLE_DIR", os.environ["ROOT_DIR"])
 
 if __name__ == '__main__':
     os.chdir("..")
-    os.system("doxygen doc/content/doxygen/Doxyfile")
+
+    # Doxygen's own OUTPUT_DIRECTORY (doc/content/doxygen/Doxyfile) is a
+    # relative path, resolved against doxygen's cwd (ROOT_DIR, just above)
+    # -- always correct for the plain Makefile build, where the checkout
+    # itself is the build directory, but a write into the checkout itself
+    # for a CMake-superbuild build, whose own build tree is a separate,
+    # disposable mirror everything else builds into instead. Rather than
+    # editing the checked-in Doxyfile to know about that (its OUTPUT_
+    # DIRECTORY is meaningful on its own, read directly by any contributor
+    # who runs doxygen by hand), override it by piping the real, unmodified
+    # Doxyfile's content through `doxygen -` (reads its config from stdin)
+    # with one extra assignment appended -- doxygen's config parser is a
+    # flat top-to-bottom pass where the last assignment to a given
+    # single-valued tag wins, so this doesn't require understanding or
+    # duplicating anything else already in the file. Defaults right back to
+    # the original relative path, so the plain build's behavior (and the
+    # doc/content/doxygen/html*-based .gitignore entry) is unchanged.
+    with open("doc/content/doxygen/Doxyfile") as f:
+        doxyfile = f.read()
+    doxygen_output_dir = os.environ.setdefault(
+        "CARDINAL_DOXYGEN_OUTPUT_DIR", "doc/content/doxygen"
+    )
+    doxyfile += "\nOUTPUT_DIRECTORY = {}\n".format(doxygen_output_dir)
+    subprocess.run(["doxygen", "-"], input=doxyfile, text=True)
+
     os.chdir("doc")
     sys.exit(main.run())
