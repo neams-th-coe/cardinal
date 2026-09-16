@@ -42,8 +42,25 @@
     input = xml_and_properties.i
     cli_args = '--error'
     expect_err = "You have specified 'initial_properties = xml' in addition to loading properties from settings.properties_file"
-    requirement = "The system shall warn if cell properties and a properties file are both specified."
+    requirement = "The system shall warn if initial_properties = xml is used while an OpenMC properties file is also specified."
     capabilities = 'openmc'
-    issues = `#1307`
+    issues = '#1307'
+  []
+  [moose_and_properties_file]
+    type = RunException
+    input = moose_and_properties.i
+    cli_args = '--error'
+    expect_err = "You have specified 'initial_properties = moose' in addition to loading properties from settings.properties_file"
+    requirement = "The system shall warn if initial_properties = moose is used while an OpenMC properties file is also specified."
+    capabilities = 'openmc'
+    issues = '#1307'
+  []
+  [xml_properties_respected]
+    type = CSVDiff
+    input = xml_properties_respected.i
+    csvdiff = xml_properties_respected_out.csv
+    requirement = "The system shall apply temperatures from settings.properties_file when initial_properties = xml."
+    capabilities = 'openmc'
+    issues = '#1307'
   []
 []
