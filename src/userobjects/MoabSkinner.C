@@ -79,6 +79,10 @@ MoabSkinner::validParams()
       "libMesh [Mesh]) should be written to a file. The files will be named moab_skins_<n>.h5m, "
       "where <n> is the time step index. You can then visualize these files by running "
       "'mbconvert'.");
+  params.addParam<std::string>(
+      "output_skin_name",
+      "moab_skins",
+      "Prefix for skin output filenames. The files will be named <prefix>_<n>.h5m,");
   params.addParam<bool>("output_full",
                         false,
                         "Whether the MOAB mesh (copied from the libMesh [Mesh]) should "
@@ -112,6 +116,7 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _graveyard_scale_inner(getParam<double>("graveyard_scale_inner")),
     _graveyard_scale_outer(getParam<double>("graveyard_scale_outer")),
     _output_skins(getParam<bool>("output_skins")),
+    _output_skin_name(getParam<std::string>("output_skin_name")),
     _output_full(getParam<bool>("output_full")),
     _scaling(1.0),
     _n_write(0),
@@ -1302,7 +1307,7 @@ MoabSkinner::write()
     for (const auto & itsurf : surfsToVols)
       surfs.push_back(itsurf.first);
 
-    std::string filename = "moab_skins_" + extension;
+    std::string filename = (_output_skin_name.empty() ? "moab_skins" : _output_skin_name) + extension;
 
     if (_verbose)
       _console << "Writing MOAB skins to " << filename << "...";

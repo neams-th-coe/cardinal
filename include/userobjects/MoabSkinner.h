@@ -231,6 +231,8 @@ protected:
 
   /// Whether to output the MOAB mesh to a .h5m file
   const bool & _output_full;
+  /// Prefix for skin output filenames; defaults to "moab_skins" if empty
+  std::string _output_skin_name;
 
   /**
    * Whether to build a graveyard as two additional cube surfaces surrounding the mesh.
