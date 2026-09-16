@@ -395,8 +395,23 @@ endif
 # Must be an exact match on "cardinal-unit", not merely "not cardinal":
 # MOOSE's own module-combining infrastructure (module_loader) also recurses
 # into this Makefile with APPLICATION_NAME set to its own module name.
+#
+# cardinal-unit's own app.mk inclusion (APPLICATION_DIR=$(CARDINAL_DIR)/unit)
+# only computes include paths for unit/include (app.mk's own depend_dirs is
+# just $(APPLICATION_DIR)/include, plus DEPEND_MODULES -- empty here), so it
+# has no way to see $(CARDINAL_DIR)/include on its own -- hence needing
+# cardinal's headers added explicitly, same as -lcardinal-$(METHOD) below.
+# header_symlinks (app.mk's flattened, all-headers-in-one-dir mode) is only
+# actually on disk when MOOSE_HEADER_SYMLINKS=true; when it's off (as CI's
+# own "Build unit" step sets it), fall back to the same raw per-directory
+# -I flags app.mk itself uses in that mode (app.mk's own "No Header
+# Symlinks" branch), scoped to cardinal's include tree specifically.
 ifeq ($(APPLICATION_NAME),cardinal-unit)
-  ADDITIONAL_INCLUDES += -I$(CARDINAL_DIR)/build/header_symlinks
+  ifeq ($(MOOSE_HEADER_SYMLINKS),true)
+    ADDITIONAL_INCLUDES += -I$(CARDINAL_DIR)/build/header_symlinks
+  else
+    ADDITIONAL_INCLUDES += $(foreach i, $(shell find $(CARDINAL_DIR)/include -type d), -I$(i))
+  endif
   ADDITIONAL_LIBS     += -lcardinal-$(METHOD)
   ADDITIONAL_INCLUDES += -I$(FRAMEWORK_DIR)/contrib/gtest
   ADDITIONAL_LIBS     += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
