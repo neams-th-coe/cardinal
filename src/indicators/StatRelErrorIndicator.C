@@ -64,7 +64,7 @@ StatRelErrorIndicator::StatRelErrorIndicator(const InputParameters & parameters)
   bool const_mon = true;
   for (const auto v :
        _openmc_problem->getTallyScoreVariables(score, tally_name, _tid, "_rel_error"))
-    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
+    const_mon &= v->feType().family == MONOMIAL && v->feType().order == CONSTANT;
 
   if (!const_mon)
     paramError("score",

@@ -58,7 +58,7 @@ FoMAux::FoMAux(const InputParameters & parameters)
     _sim_time(getPostprocessorValue("sim_time")),
     _fom_type(getParam<MooseEnum>("fom_type").getEnum<FoMType>())
 {
-  if (_var.feType() != FEType(libMesh::CONSTANT, libMesh::MONOMIAL))
+  if (_var.feType().family != libMesh::MONOMIAL || _var.feType().order != CONSTANT)
     paramError("variable",
                "FoMAux only supports CONSTANT MONOMIAL shape functions. Please "
                "ensure that 'variable' is of type MONOMIAL and order CONSTANT.");

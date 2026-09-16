@@ -87,10 +87,10 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
   bool const_mon = true;
   for (const auto v :
        _openmc_problem->getTallyScoreVariables(score, rxn_rate_tally_name, _tid, "", true))
-    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
+    const_mon &= v->feType().family == MONOMIAL && v->feType().order == CONSTANT;
   for (const auto v :
        _openmc_problem->getTallyScoreVariables("flux", flux_tally_name, _tid, "", true))
-    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
+    const_mon &= v->feType().family == MONOMIAL && v->feType().order == CONSTANT;
 
   if (!const_mon)
     paramError("rxn_rate",
