@@ -111,9 +111,9 @@
     material_blocks = "1 3"
     material_names = "mat mat"
 
-
-
     output_skins = true
+    # this is the test name in tests
+    output_skin_name = 'bins_skins_'
   []
 []
 
