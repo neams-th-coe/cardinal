@@ -1318,7 +1318,7 @@ MoabSkinner::write()
 
   if (_output_full)
   {
-    std::string filename = "moab_mesh_" + extension;
+    std::string filename = "moab_mesh" + extension;
 
     if (_verbose)
       _console << "Writing MOAB mesh to " << filename << std::endl;
