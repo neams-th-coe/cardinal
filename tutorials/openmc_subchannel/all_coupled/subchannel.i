@@ -92,7 +92,7 @@ mass_flux_in = ${fparse total_mdot / flow_area}
 
 [SCMClosures]
   [cheng_friction]
-    type = SCMFrictionUpdatedChengTodreas
+    type = SCMFrictionUpgradedChengTodreas
   []
   [cheng_mixing]
     type = SCMMixingChengTodreas
