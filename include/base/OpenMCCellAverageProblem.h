@@ -71,11 +71,10 @@ public:
   static InputParameters validParams();
 
   virtual void initialSetup() override;
+  virtual bool allowMeshContractionAfterMeshChanged() const override;
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
   virtual bool converged(unsigned int) override { return true; }
-
-  virtual void meshChanged(bool intermediate_change, bool contract_mesh, bool clean_refinement_flags) override;
 
   /**
    * Read a 2d vector of subdomain names, and check that there are no duplications
