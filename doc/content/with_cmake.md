@@ -1,18 +1,20 @@
 # Building Cardinal with CMake
 
-!alert! warning title=Experimental
-This CMake-based build is an *experimental* alternative to Cardinal's normal Makefile-based
+!alert! note title=Alternative Build System
+This CMake-based build is an alternative to Cardinal's normal Makefile-based
 build, described in [the instructions for building without MOOSE's conda environment](without_conda.md)
 (and, for the OpenMC-only conda workflow, [with_conda.md](with_conda.md)). It has +not+
 replaced either of those as Cardinal's primary, best-supported build system, and it does +not+
 replace or depend on MOOSE's own (separately in-progress) CMake port. If you run into trouble here,
 or just want the most battle-tested path, please use [without_conda.md](without_conda.md) instead.
 See [cmake_details.md](cmake_details.md) for the design and implementation notes behind this build.
+
+This build works both with and without MOOSE's conda environment -- see the tldr below for both.
 !alert-end!
 
 !alert! note title=tldr
 
-On *CPU systems*, all that you need to compile Cardinal is:
+On *CPU systems*, without MOOSE's conda environment, all that you need to compile Cardinal is:
 
 ```
 cd $HOME
@@ -23,7 +25,21 @@ cmake --build build -j8
 export NEKRS_HOME=$HOME/cardinal/build/install
 ```
 
-If the above produces a `build/cardinal-opt` executable, you can
+With MOOSE's conda environment, since [conda is currently incompatible with NekRS](with_conda.md)
+(the same restriction applies here, not just to the Makefile build):
+
+```
+conda activate moose
+cd $HOME
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
+export HDF5_ROOT=$CONDA_PREFIX
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+cmake -S . -B build -DENABLE_NEK=OFF
+cmake --build build -j8
+```
+
+If either of the above produces a `build/cardinal-opt` executable, you can
 jump straight to [#running]. If you are on a GPU system, want to customize the
 build, or were not successful with the above, please consult the detailed instructions
 that follow.

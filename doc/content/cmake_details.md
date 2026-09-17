@@ -1,6 +1,6 @@
 # CMake Superbuild: Design and Implementation Notes
 
-This page documents the design of Cardinal's [experimental CMake build](with_cmake.md): why it's
+This page documents the design of Cardinal's [CMake build](with_cmake.md): why it's
 built the way it is, and the non-obvious problems its implementation had to work around. It's aimed
 at anyone maintaining or extending `CMakeLists.txt`/`cmake/*.cmake`, not at someone just trying to
 build Cardinal (see [with_cmake.md](with_cmake.md) for that).
