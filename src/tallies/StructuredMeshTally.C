@@ -47,8 +47,9 @@ StructuredMeshTally::validParams()
                                      "mesh, either 'upper_right' or 'width' must be provided.");
 
   params.addParam<std::vector<Real>>(
-      "width", "Uniform width of the mesh cells along each axis. For a regular mesh, "
-               "either 'upper_right' or 'width' must be provided.");
+      "width",
+      "Uniform width of the mesh cells along each axis. For a regular mesh, "
+      "either 'upper_right' or 'width' must be provided.");
 
   params.addParam<unsigned int>("nx", "Number of cells in the x-direction.");
   params.addParam<unsigned int>("ny", "Number of cells in the y-direction.");
@@ -67,8 +68,9 @@ StructuredMeshTally::validParams()
 StructuredMeshTally::StructuredMeshTally(const InputParameters & parameters)
   : TallyBase(parameters),
     _dimension(getParam<unsigned int>("dimensions")),
-    _mesh_type(getParam<MooseEnum>("mesh_type") == "rectilinear" ? structured_mesh::MeshType::RECTILINEAR
-                                                                 : structured_mesh::MeshType::REGULAR)
+    _mesh_type(getParam<MooseEnum>("mesh_type") == "rectilinear"
+                   ? structured_mesh::MeshType::RECTILINEAR
+                   : structured_mesh::MeshType::REGULAR)
 {
   // Structured meshes are incompatible with the random ray solver; that solver uses
   // tracklength estimators which are not defined for the structured spatial filters treated here.
@@ -76,8 +78,8 @@ StructuredMeshTally::StructuredMeshTally(const InputParameters & parameters)
     mooseError("Structured mesh tallies are not supported when using the random ray solver!");
 
   // The structured mesh is fully independent of the [Mesh], so we reuse it as-is.
-  _mesh = std::make_unique<structured_mesh::StructuredMesh>(
-      buildCoordinates(), _dimension, _mesh_type);
+  _mesh =
+      std::make_unique<structured_mesh::StructuredMesh>(buildCoordinates(), _dimension, _mesh_type);
 }
 
 std::array<std::vector<Real>, 3>
@@ -115,7 +117,8 @@ StructuredMeshTally::buildCoordinates() const
     std::vector<unsigned int> n;
     const std::vector<unsigned int> counts = {isParamValid("nx") ? getParam<unsigned int>("nx") : 0,
                                               isParamValid("ny") ? getParam<unsigned int>("ny") : 0,
-                                              isParamValid("nz") ? getParam<unsigned int>("nz") : 0};
+                                              isParamValid("nz") ? getParam<unsigned int>("nz")
+                                                                 : 0};
 
     if (isParamValid("upper_right"))
       upper_right = getParam<std::vector<Real>>("upper_right");
@@ -197,13 +200,12 @@ StructuredMeshTally::storeResultsInner(const std::vector<unsigned int> & /*var_n
       Real unnormalized_tally = tally_vals[local_score](ext_bin * _mesh->nBins() + e);
 
       Real volumetric_tally = unnormalized_tally;
-      volumetric_tally *=
-          norm_by_src_rate
-              ? _openmc_problem.tallyMultiplier(_tally_score[local_score],
-                                                _local_mean_tally[local_score]) /
-                    _mesh->binVolume(e) * _openmc_problem.scaling() *
-                    _openmc_problem.scaling() * _openmc_problem.scaling()
-              : 1.0;
+      volumetric_tally *= norm_by_src_rate
+                              ? _openmc_problem.tallyMultiplier(_tally_score[local_score],
+                                                                _local_mean_tally[local_score]) /
+                                    _mesh->binVolume(e) * _openmc_problem.scaling() *
+                                    _openmc_problem.scaling() * _openmc_problem.scaling()
+                              : 1.0;
 
       total += _ext_bins_to_skip[ext_bin] ? 0.0 : unnormalized_tally;
       field_values[e] = volumetric_tally;

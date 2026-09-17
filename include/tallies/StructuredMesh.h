@@ -34,7 +34,7 @@ namespace Parallel
 {
 class Communicator;
 }
-}
+} // namespace libMesh
 
 namespace structured_mesh
 {
@@ -42,7 +42,11 @@ namespace structured_mesh
 /**
  * Which kind of OpenMC structured mesh to build.
  */
-enum class MeshType { REGULAR, RECTILINEAR };
+enum class MeshType
+{
+  REGULAR,
+  RECTILINEAR
+};
 
 /**
  * A self-contained helper which wraps the construction of OpenMC's structured
@@ -68,9 +72,7 @@ public:
    * @param[in] style whether to use an OpenMC regular (uniform) or rectilinear
    *         (non-uniform) mesh
    */
-  StructuredMesh(const std::array<std::vector<Real>, 3> & coords,
-                 unsigned int dim,
-                 MeshType style);
+  StructuredMesh(const std::array<std::vector<Real>, 3> & coords, unsigned int dim, MeshType style);
 
   /// Build the OpenMC structured mesh
   void buildOpenMCMesh();

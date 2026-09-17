@@ -84,8 +84,7 @@ StructuredMesh::buildRegular()
 
   openmc::model::meshes.push_back(std::move(mesh));
   _mesh_index = openmc::model::meshes.size() - 1;
-  _openmc_mesh =
-      dynamic_cast<openmc::StructuredMesh *>(openmc::model::meshes[_mesh_index].get());
+  _openmc_mesh = dynamic_cast<openmc::StructuredMesh *>(openmc::model::meshes[_mesh_index].get());
 }
 
 void
@@ -107,8 +106,7 @@ StructuredMesh::buildRectilinear()
 
   openmc::model::meshes.push_back(std::move(mesh));
   _mesh_index = openmc::model::meshes.size() - 1;
-  _openmc_mesh =
-      dynamic_cast<openmc::StructuredMesh *>(openmc::model::meshes[_mesh_index].get());
+  _openmc_mesh = dynamic_cast<openmc::StructuredMesh *>(openmc::model::meshes[_mesh_index].get());
 }
 
 void
@@ -141,9 +139,7 @@ StructuredMesh::buildLibMeshMesh(const libMesh::Parallel::Communicator & comm)
       }
 
   auto node_id = [&](unsigned int ix, unsigned int iy, unsigned int iz)
-  {
-    return ix + alloc_nodes[0] * (iy + alloc_nodes[1] * iz);
-  };
+  { return ix + alloc_nodes[0] * (iy + alloc_nodes[1] * iz); };
 
   // Create the elements in bin order (x fastest, then y, then z) so element id == bin.
   unsigned int bin = 0;
