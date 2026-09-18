@@ -24,7 +24,7 @@
 #include "libmesh/cell_hex8.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/parallel.h"
-#include "libmesh/quad4.h"
+#include "libmesh/face_quad4.h"
 #include "libmesh/replicated_mesh.h"
 
 namespace structured_mesh
