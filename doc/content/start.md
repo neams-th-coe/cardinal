@@ -42,3 +42,9 @@ Please select your case:
 
 - [I want to use MOOSE's conda environment](with_conda.md)
 - [I do NOT want to use MOOSE's conda environment](without_conda.md)
+
+!alert! note
+Cardinal can also be built with CMake, as an alternative to the Makefile-based workflows above:
+
+- [I want to build with CMake](with_cmake.md) (with or without conda)
+!alert-end!
