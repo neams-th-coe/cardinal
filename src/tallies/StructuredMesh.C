@@ -21,7 +21,7 @@
 #include "MooseError.h"
 #include "libmesh/edge_edge2.h"
 #include "libmesh/elem.h"
-#include "libmesh/hex8.h"
+#include "libmesh/cell_hex8.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/parallel.h"
 #include "libmesh/quad4.h"
