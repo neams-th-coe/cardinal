@@ -30,9 +30,10 @@ gated on `ENABLE_NEK`) -- resolved the same way as the others but with a `NO_BUI
 cloned like any other managed dependency, but never itself configured/built (Cardinal's own Makefile
 compiles MOOSE directly; `nuclear_data`/`nek_ci` are just data/test-fixture trees).
 
-SAM/BISON/Sockeye/Sodium/IAPWS95/Griffin remain entirely out of scope: none of them run their own
-CMake sub-build, several require INL/ANL-internal credentials just to clone, and they're simply
-excluded from the source mirror (below) like any other unmanaged `contrib/` path.
+SAM/BISON/Sockeye/Sodium/Potassium/IAPWS95/Griffin remain entirely out of scope: none of them run
+their own CMake sub-build, several require INL/ANL-internal credentials just to clone, and they're
+simply excluded from the source mirror (below) like any other unmanaged `contrib/` path. All are
+expected to be dropped from Cardinal as technical debt.
 
 ## Why a superbuild, and why the build directory doubles as the app checkout
 
@@ -146,8 +147,8 @@ just copy everything except what's excluded for concrete, functional reasons bel
 
 - +`--exclude=/contrib`+ covers every submodule under it in one line -- the ones this build
   manages (moose/nekRS/openmc/nuclear_data/moab/embree/double-down/DAGMC), each resolved
-  independently, plus the rest (SAM/bison/iapws95/potassium/sockeye/sodium) that shouldn't be
-  mirrored at all even if a user happens to have them checked out locally.
+  independently, plus the rest (SAM/bison/griffin/iapws95/potassium/sockeye/sodium) that shouldn't
+  be mirrored at all even if a user happens to have them checked out locally.
 - +`--exclude=/build --exclude=/install`:+ Cardinal's own native Makefile defaults both to exactly
   these names directly under the source checkout. Since the CMake build directory *is* the app
   checkout, a bare rsync of the whole source tree into it would, for anyone who has ever run (or

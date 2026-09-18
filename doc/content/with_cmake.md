@@ -139,13 +139,6 @@ cmake -S . -B build -DENABLE_DAGMC=ON -DENABLE_DOUBLE_DOWN=ON
 ```
 !alert-end!
 
-!alert! note title=Optional dependencies not managed here
-SAM, Sockeye, and BISON coupling (see [dependencies.md](dependencies.md)) are out of scope for this
-CMake build -- none of them have their own CMake sub-build the way NekRS/OpenMC/MOAB/Embree/
-Double-Down/[!ac](DAGMC) do, and several require INL/ANL-internal credentials just to check out. If
-you need one of these, use the [Makefile-based workflow](without_conda.md) instead.
-!alert-end!
-
 !alert! note title=Building PETSc's OpenBLAS for a single microarchitecture
 If PETSc is built from source (no `-DPETSC_DIR=...` given), its bundled OpenBLAS is built for the
 build host's own CPU only (`-DOPENBLAS_DYNAMIC_ARCH=OFF`, the default here) rather than for every
