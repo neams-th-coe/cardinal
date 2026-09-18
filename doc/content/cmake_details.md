@@ -754,10 +754,7 @@ building both.
   is set at configure time -- it's a plain `CACHE STRING`, so `-DMOOSE_BUILD_PARALLELISM=<N>` (or
   editing it in `ccmake`) overrides the default like any other cache variable.
 
-+Two more PETSc auto-detection quirks+ -- unrelated to the jobserver despite the "parallel" in the
-name of the first one, called out here only because they're both worked around the same way (an
-extra `SCRIPT_ARGS` entry overriding one of `configure_petsc.sh`'s own hardcoded options, since
-PETSc's `configure` treats repeated `--key=value` options as last-one-wins):
++PETSc build-time auto-detection overrides+:
 
 - PETSc's own downloaded OpenBLAS defaults to `DYNAMIC_ARCH=1` (kernels for every x86
   microarchitecture it knows about, auto-selected at runtime) -- safe on a cluster where the build
