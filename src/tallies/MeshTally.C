@@ -148,12 +148,17 @@ MeshTally::spatialFilter()
       }
       _bin_to_element_mapping.shrink_to_fit();
 
-      _element_to_bin_mapping.clear();
-      _element_to_bin_mapping.resize(max_elem_id + 1, -1);
-      for (size_t i = 0; i < _bin_to_element_mapping.size(); ++i)
-        _element_to_bin_mapping[_bin_to_element_mapping[i]] = i;
+      // The dual mapping is only required when applying relaxation with adaptive
+      // mesh tallies.
+      if (_is_adaptive && _relaxation_type != relaxation::none)
+      {
+        _element_to_bin_mapping.clear();
+        _element_to_bin_mapping.resize(max_elem_id + 1, -1);
+        for (size_t i = 0; i < _bin_to_element_mapping.size(); ++i)
+          _element_to_bin_mapping[_bin_to_element_mapping[i]] = i;
 
-      _element_to_bin_mapping.shrink_to_fit();
+        _element_to_bin_mapping.shrink_to_fit();
+      }
     }
 
     openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
