@@ -140,10 +140,10 @@ MeshTally::spatialFilter()
       auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
                                           : msh->active_elements_end();
 
-      dof_id_type max_elem_id = 0;
+      unsigned int max_elem_id = 0;
       for (const auto & old_elem : libMesh::as_range(begin, end))
       {
-        max_elem_id = std::max(max_elem_id, old_elem->id());
+        max_elem_id = std::max(max_elem_id, static_cast<unsigned int>(old_elem->id()));
         _bin_to_element_mapping.push_back(old_elem->id());
       }
       _bin_to_element_mapping.shrink_to_fit();
@@ -360,39 +360,27 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
   const auto current_elem_id = current_element->id();
 
   // Check for Case I.
-  if (current_elem_id < _prev_elem_to_bin_mapping.size())
-    if (_prev_elem_to_bin_mapping[current_elem_id] != -1)
-      return AMRRelaxation::CaseI;
+  if (previousSpatialBin(current_element) != -1)
+    return AMRRelaxation::CaseI;
 
   // Check for Case II.
   if (previousActiveAncestor(current_element))
     return AMRRelaxation::CaseII;
 
-  // Check for Case III. Only immediate children for now.
+  // Check for Case III.
   if (current_element->has_children())
   {
-    size_t num_old_children = 0;
-    for (size_t c = 0; c < current_element->n_children(); ++c)
+    std::vector<const Elem *> family;
+    current_element->total_family_tree(family, true);
+    for (const auto descendant : family)
     {
-      const auto child = current_element->child_ptr(c);
-      if (!child)
-        continue;
-
-      if (child->id() < _prev_elem_to_bin_mapping.size())
-        if (_prev_elem_to_bin_mapping[child->id()] != -1)
-          num_old_children++;
+      if (previousSpatialBin(descendant) != -1)
+        return AMRRelaxation::CaseIII;
     }
-    if (num_old_children == current_element->n_children())
-      return AMRRelaxation::CaseIII;
   }
 
   // Fallthrough.
-  std::string err("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
-  err += "\nallow_renumbering: " + std::to_string(_openmc_problem.getMooseMesh().getMesh().allow_renumbering());
-  err += "\nSize of _element_to_bin_mapping: " + std::to_string(_element_to_bin_mapping.size());
-  err += "\nSize of _prev_elem_to_bin_mapping: " + std::to_string(_prev_elem_to_bin_mapping.size());
-  err += "\n" + current_element->get_info();
-  mooseError(err);
+  mooseError("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
   return AMRRelaxation::CaseI;
 }
 
@@ -405,37 +393,27 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
 
   for (size_t ext_filter = 0; ext_filter < _num_ext_filter_bins; ++ext_filter)
   {
-    size_t case_i   = 0;
-    size_t case_ii  = 0;
-    size_t case_iii = 0;
     for (size_t spatial_bin = 0; spatial_bin < _bin_to_element_mapping.size(); ++spatial_bin)
     {
-      const auto current_elem_tally_bin = _bin_to_element_mapping.size() * ext_filter + spatial_bin;
-      const auto current_elem_id = _bin_to_element_mapping[spatial_bin];
-      const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(current_elem_id);
-      if (!curr_elem)
-        continue;
+      const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(_bin_to_element_mapping[spatial_bin]);
+      const auto current_elem_tally_bin = currentTallyBin(curr_elem, ext_filter);
 
       switch (classifyRelaxationCase(curr_elem))
       {
         case AMRRelaxation::CaseI:
         {
-          const auto curr_elem_old_bin = _prev_bin_to_element_mapping.size() * ext_filter
-                                         + _prev_elem_to_bin_mapping[current_elem_id];
-
+          const auto curr_elem_old_bin = previousTallyBin(curr_elem, ext_filter);
           current_relaxed(current_elem_tally_bin)
             = (1.0 - alpha) * previous(curr_elem_old_bin) + alpha * current_raw(current_elem_tally_bin);
-
-          case_i++;
           break;
         }
         case AMRRelaxation::CaseII:
         {
           const auto prev_active_parent = previousActiveAncestor(curr_elem);
-          const auto prev_par_tally_bin = _prev_bin_to_element_mapping.size() * ext_filter
-                                          + _prev_elem_to_bin_mapping[prev_active_parent->id()];
+          const auto prev_par_tally_bin = previousTallyBin(prev_active_parent, ext_filter);
 
-          // Gather the integral over the current element and its siblings.
+          // Gather the integral over the current element and its siblings. Equivalent to
+          // restricting the current tally result.
           Real coarsened_proj = 0.0;
           std::vector<const Elem *> family;
           prev_active_parent->family_tree(family, true);
@@ -444,8 +422,7 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
             if (!desc->active())
               continue;
 
-            const auto desc_tally_bin = _bin_to_element_mapping.size() * ext_filter
-                                        + _element_to_bin_mapping[desc->id()];
+            const auto desc_tally_bin = currentTallyBin(desc, ext_filter);
             coarsened_proj += current_raw(desc_tally_bin);
           }
 
@@ -457,29 +434,30 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
           const auto current_elem_frac =
             coarsened_proj == 0.0 ? 0.0 : current_raw(current_elem_tally_bin) / coarsened_proj;
 
-          // Redistribute the result.
+          // Redistribute the result. Equivalent to projecting the relaxed tally.
           current_relaxed(current_elem_tally_bin) = relaxed_coarsened * current_elem_frac;
-
-          case_ii++;
           break;
         }
         case AMRRelaxation::CaseIII:
         {
           // Gather the integral over the previouly active descendants on this element.
+          // Equivalent to restricting the tally result.
+          std::vector<const Elem *> descendants;
+          curr_elem->total_family_tree(descendants, true);
           Real refined_proj = 0.0;
-          for (size_t c = 0; c < curr_elem->n_children(); ++c)
+          for (const auto descendant : descendants)
           {
-            const auto child = curr_elem->child_ptr(c);
-            const auto child_old_tally_bin = _bin_to_element_mapping.size() * ext_filter
-                                             + _prev_elem_to_bin_mapping[child->id()];
-            refined_proj += previous(child_old_tally_bin);
+            const auto desc_old_tally_bin = previousTallyBin(descendant, ext_filter);
+            if (desc_old_tally_bin < 0)
+              continue;
+
+            refined_proj += previous(desc_old_tally_bin);
           }
 
           // Relax the current (coarser) tally bin in-place.
           current_relaxed(current_elem_tally_bin)
             = (1.0 - alpha) * refined_proj + alpha * current_raw(current_elem_tally_bin);
 
-          case_iii++;
           break;
         }
         default:
@@ -488,12 +466,6 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
           break;
         }
       }
-    }
-    if (ext_filter == 0)
-    {
-      _console << "Relaxed " << case_i << " Case I elements, "
-               << case_ii << " Case II elements, and " << case_iii
-               << " Case III elements." << std::endl;
     }
   }
 }
@@ -504,13 +476,48 @@ MeshTally::previousActiveAncestor(const Elem * active_elem) const
   const Elem * curr_parent = active_elem->parent();
   while (curr_parent != nullptr)
   {
-    if (curr_parent->id() < _prev_elem_to_bin_mapping.size())
-      if (_prev_elem_to_bin_mapping[curr_parent->id()] != -1)
-        return curr_parent;
+    if (previousSpatialBin(curr_parent) != -1)
+      return curr_parent;
 
     curr_parent = curr_parent->parent();
   }
 
   return nullptr;
+}
+
+int64_t
+MeshTally::previousSpatialBin(const Elem * previous_elem) const
+{
+  if (!previous_elem)
+    return -1;
+
+  if (previous_elem->id() >= _prev_elem_to_bin_mapping.size())
+    return -1;
+
+  return _prev_elem_to_bin_mapping[previous_elem->id()];
+}
+
+int64_t
+MeshTally::previousTallyBin(const Elem * previous_elem, unsigned int ext_filter) const
+{
+  return _prev_bin_to_element_mapping.size() * ext_filter + previousSpatialBin(previous_elem);
+}
+
+int64_t
+MeshTally::currentSpatialBin(const Elem * current_elem) const
+{
+  if (!current_elem)
+    return -1;
+
+  if (!current_elem->active() || current_elem->id() >= _element_to_bin_mapping.size())
+    return -1;
+
+  return _element_to_bin_mapping[current_elem->id()];
+}
+
+int64_t
+MeshTally::currentTallyBin(const Elem * current_elem, unsigned int ext_filter) const
+{
+  return _bin_to_element_mapping.size() * ext_filter + currentSpatialBin(current_elem);
 }
 #endif
