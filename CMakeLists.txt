@@ -166,10 +166,14 @@ set(NEK5000_TOOLS_MAXNEL "150000" CACHE STRING "Max number of elements Nek5000's
 # about (Prescott, Core2, ..., Zen, SkylakeX, ...), auto-selected at
 # runtime via CPUID. Safe on a cluster where the build host and the
 # nodes you'll actually run on might differ, but much slower to build.
-# ON (safe) by default; turn OFF with ccmake only when you know the
-# build host's CPU is representative of every node you'll run on.
+# OFF (host-only, faster) by default here -- deliberately *not* matching
+# configure_petsc.sh's own DYNAMIC_ARCH=1 default, since the common case
+# for this build (a single workstation, or a container/allocation whose
+# build and run hosts are the same machine/CPU) doesn't need it; turn ON
+# with ccmake if the build host's CPU might not be representative of
+# every node you'll run on.
 option(OPENBLAS_DYNAMIC_ARCH
-  "Build PETSc's OpenBLAS for many x86 microarchitectures (portable across mixed-CPU clusters, slower); turn OFF to build only for the host's own CPU" ON)
+  "Build PETSc's OpenBLAS for many x86 microarchitectures (portable across mixed-CPU clusters, slower); OFF builds only for the host's own CPU" OFF)
 
 if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
   message(FATAL_ERROR "ENABLE_DOUBLE_DOWN requires ENABLE_DAGMC")

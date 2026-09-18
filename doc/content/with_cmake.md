@@ -146,6 +146,17 @@ Double-Down/[!ac](DAGMC) do, and several require INL/ANL-internal credentials ju
 you need one of these, use the [Makefile-based workflow](without_conda.md) instead.
 !alert-end!
 
+!alert! note title=Building PETSc's OpenBLAS for a single microarchitecture
+If PETSc is built from source (no `-DPETSC_DIR=...` given), its bundled OpenBLAS is built for the
+build host's own CPU only (`-DOPENBLAS_DYNAMIC_ARCH=OFF`, the default here) rather than for every
+x86 microarchitecture it knows about -- +the opposite of+ `update_and_rebuild_petsc.sh`'s own
+default (`DYNAMIC_ARCH=1`) in the Makefile workflow. This is faster to build, but only safe if the
+build host's CPU is representative of every node the result will actually run on (e.g. a single
+workstation, or a container/allocation where the build and run hosts are the same machine). If
+that's not the case for you -- a cluster with a mixed-CPU node pool, say -- configure with
+`-DOPENBLAS_DYNAMIC_ARCH=ON` instead.
+!alert-end!
+
 Any of these can also be toggled interactively:
 
 ```

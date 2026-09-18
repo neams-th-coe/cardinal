@@ -753,16 +753,27 @@ building both.
   hard failure) when neither it nor the standard `CMAKE_BUILD_PARALLEL_LEVEL` environment variable
   is set at configure time -- it's a plain `CACHE STRING`, so `-DMOOSE_BUILD_PARALLELISM=<N>` (or
   editing it in `ccmake`) overrides the default like any other cache variable.
-- PETSc's own downloaded OpenBLAS additionally defaults to `DYNAMIC_ARCH=1` (kernels for every x86
+
++Two more PETSc auto-detection quirks+ -- unrelated to the jobserver despite the "parallel" in the
+name of the first one, called out here only because they're both worked around the same way (an
+extra `SCRIPT_ARGS` entry overriding one of `configure_petsc.sh`'s own hardcoded options, since
+PETSc's `configure` treats repeated `--key=value` options as last-one-wins):
+
+- PETSc's own downloaded OpenBLAS defaults to `DYNAMIC_ARCH=1` (kernels for every x86
   microarchitecture it knows about, auto-selected at runtime) -- safe on a cluster where the build
   host and the nodes you'll actually run on might differ, but much slower to build.
-  `OPENBLAS_DYNAMIC_ARCH` (default `ON`) lets this be turned off (host-only OpenBLAS) when the
-  build host's CPU is known to be representative of every node the result will run on.
+  `OPENBLAS_DYNAMIC_ARCH` defaults to `OFF` here (host-only OpenBLAS, `DYNAMIC_ARCH=0`) --
+  deliberately *not* matching `update_and_rebuild_petsc.sh`'s own `DYNAMIC_ARCH=1` default (see
+  [with_cmake.md](with_cmake.md)) -- and can be turned back `ON` when the build host's CPU isn't
+  representative of every node the result will run on. Passed through as
+  `--download-openblas-make-options=DYNAMIC_ARCH=0` (or `=1`), appended after
+  `update_and_rebuild_petsc.sh`'s own hardcoded `DYNAMIC_ARCH=1` so it cleanly wins.
 - PETSc's own `--download-kokkos`/`--download-kokkos-kernels` (and NekRS's own OCCA backends)
   auto-detect whatever CUDA/HIP/OpenCL/SYCL toolkit happens to be on the build host and silently
   build GPU-enabled code regardless of what was asked for -- harmless in a container with none of
   these toolkits, but not on a bare HPC host that does. Both are tied to the same
-  `ENABLE_CUDA`/`ENABLE_HIP`/`ENABLE_OPENCL`/`ENABLE_DPCPP`/`ENABLE_METAL` toggles (default `OFF`).
+  `ENABLE_CUDA`/`ENABLE_HIP`/`ENABLE_OPENCL`/`ENABLE_DPCPP`/`ENABLE_METAL` toggles (default `OFF`),
+  forwarded as `--with-cuda=0/1`/`--with-hip=0/1`/`--with-sycl=0/1`.
 
 ## Phase 2: DAGMC/MOAB/Embree/double-down
 
