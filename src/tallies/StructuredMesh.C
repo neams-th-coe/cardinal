@@ -80,7 +80,7 @@ StructuredMesh::buildRegular()
     mesh->shape_[i] = static_cast<int>(_shape[i]);
 
   if (int err = mesh->set_grid())
-    mooseError(openmc_err_msg);
+    mooseError(openmc_get_err_msg());
 
   openmc::model::meshes.push_back(std::move(mesh));
   _mesh_index = openmc::model::meshes.size() - 1;
@@ -102,7 +102,7 @@ StructuredMesh::buildRectilinear()
   mesh->grid_ = grid;
 
   if (int err = mesh->set_grid())
-    mooseError(openmc_err_msg);
+    mooseError(openmc_get_err_msg());
 
   openmc::model::meshes.push_back(std::move(mesh));
   _mesh_index = openmc::model::meshes.size() - 1;
