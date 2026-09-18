@@ -73,7 +73,6 @@ StructuredMeshTally::StructuredMeshTally(const InputParameters & parameters)
                    : structured_mesh::MeshType::REGULAR)
 {
 
-
   // The structured mesh is fully independent of the [Mesh], so we reuse it as-is.
   _mesh =
       std::make_unique<structured_mesh::StructuredMesh>(buildCoordinates(), _dimension, _mesh_type);
