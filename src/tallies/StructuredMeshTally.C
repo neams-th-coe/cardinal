@@ -72,10 +72,7 @@ StructuredMeshTally::StructuredMeshTally(const InputParameters & parameters)
                    ? structured_mesh::MeshType::RECTILINEAR
                    : structured_mesh::MeshType::REGULAR)
 {
-  // Structured meshes are incompatible with the random ray solver; that solver uses
-  // tracklength estimators which are not defined for the structured spatial filters treated here.
-  if (_openmc_problem.runRandomRay())
-    mooseError("Structured mesh tallies are not supported when using the random ray solver!");
+
 
   // The structured mesh is fully independent of the [Mesh], so we reuse it as-is.
   _mesh =
