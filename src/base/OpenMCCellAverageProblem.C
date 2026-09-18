@@ -746,15 +746,6 @@ OpenMCCellAverageProblem::initialSetup()
 #endif
 }
 
-bool
-OpenMCCellAverageProblem::allowMeshContractionAfterMeshChanged() const
-{
-  // Disable mesh contraction so we keep elements around for the next
-  // iteration. This is necessary to figure out which tally bins existed
-  // after coarsening when using integral relaxation with AMR mesh tallies.
-  return !(_has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity);
-}
-
 std::vector<std::string>
 OpenMCCellAverageProblem::getMaterialInEachSubdomain() const
 {
@@ -2784,6 +2775,23 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
+
+  // We defer mesh contraction (deletion of subactive elements) to the end
+  // of an OpenMC solve on the subsequent iteration. This is necessary to
+  // figure out which tally bins existed after coarsening when using integral
+  // relaxation with AMR mesh tallies.
+  if (direction == ExternalProblem::Direction::FROM_EXTERNAL_APP)
+  {
+    // Perform deferred mesh contraction to save on memory.
+    const auto disable_contract = _has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity;
+    if (disable_contract)
+    {
+      _should_contract_mesh = true;
+      meshChanged(/*intermediate_change=*/true, /*contract_mesh=*/true, /*clean_refinement_flags=*/true);
+    }
+    // Disable automatic contraction when AMR is performed.
+    _should_contract_mesh = !disable_contract;
+  }
 }
 
 void
