@@ -140,6 +140,40 @@ protected:
   const Elem * previousActiveAncestor(const Elem * active_elem) const;
 
   /**
+   * Get the spatial tally bin associated with a previous element.
+   * @param[in] previous_elem an element that was active on a previous iteration
+   * @return the spatial bin associated with previous_elem. Returns -1 if the element
+   * wasn't active on a previous iteration
+   */
+  int64_t previousSpatialBin(const Elem * previous_elem) const;
+
+  /**
+   * Get the tally bin (external filter and spatial) associated with a previous element.
+   * @param[in] previous_elem an element that was active on a previous iteration
+   * @param[in] ext_filter the index associated with an external filter
+   * @return the tally bin associated with previous_elem. Returns -1 if the element
+   * wasn't active on a previous iteration
+   */
+  int64_t previousTallyBin(const Elem * previous_elem, unsigned int ext_filter) const;
+
+  /**
+   * Get the spatial bin associated with a current element.
+   * @param[in] current_elem an element that is active on the current iteration
+   * @return the spatial bin associated with current_elem. Returns -1 if the element
+   * is not active
+   */
+  int64_t currentSpatialBin(const Elem * current_elem) const;
+
+  /**
+   * Get the tally bin associated with a current element.
+   * @param[in] current_elem an element that is active on the current iteration
+   * @param[in] ext_filter the index associated with an external filter
+   * @return the tally bin associated with current_elem. Returns -1 if the element
+   * is not active
+   */
+  int64_t currentTallyBin(const Elem * current_elem, unsigned int ext_filter) const;
+
+  /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
    * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
    * is used to extract the tallies and put on the application's mesh in preparation for
@@ -169,18 +203,18 @@ protected:
   const bool _use_dof_map;
 
   /// A mapping between the OpenMC bins (active block restricted elements) and all elements.
-  std::vector<dof_id_type> _bin_to_element_mapping;
+  std::vector<unsigned int> _bin_to_element_mapping;
 
-  ///----------------------------------------------------------------------------///
-  /// The following variables are only maintained when adaptivity is being used  ///
-  /// and relaxation is requested. They are used to map between solution vectors ///
-  /// in different Picard iterations to apply relaxation.                        ///
-  ///----------------------------------------------------------------------------///
+  /**
+   * The following variables are only maintained when adaptivity is being used
+   * and relaxation is requested. They are used to map between solution vectors
+   * in different Picard iterations to apply relaxation.
+   */
   /// Dual of '_bin_to_element_mapping'.
   std::vector<int64_t> _element_to_bin_mapping;
 
   /// The previous bin to element mapping.
-  std::vector<dof_id_type> _prev_bin_to_element_mapping;
+  std::vector<unsigned int> _prev_bin_to_element_mapping;
 
   /// The dual of '_prev_bin_to_element_mapping'.
   std::vector<int64_t> _prev_elem_to_bin_mapping;
