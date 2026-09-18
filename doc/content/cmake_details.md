@@ -1110,14 +1110,3 @@ confirmed clean before and after). The only failures reported (296) are `!syntax
 Nek/OpenMC/DAGMC classes this stripped-down `cardinal-opt` never registers -- the same failure any
 build, CMake or plain Makefile, would produce against an executable built with those features off,
 not specific to this target.
-
-## Status
-
-Phases 1-3 (container build against pre-built dependencies; Phase 2's DAGMC/MOAB/Embree/
-double-down scope; building PETSc/libMesh/WASP from source on a bare host) are complete and
-validated end-to-end, including with every optional feature enabled at once and with every
-container-provided `/opt/*` environment variable deliberately unset. The CUDA path is validated
-both at the build level (against a CUDA 13.3 toolchain, no GPU present) and, with
-`-DENABLE_HYPRE_GPU=OFF`, end-to-end on real GPU hardware as described above. This build remains
-labeled experimental primarily because it is new and has not yet seen broad use, not because of any
-specific known-broken configuration.
