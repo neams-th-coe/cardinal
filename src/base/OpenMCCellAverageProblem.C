@@ -269,6 +269,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (!_specified_temperature_feedback && !_specified_density_feedback)
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
+  else if ((_initial_condition == coupling::xml || _initial_condition == coupling::moose) &&
+           !openmc::settings::properties_file.empty())
+    mooseWarning("You have specified 'initial_properties = " +
+                 std::string(getParam<MooseEnum>("initial_properties")) +
+                 "' in addition to loading properties from settings.properties_file (" +
+                 openmc::settings::properties_file + ").\n\nThe initial conditions from " +
+                 std::string(getParam<MooseEnum>("initial_properties")) +
+                 " will be used instead of settings.properties_file.");
 
   // We need to clear and re-initialize OpenMC problem in the cases of:
   //   - the [Mesh] is being adaptively refined
