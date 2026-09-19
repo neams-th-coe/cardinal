@@ -7,6 +7,7 @@
     input = openmc.i
     exodiff = 'openmc_out.e'
     requirement = "The system shall revert to standard relaxation when the mesh is unchanged."
+    mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
   [coarse_to_fine]
@@ -15,6 +16,7 @@
     exodiff = 'coarse_to_fine.e-s002'
     cli_args = "Adaptivity/Markers/uniform/mark='REFINE' Outputs/file_base='coarse_to_fine'"
     requirement = "The system shall be able to relax mesh tallies when the mesh is refined under adaptivity"
+    mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
   [fine_to_coarse]
@@ -23,6 +25,7 @@
     exodiff = 'fine_to_coarse.e-s002'
     cli_args = "Adaptivity/Markers/uniform/mark='COARSEN' Outputs/file_base='fine_to_coarse' Mesh/uniform_refine=1"
     requirement = "The system shall be able to relax mesh tallies when the mesh is coarsened under adaptivity"
+    mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
 []
