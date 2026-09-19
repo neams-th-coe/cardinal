@@ -317,9 +317,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-    // point have DAGMC enabled.
+  // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+  // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+  // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;
