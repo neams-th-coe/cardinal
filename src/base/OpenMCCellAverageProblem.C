@@ -249,11 +249,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _need_to_reinit_coupling |= _use_displaced;
   }
 
-  // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
-  // cells.
+  // Look through the list of AddTallyActions to see what tallies we're adding.
+  // If we're adding a CellTally, we need to map cells to elements. If we're
+  // adding a mesh tally (and are using AMR with relaxation), during adaptivity we
+  // need to disable mesh contraction.
   const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : tally_actions)
+  {
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+    _has_mesh_tallies |= act->getMooseObjectType() == "MeshTally";
+  }
 
   // Repeat the same check for SetUpMGXSActions.
   const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
@@ -285,12 +290,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // guarantee that the tallies from iteration to iteration correspond to exactly
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
-  if ((_use_displaced || _has_adaptivity) && _relaxation != relaxation::none)
+  if (_use_displaced && _relaxation != relaxation::none)
     paramError(
         "relaxation",
-        "When adaptivity is requested or a displaced problem is used, the mapping from the "
-        "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that "
-        "the "
+        "When a displaced problem is used, the mapping from the OpenMC model to the [Mesh] may "
+        "vary in time. This means that we have no guarantee that the "
         "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
         "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
         "end up trying to add vectors of different length (and possibly spatial mapping).");
@@ -2748,6 +2752,17 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
+}
+
+// Mesh contraction (deletion of subactive elements that were coarsened) is disabled
+// when running adaptive mesh tallies with relaxation. This is necessary
+// as the relaxation approach implemented for adaptive mesh tallies uses restriction
+// and projection operators, which need the more refined elements to stay around
+// to determine the mapping from previous tally bins to current tally bins.
+bool
+OpenMCCellAverageProblem::allowMeshContractionAfterMeshChanged() const
+{
+  return !(_has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity);
 }
 
 void

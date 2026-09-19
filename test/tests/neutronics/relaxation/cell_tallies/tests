@@ -142,11 +142,4 @@
     requirement = "The wrapping shall allow output of multiple tally scores, with relaxation applied independently to each score"
     capabilities = 'openmc'
   []
-  [no_relax_with_fixed_mesh]
-    type = RunException
-    input = openmc_adapt.i
-    expect_err = "When adaptivity is requested or a displaced problem is used, the mapping from the OpenMC model to the \[Mesh\] may vary in time."
-    requirement = "The system shall correctly error if trying to use relaxation with a time-varying mesh."
-    capabilities = 'openmc'
-  []
 []
