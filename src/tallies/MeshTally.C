@@ -362,8 +362,6 @@ MeshTally::relaxAndNormalizeTally()
 MeshTally::AMRRelaxation
 MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
 {
-  const auto current_elem_id = current_element->id();
-
   // Check for Case I.
   if (previousSpatialBin(current_element) != -1)
     return AMRRelaxation::CaseI;
@@ -373,18 +371,12 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
     return AMRRelaxation::CaseII;
 
   // Check for Case III.
-  if (current_element->has_children())
-  {
-    std::vector<const Elem *> family;
-    current_element->total_family_tree(family, true);
-    for (const auto descendant : family)
-    {
-      if (previousSpatialBin(descendant) != -1)
-        return AMRRelaxation::CaseIII;
-    }
-  }
+  std::vector<const Elem *> family;
+  current_element->total_family_tree(family, true);
+  for (const auto descendant : family)
+    if (previousSpatialBin(descendant) != -1)
+      return AMRRelaxation::CaseIII;
 
-  // Fallthrough.
   mooseError("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
   return AMRRelaxation::CaseI;
 }
