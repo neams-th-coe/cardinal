@@ -250,10 +250,18 @@ public:
   const std::set<SubdomainID> & getBlocks() const { return _tally_blocks; }
 
   /**
-   * Whether this tally requires a global tally or not.
+   * Whether this tally adds a global tally in addition to a mapped local tally
    * @return if the tally adds a global tally in addition to a mapped local tally
    */
   virtual bool addingGlobalTally() const { return _needs_global_tally; }
+
+  /**
+   * Whether this tally stores its results on a mesh it owns (rather than on the problem's
+   * auxiliary variables). Tallies which override this to 'true' manage their own result
+   * storage and should not be registered against the problem's aux system.
+   * @return whether this tally owns its own result mesh
+   */
+  virtual bool ownsTallyMesh() const { return false; }
 
   /**
    * Get the vector of tallies linked to this tally object for normalization
