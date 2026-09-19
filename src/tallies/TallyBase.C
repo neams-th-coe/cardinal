@@ -619,7 +619,8 @@ TallyBase::extractAndNormalizeRaw(unsigned int score)
       openmc::tensor::all, score, static_cast<int>(openmc::TallyResult::SUM_SQ)));
   _current_raw_tally_rel_error[score] =
       _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-  _current_raw_tally_std_dev[score] = _current_raw_tally_rel_error[score] * _current_raw_tally[score];
+  _current_raw_tally_std_dev[score] =
+      _current_raw_tally_rel_error[score] * _current_raw_tally[score];
 }
 
 void
@@ -640,7 +641,9 @@ TallyBase::relaxAndNormalizeTally(bool is_relaxation_allowed)
     }
 
     // Save the current tally (from the previous iteration) into the previous one.
-    std::copy(_current_tally[score].cbegin(), _current_tally[score].cend(), _previous_tally[score].begin());
+    std::copy(_current_tally[score].cbegin(),
+              _current_tally[score].cend(),
+              _previous_tally[score].begin());
 
     // Relax the tallies by alpha. TODO: skip relaxation when alpha is one.
     auto relaxed_tally = (1.0 - alpha) * _previous_tally[score] + alpha * _current_raw_tally[score];

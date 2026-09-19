@@ -301,9 +301,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_use_displaced && _relaxation != relaxation::none)
     paramError(
         "relaxation",
-        "When adaptivity is requested or a displaced problem is used, the mapping from the "
-        "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that "
-        "the "
+        "When a displaced problem is used, the mapping from the OpenMC model to the [Mesh] may "
+        "vary in time. This means that we have no guarantee that the "
         "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
         "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
         "end up trying to add vectors of different length (and possibly spatial mapping).");
@@ -326,9 +325,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-  // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-  // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-  // point have DAGMC enabled.
+    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+    // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;

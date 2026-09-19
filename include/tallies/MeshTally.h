@@ -135,8 +135,10 @@ protected:
    * @param[in] current_raw the raw (unrelaxed) tally value from the current iteration
    * @param[out] current_relaxed the relaxed tally value on the current iteration
    */
-  void projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
-                          const OMCTensor & current_raw, OMCTensor & current_relaxed);
+  void projectAndRelaxAMR(Real alpha,
+                          const OMCTensor & previous,
+                          const OMCTensor & current_raw,
+                          OMCTensor & current_relaxed);
 
   /**
    * Determine which ancestor of 'active_elem' was active on the previous step.
