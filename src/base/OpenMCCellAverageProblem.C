@@ -159,6 +159,13 @@ OpenMCCellAverageProblem::validParams()
       "Whether to check that your model does indeed have identical cell fills, allowing "
       "you to set 'identical_cell_fills' to speed up initialization");
 
+  params.addParam<bool>(
+      "relaxation_on",
+      true,
+      "Whether relaxation should be enabled or not on a given Picard iteration. This boolean "
+      "allows relaxation to be toggled on or off using the MOOSE control system.");
+  params.declareControllable("relaxation_on");
+
   params.addParam<MooseEnum>(
       "relaxation", getRelaxationEnum(), "Type of relaxation to apply to the OpenMC solution");
   params.addRangeCheckedParam<Real>("relaxation_factor",
@@ -196,6 +203,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
+    _is_relaxation_enabled_by_controls(getParam<bool>("relaxation_on")),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
@@ -2393,8 +2401,14 @@ OpenMCCellAverageProblem::externalSolve()
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
-  if (_relaxation == relaxation::dufek_gudowski && !firstSolve())
-    dufekGudowskiParticleUpdate();
+  if (_relaxation == relaxation::dufek_gudowski)
+  {
+    // Update the particles per batch only if this isn't the first solve. Note that if relaxation
+    // is disabled by the control system, dufekGudowskiParticleUpdate() will not change the number
+    // of particles per batch as the total number of relaxed particles simulated is not incremented.
+    if (!firstSolve())
+      dufekGudowskiParticleUpdate();
+  }
   else
   {
     if (isParamValid("particles"))
@@ -2410,6 +2424,15 @@ OpenMCCellAverageProblem::externalSolve()
   }
 
   OpenMCProblemBase::externalSolve();
+
+  // Only update the number of relaxed fixed point iterations and total number of particles
+  // when relaxation is active. This ensures Robbins-Monro and Dufek-Gudowski sequences progress
+  // as expected when relaxation is enabled -> disabled -> enabled.
+  if (_is_relaxation_enabled_by_controls)
+  {
+    _relaxed_fp_iterations++;
+    _relaxed_total_n_particles += openmc::settings::n_particles;
+  }
 }
 
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
@@ -2664,7 +2687,7 @@ void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
   int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 +
-                                          4.0 * _n_particles_1 * _total_n_particles)) /
+                                          4.0 * _n_particles_1 * _relaxed_total_n_particles)) /
               2.0;
   openmc::settings::n_particles = n;
 }
@@ -2722,7 +2745,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // results.
       for (unsigned int i = 0; i < _local_tallies.size(); ++i)
       {
-        _local_tallies[i]->relaxAndNormalizeTally();
+        _local_tallies[i]->relaxAndNormalizeTally(_is_relaxation_enabled_by_controls);
 
         for (unsigned int score = 0; score < _local_tallies[i]->getScores().size(); ++score)
         {
