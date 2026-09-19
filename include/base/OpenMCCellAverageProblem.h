@@ -71,7 +71,7 @@ public:
   static InputParameters validParams();
 
   virtual void initialSetup() override;
-  virtual bool allowMeshContractionAfterMeshChanged() const override { return _should_contract_mesh; }
+  virtual bool allowMeshContractionAfterMeshChanged() const override;
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
   virtual bool converged(unsigned int) override { return true; }
@@ -974,14 +974,6 @@ protected:
 
   /// Whether any mesh tallies exist.
   bool _has_mesh_tallies = false;
-
-  /**
-   * Whether the mesh should be contracted after adaptivity is performed. For almost
-   * all cases, this is true. When we're applying relaxation to an adaptive mesh
-   * tally, we need the more refined elements to stick around in the mesh and so
-   * contraction is disabled in that case.
-   */
-  bool _should_contract_mesh = true;
 
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
   bool _needs_to_map_cells;

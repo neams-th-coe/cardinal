@@ -2775,23 +2775,17 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
+}
 
-  // We defer mesh contraction (deletion of subactive elements) to the end
-  // of an OpenMC solve on the subsequent iteration. This is necessary to
-  // figure out which tally bins existed after coarsening when using integral
-  // relaxation with AMR mesh tallies.
-  if (direction == ExternalProblem::Direction::FROM_EXTERNAL_APP)
-  {
-    // Perform deferred mesh contraction to save on memory.
-    const auto disable_contract = _has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity;
-    if (disable_contract)
-    {
-      _should_contract_mesh = true;
-      meshChanged(/*intermediate_change=*/true, /*contract_mesh=*/true, /*clean_refinement_flags=*/true);
-    }
-    // Disable automatic contraction when AMR is performed.
-    _should_contract_mesh = !disable_contract;
-  }
+// Mesh contraction (deletion of subactive elements that were coarsened) is disabled
+// when running adaptive mesh tallies with relaxation. This is necessary
+// as the relaxation approach implemented for adaptive mesh tallies uses restriction
+// and projection operators, which need the more refined elements to stay around
+// to determine the mapping from previous tally bins to current tally bins.
+bool
+OpenMCCellAverageProblem::allowMeshContractionAfterMeshChanged() const
+{
+  return !(_has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity);
 }
 
 void
