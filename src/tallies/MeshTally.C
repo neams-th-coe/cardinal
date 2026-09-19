@@ -349,14 +349,19 @@ MeshTally::relaxAndNormalizeTally()
     _previous_tally[score] = _current_tally[score];
 
     // Apply relaxation to the AMR mesh tally.
-    projectAndRelaxAMR(alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
+    projectAndRelaxAMR(
+        alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
   }
 
   // Need to save the old mapping data structures.
   _prev_bin_to_element_mapping.clear();
-  std::copy(_bin_to_element_mapping.begin(), _bin_to_element_mapping.end(), std::back_inserter(_prev_bin_to_element_mapping));
+  std::copy(_bin_to_element_mapping.begin(),
+            _bin_to_element_mapping.end(),
+            std::back_inserter(_prev_bin_to_element_mapping));
   _prev_elem_to_bin_mapping.clear();
-  std::copy(_element_to_bin_mapping.begin(), _element_to_bin_mapping.end(), std::back_inserter(_prev_elem_to_bin_mapping));
+  std::copy(_element_to_bin_mapping.begin(),
+            _element_to_bin_mapping.end(),
+            std::back_inserter(_prev_elem_to_bin_mapping));
 }
 
 MeshTally::AMRRelaxation
@@ -382,8 +387,10 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
 }
 
 void
-MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
-                              const OMCTensor & current_raw, OMCTensor & current_relaxed)
+MeshTally::projectAndRelaxAMR(Real alpha,
+                              const OMCTensor & previous,
+                              const OMCTensor & current_raw,
+                              OMCTensor & current_relaxed)
 {
   // Initialize storage to a zero tensor.
   current_relaxed = openmc::tensor::zeros<Real>(current_raw.shape());
@@ -392,7 +399,8 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
   {
     for (size_t spatial_bin = 0; spatial_bin < _bin_to_element_mapping.size(); ++spatial_bin)
     {
-      const auto curr_elem = _openmc_problem.getMooseMesh().queryElemPtr(_bin_to_element_mapping[spatial_bin]);
+      const auto curr_elem =
+          _openmc_problem.getMooseMesh().queryElemPtr(_bin_to_element_mapping[spatial_bin]);
       const auto current_elem_tally_bin = currentTallyBin(curr_elem, ext_filter);
 
       switch (classifyRelaxationCase(curr_elem))
@@ -400,8 +408,8 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
         case AMRRelaxation::CaseI:
         {
           const auto curr_elem_old_bin = previousTallyBin(curr_elem, ext_filter);
-          current_relaxed(current_elem_tally_bin)
-            = (1.0 - alpha) * previous(curr_elem_old_bin) + alpha * current_raw(current_elem_tally_bin);
+          current_relaxed(current_elem_tally_bin) = (1.0 - alpha) * previous(curr_elem_old_bin) +
+                                                    alpha * current_raw(current_elem_tally_bin);
           break;
         }
         case AMRRelaxation::CaseII:
@@ -424,12 +432,12 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
           }
 
           // Relax said integral.
-          const Real relaxed_coarsened
-            = (1.0 - alpha) * previous(prev_par_tally_bin) + alpha * coarsened_proj;
+          const Real relaxed_coarsened =
+              (1.0 - alpha) * previous(prev_par_tally_bin) + alpha * coarsened_proj;
 
           // The fraction contributed to the coarsened integral by the current element.
           const auto current_elem_frac =
-            coarsened_proj == 0.0 ? 0.0 : current_raw(current_elem_tally_bin) / coarsened_proj;
+              coarsened_proj == 0.0 ? 0.0 : current_raw(current_elem_tally_bin) / coarsened_proj;
 
           // Redistribute the result. Equivalent to projecting the relaxed tally.
           current_relaxed(current_elem_tally_bin) = relaxed_coarsened * current_elem_frac;
@@ -452,14 +460,15 @@ MeshTally::projectAndRelaxAMR(Real alpha, const OMCTensor & previous,
           }
 
           // Relax the current (coarser) tally bin in-place.
-          current_relaxed(current_elem_tally_bin)
-            = (1.0 - alpha) * refined_proj + alpha * current_raw(current_elem_tally_bin);
+          current_relaxed(current_elem_tally_bin) =
+              (1.0 - alpha) * refined_proj + alpha * current_raw(current_elem_tally_bin);
 
           break;
         }
         default:
         {
-          mooseError("Internal error: Unhandled AMRRelaxation enum in MeshTally::relaxAndNormalizeTally");
+          mooseError(
+              "Internal error: Unhandled AMRRelaxation enum in MeshTally::relaxAndNormalizeTally");
           break;
         }
       }
