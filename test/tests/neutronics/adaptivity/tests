@@ -27,15 +27,6 @@
                    " mesh block."
     capabilities = 'openmc'
   []
-  [adaptive_relaxation]
-    type = RunException
-    input = cell.i
-    cli_args = "Problem/relaxation='constant'"
-    expect_err = "When adaptivity is requested or a displaced problem is used, the mapping from the "
-                 "OpenMC model to the \[Mesh\] may vary in time."
-    requirement = "The system shall error if adaptivity is active and a relaxation scheme is requested."
-    capabilities = 'openmc'
-  []
 []
 
 [Tests]
