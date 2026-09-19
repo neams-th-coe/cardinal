@@ -33,14 +33,14 @@
 [UserObjects]
   [moab]
     type = MoabSkinner
+    fields = 'temp'
+    fields_min = '445'
+    fields_max = '655'
+    n_field_bins = '3'
     verbose = true
     material_blocks = "1 3"
     material_names = "mat mat"
 
-    temperature = temp
-    n_temperature_bins = 3
-    temperature_min = 445.0
-    temperature_max = 655.0
 
     output_full = true
   []

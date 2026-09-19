@@ -161,12 +161,12 @@ eV_to_J = 1.602e-19 # J/eV
   []
   [moab]
     type = MoabSkinner
+    fields = 'temp'
+    fields_min = '0'
+    fields_max = '1000'
+    n_field_bins = '1'
     execute_on = 'timestep_begin'
     verbose = true
-    temperature = temp
-    n_temperature_bins = 1.0
-    temperature_min = 0.0
-    temperature_max = 1000
     build_graveyard = true
     graveyard_scale_inner = 1.5
     graveyard_scale_outer = 1.6

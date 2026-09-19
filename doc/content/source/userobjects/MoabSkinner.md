@@ -4,11 +4,16 @@
 
 ## Description
 
-This user object bins the spatial domain according to three characteristics:
+This user object bins the spatial domain according to two characteristics:
 
-- temperature (by grouping elements into `n_temperature_bins` with equal spacing between `temperature_min` and `temperature_max`)
-- density (by grouping elements into `n_density_bins` with equal spacing between `density_min` and `density_max`)
+- any number of user-specified scalar fields (e.g., temperature, density), by grouping
+  elements into uniform bins with equal spacing between each field's `fields_min` and
+  `fields_max` bounds, as set in `n_field_bins`
 - subdomain
+
+Fields are binned in the order they are listed in `fields`. Each field increases the
+total number of bins; the combined bin index of an element accounts for its subdomain bin
+and its bin in every field.
 
 For example, suppose the domain consists of two subdomains, with temperature and density
 distributions as shown in the top row of [moab_skinner]. The elements are then grouped into
@@ -33,7 +38,7 @@ geometry requires triangulated surfaces (i.e. skins of tetrahedra). Meshes conta
 elements are also supported: when these elements are detected, an internal all-TET4 copy of
 the mesh is built automatically, and all skinning
 and geometry operations are performed on that copy. The original MOOSE mesh is never
-modified; temperature, density, and subdomain binning are always evaluated on the original
+modified; field and subdomain binning are always evaluated on the original
 mesh where the auxiliary variables live. Higher order versions of these element types are also supported.
 
 ## Example Input Syntax

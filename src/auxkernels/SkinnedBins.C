@@ -19,6 +19,9 @@
 #ifdef ENABLE_DAGMC
 
 #include "SkinnedBins.h"
+#include "MooseUtils.h"
+
+#include <algorithm>
 
 registerMooseObject("CardinalApp", SkinnedBins);
 
@@ -28,36 +31,44 @@ SkinnedBins::validParams()
   InputParameters params = AuxKernel::validParams();
   params.addRequiredParam<UserObjectName>("skinner", "MOAB mesh skinner");
 
-  MooseEnum skin_type("temperature subdomain density all", "all");
-  params.addParam<MooseEnum>("skin_by", skin_type, "Which skin distribution to display");
+  params.addParam<std::string>("skin_by",
+                               "all",
+                               "Which skin distribution to display: 'all', 'subdomain', or the "
+                               "name of one of the skinner's binned fields");
   params.addClassDescription("Bins created by a skinner");
   return params;
 }
 
-SkinnedBins::SkinnedBins(const InputParameters & parameters) :
-  AuxKernel(parameters),
-  _skin_by(getParam<MooseEnum>("skin_by"))
+SkinnedBins::SkinnedBins(const InputParameters & parameters)
+  : AuxKernel(parameters), _skin_by(getParam<std::string>("skin_by"))
 {
   const UserObjectBase & base = getUserObjectBase("skinner");
   _skinner = dynamic_cast<const MoabSkinner *>(&base);
   if (!_skinner)
     paramError("skinner", "This userobject must be of type MoabSkinner!");
+
+  if (_skin_by != "all" && _skin_by != "subdomain")
+  {
+    const auto names = _skinner->binnedFieldNames();
+    if (std::find(names.begin(), names.end(), _skin_by) == names.end())
+      paramError("skin_by",
+                 "'",
+                 _skin_by,
+                 "' is not a valid choice. Valid choices are 'all', 'subdomain', or one of the "
+                 "skinner's binned fields: ",
+                 Moose::stringify(names));
+  }
 }
 
 Real
 SkinnedBins::computeValue()
 {
-  if (_skin_by == "temperature")
-    return _skinner->getTemperatureBin(_current_elem);
+  if (_skin_by == "all")
+    return _skinner->getBin(_current_elem);
   else if (_skin_by == "subdomain")
     return _skinner->getSubdomainBin(_current_elem);
-  else if (_skin_by == "density")
-    return _skinner->getDensityBin(_current_elem);
-  else if (_skin_by == "all")
-    return _skinner->getBin(_skinner->getTemperatureBin(_current_elem), _skinner->getDensityBin(_current_elem),
-      _skinner->getSubdomainBin(_current_elem));
   else
-    mooseError("Unhandled skin_type enum in SkinnedBins!");
+    return _skinner->getFieldBin(_skin_by, _current_elem);
 }
 
 #endif

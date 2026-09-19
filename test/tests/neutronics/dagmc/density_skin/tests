@@ -25,7 +25,7 @@
   [cannot_skin_solid]
     type = RunException
     input = only_solid.i
-    expect_err = "Detected inconsistent settings for density skinning and 'density_blocks'"
+    expect_err = "bins by field 'density', but no temperature or density feedback is applied with a variable of that name"
     requirement = "The system shall error if attempting to apply density skinning without any fluid blocks ready to receive variable density."
     mesh_mode = 'replicated'
     capabilities = 'dagmc'
