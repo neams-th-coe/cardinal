@@ -440,7 +440,23 @@ public:
       mooseError(name + " cannot be empty!");
   }
 
+  /**
+   * Get the number of fixed point iterations
+   * @return the number of fixed point iterations
+   */
   int fixedPointIteration() const { return _fixed_point_iteration; }
+
+  /**
+   * Get the number of fixed point iterations where relaxation has been applied.
+   * @return the number of relaxed fixed point iterations
+   */
+  int relaxedFixedPointIteration() const { return _relaxed_fp_iterations; }
+
+  /**
+   * Total number of particles run when relaxation is active (not multiplied by batches)
+   * @return total number of particles simulated during relaxation
+   */
+  int nRelaxedTotalParticles() const { return _relaxed_total_n_particles; }
 
   /**
    * Checks if the problem uses adaptivity or not.
@@ -836,6 +852,18 @@ protected:
    * and 'density_variables'
    */
   const coupling::OpenMCInitialCondition _initial_condition;
+
+  /**
+   * Whether relaxation is allowed or not. Used to toggle relaxation with the MOOSE
+   * controls system.
+   */
+  const bool & _is_relaxation_enabled_by_controls;
+
+  /// The number of fixed point iterations performed where relaxation was enabled.
+  int _relaxed_fp_iterations = -1;
+
+  /// The number of particles run where relaxation was enabled.
+  int64_t _relaxed_total_n_particles = 0;
 
   /// Type of relaxation to apply to the OpenMC tallies
   const relaxation::RelaxationEnum _relaxation;
