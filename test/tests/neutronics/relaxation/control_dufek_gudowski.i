@@ -98,6 +98,10 @@
     type = OpenMCParticles
     value_type = instantaneous
   []
+  [particles_total]
+    type = OpenMCParticles
+    value_type = total
+  []
 []
 
 [Outputs]

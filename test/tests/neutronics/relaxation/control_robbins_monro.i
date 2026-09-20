@@ -9,5 +9,5 @@
 []
 
 [Outputs]
-  hide := 'heat_source p1 p1_prev p1_raw p2 p2_prev p2_raw p3 p3_prev p3_raw particles'
+  hide := 'heat_source p1 p1_prev p1_raw p2 p2_prev p2_raw p3 p3_prev p3_raw particles particles_total'
 []
