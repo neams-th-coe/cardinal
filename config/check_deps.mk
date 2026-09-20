@@ -26,6 +26,8 @@ IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 MOOSE_CONTENT      := $(shell ls $(MOOSE_DIR) 2> /dev/null)
 NEKRS_CONTENT      := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT     := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+FMT_CONTENT        := $(shell ls $(FMT_DIR) 2> /dev/null)
+PUGI_CONTENT       := $(shell ls $(PUGI_DIR) 2> /dev/null)
 NUCLEARDATA_CONTENT:= $(shell ls $(NUCLEARDATA_DIR) 2> /dev/null)
 DAGMC_CONTENT      := $(shell ls $(DAGMC_DIR) 2> /dev/null)
 DOUBLEDOWN_CONTENT := $(shell ls $(DOUBLEDOWN_DIR) 2> /dev/null)
@@ -95,6 +97,18 @@ ifeq ($(ENABLE_OPENMC), yes)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   else
     $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
+  endif
+
+  ifeq ($(FMT_CONTENT),)
+	  $(error $n"fmt does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the fmt submodule, use ./scripts/get-dependencies.sh")
+	else
+	  # we dont print out anything about where fmt is coming from because it's a minor dependency and we don't expect anyone to be using different versions of it
+  endif
+
+  ifeq ($(PUGI_CONTENT),)
+	  $(error $n"pugixml does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the pugixml submodule, use ./scripts/get-dependencies.sh")
+	else
+	  # we dont print out anything about where pugixml is coming from because it's a minor dependency and we don't expect anyone to be using different versions of it
   endif
 
   ifeq ($(NUCLEARDATA_CONTENT),)
