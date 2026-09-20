@@ -6,6 +6,8 @@ endef
 # Set default values for all third party dependencies
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+FMT_DIR             ?= $(CONTRIB_DIR)/fmt
+PUGI_DIR            ?= $(CONTRIB_DIR)/pugixml
 NUCLEARDATA_DIR     ?= $(CONTRIB_DIR)/nuclear_data
 DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
 DOUBLEDOWN_DIR      ?= $(CONTRIB_DIR)/double-down
