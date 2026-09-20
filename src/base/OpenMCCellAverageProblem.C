@@ -2403,10 +2403,9 @@ OpenMCCellAverageProblem::externalSolve()
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
   if (_relaxation == relaxation::dufek_gudowski)
   {
-    // Update the particles per batch only if this isn't the first solve. Note that if relaxation
-    // is disabled by the control system, dufekGudowskiParticleUpdate() will not change the number
-    // of particles per batch as the total number of relaxed particles simulated is not incremented.
-    if (!firstSolve())
+    // Update the particles per batch only if this isn't the first solve and
+    // relaxation is enabled on this iteration.
+    if (!firstSolve() && _is_relaxation_enabled_by_controls)
       dufekGudowskiParticleUpdate();
   }
   else
