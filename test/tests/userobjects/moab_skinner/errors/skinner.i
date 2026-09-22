@@ -26,18 +26,14 @@
 [UserObjects]
   [moab]
     type = MoabSkinner
+    fields = 'temp rho'
+    fields_min = '400 900'
+    fields_max = '650 2000'
+    n_field_bins = '5 3'
     material_blocks = "1"
     material_names = "mat"
 
-    temperature = temp
-    n_temperature_bins = 5
-    temperature_min = 400.0
-    temperature_max = 650.0
 
-    density = rho
-    n_density_bins = 3
-    density_min = 900.0
-    density_max = 2000.0
 
     build_graveyard = true
     graveyard_scale_inner = 1.05

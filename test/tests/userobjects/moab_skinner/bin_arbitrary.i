@@ -1,7 +1,7 @@
 [Mesh]
   [cube]
     type = FileMeshGenerator
-    file = ../../../neutronics/meshes/tet_cube.e
+    file = ../../neutronics/meshes/tet_cube.e
   []
   [id1]
     type = ParsedSubdomainMeshGenerator
@@ -17,8 +17,6 @@
     block_id = 3
     epsilon = 1e-8
   []
-
-  second_order = true
 []
 
 [Problem]
@@ -27,64 +25,48 @@
 []
 
 [AuxVariables]
-  [rho]
+  [eta]
+    family = MONOMIAL
+    order = constant
+  []
+  [eta_bins]
     family = MONOMIAL
     order = CONSTANT
-  []
-  [temp]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [bins]
-    family = MONOMIAL
-    order = CONSTANT
-  []
+  []  
 []
 
 [AuxKernels]
-  [rho]
+  [eta]
     type = FunctionAux
-    variable = rho
-    function = rho
+    variable = eta
+    function = eta_fn
     execute_on = timestep_begin
   []
-  [temp]
-    type = FunctionAux
-    variable = temp
-    function = temp
-    execute_on = timestep_begin
-  []
-  [bins]
+  [eta_bins]
     type = SkinnedBins
-    variable = bins
+    variable = eta_bins
     skinner = moab
+    skin_by = eta
   []
 []
 
 [Functions]
-  [temp]
+  [eta_fn]
     type = ParsedFunction
     expression = 400+x*100+100*t
-  []
-  [rho]
-    type = ParsedFunction
-    expression = 400+y*100+100*t
   []
 []
 
 [UserObjects]
   [moab]
     type = MoabSkinner
-    fields = 'temp rho'
-    fields_min = '445 445'
-    fields_max = '655 655'
-    n_field_bins = '3 5'
+    fields = 'eta'
+    fields_min = '445'
+    fields_max = '655'
+    n_field_bins = 3
     verbose = true
     material_blocks = "1 3"
     material_names = "mat mat"
-
-
-
     output_skins = true
   []
 []
@@ -96,5 +78,4 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp rho'
 []

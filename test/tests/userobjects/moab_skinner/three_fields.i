@@ -1,16 +1,7 @@
 [Mesh]
   [cube]
-    type = GeneratedMeshGenerator
-    dim = 3
-    xmin = -0.5
-    xmax = 0.5
-    ymin = -0.5
-    ymax = 0.5
-    zmin = -0.5
-    zmax = 0.5
-    nx = 5
-    ny = 5
-    nz = 5
+    type = FileMeshGenerator
+    file = ../../neutronics/meshes/tet_cube.e
   []
   [id1]
     type = ParsedSubdomainMeshGenerator
@@ -34,11 +25,19 @@
 []
 
 [AuxVariables]
+  [temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
   [rho]
     family = MONOMIAL
     order = CONSTANT
   []
-  [temp]
+  [zdep]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [temp_bins]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -46,7 +45,7 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [temp_bins]
+  [zdep_bins]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -61,17 +60,29 @@
 []
 
 [AuxKernels]
+  [temp]
+    type = FunctionAux
+    variable = temp
+    function = temp
+    execute_on = timestep_begin
+  []
   [rho]
     type = FunctionAux
     variable = rho
     function = rho
     execute_on = timestep_begin
   []
-  [temp]
+  [zdep]
     type = FunctionAux
-    variable = temp
-    function = temp
+    variable = zdep
+    function = zdep
     execute_on = timestep_begin
+  []
+  [temp_bins]
+    type = SkinnedBins
+    variable = temp_bins
+    skinner = moab
+    skin_by = temp
   []
   [rho_bins]
     type = SkinnedBins
@@ -79,11 +90,11 @@
     skinner = moab
     skin_by = rho
   []
-  [temp_bins]
+  [zdep_bins]
     type = SkinnedBins
-    variable = temp_bins
+    variable = zdep_bins
     skinner = moab
-    skin_by = temp
+    skin_by = zdep
   []
   [subdomain_bins]
     type = SkinnedBins
@@ -107,22 +118,23 @@
     type = ParsedFunction
     expression = 400+y*100+100*t
   []
+  [zdep]
+    type = ParsedFunction
+    expression = 11+z*10+5*t
+  []
 []
 
 [UserObjects]
   [moab]
     type = MoabSkinner
-    fields = 'temp rho'
-    fields_min = '445 445'
-    fields_max = '655 655'
-    n_field_bins = '3 5'
+    fields = 'temp rho zdep'
+    fields_min = '445 445 11'
+    fields_max = '655 655 31'
+    n_field_bins = '3 4 2'
     verbose = true
     material_blocks = "1 3"
     material_names = "mat mat"
 
-
-
-    output_skins = true
   []
 []
 
@@ -133,5 +145,6 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp rho'
+  hide = 'temp rho zdep'
 []
+
