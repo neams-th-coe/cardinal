@@ -164,4 +164,39 @@
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
     capabilities = 'openmc'
   []
+  [structured_1d_regular]
+    type = CSVDiff
+    input = structured_1d_regular.i
+    csvdiff = structured_1d_regular_out.csv
+    requirement = "The system shall allow a 1D regular structured mesh tally with OpenMC."
+    capabilities = 'openmc'
+  []
+  [structured_2d_regular]
+    type = CSVDiff
+    input = structured_2d_regular.i
+    csvdiff = structured_2d_regular_out.csv
+    requirement = "The system shall allow a 2D regular structured mesh tally with OpenMC."
+    capabilities = 'openmc'
+  []
+  [structured_3d_regular]
+    type = CSVDiff
+    input = structured_3d_regular.i
+    csvdiff = structured_3d_regular_out.csv
+    requirement = "The system shall allow a 3D regular structured mesh tally with OpenMC."
+    capabilities = 'openmc'
+  []
+  [structured_rectilinear]
+    type = CSVDiff
+    input = structured_rectilinear.i
+    csvdiff = structured_rectilinear_out.csv
+    requirement = "The system shall allow a 2D rectilinear structured mesh tally with non-uniform grid spacing."
+    capabilities = 'openmc'
+  []
+  [structured_no_input_file]
+    type = CSVDiff
+    input = structured_no_input_file.i
+    csvdiff = structured_no_input_file_out.csv
+    requirement = "The system shall allow a structured mesh tally without a mesh template, using the MOOSE mesh directly."
+    capabilities = 'openmc'
+  []
 []

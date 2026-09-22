@@ -2310,6 +2310,14 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     _tally_var_ids.emplace_back();
 
+    // Tallies which own their own result mesh don't add variables to the problem's
+    // auxiliary system; keep the per-tally variable arrays aligned but empty.
+    if (_local_tallies[i]->ownsTallyMesh())
+    {
+      _tally_ext_var_ids.emplace_back();
+      continue;
+    }
+
     // Convert the subdomain ID map into a std::vector for addExternalVariable(...).
     std::vector<SubdomainName> block_name_vec;
     for (const auto b : _local_tallies[i]->getBlocks())
