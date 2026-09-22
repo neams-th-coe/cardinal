@@ -118,9 +118,13 @@ OpenMCProblemBase::validParams()
       "for random ray; this overrides the setting in the XML files.");
 
   params.addParam<FileName>(
-      "statepoint_directory",
+      "statepoint_prefix",
       "./",
-      "The directory to write statepoint files to. Sets openmc::settings::path_output.");
+      "Prefix to the name of the directory to which statepoint files are written. If simulation is "
+      "Steady, or keep_transient_statepoint = false, this becomes the name of the directory to "
+      "which the singular resulting statepoint file is written. If the simulation is Transient and "
+      "keep_transient_statepoint=true, statepoint files are written to directories of the format "
+      "{statepoint_prefix}_ts_{timestep}.");
 
   params.addParam<bool>("keep_transient_statepoint",
                         false,
@@ -146,7 +150,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _reset_seed(getParam<bool>("reset_seed")),
     _initial_seed(openmc::openmc_get_seed()),
     _xml_directory(getParam<FileName>("xml_directory")),
-    _statepoint_directory(getParam<FileName>("statepoint_directory")),
+    _statepoint_prefix(getParam<FileName>("statepoint_prefix")),
     _keep_transient_statepoint(getParam<bool>("keep_transient_statepoint"))
 {
   if (isParamValid("tally_type"))
@@ -256,10 +260,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     catchOpenMCError(err, "set the number of batches");
   }
 
-  if (isParamSetByUser("statepoint_directory") && !_keep_transient_statepoint)
+  if (isParamSetByUser("statepoint_prefix") && !_keep_transient_statepoint)
   {
     /// path_output must end with a "/", otherwise statepoint will not output correctly
-    openmc::settings::path_output = formattedOutputPath(_statepoint_directory);
+    openmc::settings::path_output = formattedOutputPath(_statepoint_prefix);
 
     /// Need to remove trailing "/" to do "is_regular_file"
     std::filesystem::path p = openmc::settings::path_output;
@@ -431,6 +435,8 @@ OpenMCProblemBase::externalSolve()
       mooseError("Cannot create directory " + openmc::settings::path_output +
                  ", as a file with the same name already exists");
     std::filesystem::create_directory(openmc::settings::path_output);
+
+    openmc::settings::path_output = transientStatepointPath();
   }
 
   if (_reset_seed)
@@ -445,11 +451,6 @@ OpenMCProblemBase::externalSolve()
     err = openmc_reset_timers();
     if (err)
       mooseError(openmc_get_err_msg());
-  }
-
-  if (_keep_transient_statepoint)
-  {
-    openmc::settings::path_output = transientStatepointPath();
   }
 
   if (_criticality_search)
@@ -1151,14 +1152,14 @@ OpenMCProblemBase::transientStatepointPath()
 
   std::filesystem::path transient_statepoint_path;
 
-  // If user has not set statepoint_directory parameter, or has defined it as './',
+  // If user has not set statepoint_prefix parameter, or has defined it as './',
   // use a default
-  if (std::filesystem::weakly_canonical(_statepoint_directory) ==
+  if (std::filesystem::weakly_canonical(_statepoint_prefix) ==
       std::filesystem::weakly_canonical(running_path))
     transient_statepoint_path = "./statepoint_folder";
   else
   {
-    transient_statepoint_path = _statepoint_directory;
+    transient_statepoint_path = _statepoint_prefix;
 
     // Removes trailing "/" from transient_statepoint_path, if user has left any, ready to append
     // suffix
