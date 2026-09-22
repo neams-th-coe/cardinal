@@ -1,6 +1,6 @@
 [Mesh]
   [file]
     type = FileMeshGenerator
-    file = skins1.msh
+    file = bins_skins1.msh
   []
 []

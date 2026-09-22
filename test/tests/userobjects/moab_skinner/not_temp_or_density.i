@@ -8,12 +8,14 @@
     input = cube
     combinatorial_geometry = 'z < 0.0'
     block_id = 1
+    epsilon = 1e-8
   []
   [id2]
     type = ParsedSubdomainMeshGenerator
     input = id1
     combinatorial_geometry = 'z >= 0.0'
     block_id = 3
+    epsilon = 1e-8
   []
 []
 
@@ -22,23 +24,20 @@
   solve = false
 []
 
-[AuxVariables]
-  [temp]
-  []
-[]
-
 [UserObjects]
   [moab]
     type = MoabSkinner
-    fields = 'temp'
-    fields_min = '445'
-    fields_max = '655'
-    n_field_bins = '3'
+    verbose = true
+    material_blocks = "1 3"
     material_names = "mat mat"
-
+    output_skins = true
   []
 []
 
 [Executioner]
   type = Transient
+  num_steps = 2
+[]
+
+[Outputs]
 []

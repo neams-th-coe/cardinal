@@ -26,10 +26,10 @@
 [UserObjects]
   [moab]
     type = MoabSkinner
-    temperature = temp
-    n_temperature_bins = 1
-    temperature_min = 0.0
-    temperature_max = 100.0
+    fields = 'temp'
+    fields_min = '0'
+    fields_max = '100'
+    n_field_bins = '1'
   []
 []
 

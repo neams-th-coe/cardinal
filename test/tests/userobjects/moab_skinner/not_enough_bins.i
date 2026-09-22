@@ -1,16 +1,7 @@
 [Mesh]
   [cube]
-    type = GeneratedMeshGenerator
-    dim = 3
-    xmin = -0.5
-    xmax = 0.5
-    ymin = -0.5
-    ymax = 0.5
-    zmin = -0.5
-    zmax = 0.5
-    nx = 5
-    ny = 5
-    nz = 5
+    type = FileMeshGenerator
+    file = ../../neutronics/meshes/tet_cube.e
   []
   [id1]
     type = ParsedSubdomainMeshGenerator
@@ -115,12 +106,10 @@
     fields = 'temp rho'
     fields_min = '445 445'
     fields_max = '655 655'
-    n_field_bins = '3 5'
+    n_field_bins = '3'
     verbose = true
     material_blocks = "1 3"
     material_names = "mat mat"
-
-
 
     output_skins = true
   []
