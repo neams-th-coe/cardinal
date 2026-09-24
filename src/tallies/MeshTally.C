@@ -323,34 +323,28 @@ MeshTally::checkMeshTemplateAndTranslations()
 void
 MeshTally::relaxAndNormalizeTally(bool is_relaxation_allowed)
 {
+  // Set alpha to unity if OpenMCCellAverageProblem is disabling relaxation
+  // (e.g. due to controls)
+  const auto alpha = is_relaxation_allowed ? getRelaxationFactor() : 1.0;
+
   // Only need to project solution vectors for relaxation when
-  // adaptivity is used.
-  if (!_is_adaptive)
+  // adaptivity is used and we're not on the first iteration / using relaxation.
+  if (!_is_adaptive || _openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+    TallyBase::relaxAndNormalizeTally(is_relaxation_allowed);
+  else
   {
-    TallyBase::relaxAndNormalizeTally();
-    return;
-  }
-
-  const auto alpha = getRelaxationFactor();
-  for (unsigned int score = 0; score < _tally_score.size(); ++score)
-  {
-    // Extract raw results.
-    extractAndNormalizeRaw(score);
-
-    // Shortcut if relaxation isn't being applied.
-    if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+    for (unsigned int score = 0; score < _tally_score.size(); ++score)
     {
-      _current_tally[score] = _current_raw_tally[score];
-      _previous_tally[score] = _current_raw_tally[score];
-      continue;
+      // Extract raw results.
+      extractAndNormalizeRaw(score);
+
+      // Save the current tally (from the previous iteration) into the previous one.
+      _previous_tally[score] = _current_tally[score];
+
+      // Apply relaxation to the AMR mesh tally.
+      projectAndRelaxAMR(
+          alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
     }
-
-    // Save the current tally (from the previous iteration) into the previous one.
-    _previous_tally[score] = _current_tally[score];
-
-    // Apply relaxation to the AMR mesh tally.
-    projectAndRelaxAMR(
-        alpha, _previous_tally[score], _current_raw_tally[score], _current_tally[score]);
   }
 
   // Need to save the old mapping data structures.
@@ -369,21 +363,21 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
 {
   // Check for Case I.
   if (previousSpatialBin(current_element) != INVALID_SPATIAL_BIN)
-    return AMRRelaxation::CaseI;
+    return AMRRelaxation::Unchanged;
 
   // Check for Case II.
   if (previousActiveAncestor(current_element))
-    return AMRRelaxation::CaseII;
+    return AMRRelaxation::CoarseToFine;
 
   // Check for Case III.
   std::vector<const Elem *> descendants;
   current_element->total_family_tree(descendants, true);
   for (const auto descendant : descendants)
     if (previousSpatialBin(descendant) != INVALID_SPATIAL_BIN)
-      return AMRRelaxation::CaseIII;
+      return AMRRelaxation::FineToCoarse;
 
   mooseError("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
-  return AMRRelaxation::CaseI;
+  return AMRRelaxation::Unchanged;
 }
 
 void
@@ -405,14 +399,14 @@ MeshTally::projectAndRelaxAMR(Real alpha,
 
       switch (classifyRelaxationCase(curr_elem))
       {
-        case AMRRelaxation::CaseI:
+        case AMRRelaxation::Unchanged:
         {
           const auto curr_elem_old_bin = previousTallyBin(curr_elem, ext_filter);
           current_relaxed(current_elem_tally_bin) = (1.0 - alpha) * previous(curr_elem_old_bin) +
                                                     alpha * current_raw(current_elem_tally_bin);
           break;
         }
-        case AMRRelaxation::CaseII:
+        case AMRRelaxation::CoarseToFine:
         {
           const auto prev_active_parent = previousActiveAncestor(curr_elem);
           const auto prev_par_tally_bin = previousTallyBin(prev_active_parent, ext_filter);
@@ -443,7 +437,7 @@ MeshTally::projectAndRelaxAMR(Real alpha,
           current_relaxed(current_elem_tally_bin) = relaxed_coarsened * current_elem_frac;
           break;
         }
-        case AMRRelaxation::CaseIII:
+        case AMRRelaxation::FineToCoarse:
         {
           // Gather the integral over the previouly active descendants on this element.
           // Equivalent to restricting the tally result.

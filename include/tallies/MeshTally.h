@@ -90,9 +90,9 @@ protected:
   /// An enum for the different cases when applying relaxation to an adaptive mesh tally.
   enum class AMRRelaxation
   {
-    CaseI = 0,
-    CaseII = 1,
-    CaseIII = 2
+    Unchanged = 0,
+    CoarseToFine = 1,
+    FineToCoarse = 2
   };
 
   /**

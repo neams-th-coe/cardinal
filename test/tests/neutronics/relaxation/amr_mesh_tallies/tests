@@ -1,0 +1,32 @@
+[Tests]
+  issues = '#1446'
+  design = 'MeshTally.md'
+
+  [same_level]
+    type = Exodiff
+    input = same_level.i
+    exodiff = 'same_level_out.e'
+    requirement = "The system shall revert to standard relaxation when the mesh is unchanged. "
+                  "This test golds against an existing mesh tally relaxation test."
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [coarse_to_fine]
+    type = Exodiff
+    input = openmc.i
+    exodiff = 'coarse_to_fine.e-s002'
+    cli_args = "Adaptivity/Markers/uniform/mark='REFINE' Outputs/file_base='coarse_to_fine'"
+    requirement = "The system shall be able to relax mesh tallies when the mesh is refined under adaptivity"
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+  [fine_to_coarse]
+    type = Exodiff
+    input = openmc.i
+    exodiff = 'fine_to_coarse.e-s002'
+    cli_args = "Adaptivity/Markers/uniform/mark='COARSEN' Outputs/file_base='fine_to_coarse' Mesh/uniform_refine=1"
+    requirement = "The system shall be able to relax mesh tallies when the mesh is coarsened under adaptivity"
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
+[]

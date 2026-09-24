@@ -626,7 +626,9 @@ TallyBase::extractAndNormalizeRaw(unsigned int score)
 void
 TallyBase::relaxAndNormalizeTally(bool is_relaxation_allowed)
 {
-  const auto alpha = getRelaxationFactor();
+  // Set alpha to unity if OpenMCCellAverageProblem is disabling relaxation
+  // (e.g. due to controls)
+  const auto alpha = is_relaxation_allowed ? getRelaxationFactor() : 1.0;
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
     // Extract raw results.
@@ -826,12 +828,12 @@ TallyBase::getRelaxationFactor() const
     }
     case relaxation::robbins_monro:
     {
-      return 1.0 / (_openmc_problem.fixedPointIteration() + 1);
+      return 1.0 / (_openmc_problem.relaxedFixedPointIteration() + 1);
     }
     case relaxation::dufek_gudowski:
     {
       return static_cast<float>(_openmc_problem.nParticles()) /
-             static_cast<float>(_openmc_problem.nTotalParticles());
+             static_cast<float>(_openmc_problem.nRelaxedTotalParticles());
     }
     default:
       mooseError("Unhandled RelaxationEnum in TallyBase!");
