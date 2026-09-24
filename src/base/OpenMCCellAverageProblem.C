@@ -283,29 +283,26 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
-  // We need to clear and re-initialize OpenMC problem in the cases of:
-  //   - the [Mesh] is being adaptively refined
-  //   - the [Mesh] is deforming in space
+  // We need to clear and re-initialize OpenMC problem when the [Mesh] is deforming in space
   //
-  // If the [Mesh] is changing, then we certainly know that the mesh tallies
+  // If the [Mesh] is being displaced, then we certainly know that the mesh tallies
   // need to be re-initialized because (a) for file-based mesh tallies, we need
   // to enforce that the mesh is identical to the [Mesh] and (b) for directly
   // tallying on the [Mesh], we need to pass that mesh info into OpenMC. For good
   // measure, we also need to re-initialize cell tallies because it's possible
   // that as the [Mesh] changes, the mapping from OpenMC cells to the [Mesh]
   // also changes, which could open the door to new cell IDs/instances being added
-  // to the cell instance filter. If we need to re-init tallies, then we can't
+  // to the cell instance filter. If the mesh is being displaced, then we can't
   // guarantee that the tallies from iteration to iteration correspond to exactly
-  // the same number of bins or to exactly the same regions of space, so we must
-  // disable relaxation.
+  // the same regions of space, so we must disable relaxation.
   if (_use_displaced && _relaxation != relaxation::none)
     paramError(
         "relaxation",
         "When a displaced problem is used, the mapping from the OpenMC model to the [Mesh] may "
         "vary in time. This means that we have no guarantee that the "
-        "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
+        "regions of space corresponding to each bin are fixed. "
         "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
-        "end up trying to add vectors of different length (and possibly spatial mapping).");
+        "end up trying to add vectors with different spatial mapping.");
 
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
