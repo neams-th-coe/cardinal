@@ -116,6 +116,21 @@ OpenMCProblemBase::validParams()
       "active_distance > 0",
       "The active length (distance a ray travels while accumulating tallies) used "
       "for random ray; this overrides the setting in the XML files.");
+
+  params.addParam<FileName>(
+      "statepoint_prefix",
+      "./",
+      "Prefix to the name of the directory to which statepoint files are written. If simulation is "
+      "Steady, or keep_transient_statepoint = false, this becomes the name of the directory to "
+      "which the singular resulting statepoint file is written. If the simulation is Transient and "
+      "keep_transient_statepoint=true, statepoint files are written to directories of the format "
+      "{statepoint_prefix}_ts_{timestep}.");
+
+  params.addParam<bool>("keep_transient_statepoint",
+                        false,
+                        "Whether or not statepoints from all timesteps should be kept, and written "
+                        "to separate directories.");
+
   return params;
 }
 
@@ -134,7 +149,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
     _initial_seed(openmc::openmc_get_seed()),
-    _xml_directory(getParam<FileName>("xml_directory"))
+    _xml_directory(getParam<FileName>("xml_directory")),
+    _statepoint_prefix(getParam<FileName>("statepoint_prefix")),
+    _keep_transient_statepoint(getParam<bool>("keep_transient_statepoint"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
@@ -241,6 +258,22 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
     catchOpenMCError(err, "set the number of batches");
+  }
+
+  if (isParamSetByUser("statepoint_prefix") && !_keep_transient_statepoint)
+  {
+    /// path_output must end with a "/", otherwise statepoint will not output correctly
+    openmc::settings::path_output = formattedOutputPath(_statepoint_prefix);
+
+    /// Need to remove trailing "/" to do "is_regular_file"
+    std::filesystem::path p = openmc::settings::path_output;
+    changeDirectoryToFile(p);
+
+    if (std::filesystem::is_regular_file(p))
+      mooseError("Cannot create directory " + openmc::settings::path_output +
+                 ", as a file with the same name already exists");
+
+    std::filesystem::create_directory(openmc::settings::path_output);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -388,6 +421,23 @@ OpenMCProblemBase::externalSolve()
 
   // update tallies as needed before starting the OpenMC run
   executeEditors();
+
+  if (_keep_transient_statepoint)
+  {
+    openmc::settings::path_output = transientStatepointPath();
+
+    std::filesystem::path p = openmc::settings::path_output;
+
+    /// Need to remove trailing "/" to do "is_regular_file"
+    changeDirectoryToFile(p);
+
+    if (std::filesystem::is_regular_file(p))
+      mooseError("Cannot create directory " + openmc::settings::path_output +
+                 ", as a file with the same name already exists");
+    std::filesystem::create_directory(openmc::settings::path_output);
+
+    openmc::settings::path_output = transientStatepointPath();
+  }
 
   if (_reset_seed)
   {
@@ -1085,6 +1135,74 @@ Real
 OpenMCProblemBase::tallyNormalizationValue() const
 {
   return _run_mode == openmc::RunMode::FIXED_SOURCE ? *_source_strength : *_power;
+}
+
+const std::string
+OpenMCProblemBase::transientStatepointPath()
+{
+  if (!isTransient())
+  {
+    mooseWarning("keep_transient_statepoint is set to True, but selected Executioner is Steady. "
+                 "Keeping original statepoint path.");
+    return openmc::settings::path_output;
+  }
+
+  // Get path of current input file
+  std::filesystem::path running_path =
+      std::filesystem::absolute(getMooseApp().getLastInputFileName()).parent_path();
+
+  std::filesystem::path transient_statepoint_path;
+
+  // If user has not set statepoint_prefix parameter, or has defined it as './',
+  // use a default
+  if (std::filesystem::weakly_canonical(_statepoint_prefix) ==
+      std::filesystem::weakly_canonical(running_path))
+    transient_statepoint_path = "./statepoint_folder";
+  else
+  {
+    transient_statepoint_path = _statepoint_prefix;
+
+    // Removes trailing "/" from transient_statepoint_path, if user has left any, ready to append
+    // suffix
+    transient_statepoint_path = transient_statepoint_path.filename().empty()
+                                    ? transient_statepoint_path.parent_path()
+                                    : transient_statepoint_path;
+  }
+
+  std::string timestep_suffix = "_ts_" + std::to_string(timeStep()) + "/";
+
+  transient_statepoint_path += timestep_suffix;
+
+  const std::string transient_statepoint_path_str =
+      formattedOutputPath(transient_statepoint_path.string());
+
+  return transient_statepoint_path_str;
+}
+
+const std::string
+OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
+{
+  std::filesystem::path p = output_path;
+  p = p.lexically_normal();
+
+  if (p.is_relative())
+  {
+    std::filesystem::path input_file_path =
+        std::filesystem::absolute(getMooseApp().getLastInputFileName()).parent_path();
+
+    p = std::filesystem::weakly_canonical(input_file_path / p);
+  }
+
+  if (p.string().back() != '/')
+    p += "/";
+
+  return p.string();
+}
+
+void
+OpenMCProblemBase::changeDirectoryToFile(std::filesystem::path & input_path)
+{
+  input_path = input_path.filename().empty() ? input_path.parent_path() : input_path;
 }
 
 #endif
