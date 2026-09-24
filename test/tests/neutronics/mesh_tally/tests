@@ -143,7 +143,7 @@
   [disable_renumbering]
     type = RunException
     input = one_mesh.i
-    cli_args = 'Mesh/allow_renumbering=true --distributed-mesh'
+    cli_args = 'Mesh/allow_renumbering=true'
     expect_err = "Mesh tallies currently require 'allow_renumbering = false' to be set in the \[Mesh\]!"
     requirement = "Mesh tallies shall temporarily require disabled renumbering until capability is available"
     capabilities = 'openmc'
@@ -162,6 +162,16 @@
     cli_args = "Problem/Tallies/Mesh/block='' Mesh/parallel_type=replicated"
     expect_err = "Subdomain names must be provided if using 'block'!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
+    capabilities = 'openmc'
+  []
+  [zero_tally]
+    type = CSVDiff
+    input = zero_tally.i
+    csvdiff = zero_tally_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The system shall ensure divide-by-zeros do not occur when normalizing tallies with no results."
     capabilities = 'openmc'
   []
 []
