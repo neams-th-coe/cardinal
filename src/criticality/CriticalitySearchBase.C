@@ -120,8 +120,8 @@ CriticalitySearchBase::searchForCriticality(std::function<void(bool)> step_callb
       {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
   vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
                       VariadicTableColumnFormat::SCIENTIFIC,
-                      VariadicTableColumnFormat::SCIENTIFIC,
-                      VariadicTableColumnFormat::SCIENTIFIC});
+                      VariadicTableColumnFormat::FIXED,
+                      VariadicTableColumnFormat::FIXED});
 
   std::function<Real(Real)> func;
   func = [&](Real x)
