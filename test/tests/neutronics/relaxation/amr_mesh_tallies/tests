@@ -29,4 +29,15 @@
     mesh_mode = 'replicated'
     capabilities = 'openmc'
   []
+  [fine_to_coarse_ext_filter]
+    type = Exodiff
+    input = fine_to_coarse_ext.i
+    exodiff = 'fine_to_coarse_ext_out.e-s002'
+    requirement = "The system shall be able to relax mesh tallies when the mesh is coarsened under adaptivity. "
+                  "This test checks the case where external filters are applied to the mesh tally. The gold file "
+                  "is the same as fine_to_coarse, as the test computes the sum of the tally over the external "
+                  "bins to obtain the same result as the test with no external filters."
+    mesh_mode = 'replicated'
+    capabilities = 'openmc'
+  []
 []
