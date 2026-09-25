@@ -50,5 +50,6 @@
                   "Picard iterations even when relaxation is off. If the mapping data structures aren't cached, "
                   "the problem will abort as elements cannot be classified into the different AMR relaxation cases."
     capabilities = 'openmc'
+    mesh_mode = 'replicated'
   []
 []
