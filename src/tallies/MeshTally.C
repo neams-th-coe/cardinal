@@ -153,7 +153,7 @@ MeshTally::spatialFilter()
       if (_is_adaptive && _relaxation_type != relaxation::none)
       {
         _element_to_bin_mapping.clear();
-        _element_to_bin_mapping.resize(max_elem_id + 1, INVALID_SPATIAL_BIN);
+        _element_to_bin_mapping.resize(max_elem_id + 1, INVALID_TALLY_BIN);
         for (size_t i = 0; i < _bin_to_element_mapping.size(); ++i)
           _element_to_bin_mapping[_bin_to_element_mapping[i]] = i;
 
@@ -362,7 +362,7 @@ MeshTally::AMRRelaxation
 MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
 {
   // Check for Case I.
-  if (previousSpatialBin(current_element) != INVALID_SPATIAL_BIN)
+  if (previousSpatialBin(current_element) != INVALID_TALLY_BIN)
     return AMRRelaxation::Unchanged;
 
   // Check for Case II.
@@ -373,7 +373,7 @@ MeshTally::classifyRelaxationCase(const libMesh::Elem * current_element) const
   std::vector<const Elem *> descendants;
   current_element->total_family_tree(descendants, true);
   for (const auto descendant : descendants)
-    if (previousSpatialBin(descendant) != INVALID_SPATIAL_BIN)
+    if (previousSpatialBin(descendant) != INVALID_TALLY_BIN)
       return AMRRelaxation::FineToCoarse;
 
   mooseError("Internal error: MeshTally::classifyRelaxationCase failed to classify an element.");
@@ -447,7 +447,7 @@ MeshTally::projectAndRelaxAMR(Real alpha,
           for (const auto descendant : descendants)
           {
             const auto desc_old_tally_bin = previousTallyBin(descendant, ext_filter);
-            if (desc_old_tally_bin < 0)
+            if (desc_old_tally_bin == INVALID_TALLY_BIN)
               continue;
 
             refined_proj += previous(desc_old_tally_bin);
@@ -476,7 +476,7 @@ MeshTally::previousActiveAncestor(const Elem * active_elem) const
   const Elem * curr_parent = active_elem->parent();
   while (curr_parent != nullptr)
   {
-    if (previousSpatialBin(curr_parent) != INVALID_SPATIAL_BIN)
+    if (previousSpatialBin(curr_parent) != INVALID_TALLY_BIN)
       return curr_parent;
 
     curr_parent = curr_parent->parent();
@@ -489,10 +489,10 @@ int64_t
 MeshTally::previousSpatialBin(const Elem * previous_elem) const
 {
   if (!previous_elem)
-    return INVALID_SPATIAL_BIN;
+    return INVALID_TALLY_BIN;
 
   if (previous_elem->id() >= _prev_elem_to_bin_mapping.size())
-    return INVALID_SPATIAL_BIN;
+    return INVALID_TALLY_BIN;
 
   return _prev_elem_to_bin_mapping[previous_elem->id()];
 }
@@ -500,17 +500,21 @@ MeshTally::previousSpatialBin(const Elem * previous_elem) const
 int64_t
 MeshTally::previousTallyBin(const Elem * previous_elem, unsigned int ext_filter) const
 {
-  return _prev_bin_to_element_mapping.size() * ext_filter + previousSpatialBin(previous_elem);
+  const auto spatial = previousSpatialBin(previous_elem);
+  if (spatial == INVALID_TALLY_BIN)
+    return INVALID_TALLY_BIN;
+  else
+    return _prev_bin_to_element_mapping.size() * ext_filter + spatial;
 }
 
 int64_t
 MeshTally::currentSpatialBin(const Elem * current_elem) const
 {
   if (!current_elem)
-    return INVALID_SPATIAL_BIN;
+    return INVALID_TALLY_BIN;
 
   if (!current_elem->active() || current_elem->id() >= _element_to_bin_mapping.size())
-    return INVALID_SPATIAL_BIN;
+    return INVALID_TALLY_BIN;
 
   return _element_to_bin_mapping[current_elem->id()];
 }
@@ -518,6 +522,10 @@ MeshTally::currentSpatialBin(const Elem * current_elem) const
 int64_t
 MeshTally::currentTallyBin(const Elem * current_elem, unsigned int ext_filter) const
 {
-  return _bin_to_element_mapping.size() * ext_filter + currentSpatialBin(current_elem);
+  const auto spatial = currentSpatialBin(current_elem);
+  if (spatial == INVALID_TALLY_BIN)
+    return INVALID_TALLY_BIN;
+  else
+    return _bin_to_element_mapping.size() * ext_filter + spatial;
 }
 #endif

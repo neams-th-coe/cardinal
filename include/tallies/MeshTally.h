@@ -99,7 +99,7 @@ protected:
    * A "null" tally spatial bin identifier. Used to indicate that a bin doesn't exist,
    * either on the current or previous iteration.
    */
-  static constexpr int64_t INVALID_SPATIAL_BIN = -1;
+  static constexpr int64_t INVALID_TALLY_BIN = -1;
 
   /**
    * There are three cases for relaxation with AMR mesh tallies:
@@ -150,8 +150,8 @@ protected:
   /**
    * Get the spatial tally bin associated with a previous element.
    * @param[in] previous_elem an element that was active on a previous iteration
-   * @return the spatial bin associated with previous_elem. Returns -1 if the element
-   * wasn't active on a previous iteration
+   * @return the spatial bin associated with previous_elem. Returns INVALID_TALLY_BIN
+   * if the element wasn't active on a previous iteration
    */
   int64_t previousSpatialBin(const Elem * previous_elem) const;
 
@@ -159,7 +159,7 @@ protected:
    * Get the tally bin (external filter and spatial) associated with a previous element.
    * @param[in] previous_elem an element that was active on a previous iteration
    * @param[in] ext_filter the index associated with an external filter
-   * @return the tally bin associated with previous_elem. Returns INVALID_SPATIAL_BIN
+   * @return the tally bin associated with previous_elem. Returns INVALID_TALLY_BIN
    * if the element wasn't active on a previous iteration
    */
   int64_t previousTallyBin(const Elem * previous_elem, unsigned int ext_filter) const;
@@ -168,7 +168,7 @@ protected:
    * Get the spatial bin associated with a current element.
    * @param[in] current_elem an element that is active on the current iteration
    * @return the spatial bin associated with current_elem. Returns
-   * INVALID_SPATIAL_BIN if the element is not active
+   * INVALID_TALLY_BIN if the element is not active
    */
   int64_t currentSpatialBin(const Elem * current_elem) const;
 
@@ -176,7 +176,7 @@ protected:
    * Get the tally bin associated with a current element.
    * @param[in] current_elem an element that is active on the current iteration
    * @param[in] ext_filter the index associated with an external filter
-   * @return the tally bin associated with current_elem. Returns INVALID_SPATIAL_BIN
+   * @return the tally bin associated with current_elem. Returns INVALID_TALLY_BIN
    * if the element is not active
    */
   int64_t currentTallyBin(const Elem * current_elem, unsigned int ext_filter) const;
