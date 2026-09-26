@@ -51,6 +51,12 @@ getNekFieldEnum()
 }
 
 MooseEnum
+getNekFluxEnum()
+{
+  return MooseEnum("heat_flux scalar01_flux scalar02_flux scalar03_flux", "heat_flux");
+}
+
+MooseEnum
 getOperationEnum()
 {
   return MooseEnum("max min average", "max");
