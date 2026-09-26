@@ -257,11 +257,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _need_to_reinit_coupling |= _use_displaced;
   }
 
-  // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
-  // cells.
+  // Look through the list of AddTallyActions to see what tallies we're adding.
+  // If we're adding a CellTally, we need to map cells to elements. If we're
+  // adding a mesh tally (and are using AMR with relaxation), during adaptivity we
+  // need to disable mesh contraction.
   const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : tally_actions)
+  {
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+    _has_mesh_tallies |= act->getMooseObjectType() == "MeshTally";
+  }
 
   // Repeat the same check for SetUpMGXSActions.
   const auto & mgxs_actions = getMooseApp().actionWarehouse().getActions<SetupMGXSAction>();
@@ -278,30 +283,26 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
-  // We need to clear and re-initialize OpenMC problem in the cases of:
-  //   - the [Mesh] is being adaptively refined
-  //   - the [Mesh] is deforming in space
+  // We need to clear and re-initialize OpenMC problem when the [Mesh] is deforming in space
   //
-  // If the [Mesh] is changing, then we certainly know that the mesh tallies
+  // If the [Mesh] is being displaced, then we certainly know that the mesh tallies
   // need to be re-initialized because (a) for file-based mesh tallies, we need
   // to enforce that the mesh is identical to the [Mesh] and (b) for directly
   // tallying on the [Mesh], we need to pass that mesh info into OpenMC. For good
   // measure, we also need to re-initialize cell tallies because it's possible
   // that as the [Mesh] changes, the mapping from OpenMC cells to the [Mesh]
   // also changes, which could open the door to new cell IDs/instances being added
-  // to the cell instance filter. If we need to re-init tallies, then we can't
+  // to the cell instance filter. If the mesh is being displaced, then we can't
   // guarantee that the tallies from iteration to iteration correspond to exactly
-  // the same number of bins or to exactly the same regions of space, so we must
-  // disable relaxation.
-  if ((_use_displaced || _has_adaptivity) && _relaxation != relaxation::none)
+  // the same regions of space, so we must disable relaxation.
+  if (_use_displaced && _relaxation != relaxation::none)
     paramError(
         "relaxation",
-        "When adaptivity is requested or a displaced problem is used, the mapping from the "
-        "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that "
-        "the "
-        "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
+        "When a displaced problem is used, the mapping from the OpenMC model to the [Mesh] may "
+        "vary in time. This means that we have no guarantee that the "
+        "regions of space corresponding to each bin are fixed. "
         "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
-        "end up trying to add vectors of different length (and possibly spatial mapping).");
+        "end up trying to add vectors with different spatial mapping.");
 
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
@@ -2801,6 +2802,17 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   _first_transfer = false;
   _aux->solution().close();
   _aux->system().update();
+}
+
+// Mesh contraction (deletion of subactive elements that were coarsened) is disabled
+// when running adaptive mesh tallies with relaxation. This is necessary
+// as the relaxation approach implemented for adaptive mesh tallies uses restriction
+// and projection operators, which need the more refined elements to stay around
+// to determine the mapping from previous tally bins to current tally bins.
+bool
+OpenMCCellAverageProblem::allowMeshContractionAfterMeshChanged() const
+{
+  return !(_has_mesh_tallies && _relaxation != relaxation::none && _has_adaptivity);
 }
 
 void

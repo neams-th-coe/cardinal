@@ -36,3 +36,20 @@
     capabilities = 'openmc'
   []
 []
+
+[Tests]
+  issues = '#1446 #1459'
+  design = 'MeshTally.md OpenMCCellAverageProblem.md'
+
+  [control_relaxation_with_amr]
+    type = RunApp
+    input = control_with_amr.i
+    requirement = "The system shall ensure relaxation with adaptive mesh tallies functions with controllable "
+                  "relaxation. This test runs a step of refinement when the previous iteration didn't use relaxation. "
+                  "This ensures the mapping data structures required for adaptive relaxation are cached between "
+                  "Picard iterations even when relaxation is off. If the mapping data structures aren't cached, "
+                  "the problem will abort as elements cannot be classified into the different AMR relaxation cases."
+    capabilities = 'openmc'
+    mesh_mode = 'replicated'
+  []
+[]

@@ -52,6 +52,11 @@ public:
   virtual void gatherLinkedSum() override;
 
   /**
+   * Override the relaxation function for mesh tallies to handle projection for adaptivity.
+   */
+  virtual void relaxAndNormalizeTally(bool is_relaxation_allowed) override;
+
+  /**
    * A function to return if this object is adding a global tally. MeshTally modifies this behavior
    * to add a single global tally for distributed mesh tallies (which then communicate with
    * tally linkages).
@@ -82,6 +87,100 @@ protected:
    */
   void checkMeshTemplateAndTranslations();
 
+  /// An enum for the different cases when applying relaxation to an adaptive mesh tally.
+  enum class AMRRelaxation
+  {
+    Unchanged = 0,
+    CoarseToFine = 1,
+    FineToCoarse = 2
+  };
+
+  /**
+   * A "null" tally spatial bin identifier. Used to indicate that a bin doesn't exist,
+   * either on the current or previous iteration.
+   */
+  static constexpr int64_t INVALID_TALLY_BIN = -1;
+
+  /**
+   * There are three cases for relaxation with AMR mesh tallies:
+   * i)   A spatial bin from the previous solution and a spatial bin from the current
+   *      solution correspond one-to-one.
+   * ii)  A spatial bin from the previous solution maps to N spatial bins from the current
+   *      solution (previous element was at a lower refinement level).
+   * iii) N spatial bins from the previous solution map to a single spatial bin
+   *      from the current solution (previous element was at a higher refinement
+   *      level).
+   *
+   * This function classifies an element according to these three cases described above.
+   * @param[in] current_element the element to classify
+   * @return an enum corresponding to the classification
+   */
+  AMRRelaxation classifyRelaxationCase(const libMesh::Elem * current_element) const;
+
+  /**
+   * This function performs relaxation on the solution vectors from two different
+   * Picard iterations: 'previous' and 'current_raw'. Results are saved to
+   * 'current_relaxed'. As mentioned above, there are three relaxation cases:
+   * Case I:   The spatial bin can be relaxed in place.
+   * Case II:  The N spatial bins from the current solution need to be accumulated
+   *           up to the level of the previous solution. Then, relaxation can be
+   *           performed. Finally, the relaxed value can be distributed to the
+   *           N current solution spatial bins according to how much that bin
+   *           contributed to the integral.
+   * Case III: The N spatial bins from the previous step must be accumulated down
+   *           to the level of the current solution. Then, relaxation can then be
+   *           performed. The relaxed value can then be used in-place.
+   * @param[in] alpha the relaxation factor being applied to tally values
+   * @param[in] previous the relaxed tally value from the previous iteration
+   * @param[in] current_raw the raw (unrelaxed) tally value from the current iteration
+   * @param[out] current_relaxed the relaxed tally value on the current iteration
+   */
+  void projectAndRelaxAMR(Real alpha,
+                          const OMCTensor & previous,
+                          const OMCTensor & current_raw,
+                          OMCTensor & current_relaxed);
+
+  /**
+   * Determine which ancestor of 'active_elem' was active on the previous step.
+   * @param[in] active_elem the element to find the active ancestor of
+   * @return the previous active ancestor
+   */
+  const Elem * previousActiveAncestor(const Elem * active_elem) const;
+
+  /**
+   * Get the spatial tally bin associated with a previous element.
+   * @param[in] previous_elem an element that was active on a previous iteration
+   * @return the spatial bin associated with previous_elem. Returns INVALID_TALLY_BIN
+   * if the element wasn't active on a previous iteration
+   */
+  int64_t previousSpatialBin(const Elem * previous_elem) const;
+
+  /**
+   * Get the tally bin (external filter and spatial) associated with a previous element.
+   * @param[in] previous_elem an element that was active on a previous iteration
+   * @param[in] ext_filter the index associated with an external filter
+   * @return the tally bin associated with previous_elem. Returns INVALID_TALLY_BIN
+   * if the element wasn't active on a previous iteration
+   */
+  int64_t previousTallyBin(const Elem * previous_elem, unsigned int ext_filter) const;
+
+  /**
+   * Get the spatial bin associated with a current element.
+   * @param[in] current_elem an element that is active on the current iteration
+   * @return the spatial bin associated with current_elem. Returns
+   * INVALID_TALLY_BIN if the element is not active
+   */
+  int64_t currentSpatialBin(const Elem * current_elem) const;
+
+  /**
+   * Get the tally bin associated with a current element.
+   * @param[in] current_elem an element that is active on the current iteration
+   * @param[in] ext_filter the index associated with an external filter
+   * @return the tally bin associated with current_elem. Returns INVALID_TALLY_BIN
+   * if the element is not active
+   */
+  int64_t currentTallyBin(const Elem * current_elem, unsigned int ext_filter) const;
+
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
    * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
@@ -111,13 +210,21 @@ protected:
   /// Whether we're using an indirection layer to map between the OpenMC mesh tally and the MOOSE mesh.
   const bool _use_dof_map;
 
-  /**
-   * For use with block restriction only. A copy of the mesh is made which only contains elements in
-   * the blocks the user wishes to tally on. This is necessary at the moment as the point locators
-   * used in OpenMC to find collision sites are not passed a set of block IDs to filter elements.
-   * TODO: Fix this in OpenMC
-   */
-  std::unique_ptr<libMesh::ReplicatedMesh> _libmesh_mesh_copy;
   /// A mapping between the OpenMC bins (active block restricted elements) and all elements.
   std::vector<unsigned int> _bin_to_element_mapping;
+
+  /**
+   * The following variables are only maintained when adaptivity is being used
+   * and relaxation is requested. They are used to map between solution vectors
+   * in different Picard iterations to apply relaxation.
+   */
+  /// Dual of '_bin_to_element_mapping'.
+  std::vector<int64_t> _element_to_bin_mapping;
+
+  /// The previous bin to element mapping.
+  std::vector<unsigned int> _prev_bin_to_element_mapping;
+
+  /// The dual of '_prev_bin_to_element_mapping'.
+  std::vector<int64_t> _prev_elem_to_bin_mapping;
+  ///----------------------------------------------------------------------------///
 };

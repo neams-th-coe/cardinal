@@ -71,4 +71,12 @@
     mesh_mode = 'replicated' # tet converter is restricted to replicated meshes
     capabilities = 'dagmc'
   []
+  [no_relaxation]
+    type = RunException
+    input = cell_tally.i
+    cli_args = "Problem/relaxation='constant'"
+    expect_err = "When a displaced problem is used, the mapping from the OpenMC model to the \[Mesh\] may vary in time."
+    requirement = 'The system shall error if the user attempts to use relaxation with a displaced problem'
+    capabilities = 'dagmc'
+  []
 []

@@ -164,4 +164,14 @@
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
     capabilities = 'openmc'
   []
+  [zero_tally]
+    type = CSVDiff
+    input = zero_tally.i
+    csvdiff = zero_tally_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The system shall ensure divide-by-zeros do not occur when normalizing tallies with no results."
+    capabilities = 'openmc'
+  []
 []
