@@ -86,6 +86,12 @@ void copyDeviceToHost();
 void computeWallDistance(const std::vector<int> & boundary_id);
 
 /**
+ * Get a helpful error message if the first passive scalar is not temperature
+ * @return error message string
+ */
+std::string firstPassiveScalarNamingError();
+
+/**
  * Compute y+ on the NekRS mesh
  * @param[in] boundary_id boundary(s) on which to compute y+
  * @return max, min, average y+
@@ -775,8 +781,17 @@ struct characteristicScales
   double V_ref = 1;
   double rho_ref = 1;
   double Cp_ref = 1;
-  double flux_ref = 1;
-  double source_ref = 1;
+  double transport_coeff_1_ref = 1;
+  double transport_coeff_2_ref = 1;
+  double transport_coeff_3_ref = 1;
+  double heat_flux_ref = 1;
+  double heat_source_ref = 1;
+  double scalar01_flux_ref = 1;
+  double scalar01_source_ref = 1;
+  double scalar02_flux_ref = 1;
+  double scalar02_source_ref = 1;
+  double scalar03_flux_ref = 1;
+  double scalar03_source_ref = 1;
   double t_ref = 1;
   double s01_ref = 0;
   double ds01_ref = 1;
@@ -928,6 +943,12 @@ double get_velocity_z_squared(const int id, const int surf_offset);
  * @param[in] L reference length scale
  * @param[in] rho reference density
  * @param[in] Cp reference heat capacity
+ * @param[in] transport_coeff_1 reference transport coefficient (on the time derivative) in the
+ * scalar01 equation
+ * @param[in] transport_coeff_2 reference transport coefficient (on the time derivative) in the
+ * scalar02 equation
+ * @param[in] transport_coeff_3 reference transport coefficient (on the time derivative) in the
+ * scalar03 equation
  * @param[in] s01 reference scalar01
  * @param[in] ds01 reference s01 range
  * @param[in] s02 reference scalar02
@@ -941,6 +962,9 @@ void initializeDimensionalScales(const double U,
                                  const double L,
                                  const double rho,
                                  const double Cp,
+                                 const double transport_coeff_1,
+                                 const double transport_coeff_2,
+                                 const double transport_coeff_3,
                                  const double s01,
                                  const double ds01,
                                  const double s02,

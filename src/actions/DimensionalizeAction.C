@@ -38,6 +38,23 @@ DimensionalizeAction::validParams()
   params.addRangeCheckedParam<Real>("rho", 1.0, "rho > 0.0", "Reference density");
   params.addRangeCheckedParam<Real>("Cp", 1.0, "Cp > 0.0", "Reference isobaric specific heat");
 
+  // for non-temperature passive scalars, these represent the coefficient on the time term
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_1",
+      1.0,
+      "transport_coeff_1 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 1");
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_2",
+      1.0,
+      "transport_coeff_2 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 2");
+  params.addRangeCheckedParam<Real>(
+      "transport_coeff_3",
+      1.0,
+      "transport_coeff_3 > 0",
+      "Reference coefficient on the time derivative term in the governing equation for scalar 3");
+
   // for passive scalars, these are typically dimensionalized as (T - T0) / dT
   params.addRangeCheckedParam<Real>("T", 0.0, "T >= 0.0", "Reference temperature");
   params.addRangeCheckedParam<Real>("dT", 1.0, "dT > 0.0", "Reference temperature difference");
@@ -63,12 +80,28 @@ DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters)
     _ds03(getParam<Real>("ds03")),
     _L(getParam<Real>("L")),
     _rho(getParam<Real>("rho")),
-    _Cp(getParam<Real>("Cp"))
+    _Cp(getParam<Real>("Cp")),
+    _transport_coeff_1(getParam<Real>("transport_coeff_1")),
+    _transport_coeff_2(getParam<Real>("transport_coeff_2")),
+    _transport_coeff_3(getParam<Real>("transport_coeff_3"))
 {
   // inform NekRS of the scaling that we are using; the NekInterface holds all
   // the reference scales and provides accessor methods
-  nekrs::initializeDimensionalScales(
-      _U, _T, _dT, _L, _rho, _Cp, _s01, _ds01, _s02, _ds02, _s03, _ds03);
+  nekrs::initializeDimensionalScales(_U,
+                                     _T,
+                                     _dT,
+                                     _L,
+                                     _rho,
+                                     _Cp,
+                                     _transport_coeff_1,
+                                     _transport_coeff_2,
+                                     _transport_coeff_3,
+                                     _s01,
+                                     _ds01,
+                                     _s02,
+                                     _ds02,
+                                     _s03,
+                                     _ds03);
 }
 
 void
@@ -85,18 +118,27 @@ DimensionalizeAction::act()
     // check if the temperature actually exists
     if (!nekrs::hasTemperatureVariable())
     {
-      checkUnusedParam(parameters(), "T", "NekRS case files do not have a temperature variable");
-      checkUnusedParam(parameters(), "dT", "NekRS case files do not have a temperature variable");
+      checkUnusedParam(parameters(),
+                       "T",
+                       "NekRS case files do not have a temperature variable! " +
+                           nekrs::firstPassiveScalarNamingError());
+      checkUnusedParam(parameters(),
+                       "dT",
+                       "NekRS case files do not have a temperature variable! " +
+                           nekrs::firstPassiveScalarNamingError());
     }
 
-    // check if the scalars actually exist; we currently support 3 scalars
     for (int i = 0; i < 3; ++i)
     {
-      if (!nekrs::hasScalarVariable(i))
+      // check if the scalars actually exist; we currently support 3 scalars. The zeroth scalar
+      // is always temperature, which is checked above
+      if (!nekrs::hasScalarVariable(i + 1))
       {
-        auto is = std::to_string(i);
+        auto is = std::to_string(i + 1);
         checkUnusedParam(parameters(), "s0" + is, "NekRS case files do not have a SCALAR" + is);
         checkUnusedParam(parameters(), "ds0" + is, "NekRS case files do not have a SCALAR" + is);
+        checkUnusedParam(
+            parameters(), "transport_coeff" + is, "NekRS case files do not have a SCALAR" + is);
       }
     }
 
@@ -126,23 +168,43 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(0))
     {
       vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
-      vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::flux)));
-      vt.addRow("Power density",
-                "q / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
+      vt.addRow("Heat flux", "q'' / " + compress(nekrs::nondimensionalDivisor(field::heat_flux)));
+      vt.addRow("Heat source",
+                "qdot / " + compress(nekrs::nondimensionalDivisor(field::heat_source)));
     }
 
-    // TODO: when we add coupling for scalars, we will need to add internal variables
-    // to hold reference scales for flux and source terms, in addition to the
-    // collecting the material property info for properly obtaining those values
     if (nekrs::hasScalarVariable(1))
+    {
       vt.addRow("Scalar 01", "(s - " + compress(_s01) + ") /" + compress(_ds01));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar01_flux)));
+      vt.addRow("Scalar volume source",
+                "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar01_source)));
+    }
+
     if (nekrs::hasScalarVariable(2))
+    {
       vt.addRow("Scalar 02", "(s - " + compress(_s02) + ") /" + compress(_ds02));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar02_flux)));
+      vt.addRow("Scalar volume source",
+                "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar02_source)));
+    }
+
     if (nekrs::hasScalarVariable(3))
+    {
       vt.addRow("Scalar 03", "(s - " + compress(_s03) + ") /" + compress(_ds03));
+      vt.addRow("Scalar flux",
+                "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar03_flux)));
+      vt.addRow("Scalar volume source",
+                "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar03_source)));
+    }
 
     vt.addRow("Density", "rho / " + compress(_rho));
     vt.addRow("Specific heat", "Cp / " + compress(_Cp));
+    vt.addRow("Transport coeff, scalar 1", "a / " + compress(_transport_coeff_1));
+    vt.addRow("Transport coeff, scalar 2", "a / " + compress(_transport_coeff_2));
+    vt.addRow("Transport coeff, scalar 3", "a / " + compress(_transport_coeff_3));
 
     _console << "Scales used for dimensionalizing the NekRS fields:" << std::endl;
     vt.print(_console);
