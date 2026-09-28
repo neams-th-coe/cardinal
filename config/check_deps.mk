@@ -99,16 +99,14 @@ ifeq ($(ENABLE_OPENMC), yes)
     $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
   endif
 
-  ifeq ($(FMT_CONTENT),)
-	  $(error $n"fmt does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the fmt submodule, use ./scripts/get-dependencies.sh")
-	else
-	  # we dont print out anything about where fmt is coming from because it's a minor dependency and we don't expect anyone to be using different versions of it
+  ifneq ($(FMT_CONTENT),)
+    $(info OpenMC is using fmt from               $(FMT_DIR))
+    FMT_DEFS := -DFETCHCONTENT_SOURCE_DIR_FMT=$(FMT_DIR)
   endif
 
-  ifeq ($(PUGI_CONTENT),)
-	  $(error $n"pugixml does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the pugixml submodule, use ./scripts/get-dependencies.sh")
-	else
-	  # we dont print out anything about where pugixml is coming from because it's a minor dependency and we don't expect anyone to be using different versions of it
+  ifneq ($(PUGI_CONTENT),)
+    $(info OpenMC is using pugixml from           $(PUGI_DIR))
+    PUGI_DEFS := -DFETCHCONTENT_SOURCE_DIR_PUGIXML=$(PUGI_DIR)
   endif
 
   ifeq ($(NUCLEARDATA_CONTENT),)
