@@ -35,6 +35,7 @@
     type = VectorVariableMagnitudeAux
     variable = mag_grad_kappa_fission
     vector_variable = grad_kappa_fission
+    execution_order_group = 1
   []
 []
 

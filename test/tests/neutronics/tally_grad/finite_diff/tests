@@ -46,5 +46,6 @@
     requirement = "The system shall allow for the computation of tally gradients with finite differences "
                   "when multiple tallies are added which accumulate the same scores."
     capabilities = 'openmc'
+    allow_unused = true # keep this until idaholab/moose#32357 is merged
   []
 []
