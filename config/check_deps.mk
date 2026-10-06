@@ -6,6 +6,8 @@ endef
 # Set default values for all third party dependencies
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+FMT_DIR             ?= $(CONTRIB_DIR)/fmt
+PUGI_DIR            ?= $(CONTRIB_DIR)/pugixml
 NUCLEARDATA_DIR     ?= $(CONTRIB_DIR)/nuclear_data
 DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
 DOUBLEDOWN_DIR      ?= $(CONTRIB_DIR)/double-down
@@ -24,6 +26,8 @@ IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 MOOSE_CONTENT      := $(shell ls $(MOOSE_DIR) 2> /dev/null)
 NEKRS_CONTENT      := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT     := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+FMT_CONTENT        := $(shell ls $(FMT_DIR) 2> /dev/null)
+PUGI_CONTENT       := $(shell ls $(PUGI_DIR) 2> /dev/null)
 NUCLEARDATA_CONTENT:= $(shell ls $(NUCLEARDATA_DIR) 2> /dev/null)
 DAGMC_CONTENT      := $(shell ls $(DAGMC_DIR) 2> /dev/null)
 DOUBLEDOWN_CONTENT := $(shell ls $(DOUBLEDOWN_DIR) 2> /dev/null)
@@ -93,6 +97,16 @@ ifeq ($(ENABLE_OPENMC), yes)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   else
     $(info Cardinal is using OpenMC from          $(OPENMC_DIR))
+  endif
+
+  ifneq ($(FMT_CONTENT),)
+    $(info OpenMC is using fmt from               $(FMT_DIR))
+    FMT_DEFS := -DFETCHCONTENT_SOURCE_DIR_FMT=$(FMT_DIR)
+  endif
+
+  ifneq ($(PUGI_CONTENT),)
+    $(info OpenMC is using pugixml from           $(PUGI_DIR))
+    PUGI_DEFS := -DFETCHCONTENT_SOURCE_DIR_PUGIXML=$(PUGI_DIR)
   endif
 
   ifeq ($(NUCLEARDATA_CONTENT),)

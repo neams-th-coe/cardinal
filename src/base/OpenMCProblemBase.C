@@ -258,8 +258,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       paramError("calc_kinetics_params",
                  "Kinetic parameters cannot be calculated when using the random ray solver!");
 
-    openmc::settings::ifp_on = true;
-    openmc::settings::ifp_parameter = openmc::IFPParameter::Both;
+    openmc::settings::ifp_lifetime_on = true;
+    openmc::settings::ifp_delayed_group_on = true;
 
     openmc::settings::ifp_n_generation = getParam<unsigned int>("ifp_generations");
     if (openmc::settings::ifp_n_generation > openmc::settings::n_inactive)

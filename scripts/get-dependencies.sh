@@ -5,7 +5,7 @@ set -ex
 
 git submodule update --init --progress contrib/moose
 git submodule update --init --progress contrib/nekRS
-git submodule update --init --recursive --progress contrib/openmc
+git submodule update --init --progress contrib/openmc
 git submodule update --init --progress contrib/nuclear_data
 git submodule update --init --progress contrib/DAGMC
 git submodule update --init --progress contrib/moab
