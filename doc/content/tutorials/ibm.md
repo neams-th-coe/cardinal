@@ -28,16 +28,16 @@ field can be found in [!cite](Mittal2005, Kim2019, articlemittal2022, verzicco20
 general overview of IBMs is provided to outline general common features with a
 special focus on the spectral element implementation in NekRS. Full details
 on the algorithmic implementation in NekRS can be found in [!cite](hegazy_thesis),
-with a description on how to use the IBM given in [alg].
+with a description on how to use the IBM given in [#alg].
 
 The basic concept of an IBM seeks to solve for the flow equations on an
 Eulerian grid with points $\vec{x}$ in the presence of an immersed body of
 Lagrangian points $\vec{x}_L$ that may not coincide with the Eulerian grid.
-This is shown in [geometry] (left). IBMs are complementary to body-fitted
+This is shown in [ibm_geometry_overview] (left). IBMs are complementary to body-fitted
 simulations, and useful for higher throughput modeling for design within large parameter spaces (while still giving excellent agreement with body-fitted scenarios in terms of both local and integral quantities). The effort to develop body-fitted meshes, if desired, can then be reserved for mature design concepts.
 
-!media geometry.png
-  id=geometry
+!media ibm_geometry_overview.png
+  id=ibm_geometry_overview
   caption=Notational definitions for IBMs. The left image shows a spectral element with polynomial order 4 and [!ac](GLL) quadrature.
   style=width:100%;margin-left:auto;margin-right:auto
 
@@ -78,7 +78,7 @@ where $\vec{V}(\vec{x}_L,t)$ is the Eulerian velocity field, evaluated at a Lagr
 
 In scenarios with moving boundaries, such as those pioneered by Peskin and colleagues, the transmitted force is computed from the internal body forces of the moving structure (approximated as collections of linked nodes considering internal stresses and strains) [!cite](peskin). Other types of surface boundary conditions, such as symmetry conditions, can also be formulated as forces.
 
-Various immersed boundary formulations utilize different selections for the coefficients. For example, Goldstein et al., in the first use of immersed boundary techniques with spectral methods, selects $\alpha$ and $\beta$ according to stability constraints on the numerical integration scheme selected for the time integral term in Eq. \eqref{eq:f} in conjunction with transient considerations such that the damped harmonic oscillator frequency is faster than the fastest flow timescales (so that the external force can respond to the changing flow) [!cite](goldstein), and hence are problem-dependent. Hegazy instead selects $\gamma=1$ for strong feedback forcing [!cite](hegazy_thesis}).
+Various immersed boundary formulations utilize different selections for the coefficients. For example, Goldstein et al., in the first use of immersed boundary techniques with spectral methods, selects $\alpha$ and $\beta$ according to stability constraints on the numerical integration scheme selected for the time integral term in Eq. \eqref{eq:f} in conjunction with transient considerations such that the damped harmonic oscillator frequency is faster than the fastest flow timescales (so that the external force can respond to the changing flow) [!cite](goldstein), and hence are problem-dependent. Hegazy instead selects $\gamma=1$ for strong feedback forcing [!cite](hegazy_thesis).
 
 A particular sub-class of continuous forcing methods, which appear in the literature by a variety of names, could be referred to as porous-IBM approaches. In these methods, the coefficients $\beta$ and $\zeta$ are selected so as to reflect a Darcy-Forchheimer drag in terms of the local porosity in each element. For example,
 in the approach developed by [!cite](dai_2026, an external force with $\beta=-C(1-\epsilon)^2 /(\epsilon^3+10^{-3})$ (i.e., only the linear damping term) is added to the momentum equation in all elements.
@@ -201,7 +201,7 @@ export LD_LIBRARY_PATH="${VTK_ROOT}/install/lib"
 files, you will see a `udf.cmake` file. Note that you may need to edit the
 path in the `find_package` call if your VTK version is different from 9.3.
 
-!include /tutorials/ibm_sphere/udf.cmake
+!listing /tutorials/ibm_sphere/udf.cmake
 
 
 ## Immersed Boundary Method Algorithm
@@ -216,20 +216,20 @@ shows a summary of several stages of the geometry preparation which will be desc
   style=width:60%;margin-left:auto;margin-right:auto
 
 
-1. Generate an [!ac](STL) file corresponding to the immersed surface. This format represents the
-   surface as a tesselation, using triangles. An [!ac](STL) file can be
+1. Generate an STL file corresponding to the immersed surface. This format represents the
+   surface as a tesselation, using triangles. An STL file can be
    represented in either binary or ASCII format. Each triangle on the surface can be uniquely
    described with a unit normal and the $(x,y,z)$ coordinates of the three vertices. For example,
-   below is the [!ac](STL) file we will use in this tutorial; this file is in ASCII format.
+   below is the STL file we will use in this tutorial; this file is in ASCII format.
 
-!include /tutorials/ibm_sphere/small_sphere.stl
+!listing /tutorials/ibm_sphere/small_sphere.stl
 
 2. Generate a "background" mesh on which the Eulerian flow solve will occur. This mesh can be
    generated using any software you like to generate meshes with. Since our flow domain is a
    rectangular prism, we can use a [GeneratedMeshGenerator](GeneratedMeshGenerator.md) to
    build this in a straightforward manner.
 
-!include /tutorials/ibm_sphere/background_mesh.i
+!listing /tutorials/ibm_sphere/background_mesh.i
 
    To generate this mesh, run the following, which will create a file `background_mesh_in.e`.
 
@@ -264,7 +264,7 @@ g++ -I${HOME}/vtk/install/include/vtk-9.3 -L${HOME}/vtk/install/lib -o delete_en
     faces to create sidesets; we then can assign a sideset to all the jagged faces on the cut elements
     using a [SideSetsFromBoundingBoxGenerator](SideSetsFromBoundingBoxGenerator.md).
 
-!include /tutorials/ibm_sphere/add_sidesets.i
+!listing /tutorials/ibm_sphere/add_sidesets.i
 
     To run this input file,
 
@@ -292,13 +292,13 @@ There are a lot of details in these files, since the method evolved over time an
 more than one option for how to define a part of the algorithm (for instance, the signed distance field
 can be computed using either [!ac](VTK) or Embree; different spreading operators were also tested).
 
-!include /tutorials/ibm_sphere/cube.udf language=cpp
+!listing /tutorials/ibm_sphere/cube.udf language=cpp
 
-!include /tutorials/ibm_sphere/cube.oudf language=cpp
+!listing /tutorials/ibm_sphere/cube.oudf language=cpp
 
 The `.par` file is routine, without any unique aspects specific to the IBM setup.
 
-!include /tutorials/ibm_sphere/cube.par
+!listing /tutorials/ibm_sphere/cube.par
 
 ## Execution and Postprocessing
 
@@ -327,7 +327,12 @@ During the simulation and when the simulation has completed, you will have creat
 
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
 
-For example, [ibm_velocity] shows the fluid velocity and pressure on the Eulerian grid.
+For example, [ibm_velocity] shows the fluid velocity and pressure on the Eulerian grid. Note that in the vicinity of the immersed surface,
+using a finer resolution (such as with NekNek) or a higher polynomial
+order will diminish the small oscillations. See [!cite](hegazy_ibm)
+for more details on improving surface refinement and the tradeoffs
+in combined $h$ and $p$ refinement, the STL triangle resolution, and
+overlapping meshes.
 
 !media ibm_velocity.png
   id=ibm_velocity

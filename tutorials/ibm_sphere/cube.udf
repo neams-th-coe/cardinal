@@ -1,7 +1,4 @@
-// General
-
 #include "udf.hpp"
-// #include "postProcessing.hpp"
 #include "declare_main2.hpp"
 #include <iostream>
 #include <fstream>
