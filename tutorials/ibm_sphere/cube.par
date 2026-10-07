@@ -2,11 +2,10 @@
   backend = CPU
 
 [GENERAL]
-  polynomialOrder = 5
-  numSteps = 100
-  dt = 1e-3
-  writeInterval = 10
-  scalars = temperature
+  polynomialOrder = 3
+  numSteps = 10000
+  dt = 1e-2
+  writeInterval = 1000
   constFlowRate = meanVelocity=1.0 + direction=Z
 
 [FLUID PRESSURE]
@@ -17,6 +16,3 @@
   residualTol = 1e-08
   viscosity = 0.02
   density = 1.0
-
-[SCALAR TEMPERATURE]
-  solver = none

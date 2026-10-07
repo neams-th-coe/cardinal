@@ -13,6 +13,7 @@ DAGMC: Direct Accelerated Geometry Monte Carlo
 DDES: Delayed Detached Eddy Simulation
 DNPs: Delayed Neutron Precursors
 DNS: Direct Numerical Simulation
+DOFs: Degrees of Freedom
 ECP: Exascale Computing Project
 EEIID: Extra Element Integer ID
 EOS: Equation of State
