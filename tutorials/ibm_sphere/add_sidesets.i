@@ -44,7 +44,7 @@
     input = side4
     bottom_left = '-2 -2 -2'
     top_right = '2 2 2'
-    boundary_new = 4
+    boundary_new = 3
     include_only_external_sides = true
     replace = true
   []

@@ -21,6 +21,7 @@ GCE: General Computing Environment
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
+IBM: Immersed Boundary Method
 IDDES: Improved Delayed Detached Eddy Simulation
 LES: Large Eddy Simulation
 LWR: Light Water Reactor
