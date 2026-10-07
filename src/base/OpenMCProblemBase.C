@@ -116,6 +116,13 @@ OpenMCProblemBase::validParams()
       "active_distance > 0",
       "The active length (distance a ray travels while accumulating tallies) used "
       "for random ray; this overrides the setting in the XML files.");
+  params.addParam<bool>(
+      "criticality_search_on",
+      true,
+      "Whether the criticality search in the [CriticalitySearch] block should be run or not on a "
+      "given OpenMC solve. This boolean allows the criticality search to be toggled on or off "
+      "using the MOOSE control system.");
+  params.declareControllable("criticality_search_on");
   return params;
 }
 
@@ -134,7 +141,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _calc_kinetics_params(getParam<bool>("calc_kinetics_params")),
     _reset_seed(getParam<bool>("reset_seed")),
     _initial_seed(openmc::openmc_get_seed()),
-    _xml_directory(getParam<FileName>("xml_directory"))
+    _xml_directory(getParam<FileName>("xml_directory")),
+    _is_criticality_search_enabled_by_controls(getParam<bool>("criticality_search_on"))
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
@@ -403,7 +411,7 @@ OpenMCProblemBase::externalSolve()
       mooseError(openmc_get_err_msg());
   }
 
-  if (_criticality_search)
+  if (_criticality_search && _is_criticality_search_enabled_by_controls)
     _criticality_search->searchForCriticality([&](bool apply_feedback)
                                               { this->critSearchStep(apply_feedback); });
   else
@@ -467,6 +475,8 @@ OpenMCProblemBase::initialSetup()
 
   if (objs.size())
     _criticality_search = objs[0];
+  else
+    checkUnusedParam(parameters(), "criticality_search_on", "not using a [CriticalitySearch]");
 
   // Find model modifier objects
   TheWarehouse::Query mm_query = theWarehouse().query().condition<AttribSystem>("ModelModifiers");

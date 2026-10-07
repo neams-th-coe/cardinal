@@ -17,6 +17,38 @@ a postprocessor named `critical_value`.
 !alert warning
 There are two tolerances that must be specified `root_tol` (the tolerance on the root the search is looking for, e.g. a critical drum angle or boron appm concentration) and `k_tol`(the tolerance on the actual tallied k-eigenvalue).  If the `root_tol` is too large, the solver might stop short of the actual critical value. If the `k_tol` is too small (on the order of or smaller than the statistical standard deviation), convergence may not be possible. If the search fails to converge, use a looser `k_tol` or increase the number of particles. Both of these tolerances are absolute tolerances, so it is important, especially on `root_tol` to input something reasonable for the problem at hand. For example, specifying a `root_tol = 0.001` is a very strict tolerance for finding a critical drum angle, which may span from 0 to 180. Conversely, a `root_tol` of 50 would likely be too large of a tolerance for drum angle but may be acceptable for critical boron concentration.
 
+## Controlling When the Search Runs
+
+By default, a criticality search is run on every OpenMC solve. For transient simulations, this
+means a search on every time step (and on every fixed point iteration within a time step). The
+`criticality_search_on` parameter of [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) can
+be changed with the MOOSE [Controls](syntax/Controls/index.md) system to only search on some of
+the OpenMC solves. When `criticality_search_on` is `false`, OpenMC runs a single calculation with
+the model as left by the most recent criticality search (or as specified in the OpenMC input files,
+if no criticality search has been run yet). For example, to only search for criticality on the
+time steps between 50 and 51 seconds:
+
+```
+[Functions]
+  [search_window]
+    type = ParsedFunction
+    expression = 'if(t >= 50.0 & t < 51.0, 1, 0)'
+  []
+[]
+
+[Controls]
+  [control_search]
+    type = BoolFunctionControl
+    function = 'search_window'
+    parameter = '*/*/criticality_search_on'
+    execute_on = 'TIMESTEP_BEGIN'
+  []
+[]
+```
+
+The values tried in the most recent search, and the $k$ computed for each, can be output with a
+[CriticalitySearchHistory](CriticalitySearchHistory.md) vector postprocessor.
+
 ## Example Input File Syntax
 
 As an example, a [OpenMCMaterialDensity](OpenMCMaterialDensity.md) object is used to perform

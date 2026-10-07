@@ -113,6 +113,12 @@ public:
   const Real & scaling() const { return _scaling; }
 
   /**
+   * Get the criticality search object, if any
+   * @return criticality search, or nullptr if there is none
+   */
+  const CriticalitySearchBase * criticalitySearch() const { return _criticality_search; }
+
+  /**
    * Whether the problem has user defined scaling or not.
    * @return whether the user has set the problem scaling or not
    */
@@ -618,4 +624,10 @@ protected:
 
   /// Object to use for a criticality search
   CriticalitySearchBase * _criticality_search = nullptr;
+
+  /**
+   * Whether the criticality search is allowed to run or not. Used to toggle the criticality
+   * search with the MOOSE controls system.
+   */
+  const bool & _is_criticality_search_enabled_by_controls;
 };
