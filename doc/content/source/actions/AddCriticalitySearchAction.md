@@ -20,10 +20,10 @@ There are two tolerances that must be specified `root_tol` (the tolerance on the
 ## Controlling When the Search Runs
 
 By default, a criticality search is run on every OpenMC solve. For transient simulations, this
-means a search on every time step (and on every fixed point iteration within a time step). The
+means a search is executed on every time step (and on every fixed point iteration within a time step). The
 `criticality_search_on` parameter of [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) can
-be changed with the MOOSE [Controls](syntax/Controls/index.md) system to only search on some of
-the OpenMC solves. When `criticality_search_on` is `false`, OpenMC runs a single calculation with
+be changed with the MOOSE [Controls](syntax/Controls/index.md) system to only search on a subset of
+Picard iterations and/or timesteps. When `criticality_search_on` is `false`, OpenMC runs a single calculation with
 the model as left by the most recent criticality search (or as specified in the OpenMC input files,
 if no criticality search has been run yet). For example, to only search for criticality on the
 time steps between 2 and 3 seconds:

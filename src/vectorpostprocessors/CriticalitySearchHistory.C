@@ -56,7 +56,7 @@ CriticalitySearchHistory::execute()
   _k = search->kValues();
   _k_std_dev = search->kStdDevValues();
 
-  const Real to_pcm = 1e5;
+  constexpr Real to_pcm = 1e5;
   _reactivity.resize(_k.size());
   _reactivity_std_dev.resize(_k.size());
   for (const auto i : index_range(_k))
