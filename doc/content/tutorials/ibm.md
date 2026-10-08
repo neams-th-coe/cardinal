@@ -82,7 +82,7 @@ Various immersed boundary formulations utilize different selections for the coef
 
 A particular sub-class of continuous forcing methods, which appear in the literature by a variety of names, could be referred to as porous-IBM approaches. In these methods, the coefficients $\beta$ and $\zeta$ are selected so as to reflect a Darcy-Forchheimer drag in terms of the local porosity in each element. For example,
 in the approach developed by [!cite](dai_2026, an external force with only the linear damping term is added to the momentum equation in all elements.
-The form of the forcing term reflects the $(1-\epsilon)^2/\epsilon^3$ proportionality of the normalized pressure drop in porous media [!cite](novak_thesis),
+The form of the forcing term reflects the proportionality of the normalized pressure drop in porous media [!cite](novak_thesis),
 with a tunable coefficient $C$ and a stability parameter $10^{-3}$ to enforce very high but finite values of the force in solid elements ($\epsilon=0$). Another approach from Wongkham et al. applies an additional adaptive mesh refinement in the cut elements to further refine the sharp interface in porosity [!cite](wongkham) but in this case selects nonzero, porous-media-inspired, coefficients for both $\beta$ and $\zeta$.
 Note that these approaches differ from traditional porous media methods because the porosity is evaluated by overlaying the solid geometry in the fluid elements, and therefore varies from element to element (as opposed to varying in a smooth sense corresponding to a representative elementary volume [!cite](novak_thesis)).
 
