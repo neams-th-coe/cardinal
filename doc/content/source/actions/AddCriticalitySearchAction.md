@@ -28,7 +28,7 @@ the model as left by the most recent criticality search (or as specified in the 
 if no criticality search has been run yet). For example, to only search for criticality on the
 time steps between 2 and 3 seconds:
 
-!listing /tests/criticality/material_density/control.i
+!listing /tests/criticality/translation/control.i
   block=Problem
 
 !listing /tests/criticality/translation/control.i

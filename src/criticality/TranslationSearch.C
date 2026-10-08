@@ -39,7 +39,7 @@ TranslationSearch::validParams()
 TranslationSearch::TranslationSearch(const InputParameters & parameters)
   : CriticalitySearchBase(parameters),
     OpenMCCellTransformBase(static_cast<MooseObject &>(*this)),
-    _translation_axis_idx(int(getParam<MooseEnum>("translation_axis")))
+    _translation_axis_idx(getParam<MooseEnum>("translation_axis"))
 {
 }
 
