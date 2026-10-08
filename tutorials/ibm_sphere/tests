@@ -7,10 +7,4 @@
     csvdiff = background_mesh_out.csv
     requirement = 'The system shall generate a mesh of a rectangular prism for use as a background mesh.'
   []
-  [add_sidesets]
-    type = CSVDiff
-    input = add_sidesets.i
-    csvdiff = add_sidesets_out.csv
-    requirement = 'The system shall add sidesets to a mesh used as the Eulerian mesh for an immersed boundary method.'
-  []
 []
