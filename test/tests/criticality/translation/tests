@@ -1,6 +1,6 @@
 [Tests]
-  design = 'TranslationSearch.md'
-  issues = '#1479'
+  design = 'TranslationSearch.md AddCriticalitySearchAction.md'
+  issues = '#1479 #1482'
   [translation_search]
     type = CSVDiff
     input = openmc.i
@@ -22,6 +22,13 @@
     cli_args = "Problem/CriticalitySearch/cell_ids='3'"
     expect_err = "Cannot apply a translation to cell"
     requirement = 'The system shall error if a translation criticality search is applied to a cell which is not filled with a universe.'
+    capabilities = 'openmc'
+  []
+  [control_search]
+    type = CSVDiff
+    input = control.i
+    csvdiff = control_out.csv
+    requirement = 'The system shall conduct a criticality search following MOOSE control system modifying a cell translation.'
     capabilities = 'openmc'
   []
 []

@@ -26,25 +26,13 @@ be changed with the MOOSE [Controls](syntax/Controls/index.md) system to only se
 the OpenMC solves. When `criticality_search_on` is `false`, OpenMC runs a single calculation with
 the model as left by the most recent criticality search (or as specified in the OpenMC input files,
 if no criticality search has been run yet). For example, to only search for criticality on the
-time steps between 50 and 51 seconds:
+time steps between 2 and 3 seconds:
 
-```
-[Functions]
-  [search_window]
-    type = ParsedFunction
-    expression = 'if(t >= 50.0 & t < 51.0, 1, 0)'
-  []
-[]
+!listing /tests/criticality/material_density/control.i
+  block=Problem
 
-[Controls]
-  [control_search]
-    type = BoolFunctionControl
-    function = 'search_window'
-    parameter = '*/*/criticality_search_on'
-    execute_on = 'TIMESTEP_BEGIN'
-  []
-[]
-```
+!listing /tests/criticality/translation/control.i
+  block=Controls
 
 The values tried in the most recent search, and the $k$ computed for each, can be output with a
 [CriticalitySearchHistory](CriticalitySearchHistory.md) vector postprocessor.

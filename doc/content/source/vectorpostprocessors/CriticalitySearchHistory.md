@@ -20,13 +20,8 @@ from the last search which was run.
 
 ## Example Input File Syntax
 
-```
-[VectorPostprocessors]
-  [history]
-    type = CriticalitySearchHistory
-  []
-[]
-```
+!listing /tests/vectorpostprocessors/criticality_search_history/openmc.i
+  block=VectorPostprocessors
 
 !syntax parameters /VectorPostprocessors/CriticalitySearchHistory
 
