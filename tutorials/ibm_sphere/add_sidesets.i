@@ -54,33 +54,3 @@
     conversion_type = SECOND_ORDER_NONFULL
   []
 []
-
-# the remaining part of this file only exists in order to obtain
-# data that can be used to generate a regression test
-[Problem]
-  type = FEProblem
-  solve = false
-[]
-
-[Postprocessors]
-  [area_1]
-    type = AreaPostprocessor
-    boundary = '1'
-  []
-  [area_2]
-    type = AreaPostprocessor
-    boundary = '2'
-  []
-  [area_3]
-    type = AreaPostprocessor
-    boundary = '3'
-  []
-[]
-
-[Executioner]
-  type = Steady
-[]
-
-[Outputs]
-  csv = true
-[]
