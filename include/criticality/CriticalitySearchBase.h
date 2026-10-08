@@ -71,6 +71,9 @@ public:
    */
   const std::vector<Real> & kStdDevValues() const { return _k_std_dev_values; }
 
+  /// Conversion factor to pcm
+  static constexpr Real TO_PCM = 1e5;
+
 protected:
   /// The quantity being varied in the search for criticality, for console prints
   virtual std::string quantity() const = 0;

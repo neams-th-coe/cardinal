@@ -56,15 +56,14 @@ CriticalitySearchHistory::execute()
   _k = search->kValues();
   _k_std_dev = search->kStdDevValues();
 
-  constexpr Real to_pcm = 1e5;
   _reactivity.resize(_k.size());
   _reactivity_std_dev.resize(_k.size());
   for (const auto i : index_range(_k))
   {
-    _reactivity[i] = (_k[i] - 1.0) / _k[i] * to_pcm;
+    _reactivity[i] = (_k[i] - 1.0) / _k[i] * CriticalitySearchBase::TO_PCM;
 
     // first-order propagation of the uncertainty in k through rho = 1 - 1 / k
-    _reactivity_std_dev[i] = _k_std_dev[i] / (_k[i] * _k[i]) * to_pcm;
+    _reactivity_std_dev[i] = _k_std_dev[i] / (_k[i] * _k[i]) * CriticalitySearchBase::TO_PCM;
   }
 }
 
