@@ -23,6 +23,7 @@
 #include "cube.oudf"
 #endif
 
+// Uncomment if you want to include CGAL
 // #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 // #include <CGAL/Surface_mesh.h>
 // #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
@@ -32,7 +33,7 @@
 // #include <CGAL/AABB_traits.h>
 // #include <CGAL/AABB_face_graph_triangle_primitive.h>
 
-
+// Uncomment if you want to include libigl
 // libigl
 // #include <igl/readPLY.h>
 // #include <igl/marching_cubes.h>
@@ -63,6 +64,7 @@
 #include <vtkAppendPolyData.h>
 #include <vtkTriangleFilter.h>
 
+// Uncomment if you want to include embree for ray tracing
 // embree
 //#include <embree4/rtcore.h>
 //#include <embree4/rtcore_common.h>
@@ -169,25 +171,7 @@ static std::vector<dfloat> sdfValues;
 static int QuadPointsPerElement;
 
 // Vectors to hold the Lagrange velocities values on the host
-static std::vector<dfloat> uLx_host;
-static std::vector<dfloat> uLy_host;
-static std::vector<dfloat> uLz_host;
 static std::vector<dfloat> uL_host;
-
-static occa::memory o_U_prev;  // Will hold previous velocity values
-
-
-// Define the Dirac delta function
-inline dfloat D1(dfloat xi) {
-    dfloat absXi = fabs(xi);
-    if (absXi <= 1.0) {
-        return (3.0 - 2.0 * absXi + sqrt(1.0 + 4.0 * absXi - 4.0 * absXi * absXi)) / 8.0;
-    } else if (absXi > 1.0 && absXi <= 2.0) {
-        return 0.5 - (3.0 - 2.0 * (2.0 - absXi) + sqrt(1.0 + 4.0 * (2.0 - absXi) - 4.0 * (2.0 - absXi) * (2.0 - absXi))) / 8.0;
-    } else {
-        return 0.0;
-    }
-}
 
 
 // BC from the IBM
@@ -243,21 +227,18 @@ void PenaltyNoSlipBCCustomSource(double time)
     o_normal_z.copyFrom(normal_z.data());
 
 
-    dfloat penaltyCoefficient = 1.0; // A large coefficient to enforce no-slip condition
-
     // Allocate memory on the device for the velocity at the Lagrange Points
     occa::memory o_uLx = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
     occa::memory o_uLy = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
     occa::memory o_uLz = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
 
     occa::memory o_uL = platform->device.malloc(nrs->meshV->dim * numLagrangePoints * sizeof(dfloat));
-    occa::memory o_uL_prev = platform->device.malloc(nrs->meshV->dim * numLagrangePoints * sizeof(dfloat));
     occa::memory o_pL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
 
     // Set up interpolator for velocity and pressure
     static pointInterpolation_t* interpolator = nullptr;   // for velocity
     static pointInterpolation_t* interpolator2 = nullptr;    // for pressure
-    static pointInterpolation_t* interpolator3 = nullptr;    // for velocity at previous time step
+
 
     // Set up the variables coming from findpts
     static std::vector<int>    elemHost;
@@ -330,13 +311,6 @@ void PenaltyNoSlipBCCustomSource(double time)
     interpolator2->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numLagrangePoints, o_pL);
 
 
-    if (!interpolator3) {
-        interpolator3 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator3->setPoints(xLagrange, yLagrange, zLagrange);
-        interpolator3->find();
-    }
-    interpolator3->eval(nrs->meshV->dim, nrs->fluid->fieldOffset, o_U_prev, numLagrangePoints, o_uL_prev);
-
     // Passing the sdf values for the calculation of mu
     occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
 
@@ -345,48 +319,42 @@ void PenaltyNoSlipBCCustomSource(double time)
                           nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
                           o_U, 0 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
                           numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                          penaltyCoefficient,  nrs->dt[0],
+                            nrs->dt[0],
                           o_characteristicArea, o_characteristicLength, o_ElementNumber,
                           0, o_uL,
                           nrs->meshV->o_gllw, nrs->meshV->o_gllz,
                           o_elemList, o_rx, o_ry, o_rz,
                           nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices, nrs->fluid->o_P, o_uL_prev, nrs->meshV->o_D);
+                          o_elementOffsets, o_elementLagrangeIndices, nrs->fluid->o_P, nrs->meshV->o_D);
 
     PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
                           nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
                           o_U, 1 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
                           numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                          penaltyCoefficient, nrs->dt[0],
+                           nrs->dt[0],
                           o_characteristicArea, o_characteristicLength, o_ElementNumber,
                           1, o_uL,
                           nrs->meshV->o_gllw, nrs->meshV->o_gllz,
                           o_elemList, o_rx, o_ry, o_rz,
                           nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, o_uL_prev, nrs->meshV->o_D);
+                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
 
     PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
                           nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
                           o_U, 2 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
                           numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                          penaltyCoefficient, nrs->dt[0],
+                           nrs->dt[0],
                           o_characteristicArea, o_characteristicLength, o_ElementNumber,
                           2, o_uL,
                           nrs->meshV->o_gllw, nrs->meshV->o_gllz,
                           o_elemList, o_rx, o_ry, o_rz,
                           nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, o_uL_prev, nrs->meshV->o_D);
+                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
 
     // Resize host-side containers for returning velocity information
-    uLx_host.resize(numLagrangePoints);
-    uLy_host.resize(numLagrangePoints);
-    uLz_host.resize(numLagrangePoints);
     uL_host.resize(nrs->meshV->dim * numLagrangePoints);
 
     // Copy uL values back to the host
-    o_uLx.copyTo(uLx_host.data());
-    o_uLy.copyTo(uLy_host.data());
-    o_uLz.copyTo(uLz_host.data());
     o_uL.copyTo(uL_host.data());
 }
 
@@ -408,9 +376,6 @@ void material_props(double time)
     auto o_mue = nrs->fluid->o_diffusionCoeff();
     viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
 }
-
-// for drag
-// void ciTestErrors(double time, int tstep);
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
@@ -436,7 +401,6 @@ void UDF_Setup()
 
 
     int Nelements = mesh->Nelements;
-    std::cout << "Number of elements "  << Nelements << std::endl;
 
     QuadPointsPerElement = mesh->Np;
 
@@ -524,44 +488,16 @@ dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices) {
 
 void UDF_ExecuteStep(double time, int tstep)
 {
-    auto mesh = nrs->meshV;
-    int n_gll_points = mesh->Np * mesh->Nelements;
 
-    // copy the previous value of the velocity
-    o_U_prev = nrs->fluid->o_U;
+    if (tstep == 0) {
 
-
-    if (tstep == 20000) {
-
-      int dataSize = n_gll_points;
-
-      occa::memory o_sdfValues = platform->device.malloc(dataSize * sizeof(dfloat));
-
-
-     // Copy sdfValues from host to device
-       o_sdfValues.copyFrom(sdfValues.data());
-
-        // visualization
-       std::string suffix = "sdf";
-       int outXYZ = 1;
-       int FP64 = 1;
-
-       // writeFld(suffix, time, tstep, outXYZ, FP64,  &o_sdfValues , 1);
-
-
-       // Setup for numerical integration
-       // 1- The function being integrated is f(x,y,z) = x^2+y^2+z^2
-       // 2- The function being integrated is f(x,y,z) = e−(x2+y2+z2)
-       // 3- The function being integrated is f(x,y,z) = e(−2(x2+y2+z2))
+        // Surface quadrature diagnostic on this rank
         dfloat integratedValue = 0.0; // This will hold the result of the numerical integration
 
         // Use globalIntegrationPoints
         for (const auto& ip : globalIntegrationPoints) {
             // Calculate the function value at the integration point
-            // dfloat fValue = std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2);
-            // dfloat fValue = std::exp(-(std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
             dfloat fValue = (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)) *  std::exp(-2 * (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
-
 
             // Multiply by the weight of the integration point and accumulate
             integratedValue += fValue * ip.weight;
@@ -571,29 +507,13 @@ void UDF_ExecuteStep(double time, int tstep)
         std::cout << "Integrated value of f(x,y,z) over the surface: " << integratedValue << std::endl;
     }
 
-    nrs->copyToNek(time, tstep);
-    nek::userchk();
-
-
-    // Velocity at the Lagrange Points after updating the velocity after the force, MPI is used for Ranks > 1
-    if (tstep == 50000) {
-        // Check if MPI is already initialized
-        int initialized;
-        MPI_Initialized(&initialized);
-        if (!initialized) {
-            MPI_Init(NULL, NULL);
-        }
+    // Diagnostic: write z-velocity at a specific time step
+    if (tstep > 0 && nrs->checkpointStep) {
 
         // Determine rank and size
         int rank, size;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-
-        // Delete the file if it exists to ensure overwriting
-        if (rank == 0) {
-            std::remove("uL_values_readable.txt");
-        }
+        MPI_Comm_rank(platform->comm.mpiComm(), &rank);
+        MPI_Comm_size(platform->comm.mpiComm(), &size);
 
         // Number of Lagrange Points on this rank
         size_t numLagrangePoints = globalLagrangePoints.size();
@@ -605,14 +525,13 @@ void UDF_ExecuteStep(double time, int tstep)
                         <<  uL_host[i + 2 * numLagrangePoints] << "\n";                    // z-velocity
         }
 
-
         // Convert the stringstream to a standard string to get the size
         std::string localData = localBuffer.str();
-        size_t localDataSize = localData.size();
+        MPI_Offset localDataSize = static_cast<MPI_Offset>(localData.size());
 
         // Gather all sizes to calculate the global offset for each rank
-        std::vector<size_t> allDataSizes(size);
-        MPI_Allgather(&localDataSize, 1, MPI_UNSIGNED_LONG, allDataSizes.data(), 1, MPI_UNSIGNED_LONG, MPI_COMM_WORLD);
+        std::vector<MPI_Offset> allDataSizes(size);
+        MPI_Allgather(&localDataSize, 1, MPI_OFFSET, allDataSizes.data(), 1, MPI_OFFSET, platform->comm.mpiComm());
 
         // Calculate offsets for each rank
         std::vector<MPI_Offset> offsets(size);
@@ -621,9 +540,10 @@ void UDF_ExecuteStep(double time, int tstep)
             offsets[i] = offsets[i - 1] + allDataSizes[i - 1];
         }
 
-        // Open the file using MPI-IO without truncation mode (file already deleted if exists)
+        // Collective truncation avoids a race between rank-zero deletion and open.
         MPI_File fh;
-        MPI_File_open(MPI_COMM_WORLD, "uL_values_readable.txt", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+        MPI_File_open(platform->comm.mpiComm(), "uL_values_readable.txt", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+        MPI_File_set_size(fh, 0);
 
         // Set the view for each rank to write at its calculated offset
         MPI_File_set_view(fh, offsets[rank], MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
@@ -636,169 +556,11 @@ void UDF_ExecuteStep(double time, int tstep)
 
         // Print confirmation from rank 0
         if (rank == 0) {
-            std::cout << "Lagrange velocities and positions successfully written to uL_values_readable.txt by all ranks." << std::endl;
-        }
-
-        // Finalize MPI if it was initialized here
-        if (!initialized) {
-            MPI_Finalize();
+            std::cout << "Lagrange z-velocities successfully written to uL_values_readable.txt by all ranks." << std::endl;
         }
     }
 
 }
-#if 0
-// Function for drag
-void ciTestErrors(double time, int tstep)
-{
-    mesh_t *mesh = nrs->meshV;
-
-    auto o_Sij = platform->deviceMemoryPool.reserve<dfloat>(2 * nrs->meshV->dim * nrs->fluid->fieldOffset);
-    nrs->strainRate(true, nrs->fluid->o_U, o_Sij);
-
-    // build divU (Eulerian) using divergenceVolumeHex3D
-    occa::memory o_divU = platform->device.malloc(nrs->fluid->fieldOffset * sizeof(dfloat));
-    auto divVolKernel = platform->kernels.get("nrs-divergenceVolumeHex3D");
-    divVolKernel(mesh->Nelements,
-                  mesh->o_vgeo,
-                  mesh->o_D,
-                  nrs->fluid->fieldOffset,
-                  nrs->fluid->o_U,
-                  o_divU);
-
-
-    // number of integration points
-    const size_t numIntegrationPoints = globalIntegrationPoints.size();
-
-    // Lagrangian pressure, Sij matrix, viscosity, divergence of the velocity, and force
-    occa::memory o_pL   = platform->device.malloc(numIntegrationPoints * sizeof(dfloat));
-    occa::memory o_SijL = platform->device.malloc(6 * numIntegrationPoints * sizeof(dfloat));
-    occa::memory o_muL   = platform->device.malloc(numIntegrationPoints * sizeof(dfloat));
-    occa::memory o_divUL= platform->device.malloc(numIntegrationPoints * sizeof(dfloat));
-    occa::memory o_FL = platform->device.malloc(3 * numIntegrationPoints * sizeof(dfloat));
-
-    // Lagrangian x,y,z, normals, and weights
-    std::vector<dfloat> xL(numIntegrationPoints), yL(numIntegrationPoints), zL(numIntegrationPoints), nLx(numIntegrationPoints), nLy(numIntegrationPoints), nLz(numIntegrationPoints), wL(numIntegrationPoints), LL(numIntegrationPoints);
-    for (size_t i = 0; i < numIntegrationPoints; ++i) {
-      xL[i]  = globalIntegrationPoints[i].position.x();
-      yL[i]  = globalIntegrationPoints[i].position.y();
-      zL[i]  = globalIntegrationPoints[i].position.z();
-      nLx[i] = globalIntegrationPoints[i].normal[0];
-      nLy[i] = globalIntegrationPoints[i].normal[1];
-      nLz[i] = globalIntegrationPoints[i].normal[2];
-      wL[i]  = globalIntegrationPoints[i].weight; // surface area weight per point
-    }
-
-    // set up the interpolator
-    static pointInterpolation_t* interpolator = nullptr;   // for Sij
-    static pointInterpolation_t* interpolator2 = nullptr;    // for pressure
-    static pointInterpolation_t* interpolator3 = nullptr;    // for viscosity
-    static pointInterpolation_t* interpolator4 = nullptr;    // for divergence of velocity
-    static pointInterpolation_t* interpolator5 = nullptr;    // for force
-
-    // interpolate Sij from Eulerian to Lagrangian points
-    if (!interpolator) {
-        interpolator = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator->setPoints(xL, yL, zL);
-        interpolator->find();
-    }
-    interpolator->eval(6, nrs->fluid->fieldOffset, o_Sij , numIntegrationPoints, o_SijL);
-
-    // interpolate pressure from Eulerian to Lagrangian points
-    if (!interpolator2) {
-        interpolator2 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator2->setPoints(xL, yL, zL);
-        interpolator2->find();
-    }
-    interpolator2->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numIntegrationPoints, o_pL);
-
-     // interpolate viscosity from Eulerian to Lagrangian points
-    if (!interpolator3) {
-        interpolator3 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator3->setPoints(xL, yL, zL);
-        interpolator3->find();
-    }
-    interpolator3->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_diffusionCoeff(), numIntegrationPoints, o_muL);
-
-    // // interpolate divergence of velocity from Eulerian to Lagrangian points
-    if (!interpolator4) {
-        interpolator4 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator4->setPoints(xL, yL, zL);
-        interpolator4->find();
-    }
-    interpolator4->eval(1, nrs->fluid->fieldOffset, o_divU, numIntegrationPoints, o_divUL);
-
-   // interpolate force  from Eulerian to Lagrangian points
-    if (!interpolator5) {
-        interpolator5 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator5->setPoints(xL, yL, zL);
-        interpolator5->find();
-    }
-    interpolator5->eval(3, nrs->fluid->fieldOffset, nrs->fluid->o_explicitTerms(), numIntegrationPoints, o_FL);
-
-    // copy from GPU to CPU
-    std::vector<dfloat> pL(numIntegrationPoints), SijL(6 * numIntegrationPoints), muL(numIntegrationPoints), divUL(numIntegrationPoints), FL(3 * numIntegrationPoints);
-
-    o_pL.copyTo(pL.data());
-    o_SijL.copyTo(SijL.data());
-    o_muL.copyTo(muL.data());
-    o_divUL.copyTo(divUL.data());
-    o_FL.copyTo(FL.data());
-
-    // Local force components
-    dfloat F_local  = 0.0, pressure_x = 0.0, pressure_y = 0.0, pressure_z = 0.0;
-
-
-    for (size_t i = 0; i < numIntegrationPoints ; ++i) {
-        const dfloat nx = nLx[i], ny = nLy[i], nz = nLz[i];
-        const dfloat wi = wL[i];
-        const dfloat p  = pL[i];
-        // pull Sij at i
-        const dfloat S11 = SijL[i + 0*numIntegrationPoints];
-        const dfloat S21 = SijL[i + 3*numIntegrationPoints];
-        const dfloat S31 = SijL[i + 5*numIntegrationPoints];
-
-        const dfloat S12 = S21;
-        const dfloat S22 = SijL[i + 1*numIntegrationPoints];
-        const dfloat S32 = SijL[i + 4*numIntegrationPoints];
-
-        const dfloat S13 = S31;
-        const dfloat S23 = S32;
-        const dfloat S33 = SijL[i + 2*numIntegrationPoints];
-
-        const dfloat scale = -2 * muL[i] * wi;
-
-        pressure_x += -p * nx * wi;
-        pressure_y += -p * ny * wi;
-        pressure_z += -p * nz * wi;
-
-
-        const dfloat dragx = scale*(S11 * nx + S12 * ny + S13 * nz);
-        const dfloat dragy = scale*(S21 * nx + S22 * ny + S23 * nz);
-        const dfloat dragz = scale*(S31 * nx + S32 * ny + S33 * nz);
-
-        // F total
-        F_local += sqrt(dragx * dragx + dragy * dragy + dragz * dragz);
-    }
-
-    dfloat ViscousForce = 0.0, XPressureForce = 0.0, YPressureForce = 0.0, ZPressureForce = 0.0;
-    MPI_Allreduce(&F_local, &ViscousForce, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-    MPI_Allreduce(&pressure_x, &XPressureForce, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-    MPI_Allreduce(&pressure_y, &YPressureForce, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-    MPI_Allreduce(&pressure_z, &ZPressureForce, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-
-  if (platform->comm.mpiRank() == 0) {
-    std::cout << std::scientific
-              << "[IBM] Viscous Drag Force = (" << ViscousForce << ")" << std::endl;
-    std::cout << std::scientific
-              << "[IBM] X Pressure Force = (" << XPressureForce << ")" << std::endl;
-    std::cout << std::scientific
-              << "[IBM] Y Pressure Force = (" << YPressureForce << ")" << std::endl;
-    std::cout << std::scientific
-              << "[IBM] Z Pressure Force  = (" << ZPressureForce << ")" << std::endl;
-
-  }
-}
-#endif
 
 // Parsing STL file
 bool try_parse_float(const std::string& token, dfloat& value) {
@@ -812,35 +574,7 @@ bool try_parse_float(const std::string& token, dfloat& value) {
 }
 
 
-// Helper functions to perform vector operations
-Vector vectorSubtract(const Vertex& a, const Vertex& b) {
-    return {a.x - b.x, a.y - b.y, a.z - b.z};
-}
-
-// Dot product function
-dfloat Dot(const Vector& vector1, const Vector& vector2) {
-    return vector1.vx * vector2.vx + vector1.vy * vector2.vy + vector1.vz * vector2.vz;
-}
-
-Vector crossProduct(const Vector& a, const Vector& b) {
-    return {
-        a.vy * b.vz - a.vz * b.vy,
-        a.vz * b.vx - a.vx * b.vz,
-        a.vx * b.vy - a.vy * b.vx
-    };
-}
-
-dfloat magnitude(const Vector& v) {
-    return std::sqrt(v.vx * v.vx + v.vy * v.vy + v.vz * v.vz);
-}
-
-Vector normalize(const Vector& v) {
-    dfloat mag = magnitude(v);
-    return {v.vx / mag, v.vy / mag, v.vz / mag};
-}
-
-
-// Parse STL file (read vertices and normals)
+// Parse ASCII STL vertices for the reference area diagnostic.
 bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::vector<FacetNormal>& normals) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -878,252 +612,10 @@ bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::
     return true;
 }
 
-// --------------------------------------
-// Functions to manually compute SDF
-// --------------------------------------
-// Compute the signed distance from a point to a plane defined by normal and distance
-// In this approach, when the SDF is positive, it means that the point is outside Omega
-dfloat signed_distance_to_plane(const Point& point, const Vertex& v0, const Vertex& v1, const Vertex& v2, FacetNormal& normal) {
-    dfloat distance = normal.nx * v0.x + normal.ny * v0.y + normal.nz * v0.z;
-    return (  (normal.nx * point.px + normal.ny * point.py + normal.nz * point.pz - distance) /
-            (std::sqrt(normal.nx * normal.nx + normal.ny * normal.ny + normal.nz * normal.nz)) );
-}
-
-
-// Project a point onto a plane
-Point projectPointOnPlane(const Point& point, const Vertex& v0, const Vertex& v1, const Vertex& v2, FacetNormal& Normal) {
-    dfloat distance = signed_distance_to_plane(point, v0, v1, v2, Normal);
-    Vector normal = crossProduct(vectorSubtract(v1, v0), vectorSubtract(v2, v0));
-    normal = normalize(normal);
-    return {point.px - normal.vx * distance, point.py - normal.vy * distance, point.pz - normal.vz * distance};
-}
-
-// Check if a point is inside a triangle
-bool pointInTriangle(const Point& p, const Vertex& v0, const Vertex& v1, const Vertex& v2) {
-    Vector v00 = vectorSubtract(v2, v0);
-    Vector v11 = vectorSubtract(v1, v0);
-    Vector v22 = vectorSubtract({p.px, p.py, p.pz}, v0);
-
-    dfloat dot00 = Dot(v00, v00);
-    dfloat dot01 = Dot(v00, v11);
-    dfloat dot02 = Dot(v00, v22);
-    dfloat dot11 = Dot(v11, v11);
-    dfloat dot12 = Dot(v11, v22);
-
-    dfloat invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    dfloat u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    dfloat v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-    return (u >= 0) && (v >= 0) && (u + v <= 1);
-}
-
-// Distance from a point to a line segment
-dfloat pointToLineSegmentDistance(const Point& p, const Vertex& a, const Vertex& b) {
-    Vector ap = {p.px - a.x, p.py - a.y, p.pz - a.z};
-    Vector ab = {b.x - a.x, b.y - a.y, b.z - a.z};
-    dfloat abSquare = Dot(ab, ab);
-    dfloat apDotAb = Dot(ap, ab);
-    dfloat t = apDotAb / abSquare;
-    t = std::max(0.0, std::min(1.0, t));
-    Vertex closest = {a.x + ab.vx * t, a.y + ab.vy * t, a.z + ab.vz * t};
-    Vector closestVec = {p.px - closest.x, p.py - closest.y, p.pz - closest.z};
-    return magnitude(closestVec);
-}
-
-// Signed distance from a point to a triangle
-dfloat signedDistanceToTriangle(const Point& p, const Vertex& v0, const Vertex& v1, const Vertex& v2, FacetNormal& Normal) {
-    Point projectedPoint = projectPointOnPlane(p, v0, v1, v2, Normal);
-    if (pointInTriangle(projectedPoint, v0,v1,v2)) {
-        return signed_distance_to_plane(p, v0,v1,v2, Normal);
-    } else {
-        dfloat d1 = pointToLineSegmentDistance(p, v0, v1);
-        dfloat d2 = pointToLineSegmentDistance(p, v1, v2);
-        dfloat d3 = pointToLineSegmentDistance(p, v2, v0);
-        return std::min({d1, d2, d3});
-    }
-}
-
-
-// Compute the signed distance from a point to all triangles
-dfloat signedDistanceToTriangles(const std::vector<dfloat>& sdfVector) {
-    dfloat minDistance = std::numeric_limits<dfloat>::infinity();
-
-    for (const dfloat& sdf : sdfVector) {
-        if (std::abs(sdf) < std::abs(minDistance)) {
-            minDistance = sdf;
-        }
-    }
-
-    return minDistance;
-}
-
-
-dfloat intersectionSDF(const std::vector<dfloat>& sdfVector) {
-    if (sdfVector.empty()) {
-        return std::numeric_limits<dfloat>::infinity();
-    }
-
-    dfloat maxNegativeDistance = -std::numeric_limits<dfloat>::infinity();
-    bool allInside = true;
-    bool hasValidValues = false;
-
-    for (const dfloat& sdf : sdfVector) {
-        if (std::isnan(sdf)) continue; // Skip NaN values
-
-        hasValidValues = true; // Mark that we have at least one valid value
-
-        if (sdf > 0.0f) {
-            allInside = false;
-            break;
-        }
-        maxNegativeDistance = std::max(maxNegativeDistance, sdf);
-    }
-
-    if (!hasValidValues) return std::numeric_limits<dfloat>::quiet_NaN(); // Return NaN if all values were NaN
-
-    if (allInside) {
-        return maxNegativeDistance;
-    } else {
-        dfloat minPositiveDistance = std::numeric_limits<dfloat>::infinity();
-        for (const dfloat& sdf : sdfVector) {
-            if (sdf > 0.0f && !std::isnan(sdf)) {
-                minPositiveDistance = std::min(minPositiveDistance, sdf);
-            }
-        }
-        return minPositiveDistance;
-    }
-}
-
-// --------------------------------------
-// End of Functions that manually compute SDF
-// --------------------------------------
-
-// --------------------------------------
-// Computing intersection points manually
-// --------------------------------------
-
-// Check if two line segments intersect in 3D (Not needed here)
-bool doLineSegmentsIntersect(const Point& p1, const Point& p2, const Point& q1, const Point& q2) {
-    std::vector<Point> pPoints = {p1, p2};
-    std::vector<Point> qPoints = {q1, q2};
-
-    // Check for intersections between each pair of line segments
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            Point p1 = pPoints[i];
-            Point p2 = pPoints[(i + 1) % 2];
-            Point q1 = qPoints[j];
-            Point q2 = qPoints[(j + 1) % 2];
-
-            dfloat dx1 = p2.px - p1.px;
-            dfloat dy1 = p2.py - p1.py;
-            dfloat dz1 = p2.pz - p1.pz;
-
-            dfloat dx2 = q2.px - q1.px;
-            dfloat dy2 = q2.py - q1.py;
-            dfloat dz2 = q2.pz - q1.pz;
-
-            // Compute the cross product of the direction vectors
-            dfloat crossx = dy1 * dz2 - dz1 * dy2;
-            dfloat crossy = dz1 * dx2 - dx1 * dz2;
-            dfloat crossz = dx1 * dy2 - dy1 * dx2;
-
-            dfloat cross_norm = std::sqrt(crossx * crossx + crossy * crossy + crossz * crossz);
-
-            if (std::abs(cross_norm) < 1e-6) {
-                continue;  // Line segments are parallel, check the next pair
-            }
-
-            dfloat t1 = ((q1.px - p1.px) * crossx + (q1.py - p1.py) * crossy + (q1.pz - p1.pz) * crossz) / cross_norm;
-            dfloat t2 = ((q1.px - p1.px) * dx1 + (q1.py - p1.py) * dy1 + (q1.pz - p1.pz) * dz1) / (dx1 * dx1 + dy1 * dy1 + dz1 * dz1);
-
-            if (t1 >= 0.0 && t1 <= 1.0 && t2 >= 0.0 && t2 <= 1.0) {
-                return true;  // Intersection found
-            }
-        }
-    }
-
-    return false;  // No intersection found between any pair of line segments
-}
-
-// Function to calculate the intersection of a line segment with another line segment (Not needed here)
-bool findLineSegmentIntersection(const Point& p1, const Point& p2, const Point& q1, const Point& q2, Point& intersectionPoint) {
-    Point r = {p2.px - p1.px, p2.py - p1.py, p2.pz - p1.pz}; // Direction vector of the first line segment
-    Point s = {q2.px - q1.px, q2.py - q1.py, q2.pz - q1.pz}; // Direction vector of the second line segment
-
-    Point qp = {q1.px - p1.px, q1.py - p1.py, q1.pz - p1.pz}; // Vector from p1 to q1
-    dfloat rxs = r.px * s.pz - r.pz * s.py + r.py * s.px - r.px * s.py + r.pz * s.px - r.py * s.pz; // Cross product of r and s
-    dfloat qpxr = qp.px * r.pz - qp.pz * r.py + qp.py * r.px - qp.px * r.py + qp.pz * r.px - qp.py * r.pz; // Cross product of qp and r
-
-    // If r x s = 0 and (q - p) x r = 0, the segments are collinear.
-    if (std::abs(rxs) < std::numeric_limits<dfloat>::epsilon() && std::abs(qpxr) < std::numeric_limits<dfloat>::epsilon()) {
-        // To handle collinear segments, additional checks for overlap are required.
-        return false; // This example will not handle the collinear case.
-    }
-
-    // If r x s = 0 and (q - p) x r != 0, then the segments are parallel and non-intersecting.
-    if (std::abs(rxs) < std::numeric_limits<dfloat>::epsilon()) return false;
-
-    dfloat t = (qp.px * s.pz - qp.pz * s.py + qp.py * s.px - qp.px * s.py + qp.pz * s.px - qp.py * s.pz) / rxs;
-    dfloat u = (qp.px * r.pz - qp.pz * r.py + qp.py * r.px - qp.px * r.py + qp.pz * r.px - qp.py * r.pz) / rxs;
-
-    // If 0 <= t <= 1 and 0 <= u <= 1, the line segments meet at the point p + t r = q + u s.
-    if ((0 <= t && t <= 1) && (0 <= u && u <= 1)) {
-        // Intersection point is at p1 + t * r.
-        intersectionPoint.px = p1.px + t * r.px;
-        intersectionPoint.py = p1.py + t * r.py;
-        intersectionPoint.pz = p1.pz + t * r.pz;
-        return true; // The segments intersect.
-    }
-
-    return false; // The segments do not intersect.
-}
-
-// Function to calculate the intersection of a line segment with a plane (Not needed here)
-Point lineSegmentPlaneIntersection(const Point& p1, const Point& p2, const Vertex& v0, const FacetNormal& normal) {
-    Point intersection;
-
-    // Convert Points to Vectors for arithmetic operations
-    Vector lineVec = {p2.px - p1.px, p2.py - p1.py, p2.pz - p1.pz};
-    Vector v0p1 = {v0.x - p1.px, v0.y - p1.py, v0.z - p1.pz};
-
-    // Calculate dot products for the numerator and denominator of the intersection formula
-    dfloat dotNumerator = normal.nx * v0p1.vx + normal.ny * v0p1.vy + normal.nz * v0p1.vz;
-    dfloat dotDenominator = normal.nx * lineVec.vx + normal.ny * lineVec.vy + normal.nz * lineVec.vz;
-
-    // Check if the line is parallel to the plane
-    if (std::fabs(dotDenominator) < std::numeric_limits<dfloat>::epsilon()) {
-        // Return a special value to indicate no intersection
-        intersection.px = std::numeric_limits<dfloat>::quiet_NaN();
-        intersection.py = std::numeric_limits<dfloat>::quiet_NaN();
-        intersection.pz = std::numeric_limits<dfloat>::quiet_NaN();
-        return intersection;
-    }
-
-    // Calculate the scalar t for the intersection point on the line
-    dfloat t = dotNumerator / dotDenominator;
-
-    // Ensure t is within the bounds of the line segment
-    if (t >= 0.0 && t <= 1.0) {
-        intersection.px = p1.px + t * lineVec.vx;
-        intersection.py = p1.py + t * lineVec.vy;
-        intersection.pz = p1.pz + t * lineVec.vz;
-    } else {
-        // Return a special value to indicate no intersection
-        intersection.px = std::numeric_limits<dfloat>::quiet_NaN();
-        intersection.py = std::numeric_limits<dfloat>::quiet_NaN();
-        intersection.pz = std::numeric_limits<dfloat>::quiet_NaN();
-    }
-
-    return intersection;
-}
-
-// --------------------------------------
-// End of computing intersection points manually
-// --------------------------------------
 
 // -------------------------------------------------------------
 // Embree-based  Distance (bounding volume hierarchy tree ) &  Ray-Tracing Sign
+// uncomment if you want to use embree
 // -------------------------------------------------------------
 
 
@@ -1683,64 +1175,6 @@ std::vector<double> classifyPointsWithVTK(const std::vector<Point>& testPoints, 
     return distances;
 }
 
-// convert from vertex to point
-Point convertVertexToPoint(const Vertex& vertex) {
-    Point point;
-    point.px = vertex.x;
-    point.py = vertex.y;
-    point.pz = vertex.z;
-    return point;
-}
-
-
-// Line segmenets of the mesh element (Specific to NekRS mesh pairs)
-std::vector<std::pair<Point, Point>> getElementSegments(const std::vector<Point>& quadPoints, size_t elementIdx, int p) {
-    std::vector<std::pair<int, int>> edgePairs;
-
-    if (p == 1) {
-        edgePairs = {
-            {0, 1}, {0, 2}, {1, 3}, {2, 3},
-            {4, 5}, {4, 6}, {5, 7}, {6, 7},
-            {0, 4}, {1, 5}, {2, 6}, {3, 7}
-        };
-    } else {
-        edgePairs = {
-
-           {0, p}, // 0 - 2
-           {0, p*p+p}, // 0 - 6
-           {p, p*p+2*p}, // 2 - 8
-           {p*p+p, p*p+2*p}, // 6 - 8
-           {p*(p+1)*(p+1), p+p*(p+1)*(p+1)}, // 18 - 20
-           {p*(p+1)*(p+1), p+p*p+p*(p+1)*(p+1)}, // 18 - 24
-           {p+p*(p+1)*(p+1), p*p+2*p+p*(p+1)*(p+1)}, // 20 - 26
-           {p*p+p+p*(p+1)*(p+1), p*p+2*p+p*(p+1)*(p+1)}, // 24 - 26
-           {0, p*(p+1)*(p+1)}, // 0 - 18
-           {p, p+p*(p+1)*(p+1)}, // 2 - 20
-           {p*(p+1), p*p+p+p*(p+1)*(p+1)}, // 6- 24
-           {p*p+2*p, p*p+2*p+p*(p+1)*(p+1)} // 8 - 26
-
-        };
-    }
-
-    std::vector<std::pair<Point, Point>> elementSegments;
-    for (const auto& edge : edgePairs) {
-        Point p1 = quadPoints[elementIdx + edge.first];
-        Point p2 = quadPoints[elementIdx + edge.second];
-        elementSegments.push_back(std::make_pair(p1, p2));
-    }
-
-    return elementSegments;
-}
-
-
-// compare two points for equality within a threshold (to remove repeated points)
-bool arePointsSimilar(const Point& a, const Point& b, dfloat threshold = 1e-6) {
-    return std::sqrt((a.px - b.px) * (a.px - b.px) +
-                     (a.py - b.py) * (a.py - b.py) +
-                     (a.pz - b.pz) * (a.pz - b.pz)) < threshold;
-}
-
-
 // Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
 void writeSurfaceMeshToVTK(
     const std::string& filename,
@@ -1769,7 +1203,6 @@ void writeSurfaceMeshToVTK(
 
     vtkFile.close();
 }
-
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
 std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
@@ -1848,7 +1281,6 @@ std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
     return integrationPoints;
 }
 
-// Lagrange points
 // Function to compute 1-point Lagrange point for a triangle and its weight
 std::vector<LagrangePoint> computeLagrangePointsForTriangle(
     const Point_3& v1, const Point_3& v2, const Point_3& v3, int elementNumber)
@@ -1920,30 +1352,6 @@ std::vector<LagrangePoint> computeLagrangePointsForTriangle(
     return { {position, weight, characteristicArea, characteristicLength, elementNumber, normal} };
 }
 
-// Function to compute the Euclidean distance between two points
-dfloat distance(const Point& p1, const Point& p2) {
-    dfloat dx = p2.px - p1.px;
-    dfloat dy = p2.py - p1.py;
-    dfloat dz = p2.pz - p1.pz;
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
-}
-
-// Disabled CGAL mesh union.
-#if 0
-Mesh boolean_union( Mesh& mesh1,  Mesh& mesh2) {
-    Mesh result;
-        CGAL::Polygon_mesh_processing::corefine_and_compute_union(
-        mesh1,
-        mesh2,
-        result,
-        CGAL::parameters::all_default(),
-        CGAL::parameters::all_default(),
-        CGAL::parameters::all_default()
-    );
-    return result;
-}
-#endif
-
 // Function to convert points to array
 std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point>& points) {
     std::vector<std::array<dfloat, 3>> arrays;
@@ -1952,141 +1360,6 @@ std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point
     }
     return arrays;
 }
-
-// Function to extract iso-surface points using VTK (only points not the actual mesh)
-std::vector<std::array<dfloat, 3>> extractIsoSurfacePoints(const std::vector<std::array<dfloat, 3>>& myPoints, const std::vector<dfloat>& mySDFValues, const int numX) {
-    std::vector<std::array<dfloat, 3>> isoSurfacePoints;
-
-
-    if (myPoints.empty() || mySDFValues.empty()) {
-        // Handle empty input scenario, perhaps by returning an empty result
-        return isoSurfacePoints;
-    }
-
-    // Create VTK points and scalar array
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkFloatArray> sdfArray = vtkSmartPointer<vtkFloatArray>::New();
-
-    // Populate VTK points and scalar array
-    for (size_t i = 0; i < myPoints.size(); ++i) {
-    double point[3] = {myPoints[i][0], myPoints[i][1], myPoints[i][2]};
-    points->InsertNextPoint(point);
-    sdfArray->InsertNextValue(static_cast<dfloat>(mySDFValues[i]));
-    }
-
-
-    // Create VTK structured grid
-    vtkSmartPointer<vtkStructuredGrid> structuredGrid = vtkSmartPointer<vtkStructuredGrid>::New();
-    // numX is the number of points in X direction, which equals the number of points in Y and Z
-    int dims[3] =  {numX, numX, numX};
-
-    structuredGrid->SetDimensions(dims); // Assuming dims = {numX, numY, numZ}
-    structuredGrid->SetPoints(points);
-    structuredGrid->GetPointData()->SetScalars(sdfArray);
-
-
-    // Perform iso-surface extraction
-    vtkSmartPointer<vtkContourFilter> contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-    contourFilter->SetInputData(structuredGrid);
-    contourFilter->SetValue(0, 0.0); // Extract iso-surface where SDF = 0.0
-    contourFilter->Update();
-
-    vtkPolyData* isoSurface = contourFilter->GetOutput();
-    vtkPoints* isoPoints = isoSurface->GetPoints();
-    if (!isoPoints) {
-        std::cerr << "No isoPoints generated." << std::endl;
-        return isoSurfacePoints;
-    }
-
-    // Extract iso-surface points
-    for (vtkIdType i = 0; i < isoPoints->GetNumberOfPoints(); i++) {
-        double p[3];
-        isoPoints->GetPoint(i, p);
-        isoSurfacePoints.push_back({static_cast<dfloat>(p[0]), static_cast<dfloat>(p[1]), static_cast<dfloat>(p[2])});
-    }
-
-    return isoSurfacePoints;
-}
-
-// Function to extract iso-surface points and normals using VTK.
-IsoSurfaceData extractIsoSurfacePointsAndNormals(
-    const std::vector<std::array<dfloat, 3>>& myPoints,
-    const std::vector<dfloat>& mySDFValues,
-    const int numX)
-{
-    IsoSurfaceData isoData;
-
-    if (myPoints.empty() || mySDFValues.empty()) {
-        // Handle empty input scenario: return empty data.
-        return isoData;
-    }
-
-    // Create VTK points and scalar array.
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkFloatArray> sdfArray = vtkSmartPointer<vtkFloatArray>::New();
-    sdfArray->SetName("SDF");
-
-    // Populate VTK points and scalar array.
-    for (size_t i = 0; i < myPoints.size(); ++i) {
-        double point[3] = { myPoints[i][0], myPoints[i][1], myPoints[i][2] };
-        points->InsertNextPoint(point);
-        sdfArray->InsertNextValue(static_cast<dfloat>(mySDFValues[i]));
-    }
-
-    // Create a structured grid.
-    vtkSmartPointer<vtkStructuredGrid> structuredGrid = vtkSmartPointer<vtkStructuredGrid>::New();
-    int dims[3] = { numX, numX, numX }; // Assumed equal in each direction.
-    structuredGrid->SetDimensions(dims);
-    structuredGrid->SetPoints(points);
-    structuredGrid->GetPointData()->SetScalars(sdfArray);
-
-    // Perform iso-surface extraction using vtkContourFilter.
-    vtkSmartPointer<vtkContourFilter> contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-    contourFilter->SetInputData(structuredGrid);
-    contourFilter->SetValue(0, 0.0); // Extract the zero level-set.
-    contourFilter->Update();
-
-    vtkSmartPointer<vtkPolyData> isoSurface = contourFilter->GetOutput();
-    if (!isoSurface || !isoSurface->GetPoints()) {
-        std::cerr << "No isoSurface points generated." << std::endl;
-        return isoData;
-    }
-
-    // Compute normals on the iso-surface.
-    vtkSmartPointer<vtkPolyDataNormals> normalsFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normalsFilter->SetInputData(isoSurface);
-    normalsFilter->ComputePointNormalsOn();
-    normalsFilter->ConsistencyOn();
-    normalsFilter->AutoOrientNormalsOn();
-    normalsFilter->Update();
-
-    vtkPolyData* isoSurfaceWithNormals = normalsFilter->GetOutput();
-    vtkPoints* isoPoints = isoSurfaceWithNormals->GetPoints();
-    vtkDataArray* normalArray = isoSurfaceWithNormals->GetPointData()->GetNormals();
-
-    if (!isoPoints || !normalArray) {
-        std::cerr << "No isoSurface points or normals generated." << std::endl;
-        return isoData;
-    }
-
-    // Extract iso-surface points and normals.
-    vtkIdType numIsoPoints = isoPoints->GetNumberOfPoints();
-    for (vtkIdType i = 0; i < numIsoPoints; ++i) {
-        double p[3];
-        isoPoints->GetPoint(i, p);
-        isoData.points.push_back({ static_cast<dfloat>(p[0]),
-                                     static_cast<dfloat>(p[1]),
-                                     static_cast<dfloat>(p[2]) });
-        double n[3];
-        normalArray->GetTuple(i, n);
-        isoData.normals.push_back({ static_cast<dfloat>(n[0]),
-                                      static_cast<dfloat>(n[1]),
-                                      static_cast<dfloat>(n[2]) });
-    }
-
-    return isoData;
-}
-
 
 // Extract an iso-surface mesh (points and faces) from the given structured grid data.
 IsoSurfaceMesh extractIsoSurfaceMesh(const std::vector<std::array<dfloat, 3>> &myPoints,
@@ -2115,8 +1388,6 @@ IsoSurfaceMesh extractIsoSurfaceMesh(const std::vector<std::array<dfloat, 3>> &m
   structuredGrid->SetDimensions(dims);
   structuredGrid->SetPoints(vtkPts);
   structuredGrid->GetPointData()->SetScalars(sdfArray);
-
-
 
   // Extract the iso-surface using vtkContourFilter.
   vtkSmartPointer<vtkContourFilter> contourFilter = vtkSmartPointer<vtkContourFilter>::New();
@@ -2159,235 +1430,16 @@ IsoSurfaceMesh extractIsoSurfaceMesh(const std::vector<std::array<dfloat, 3>> &m
   return meshData;
 }
 
-// Convert Cartesian points to std::array<dfloat, 3> for VTK.
-std::vector<std::array<dfloat, 3>> convertPointsToArray(const std::vector<Point_3>& points) {
-    std::vector<std::array<dfloat, 3>> arrayPoints;
-    arrayPoints.reserve(points.size());
-    for (const auto& pt : points) {
-        arrayPoints.push_back({ pt.x(), pt.y(), pt.z() });
-    }
-    return arrayPoints;
-}
-
-// Adding the stl points to the contour surface (triangulated surface)
-IsoSurfaceMesh extractIsoSurfaceMeshPlusSTL(const std::vector<std::array<dfloat, 3>> &myPoints,
-                                              const std::vector<dfloat> &mySDFValues,
-                                              const std::vector<std::array<dfloat, 3>> &stlPoints,
-                                              const int numX)
-{
-  IsoSurfaceMesh meshData;
-
-  if (myPoints.empty() || mySDFValues.empty()) {
-    // Return empty mesh if no structured input.
-    return meshData;
-  }
-
-  //  Create the structured grid (volume data) as a vtkStructuredGrid and then convert it to polydata.
-  vtkSmartPointer<vtkStructuredGrid> structuredGrid = vtkSmartPointer<vtkStructuredGrid>::New();
-  int dims[3] = { numX, numX, numX };
-  structuredGrid->SetDimensions(dims);
-
-  vtkSmartPointer<vtkPoints> ptsStructured = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkFloatArray> sdfStructured = vtkSmartPointer<vtkFloatArray>::New();
-  sdfStructured->SetName("SDF");
-
-  for (size_t i = 0; i < myPoints.size(); ++i) {
-    double p[3] = { myPoints[i][0], myPoints[i][1], myPoints[i][2] };
-    ptsStructured->InsertNextPoint(p);
-    sdfStructured->InsertNextValue(static_cast<float>(mySDFValues[i]));
-  }
-
-  structuredGrid->SetPoints(ptsStructured);
-  structuredGrid->GetPointData()->SetScalars(sdfStructured);
-
-  // Convert structured grid to polydata.
-  vtkSmartPointer<vtkGeometryFilter> geomFilter = vtkSmartPointer<vtkGeometryFilter>::New();
-  geomFilter->SetInputData(structuredGrid);
-  geomFilter->Update();
-  vtkSmartPointer<vtkPolyData> polyDataStructured = geomFilter->GetOutput();
-
-  //  Create polydata from the STL vertices.
-  vtkSmartPointer<vtkPoints> ptsSTL = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkFloatArray> sdfSTL = vtkSmartPointer<vtkFloatArray>::New();
-  sdfSTL->SetName("SDF");
-
-  for (size_t i = 0; i < stlPoints.size(); ++i) {
-    double p[3] = { stlPoints[i][0], stlPoints[i][1], stlPoints[i][2] };
-    ptsSTL->InsertNextPoint(p);
-    // Since these are on the surface, assign SDF = 0.
-    sdfSTL->InsertNextValue(0.0f);
-  }
-
-  vtkSmartPointer<vtkPolyData> polyDataSTL = vtkSmartPointer<vtkPolyData>::New();
-  polyDataSTL->SetPoints(ptsSTL);
-  polyDataSTL->GetPointData()->SetScalars(sdfSTL);
-
-  // Merge the two datasets.
-  vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-  appendFilter->AddInputData(polyDataStructured);
-  appendFilter->AddInputData(polyDataSTL);
-  appendFilter->Update();
-
-  // Instead, use the raw merged output.
-  vtkSmartPointer<vtkPolyData> mergedPolyData = appendFilter->GetOutput();
-
-  // Convert the merged polydata to an unstructured grid via Delaunay3D.
-  vtkSmartPointer<vtkDelaunay3D> delaunay = vtkSmartPointer<vtkDelaunay3D>::New();
-  delaunay->SetInputData(mergedPolyData);
-  delaunay->Update();
-  vtkSmartPointer<vtkUnstructuredGrid> uGrid = delaunay->GetOutput();
-
-  // Extract the iso-surface from the unstructured grid.
-  vtkSmartPointer<vtkContourFilter> contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-  contourFilter->SetInputData(uGrid);
-  contourFilter->SetValue(0, 0.0); // iso–value is 0.
-  contourFilter->Update();
-  vtkPolyData* isoPolyData = contourFilter->GetOutput();
-
-  if (!isoPolyData || !isoPolyData->GetPoints()) {
-    std::cerr << "No iso-surface extracted." << std::endl;
-    return meshData;
-  }
-
-  // Extract iso-surface points.
-  vtkPoints *isoPoints = isoPolyData->GetPoints();
-  vtkIdType numIsoPoints = isoPoints->GetNumberOfPoints();
-  for (vtkIdType i = 0; i < numIsoPoints; ++i) {
-    double p[3];
-    isoPoints->GetPoint(i, p);
-    meshData.points.push_back({ static_cast<dfloat>(p[0]),
-                                 static_cast<dfloat>(p[1]),
-                                 static_cast<dfloat>(p[2]) });
-  }
-
-  // Extract the connectivity (faces) from the iso-surface.
-  vtkCellArray *polys = isoPolyData->GetPolys();
-  if (polys) {
-    polys->InitTraversal();
-    vtkIdType npts;
-    vtkIdType const* pts = nullptr;
-    while (polys->GetNextCell(npts, pts)) {
-      if (npts == 3) {  // we are interested in triangles
-        meshData.faces.push_back({ static_cast<std::size_t>(pts[0]),
-                                    static_cast<std::size_t>(pts[1]),
-                                    static_cast<std::size_t>(pts[2]) });
-      }
-    }
-  }
-
-  return meshData;
-}
-
-
-// Disabled CGAL
-#if 0
-bool isPointOnSurface(const Mesh& triangulatedMesh, const Point_3& queryPoint, dfloat tolerance) {
-    if (triangulatedMesh.is_empty()) {
-        std::cerr << "Error: The triangulated mesh is empty!" << std::endl;
-        return false;
-    }
-
-    // Build AABB tree for fast closest-point queries
-    AABB_Tree tree(faces(triangulatedMesh).first, faces(triangulatedMesh).second, triangulatedMesh);
-    tree.accelerate_distance_queries();
-
-    if (tree.empty()) {
-        std::cerr << "Error: AABB tree construction failed (no triangles in mesh)!" << std::endl;
-        return false;
-    }
-
-    // Find the closest point on the triangulated surface
-    Point_3 closestPoint = tree.closest_point(queryPoint);
-
-    // Compute the squared distance
-    dfloat squaredDist = CGAL::squared_distance(queryPoint, closestPoint);
-
-    // If the squared distance is within the threshold, the point is on the surface
-    return squaredDist < (tolerance * tolerance);
-}
-
-
-
-// Convert faces (std::array<size_t,3>) to a vector of vectors:
-std::vector<std::vector<std::size_t>>
-convertFaces(const std::vector<std::array<std::size_t, 3>>& facesArray)
-{
-  std::vector<std::vector<std::size_t>> faces;
-  for (const auto& arr : facesArray) {
-    faces.push_back({ arr[0], arr[1], arr[2] });
-  }
-  return faces;
-}
-
-
-// Used to construct the mesh after finding the contour surface and to use that mesh to determine whether the STL points lie on that mesh of not
-Mesh createSurfaceMeshFromPoints(const std::vector<Point_3>& points_const,
-                                 const std::vector<std::array<std::size_t, 3>>& faces_array)
-{
-  // Make a mutable copy of the points
-  std::vector<Point_3> points = points_const;
-  // Convert faces from std::array to vector form
-  std::vector<std::vector<std::size_t>> faces = convertFaces(faces_array);
-
-  // Orient the polygon soup (this may modify the order of points in each face)
-  CGAL::Polygon_mesh_processing::orient_polygon_soup(points, faces);
-
-  // Create a surface mesh from the (oriented) polygon soup.
-  Mesh mesh;
-  CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, faces, mesh);
-
-  std::cout << "Successfully created mesh with " << mesh.number_of_faces() << " faces." << std::endl;
-  return mesh;
-}
-#endif
-
-// Helper function to gather STL vertices from all ranks into a single vector on rank 0
-std::vector<Vertex> gatherSTLVertices() {
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    int localSize = STLvertices.size();
-    std::vector<int> allSizes(size);
-    MPI_Allgather(&localSize, 1, MPI_INT, allSizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
-
-    // Calculate displacements on all ranks
-    std::vector<int> displacements(size, 0);
-    int totalSize = allSizes[0];
-    for (int i = 1; i < size; ++i) {
-        displacements[i] = displacements[i - 1] + allSizes[i - 1];
-        totalSize += allSizes[i];
-    }
-
-    // Rank 0 allocates space to receive all data
-    std::vector<Vertex> globalSTL;
-    if (rank == 0) {
-        globalSTL.resize(totalSize);
-    }
-
-    MPI_Gatherv(STLvertices.data(), localSize * sizeof(Vertex), MPI_BYTE,
-                rank == 0 ? globalSTL.data() : nullptr,
-                allSizes.data(), displacements.data(),
-                MPI_BYTE, 0, MPI_COMM_WORLD);
-
-    return globalSTL; // Only valid on rank 0
-}
-
-// Create the triangulated surface, finds the intergration and Lagrangian points, writes the output mesh, makes sure the STL points are on that mesh and computes the area of the traingulated mesh to compare it to the actual STL mesh
+// Reconstruct the interface per element, build forcing/quadrature points,
+// then gather the visualization mesh and compare reconstructed area with STL area.
 void identifyCuttingTrianglesWithIntersections(
     const std::vector<Point>& quadPoints,
     int pointsPerElement,
-    const std::vector<Vertex>& vertices,
-    const std::vector<FacetNormal>& normals,
     const std::vector<dfloat>& sdfValues)
 {
 
     int p = std::cbrt(pointsPerElement) - 1; // Compute polynomial order
 
-    dfloat threshold = 1e-36; // Threshold value
-
-    // Local lists for this rank
-    std::vector<dfloat> xCoords_celem, yCoords_celem, zCoords_celem;
     globalIntegrationPoints.clear();
     globalLagrangePoints.clear();
 
@@ -2396,26 +1448,6 @@ void identifyCuttingTrianglesWithIntersections(
 
     // Loop over all elements
     for (size_t elementIdx = 0; elementIdx < quadPoints.size(); elementIdx += pointsPerElement) {
-        std::vector<dfloat> xCoords_E, yCoords_E, zCoords_E;
-
-        auto isUnique = [&xCoords_E, &yCoords_E, &zCoords_E, &threshold](dfloat x, dfloat y, dfloat z) {
-            for (size_t i = 0; i < xCoords_E.size(); ++i) {
-                if (std::abs(x - xCoords_E[i]) < threshold && std::abs(y - yCoords_E[i]) < threshold && std::abs(z - zCoords_E[i]) < threshold) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        for (int i = 0; i < pointsPerElement; ++i) {
-            int idx = elementIdx + i;
-            if (sdfValues[idx] == 0) {
-                xCoords_E.push_back(quadPoints[idx].px);
-                yCoords_E.push_back(quadPoints[idx].py);
-                zCoords_E.push_back(quadPoints[idx].pz);
-            }
-        }
-
         std::vector<Point> elementQuadPoints(pointsPerElement);
         std::vector<dfloat> elementSdfValues(pointsPerElement);
 
@@ -2425,73 +1457,12 @@ void identifyCuttingTrianglesWithIntersections(
             elementSdfValues[i] = sdfValues[idx];
         }
 
-
         std::vector<std::array<dfloat, 3>> convertedElementQuadPoints = convertPointsToArrays(elementQuadPoints);
         int numX = p + 1;
 
-        auto isoSurfacePoints = extractIsoSurfacePoints(convertedElementQuadPoints, elementSdfValues, numX);
-        bool isCutElement = !isoSurfacePoints.empty();
-
-        if (isCutElement) {
-            dfloat minX = std::numeric_limits<dfloat>::max();
-            dfloat maxX = std::numeric_limits<dfloat>::lowest();
-            dfloat minY = std::numeric_limits<dfloat>::max();
-            dfloat maxY = std::numeric_limits<dfloat>::lowest();
-            dfloat minZ = std::numeric_limits<dfloat>::max();
-            dfloat maxZ = std::numeric_limits<dfloat>::lowest();
-
-            for (int i = 0; i < pointsPerElement; ++i) {
-                int idx = elementIdx + i;
-                dfloat x = quadPoints[idx].px;
-                dfloat y = quadPoints[idx].py;
-                dfloat z = quadPoints[idx].pz;
-
-                minX = std::min(minX, x);
-                maxX = std::max(maxX, x);
-                minY = std::min(minY, y);
-                maxY = std::max(maxY, y);
-                minZ = std::min(minZ, z);
-                maxZ = std::max(maxZ, z);
-            }
-
-            dfloat XedgeMargin = 0.0 * (maxX - minX);
-            dfloat YedgeMargin = 0.0 * (maxY - minY);
-            dfloat ZedgeMargin = 0.0 * (maxZ - minZ);
-
-            for (const auto& vertex : vertices) {
-                bool insideX = (vertex.x > minX + XedgeMargin && vertex.x < maxX - XedgeMargin);  // add margin to add the STL points
-                bool insideY = (vertex.y > minY + YedgeMargin && vertex.y < maxY - YedgeMargin);  // add margin to add the STL points
-                bool insideZ = (vertex.z > minZ + ZedgeMargin && vertex.z < maxZ - ZedgeMargin);  // add margin to add the STL points
-
-                if (insideX && insideY && insideZ) {
-                    if (isUnique(vertex.x, vertex.y, vertex.z)) {
-                        xCoords_E.push_back(vertex.x);
-                        yCoords_E.push_back(vertex.y);
-                        zCoords_E.push_back(vertex.z);
-                    }
-                }
-            }
-        }
-
-        std::vector<Point_3> points;
-        for (size_t i = 0; i < xCoords_E.size(); ++i) {
-            points.push_back(Point_3(xCoords_E[i], yCoords_E[i], zCoords_E[i]));
-        }
-
-        // Extract the iso-surface mesh (both points and faces) from the SDF data plus STL vertices
-        std::vector<std::array<dfloat, 3>> stlPointsConverted = convertPointsToArray(points);
-
-        // If you want to add the original STL points
-        // IsoSurfaceMesh isoMesh = extractIsoSurfaceMeshPlusSTL(convertedElementQuadPoints, elementSdfValues, stlPointsConverted, numX);
-
-        // With no STL points
+        // VTK interpolates the sampled SDF within the element and triangulates
+        // its zero contour. Original STL vertices are not added to this mesh.
         IsoSurfaceMesh isoMesh = extractIsoSurfaceMesh(convertedElementQuadPoints, elementSdfValues, numX);
-
-        // Turn this off now and only use isoMesh
-        //CGAL::grid_simplify_point_set(points, 0.1);
-        //std::vector<std::array<std::size_t, 3>> faces;
-        //CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), std::back_inserter(faces));
-
 
         for (const auto &face : isoMesh.faces) {
 
@@ -2523,16 +1494,9 @@ void identifyCuttingTrianglesWithIntersections(
         }
     }
 
-     // Initialize MPI if not already initialized
-    int initialized;
-    MPI_Initialized(&initialized);
-    if (!initialized) {
-        MPI_Init(NULL, NULL);
-    }
-
     int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(platform->comm.mpiComm(), &rank);
+    MPI_Comm_size(platform->comm.mpiComm(), &size);
 
     //Adjust Face Indices
     // The face indices in localFaces are relative to localPoints.
@@ -2544,7 +1508,7 @@ void identifyCuttingTrianglesWithIntersections(
 
     // Gather the number of points from all processes
     std::vector<int> allLocalNumPoints(size);
-    MPI_Allgather(&localNumPoints, 1, MPI_INT, allLocalNumPoints.data(), 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&localNumPoints, 1, MPI_INT, allLocalNumPoints.data(), 1, MPI_INT, platform->comm.mpiComm());
 
     // Compute the offset for the current rank
     int pointOffset = 0;
@@ -2567,8 +1531,8 @@ void identifyCuttingTrianglesWithIntersections(
 
     // Gather the number of points and faces from all ranks (as element counts)
     std::vector<int> allNumPoints(size), allNumFaces(size);
-    MPI_Gather(&localNumPoints, 1, MPI_INT, allNumPoints.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Gather(&localNumFaces,   1, MPI_INT, allNumFaces.data(),   1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&localNumPoints, 1, MPI_INT, allNumPoints.data(), 1, MPI_INT, 0, platform->comm.mpiComm());
+    MPI_Gather(&localNumFaces,   1, MPI_INT, allNumFaces.data(),   1, MPI_INT, 0, platform->comm.mpiComm());
 
     // Prepare arrays for MPI_Gatherv counts and displacements (on rank 0)
     std::vector<int> recvCountsPoints;
@@ -2602,78 +1566,35 @@ void identifyCuttingTrianglesWithIntersections(
                 globalPoints.data(),
                 (rank == 0 ? recvCountsPoints.data() : nullptr),
                 (rank == 0 ? pointDisplacements.data() : nullptr),
-                MPI_BYTE, 0, MPI_COMM_WORLD);
+                MPI_BYTE, 0, platform->comm.mpiComm());
 
     MPI_Gatherv(localFaces.data(),
                 localNumFaces * sizeof(std::array<std::size_t, 3>), MPI_BYTE,
                 globalFaces.data(),
                 (rank == 0 ? recvCountsFaces.data() : nullptr),
                 (rank == 0 ? faceDisplacements.data() : nullptr),
-                MPI_BYTE, 0, MPI_COMM_WORLD);
+                MPI_BYTE, 0, platform->comm.mpiComm());
 
     //  Write to VTK on Rank 0
     if (rank == 0) {
         // Write the VTK file for the reconstructed mesh
         writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
 
-        // The former CGAL mesh reconstruction was used only by the disabled
-        // point-on-surface diagnostic below.  The active workflow already has
-        // the VTK iso-surface in globalPoints/globalFaces and writes it above.
-
-        // Count how many STL vertices are "on" (within tolerance) the surface.
-        // This CGAL remains disabled.
-        // int countOn = 0, countOff = 0;
-        // for (const auto& vertex : STLvertices) {
-        //     Point_3 queryPoint(vertex.x, vertex.y, vertex.z);
-        //     if (isPointOnSurface(reconstructedMesh, queryPoint, 1e-4))
-        //         countOn++;
-        //     else
-        //         countOff++;
-        // }
-        // std::cout << "Number of STL points on surface: " << countOn << std::endl;
-        // std::cout << "Number of STL points NOT on surface: " << countOff << std::endl;
     }
 
-    // Gather globalLagrangePoints from all ranks to rank 0
-    int localLagrangeCount = globalLagrangePoints.size();
-    std::vector<int> allLagrangeCounts(size);
-    MPI_Allgather(&localLagrangeCount, 1, MPI_INT, allLagrangeCounts.data(), 1, MPI_INT, MPI_COMM_WORLD);
-
-    // Compute displacements and total count
-    std::vector<int> lagrangeDisplacements(size, 0);
-    int totalLagrangeCount = allLagrangeCounts[0];
-    for (int i = 1; i < size; ++i) {
-        lagrangeDisplacements[i] = lagrangeDisplacements[i - 1] + allLagrangeCounts[i - 1];
-        totalLagrangeCount += allLagrangeCounts[i];
+    // Check conservation of surface quadrature weights: each centroid carries
+    // its triangle area. Reduce the scalar sum rather than gather all points.
+    dfloat localArea = 0.0;
+    for (const auto& point : globalLagrangePoints) {
+        localArea += point.weight;
     }
+    dfloat triangulatedArea = 0.0;
+    static_assert(sizeof(dfloat) == sizeof(double),
+                  "This tutorial's MPI area reduction assumes double precision");
+    MPI_Reduce(&localArea, &triangulatedArea, 1, MPI_DOUBLE, MPI_SUM,
+               0, platform->comm.mpiComm());
 
-    // Prepare receive buffer on rank 0
-    std::vector<LagrangePoint> gatheredLagrangePoints;
     if (rank == 0) {
-        gatheredLagrangePoints.resize(totalLagrangeCount);
-    }
-
-    std::vector<int> byteCounts(size);
-    std::vector<int> byteDisplacements(size);
-    for (int i = 0; i < size; ++i) {
-        byteCounts[i] = allLagrangeCounts[i] * sizeof(LagrangePoint);
-        byteDisplacements[i] = lagrangeDisplacements[i] * sizeof(LagrangePoint);
-    }
-
-    // Use MPI_Gatherv to gather the struct as raw bytes
-    MPI_Gatherv(globalLagrangePoints.data(), localLagrangeCount * sizeof(LagrangePoint), MPI_BYTE,
-                rank == 0 ? gatheredLagrangePoints.data() : nullptr,
-                byteCounts.data(), byteDisplacements.data(),
-                MPI_BYTE, 0, MPI_COMM_WORLD);
-
-
-    // Rank 0 computes triangulated area from all Lagrange points
-    if (rank == 0) {
-        dfloat triangulatedArea = 0.0;
-        for (const auto& iL : gatheredLagrangePoints) {
-            triangulatedArea += iL.weight;
-        }
-
         // Compute the area of the STL surface
         dfloat stlSurfaceArea = computeSTLSurfaceArea(STLvertices);
 
@@ -2687,11 +1608,8 @@ void identifyCuttingTrianglesWithIntersections(
         std::cout << "Absolute Difference: " << absoluteDifference << std::endl;
         std::cout << "Relative Difference: " << relativeDifference * 100.0 << " %" << std::endl;
     }
-//
-    if (!initialized) {
-        MPI_Finalize();
-    }
 }
+
 
 // Main Function
 int main2() {
@@ -2702,7 +1620,7 @@ int main2() {
         // Classify points using VTK
         std::vector<double> distances = classifyPointsWithVTK(quad_points, kSTLFile);
 
-        //Classify using EMBREE
+        //uncomment to use EMBREE
         // std::vector<double> distances = classifyPointsWithEMBREE(quad_points, kSTLFile);
 
         sdfValues.resize(quad_points.size());
@@ -2711,7 +1629,8 @@ int main2() {
         }
 
         // Call the function to identify cutting triangles with intersections
-        identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement, STLvertices, STLnormals, sdfValues);
+        identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement, sdfValues);
+
 
         return 0; // Indicate successful execution
     } else {
@@ -2719,3 +1638,4 @@ int main2() {
         return 1; // Indicate failure
     }
 }
+
