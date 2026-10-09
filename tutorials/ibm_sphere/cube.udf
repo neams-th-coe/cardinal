@@ -1,0 +1,1641 @@
+#include "udf.hpp"
+#include "declare_main2.hpp"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <vector>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+#include <iomanip>
+#include <mpi.h>
+#include <map>
+#include <array>
+#include <occa.hpp>
+#include <utility>
+#include <cstdlib>
+#include <cassert>
+#include <type_traits>
+
+#ifdef __okl__
+#include "cube.oudf"
+#endif
+
+// Uncomment if you want to include CGAL
+// #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+// #include <CGAL/Surface_mesh.h>
+// #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+// #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
+// #include <CGAL/squared_distance_3.h>
+// #include <CGAL/AABB_tree.h>
+// #include <CGAL/AABB_traits.h>
+// #include <CGAL/AABB_face_graph_triangle_primitive.h>
+
+// Uncomment if you want to include libigl
+// libigl
+// #include <igl/readPLY.h>
+// #include <igl/marching_cubes.h>
+
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkPoints.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkStructuredGrid.h>
+#include <vtkPointData.h>
+#include <vtkFloatArray.h>
+#include <vtkContourFilter.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkHexahedron.h>
+#include <vtkCellArray.h>
+#include <vtkXMLUnstructuredGridWriter.h>
+#include <vtkXMLStructuredGridWriter.h>
+#include <vtkDelaunay3D.h>
+#include <vtkVertexGlyphFilter.h>
+#include <vtkCleanPolyData.h>
+#include <vtkIdList.h>
+#include <vtkImplicitPolyDataDistance.h>
+#include <vtkSTLReader.h>
+#include <vtkGeometryFilter.h>
+#include <vtkAppendPolyData.h>
+#include <vtkTriangleFilter.h>
+
+// Uncomment if you want to include embree for ray tracing
+// embree
+//#include <embree4/rtcore.h>
+//#include <embree4/rtcore_common.h>
+
+
+
+struct Point_3 {
+    dfloat xValue = 0.0;
+    dfloat yValue = 0.0;
+    dfloat zValue = 0.0;
+
+    Point_3() = default;
+    Point_3(dfloat x, dfloat y, dfloat z) : xValue(x), yValue(y), zValue(z) {}
+
+    dfloat x() const { return xValue; }
+    dfloat y() const { return yValue; }
+    dfloat z() const { return zValue; }
+};
+
+static_assert(std::is_trivially_copyable<Point_3>::value,
+              "Point_3 remain copyable for MPI_BYTE gathers");
+
+
+struct Vertex {
+    dfloat x, y, z;
+};
+
+struct Vector {
+    dfloat vx, vy, vz;
+};
+
+struct FacetNormal {
+    dfloat nx, ny, nz;
+};
+
+struct Point {
+    dfloat px, py, pz;
+};
+
+struct Triangle {
+    Vertex v0, v1, v2;
+};
+
+// A structure to hold an integration point and its weight
+struct IntegrationPoint {
+    Point_3 position;
+    dfloat weight;
+    std::array<dfloat, 3> normal;  // normal
+};
+
+// A structure to hold a Lagrange point, its weight, the characteristicArea, characteristicLength, the element number it cuts
+struct LagrangePoint {
+    Point_3 position;
+    dfloat weight;
+    dfloat characteristicArea;
+    dfloat characteristicLength;
+    int elementNumber; //  field to store the element number
+    std::array<dfloat, 3> normal;  // normal
+};
+
+// Structure to hold iso-surface data: points and normals.
+struct IsoSurfaceData {
+  std::vector<std::array<dfloat, 3>> points;
+  std::vector<std::array<dfloat, 3>> normals;
+};
+
+// Define a structure to hold an iso-surface mesh (points and triangle connectivity)
+struct IsoSurfaceMesh {
+  std::vector<std::array<dfloat, 3>> points;
+  std::vector<std::array<std::size_t, 3>> faces;
+};
+
+
+std::vector<Point_3> globalPoints; // All Immersed surface points
+std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface faces
+
+
+// Define a global variable to hold the integrationPoints
+std::vector<IntegrationPoint> globalIntegrationPoints;
+
+// Define a global variable to hold the LagrangePoints
+std::vector<LagrangePoint> globalLagrangePoints;
+
+std::vector<Vertex> STLvertices;  // Declare vertices as a global variable
+std::vector<FacetNormal> STLnormals;  // Declare normals as global
+
+
+// declare user-defined device kernel
+static deviceKernel PenaltyNoSlipBCKernel;
+static deviceKernel viscosityKernel;
+
+// ============================================================
+// STL filename
+// ============================================================
+static const std::string kSTLFile = "small_sphere.stl";
+
+// Define quad_points as a static variable to use it in main2()
+static std::vector<Point> quad_points;
+
+// Define an array (or a vector) to store SDF values
+static std::vector<dfloat> sdfValues;
+
+// define the number of quadrature points per element as a static variable
+static int QuadPointsPerElement;
+
+// Vectors to hold the Lagrange velocities values on the host
+static std::vector<dfloat> uL_host;
+
+
+// BC from the IBM
+void PenaltyNoSlipBCCustomSource(double time)
+{
+    auto mesh = nrs->meshV;
+    auto o_U = nrs->fluid->o_U;
+    auto o_FU = nrs->fluid->o_explicitTerms();
+
+    // Lagrange points
+    size_t numLagrangePoints = globalLagrangePoints.size();
+
+    std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
+    std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
+    std::vector<int>   ElementNumber(numLagrangePoints);
+    std::vector<dfloat> normal_x(numLagrangePoints), normal_y(numLagrangePoints), normal_z(numLagrangePoints);
+
+
+    for (size_t i = 0; i < numLagrangePoints; ++i) {
+        xLagrange[i] = globalLagrangePoints[i].position.x();
+        yLagrange[i] = globalLagrangePoints[i].position.y();
+        zLagrange[i] = globalLagrangePoints[i].position.z();
+        characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
+        Area[i] = globalLagrangePoints[i].weight;
+        characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
+        ElementNumber[i] = globalLagrangePoints[i].elementNumber;
+
+        // normal
+        normal_x[i] = globalLagrangePoints[i].normal[0];
+        normal_y[i] = globalLagrangePoints[i].normal[1];
+        normal_z[i] = globalLagrangePoints[i].normal[2];
+    }
+
+    occa::memory o_xLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_yLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_zLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_characteristicArea = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_characteristicLength = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_ElementNumber = platform->device.malloc(numLagrangePoints * sizeof(int));
+    occa::memory o_normal_x = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_normal_y = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_normal_z = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+
+    // Copy Lagrange points from host to device
+    o_xLagrange.copyFrom(xLagrange.data());
+    o_yLagrange.copyFrom(yLagrange.data());
+    o_zLagrange.copyFrom(zLagrange.data());
+    o_characteristicArea.copyFrom(characteristicArea.data());
+    o_characteristicLength.copyFrom(characteristicLength.data());
+    o_ElementNumber.copyFrom(ElementNumber.data());
+    o_normal_x.copyFrom(normal_x.data());
+    o_normal_y.copyFrom(normal_y.data());
+    o_normal_z.copyFrom(normal_z.data());
+
+
+    // Allocate memory on the device for the velocity at the Lagrange Points
+    occa::memory o_uLx = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_uLy = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+    occa::memory o_uLz = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+
+    occa::memory o_uL = platform->device.malloc(nrs->meshV->dim * numLagrangePoints * sizeof(dfloat));
+    occa::memory o_pL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
+
+    // Set up interpolator for velocity and pressure
+    static pointInterpolation_t* interpolator = nullptr;   // for velocity
+    static pointInterpolation_t* interpolator2 = nullptr;    // for pressure
+
+
+    // Set up the variables coming from findpts
+    static std::vector<int>    elemHost;
+    static std::vector<dfloat> rxHost, ryHost, rzHost;
+
+    if (!interpolator) {
+        interpolator = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
+        interpolator->setPoints(xLagrange, yLagrange, zLagrange);
+        interpolator->find();
+        // Information about the elements containing the Lagrangian points and their local coordinates
+        auto &dat = interpolator->data();
+
+        // Resize vectors
+        elemHost.resize(numLagrangePoints);
+        rxHost.resize(numLagrangePoints);
+        ryHost.resize(numLagrangePoints);
+        rzHost.resize(numLagrangePoints);
+
+        // Fill host arrays from the findpts data
+        for (int i = 0; i < numLagrangePoints; i++) {
+          elemHost[i] = dat.el[i];
+          // dat.r stores (xi, eta, zeta) contiguously for each Lagrange point
+          rxHost[i] = dat.r[3*i + 0];
+          ryHost[i] = dat.r[3*i + 1];
+          rzHost[i] = dat.r[3*i + 2];
+        }
+    }
+
+    // Build mapping from element to its Lagrange points
+    int nElements = nrs->meshV->Nelements;
+    // Count number of Lagrange points per element
+    std::vector<int> elementCounts(nElements, 0);
+    for (size_t i = 0; i < numLagrangePoints; i++) {
+        int e = elemHost[i];
+        elementCounts[e]++;
+    }
+
+    // Build offsets array
+    std::vector<int> elementOffsets(nElements+1, 0);
+    for (int e = 0; e < nElements; e++) {
+        elementOffsets[e+1] = elementOffsets[e] + elementCounts[e];
+    }
+
+    // Build a contiguous list of Lagrange point indices for each element
+    std::vector<int> elementLagrangeIndices(numLagrangePoints, 0);
+    std::vector<int> currentIndex = elementOffsets; // start positions for each element
+    for (size_t i = 0; i < numLagrangePoints; i++) {
+        int e = elemHost[i];
+        elementLagrangeIndices[currentIndex[e]++] = i;
+    }
+
+
+    // Transfer the mapping arrays to the device
+    occa::memory o_elemList = platform->device.malloc(numLagrangePoints * sizeof(int), elemHost.data());
+    occa::memory o_rx       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rxHost.data());
+    occa::memory o_ry       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), ryHost.data());
+    occa::memory o_rz       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rzHost.data());
+
+    occa::memory o_elementOffsets = platform->device.malloc((nElements+1) * sizeof(int), elementOffsets.data());
+    occa::memory o_elementLagrangeIndices = platform->device.malloc(numLagrangePoints * sizeof(int), elementLagrangeIndices.data());
+
+    // Evaluate velocity and pressure at the Lagrange points
+    interpolator->eval(nrs->meshV->dim, nrs->fluid->fieldOffset, o_U, numLagrangePoints, o_uL);
+
+    if (!interpolator2) {
+        interpolator2 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
+        interpolator2->setPoints(xLagrange, yLagrange, zLagrange);
+        interpolator2->find();
+    }
+    interpolator2->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numLagrangePoints, o_pL);
+
+
+    // Passing the sdf values for the calculation of mu
+    occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
+
+  // Call the kernel for each velocity component, now passing the element mapping arrays
+    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
+                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+                          o_U, 0 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
+                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
+                            nrs->dt[0],
+                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
+                          0, o_uL,
+                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
+                          o_elemList, o_rx, o_ry, o_rz,
+                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
+                          o_elementOffsets, o_elementLagrangeIndices, nrs->fluid->o_P, nrs->meshV->o_D);
+
+    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
+                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+                          o_U, 1 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
+                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
+                           nrs->dt[0],
+                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
+                          1, o_uL,
+                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
+                          o_elemList, o_rx, o_ry, o_rz,
+                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
+                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
+
+    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
+                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+                          o_U, 2 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
+                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
+                           nrs->dt[0],
+                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
+                          2, o_uL,
+                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
+                          o_elemList, o_rx, o_ry, o_rz,
+                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
+                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
+
+    // Resize host-side containers for returning velocity information
+    uL_host.resize(nrs->meshV->dim * numLagrangePoints);
+
+    // Copy uL values back to the host
+    o_uL.copyTo(uL_host.data());
+}
+
+
+
+// Changing viscosity
+void material_props(double time)
+{
+    auto mesh = nrs->meshV;
+    int n_gll_points = mesh->Np * mesh->Nelements;
+    int dataSize = n_gll_points;
+    occa::memory o_sdfValues = platform->device.malloc(dataSize * sizeof(dfloat));
+
+
+    // Copy sdfValues from host to device
+     o_sdfValues.copyFrom(sdfValues.data());
+
+    //viscosity
+    auto o_mue = nrs->fluid->o_diffusionCoeff();
+    viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
+}
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+    // "PenaltyNoSlipBC" is the name in the .oudf file
+    // BC
+    PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
+
+    // Viscosity
+    viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
+}
+
+void UDF_Setup()
+{
+
+    auto mesh = nrs->meshV;
+    int n_gll_points = mesh->Np * mesh->Nelements;
+
+    // kernel for adding the BC as a force
+    nrs->userSource = &PenaltyNoSlipBCCustomSource;
+
+    // kernel for changing the visosity
+    nrs->userProperties = &material_props;
+
+
+    int Nelements = mesh->Nelements;
+
+    QuadPointsPerElement = mesh->Np;
+
+    // Initialize quad_points and velocity initial condition
+
+    if (quad_points.empty())
+    {
+        quad_points.resize(n_gll_points);
+
+        std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
+        mesh->o_x.copyTo(x.data());
+        mesh->o_y.copyTo(y.data());
+        mesh->o_z.copyTo(z.data());
+
+        std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+
+        for (int n = 0; n < n_gll_points; ++n)
+        {
+            U[n + 0 * nrs->fluid->fieldOffset] = 0.0;  // x-velocity
+            U[n + 1 * nrs->fluid->fieldOffset] = 0.0;  // y-velocity
+            U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
+
+            quad_points[n].px = x[n];
+            quad_points[n].py = y[n];
+            quad_points[n].pz = z[n];
+        }
+
+        nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+
+    }
+
+     main2(); // Call main2 after quad_points
+
+}
+
+
+
+// Function to compute the area of a triangle given its vertices (used to compute the area of the traingulated surface, STL surface, and weight of Lagrangian and integration points)
+dfloat computeTriangleArea(const Point_3& v1, const Point_3& v2, const Point_3& v3) {
+    const dfloat ax = v2.x() - v1.x();
+    const dfloat ay = v2.y() - v1.y();
+    const dfloat az = v2.z() - v1.z();
+    const dfloat bx = v3.x() - v1.x();
+    const dfloat by = v3.y() - v1.y();
+    const dfloat bz = v3.z() - v1.z();
+
+    const dfloat crossX = ay * bz - az * by;
+    const dfloat crossY = az * bx - ax * bz;
+    const dfloat crossZ = ax * by - ay * bx;
+
+    return 0.5 * std::sqrt(crossX * crossX +
+                           crossY * crossY +
+                           crossZ * crossZ);
+}
+
+// Function to compute the total surface area of the STL file
+dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices) {
+    dfloat totalArea = 0.0;
+
+    // Ensure the STL file contains triangles (3 vertices per face)
+    if (vertices.size() % 3 != 0) {
+        std::cerr << "Error: STL file does not contain a valid set of triangles!" << std::endl;
+        return 0.0;
+    }
+
+    // Iterate over the triangles in the STL file
+    for (size_t i = 0; i < vertices.size(); i += 3) {
+        // Extract the three vertices of the triangle
+        const Vertex& v1 = vertices[i];
+        const Vertex& v2 = vertices[i + 1];
+        const Vertex& v3 = vertices[i + 2];
+
+        // Compute the area of the triangle
+        dfloat area = computeTriangleArea(Point_3(v1.x, v1.y, v1.z),
+                                          Point_3(v2.x, v2.y, v2.z),
+                                          Point_3(v3.x, v3.y, v3.z));
+
+        // Accumulate the total area
+        totalArea += area;
+    }
+
+    return totalArea;
+}
+
+
+void UDF_ExecuteStep(double time, int tstep)
+{
+
+    if (tstep == 0) {
+
+        // Surface quadrature diagnostic on this rank
+        dfloat integratedValue = 0.0; // This will hold the result of the numerical integration
+
+        // Use globalIntegrationPoints
+        for (const auto& ip : globalIntegrationPoints) {
+            // Calculate the function value at the integration point
+            dfloat fValue = (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)) *  std::exp(-2 * (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
+
+            // Multiply by the weight of the integration point and accumulate
+            integratedValue += fValue * ip.weight;
+        }
+
+        // Output the result of the numerical integration
+        std::cout << "Integrated value of f(x,y,z) over the surface: " << integratedValue << std::endl;
+    }
+
+    // Diagnostic: write z-velocity at a specific time step
+    if (tstep > 0 && nrs->checkpointStep) {
+
+        // Determine rank and size
+        int rank, size;
+        MPI_Comm_rank(platform->comm.mpiComm(), &rank);
+        MPI_Comm_size(platform->comm.mpiComm(), &size);
+
+        // Number of Lagrange Points on this rank
+        size_t numLagrangePoints = globalLagrangePoints.size();
+
+        // Convert Lagrange z point velocities to a string format for each rank
+        std::ostringstream localBuffer;
+        for (size_t i = 0; i < numLagrangePoints; ++i) {
+            localBuffer << std::setprecision(6)
+                        <<  uL_host[i + 2 * numLagrangePoints] << "\n";                    // z-velocity
+        }
+
+        // Convert the stringstream to a standard string to get the size
+        std::string localData = localBuffer.str();
+        MPI_Offset localDataSize = static_cast<MPI_Offset>(localData.size());
+
+        // Gather all sizes to calculate the global offset for each rank
+        std::vector<MPI_Offset> allDataSizes(size);
+        MPI_Allgather(&localDataSize, 1, MPI_OFFSET, allDataSizes.data(), 1, MPI_OFFSET, platform->comm.mpiComm());
+
+        // Calculate offsets for each rank
+        std::vector<MPI_Offset> offsets(size);
+        offsets[0] = 0;
+        for (int i = 1; i < size; ++i) {
+            offsets[i] = offsets[i - 1] + allDataSizes[i - 1];
+        }
+
+        // Collective truncation avoids a race between rank-zero deletion and open.
+        MPI_File fh;
+        MPI_File_open(platform->comm.mpiComm(), "uL_values_readable.txt", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+        MPI_File_set_size(fh, 0);
+
+        // Set the view for each rank to write at its calculated offset
+        MPI_File_set_view(fh, offsets[rank], MPI_CHAR, MPI_CHAR, "native", MPI_INFO_NULL);
+
+        // Write the local data
+        MPI_File_write(fh, localData.c_str(), localDataSize, MPI_CHAR, MPI_STATUS_IGNORE);
+
+        // Close the file
+        MPI_File_close(&fh);
+
+        // Print confirmation from rank 0
+        if (rank == 0) {
+            std::cout << "Lagrange z-velocities successfully written to uL_values_readable.txt by all ranks." << std::endl;
+        }
+    }
+
+}
+
+// Parsing STL file
+bool try_parse_float(const std::string& token, dfloat& value) {
+    try {
+        size_t pos;
+        value = std::stof(token, &pos);
+        return pos == token.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+
+// Parse ASCII STL vertices for the reference area diagnostic.
+bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::vector<FacetNormal>& normals) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    std::string ignore;
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        iss >> ignore;
+
+        if (ignore == "vertex") {
+            // Parse vertex coordinates
+            Vertex vertex;
+            for (int i = 0; i < 3; ++i) {
+                std::string token;
+                iss >> token;
+                if (!try_parse_float(token, i == 0 ? vertex.x : (i == 1 ? vertex.y : vertex.z))) {
+                    std::cerr << "Error parsing vertex coordinates." << std::endl;
+                    return false;
+                }
+            }
+            vertices.push_back(vertex);
+        } else if (ignore == "facet") {
+            // Parse facet normal
+            FacetNormal normal;
+            iss >> ignore >> normal.nx >> normal.ny >> normal.nz;
+            normals.push_back(normal);
+        }
+    }
+
+    return true;
+}
+
+
+// -------------------------------------------------------------
+// Embree-based  Distance (bounding volume hierarchy tree ) &  Ray-Tracing Sign
+// uncomment if you want to use embree
+// -------------------------------------------------------------
+
+
+//struct EmbreeVec3 {
+//    float x, y, z;
+//    EmbreeVec3() = default;
+//    EmbreeVec3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
+//};
+//
+//inline EmbreeVec3 operator-(const EmbreeVec3 &a, const EmbreeVec3 &b) {
+//    return EmbreeVec3(a.x - b.x, a.y - b.y, a.z - b.z);
+//}
+//
+//inline EmbreeVec3 operator+(const EmbreeVec3 &a, const EmbreeVec3 &b) {
+//    return EmbreeVec3(a.x + b.x, a.y + b.y, a.z + b.z);
+//}
+//
+//inline EmbreeVec3 operator*(const EmbreeVec3 &a, float s) {
+//    return EmbreeVec3(a.x * s, a.y * s, a.z * s);
+//}
+//
+//inline float embreeDot(const EmbreeVec3 &a, const EmbreeVec3 &b) {
+//    return a.x*b.x + a.y*b.y + a.z*b.z;
+//}
+//
+//inline EmbreeVec3 embreeCross(const EmbreeVec3 &a, const EmbreeVec3 &b) {
+//    return EmbreeVec3(
+//        a.y*b.z - a.z*b.y,
+//        a.z*b.x - a.x*b.z,
+//        a.x*b.y - a.y*b.x
+//    );
+//}
+//
+//inline float embreeLength(const EmbreeVec3 &v) {
+//    return std::sqrt(embreeDot(v, v));
+//}
+//
+//inline EmbreeVec3 embreeNormalize(const EmbreeVec3 &v) {
+//    float len2 = embreeDot(v, v);
+//    if (len2 <= 0.0f)
+//        return EmbreeVec3(0.f, 0.f, 0.f);
+//    float invLen = 1.0f / std::sqrt(len2);
+//    return EmbreeVec3(v.x * invLen, v.y * invLen, v.z * invLen);
+//}
+//
+//// Tiny deterministic jitter based on coordinates (to avoid sitting exactly on edges)
+//inline EmbreeVec3 jitterPoint(const EmbreeVec3 &p, float scale) {
+//    // Cheap hash-like function
+//    float jx = std::fmod(std::fabs(p.y * 0.3183099f + p.z * 0.137f), 1.0f) - 0.5f;
+//    float jy = std::fmod(std::fabs(p.z * 0.273f     + p.x * 0.501f), 1.0f) - 0.5f;
+//    float jz = std::fmod(std::fabs(p.x * 0.707f     + p.y * 0.413f), 1.0f) - 0.5f;
+//    return EmbreeVec3(p.x + scale*jx, p.y + scale*jy, p.z + scale*jz);
+//}
+//
+//// -------------------------------------------------------------
+//// Embree mesh container
+//// -------------------------------------------------------------
+//
+//struct EmbreeMesh {
+//    RTCDevice device = nullptr;
+//    RTCScene  scene  = nullptr;
+//    std::vector<float>        vertices;  // 3*numPts
+//    std::vector<unsigned int> indices;   // 3*numTris
+//
+//    EmbreeVec3 bboxMin;
+//    EmbreeVec3 bboxMax;
+//    bool       hasBounds = false;
+//    float      bboxDiag  = 1.0f;
+//};
+
+// Global mesh + flag
+//static EmbreeMesh g_embreeMesh;
+//static bool       g_embreeInitialized = false;
+
+//// -------------------------------------------------------------
+//// Closest point on triangle and distance
+//// -------------------------------------------------------------
+//
+//inline float closestPointTriangleEmbree(const EmbreeVec3 &p,
+//                                        const EmbreeVec3 &a,
+//                                        const EmbreeVec3 &b,
+//                                        const EmbreeVec3 &c,
+//                                        EmbreeVec3 &closest)
+//{
+//    // Based on "Real-Time Collision Detection"
+//    EmbreeVec3 ab = b - a;
+//    EmbreeVec3 ac = c - a;
+//    EmbreeVec3 ap = p - a;
+//
+//    float d1 = embreeDot(ab, ap);
+//    float d2 = embreeDot(ac, ap);
+//    if (d1 <= 0.0f && d2 <= 0.0f) {
+//        closest = a;
+//        return embreeLength(p - a);
+//    }
+//
+//    EmbreeVec3 bp = p - b;
+//    float d3 = embreeDot(ab, bp);
+//    float d4 = embreeDot(ac, bp);
+//    if (d3 >= 0.0f && d4 <= d3) {
+//        closest = b;
+//        return embreeLength(p - b);
+//    }
+//
+//    float vc = d1*d4 - d3*d2;
+//    if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+//        float v = d1 / (d1 - d3);
+//        closest = EmbreeVec3(a.x + v*ab.x, a.y + v*ab.y, a.z + v*ab.z);
+//        return embreeLength(p - closest);
+//    }
+//
+//    EmbreeVec3 cp = p - c;
+//    float d5 = embreeDot(ab, cp);
+//    float d6 = embreeDot(ac, cp);
+//    if (d6 >= 0.0f && d5 <= d6) {
+//        closest = c;
+//        return embreeLength(p - c);
+//    }
+//
+//    float vb = d5*d2 - d1*d6;
+//    if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+//        float w = d2 / (d2 - d6);
+//        closest = EmbreeVec3(a.x + w*ac.x, a.y + w*ac.y, a.z + w*ac.z);
+//        return embreeLength(p - closest);
+//    }
+//
+//    float va = d3*d6 - d5*d4;
+//    if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+//        float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+//        EmbreeVec3 bc = c - b;
+//        closest = EmbreeVec3(b.x + w*bc.x, b.y + w*bc.y, b.z + w*bc.z);
+//        return embreeLength(p - closest);
+//    }
+//
+//    float denom = 1.0f / (va + vb + vc);
+//    float v = vb * denom;
+//    float w = vc * denom;
+//    float u = 1.0f - v - w;
+//    closest = EmbreeVec3(
+//        a.x * u + b.x * v + c.x * w,
+//        a.y * u + b.y * v + c.y * w,
+//        a.z * u + b.z * v + c.z * w
+//    );
+//    return embreeLength(p - closest);
+//}
+//
+//// -------------------------------------------------------------
+//// Embree point query (distance magnitude)
+//// -------------------------------------------------------------
+//
+//struct ClosestDataEmbree {
+//    const EmbreeMesh *mesh = nullptr;
+//    EmbreeVec3 query;
+//    float minDist = std::numeric_limits<float>::infinity();
+//    EmbreeVec3 closestPoint;
+//};
+//
+//inline bool embreePointQueryFunc(RTCPointQueryFunctionArguments* args)
+//{
+//    auto *data = static_cast<ClosestDataEmbree *>(args->userPtr);
+//    const EmbreeMesh *mesh = data->mesh;
+//
+//    RTCPointQuery *q = args->query;
+//    EmbreeVec3 p(q->x, q->y, q->z);
+//
+//    unsigned int primID = args->primID;
+//    unsigned int idx0 = mesh->indices[3*primID + 0];
+//    unsigned int idx1 = mesh->indices[3*primID + 1];
+//    unsigned int idx2 = mesh->indices[3*primID + 2];
+//
+//    const float *v = mesh->vertices.data();
+//    EmbreeVec3 a(v[3*idx0+0], v[3*idx0+1], v[3*idx0+2]);
+//    EmbreeVec3 b(v[3*idx1+0], v[3*idx1+1], v[3*idx1+2]);
+//    EmbreeVec3 c(v[3*idx2+0], v[3*idx2+1], v[3*idx2+2]);
+//
+//    // Skip degenerate triangles
+//    EmbreeVec3 n = embreeCross(b - a, c - a);
+//    float nlen2 = embreeDot(n, n);
+//    if (nlen2 < 1e-16f)
+//        return true;
+//
+//    EmbreeVec3 cp;
+//    float dist = closestPointTriangleEmbree(p, a, b, c, cp);
+//
+//    if (!std::isfinite(dist))
+//        return true;
+//
+//    if (dist < data->minDist) {
+//        data->minDist      = dist;
+//        data->closestPoint = cp;
+//        // shrink radius to prune other primitives
+//        args->query->radius = dist;
+//    }
+//
+//    return true; // keep searching
+//}
+//
+//inline float closestDistanceEmbree(const EmbreeMesh &mesh,
+//                                   const EmbreeVec3 &p,
+//                                   EmbreeVec3 &closestPointOut)
+//{
+//    RTCPointQuery query{};
+//    query.x = p.x;
+//    query.y = p.y;
+//    query.z = p.z;
+//
+//    // Start with something finite to help pruning
+//    if (mesh.hasBounds)
+//        query.radius = mesh.bboxDiag * 2.0f;
+//    else
+//        query.radius = std::numeric_limits<float>::infinity();
+//    query.time   = 0.0f;
+//
+//    RTCPointQueryContext context{};
+//    rtcInitPointQueryContext(&context);
+//
+//    ClosestDataEmbree data;
+//    data.mesh    = &mesh;
+//    data.query   = p;
+//    data.minDist = std::numeric_limits<float>::infinity();
+//
+//    rtcPointQuery(mesh.scene, &query, &context, embreePointQueryFunc, &data);
+//
+//    if (data.minDist == std::numeric_limits<float>::infinity()) {
+//        closestPointOut = p;
+//        return std::numeric_limits<float>::infinity();
+//    }
+//
+//    closestPointOut = data.closestPoint;
+//    return data.minDist;
+//}
+
+
+// Embree ray intersection counting (to determine whether the point is outside or inside)
+
+
+//inline int countRayIntersections(const EmbreeMesh &mesh,
+//                                 const EmbreeVec3 &origin,
+//                                 const EmbreeVec3 &direction,
+//                                 int maxHits = 64)
+//{
+//    EmbreeVec3 dir = embreeNormalize(direction);
+//    float dirLen2 = embreeDot(dir, dir);
+//    if (dirLen2 <= 0.0f)
+//        return 0;
+//
+//    int hits = 0;
+//
+//    float tMax;
+//    if (mesh.hasBounds)
+//        tMax = 4.0f * mesh.bboxDiag; // generous length across the domain
+//    else
+//        tMax = 1e6f;
+//
+//    float tAccum = 0.0f;
+//    const float eps = (mesh.hasBounds ? 1e-4f * mesh.bboxDiag : 1e-4f);
+//
+//    for (int i = 0; i < maxHits; ++i) {
+//        if (tAccum >= tMax)
+//            break;
+//
+//        RTCRayHit rayhit{};
+//        // Shift the origin along the ray by tAccum to avoid using huge tnear
+//        EmbreeVec3 o = origin + dir * tAccum;
+//
+//        rayhit.ray.org_x = o.x;
+//        rayhit.ray.org_y = o.y;
+//        rayhit.ray.org_z = o.z;
+//
+//        rayhit.ray.dir_x = dir.x;
+//        rayhit.ray.dir_y = dir.y;
+//        rayhit.ray.dir_z = dir.z;
+//
+//        rayhit.ray.tnear = eps;
+//        rayhit.ray.tfar  = tMax - tAccum;
+//        rayhit.ray.time  = 0.0f;
+//        rayhit.ray.mask  = ~0u;
+//        rayhit.ray.flags = 0;
+//
+//        rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
+//        rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
+//
+//        RTCIntersectArguments args{};
+//        rtcInitIntersectArguments(&args);
+//
+//        rtcIntersect1(mesh.scene, &rayhit, &args);
+//
+//        if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
+//            break; // no more intersections
+//
+//        ++hits;
+//
+//        float step = rayhit.ray.tfar + eps;
+//        if (step <= 0.0f)
+//            break;
+//
+//        tAccum += step;
+//    }
+//
+//    return hits;
+//}
+//
+//
+//// Inside/outside test via multi-direction parity vote
+//
+//inline bool isInsideByRayCasting(const EmbreeMesh &mesh,
+//                                 const EmbreeVec3 &pRaw)
+//{
+//    // Jitter the origin slightly to avoid exactly lying on edges/vertices
+//    float jitterScale = mesh.hasBounds ? (1e-5f * mesh.bboxDiag) : 1e-5f;
+//    EmbreeVec3 p = jitterPoint(pRaw, jitterScale);
+//
+//    // A small set of well-distributed directions (deterministic)
+//    const EmbreeVec3 dirs[] = {
+//        EmbreeVec3( 1.f,  0.3f,  0.2f),
+//        EmbreeVec3(-0.4f, 1.f,   0.1f),
+//        EmbreeVec3( 0.2f, 0.3f,  1.f),
+//        EmbreeVec3(-1.f, -0.2f,  0.5f),
+//        EmbreeVec3( 0.3f,-1.f,   0.7f),
+//        EmbreeVec3( 0.6f, 0.7f, -1.f),
+//        EmbreeVec3( 1.f, -0.8f,  0.2f),
+//        EmbreeVec3(-0.5f, 0.9f, -0.3f),
+//        EmbreeVec3( 0.4f,-0.6f,  1.f),
+//        EmbreeVec3(-0.7f,-0.4f,  1.f)
+//    };
+//
+//    int insideVotes  = 0;
+//    int outsideVotes = 0;
+//
+//    const int numDirs = static_cast<int>(sizeof(dirs)/sizeof(dirs[0]));
+//    for (int i = 0; i < numDirs; ++i) {
+//        int hits = countRayIntersections(mesh, p, dirs[i]);
+//        bool inside_i = (hits % 2 == 1);
+//        if (inside_i) insideVotes++;
+//        else          outsideVotes++;
+//    }
+//
+//    if (insideVotes > outsideVotes)
+//        return true;
+//    if (outsideVotes > insideVotes)
+//        return false;
+//
+//    // Tie / ambiguous → conservative choice: treat as outside
+//    return false;
+//}
+//
+//
+//// Build Embree mesh from STL using VTK (with cleaning)
+//
+//
+//inline EmbreeMesh buildEmbreeMeshFromSTL(const std::string &stlFilename)
+//{
+//    EmbreeMesh mesh;
+//
+//    auto reader = vtkSmartPointer<vtkSTLReader>::New();
+//    reader->SetFileName(stlFilename.c_str());
+//    reader->Update();
+//
+//    // Clean the mesh (remove duplicates / degenerate points)
+//    auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+//    cleaner->SetInputConnection(reader->GetOutputPort());
+//    cleaner->PointMergingOn();
+//    cleaner->Update();
+//
+//    // Ensure we have pure triangles
+//    auto triang = vtkSmartPointer<vtkTriangleFilter>::New();
+//    triang->SetInputConnection(cleaner->GetOutputPort());
+//    triang->Update();
+//
+//    vtkPolyData *polyData = triang->GetOutput();
+//
+//    if (!polyData || polyData->GetNumberOfPoints() == 0) {
+//        std::cerr << "[Embree] ERROR: Failed to load STL or STL has zero points: "
+//                  << stlFilename << std::endl;
+//        return mesh;
+//    }
+//
+//    vtkIdType numPts   = polyData->GetNumberOfPoints();
+//    vtkIdType numCells = polyData->GetNumberOfCells();
+//
+//    mesh.vertices.resize(3 * numPts);
+//
+//    // Initialize bbox
+//    double p0[3];
+//    polyData->GetPoint(0, p0);
+//    mesh.bboxMin = EmbreeVec3(static_cast<float>(p0[0]),
+//                              static_cast<float>(p0[1]),
+//                              static_cast<float>(p0[2]));
+//    mesh.bboxMax = mesh.bboxMin;
+//
+//    for (vtkIdType i = 0; i < numPts; ++i) {
+//        double p[3];
+//        polyData->GetPoint(i, p);
+//        float x = static_cast<float>(p[0]);
+//        float y = static_cast<float>(p[1]);
+//        float z = static_cast<float>(p[2]);
+//
+//        mesh.vertices[3*i + 0] = x;
+//        mesh.vertices[3*i + 1] = y;
+//        mesh.vertices[3*i + 2] = z;
+//
+//        mesh.bboxMin.x = std::min(mesh.bboxMin.x, x);
+//        mesh.bboxMin.y = std::min(mesh.bboxMin.y, y);
+//        mesh.bboxMin.z = std::min(mesh.bboxMin.z, z);
+//        mesh.bboxMax.x = std::max(mesh.bboxMax.x, x);
+//        mesh.bboxMax.y = std::max(mesh.bboxMax.y, y);
+//        mesh.bboxMax.z = std::max(mesh.bboxMax.z, z);
+//    }
+//    mesh.hasBounds = true;
+//    EmbreeVec3 diag(mesh.bboxMax.x - mesh.bboxMin.x,
+//                    mesh.bboxMax.y - mesh.bboxMin.y,
+//                    mesh.bboxMax.z - mesh.bboxMin.z);
+//    mesh.bboxDiag = std::max(embreeLength(diag), 1e-3f); // avoid zero
+//
+//    mesh.indices.reserve(3 * numCells);
+//    for (vtkIdType c = 0; c < numCells; ++c) {
+//        vtkCell *cell = polyData->GetCell(c);
+//        if (!cell || cell->GetNumberOfPoints() != 3)
+//            continue; // skip non-triangles (shouldn't happen after TriangleFilter)
+//
+//        vtkIdType id0 = cell->GetPointId(0);
+//        vtkIdType id1 = cell->GetPointId(1);
+//        vtkIdType id2 = cell->GetPointId(2);
+//        mesh.indices.push_back(static_cast<unsigned int>(id0));
+//        mesh.indices.push_back(static_cast<unsigned int>(id1));
+//        mesh.indices.push_back(static_cast<unsigned int>(id2));
+//    }
+//
+//    unsigned int numTris = mesh.indices.size() / 3;
+//    if (numTris == 0) {
+//        std::cerr << "[Embree] ERROR: STL produced zero triangles!" << std::endl;
+//        return mesh;
+//    }
+//
+//    // Create Embree device + scene
+//    mesh.device = rtcNewDevice(nullptr);
+//    if (!mesh.device) {
+//        std::cerr << "[Embree] ERROR: rtcNewDevice() failed" << std::endl;
+//        return mesh;
+//    }
+//
+//    mesh.scene = rtcNewScene(mesh.device);
+//
+//    // Robust/high quality settings
+//    rtcSetSceneFlags(mesh.scene, RTC_SCENE_FLAG_ROBUST);
+//    rtcSetSceneBuildQuality(mesh.scene, RTC_BUILD_QUALITY_HIGH);
+//
+//    RTCGeometry geom = rtcNewGeometry(mesh.device, RTC_GEOMETRY_TYPE_TRIANGLE);
+//
+//    // Vertex buffer
+//    float *vb = (float *) rtcSetNewGeometryBuffer(
+//        geom, RTC_BUFFER_TYPE_VERTEX, 0,
+//        RTC_FORMAT_FLOAT3, 3 * sizeof(float), numPts
+//    );
+//    std::memcpy(vb, mesh.vertices.data(), 3 * numPts * sizeof(float));
+//
+//    // Index buffer
+//    unsigned int *ib = (unsigned int *) rtcSetNewGeometryBuffer(
+//        geom, RTC_BUFFER_TYPE_INDEX, 0,
+//        RTC_FORMAT_UINT3, 3 * sizeof(unsigned int), numTris
+//    );
+//    std::memcpy(ib, mesh.indices.data(), 3 * numTris * sizeof(unsigned int));
+//
+//    rtcCommitGeometry(geom);
+//    rtcAttachGeometry(mesh.scene, geom);
+//    rtcReleaseGeometry(geom);
+//
+//    rtcCommitScene(mesh.scene);
+//
+//    std::cout << "[Embree] Built scene from " << stlFilename
+//              << " with " << numPts << " vertices and "
+//              << numTris << " triangles."
+//              << std::endl;
+//
+//    return mesh;
+//}
+
+
+// Signed distance: magnitude (point query) + sign (ray-tracing)
+
+
+//inline double signedDistanceHybridEmbree(const EmbreeMesh &mesh,
+//                                         const EmbreeVec3 &p)
+//{
+//    EmbreeVec3 closest;
+//    float d = closestDistanceEmbree(mesh, p, closest); // accurate magnitude
+//
+//    if (!std::isfinite(d)) {
+//        // No geometry nearby
+//        return std::numeric_limits<double>::infinity();
+//    }
+//
+//    bool inside = isInsideByRayCasting(mesh, p); // robust parity sign
+//
+//    double sdf = static_cast<double>(d);
+//    return inside ? -sdf : +sdf;
+//}
+//
+//// Now compute SDF
+//
+//inline std::vector<double> classifyPointsWithEMBREE(
+//    const std::vector<Point>& testPoints,
+//    const std::string& stlFilename)
+//{
+//    if (!g_embreeInitialized) {
+//        g_embreeMesh = buildEmbreeMeshFromSTL(stlFilename);
+//        if (!g_embreeMesh.scene) {
+//            std::cerr << "[Embree] ERROR: Scene not initialized; returning zeros.\n";
+//            return std::vector<double>(testPoints.size(), 0.0);
+//        }
+//        g_embreeInitialized = true;
+//    }
+//
+//    std::vector<double> sdf(testPoints.size());
+//
+//    for (size_t i = 0; i < testPoints.size(); ++i) {
+//        const auto &pt = testPoints[i];
+//        EmbreeVec3 p(
+//            static_cast<float>(pt.px),
+//            static_cast<float>(pt.py),
+//            static_cast<float>(pt.pz)
+//        );
+//        sdf[i] = signedDistanceHybridEmbree(g_embreeMesh, p);
+//    }
+//
+//    return sdf;
+//}
+
+
+// -------------------------------------------------------------
+// Embree End
+// -------------------------------------------------------------
+
+
+// Classify Points using VTK  (determines the signed distances magnitude & sign by reading the GLL points and the STL file)
+// This is a different approach to what embree is doing
+
+std::vector<double> classifyPointsWithVTK(const std::vector<Point>& testPoints, const std::string& stlFilename) {
+    // Load the STL file
+    vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+    reader->SetFileName(stlFilename.c_str());
+    reader->Update();
+    vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
+
+    // Create an implicit function based on the polydata
+    vtkSmartPointer<vtkImplicitPolyDataDistance> implicitDistance =
+    vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    implicitDistance->SetInput(polyData);
+
+    // Compute signed distances for all test points
+    std::vector<double> distances(testPoints.size());
+    for (size_t i = 0; i < testPoints.size(); ++i) {
+        const auto& point = testPoints[i];
+        double queryPoint[3] = { point.px, point.py, point.pz };
+        distances[i] = implicitDistance->EvaluateFunction(queryPoint);
+    }
+    return distances;
+}
+
+// Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
+void writeSurfaceMeshToVTK(
+    const std::string& filename,
+    const std::vector<Point_3>& points,
+    const std::vector<std::array<std::size_t, 3>>& faces) {
+
+    std::ofstream vtkFile(filename);
+
+    // Write VTK header
+    vtkFile << "# vtk DataFile Version 3.0\n";
+    vtkFile << "Surface Mesh Data\n";
+    vtkFile << "ASCII\n";
+    vtkFile << "DATASET POLYDATA\n";
+
+    // Write vertices
+    vtkFile << "POINTS " << points.size() << " double\n";
+    for (const auto& point : points) {
+        vtkFile << point.x() << " " << point.y() << " " << point.z() << "\n";
+    }
+
+    // Write faces
+    vtkFile << "POLYGONS " << faces.size() << " " << (4 * faces.size()) << "\n";
+    for (const auto& face : faces) {
+        vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
+    }
+
+    vtkFile.close();
+}
+
+// Function to compute 3-point Gauss integration points for a triangle and their weights
+std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
+    const Point_3& v1, const Point_3& v2, const Point_3& v3)
+{
+    // 3-point Gaussian integration rule (barycentric coordinates)
+    std::array<std::array<dfloat, 3>, 3> barycentricPoints = {{
+        {1.0 / 6, 1.0 / 6, 2.0 / 3},
+        {2.0 / 3, 1.0 / 6, 1.0 / 6},
+        {1.0 / 6, 2.0 / 3, 1.0 / 6}
+    }};
+
+    // Compute area of triangle
+    dfloat area = computeTriangleArea(v1, v2, v3);
+
+    // Equal weights for the 3-point Gaussian rule
+    dfloat weight = area / 3.0;
+
+    std::vector<IntegrationPoint> integrationPoints;
+    integrationPoints.reserve(3);
+
+    // Initialize STL implicit surface for normal computation
+    static vtkSmartPointer<vtkPolyData> s_stlPoly = nullptr;
+    static vtkSmartPointer<vtkImplicitPolyDataDistance> s_sdf = nullptr;
+    static bool s_initTried = false;
+
+    if (!s_initTried) {
+        s_initTried = true;
+        vtkNew<vtkSTLReader> reader;
+        reader->SetFileName(kSTLFile.c_str());
+        reader->Update();
+        vtkPolyData* poly = reader->GetOutput();
+        if (poly && poly->GetNumberOfCells() > 0) {
+            s_stlPoly = poly;
+            vtkNew<vtkImplicitPolyDataDistance> ipd;
+            ipd->SetInput(s_stlPoly);
+            s_sdf = ipd;
+        } else {
+            std::cerr << "[computeIntegrationPointsForTriangle] ERROR: Failed to load STL or STL has no cells.\n";
+        }
+    }
+
+    // Loop over integration points
+    for (const auto& bary : barycentricPoints) {
+        Point_3 position(
+            bary[0] * v1.x() + bary[1] * v2.x() + bary[2] * v3.x(),
+            bary[0] * v1.y() + bary[1] * v2.y() + bary[2] * v3.y(),
+            bary[0] * v1.z() + bary[1] * v2.z() + bary[2] * v3.z()
+        );
+
+        std::array<dfloat, 3> normal = {0.0, 0.0, 0.0};
+
+        if (s_sdf) {
+            double q[3] = { position.x(), position.y(), position.z() };
+            double cp[3] = {0, 0, 0};
+            (void)s_sdf->EvaluateFunctionAndGetClosestPoint(q, cp);
+            double g[3] = {0.0, 0.0, 0.0};
+            s_sdf->EvaluateGradient(cp, g);
+
+            const double len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
+            if (len > 0.0) {
+                normal = { static_cast<dfloat>(g[0]/len),
+                           static_cast<dfloat>(g[1]/len),
+                           static_cast<dfloat>(g[2]/len) };
+            } else {
+                std::cerr << "[computeIntegrationPointsForTriangle] WARNING: Zero-length SDF gradient at integration point.\n";
+            }
+        } else {
+            std::cerr << "[computeIntegrationPointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
+        }
+
+        // Store the integration point
+        integrationPoints.push_back({ position, weight, normal });
+    }
+
+    return integrationPoints;
+}
+
+// Function to compute 1-point Lagrange point for a triangle and its weight
+std::vector<LagrangePoint> computeLagrangePointsForTriangle(
+    const Point_3& v1, const Point_3& v2, const Point_3& v3, int elementNumber)
+{
+    std::array<dfloat, 3> barycentricPoint = {1.0 / 3, 1.0 / 3, 1.0 / 3};
+    dfloat area = computeTriangleArea(v1, v2, v3);
+
+    const auto edgeLength = [](const Point_3& a, const Point_3& b) {
+        const dfloat dx = b.x() - a.x();
+        const dfloat dy = b.y() - a.y();
+        const dfloat dz = b.z() - a.z();
+        return std::sqrt(dx * dx + dy * dy + dz * dz);
+    };
+
+    const dfloat L1 = edgeLength(v1, v2);
+    const dfloat L2 = edgeLength(v2, v3);
+    const dfloat L3 = edgeLength(v3, v1);
+    dfloat characteristicLength = (L1 + L2 + L3) / 3.0;
+    dfloat P = (L1 + L2 + L3) / 2.0;
+    dfloat characteristicArea = sqrt(P * (P - L1) * (P - L2) * (P - L3));
+    dfloat weight = area;
+
+    Point_3 position(
+        barycentricPoint[0] * v1.x() + barycentricPoint[1] * v2.x() + barycentricPoint[2] * v3.x(),
+        barycentricPoint[0] * v1.y() + barycentricPoint[1] * v2.y() + barycentricPoint[2] * v3.y(),
+        barycentricPoint[0] * v1.z() + barycentricPoint[1] * v2.z() + barycentricPoint[2] * v3.z()
+    );
+
+    // Normal from gradient of STL signed distance (VTK)
+    static vtkSmartPointer<vtkPolyData> s_stlPoly = nullptr;
+    static vtkSmartPointer<vtkImplicitPolyDataDistance> s_sdf = nullptr;
+    static bool s_initTried = false;
+
+    if (!s_initTried) {
+        s_initTried = true;
+        vtkNew<vtkSTLReader> reader;
+        reader->SetFileName(kSTLFile.c_str());
+        reader->Update();
+        vtkPolyData* poly = reader->GetOutput();
+        if (poly && poly->GetNumberOfCells() > 0) {
+            s_stlPoly = poly;
+            vtkNew<vtkImplicitPolyDataDistance> ipd;
+            ipd->SetInput(s_stlPoly);
+            s_sdf = ipd;
+        } else {
+            std::cerr << "[computeLagrangePointsForTriangle] ERROR: Failed to load STL or STL has no cells.\n";
+        }
+    }
+
+    std::array<dfloat, 3> normal = {0.0, 0.0, 0.0};
+    if (s_sdf) {
+        double q[3] = { position.x(), position.y(), position.z() };
+        double cp[3] = {0,0,0};
+        (void)s_sdf->EvaluateFunctionAndGetClosestPoint(q, cp);
+        double g[3] = { 0.0, 0.0, 0.0 };
+        s_sdf->EvaluateGradient(cp, g);
+
+        const double len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
+        if (len > 0.0) {
+            normal = { static_cast<dfloat>(g[0]/len),
+                       static_cast<dfloat>(g[1]/len),
+                       static_cast<dfloat>(g[2]/len) };
+        } else {
+            std::cerr << "[computeLagrangePointsForTriangle] ERROR: Zero-length SDF gradient at Lagrange point.\n";
+        }
+    } else {
+        std::cerr << "[computeLagrangePointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
+    }
+    return { {position, weight, characteristicArea, characteristicLength, elementNumber, normal} };
+}
+
+// Function to convert points to array
+std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point>& points) {
+    std::vector<std::array<dfloat, 3>> arrays;
+    for (const auto& point : points) {
+        arrays.push_back({point.px, point.py, point.pz});
+    }
+    return arrays;
+}
+
+// Extract an iso-surface mesh (points and faces) from the given structured grid data.
+IsoSurfaceMesh extractIsoSurfaceMesh(const std::vector<std::array<dfloat, 3>> &myPoints,
+                                      const std::vector<dfloat> &mySDFValues,
+                                      const int numX)
+{
+  IsoSurfaceMesh meshData;
+
+  if (myPoints.empty() || mySDFValues.empty()) {
+    // Return empty mesh if no input.
+    return meshData;
+  }
+
+  // Create VTK points and scalar array.
+  vtkSmartPointer<vtkPoints> vtkPts = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkFloatArray> sdfArray = vtkSmartPointer<vtkFloatArray>::New();
+  for (size_t i = 0; i < myPoints.size(); ++i) {
+    double p[3] = { myPoints[i][0], myPoints[i][1], myPoints[i][2] };
+    vtkPts->InsertNextPoint(p);
+    sdfArray->InsertNextValue(static_cast<dfloat>(mySDFValues[i]));
+  }
+
+  // Create a VTK structured grid.
+  vtkSmartPointer<vtkStructuredGrid> structuredGrid = vtkSmartPointer<vtkStructuredGrid>::New();
+  int dims[3] = { numX, numX, numX };
+  structuredGrid->SetDimensions(dims);
+  structuredGrid->SetPoints(vtkPts);
+  structuredGrid->GetPointData()->SetScalars(sdfArray);
+
+  // Extract the iso-surface using vtkContourFilter.
+  vtkSmartPointer<vtkContourFilter> contourFilter = vtkSmartPointer<vtkContourFilter>::New();
+  contourFilter->SetInputData(structuredGrid);
+  contourFilter->SetValue(0, 0.0); // Extract the 0 level-set.
+  contourFilter->Update();
+
+  vtkPolyData *isoPolyData = contourFilter->GetOutput();
+  if (!isoPolyData || !isoPolyData->GetPoints()) {
+    std::cerr << "No iso-surface extracted." << std::endl;
+    return meshData;
+  }
+
+  // Extract iso-surface points.
+  vtkPoints *isoPoints = isoPolyData->GetPoints();
+  vtkIdType numIsoPoints = isoPoints->GetNumberOfPoints();
+  for (vtkIdType i = 0; i < numIsoPoints; ++i) {
+    double p[3];
+    isoPoints->GetPoint(i, p);
+    meshData.points.push_back({ static_cast<dfloat>(p[0]),
+                                 static_cast<dfloat>(p[1]),
+                                 static_cast<dfloat>(p[2]) });
+  }
+
+  // Extract the connectivity (faces) from the iso-surface.
+  vtkCellArray *polys = isoPolyData->GetPolys();
+  if (polys) {
+    polys->InitTraversal();
+    vtkIdType npts;
+    vtkIdType const* pts = nullptr;
+    while (polys->GetNextCell(npts, pts)) {
+      if (npts == 3) {  // we are interested in triangles
+        meshData.faces.push_back({ static_cast<std::size_t>(pts[0]),
+                                    static_cast<std::size_t>(pts[1]),
+                                    static_cast<std::size_t>(pts[2]) });
+      }
+    }
+  }
+
+  return meshData;
+}
+
+// Reconstruct the interface per element, build forcing/quadrature points,
+// then gather the visualization mesh and compare reconstructed area with STL area.
+void identifyCuttingTrianglesWithIntersections(
+    const std::vector<Point>& quadPoints,
+    int pointsPerElement,
+    const std::vector<dfloat>& sdfValues)
+{
+
+    int p = std::cbrt(pointsPerElement) - 1; // Compute polynomial order
+
+    globalIntegrationPoints.clear();
+    globalLagrangePoints.clear();
+
+    std::vector<Point_3> localPoints;
+    std::vector<std::array<std::size_t, 3>> localFaces;
+
+    // Loop over all elements
+    for (size_t elementIdx = 0; elementIdx < quadPoints.size(); elementIdx += pointsPerElement) {
+        std::vector<Point> elementQuadPoints(pointsPerElement);
+        std::vector<dfloat> elementSdfValues(pointsPerElement);
+
+        for (int i = 0; i < pointsPerElement; ++i) {
+            int idx = elementIdx + i;
+            elementQuadPoints[i] = quadPoints[idx];
+            elementSdfValues[i] = sdfValues[idx];
+        }
+
+        std::vector<std::array<dfloat, 3>> convertedElementQuadPoints = convertPointsToArrays(elementQuadPoints);
+        int numX = p + 1;
+
+        // VTK interpolates the sampled SDF within the element and triangulates
+        // its zero contour. Original STL vertices are not added to this mesh.
+        IsoSurfaceMesh isoMesh = extractIsoSurfaceMesh(convertedElementQuadPoints, elementSdfValues, numX);
+
+        for (const auto &face : isoMesh.faces) {
+
+            Point_3 v1(isoMesh.points[face[0]][0], isoMesh.points[face[0]][1], isoMesh.points[face[0]][2]);
+            Point_3 v2(isoMesh.points[face[1]][0], isoMesh.points[face[1]][1], isoMesh.points[face[1]][2]);
+            Point_3 v3(isoMesh.points[face[2]][0], isoMesh.points[face[2]][1], isoMesh.points[face[2]][2]);
+
+            auto integrationPoints = computeIntegrationPointsForTriangle(v1, v2, v3);
+            auto LagrangePoints    = computeLagrangePointsForTriangle(v1, v2, v3, elementIdx / pointsPerElement);
+
+            globalIntegrationPoints.insert(globalIntegrationPoints.end(), integrationPoints.begin(), integrationPoints.end());
+            globalLagrangePoints.insert(globalLagrangePoints.end(), LagrangePoints.begin(), LagrangePoints.end());
+        }
+
+        // Adjust face indices
+        // Compute offset for the current element.
+        size_t offset = localPoints.size();
+        // Append the points from this element.
+        for (const auto& pt : isoMesh.points) {
+            localPoints.push_back(Point_3(pt[0], pt[1], pt[2]));
+        }
+
+        // Adjust each face index and then append the faces.
+        for (auto& face : isoMesh.faces) {
+            face[0] += offset;
+            face[1] += offset;
+            face[2] += offset;
+            localFaces.push_back(face);
+        }
+    }
+
+    int rank, size;
+    MPI_Comm_rank(platform->comm.mpiComm(), &rank);
+    MPI_Comm_size(platform->comm.mpiComm(), &size);
+
+    //Adjust Face Indices
+    // The face indices in localFaces are relative to localPoints.
+    // To create a consistent global mesh, each rank's face indices must be offset
+    // by the total number of points from all lower-ranked processes.
+
+    // Get the number of local points
+    int localNumPoints = localPoints.size();
+
+    // Gather the number of points from all processes
+    std::vector<int> allLocalNumPoints(size);
+    MPI_Allgather(&localNumPoints, 1, MPI_INT, allLocalNumPoints.data(), 1, MPI_INT, platform->comm.mpiComm());
+
+    // Compute the offset for the current rank
+    int pointOffset = 0;
+    for (int i = 0; i < rank; ++i) {
+        pointOffset += allLocalNumPoints[i];
+    }
+
+    // Adjust each local face by adding the point offset
+    for (auto &face : localFaces) {
+        face[0] += pointOffset;
+        face[1] += pointOffset;
+        face[2] += pointOffset;
+    }
+
+    // === Step 1: Gather All Points and Faces ===
+    std::vector<Point_3> globalPoints;
+    std::vector<std::array<std::size_t, 3>> globalFaces;
+
+    int localNumFaces = localFaces.size();
+
+    // Gather the number of points and faces from all ranks (as element counts)
+    std::vector<int> allNumPoints(size), allNumFaces(size);
+    MPI_Gather(&localNumPoints, 1, MPI_INT, allNumPoints.data(), 1, MPI_INT, 0, platform->comm.mpiComm());
+    MPI_Gather(&localNumFaces,   1, MPI_INT, allNumFaces.data(),   1, MPI_INT, 0, platform->comm.mpiComm());
+
+    // Prepare arrays for MPI_Gatherv counts and displacements (on rank 0)
+    std::vector<int> recvCountsPoints;
+    std::vector<int> recvCountsFaces;
+    std::vector<int> pointDisplacements(size, 0), faceDisplacements(size, 0);
+
+    if (rank == 0) { // rank 0 does the conversion
+        recvCountsPoints.resize(size);
+        recvCountsFaces.resize(size);
+        int totalBytesPoints = 0;
+        int totalBytesFaces = 0;
+        for (int i = 0; i < size; ++i) {
+            // Convert element counts to byte counts
+            recvCountsPoints[i] = allNumPoints[i] * sizeof(Point_3);
+            recvCountsFaces[i]  = allNumFaces[i]  * sizeof(std::array<std::size_t, 3>);
+            if (i > 0) {
+                pointDisplacements[i] = pointDisplacements[i-1] + recvCountsPoints[i-1];
+                faceDisplacements[i]  = faceDisplacements[i-1]  + recvCountsFaces[i-1];
+            }
+            totalBytesPoints += recvCountsPoints[i];
+            totalBytesFaces  += recvCountsFaces[i];
+        }
+        // Resize global vectors to hold all the data
+        globalPoints.resize(totalBytesPoints / sizeof(Point_3));
+        globalFaces.resize(totalBytesFaces / sizeof(std::array<std::size_t, 3>));
+    }
+
+    //  Gather Data Using MPI_Gatherv with MPI_BYTE
+    MPI_Gatherv(localPoints.data(),
+                localNumPoints * sizeof(Point_3), MPI_BYTE,
+                globalPoints.data(),
+                (rank == 0 ? recvCountsPoints.data() : nullptr),
+                (rank == 0 ? pointDisplacements.data() : nullptr),
+                MPI_BYTE, 0, platform->comm.mpiComm());
+
+    MPI_Gatherv(localFaces.data(),
+                localNumFaces * sizeof(std::array<std::size_t, 3>), MPI_BYTE,
+                globalFaces.data(),
+                (rank == 0 ? recvCountsFaces.data() : nullptr),
+                (rank == 0 ? faceDisplacements.data() : nullptr),
+                MPI_BYTE, 0, platform->comm.mpiComm());
+
+    //  Write to VTK on Rank 0
+    if (rank == 0) {
+        // Write the VTK file for the reconstructed mesh
+        writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
+
+    }
+
+    // Check conservation of surface quadrature weights: each centroid carries
+    // its triangle area. Reduce the scalar sum rather than gather all points.
+    dfloat localArea = 0.0;
+    for (const auto& point : globalLagrangePoints) {
+        localArea += point.weight;
+    }
+    dfloat triangulatedArea = 0.0;
+    static_assert(sizeof(dfloat) == sizeof(double),
+                  "This tutorial's MPI area reduction assumes double precision");
+    MPI_Reduce(&localArea, &triangulatedArea, 1, MPI_DOUBLE, MPI_SUM,
+               0, platform->comm.mpiComm());
+
+    if (rank == 0) {
+        // Compute the area of the STL surface
+        dfloat stlSurfaceArea = computeSTLSurfaceArea(STLvertices);
+
+        // Compute the absolute and relative differences
+        dfloat absoluteDifference = std::fabs(triangulatedArea - stlSurfaceArea);
+        dfloat relativeDifference = absoluteDifference / stlSurfaceArea;
+
+        // Output the results
+        std::cout << "STL Surface Area: " << stlSurfaceArea << std::endl;
+        std::cout << "Triangulated Surface Area: " << triangulatedArea << std::endl;
+        std::cout << "Absolute Difference: " << absoluteDifference << std::endl;
+        std::cout << "Relative Difference: " << relativeDifference * 100.0 << " %" << std::endl;
+    }
+}
+
+
+// Main Function
+int main2() {
+    // Parse the STL file
+    if (parse_stl(kSTLFile, STLvertices, STLnormals)) {
+        const std::vector<Point>& testPoints = quad_points;
+
+        // Classify points using VTK
+        std::vector<double> distances = classifyPointsWithVTK(quad_points, kSTLFile);
+
+        //uncomment to use EMBREE
+        // std::vector<double> distances = classifyPointsWithEMBREE(quad_points, kSTLFile);
+
+        sdfValues.resize(quad_points.size());
+        for (size_t i = 0; i < quad_points.size(); ++i) {
+            sdfValues[i] = static_cast<dfloat>(distances[i]);
+        }
+
+        // Call the function to identify cutting triangles with intersections
+        identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement, sdfValues);
+
+
+        return 0; // Indicate successful execution
+    } else {
+        std::cerr << "Parsing failed." << std::endl;
+        return 1; // Indicate failure
+    }
+}
+

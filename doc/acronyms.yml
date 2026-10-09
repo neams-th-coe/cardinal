@@ -13,6 +13,7 @@ DAGMC: Direct Accelerated Geometry Monte Carlo
 DDES: Delayed Detached Eddy Simulation
 DNPs: Delayed Neutron Precursors
 DNS: Direct Numerical Simulation
+DOFs: Degrees of Freedom
 ECP: Exascale Computing Project
 EEIID: Extra Element Integer ID
 EOS: Equation of State
@@ -21,6 +22,7 @@ GCE: General Computing Environment
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
+IBM: Immersed Boundary Method
 IDDES: Improved Delayed Detached Eddy Simulation
 LES: Large Eddy Simulation
 LWR: Light Water Reactor
@@ -49,3 +51,4 @@ UQ: Uncertainty Quantification
 VTB: Virtual Test Bed
 V&V: Verification and Validation
 VR: Variance Reduction
+VTK: Visualization Toolkit
