@@ -475,7 +475,6 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
                              @restrict const dfloat* normal_x,
                              @restrict const dfloat* normal_y,
                              @restrict const dfloat* normal_z,
-                             const dfloat penaltyCoefficient,
                              const dfloat dt,
                              @restrict const dfloat* Al,
                              @restrict const dfloat* Sl,
@@ -493,8 +492,7 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
                              @restrict dfloat* pressure,
                              @restrict const int* elementOffsets,
                              @restrict const int* elementLagrangeIndices,
-                             @restrict dfloat* Eulerian_pressure, 
-                             @restrict dfloat* uL_prev,           
+                             @restrict dfloat* Eulerian_pressure,
                              @restrict const dfloat* D)
 {
     // Polynomial order for each dimension
@@ -543,7 +541,7 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
                     // Calculate the force term based on the interpolated velocity at the Lagrangian point
                     dfloat forceTerm = -uL_component / dt;
                     
-                    if (sdf[pd] < 0) { //  (i had it multiplied by 0.7)
+                    if (sdf[pd] < 0) { //  (0.7 prevents unstabilities for the current application)
                       source[id] = -   0.7 * velocities[id] / dt; // where we have the solid part
                       
                     } else {
