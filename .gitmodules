@@ -13,9 +13,6 @@
 [submodule "contrib/sockeye"]
 	path = contrib/sockeye
 	url = git@github.inl.gov:ncrc/sockeye.git
-[submodule "contrib/sodium"]
-	path = contrib/sodium
-	url = git@github.inl.gov:ncrc/sodium.git
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
