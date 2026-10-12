@@ -19,9 +19,6 @@
 [submodule "contrib/potassium"]
 	path = contrib/potassium
 	url = git@github.inl.gov:ncrc/potassium.git
-[submodule "contrib/iapws95"]
-	path = contrib/iapws95
-	url = git@github.inl.gov:ncrc/iapws95.git
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
