@@ -16,9 +16,6 @@
 [submodule "contrib/sodium"]
 	path = contrib/sodium
 	url = git@github.inl.gov:ncrc/sodium.git
-[submodule "contrib/potassium"]
-	path = contrib/potassium
-	url = git@github.inl.gov:ncrc/potassium.git
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
