@@ -15,10 +15,10 @@ $(DOUBLEDOWN_BUILDDIR)/Makefile: build_moab build_embree | $(DOUBLEDOWN_DIR)/CMa
 	$(DOUBLEDOWN_DIR)
 
 build_doubledown: | $(DOUBLEDOWN_BUILDDIR)/Makefile
-	make VERBOSE=1 -C $(DOUBLEDOWN_BUILDDIR) install
+	$(MAKE) VERBOSE=1 -C $(DOUBLEDOWN_BUILDDIR) install
 
 cleanall_doubledown: | $(DOUBLEDOWN_BUILDDIR)/Makefile
-	make -C $(DOUBLEDOWN_BUILDDIR) clean
+	$(MAKE) -C $(DOUBLEDOWN_BUILDDIR) clean
 
 clobber_doubledown:
 	rm -rf $(DOUBLEDOWN_LIB) $(DOUBLEDOWN_BUILDDIR) $(DOUBLEDOWN_INSTALL_DIR)

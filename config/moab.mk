@@ -20,10 +20,10 @@ $(MOAB_BUILDDIR)/Makefile: $(MOAB_DIR)/CMakeLists.txt
 	$(MOAB_DIR)
 
 build_moab: | $(MOAB_BUILDDIR)/Makefile
-	make VERBOSE=1 -C $(MOAB_BUILDDIR) install
+	$(MAKE) VERBOSE=1 -C $(MOAB_BUILDDIR) install
 
 cleanall_moab: | $(MOAB_BUILDDIR)/Makefile
-	make -C $(MOAB_BUILDDIR) uninstall clean
+	$(MAKE) -C $(MOAB_BUILDDIR) uninstall clean
 
 clobber_moab:
 	rm -rf $(MOAB_LIB) $(MOAB_BUILDDIR) $(MOAB_INSTALL_DIR)
