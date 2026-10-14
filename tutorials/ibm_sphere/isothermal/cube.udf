@@ -159,7 +159,7 @@ static deviceKernel viscosityKernel;
 // ============================================================
 // STL filename
 // ============================================================
-static const std::string kSTLFile = "small_sphere.stl";
+static const std::string kSTLFile = "../small_sphere.stl";
 
 // Define quad_points as a static variable to use it in main2()
 static std::vector<Point> quad_points;

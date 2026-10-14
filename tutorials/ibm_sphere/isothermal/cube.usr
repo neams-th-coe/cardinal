@@ -28,9 +28,11 @@ c-----------------------------------------------------------------------
 
       do iel=1,nelt
       do ifc=1,6
-      if (boundaryID(ifc,iel).eq.3) then ! rename sideset 3 to 1 
+      if (boundaryID(ifc,iel).eq.3) then ! rename sideset 3 to 1
           boundaryID(ifc,iel) = 1
-       else ! NekRS wants all non-sideset faces to be boundary 0
+      else if (boundaryID(ifc,iel).eq.4) then ! rename sideset 4 to 1
+          boundaryID(ifc,iel) = 2
+      else ! NekRS wants all non-sideset faces to be boundary 0
           boundaryID(ifc,iel) = 0
       endif
       enddo

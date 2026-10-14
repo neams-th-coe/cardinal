@@ -8,11 +8,14 @@
   writeInterval = 1000
   constFlowRate = meanVelocity=1.0 + direction=Z
 
+[MESH]
+  file = "../cube.re2"
+
 [FLUID PRESSURE]
   residualTol = 1e-05
 
 [FLUID VELOCITY]
-  boundaryTypeMap = zeroDirichlet
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet
   residualTol = 1e-08
   viscosity = 0.02
   density = 1.0

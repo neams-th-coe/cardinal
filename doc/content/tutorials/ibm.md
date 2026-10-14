@@ -3,7 +3,8 @@
 In this tutorial, you will learn:
 
 - The basic concepts of immersed boundary methods
-- How to build a flow simulation in NekRS using the [!ac](IBM)
+- How to build an isothermal flow simulation in NekRS using the [!ac](IBM)
+- How to apply the [!ac](IBM) for heat flux boundary conditions in NekRS
 
 To access this tutorial,
 
@@ -22,8 +23,8 @@ more advanced feature sets are described in [!cite](hegazy_ibm).
 The [!ac](IBM) was introduced in the early 1970s by Peskin, originally formulated for deformable boundaries with applications to biological flows at low Reynolds number [!cite](peskin).
 Since this time, there have been hundreds of papers published on the method, with many variants and different applications. IBMs have been developed for most major classes of spatial discretizations (e.g., finite difference [!cite](fadlun,ikeno),
 finite volume [!cite](wongkham), spectral methods [!cite](goldstein,hegazy_thesis),
-finite elements [!cite](cervone) and turbulence models (e.g. [!ac](LES) [!cite](hegazy_thesis,ikeno),
-[!ac](RANS) [!cite](cervone). Excellent overviews of the history of the
+finite elements [!cite](cervone)) and turbulence models (e.g. [!ac](LES) [!cite](hegazy_thesis,ikeno),
+[!ac](RANS) [!cite](cervone)). Excellent overviews of the history of the
 field can be found in [!cite](Mittal2005, Kim2019, articlemittal2022, verzicco2023immersed, PhysRevFluids.8.100501, hegazy_thesis). In this tutorial, only a
 general overview of IBMs is provided to outline general common features with a
 special focus on the spectral element implementation in NekRS. Full details
@@ -51,7 +52,7 @@ The mass and momentum equations for an incompressible fluid with constant viscos
 \end{equation}
 
 where $\vec{V}$ is the velocity, $P$ is the pressure, $\mu$ is the viscosity, and $\rho$ is the density. The body forces are distinguished between the term added for the IBM methodology ($\vec{f}'$) and other possible body forces ($\vec{f}$) present depending on the problem (such as a Boussinesq term for buoyancy or a Lorentz force term for magnetohydrodynamics).
-IBMs largely differ in their computation of the force $\vec{f}\ '$ and how they relate this point-force (on the Lagrangian nodes) to the Eulerian grid.
+IBMs largely differ in their computation of the force $\vec{f}\ '$ and how they relate this force (defined on the Lagrangian nodes) to the Eulerian grid.
 In the most general formulation, the velocity on the Lagrangian points is not a degree of freedom in the solve, and must be obtained using information from the Eulerian field. Likewise, the point forces on the Lagrangian nodes must be spread back to the Eulerian nodes where Eq. \eqref{eq:f} is defined.
 In other words, $\vec{f}\ '$ is only nonzero on the Lagrangian points,
 
@@ -66,7 +67,7 @@ where $\vec{F}_L$ is the Lagrangian force density and $\delta$ is a three-dimens
 
 In this section, the issue of the point forces not coinciding with Eulerian [!ac](DOFs) is momentarily ignored (so that in the notation, you may consider $\vec{f}\ '$ to be the same as $\vec{F}_L$, i.e., Eulerian points happen to coincide with the Lagrangian points). Different techniques to relate the Lagrangian and Eulerian points, when they do not coincide.
 
-Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) discrete methods. Continuous methods formulate the additional force prior to discretization, as shown in Eq. \eqref{eq:mom} and differ in their selection of the structure of the body force $\vec{f}\ '$. One general formulation, when the desired surface velocity and surface position are known, can be written as 
+Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) discrete methods. Continuous methods formulate the additional force prior to discretization, as shown in Eq. \eqref{eq:mom} and differ in their selection of the structure of the body force $\vec{f}\ '$. One general formulation, when the desired surface velocity and surface position are known, can be written as
 
 \begin{equation}
 \label{eq:f}
@@ -93,9 +94,9 @@ In discrete forcing methods, the required force is instead formulated from the s
 \frac{\vec{V}_i^{n+1}-\vec{V}_i^n}{\Delta t}=\text{RHS}_i^{n+1}+(\vec{f}\ ')_i^{n+1}
 \end{equation}
 
-where $i$ indicates the grid point index, $n$ indicates the time step index, a first-order implicit Euler discretization is used for the time term, and all the details of the discretization of the right-hand side (the pressure, viscous, and body force terms) is written in shorthand as RHS$^{n+1}$. If the Eulerian point happened to coincide with the Lagrangian surface on which the velocity is known, then Eq. \eqref{eq:df} could be solved (e.g., by replacing $\vec{V}_i^{n+1}$ with zero for a no-slip stationary surface) to obtain the required forcing $(\vec{f}\ ')_i^{n+1}$ at the grid point. This is essentially the structure of many discrete forcing methods [!cite](fadlun,ikeno). Of course, the Eulerian points will in general not coincide with the Lagrangian points. An advantage of this discrete forcing technique is the absence of user-defined parameters.
+where $i$ indicates the grid point index, $n$ indicates the time step index, a first-order implicit Euler discretization is used for the time term (for illustration purposes), and all the details of the discretization of the right-hand side (the pressure, viscous, and body force terms) is written in shorthand as RHS$^{n+1}$. If the Eulerian point happened to coincide with the Lagrangian surface on which the velocity is known, then Eq. \eqref{eq:df} could be solved (e.g., by replacing $\vec{V}_i^{n+1}$ with zero for a no-slip stationary surface) to obtain the required forcing $(\vec{f}\ ')_i^{n+1}$ at the grid point. This is essentially the structure of many discrete forcing methods [!cite](fadlun,ikeno). Of course, the Eulerian points will in general not coincide with the Lagrangian points. An advantage of this discrete forcing technique is the absence of user-defined parameters.
 
-Good agreements with canonical and experimental flow problems have been obtained with both continuous and discrete forcing approaches [!cite](goldstein,fadlun), though there are differences in terms of stability and implications related to selecting problem-dependent coefficients. 
+Good agreements with canonical and experimental flow problems have been obtained with both continuous and discrete forcing approaches [!cite](goldstein,fadlun), though there are differences in terms of stability and implications related to selecting problem-dependent coefficients.
 Many other numerical techniques are related to these force-based IBMs, including shifted boundary methods and cut cell methods.
 
 ### Connection Between Lagrangian and Eulerian Points
@@ -103,9 +104,9 @@ Many other numerical techniques are related to these force-based IBMs, including
 A commonality to force-based IBMs
 are the spreading and interpolation operators needed to evaluate
 $\vec{V}(\vec{x}_L,t)$.
-The simplest approach is to simply apply the force at the Eulerian points as if they were coincident with the Lagrangian points [!cite](fadlun); that is, assign forces to the Eulerian points by simply reading the force at the nearest Lagrangian point (or, conversely, by simply evaluating the force at the Eulerian point as if it were a Lagrangian point). This is effectively the approach taken in many finite volume solvers, particularly the porous-IBm approaches [!cite](wongkham,dai_2026), where information regarding the distance to the immersed surface is not directly used in the force computation. This approach is also sometimes used in higher-order solvers as well; for example, Cervone et al. [!cite](cervone) apply a Galerkin projection to a nodal Heaviside field (unity inside the solid, zero in the fluid) to obtain a pointwise differentiable field $\alpha$. The unit inward normal of the immersed surface is then computed as the average value of $\|\nabla\alpha\|$ over the cut element and the approximate position of the immersed interface snapped to the closest node for which $\alpha=1$.
+The simplest approach is to simply apply the force at the Eulerian points as if they were coincident with the Lagrangian points [!cite](fadlun); that is, assign forces to the Eulerian points by simply reading the force at the nearest Lagrangian point (or, conversely, by simply evaluating the force at the Eulerian point as if it were a Lagrangian point). This is effectively the approach taken in many finite volume solvers, particularly the porous-IBM approaches [!cite](wongkham,dai_2026), where information regarding the distance to the immersed surface is not directly used in the force computation. This approach is also sometimes used in higher-order solvers as well; for example, Cervone et al. [!cite](cervone) apply a Galerkin projection to a nodal Heaviside field (unity inside the solid, zero in the fluid) to obtain a pointwise differentiable field $\alpha$. The unit inward normal of the immersed surface is then computed as the average value of $\|\nabla\alpha\|$ over the cut element and the approximate position of the immersed interface snapped to the closest node for which $\alpha=1$.
 
-More accurate techniques apply various forms of interpolation to construct the Lagrangian values from the Eulerian data. For instance, Hegazy applies an interpolation to obtain Lagrangian values using the same Lagrange polynomial basis functions used to represent the spectral solution [!cite](hegazy_thesis). Other approaches use a smoothed function $\mathscr{D}$ that weights the Eulerian grid points by their distance to the Lagrange point, 
+More accurate techniques apply various forms of interpolation to construct the Lagrangian values from the Eulerian data. For instance, Hegazy applies an interpolation to obtain Lagrangian values using the same Lagrange polynomial basis functions used to represent the spectral solution [!cite](hegazy_thesis). Other approaches use a smoothed function $\mathscr{D}$ that weights the Eulerian grid points by their distance to the Lagrange point,
 
 \begin{equation}
 \label{eq:d}
@@ -122,7 +123,7 @@ Once the force is computed on the Lagrangian points, a ``spreading'' operator is
 \end{equation}
 
 where $l$ are all the Lagrangian nodes that the Eulerian node $g$ is communicating with, and $\Delta A_l$ and $\Delta S_l$ are area and length scales associated with the surface patch that the Lagrangian point $l$ corresponds to (full details in [!cite](hegazy_thesis)) in order to obtain the correct units on $\vec{f}\ '$. For example, this spreading operator can use the same weighting function as used in Eq. \eqref{eq:d}.
-For both the interpolation and spreading operators, the Eulerian points $g$ that communicate with a given Lagrangian point (for interpolation) and the Lagrangian points $l$ that communicate with a given Eulerian point (for spreading) can, in the simplest case, be taken as all the Eulerian and Lagrangian points within a cut element, respectively [!cite](hegazy_thesis). 
+For both the interpolation and spreading operators, the Eulerian points $g$ that communicate with a given Lagrangian point (for interpolation) and the Lagrangian points $l$ that communicate with a given Eulerian point (for spreading) can, in the simplest case, be taken as all the Eulerian and Lagrangian points within a cut element, respectively [!cite](hegazy_thesis).
 Using a larger stencil that extends beyond the cut element is more accurate [!cite](hegazy_thesis)
 , but comes at additional complexity for parallel communication when combined with domain decomposition.
 
@@ -140,7 +141,9 @@ Many applications of IBMs apply these considerations to {\it all} [!ac](DOFs) in
 ## Geometry
 
 This model consists of flow over a sphere with parameters summarized in [table1]. All
-quantities are given in non-dimensional form.
+quantities are given in non-dimensional form. This tutorial will first model an isothermal
+flow over the sphere, followed by applying a heat flux boundary condition and solving
+for temperature.
 
 !table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere.
 | Parameter | Value (cm) |
@@ -151,15 +154,13 @@ quantities are given in non-dimensional form.
 | Domain width | $ 8 \times 8$ |
 | Reynolds number | 100 |
 
-## Dependencies
+## VTK
+id=vtk
 
 In order to use the immersed boundary method within NekRS, there is some additional software you will need to install.
 
-### VTK
-id=vtk
-
-[!ac](VTK) is used for optional pre-processing the mesh to delete solid elements (step 3 in [#alg]),
-as well as an option for the signed distance field calculation used to relate the Eulerian and
+[!ac](VTK) is used for (optional) pre-processing the mesh to delete solid elements (step 3 in [#alg]),
+as well as for the (required) signed distance field calculation used to relate the Eulerian and
 Lagrangian points. Instructions to install [!ac](VTK) version 9.3.0 into a folder at `${HOME}/vtk/install`
 are below (this is just an example, as you can use newer versions as well).
 
@@ -201,7 +202,7 @@ export LD_LIBRARY_PATH="${VTK_ROOT}/install/lib"
 files, you will see a `udf.cmake` file. Note that you may need to edit the
 path in the `find_package` call if your VTK version is different from 9.3.
 
-!listing /tutorials/ibm_sphere/udf.cmake
+!listing /tutorials/ibm_sphere/isothermal/udf.cmake
 
 
 ## Immersed Boundary Method Algorithm
@@ -221,6 +222,9 @@ shows a summary of several stages of the geometry preparation which will be desc
    represented in either binary or ASCII format. Each triangle on the surface can be uniquely
    described with a unit normal and the $(x,y,z)$ coordinates of the three vertices. For example,
    below is the STL file we will use in this tutorial; this file is in ASCII format.
+   When generating this file, you should use solely as many triangles as needed to represent
+   the geometry; ultimately, the resolution of the Lagrange points is based on the resolution
+   of the NekRS mesh (more on this later).
 
 !listing /tutorials/ibm_sphere/small_sphere.stl
 
@@ -236,6 +240,12 @@ shows a summary of several stages of the geometry preparation which will be desc
 ```
 cardinal-opt -i background_mesh.i --mesh-only
 ```
+
+   [!cite](hegazy_ibm) provides extensive discussion on how to select an appropriate mesh
+   resolution; as usual, mesh and/or polynomial refinement studies are a robust way to assess a suitable
+   background mesh. The resolution of the mesh not only influences the solution
+   representation, but for this [!ac](IBM) implementation, the fineness of the mesh
+   determines the reproduction of the STL surface.
 
 3.  (Optional) You may optionally decide to delete the elements which are fully inside the
     solid body; this is useful to help conserve mass (by reducing the amount of fluid which
@@ -272,7 +282,7 @@ g++ -I${HOME}/vtk/install/include/vtk-9.3 -L${HOME}/vtk/install/lib -o delete_en
 cardinal-opt -i add_sidesets.i --mesh-only
 ```
 
-   For this tutorial, we have assigned the following sideset numbers: (1) inlet, (2) outlet, (3) four side-walls, and (3) surface of the cut elements that span the sphere surface. The inlet and outlet will be periodic, whereas surface 3 will be no-slip.
+   For this tutorial, we have assigned the following sideset numbers: (1) inlet, (2) outlet, (3) four side-walls, and (4) surface of the cut elements that span the sphere surface. The inlet and outlet will be periodic, whereas surfaces 3 and 4 will be no-slip.
 
 4. Run `exo2nek` to convert the background mesh into NekRS's `.re2` format. In this example, we would enter
    `add_sidesets_in` as the name of our mesh when prompted. We will name the output mesh `cube` to create a
@@ -285,22 +295,27 @@ exo2nek
 5. Run the flow simulation! Note in the `.udf` file, you will need to specify the path to the STL file, if
    different from the one used in this tutorial.
 
-## Input Files
+## Isothermal Flow
+
+In this section, we will run an [!ac](IBM) case for isothermal flow over the sphere.
+The input files are inside the `tutorials/ibm_sphere/isothermal` directory.
+
+### Input Files
 
 All of the details of the immersed boundary method are housed in the `cube.udf` and `cube.oudf` files.
 There are a lot of details in these files, since the method evolved over time and in some cases there is
 more than one option for how to define a part of the algorithm (for instance, the signed distance field
 can be computed using either [!ac](VTK) or Embree; different spreading operators were also tested).
 
-!listing /tutorials/ibm_sphere/cube.udf language=cpp
+!listing /tutorials/ibm_sphere/isothermal/cube.udf language=cpp
 
-!listing /tutorials/ibm_sphere/cube.oudf language=cpp
+!listing /tutorials/ibm_sphere/isothermal/cube.oudf language=cpp
 
 The `.par` file is routine, without any unique aspects specific to the IBM setup.
 
-!listing /tutorials/ibm_sphere/cube.par
+!listing /tutorials/ibm_sphere/isothermal/cube.par
 
-## Execution and Postprocessing
+### Execution and Postprocessing
 
 To run the immersed boundary simulation,
 
@@ -316,7 +331,7 @@ nrsmpi cube 10
 ```
 
 To run the simulation faster, you can increase the number of ranks, or
-simply decrease the polynomial order.
+simply decrease the polynomial order (of course, your solution may not be as accurate).
 During the simulation and when the simulation has completed, you will have created a number of different output files:
 
 - `surface_mesh.vtk` contains a VTK representation of the original STL surface, after it has
@@ -328,8 +343,8 @@ During the simulation and when the simulation has completed, you will have creat
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
 
 For example, [ibm_velocity] shows the fluid velocity and pressure on the Eulerian grid. Note that in the vicinity of the immersed surface,
-using a finer resolution (such as with NekNek) or a higher polynomial
-order will diminish the small oscillations. See [!cite](hegazy_ibm)
+using a locally finer resolution (such as with NekNek) or a higher polynomial
+order/finer background mesh will diminish the small oscillations. See [!cite](hegazy_ibm)
 for more details on improving surface refinement and the tradeoffs
 in combined $h$ and $p$ refinement, the STL triangle resolution, and
 overlapping meshes.
@@ -338,3 +353,8 @@ overlapping meshes.
   id=ibm_velocity
   caption=Velocity and pressure computed by NekRS's IBM solver.
   style=width:60%;margin-left:auto;margin-right:auto
+
+## Heated Flow
+
+Now, these input files will be extended to include a heat flux boundary condition
+on the surface of the sphere.
