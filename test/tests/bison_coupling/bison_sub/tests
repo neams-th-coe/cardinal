@@ -1,9 +1,0 @@
-[Tests]
-  [bison_sub]
-    type = RunApp
-    input = cardinal.i
-    requirement = "Cardinal shall be able to run BISON as a sub-application without any data transfers. "
-                  "This test just ensures correct setup of BISON as a submodule with app registration."
-    capabilities = 'bisonapp'
-  []
-[]
