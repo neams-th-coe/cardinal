@@ -16,13 +16,13 @@
   residualTol = 1e-05
 
 [FLUID VELOCITY]
-  boundaryTypeMap = zeroDirichlet
+  boundaryTypeMap = zeroDirichlet, zeroDirichlet
   residualTol = 1e-08
   viscosity = 0.02
   density = 1.0
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = zeroNeumann
+  boundaryTypeMap = zeroNeumann, udfDirichlet
   residualTol = 1e-08
   transportCoeff = 1.0
   diffusionCoeff =  -5000

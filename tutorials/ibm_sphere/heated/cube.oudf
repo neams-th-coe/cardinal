@@ -779,3 +779,7 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
    }
 }
 
+void udfDirichlet(bcData * bc)
+{
+  bc->sScalar = 0.0;
+}

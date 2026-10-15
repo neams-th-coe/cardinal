@@ -357,4 +357,18 @@ overlapping meshes.
 ## Heated Flow
 
 Now, these input files will be extended to include a heat flux boundary condition
-on the surface of the sphere.
+on the surface of the sphere. The basic concept is similar to how the no-slip
+boundary condition is applied - rather than applying a boundary condition precisely at
+an Eulerian degree of freedom, a body force is added to the conservation of energy equation
+that applies the presence of the heated surface to the fluid. The energy equation
+in NekRS is
+
+\begin{equation}
+\rho C_p\frac{\partial T}{\partial t}+\rho C_p\vec{V}\cdot\nabla T=\nabla\cdot(k\nabla T)+\dot{q}+\dot{q}'
+\end{equation}
+
+where $\rho$ is the density, $C_p$ is the specific heat, $T$ is the temperature, and
+$k$ is the thermal conductivity. The heat sources are distinguished between the
+heat sources imposed by the IBM ($\dot{q}'$) and those which may be present depending
+on the problem ($\dot{q}$, such as for nuclear heating from fission, radioactive decay,
+chemical reactions, etc.).
