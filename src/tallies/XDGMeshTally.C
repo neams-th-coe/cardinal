@@ -38,6 +38,9 @@ XDGMeshTally::XDGMeshTally(const InputParameters & parameters)
   if (isParamSetByUser("block"))
     paramError("block", "Cannot use subdomain restriction when using XDG mesh tallies!");
 
+  if (_is_adaptive)
+    mooseError("XDG mesh tallies do not support adaptive mesh refinement at present! Please use a 'MeshTally' instead.");
+
   // Gather all element types in the mesh.
   std::unordered_set<ElemType> contained_elem;
   auto begin = _openmc_problem.getMooseMesh().activeLocalElementsBegin();

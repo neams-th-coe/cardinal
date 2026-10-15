@@ -12,8 +12,9 @@ backend, which yields significant performance improvements compared to [MeshTall
 supports `collision` and `analog` estimators. This comes with a series of limitations - at present,
 `XDGMeshTally` does not support:
 
+- Adaptive mesh refinement;
 - Mixed element meshes;
-- Meshes composed of elements that aren't TET4 or HEX8;
+- Meshes composed of elements that aren't TET4s or HEX8s;
 - Block restriction.
 
 Similar to a [MeshTally](MeshTally.md), you can use an `XDGMeshTally` in two different ways:
