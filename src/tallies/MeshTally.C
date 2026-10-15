@@ -32,8 +32,7 @@ MeshTally::validParams()
   return params;
 }
 
-MeshTally::MeshTally(const InputParameters & parameters)
-  : MeshTallyBase(parameters)
+MeshTally::MeshTally(const InputParameters & parameters) : MeshTallyBase(parameters)
 {
   bool nu_scatter =
       std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
@@ -43,7 +42,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
   {
     if (_estimator == openmc::TallyEstimator::TRACKLENGTH)
       paramError("estimator",
-                 "Tracklength estimators are currently incompatible with libMesh unstructured mesh tallies!");
+                 "Tracklength estimators are currently incompatible with libMesh unstructured mesh "
+                 "tallies!");
   }
   else
     _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
@@ -53,7 +53,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
   if (_openmc_problem.runRandomRay())
     mooseError("Unstructured mesh tallies are not supported when using the random ray solver!");
 }
-
 
 unsigned int
 MeshTally::getOpenMCMeshBuildDoFMaps()
@@ -70,7 +69,7 @@ MeshTally::getOpenMCMeshBuildDoFMaps()
   else
   {
     openmc::model::meshes.emplace_back(
-      std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+        std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
   }
 
   return openmc::model::meshes.size() - 1;

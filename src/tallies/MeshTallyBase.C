@@ -148,8 +148,7 @@ MeshTallyBase::gatherLinkedSum()
 void
 MeshTallyBase::buildDoFMaps(const libMesh::MeshBase * mesh)
 {
-  auto msh =
-        dynamic_cast<const libMesh::ReplicatedMesh *>(mesh);
+  auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(mesh);
   if (!msh)
     mooseError("Internal error: The mesh is not a replicated mesh.");
 
@@ -159,9 +158,8 @@ MeshTallyBase::buildDoFMaps(const libMesh::MeshBase * mesh)
   {
     _bin_to_element_mapping.clear();
 
-    auto begin = _tally_blocks.size() > 0
-                      ? mesh->active_subdomain_set_elements_begin(_tally_blocks)
-                      : mesh->active_elements_begin();
+    auto begin = _tally_blocks.size() > 0 ? mesh->active_subdomain_set_elements_begin(_tally_blocks)
+                                          : mesh->active_elements_begin();
     auto end = _tally_blocks.size() > 0 ? mesh->active_subdomain_set_elements_end(_tally_blocks)
                                         : mesh->active_elements_end();
 
@@ -269,7 +267,9 @@ MeshTallyBase::checkMeshTemplateAndTranslations()
       {
         // Need to avoid a divide by zero for the case where an element has a centroid
         // on the origin.
-        Real scaling = MooseUtils::absoluteFuzzyEqual(centroid_template(j), 0.0) ? 1.0 : centroid_mesh(j) / centroid_template(j);
+        Real scaling = MooseUtils::absoluteFuzzyEqual(centroid_template(j), 0.0)
+                           ? 1.0
+                           : centroid_mesh(j) / centroid_template(j);
         incorrect_scaling = incorrect_scaling && !MooseUtils::absoluteFuzzyEqual(scaling, 1.0);
       }
 
@@ -356,7 +356,8 @@ MeshTallyBase::classifyRelaxationCase(const libMesh::Elem * current_element) con
     if (previousSpatialBin(descendant) != INVALID_TALLY_BIN)
       return AMRRelaxation::FineToCoarse;
 
-  mooseError("Internal error: MeshTallyBase::classifyRelaxationCase failed to classify an element.");
+  mooseError(
+      "Internal error: MeshTallyBase::classifyRelaxationCase failed to classify an element.");
   return AMRRelaxation::Unchanged;
 }
 
@@ -441,8 +442,8 @@ MeshTallyBase::projectAndRelaxAMR(Real alpha,
         }
         default:
         {
-          mooseError(
-              "Internal error: Unhandled AMRRelaxation enum in MeshTallyBase::relaxAndNormalizeTally");
+          mooseError("Internal error: Unhandled AMRRelaxation enum in "
+                     "MeshTallyBase::relaxAndNormalizeTally");
           break;
         }
       }
