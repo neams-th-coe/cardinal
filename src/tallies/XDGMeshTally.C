@@ -32,14 +32,14 @@ XDGMeshTally::validParams()
   return params;
 }
 
-XDGMeshTally::XDGMeshTally(const InputParameters & parameters)
-  : MeshTallyBase(parameters)
+XDGMeshTally::XDGMeshTally(const InputParameters & parameters) : MeshTallyBase(parameters)
 {
   if (isParamSetByUser("block"))
     paramError("block", "Cannot use subdomain restriction when using XDG mesh tallies!");
 
   if (_is_adaptive)
-    mooseError("XDG mesh tallies do not support adaptive mesh refinement at present! Please use a 'MeshTally' instead.");
+    mooseError("XDG mesh tallies do not support adaptive mesh refinement at present! Please use a "
+               "'MeshTally' instead.");
 
   // Gather all element types in the mesh.
   std::unordered_set<ElemType> contained_elem;
@@ -56,8 +56,9 @@ XDGMeshTally::XDGMeshTally(const InputParameters & parameters)
   // Check to make sure all elements are TET4s or HEX8s.
   for (auto elem_type : contained_elem)
     if (elem_type != ElemType::TET4 && elem_type != ElemType::HEX8)
-      mooseError("XDG mesh tallies only support TET4 and HEX8 elements! Either "
-                 "ensure your mesh only uses either TET4 or HEX8 elements, or use a 'MeshTally' instead.");
+      mooseError(
+          "XDG mesh tallies only support TET4 and HEX8 elements! Either "
+          "ensure your mesh only uses either TET4 or HEX8 elements, or use a 'MeshTally' instead.");
 }
 
 unsigned int
@@ -74,7 +75,8 @@ XDGMeshTally::getOpenMCMeshBuildDoFMaps()
     _xdg_mesh_manager->parse_metadata();
 
     _xdg_instance.reset(new xdg::XDG(_xdg_mesh_manager, xdg::RTLibrary::EMBREE));
-    openmc::model::meshes.emplace_back(std::make_unique<openmc::XDGMesh>(_xdg_instance, _openmc_problem.scaling()));
+    openmc::model::meshes.emplace_back(
+        std::make_unique<openmc::XDGMesh>(_xdg_instance, _openmc_problem.scaling()));
   }
   else
   {
