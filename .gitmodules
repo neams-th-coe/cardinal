@@ -7,30 +7,12 @@
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git
-[submodule "contrib/SAM"]
-	path = contrib/SAM
-	url = git@gitlab-nse.egs.anl.gov:SAM/SAM.git
-[submodule "contrib/sockeye"]
-	path = contrib/sockeye
-	url = git@github.inl.gov:ncrc/sockeye.git
-[submodule "contrib/sodium"]
-	path = contrib/sodium
-	url = git@github.inl.gov:ncrc/sodium.git
-[submodule "contrib/potassium"]
-	path = contrib/potassium
-	url = git@github.inl.gov:ncrc/potassium.git
-[submodule "contrib/iapws95"]
-	path = contrib/iapws95
-	url = git@github.inl.gov:ncrc/iapws95.git
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
 [submodule "contrib/moab"]
 	path = contrib/moab
 	url = https://bitbucket.org/fathomteam/moab
-[submodule "contrib/bison"]
-	path = contrib/bison
-	url = git@github.inl.gov:ncrc/bison.git
 [submodule "test/tests/nek_ci"]
 	path = test/tests/nek_ci
 	url = https://github.com/neams-th-coe/nek_ci.git
@@ -43,3 +25,9 @@
 [submodule "contrib/nuclear_data"]
 	path = contrib/nuclear_data
 	url = https://github.com/OTU-Centre-for-SMRs/nuclear_data.git
+[submodule "contrib/pugixml"]
+	path = contrib/pugixml
+	url = https://github.com/zeux/pugixml.git
+[submodule "contrib/fmt"]
+	path = contrib/fmt
+	url = https://github.com/fmtlib/fmt.git
