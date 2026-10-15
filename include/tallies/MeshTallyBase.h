@@ -71,7 +71,7 @@ protected:
    * A function responsible for building datastructures necessary for adaptive mesh refinement.
    * @param[in] mesh the mesh to use for building the DoF map
    */
-  void buildDoFMaps(const libMesh::MeshBase* mesh);
+  void buildDoFMaps(const libMesh::MeshBase * mesh);
 
   /**
    * A function which stores the results of this tally into the created
