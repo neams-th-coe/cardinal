@@ -330,6 +330,7 @@
   [disallow_block_restrict]
     type = RunException
     input = block_restrict.i
+    cli_args = 'Problem/Tallies/Mesh/type=XDGMeshTally'
     expect_err = "Cannot use subdomain restriction when using XDG mesh tallies!"
     requirement = "The system shall not allow block restriction with XDG mesh tallies."
     capabilities = 'openmc'
@@ -337,7 +338,7 @@
   [xdg_tracklength]
     type = CSVDiff
     input = xdg_multiple_meshes_global_trl.i
-    csvdiff = 'xdg_multiple_meshes_global_trl_out.csv'"
+    csvdiff = xdg_multiple_meshes_global_trl_out.csv
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
