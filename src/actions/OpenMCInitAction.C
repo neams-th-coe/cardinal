@@ -161,6 +161,8 @@ OpenMCInitAction::initOpenMC(const std::string & xml_directory)
   // Add terminating nullptr
   argv.push_back(nullptr);
 
+  openmc::settings::libmesh_comm = getMooseApp().getCommunicator().get();
+
   // Initialize OpenMC
   openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
 }

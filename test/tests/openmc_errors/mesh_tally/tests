@@ -27,7 +27,7 @@
     type = RunException
     input = incorrect_file.i
     cli_args = 'Problem/Tallies/Mesh/mesh_template=../../neutronics/meshes/sphere.e Problem/Tallies/Mesh/estimator=tracklength'
-    expect_err = "Tracklength estimators are currently incompatible with mesh tallies!"
+    expect_err = "Tracklength estimators are currently incompatible with libMesh unstructured mesh tallies!"
     requirement = "The system shall error if a tracklength estimator is attempted with unstructured mesh tallies, "
                   "since this capability is not supported in libMesh."
     capabilities = 'openmc'

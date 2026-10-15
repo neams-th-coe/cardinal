@@ -207,6 +207,17 @@ CardinalApp::registerApps()
     addBoolCapability("dagmc", false, doc + "is not available.");
 #endif
   }
+
+  // TODO: mention CAD geometry support once that facet of XDG has been merged
+  // in OpenMC.
+  {
+    const std::string doc = "XDG mesh operations ";
+#ifdef ENABLE_XDG
+    addBoolCapability("xdg", true, doc + "are available.");
+#else
+    addBoolCapability("xdg", false, doc + "are not available.");
+#endif
+  }
 }
 
 void
