@@ -64,6 +64,6 @@
     expect_err = "XDG mesh tallies do not support adaptive mesh refinement at present!"
     requirement = "The system shall error if the user attempts to use AMR with XDG mesh tallies. "
                   "This error message may be removed once XDG supports AMR"
-    capabilities = 'openmc'
+    capabilities = 'xdg'
   []
 []
