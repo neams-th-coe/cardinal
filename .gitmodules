@@ -1,7 +1,6 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
-	url = https://github.com/pshriwise/openmc.git
-	branch = xdg-mesh
+	url = https://github.com/openmc-dev/openmc.git
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://github.com/neams-th-coe/nekRS.git
@@ -34,5 +33,4 @@
 	url = https://github.com/fmtlib/fmt.git
 [submodule "contrib/xdg"]
 	path = contrib/xdg
-	url = https://github.com/pshriwise/xdg.git
-	branch = quad-hex-support
+	url = https://github.com/xdg-org/xdg.git
