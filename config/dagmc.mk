@@ -24,10 +24,10 @@ $(DAGMC_BUILDDIR)/Makefile: build_doubledown | $(DAGMC_DIR)/CMakeLists.txt
 	$(DAGMC_DIR)
 
 build_dagmc: | $(DAGMC_BUILDDIR)/Makefile
-	make VERBOSE=1 -C $(DAGMC_BUILDDIR) install
+	$(MAKE) VERBOSE=1 -C $(DAGMC_BUILDDIR) install
 
 cleanall_dagmc: | $(DAGMC_BUILDDIR)/Makefile
-	make -C $(DAGMC_BUILDDIR) clean
+	$(MAKE) -C $(DAGMC_BUILDDIR) clean
 
 clobber_dagmc:
 	rm -rf $(DAGMC_LIB) $(DAGMC_BUILDDIR) $(DAGMC_INSTALL_DIR)

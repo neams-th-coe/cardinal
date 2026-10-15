@@ -20,10 +20,10 @@ $(OPENMC_BUILDDIR)/Makefile: build_dagmc | $(OPENMC_DIR)/CMakeLists.txt
 	$(OPENMC_DIR)
 
 build_openmc: | $(OPENMC_BUILDDIR)/Makefile
-	make VERBOSE=1 -C $(OPENMC_BUILDDIR) install
+	$(MAKE) VERBOSE=1 -C $(OPENMC_BUILDDIR) install
 
 cleanall_openmc: | $(OPENMC_BUILDDIR)/Makefile
-	make -C $(OPENMC_BUILDDIR) uninstall clean
+	$(MAKE) -C $(OPENMC_BUILDDIR) uninstall clean
 
 clobber_openmc:
 	rm -rf $(OPENMC_LIB) $(OPENMC_BUILDDIR) $(OPENMC_INSTALL_DIR)
