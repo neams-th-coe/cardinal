@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ./tet4_sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid1]
     type = SubdomainIDGenerator
@@ -10,7 +10,7 @@
   []
   [sphereb]
     type = FileMeshGenerator
-    file = ./tet4_sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid2]
     type = SubdomainIDGenerator
@@ -19,7 +19,7 @@
   []
   [spherec]
     type = FileMeshGenerator
-    file = ./tet4_sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid3]
     type = SubdomainIDGenerator
@@ -29,7 +29,9 @@
   [combine]
     type = CombinerGenerator
     inputs = 'solid1 solid2 solid3'
-    positions_file = pebble_centers.txt
+    positions = '0 0 0
+                 0 0 4
+                 0 0 8'
   []
 
   allow_renumbering = false
@@ -46,12 +48,15 @@
 
   [Tallies]
     [Mesh]
-      type = MeshTally
-      mesh_translations_file = pebble_centers.txt
-      mesh_template = './tet4_sphere.e'
+      type = XDGMeshTally
+      mesh_template = '../meshes/hex_cube.e'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
 
-      use_xdg = true
-      normalize_by_global_tally = false
+      normalize_by_global_tally = true
+      check_tally_sum = false
+      output = 'unrelaxed_tally_std_dev'
     []
   []
 []
@@ -80,10 +85,40 @@
     variable = kappa_fission
     block = '300'
   []
+  [pebble_1_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.0'
+  []
+  [pebble_2_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 4.0'
+  []
+  [pebble_3_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 8.0'
+  []
+  [pebble_1_pd_std_dev]
+    type = PointValue
+    variable = kappa_fission_std_dev
+    point = '0.0 0.0 0.0'
+  []
+  [pebble_2_pd_std_dev]
+    type = PointValue
+    variable = kappa_fission_std_dev
+    point = '0.0 0.0 4.0'
+  []
+  [pebble_3_pd_std_dev]
+    type = PointValue
+    variable = kappa_fission_std_dev
+    point = '0.0 0.0 8.0'
+  []
 []
 
 [Outputs]
   execute_on = final
-  exodus = true
-  hide = 'temp  cell_instance cell_id'
+  csv = true
+  hide = 'temp cell_instance cell_id'
 []

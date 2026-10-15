@@ -266,6 +266,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   {
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
     _has_mesh_tallies |= act->getMooseObjectType() == "MeshTally";
+    _has_mesh_tallies |= act->getMooseObjectType() == "XDGMeshTally";
   }
 
   // Repeat the same check for SetUpMGXSActions.

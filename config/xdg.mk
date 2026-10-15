@@ -9,10 +9,9 @@ $(XDG_BUILDDIR)/Makefile: build_moab build_embree | $(XDG_DIR)/CMakeLists.txt
 	-DCMAKE_PREFIX_PATH=$(LIBMESH_DIR) \
 	-DCMAKE_INSTALL_PREFIX=$(XDG_INSTALL_DIR) \
 	-DEMBREE_DIR=$(EMBREE_INSTALL_DIR) \
-	-DMOAB_DIR=$(MOAB_INSTALL_DIR) \
 	-DCMAKE_INSTALL_LIBDIR=lib \
 	-DCMAKE_INSTALL_MESSAGE=LAZY \
-	-DXDG_ENABLE_MOAB=$(ENABLE_DAGMC) \
+	-DXDG_ENABLE_MOAB=OFF \
 	-DXDG_ENABLE_LIBMESH=ON \
 	-DXDG_LINK_MPI=ON \
 	-DXDG_ENABLE_EMBREE=ON \
@@ -21,6 +20,11 @@ $(XDG_BUILDDIR)/Makefile: build_moab build_embree | $(XDG_DIR)/CMakeLists.txt
 	$(XDG_DIR)
 
 build_xdg: | $(XDG_BUILDDIR)/Makefile
+	# Fix an issue where different version FMT libraries collide.
+	# This is very crude and should be fixed in OpenMC at some point.
+	rm -rf $(CONTRIB_INSTALL_DIR)/lib/cmake/fmt \
+				 $(CONTRIB_INSTALL_DIR)/lib/pkgconfig/fmt.pc \
+				 $(CONTRIB_INSTALL_DIR)/lib/libfmt.a
 	make VERBOSE=1 -C $(XDG_BUILDDIR) install
 
 cleanall_xdg: | $(XDG_BUILDDIR)/Makefile
