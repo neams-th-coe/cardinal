@@ -327,13 +327,13 @@
     requirement = "The system shall error if attempting to tally on a mesh composed of elements other than TET4 or HEX8."
     capabilities = 'xdg'
   []
-  [disallow_block_restrict]
+  [xdg_disallow_block_restrict]
     type = RunException
     input = block_restrict.i
     cli_args = 'Problem/Tallies/Mesh/type=XDGMeshTally'
     expect_err = "Cannot use subdomain restriction when using XDG mesh tallies!"
     requirement = "The system shall not allow block restriction with XDG mesh tallies."
-    capabilities = 'openmc'
+    capabilities = 'xdg'
   []
   [xdg_tracklength]
     type = CSVDiff
