@@ -12,6 +12,8 @@ void udfDirichlet(bcData * bc)
     bc->sScalar = 0.0;
 }
 
+//////////// all remaining part of this file is associated with the immersed boundary method //////////
+
 inline dfloat D1(dfloat r) {
     dfloat absR = fabs(r);
 

@@ -3,13 +3,10 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 10000
-  dt = 1e-2
-  writeInterval = 1000
+  numSteps = 500
+  dt = 3e-2
+  writeInterval = 500
   scalars = temperature
-
-[MESH]
-  file = "../cube.re2"
 
 [FLUID PRESSURE]
   residualTol = 1e-05
@@ -17,8 +14,8 @@
 [FLUID VELOCITY]
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
   residualTol = 1e-08
-  viscosity = -50
   density = 1.0
+  viscosity = -50
 
 [SCALAR TEMPERATURE]
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann

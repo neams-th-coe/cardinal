@@ -140,7 +140,7 @@ static occa::kernel CHTKernel;
 // ============================================================
 // STL filename
 // ============================================================
-static const std::string kSTLFile = "../small_sphere.stl";
+static const std::string kSTLFile = "small_sphere.stl";
 
 // Define quad_points as a static variable
 static std::vector<Point> quad_points;
@@ -161,7 +161,6 @@ void CHTKernelHeatSource(double time)
    auto o_S  = nrs->scalar->o_solution("temperature");
    auto o_FS = nrs->scalar->o_EXT;
 
-    // Lagrange points
     size_t numLagrangePoints = globalLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
@@ -206,7 +205,7 @@ void CHTKernelHeatSource(double time)
     o_normal_z.copyFrom(normal_z.data());
 
     // Passing the sdf values for the calculation of mu
-    occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
+    occa::memory o_sdfValues = platform->device.malloc(mesh->Np * mesh->Nelements * sizeof(dfloat), sdfValues.data());
 
     occa::memory o_SL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
 
@@ -272,7 +271,6 @@ void PenaltyNoSlipBCCustomSource(double time)
     auto o_U = nrs->fluid->o_U;
     auto o_FU = nrs->fluid->o_explicitTerms();
 
-    // Lagrange points
     size_t numLagrangePoints = globalLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
@@ -318,18 +316,12 @@ void PenaltyNoSlipBCCustomSource(double time)
     o_normal_z.copyFrom(normal_z.data());
 
 
-    // Allocate memory on the device for the velocity at the Lagrange Points
-    occa::memory o_uLx = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
-    occa::memory o_uLy = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
-    occa::memory o_uLz = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
-
+    // Allocate memory on the device for the velocity and pressure at the Lagrange points
     occa::memory o_uL = platform->device.malloc(nrs->meshV->dim * numLagrangePoints * sizeof(dfloat));
     occa::memory o_pL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
 
     // Set up interpolator for velocity and pressure
-    // TODO: do you need both of these? why not reuse the interpolator?
-    static pointInterpolation_t* interpolator = nullptr;   // for velocity
-    static pointInterpolation_t* interpolator2 = nullptr;    // for pressure
+    static pointInterpolation_t* interpolator = nullptr;
 
     // Set up the variables coming from findpts
     static std::vector<int>    elemHost;
@@ -339,6 +331,7 @@ void PenaltyNoSlipBCCustomSource(double time)
         interpolator = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
         interpolator->setPoints(xLagrange, yLagrange, zLagrange);
         interpolator->find();
+
         // Information about the elements containing the Lagrangian points and their local coordinates
         auto &dat = interpolator->data();
 
@@ -370,9 +363,8 @@ void PenaltyNoSlipBCCustomSource(double time)
 
     // Build offsets array
     std::vector<int> elementOffsets(nElements+1, 0);
-    for (int e = 0; e < nElements; e++) {
+    for (int e = 0; e < nElements; e++)
         elementOffsets[e+1] = elementOffsets[e] + elementCounts[e];
-    }
 
     // Build a contiguous list of Lagrange point indices for each element
     std::vector<int> elementLagrangeIndices(numLagrangePoints, 0);
@@ -393,13 +385,7 @@ void PenaltyNoSlipBCCustomSource(double time)
 
     // Evaluate velocity and pressure at the Lagrange points
     interpolator->eval(nrs->meshV->dim, nrs->fluid->fieldOffset, o_U, numLagrangePoints, o_uL);
-
-    if (!interpolator2) {
-        interpolator2 = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-        interpolator2->setPoints(xLagrange, yLagrange, zLagrange);
-        interpolator2->find();
-    }
-    interpolator2->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numLagrangePoints, o_pL);
+    interpolator->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numLagrangePoints, o_pL);
 
     // Passing the sdf values for the calculation of mu
     occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
