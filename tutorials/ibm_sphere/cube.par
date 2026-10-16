@@ -3,9 +3,9 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 500
-  dt = 3e-2
-  writeInterval = 500
+  numSteps = 10000
+  dt = 2e-2
+  writeInterval = 1000
   scalars = temperature
 
 [FLUID PRESSURE]

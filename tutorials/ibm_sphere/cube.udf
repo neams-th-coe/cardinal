@@ -1,5 +1,5 @@
 #include "udf.hpp"
-#include "declare_main2.hpp"
+#include "ibm.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -69,22 +69,6 @@
 //#include <embree4/rtcore.h>
 //#include <embree4/rtcore_common.h>
 
-struct Point_3 {
-    dfloat xValue = 0.0;
-    dfloat yValue = 0.0;
-    dfloat zValue = 0.0;
-
-    Point_3() = default;
-    Point_3(dfloat x, dfloat y, dfloat z) : xValue(x), yValue(y), zValue(z) {}
-
-    dfloat x() const { return xValue; }
-    dfloat y() const { return yValue; }
-    dfloat z() const { return zValue; }
-};
-
-static_assert(std::is_trivially_copyable<Point_3>::value,
-              "Point_3 remain copyable for MPI_BYTE gathers");
-
 struct Vertex {
     dfloat x, y, z;
 };
@@ -93,20 +77,16 @@ struct FacetNormal {
     dfloat nx, ny, nz;
 };
 
-struct Point {
-    dfloat px, py, pz;
-};
-
 // A structure to hold an integration point and its weight
 struct IntegrationPoint {
-    Point_3 position;
+    Point position;
     dfloat weight;
     std::array<dfloat, 3> normal;
 };
 
 // A structure to hold a Lagrange point, its weight, the characteristicArea, characteristicLength, the element number it cuts
 struct LagrangePoint {
-    Point_3 position;
+    Point position;
     dfloat weight;
     dfloat characteristicArea;
     dfloat characteristicLength;
@@ -120,7 +100,7 @@ struct IsoSurfaceMesh {
   std::vector<std::array<std::size_t, 3>> faces;
 };
 
-std::vector<Point_3> globalPoints; // All Immersed surface points
+std::vector<Point> globalPoints; // All Immersed surface points
 std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface faces
 
 // Define a global variable to hold the integrationPoints
@@ -485,9 +465,9 @@ void UDF_Setup()
   quad_points.resize(n_gll_points);
   for (int n = 0; n < n_gll_points; ++n)
   {
-    quad_points[n].px = x[n];
-    quad_points[n].py = y[n];
-    quad_points[n].pz = z[n];
+    quad_points[n].xValue = x[n];
+    quad_points[n].yValue = y[n];
+    quad_points[n].zValue = z[n];
   }
 
   // apply initial conditions for velocity, then copy into the velocity array
@@ -498,11 +478,11 @@ void UDF_Setup()
 
   nrs->fluid->o_solution().copyFrom(U.data(), U.size());
 
-  main2(); // Call main2 after quad_points
+  read_stl_file();
 }
 
 // Function to compute the area of a triangle given its vertices (used to compute the area of the traingulated surface, STL surface, and weight of Lagrangian and integration points)
-dfloat computeTriangleArea(const Point_3& v1, const Point_3& v2, const Point_3& v3) {
+dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3) {
     const dfloat ax = v2.x() - v1.x();
     const dfloat ay = v2.y() - v1.y();
     const dfloat az = v2.z() - v1.z();
@@ -539,9 +519,9 @@ dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices)
     const Vertex& v3 = vertices[i + 2];
 
     // Compute the area of the triangle
-    dfloat area = computeTriangleArea(Point_3(v1.x, v1.y, v1.z),
-                                      Point_3(v2.x, v2.y, v2.z),
-                                      Point_3(v3.x, v3.y, v3.z));
+    dfloat area = computeTriangleArea(Point(v1.x, v1.y, v1.z),
+                                      Point(v2.x, v2.y, v2.z),
+                                      Point(v3.x, v3.y, v3.z));
 
     // Accumulate the total area
     totalArea += area;
@@ -567,122 +547,6 @@ dfloat integrate_function_over_STL()
 
 void UDF_ExecuteStep(double time, int tstep)
 {
-
-    if (tstep == 0) {
-
-    }
-
-    // Diagnostic: write z-velocity at a specific time step
-    if (tstep > 0 && nrs->checkpointStep) {
-    
-        MPI_Comm comm = platform->comm.mpiComm();
-    
-        int rank = 0;
-        MPI_Comm_rank(comm, &rank);
-    
-        const size_t N = globalLagrangePoints.size();
-    
-        // Check that interpolation provided three velocity components.
-        if (uL_host.size() < 3 * N) {
-            std::cerr
-                << "[rank " << rank << "] ERROR: uL_host size "
-                << uL_host.size()
-                << " is insufficient for "
-                << N << " Lagrange points.\n";
-    
-            MPI_Abort(comm, 1);
-        }
-    
-        // Format local z-velocity values
-        std::ostringstream localBuffer;
-        localBuffer << std::setprecision(6);
-    
-        for (size_t i = 0; i < N; ++i) {
-            localBuffer << uL_host[2 * N + i] << '\n';
-        }
-    
-        const std::string localData = localBuffer.str();
-    
-        // MPI_File_write_all uses int for the element count.
-        if (localData.size() >
-            static_cast<size_t>(std::numeric_limits<int>::max())) {
-    
-            std::cerr << "[rank " << rank
-                      << "] ERROR: Local output exceeds MPI count limit.\n";
-    
-            MPI_Abort(comm, 1);
-        }
-    
-        const int localCount =
-            static_cast<int>(localData.size());
-    
-        const long long localBytes =
-            static_cast<long long>(localData.size());
-    
-        long long offsetBytes = 0;
-    
-        // Prefix sum of output sizes
-        MPI_Exscan(
-            &localBytes,
-            &offsetBytes,
-            1,
-            MPI_LONG_LONG_INT,
-            MPI_SUM,
-            comm
-        );
-    
-        // MPI_Exscan does not define the result for rank zero.
-        if (rank == 0) {
-            offsetBytes = 0;
-        }
-    
-        MPI_File fh;
-    
-        int ierr = MPI_File_open(
-            comm,
-            "uL_values_readable.txt",
-            MPI_MODE_CREATE | MPI_MODE_WRONLY,
-            MPI_INFO_NULL,
-            &fh
-        );
-    
-        if (ierr != MPI_SUCCESS) {
-            MPI_Abort(comm, ierr);
-        }
-    
-        // All ranks collectively truncate the previous file.
-        ierr = MPI_File_set_size(fh, 0);
-    
-        if (ierr != MPI_SUCCESS) {
-            MPI_Abort(comm, ierr);
-        }
-    
-        // Use byte offsets for character data.
-        ierr = MPI_File_write_at_all(
-            fh,
-            static_cast<MPI_Offset>(offsetBytes),
-            localData.data(),
-            localCount,
-            MPI_CHAR,
-            MPI_STATUS_IGNORE
-        );
-    
-        if (ierr != MPI_SUCCESS) {
-            MPI_Abort(comm, ierr);
-        }
-    
-        ierr = MPI_File_close(&fh);
-    
-        if (ierr != MPI_SUCCESS) {
-            MPI_Abort(comm, ierr);
-        }
-    
-        if (rank == 0) {
-            std::cout
-                << "Lagrange z-velocities written successfully."
-                << std::endl;
-        }
-    }
 }
 
 // Parsing STL file
@@ -1292,7 +1156,7 @@ std::vector<double> classifyPointsWithVTK(const std::vector<Point>& testPoints, 
     std::vector<double> distances(testPoints.size());
     for (size_t i = 0; i < testPoints.size(); ++i) {
         const auto& point = testPoints[i];
-        double queryPoint[3] = { point.px, point.py, point.pz };
+        double queryPoint[3] = {point.x(), point.y(), point.z()};
         distances[i] = implicitDistance->EvaluateFunction(queryPoint);
     }
     return distances;
@@ -1301,7 +1165,7 @@ std::vector<double> classifyPointsWithVTK(const std::vector<Point>& testPoints, 
 // Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
 void writeSurfaceMeshToVTK(
     const std::string& filename,
-    const std::vector<Point_3>& points,
+    const std::vector<Point>& points,
     const std::vector<std::array<std::size_t, 3>>& faces) {
 
     std::ofstream vtkFile(filename);
@@ -1329,7 +1193,7 @@ void writeSurfaceMeshToVTK(
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
 std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
-    const Point_3& v1, const Point_3& v2, const Point_3& v3)
+    const Point& v1, const Point& v2, const Point& v3)
 {
     // 3-point Gaussian integration rule (barycentric coordinates)
     std::array<std::array<dfloat, 3>, 3> barycentricPoints = {{
@@ -1370,7 +1234,7 @@ std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
 
     // Loop over integration points
     for (const auto& bary : barycentricPoints) {
-        Point_3 position(
+        Point position(
             bary[0] * v1.x() + bary[1] * v2.x() + bary[2] * v3.x(),
             bary[0] * v1.y() + bary[1] * v2.y() + bary[2] * v3.y(),
             bary[0] * v1.z() + bary[1] * v2.z() + bary[2] * v3.z()
@@ -1406,12 +1270,12 @@ std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
 
 // Function to compute 1-point Lagrange point for a triangle and its weight
 std::vector<LagrangePoint> computeLagrangePointsForTriangle(
-    const Point_3& v1, const Point_3& v2, const Point_3& v3, int elementNumber)
+    const Point& v1, const Point& v2, const Point& v3, int elementNumber)
 {
     std::array<dfloat, 3> barycentricPoint = {1.0 / 3, 1.0 / 3, 1.0 / 3};
     dfloat area = computeTriangleArea(v1, v2, v3);
 
-    const auto edgeLength = [](const Point_3& a, const Point_3& b) {
+    const auto edgeLength = [](const Point& a, const Point& b) {
         const dfloat dx = b.x() - a.x();
         const dfloat dy = b.y() - a.y();
         const dfloat dz = b.z() - a.z();
@@ -1426,7 +1290,7 @@ std::vector<LagrangePoint> computeLagrangePointsForTriangle(
     dfloat characteristicArea = sqrt(P * (P - L1) * (P - L2) * (P - L3));
     dfloat weight = area;
 
-    Point_3 position(
+    Point position(
         barycentricPoint[0] * v1.x() + barycentricPoint[1] * v2.x() + barycentricPoint[2] * v3.x(),
         barycentricPoint[0] * v1.y() + barycentricPoint[1] * v2.y() + barycentricPoint[2] * v3.y(),
         barycentricPoint[0] * v1.z() + barycentricPoint[1] * v2.z() + barycentricPoint[2] * v3.z()
@@ -1479,7 +1343,7 @@ std::vector<LagrangePoint> computeLagrangePointsForTriangle(
 std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point>& points) {
     std::vector<std::array<dfloat, 3>> arrays;
     for (const auto& point : points) {
-        arrays.push_back({point.px, point.py, point.pz});
+        arrays.push_back({point.x(), point.y(), point.z()});
     }
     return arrays;
 }
@@ -1566,7 +1430,7 @@ void identifyCuttingTrianglesWithIntersections(
     globalIntegrationPoints.clear();
     globalLagrangePoints.clear();
 
-    std::vector<Point_3> localPoints;
+    std::vector<Point> localPoints;
     std::vector<std::array<std::size_t, 3>> localFaces;
 
     // Loop over all elements
@@ -1589,9 +1453,9 @@ void identifyCuttingTrianglesWithIntersections(
 
         for (const auto &face : isoMesh.faces) {
 
-            Point_3 v1(isoMesh.points[face[0]][0], isoMesh.points[face[0]][1], isoMesh.points[face[0]][2]);
-            Point_3 v2(isoMesh.points[face[1]][0], isoMesh.points[face[1]][1], isoMesh.points[face[1]][2]);
-            Point_3 v3(isoMesh.points[face[2]][0], isoMesh.points[face[2]][1], isoMesh.points[face[2]][2]);
+            Point v1(isoMesh.points[face[0]][0], isoMesh.points[face[0]][1], isoMesh.points[face[0]][2]);
+            Point v2(isoMesh.points[face[1]][0], isoMesh.points[face[1]][1], isoMesh.points[face[1]][2]);
+            Point v3(isoMesh.points[face[2]][0], isoMesh.points[face[2]][1], isoMesh.points[face[2]][2]);
 
             auto integrationPoints = computeIntegrationPointsForTriangle(v1, v2, v3);
             auto LagrangePoints    = computeLagrangePointsForTriangle(v1, v2, v3, elementIdx / pointsPerElement);
@@ -1605,7 +1469,7 @@ void identifyCuttingTrianglesWithIntersections(
         size_t offset = localPoints.size();
         // Append the points from this element.
         for (const auto& pt : isoMesh.points) {
-            localPoints.push_back(Point_3(pt[0], pt[1], pt[2]));
+            localPoints.push_back(Point(pt[0], pt[1], pt[2]));
         }
 
         // Adjust each face index and then append the faces.
@@ -1647,7 +1511,7 @@ void identifyCuttingTrianglesWithIntersections(
     }
 
     // === Step 1: Gather All Points and Faces ===
-    std::vector<Point_3> globalPoints;
+    std::vector<Point> globalPoints;
     std::vector<std::array<std::size_t, 3>> globalFaces;
 
     int localNumFaces = localFaces.size();
@@ -1669,7 +1533,7 @@ void identifyCuttingTrianglesWithIntersections(
         int totalBytesFaces = 0;
         for (int i = 0; i < size; ++i) {
             // Convert element counts to byte counts
-            recvCountsPoints[i] = allNumPoints[i] * sizeof(Point_3);
+            recvCountsPoints[i] = allNumPoints[i] * sizeof(Point);
             recvCountsFaces[i]  = allNumFaces[i]  * sizeof(std::array<std::size_t, 3>);
             if (i > 0) {
                 pointDisplacements[i] = pointDisplacements[i-1] + recvCountsPoints[i-1];
@@ -1679,13 +1543,13 @@ void identifyCuttingTrianglesWithIntersections(
             totalBytesFaces  += recvCountsFaces[i];
         }
         // Resize global vectors to hold all the data
-        globalPoints.resize(totalBytesPoints / sizeof(Point_3));
+        globalPoints.resize(totalBytesPoints / sizeof(Point));
         globalFaces.resize(totalBytesFaces / sizeof(std::array<std::size_t, 3>));
     }
 
     //  Gather Data Using MPI_Gatherv with MPI_BYTE
     MPI_Gatherv(localPoints.data(),
-                localNumPoints * sizeof(Point_3), MPI_BYTE,
+                localNumPoints * sizeof(Point), MPI_BYTE,
                 globalPoints.data(),
                 (rank == 0 ? recvCountsPoints.data() : nullptr),
                 (rank == 0 ? pointDisplacements.data() : nullptr),
@@ -1730,32 +1594,28 @@ void identifyCuttingTrianglesWithIntersections(
     }
 }
 
+void read_stl_file()
+{
+  if (parse_stl(kSTLFile, STLvertices, STLnormals))
+  {
+    const std::vector<Point> & testPoints = quad_points;
 
-// Main Function
-int main2() {
-    // Parse the STL file
-    if (parse_stl(kSTLFile, STLvertices, STLnormals)) {
-        const std::vector<Point>& testPoints = quad_points;
+    // Classify points using VTK
+    std::vector<double> distances = classifyPointsWithVTK(quad_points, kSTLFile);
 
-        // Classify points using VTK
-        std::vector<double> distances = classifyPointsWithVTK(quad_points, kSTLFile);
+    //uncomment to use EMBREE
+    // std::vector<double> distances = classifyPointsWithEMBREE(quad_points, kSTLFile);
 
-        //uncomment to use EMBREE
-        // std::vector<double> distances = classifyPointsWithEMBREE(quad_points, kSTLFile);
+    sdfValues.resize(quad_points.size());
+    for (size_t i = 0; i < quad_points.size(); ++i)
+      sdfValues[i] = static_cast<dfloat>(distances[i]);
 
-        sdfValues.resize(quad_points.size());
-        for (size_t i = 0; i < quad_points.size(); ++i) {
-            sdfValues[i] = static_cast<dfloat>(distances[i]);
-        }
-
-        // Call the function to identify cutting triangles with intersections
-        identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement, sdfValues);
-
-
-        return 0; // Indicate successful execution
-    } else {
-        std::cerr << "Parsing failed." << std::endl;
-        return 1; // Indicate failure
-    }
+    // Call the function to identify cutting triangles with intersections
+    identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement, sdfValues);
+  }
+  else
+  {
+    std::cerr << "Parsing STL failed." << std::endl;
+  }
 }
 
