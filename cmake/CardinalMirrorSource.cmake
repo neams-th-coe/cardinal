@@ -22,6 +22,8 @@ if(NOT SOURCE_DIR OR NOT DEST_DIR)
   message(FATAL_ERROR "CardinalMirrorSource.cmake: SOURCE_DIR and DEST_DIR are required")
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/CardinalByproductExcludes.cmake)
+
 # -----------------------------------------------------------------------
 # Fixed excludes
 # -----------------------------------------------------------------------
@@ -76,6 +78,16 @@ endif()
 # of build/ itself would never see), and `install` is never a CMake
 # directory at all. Both have to stay as fixed, named excludes.
 #
+# Byproduct excludes (CARDINAL_BYPRODUCT_EXCLUDES, included above): a
+# native Makefile build doesn't confine itself to /build and /install at
+# all -- Cardinal builds in-place, with object files, libraries,
+# dependency files, and *Revision.h landing inline next to their sources
+# (e.g. src/base/CardinalApp.o), exactly the same in-place-compilation
+# shape CardinalMirrorSubmodule.cmake already has to guard against for
+# contrib/moose. Without this, a native build run directly in this
+# checkout would mirror its own stale .o/.d/*Revision.h files into this
+# build's stage tree the same way already confirmed to happen there.
+#
 # --exclude=/CMakeLists.txt --exclude=/cmake: this superbuild's own files
 # (this directory's parent CMakeLists.txt, and the helper modules under
 # cmake/, including this script). Cardinal's native Makefile has no use
@@ -91,7 +103,8 @@ set(_excludes
   --exclude=/build
   --exclude=/install
   --exclude=/CMakeLists.txt
-  --exclude=/cmake)
+  --exclude=/cmake
+  ${CARDINAL_BYPRODUCT_EXCLUDES})
 
 if(ENABLE_NEK)
   # test/tests/nek_ci is its own submodule outside contrib/, resolved
@@ -165,11 +178,9 @@ endforeach()
 # mtime is necessarily newer than the last mirror copy) gets re-copied
 # with a fresh one.
 #
-# No --delete: Cardinal builds in-place -- object files, libraries,
-# dependency files, and *Revision.h land inline next to their sources
-# (e.g. src/base/CardinalApp.o), not confined to /build -- so a bare
-# --delete would remove every one of those generated files from the
-# mirror as soon as they're produced -- forcing a full
+# No --delete: Cardinal builds in-place (see the byproduct-excludes note
+# above), so a bare --delete would remove every one of those generated
+# files from the mirror as soon as they're produced -- forcing a full
 # rebuild+relink every time regardless of the mtime/--update fix above
 # (confirmed live: CardinalRevision.h was getting deleted and
 # regenerated on every build; a missing prerequisite is obviously

@@ -42,60 +42,20 @@ endif()
 
 file(MAKE_DIRECTORY "${DEST_DIR}")
 
-# Exclude common compiler/linker/libtool byproducts, in addition to .git
-# (handled separately below). Unlike mirror_source's own /build and /install
-# excludes in CMakeLists.txt, IN_SOURCE_DIR here is a *third-party*
-# dependency's own checkout (e.g. contrib/moose) -- if that checkout has
-# ever itself been built in place (NO_BUILD dependencies like MOOSE compile
-# in-place, with no separate build directory of their own to exclude the
-# way Cardinal's own top-level checkout has one), a plain rsync mirrors
-# those compiled artifacts right alongside the source. Confirmed live: a
-# `contrib/moose` checkout that had separately been natively built (a
-# leftover dbg-mode MOOSE build, from unrelated earlier use of that same
-# checkout) mirrored its own stale .o/.so/.d files in on top of a fresh
-# opt-mode build here, and one of its .d dependency files -- still
-# referencing the *original* checkout's absolute paths -- left at least one
-# unity translation unit's own object file stale despite the containing
-# .so's mtime looking fresh, producing a real, silent undefined-reference
-# link failure. These exact patterns (plus `build`/`*Revision.h`, MOOSE's
-# own equivalent of Cardinal's own generated CardinalRevision.h -- see the
-# "why no --delete" note on mirror_source in CMakeLists.txt) are pulled
-# directly from MOOSE's own .gitignore, not guessed: deliberately a
-# narrow, high-confidence subset (compiler/linker output only), not the
-# broader .gitignore patterns further down that file (*.csv, *.log, *.e,
-# ...) --
-# mirror_source's own design notes above already found that a broad
-# ignore-pattern filter can wrongly exclude a file that's explicitly
-# tracked despite matching it (e.g. a fixture tracked despite a blanket
-# *.xml ignore); output/data-file patterns are exactly the kind of pattern
-# that risk applies to, so they're deliberately left alone here -- only
-# patterns no build ever legitimately tracks as source are excluded.
-#
-# `*.so.[0-9]*`, not `*.so.*`: rsync's exclude patterns match the *whole*
-# filename via fnmatch, not just a suffix, so a trailing `*` right after
-# ".so" turns this into a substring match rather than an extension match --
-# `*.so.*` matched `phy.solidwall_outlet_3eqn.i` (a real, tracked MOOSE test
-# input), because it merely *contains* ".so" (from "phy." + "solidwall").
-# Confirmed live testing this exact patch against a real dirty checkout
-# before relying on it. Requiring a digit immediately after ".so." limits
-# the match to an actual versioned-shared-library suffix (.so.0, .so.0.0.0)
-# instead of any filename that happens to contain ".so" followed by
-# anything.
-set(_byproduct_excludes
-  --exclude=.libs
-  --exclude=*.la
-  --exclude=*.lo
-  --exclude=*.o
-  --exclude=*.a
-  --exclude=*.so
-  --exclude=*.so.[0-9]*
-  --exclude=*.dylib
-  --exclude=*.d
-  --exclude=build
-  --exclude=*Revision.h)
+# Exclude common compiler/linker/libtool byproducts (CARDINAL_BYPRODUCT_
+# EXCLUDES, shared with CardinalMirrorSource.cmake -- see that file for the
+# full rationale and the live-observed failure this guards against), in
+# addition to .git (handled separately below). Unlike mirror_source's own
+# /build and /install excludes in CMakeLists.txt, IN_SOURCE_DIR here is a
+# *third-party* dependency's own checkout (e.g. contrib/moose) -- if that
+# checkout has ever itself been built in place (NO_BUILD dependencies like
+# MOOSE compile in-place, with no separate build directory of their own to
+# exclude the way Cardinal's own top-level checkout has one), a plain
+# rsync mirrors those compiled artifacts right alongside the source.
+include(${CMAKE_CURRENT_LIST_DIR}/CardinalByproductExcludes.cmake)
 
 execute_process(
-  COMMAND rsync -rlpgo --update --exclude=.git ${_byproduct_excludes} "${IN_SOURCE_DIR}/" "${DEST_DIR}/"
+  COMMAND rsync -rlpgo --update --exclude=.git ${CARDINAL_BYPRODUCT_EXCLUDES} "${IN_SOURCE_DIR}/" "${DEST_DIR}/"
   RESULT_VARIABLE _rc)
 if(_rc)
   message(FATAL_ERROR "Cardinal: failed to mirror '${IN_SOURCE_DIR}' into '${DEST_DIR}'")
