@@ -201,7 +201,10 @@ MeshTallyBase::storeResultsInner(const std::vector<unsigned int> & var_numbers,
     for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
     {
       auto elem_id = _use_dof_map ? _bin_to_element_mapping[e] : mesh_offset + e;
-      Real vol = mesh.queryElemPtr(elem_id)->volume();
+      const auto elem_ptr = mesh.queryElemPtr(elem_id);
+      if (!_openmc_problem.isLocalElem(elem_ptr))
+        continue;
+      Real vol = elem_ptr->volume();
 
       Real unnormalized_tally = tally_vals[local_score](ext_bin * _mesh_filter->n_bins() + e);
 
