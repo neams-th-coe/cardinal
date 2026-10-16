@@ -11,18 +11,17 @@ inline dfloat D1(dfloat r) {
     dfloat absR = fabs(r);
 
     if (absR <= 1.0) {
-        return (17.0 / 48.0) + (sqrt(3.0) * M_PI / 108.0) + (absR / 4.0) - (r * r / 4.0) 
-               + ((1.0 - 2.0 * absR) / 16.0) * sqrt(-12.0 * r * r + 12.0 * absR + 1.0) 
+        return (17.0 / 48.0) + (sqrt(3.0) * M_PI / 108.0) + (absR / 4.0) - (r * r / 4.0)
+               + ((1.0 - 2.0 * absR) / 16.0) * sqrt(-12.0 * r * r + 12.0 * absR + 1.0)
                - (sqrt(3.0) / 12.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 1.0));
     } else if (absR > 1.0 && absR <= 2.0) {
-        return (55.0 / 48.0) - (sqrt(3.0) * M_PI / 108.0) - (13.0 * absR / 12.0) + (r * r / 4.0) 
-               + ((2.0 * absR - 3.0) / 48.0) * sqrt(-12.0 * r * r + 36.0 * absR - 23.0) 
+        return (55.0 / 48.0) - (sqrt(3.0) * M_PI / 108.0) - (13.0 * absR / 12.0) + (r * r / 4.0)
+               + ((2.0 * absR - 3.0) / 48.0) * sqrt(-12.0 * r * r + 36.0 * absR - 23.0)
                + (sqrt(3.0) / 36.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 3.0));
     } else {
         return 0.0;
     }
-    
-}    
+}
 
 // Shape function evaluation from https://github.com/Nek5000/nekRS/blob/4f87e0e2ec0492e2a3edf27791252d6886814d00/kernels/findpts/poly.okl.hpp
 
@@ -76,7 +75,7 @@ static const dfloat lagrangeCoeff[] = {
   -0.09772676820929485086,
    0.04101562500000000694
 };
-static const dfloat weights[] = {0.06666667, 0.37847496, 0.55485838, 0.55485838, 0.37847496, 0.06666667}; 
+static const dfloat weights[] = {0.06666667, 0.37847496, 0.55485838, 0.55485838, 0.37847496, 0.06666667};
 
 #elif p_Nq == 7
 static const dfloat z[] = {
@@ -381,92 +380,6 @@ static const dfloat lagrangeCoeff[] = {
 static const dfloat weights[] = {0.008, 0.040, 0.075, 0.109, 0.141, 0.167, 0.184, 0.189, 0.189, 0.184, 0.167, 0.141, 0.109, 0.075, 0.040, 0.008};
 #endif
 
-
-// 3×3 inverse via adjugate/det
-inline void invert3x3(const dfloat A[3][3], dfloat invA[3][3]){
-  dfloat det = A[0][0]*(A[1][1]*A[2][2] - A[1][2]*A[2][1])
-             - A[0][1]*(A[1][0]*A[2][2] - A[1][2]*A[2][0])
-             + A[0][2]*(A[1][0]*A[2][1] - A[1][1]*A[2][0]);
-  dfloat id  = 1.0/det;
-  invA[0][0] =  (A[1][1]*A[2][2] - A[1][2]*A[2][1])*id;
-  invA[0][1] = -(A[0][1]*A[2][2] - A[0][2]*A[2][1])*id;
-  invA[0][2] =  (A[0][1]*A[1][2] - A[0][2]*A[1][1])*id;
-  invA[1][0] = -(A[1][0]*A[2][2] - A[1][2]*A[2][0])*id;
-  invA[1][1] =  (A[0][0]*A[2][2] - A[0][2]*A[2][0])*id;
-  invA[1][2] = -(A[0][0]*A[1][2] - A[0][2]*A[1][0])*id;
-  invA[2][0] =  (A[1][0]*A[2][1] - A[1][1]*A[2][0])*id;
-  invA[2][1] = -(A[0][0]*A[2][1] - A[0][1]*A[2][0])*id;
-  invA[2][2] =  (A[0][0]*A[1][1] - A[0][1]*A[1][0])*id;
-}
-
-// 1D weighting-bubble on [-1,1]
-inline dfloat bubble1D(dfloat r, dfloat r0){
-  dfloat denomPos = (1.0 - r0)*(1.0 - r0);
-  dfloat denomNeg = (1.0 + r0)*(1.0 + r0);
-  if (r >= r0) {
-    return ((1.0 - r)*(1.0 - 2.0*r0 + r)) / denomPos;
-  } else {
-    return ((1.0 + r)*(1.0 + 2.0*r0 - r)) / denomNeg;
-  }
-}
-inline dfloat bubble1D_derivative(dfloat r, dfloat r0){
-  dfloat num      = 2.0*(r0 - r);
-  dfloat denomPos = (1.0 - r0)*(1.0 - r0);
-  dfloat denomNeg = (1.0 + r0)*(1.0 + r0);
-  return (r >= r0 ? num/denomPos : num/denomNeg);
-}
-
-// Evaluate ℓ_j(xi) and ℓ_j'(xi) for j=0..p_Nq-1
-inline void evalLagrange1D(const dfloat *z,
-                           dlong p_Nq,
-                           dfloat xi,
-                           dfloat *L,
-                           dfloat *dL){
-  for(dlong j=0;j<p_Nq;++j){
-    dfloat den = 1;
-    for(dlong m=0;m<p_Nq;++m) if(m!=j) den *= (z[j]-z[m]);
-    dfloat num = 1;
-    for(dlong m=0;m<p_Nq;++m) if(m!=j) num *= (xi - z[m]);
-    L[j] = num/den;
-    dfloat sum=0;
-    for(dlong m=0;m<p_Nq;++m) if(m!=j){
-      dfloat prod=1;
-      for(dlong n=0;n<p_Nq;++n) if(n!=j && n!=m) prod *= (xi - z[n]);
-      sum += prod;
-    }
-    dL[j] = sum/den;
-  }
-}
-
-// Evaluate lagrange for j=0..Nq-1
-inline void evalLagrange1D_at(const dfloat *z,
-                              const int Nq,
-                              const dfloat xi,
-                              dfloat *L,
-                              dfloat *dL){
-  for(int j=0;j<Nq;++j){
-    dfloat den = 1.0;
-    for(int m=0;m<Nq;++m) if(m!=j) den *= (z[j]-z[m]);
-
-    dfloat num = 1.0;
-    for(int m=0;m<Nq;++m) if(m!=j) num *= (xi - z[m]);
-    L[j] = num/den;
-
-    dfloat sum = 0.0;
-    for(int m=0;m<Nq;++m) if(m!=j){
-      dfloat prod = 1.0;
-      for(int n=0;n<Nq;++n) if(n!=j && n!=m) prod *= (xi - z[n]);
-      sum += prod;
-    }
-    dL[j] = sum/den;
-  }
-}
-
-// vgeo accessor: vgeo[p_Nvgeo*p_Np*e + a + p_Np*id]
-inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
-  return vgeo[p_Nvgeo * p_Np * e + a + p_Np * id];
-}
-
 @kernel void PenaltyNoSlipBC(const dlong Nelements,
                              @restrict const dfloat* o_x,
                              @restrict const dfloat* o_y,
@@ -488,9 +401,9 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
                              @restrict const int* ElementNumber,
                              const int componentIndex,
                              @restrict dfloat* o_uL,
-                             @restrict const dfloat* GLL_weights, 
-                             @restrict const dfloat* gllNodes,    
-                             @restrict const int* elemList,       
+                             @restrict const dfloat* GLL_weights,
+                             @restrict const dfloat* gllNodes,
+                             @restrict const int* elemList,
                              @restrict const dfloat* r_x,
                              @restrict const dfloat* r_y,
                              @restrict const dfloat* r_z,
@@ -504,7 +417,7 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
 {
     // Polynomial order for each dimension
     int N = pow(p_Np, 1.0 / 3.0) - 1;
-    
+
     // Parallelize over the number of Lagrange points
     for (dlong j = 0; j < numLagrangePoints; ++j; @outer(0)) {
         int eL = elemList[j]; // Element number containing this Lagrange point
@@ -513,68 +426,60 @@ inline dfloat VGE(const dfloat* vgeo, const int e, const int a, const int id) {
         dfloat a_x = fabs(o_x[eL * p_Np + p_Np - 1] - o_x[eL * p_Np]);
         dfloat a_y = fabs(o_y[eL * p_Np + p_Np - 1] - o_y[eL * p_Np]);
         dfloat a_z = fabs(o_z[eL * p_Np + p_Np - 1] - o_z[eL * p_Np]);
-        
-         dfloat effectiveDeltaX1 = a_x/N;
-         dfloat effectiveDeltaX2 = a_y/N;
-         dfloat effectiveDeltaX3 = a_z/N;
+
+        dfloat effectiveDeltaX1 = a_x/N;
+        dfloat effectiveDeltaX2 = a_y/N;
+        dfloat effectiveDeltaX3 = a_z/N;
 
         int LagrangeOffset = componentIndex * numLagrangePoints;
         dfloat uL_component = o_uL[j + LagrangeOffset] ;
-        
 
-        // Compute the force term for each Eulerian point using the interpolated Lagrange velocity
+        // Compute the force term for each Eulerian point using the interpolated
+        // Lagrange velocity
         for (dlong l = 0; l < p_Nq; ++l; @inner(0)) {
-           
-      
             for (dlong m = 0; m < p_Nq; ++m) {
-          
-
                 for (dlong n = 0; n < p_Nq; ++n) {
-                
-               
                     // Iteration over nodes per element
                     const int id = eL * p_Np + (l + m * p_Nq + n * p_Nq * p_Nq) + offset;
-                    const int pd = eL * p_Np + l + m * p_Nq + n * p_Nq * p_Nq;          // Point index
-        
+
+                    // Point index
+                    const int pd = eL * p_Np + l + m * p_Nq + n * p_Nq * p_Nq;
+
                     dfloat dx = (o_x[pd] - x_s[j]);
                     dfloat dy = (o_y[pd] - y_s[j]);
                     dfloat dz = (o_z[pd] - z_s[j]);
-                    
-                    
-                    dfloat distanceFactor = (D1(dx / effectiveDeltaX1) * D1(dy / effectiveDeltaX2) * D1(dz / effectiveDeltaX3)) 
+
+                    dfloat distanceFactor = (D1(dx / effectiveDeltaX1) * D1(dy / effectiveDeltaX2) * D1(dz / effectiveDeltaX3))
                                              / (effectiveDeltaX1 * effectiveDeltaX2 * effectiveDeltaX3);
                     dfloat hL = (effectiveDeltaX1 + effectiveDeltaX2 + effectiveDeltaX3) / 3.0 ;
-        
-                    // Calculate the force term based on the interpolated velocity at the Lagrangian point
+
+                    // Calculate the force term based on the interpolated velocity at
+                    // the Lagrangian point
                     dfloat forceTerm = -uL_component / dt;
-                    
-                    if (sdf[pd] < 0) { //  (0.7 prevents unstabilities for the current application)
-                      source[id] = -   0.7 * velocities[id] / dt; // where we have the solid part
-                      
-                    } else {
+
+                    // 0.7 prevents instabilities for the current problem
+                    if (sdf[pd] < 0) // in the solid
+                      source[id] = - 0.7 * velocities[id] / dt;
+                    else
                       source[id] += distanceFactor * forceTerm * Al[j] * Sl[j];
-                    }
-                }    
-            }        
+                }
+            }
         }
     }
 }
-    
 
-
-@kernel void viscosity(const dlong Nelements, @restrict const dfloat* sdf , @restrict dfloat* property)
+@kernel void viscosity(const dlong Nelements, const dfloat mu, @restrict const dfloat* sdf , @restrict dfloat* property)
 {
    for (dlong e = 0; e < Nelements; ++e; @outer(0))
    {
      for (int n = 0; n < p_Np; ++n; @inner(0))
      {
        const int id = e * p_Np + n;
-       
-       if (sdf[id] < 0) {
-         property[id] = 0.5; // where we have the solid part
-       } else {
-         property[id] = 0.05; // 
-       }
+
+       if (sdf[id] < 0)
+         property[id] = 10 * mu; // where we have the solid part
+       else
+         property[id] = mu;
      }
    }
 }

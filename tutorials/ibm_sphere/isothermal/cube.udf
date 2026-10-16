@@ -365,16 +365,16 @@ void material_props(double time)
 {
     auto mesh = nrs->meshV;
     int n_gll_points = mesh->Np * mesh->Nelements;
-    int dataSize = n_gll_points;
-    occa::memory o_sdfValues = platform->device.malloc(dataSize * sizeof(dfloat));
-
+    occa::memory o_sdfValues = platform->device.malloc(n_gll_points * sizeof(dfloat));
 
     // Copy sdfValues from host to device
-     o_sdfValues.copyFrom(sdfValues.data());
+    o_sdfValues.copyFrom(sdfValues.data());
 
-    //viscosity
+    // adjust the viscosity inside the solid elements to discourage flow leakage
+    dfloat mu;
+    platform->options.getArgs("FLUID VISCOSITY", mu);
     auto o_mue = nrs->fluid->o_diffusionCoeff();
-    viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
+    viscosityKernel(nrs->meshV->Nelements, mu, o_sdfValues , o_mue);
 }
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
