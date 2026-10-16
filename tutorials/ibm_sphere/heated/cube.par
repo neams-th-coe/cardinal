@@ -3,7 +3,7 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 1000
+  numSteps = 10000
   dt = 1e-2
   writeInterval = 1000
   scalars = temperature

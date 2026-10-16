@@ -1,5 +1,17 @@
 #include <math.h>
 
+void udfDirichlet(bcData * bc)
+{
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = 0.0;
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 1.0;
+  }
+  else if (isField("scalar temperature"))
+    bc->sScalar = 0.0;
+}
+
 inline dfloat D1(dfloat r) {
     dfloat absR = fabs(r);
 
@@ -16,16 +28,6 @@ inline dfloat D1(dfloat r) {
     }
     
 }    
-
-@kernel void periodicSource(const dlong Nelements, const dlong offset, const dfloat gamma, @restrict const dfloat * vel_z, @restrict dfloat * QVOL)
-{
-  for(dlong e=0;e<Nelements;++e;@outer(0)){
-    for(int n=0;n<p_Np;++n;@inner(0)){
-      const int id = e*p_Np + n;
-      QVOL[id] = - 1.0 * vel_z[id + 2 * offset] * gamma;
-    }
-  }
-}
 
 @kernel void CHT(const dlong Nelements,
                  const dfloat kappa,
@@ -317,31 +319,19 @@ inline dfloat D1(dfloat r) {
     
 
 
-@kernel void viscosity(const dlong Nelements, @restrict const dfloat* sdf , @restrict dfloat* property)
+@kernel void viscosity(const dlong Nelements, const dfloat mu, @restrict const dfloat* sdf , @restrict dfloat* property)
 {
-   for (dlong e = 0; e < Nelements; ++e; @outer(0))
-   {
-     for (int n = 0; n < p_Np; ++n; @inner(0))
-     {
-       const int id = e * p_Np + n;
-       
-       if (sdf[id] < 0) {
-         property[id] = 0.5; // where we have the solid part
-       } else {
-         property[id] = 0.05; // 
-       }
-     }
-   }
+  for (dlong e = 0; e < Nelements; ++e; @outer(0))
+  {
+    for (int n = 0; n < p_Np; ++n; @inner(0))
+    {
+      const int id = e * p_Np + n;
+
+      if (sdf[id] < 0)
+        property[id] = 10 * mu; // where we have the solid part
+      else
+        property[id] = mu;
+    }
+  }
 }
 
-void udfDirichlet(bcData * bc)
-{
-  if (isField("fluid velocity"))
-  {
-    bc->uxFluid = 0.0;
-    bc->uyFluid = 0.0;
-    bc->uzFluid = 1.0;
-  }
-  else if (isField("scalar temperature"))
-    bc->sScalar = 0.0;
-}

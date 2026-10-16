@@ -69,8 +69,6 @@
 //#include <embree4/rtcore.h>
 //#include <embree4/rtcore_common.h>
 
-
-
 struct Point_3 {
     dfloat xValue = 0.0;
     dfloat yValue = 0.0;
@@ -87,13 +85,8 @@ struct Point_3 {
 static_assert(std::is_trivially_copyable<Point_3>::value,
               "Point_3 remain copyable for MPI_BYTE gathers");
 
-
 struct Vertex {
     dfloat x, y, z;
-};
-
-struct Vector {
-    dfloat vx, vy, vz;
 };
 
 struct FacetNormal {
@@ -104,15 +97,11 @@ struct Point {
     dfloat px, py, pz;
 };
 
-struct Triangle {
-    Vertex v0, v1, v2;
-};
-
 // A structure to hold an integration point and its weight
 struct IntegrationPoint {
     Point_3 position;
     dfloat weight;
-    std::array<dfloat, 3> normal;  // normal
+    std::array<dfloat, 3> normal;
 };
 
 // A structure to hold a Lagrange point, its weight, the characteristicArea, characteristicLength, the element number it cuts
@@ -121,14 +110,8 @@ struct LagrangePoint {
     dfloat weight;
     dfloat characteristicArea;
     dfloat characteristicLength;
-    int elementNumber; //  field to store the element number
-    std::array<dfloat, 3> normal;  // normal
-};
-
-// Structure to hold iso-surface data: points and normals.
-struct IsoSurfaceData {
-  std::vector<std::array<dfloat, 3>> points;
-  std::vector<std::array<dfloat, 3>> normals;
+    int elementNumber;
+    std::array<dfloat, 3> normal;
 };
 
 // Define a structure to hold an iso-surface mesh (points and triangle connectivity)
@@ -137,10 +120,8 @@ struct IsoSurfaceMesh {
   std::vector<std::array<std::size_t, 3>> faces;
 };
 
-
 std::vector<Point_3> globalPoints; // All Immersed surface points
 std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface faces
-
 
 // Define a global variable to hold the integrationPoints
 std::vector<IntegrationPoint> globalIntegrationPoints;
@@ -151,12 +132,11 @@ std::vector<LagrangePoint> globalLagrangePoints;
 std::vector<Vertex> STLvertices;  // Declare vertices as a global variable
 std::vector<FacetNormal> STLnormals;  // Declare normals as global
 
-
 // declare user-defined device kernel
 static deviceKernel PenaltyNoSlipBCKernel;
 static deviceKernel viscosityKernel;
 static occa::kernel CHTKernel;
-static occa::kernel periodicSourceKernel;
+
 // ============================================================
 // STL filename
 // ============================================================
@@ -180,15 +160,6 @@ void CHTKernelHeatSource(double time)
    auto mesh = nrs->meshV;
    auto o_S  = nrs->scalar->o_solution("temperature");
    auto o_FS = nrs->scalar->o_EXT;
-    
-   //dfloat R = 0.5;
-   //dfloat q_dagger = 1.0;
-   //periodicSource(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->fluid->o_U, nrs->scalar->o_EXT);
-   //
-   //// prevent any numerical drift by subtracting out the volume-average temperature
-   //const dfloat Tbar =
-   //platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm()) / mesh->volume;
-   //platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
     
     // Lagrange points
     size_t numLagrangePoints = globalLagrangePoints.size();
@@ -489,14 +460,15 @@ void material_props(double time)
   o_sdfValues.copyFrom(sdfValues.data());
 
   // viscosity
+  dfloat mu;
+  platform->options.getArgs("FLUID VISCOSITY", mu);
   auto o_mue = nrs->fluid->o_diffusionCoeff();
-  viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
+  viscosityKernel(nrs->meshV->Nelements, mu, o_sdfValues , o_mue);
 }
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
     // "PenaltyNoSlipBC" is the name in the .oudf file
-    // BC
     PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
 
     // Viscosity
