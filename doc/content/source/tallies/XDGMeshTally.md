@@ -3,6 +3,7 @@
 
 !alert note
 To use an `XDGMeshTally`, you must first build Cardinal with support for the [!ac](XDG) library.
+See [the build instructions](start.md) for more information.
 
 ## Description
 
@@ -13,7 +14,7 @@ supports `collision` and `analog` estimators. This comes with a series of limita
 `XDGMeshTally` does not support:
 
 - Adaptive mesh refinement;
-- Mixed element meshes;
+- Meshes with more than one element type;
 - Meshes composed of elements that aren't TET4s or HEX8s;
 - Block restriction.
 
@@ -47,7 +48,7 @@ mesh tally results would be transferred to incorrect regions of space.
 
 As an example, this `XDGMeshTally` scores `kappa_fission` (the default tally score) on the unstructured mesh
 found in `hex_cube.e` and stores it in a variable called `kappa_fission`. The `[Tallies]` block adds three
-`XDGMeshTally` classes, each one located at a different point specified in `mesh_translations` which corresponds
+`XDGMeshTally` objects, each one located at a different point specified in `mesh_translations` which corresponds
 to the centroid of a fissile pebble.
 
 !listing /test/tests/neutronics/mesh_tally/xdg_multiple_meshes_global_trl.i
