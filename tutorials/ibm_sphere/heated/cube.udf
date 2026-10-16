@@ -142,13 +142,13 @@ static occa::kernel CHTKernel;
 // ============================================================
 static const std::string kSTLFile = "../small_sphere.stl";
 
-// Define quad_points as a static variable to use it in main2()
+// Define quad_points as a static variable
 static std::vector<Point> quad_points;
 
 // Define an array (or a vector) to store SDF values
 static std::vector<dfloat> sdfValues;
 
-// define the number of quadrature points per element as a static variable
+// define the number of quadrature points per element
 static int QuadPointsPerElement;
 
 // Vectors to hold the Lagrange velocities values on the host
@@ -160,26 +160,25 @@ void CHTKernelHeatSource(double time)
    auto mesh = nrs->meshV;
    auto o_S  = nrs->scalar->o_solution("temperature");
    auto o_FS = nrs->scalar->o_EXT;
-    
+
     // Lagrange points
     size_t numLagrangePoints = globalLagrangePoints.size();
-    
+
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
     std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
     std::vector<int>   ElementNumber(numLagrangePoints);
     std::vector<dfloat> normal_x(numLagrangePoints), normal_y(numLagrangePoints), normal_z(numLagrangePoints);
 
-
-    for (size_t i = 0; i < numLagrangePoints; ++i) {
+    for (size_t i = 0; i < numLagrangePoints; ++i)
+    {
         xLagrange[i] = globalLagrangePoints[i].position.x();
         yLagrange[i] = globalLagrangePoints[i].position.y();
         zLagrange[i] = globalLagrangePoints[i].position.z();
         characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
-        Area[i] = globalLagrangePoints[i].weight;        
+        Area[i] = globalLagrangePoints[i].weight;
         characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
         ElementNumber[i] = globalLagrangePoints[i].elementNumber;
-    
-        // normal
+
         normal_x[i] = globalLagrangePoints[i].normal[0];
         normal_y[i] = globalLagrangePoints[i].normal[1];
         normal_z[i] = globalLagrangePoints[i].normal[2];
@@ -194,7 +193,7 @@ void CHTKernelHeatSource(double time)
     occa::memory o_normal_x = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
     occa::memory o_normal_y = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
     occa::memory o_normal_z = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
-    
+
     // Copy Lagrange points from host to device
     o_xLagrange.copyFrom(xLagrange.data());
     o_yLagrange.copyFrom(yLagrange.data());
@@ -205,69 +204,70 @@ void CHTKernelHeatSource(double time)
     o_normal_x.copyFrom(normal_x.data());
     o_normal_y.copyFrom(normal_y.data());
     o_normal_z.copyFrom(normal_z.data());
-    
+
     // Passing the sdf values for the calculation of mu
     occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
-    
+
     occa::memory o_SL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
-    // Set up interpolator for temperature
-    static pointInterpolation_t* interpolator = nullptr;   // for velocity
-    
+
+    // Set up interpolator
+    static pointInterpolation_t* interpolator = nullptr;
+
     // Set up the variables coming from findpts
-    static std::vector<int>    elemHost;
+    static std::vector<int> elemHost;
     static std::vector<dfloat> rxHost, ryHost, rzHost;
-    
-    if (!interpolator) {
+
+    if (!interpolator)
+    {
         interpolator = new pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
         interpolator->setPoints(xLagrange, yLagrange, zLagrange);
         interpolator->find();
-        // Information about the elements containing the Lagrangian points and their local coordinates    
-        auto &dat = interpolator->data(); 
-        
+
+        // Information about the elements containing the Lagrangian points and
+        // their local coordinates
+        auto &dat = interpolator->data();
+
         // Resize vectors
         elemHost.resize(numLagrangePoints);
         rxHost.resize(numLagrangePoints);
         ryHost.resize(numLagrangePoints);
         rzHost.resize(numLagrangePoints);
-        
+
         // Fill host arrays from the findpts data
-        for (int i = 0; i < numLagrangePoints; i++) {
-          elemHost[i] = dat.el[i];          
+        for (int i = 0; i < numLagrangePoints; i++)
+        {
+          elemHost[i] = dat.el[i];
+
           // dat.r stores (xi, eta, zeta) contiguously for each Lagrange point
-          rxHost[i] = dat.r[3*i + 0]; 
-          ryHost[i] = dat.r[3*i + 1]; 
-          rzHost[i] = dat.r[3*i + 2]; 
+          rxHost[i] = dat.r[3*i + 0];
+          ryHost[i] = dat.r[3*i + 1];
+          rzHost[i] = dat.r[3*i + 2];
         }
     }
-    
+
     // Transfer the mapping arrays to the device
     occa::memory o_elemList = platform->device.malloc(numLagrangePoints * sizeof(int), elemHost.data());
-    occa::memory o_rx       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rxHost.data());
-    occa::memory o_ry       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), ryHost.data());
-    occa::memory o_rz       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rzHost.data());
-   
-    
+    occa::memory o_rx = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rxHost.data());
+    occa::memory o_ry = platform->device.malloc(numLagrangePoints * sizeof(dfloat), ryHost.data());
+    occa::memory o_rz = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rzHost.data());
+
     // temperature
     interpolator->eval(1, nrs->fieldOffset, o_S, numLagrangePoints, o_SL);
-    
+
     double k;
     platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
     CHTKernel(nrs->meshV->Nelements, k,
-                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset, 
-                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
-                          nrs->meshV->o_vgeo, nrs->meshV->o_D, o_S, o_FS, o_sdfValues);
+              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset,
+              numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
+              o_characteristicArea, o_characteristicLength, o_ElementNumber,
+              nrs->meshV->o_vgeo, nrs->meshV->o_D, o_S, o_FS, o_sdfValues);
 }
 
 // BC from the IBM
 void PenaltyNoSlipBCCustomSource(double time)
 {
-
     int rank;
     MPI_Comm_rank(platform->comm.mpiComm(), &rank);
-    
-              
-              
     auto mesh = nrs->meshV;
     auto o_U = nrs->fluid->o_U;
     auto o_FU = nrs->fluid->o_explicitTerms();
@@ -327,9 +327,9 @@ void PenaltyNoSlipBCCustomSource(double time)
     occa::memory o_pL = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
 
     // Set up interpolator for velocity and pressure
+    // TODO: do you need both of these? why not reuse the interpolator?
     static pointInterpolation_t* interpolator = nullptr;   // for velocity
     static pointInterpolation_t* interpolator2 = nullptr;    // for pressure
-
 
     // Set up the variables coming from findpts
     static std::vector<int>    elemHost;
@@ -351,6 +351,7 @@ void PenaltyNoSlipBCCustomSource(double time)
         // Fill host arrays from the findpts data
         for (int i = 0; i < numLagrangePoints; i++) {
           elemHost[i] = dat.el[i];
+
           // dat.r stores (xi, eta, zeta) contiguously for each Lagrange point
           rxHost[i] = dat.r[3*i + 0];
           ryHost[i] = dat.r[3*i + 1];
@@ -381,7 +382,6 @@ void PenaltyNoSlipBCCustomSource(double time)
         elementLagrangeIndices[currentIndex[e]++] = i;
     }
 
-
     // Transfer the mapping arrays to the device
     occa::memory o_elemList = platform->device.malloc(numLagrangePoints * sizeof(int), elemHost.data());
     occa::memory o_rx       = platform->device.malloc(numLagrangePoints * sizeof(dfloat), rxHost.data());
@@ -401,53 +401,50 @@ void PenaltyNoSlipBCCustomSource(double time)
     }
     interpolator2->eval(1, nrs->fluid->fieldOffset, nrs->fluid->o_P, numLagrangePoints, o_pL);
 
-
     // Passing the sdf values for the calculation of mu
     occa::memory o_sdfValues = platform->device.malloc(nrs->meshV->Np * nrs->meshV->Nelements * sizeof(dfloat), sdfValues.data());
 
-  // Call the kernel for each velocity component, now passing the element mapping arrays
-    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
-                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
-                          o_U, 0 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
-                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
+    // Call the kernel for each velocity component (loop from 1 to 3), now passing the element mapping arrays.
+    for (unsigned int vid = 0; vid < 3; ++vid)
+      PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
+                            nrs->meshV->o_x,
+                            nrs->meshV->o_y,
+                            nrs->meshV->o_z,
+                            o_U,
+                            vid * nrs->fluid->fieldOffset,
+                            nrs->fluid->fieldOffset,
+                            o_FU,
+                            numLagrangePoints,
+                            o_xLagrange,
+                            o_yLagrange,
+                            o_zLagrange,
+                            o_normal_x,
+                            o_normal_y,
+                            o_normal_z,
                             nrs->dt[0],
-                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
-                          0, o_uL,
-                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
-                          o_elemList, o_rx, o_ry, o_rz,
-                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices, nrs->fluid->o_P, nrs->meshV->o_D);
-
-    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
-                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
-                          o_U, 1 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
-                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                           nrs->dt[0],
-                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
-                          1, o_uL,
-                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
-                          o_elemList, o_rx, o_ry, o_rz,
-                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
-
-    PenaltyNoSlipBCKernel(nrs->meshV->Nelements,
-                          nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
-                          o_U, 2 * nrs->fluid->fieldOffset, nrs->fluid->fieldOffset, o_FU,
-                          numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
-                           nrs->dt[0],
-                          o_characteristicArea, o_characteristicLength, o_ElementNumber,
-                          2, o_uL,
-                          nrs->meshV->o_gllw, nrs->meshV->o_gllz,
-                          o_elemList, o_rx, o_ry, o_rz,
-                          nrs->meshV->o_vgeo, o_sdfValues, o_pL,
-                          o_elementOffsets, o_elementLagrangeIndices,  nrs->fluid->o_P, nrs->meshV->o_D);
+                            o_characteristicArea,
+                            o_characteristicLength,
+                            o_ElementNumber,
+                            vid,
+                            o_uL,
+                            nrs->meshV->o_gllw,
+                            nrs->meshV->o_gllz,
+                            o_elemList,
+                            o_rx,
+                            o_ry,
+                            o_rz,
+                            nrs->meshV->o_vgeo,
+                            o_sdfValues,
+                            o_pL,
+                            o_elementOffsets,
+                            o_elementLagrangeIndices,
+                            nrs->fluid->o_P,
+                            nrs->meshV->o_D);
 
     // Copy interpolated Lagrange-point velocities to host once.
     uL_host.resize(nrs->meshV->dim * numLagrangePoints);
-    if (numLagrangePoints > 0) {
+    if (numLagrangePoints > 0)
         o_uL.copyTo(uL_host.data());
-    }
-    
 }
 
 void material_props(double time)
@@ -459,7 +456,7 @@ void material_props(double time)
   // Copy sdfValues from host to device
   o_sdfValues.copyFrom(sdfValues.data());
 
-  // viscosity
+  // modify viscosity inside the body to discourage flow penetration
   dfloat mu;
   platform->options.getArgs("FLUID VISCOSITY", mu);
   auto o_mue = nrs->fluid->o_diffusionCoeff();
@@ -468,70 +465,58 @@ void material_props(double time)
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
-    // "PenaltyNoSlipBC" is the name in the .oudf file
-    PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
-
-    // Viscosity
-    viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
-    
-    // temperature correction
-    CHTKernel = oudfBuildKernel(kernelInfo , "CHT");
+  PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
+  viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
+  CHTKernel = oudfBuildKernel(kernelInfo , "CHT");
 }
 
 // NekRS accepts one userSource callback. Apply both IBM source terms.
 void CombinedIBMSource(double time)
 {
-    PenaltyNoSlipBCCustomSource(time);
-    CHTKernelHeatSource(time);
+  PenaltyNoSlipBCCustomSource(time);
+  CHTKernelHeatSource(time);
 }
 
 void UDF_Setup()
 {
+  auto mesh = nrs->meshV;
+  int n_gll_points = mesh->Np * mesh->Nelements;
 
-    auto mesh = nrs->meshV;
-    int n_gll_points = mesh->Np * mesh->Nelements;
+  // Register both IBM momentum and temperature source terms
+  nrs->userSource = &CombinedIBMSource;
 
-    // Register both IBM momentum and temperature source terms.
-    nrs->userSource = &CombinedIBMSource;
+  // kernel for changing the visosity
+  nrs->userProperties = &material_props;
 
-    // kernel for changing the visosity
-    nrs->userProperties = &material_props;
+  QuadPointsPerElement = mesh->Np;
 
+  // TODO: why not use the already existing x, y, z (to avoid duplicating memory)
+  // TODO: does this need to be guarded with the .empty()?
+  std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
+  mesh->o_x.copyTo(x.data());
+  mesh->o_y.copyTo(y.data());
+  mesh->o_z.copyTo(z.data());
 
-    int Nelements = mesh->Nelements;
-
-    QuadPointsPerElement = mesh->Np;
-
-    // Initialize quad_points and velocity initial condition
-
-    if (quad_points.empty())
+  if (quad_points.empty())
+  {
+    quad_points.resize(n_gll_points);
+    for (int n = 0; n < n_gll_points; ++n)
     {
-        quad_points.resize(n_gll_points);
-
-        std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
-        mesh->o_x.copyTo(x.data());
-        mesh->o_y.copyTo(y.data());
-        mesh->o_z.copyTo(z.data());
-
-        std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
-
-        for (int n = 0; n < n_gll_points; ++n)
-        {
-            U[n + 0 * nrs->fluid->fieldOffset] = 0.0;  // x-velocity
-            U[n + 1 * nrs->fluid->fieldOffset] = 0.0;  // y-velocity
-            U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
-
-            quad_points[n].px = x[n];
-            quad_points[n].py = y[n];
-            quad_points[n].pz = z[n];
-        }
-
-        nrs->fluid->o_solution().copyFrom(U.data(), U.size());
-
+      quad_points[n].px = x[n];
+      quad_points[n].py = y[n];
+      quad_points[n].pz = z[n];
     }
+  }
 
-     main2(); // Call main2 after quad_points
+  // apply initial conditions for velocity, then copy into the velocity array
+  std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
 
+  for (int n = 0; n < n_gll_points; ++n)
+    U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
+
+  nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+
+  main2(); // Call main2 after quad_points
 }
 
 
