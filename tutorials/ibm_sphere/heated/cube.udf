@@ -491,21 +491,17 @@ void UDF_Setup()
   QuadPointsPerElement = mesh->Np;
 
   // TODO: why not use the already existing x, y, z (to avoid duplicating memory)
-  // TODO: does this need to be guarded with the .empty()?
   std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
   mesh->o_x.copyTo(x.data());
   mesh->o_y.copyTo(y.data());
   mesh->o_z.copyTo(z.data());
 
-  if (quad_points.empty())
+  quad_points.resize(n_gll_points);
+  for (int n = 0; n < n_gll_points; ++n)
   {
-    quad_points.resize(n_gll_points);
-    for (int n = 0; n < n_gll_points; ++n)
-    {
-      quad_points[n].px = x[n];
-      quad_points[n].py = y[n];
-      quad_points[n].pz = z[n];
-    }
+    quad_points[n].px = x[n];
+    quad_points[n].py = y[n];
+    quad_points[n].pz = z[n];
   }
 
   // apply initial conditions for velocity, then copy into the velocity array
@@ -518,8 +514,6 @@ void UDF_Setup()
 
   main2(); // Call main2 after quad_points
 }
-
-
 
 // Function to compute the area of a triangle given its vertices (used to compute the area of the traingulated surface, STL surface, and weight of Lagrangian and integration points)
 dfloat computeTriangleArea(const Point_3& v1, const Point_3& v2, const Point_3& v3) {
@@ -540,32 +534,34 @@ dfloat computeTriangleArea(const Point_3& v1, const Point_3& v2, const Point_3& 
 }
 
 // Function to compute the total surface area of the STL file
-dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices) {
-    dfloat totalArea = 0.0;
+dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices)
+{
+  dfloat totalArea = 0.0;
 
-    // Ensure the STL file contains triangles (3 vertices per face)
-    if (vertices.size() % 3 != 0) {
-        std::cerr << "Error: STL file does not contain a valid set of triangles!" << std::endl;
-        return 0.0;
-    }
+  // Ensure the STL file contains triangles (3 vertices per face)
+  if (vertices.size() % 3 != 0) {
+      std::cerr << "Error: STL file does not contain a valid set of triangles!" << std::endl;
+      return 0.0;
+  }
 
-    // Iterate over the triangles in the STL file
-    for (size_t i = 0; i < vertices.size(); i += 3) {
-        // Extract the three vertices of the triangle
-        const Vertex& v1 = vertices[i];
-        const Vertex& v2 = vertices[i + 1];
-        const Vertex& v3 = vertices[i + 2];
+  // Iterate over the triangles in the STL file
+  for (size_t i = 0; i < vertices.size(); i += 3)
+  {
+    // Extract the three vertices of the triangle
+    const Vertex& v1 = vertices[i];
+    const Vertex& v2 = vertices[i + 1];
+    const Vertex& v3 = vertices[i + 2];
 
-        // Compute the area of the triangle
-        dfloat area = computeTriangleArea(Point_3(v1.x, v1.y, v1.z),
-                                          Point_3(v2.x, v2.y, v2.z),
-                                          Point_3(v3.x, v3.y, v3.z));
+    // Compute the area of the triangle
+    dfloat area = computeTriangleArea(Point_3(v1.x, v1.y, v1.z),
+                                      Point_3(v2.x, v2.y, v2.z),
+                                      Point_3(v3.x, v3.y, v3.z));
 
-        // Accumulate the total area
-        totalArea += area;
-    }
+    // Accumulate the total area
+    totalArea += area;
+  }
 
-    return totalArea;
+  return totalArea;
 }
 
 
@@ -1726,28 +1722,29 @@ void identifyCuttingTrianglesWithIntersections(
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.
     dfloat localArea = 0.0;
-    for (const auto& point : globalLagrangePoints) {
+    for (const auto& point : globalLagrangePoints)
         localArea += point.weight;
-    }
+
     dfloat triangulatedArea = 0.0;
-    static_assert(sizeof(dfloat) == sizeof(double),
-                  "This tutorial's MPI area reduction assumes double precision");
     MPI_Reduce(&localArea, &triangulatedArea, 1, MPI_DOUBLE, MPI_SUM,
                0, platform->comm.mpiComm());
 
-    if (rank == 0) {
-        // Compute the area of the STL surface
-        dfloat stlSurfaceArea = computeSTLSurfaceArea(STLvertices);
+    if (rank == 0)
+    {
+      // Compute the area of the STL surface
+      dfloat stlSurfaceArea = computeSTLSurfaceArea(STLvertices);
 
-        // Compute the absolute and relative differences
-        dfloat absoluteDifference = std::fabs(triangulatedArea - stlSurfaceArea);
-        dfloat relativeDifference = absoluteDifference / stlSurfaceArea;
+      // Compute the absolute and relative differences
+      dfloat absoluteDifference = std::fabs(triangulatedArea - stlSurfaceArea);
+      dfloat relativeDifference = absoluteDifference / stlSurfaceArea;
 
-        // Output the results
-        std::cout << "STL Surface Area: " << stlSurfaceArea << std::endl;
-        std::cout << "Triangulated Surface Area: " << triangulatedArea << std::endl;
-        std::cout << "Absolute Difference: " << absoluteDifference << std::endl;
-        std::cout << "Relative Difference: " << relativeDifference * 100.0 << " %" << std::endl;
+      std::cout << std::endl;
+      std::cout <<"================== SETUP IBM ================" << std::endl;
+      std::cout << "STL Surface Area:          " << stlSurfaceArea << std::endl;
+      std::cout << "Triangulated Surface Area: " << triangulatedArea << std::endl;
+      std::cout << "Absolute Difference:       " << absoluteDifference << std::endl;
+      std::cout << "Relative Difference:       " << relativeDifference * 100.0 << " %" << std::endl;
+      std::cout << std::endl;
     }
 }
 
