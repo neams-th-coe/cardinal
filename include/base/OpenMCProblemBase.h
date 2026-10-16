@@ -113,6 +113,12 @@ public:
   const Real & scaling() const { return _scaling; }
 
   /**
+   * Get the criticality search object, if any
+   * @return criticality search, or nullptr if there is none
+   */
+  const CriticalitySearchBase * criticalitySearch() const { return _criticality_search; }
+
+  /**
    * Whether the problem has user defined scaling or not.
    * @return whether the user has set the problem scaling or not
    */
