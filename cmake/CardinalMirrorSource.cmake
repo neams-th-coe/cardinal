@@ -206,3 +206,6 @@ execute_process(
 if(_rc)
   message(FATAL_ERROR "Cardinal: failed to mirror '${SOURCE_DIR}' into '${DEST_DIR}'")
 endif()
+
+include(${CMAKE_CURRENT_LIST_DIR}/CardinalDetectMirrorDivergence.cmake)
+cardinal_detect_mirror_divergence(${SOURCE_DIR} ${DEST_DIR} ${_excludes})

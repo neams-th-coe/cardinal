@@ -61,6 +61,9 @@ if(_rc)
   message(FATAL_ERROR "Cardinal: failed to mirror '${IN_SOURCE_DIR}' into '${DEST_DIR}'")
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/CardinalDetectMirrorDivergence.cmake)
+cardinal_detect_mirror_divergence("${IN_SOURCE_DIR}" "${DEST_DIR}" --exclude=.git ${CARDINAL_BYPRODUCT_EXCLUDES})
+
 if(NOT EXISTS "${IN_SOURCE_DIR}/.git")
   return()
 endif()
