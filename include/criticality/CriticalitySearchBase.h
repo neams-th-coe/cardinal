@@ -53,6 +53,27 @@ public:
    */
   virtual bool changingGeometry() const = 0;
 
+  /**
+   * Values of the searched quantity tried in the most recent search, in the order tried
+   * @return inputs of the most recent search
+   */
+  const std::vector<Real> & inputs() const { return _inputs; }
+
+  /**
+   * Mean k for each value tried in the most recent search
+   * @return mean k of the most recent search
+   */
+  const std::vector<Real> & kValues() const { return _k_values; }
+
+  /**
+   * Standard deviation of k for each value tried in the most recent search
+   * @return standard deviation of k of the most recent search
+   */
+  const std::vector<Real> & kStdDevValues() const { return _k_std_dev_values; }
+
+  /// Conversion factor to pcm
+  static constexpr Real TO_PCM = 1e5;
+
 protected:
   /// The quantity being varied in the search for criticality, for console prints
   virtual std::string quantity() const = 0;

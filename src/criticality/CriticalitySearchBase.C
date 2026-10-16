@@ -116,6 +116,11 @@ CriticalitySearchBase::searchForCriticality(std::function<void(bool)> step_callb
            << std::to_string(_minimum) << " - " << std::to_string(_maximum) << " " << units() << " "
            << std::endl;
 
+  // only keep the history of the most recent search
+  _inputs.clear();
+  _k_values.clear();
+  _k_std_dev_values.clear();
+
   VariadicTable<int, Real, Real, Real> vt(
       {"Iteration", quantity() + " " + units(), "  k (mean)  ", " k (std dev) "});
   vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
