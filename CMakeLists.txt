@@ -326,124 +326,14 @@ set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR})
 set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 
 # Mirror everything except the large, separately-managed submodules and
-# CMake/Make build byproducts. Reruns every build (add_custom_target has no
-# tracked OUTPUT, so it's always considered out of date) -- the same role as
-# the manual `rsync -a` in SYNC_tmp/SYNC_nvme, but automatic.
-#
-# -rlpgo, not -a: -a is -rlptgoD, and the -t (preserve source mtime) is
-# exactly wrong here. The source tree can keep being edited while a long
-# build runs, and Cardinal's Makefile relies on ordinary mtime comparisons
-# to decide what needs recompiling -- copying a source mtime through
-# verbatim (rather than stamping the destination with the actual copy
-# time) is what copy_directory_if_newer avoids too. -D (devices/specials)
-# is dropped as well since it's meaningless for a source tree.
-#
-# --update is required alongside dropping -t, not optional: without -t,
-# the destination's mtime is just "whenever it was last copied", which
-# will essentially never equal the source's current mtime -- so rsync's
-# default quick check (size+mtime) sees every file as changed and
-# re-copies (and re-stamps) the entire tree on every single build,
-# forcing a full recompile+relink every time regardless of whether
-# anything actually changed. --update skips a file whenever the
-# destination is already newer than the source (only comparing
-# timestamps, not hashing every file's content) -- a genuinely-
-# unchanged file keeps its stable destination mtime, and a real source
-# edit (whose mtime is necessarily newer than the last mirror copy)
-# gets re-copied with a fresh one. Matches copy_directory_if_newer's
-# own actual semantics more closely than a content-hash comparison
-# would, without trusting a source mtime a concurrent edit could make
-# misleading.
-# Cardinal builds in-place: object files, libraries, dependency files,
-# and the *Revision.h headers all land inline next to their sources
-# (e.g. src/base/CardinalApp.o), not confined to /build. None of that
-# exists in the pristine source tree, so --delete removed it all on
-# every single mirror_source run, as soon as it was produced -- forcing
-# a full rebuild+relink every time regardless of the mtime/--update fix
-# above (confirmed live: CardinalRevision.h was getting deleted and
-# regenerated on every build; a missing prerequisite is obviously
-# "changed", no mtime trickery needed for that). Rather than try to
-# comprehensively protect every in-tree generated pattern Cardinal's
-# Makefile happens to produce, just drop --delete: the cost is a stale
-# copy lingering if a source file is later removed/renamed upstream,
-# which is far cheaper than silently rebuilding the world every time.
-# Just copy everything (only excluding what we must for functional
-# reasons below), rather than trying to filter out generated/ignored
-# content: a .gitignore-pattern filter got this wrong in a way that
-# actually broke tests -- .gitignore only hides *untracked* files from
-# git, so a file that's explicitly tracked despite matching a broad
-# ignore pattern (e.g. test/tests/.../model.xml, tracked despite the
-# repo's blanket "*.xml" ignore -- that pattern exists to keep
-# *generated* XML out, not this fixture) stays tracked and visible to
-# git regardless, but rsync's --filter has no such "tracked overrides
-# ignore" concept and excluded it unconditionally. Mirroring exactly
-# what `git ls-files` tracks instead would dodge that specific problem,
-# but silently misses any file the user has created but not yet even
-# `git add`ed -- also wrong. Simplest and most robust: don't try to be
-# clever about what belongs in the mirror at all.
-#
-# --exclude=/contrib covers all 14 submodules under it (the 4 this
-# superbuild manages -- moose/nekRS/openmc/nuclear_data, each resolved
-# independently by its own cardinal_add_submodule_dependency call above
-# or below -- plus 10 more for not-yet-implemented Phase 2 features
-# like DAGMC/SAM/bison/embree/... that we don't want mirrored at all
-# even if a user happens to have them checked out locally). Confirmed
-# nothing else lives directly under contrib/ -- every path there is a
-# submodule mount point, nothing Cardinal-specific.
-#
-# --exclude=/Makefile, plus the separate copy_if_different below: since
-# CARDINAL_STAGE_DIR is now the CMake build directory itself (see
-# "Layout" above), rsync-ing Makefile normally would collide with
-# CMake's own generated one of the same name. copy_if_different gives
-# the renamed copy the same "only touch it if content actually
-# changed" correctness the --update rsync above has, without needing
-# rsync just for one file.
-# test/tests/nek_ci is its own submodule outside contrib/, resolved
-# independently (like contrib's own submodules) only when ENABLE_NEK is
-# on -- see that block below. Exclude it here too in that case so the
-# two don't fight over the same destination; when ENABLE_NEK is off
-# there's no dedicated resolver for it, so let it just get copied
-# normally along with everything else (a no-op if it isn't checked out).
-#
-# --exclude=/build --exclude=/install: Cardinal's own native Makefile
-# defaults both to exactly these names directly under the source checkout
-# (Makefile:69,76: CARDINAL_DIR/build, CARDINAL_DIR/install -- the same
-# *_BUILDDIR/*_INSTALL_DIR paths this file's own dependency blocks are
-# careful to match). Since CARDINAL_STAGE_DIR *is* the CMake build
-# directory, a bare rsync of the whole source tree into it would, for
-# anyone who has ever run (or runs concurrently) a native build in that
-# same checkout, copy that leftover/live build/install tree wholesale on
-# top of our own ExternalProject build trees living at those same relative
-# paths -- silently corrupting them (observed directly: a stale
-# build/openmc/CMakeCache.txt from an earlier native build clobbered a
-# freshly-configured ExternalProject build/openmc here). Excluded
-# unconditionally, not just when such a directory happens to exist.
-#
-# --exclude=/CMakeLists.txt --exclude=/cmake: this superbuild's own files
-# (this file, and the helper modules under cmake/). Cardinal's native
-# Makefile has no use for either -- they exist purely to drive this CMake
-# configure -- so mirroring them into CARDINAL_STAGE_DIR (which, again, is
-# the CMake build directory itself) would just leave a redundant, easily
-# stale copy sitting next to CMake's own CMakeCache.txt/CMakeFiles for no
-# purpose.
-#
-# --exclude=/unit/Makefile: same collision-avoidance idea as /Makefile
-# above, but for a different reason -- unit/Makefile doesn't collide with
-# anything CMake generates (nothing here add_subdirectory()s unit/), but it
-# has its own independent set of ENABLE_NEK/ENABLE_OPENMC/ENABLE_DAGMC/
-# ENABLE_DOUBLE_DOWN/PETSC_DIR/LIBMESH_DIR/WASP_DIR/HDF5_ROOT `?=` defaults
-# that must match how *this* build was actually configured, or its own
-# build_openmc/etc steps silently rebuild those dependencies with different
-# settings (confirmed directly: invoking it with the wrong ENABLE_DAGMC
-# rebuilt libopenmc.so without DAGMC support, breaking the link of the
-# already-built, DAGMC-enabled libcardinal-opt.so with "undefined reference
-# to openmc::DAGSurface/DAGUniverse"). Renamed to unit/Makefile.unit (copied
-# from CMAKE_SOURCE_DIR directly, like Makefile.cardinal above, so there's
-# no risk of ever reading back our own generated substitute) and replaced
-# with cmake/UnitMakefile -- a tiny, fully static forwarder that just hands
-# off to the "cardinal-unit" target further down this file, which forces
-# those settings from this build's own cached configuration before
-# invoking Makefile.unit -- so `make -C unit` just works without the
-# caller needing to reconstruct a matching environment by hand.
+# CMake/Make build byproducts, via CardinalMirrorSource.cmake -- see that
+# file for the exclude list and the full rationale behind it (including
+# why the list is computed fresh on every invocation rather than fixed at
+# configure time, and why a native Makefile build run in this same
+# checkout doesn't get mirrored on top of this build). Reruns every build
+# (add_custom_target has no tracked OUTPUT, so it's always considered out
+# of date) -- the same role as the manual `rsync -a` in SYNC_tmp/
+# SYNC_nvme, but automatic.
 #
 # unit/Makefile.unit is copied as an ordinary mirror_source build step,
 # same as Makefile.cardinal (below) -- it's real Cardinal source, so a
@@ -467,15 +357,12 @@ set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
 # writes it immediately at `cmake` configure time instead, same idea as
 # Makefile.cardinal/Makefile.unit but without needing to wait on
 # mirror_source at all.
-set(_mirror_excludes --exclude=/contrib --exclude=/.git --exclude=/Makefile --exclude=/unit/Makefile --exclude=/build --exclude=/install --exclude=/CMakeLists.txt --exclude=/cmake)
-if(ENABLE_NEK)
-  list(APPEND _mirror_excludes --exclude=/test/tests/nek_ci)
-endif()
-
 add_custom_target(mirror_source ALL
-  COMMAND rsync -rlpgo --update
-          ${_mirror_excludes}
-          ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
+  COMMAND ${CMAKE_COMMAND}
+          -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+          -DDEST_DIR=${CARDINAL_STAGE_DIR}
+          -DENABLE_NEK=${ENABLE_NEK}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalMirrorSource.cmake
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
   COMMAND ${CMAKE_COMMAND} -E make_directory
