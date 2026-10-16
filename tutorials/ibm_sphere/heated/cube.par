@@ -3,10 +3,9 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 10000
+  numSteps = 1000
   dt = 1e-2
   writeInterval = 1000
-  constFlowRate = meanVelocity=1 + direction=Z
   scalars = temperature
 
 [MESH]
@@ -16,13 +15,13 @@
   residualTol = 1e-05
 
 [FLUID VELOCITY]
-  boundaryTypeMap = zeroDirichlet, zeroDirichlet
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
   residualTol = 1e-08
-  viscosity = 0.02
+  viscosity = -50
   density = 1.0
 
 [SCALAR TEMPERATURE]
-  boundaryTypeMap = zeroNeumann, udfDirichlet
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann
   residualTol = 1e-08
   transportCoeff = 1.0
-  diffusionCoeff =  -5000
+  diffusionCoeff =  -50

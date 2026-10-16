@@ -358,9 +358,6 @@ void PenaltyNoSlipBCCustomSource(double time)
     o_uL.copyTo(uL_host.data());
 }
 
-
-
-// Changing viscosity
 void material_props(double time)
 {
     auto mesh = nrs->meshV;
@@ -379,64 +376,50 @@ void material_props(double time)
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
-    // "PenaltyNoSlipBC" is the name in the .oudf file
-    // BC
-    PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
-
-    // Viscosity
-    viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
+  PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
+  viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
 }
 
 void UDF_Setup()
 {
-
     auto mesh = nrs->meshV;
     int n_gll_points = mesh->Np * mesh->Nelements;
 
-    // kernel for adding the BC as a force
+    // kernel for adding the BC as a force in the momentum equation
     nrs->userSource = &PenaltyNoSlipBCCustomSource;
 
     // kernel for changing the visosity
     nrs->userProperties = &material_props;
 
-
     int Nelements = mesh->Nelements;
 
     QuadPointsPerElement = mesh->Np;
 
-    // Initialize quad_points and velocity initial condition
+    // Initialize quad_points
+    quad_points.resize(n_gll_points);
 
-    if (quad_points.empty())
+    std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
+    mesh->o_x.copyTo(x.data());
+    mesh->o_y.copyTo(y.data());
+    mesh->o_z.copyTo(z.data());
+
+    // initial condition for velocity
+    std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+
+    for (int n = 0; n < n_gll_points; ++n)
     {
-        quad_points.resize(n_gll_points);
+      U[n + 0 * nrs->fluid->fieldOffset] = 0.0;  // x-velocity
+      U[n + 1 * nrs->fluid->fieldOffset] = 0.0;  // y-velocity
+      U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
 
-        std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
-        mesh->o_x.copyTo(x.data());
-        mesh->o_y.copyTo(y.data());
-        mesh->o_z.copyTo(z.data());
-
-        std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
-
-        for (int n = 0; n < n_gll_points; ++n)
-        {
-            U[n + 0 * nrs->fluid->fieldOffset] = 0.0;  // x-velocity
-            U[n + 1 * nrs->fluid->fieldOffset] = 0.0;  // y-velocity
-            U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
-
-            quad_points[n].px = x[n];
-            quad_points[n].py = y[n];
-            quad_points[n].pz = z[n];
-        }
-
-        nrs->fluid->o_solution().copyFrom(U.data(), U.size());
-
+      quad_points[n].px = x[n];
+      quad_points[n].py = y[n];
+      quad_points[n].pz = z[n];
     }
 
-     main2(); // Call main2 after quad_points
-
+    nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+    main2(); // Call main2 after quad_points
 }
-
-
 
 // Function to compute the area of a triangle given its vertices (used to compute the area of the traingulated surface, STL surface, and weight of Lagrangian and integration points)
 dfloat computeTriangleArea(const Point_3& v1, const Point_3& v2, const Point_3& v3) {

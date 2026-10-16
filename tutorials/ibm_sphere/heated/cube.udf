@@ -179,16 +179,16 @@ void CHTKernelHeatSource(double time)
 {
    auto mesh = nrs->meshV;
    auto o_S  = nrs->scalar->o_solution("temperature");
-   auto o_FS = nrs->scalar->o_explicitTerms("temperature");
+   auto o_FS = nrs->scalar->o_EXT;
     
-   dfloat R = 0.5;
-   dfloat q_dagger = 1.0;
-   periodicSource(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->fluid->o_U, nrs->scalar->o_EXT);
-   
-   // prevent any numerical drift by subtracting out the volume-average temperature
-   const dfloat Tbar =
-   platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm()) / mesh->volume;
-   platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
+   //dfloat R = 0.5;
+   //dfloat q_dagger = 1.0;
+   //periodicSource(mesh->Nelements, nrs->fieldOffset, 2 / R * q_dagger, nrs->fluid->o_U, nrs->scalar->o_EXT);
+   //
+   //// prevent any numerical drift by subtracting out the volume-average temperature
+   //const dfloat Tbar =
+   //platform->linAlg->innerProd(mesh->Nlocal, o_S, mesh->o_LMM, platform->comm.mpiComm()) / mesh->volume;
+   //platform->linAlg->add(mesh->Nlocal, -Tbar, o_S);
     
     // Lagrange points
     size_t numLagrangePoints = globalLagrangePoints.size();
@@ -279,8 +279,9 @@ void CHTKernelHeatSource(double time)
     // temperature
     interpolator->eval(1, nrs->fieldOffset, o_S, numLagrangePoints, o_SL);
     
-    
-    CHTKernel(nrs->meshV->Nelements, 
+    double k;
+    platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+    CHTKernel(nrs->meshV->Nelements, k,
                           nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset, 
                           numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
                           o_characteristicArea, o_characteristicLength, o_ElementNumber,
@@ -478,23 +479,18 @@ void PenaltyNoSlipBCCustomSource(double time)
     
 }
 
-
-
-// Changing viscosity
 void material_props(double time)
 {
-    auto mesh = nrs->meshV;
-    int n_gll_points = mesh->Np * mesh->Nelements;
-    int dataSize = n_gll_points;
-    occa::memory o_sdfValues = platform->device.malloc(dataSize * sizeof(dfloat));
+  auto mesh = nrs->meshV;
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  occa::memory o_sdfValues = platform->device.malloc(n_gll_points * sizeof(dfloat));
 
+  // Copy sdfValues from host to device
+  o_sdfValues.copyFrom(sdfValues.data());
 
-    // Copy sdfValues from host to device
-     o_sdfValues.copyFrom(sdfValues.data());
-
-    //viscosity
-    auto o_mue = nrs->fluid->o_diffusionCoeff();
-    viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
+  // viscosity
+  auto o_mue = nrs->fluid->o_diffusionCoeff();
+  viscosityKernel(nrs->meshV->Nelements, o_sdfValues , o_mue);
 }
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
@@ -508,9 +504,6 @@ void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
     
     // temperature correction
     CHTKernel = oudfBuildKernel(kernelInfo , "CHT");
-    
-    // periodic kernel
-    periodicSourceKernel = oudfBuildKernel(kernelInfo, "periodicSource");
 }
 
 // NekRS accepts one userSource callback. Apply both IBM source terms.
