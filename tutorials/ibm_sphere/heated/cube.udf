@@ -564,26 +564,26 @@ dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices)
   return totalArea;
 }
 
+dfloat integrate_function_over_STL()
+{
+  // Surface quadrature diagnostic on this rank
+  dfloat integratedValue = 0.0;
+
+  for (const auto& ip : globalIntegrationPoints)
+  {
+    // Calculate the function value at the integration point; arbitrary function
+    dfloat fValue = (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)) *  std::exp(-2 * (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
+
+    // Multiply by the weight of the integration point and accumulate
+    integratedValue += fValue * ip.weight;
+  }
+}
 
 void UDF_ExecuteStep(double time, int tstep)
 {
 
     if (tstep == 0) {
 
-        // Surface quadrature diagnostic on this rank
-        dfloat integratedValue = 0.0; // This will hold the result of the numerical integration
-
-        // Use globalIntegrationPoints
-        for (const auto& ip : globalIntegrationPoints) {
-            // Calculate the function value at the integration point
-            dfloat fValue = (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)) *  std::exp(-2 * (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
-
-            // Multiply by the weight of the integration point and accumulate
-            integratedValue += fValue * ip.weight;
-        }
-
-        // Output the result of the numerical integration
-        std::cout << "Integrated value of f(x,y,z) over the surface: " << integratedValue << std::endl;
     }
 
     // Diagnostic: write z-velocity at a specific time step
@@ -1712,22 +1712,18 @@ void identifyCuttingTrianglesWithIntersections(
                 (rank == 0 ? faceDisplacements.data() : nullptr),
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
-    //  Write to VTK on Rank 0
-    if (rank == 0) {
-        // Write the VTK file for the reconstructed mesh
-        writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
-
-    }
+    // Write the VTK file for the reconstructed mesh
+    if (rank == 0)
+      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.
     dfloat localArea = 0.0;
-    for (const auto& point : globalLagrangePoints)
-        localArea += point.weight;
+    for (const auto & point : globalLagrangePoints)
+      localArea += point.weight;
 
     dfloat triangulatedArea = 0.0;
-    MPI_Reduce(&localArea, &triangulatedArea, 1, MPI_DOUBLE, MPI_SUM,
-               0, platform->comm.mpiComm());
+    MPI_Reduce(&localArea, &triangulatedArea, 1, MPI_DOUBLE, MPI_SUM, 0, platform->comm.mpiComm());
 
     if (rank == 0)
     {
