@@ -26,8 +26,7 @@ inline dfloat D1(dfloat r) {
     } else {
         return 0.0;
     }
-    
-}    
+}
 
 @kernel void CHT(const dlong Nelements,
                  const dfloat kappa,
