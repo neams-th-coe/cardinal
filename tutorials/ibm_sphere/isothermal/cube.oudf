@@ -1,5 +1,12 @@
 #include <math.h>
 
+void udfDirichlet(bcData * bc)
+{
+  bc->uxFluid = 0.0;
+  bc->uyFluid = 0.0;
+  bc->uzFluid = 1.0;
+}
+
 inline dfloat D1(dfloat r) {
     dfloat absR = fabs(r);
 

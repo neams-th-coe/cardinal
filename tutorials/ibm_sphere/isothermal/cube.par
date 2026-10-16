@@ -3,10 +3,9 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 10000
+  numSteps = 1000
   dt = 1e-2
   writeInterval = 1000
-  constFlowRate = meanVelocity=1.0 + direction=Z
 
 [MESH]
   file = "../cube.re2"
@@ -15,7 +14,7 @@
   residualTol = 1e-05
 
 [FLUID VELOCITY]
-  boundaryTypeMap = zeroDirichlet, zeroDirichlet
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
   residualTol = 1e-08
-  viscosity = 0.02
+  viscosity = -50.0
   density = 1.0
