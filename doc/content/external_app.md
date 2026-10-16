@@ -51,16 +51,17 @@ make -j4 MAKEFLAGS=-j4
 
 ## Run
 
-`library_path` must point to the `lib` directory of the external app's installation.
-With the module loaded (before entering `tmap8-shell`), find where the app's executable lives:
+Run `cardinal-opt` from the same environment you built it in (`tmap8-shell`). Inside
+this environment the app is installed under `/opt/tmap8`. `library_path` must point to
+the directory that contains the app's `.la` library archive:
 
 ``` language=bash
-which tmap8-opt
-# /hpc-common/moose/containers/tmap8-openmpi/2026.08.13-ea97ed7_a7dade0d23ae1ed3b1540a58d8018078d61a298ca6fb2d853d46e87fc99ac26b/bin/tmap8-opt
+find /opt/tmap8 -name 'libtmap8-opt.la'
+/opt/tmap8/lib/tmap8/libtmap8-opt.la
 ```
 
-Replace `bin/tmap8-opt` with `lib` and use that as `library_path` in the Cardinal
-input file, with `app_type` set to the external app:
+Use that directory as `library_path` in the Cardinal input file, and set `app_type` to
+the external app:
 
 ```
 [MultiApps]
@@ -68,7 +69,7 @@ input file, with `app_type` set to the external app:
     type = FullSolveMultiApp
     app_type = TMAP8App
     input_files = tmap8.i
-    library_path = '/hpc-common/moose/containers/tmap8-openmpi/2026.08.13-ea97ed7_a7dade0d23ae1ed3b1540a58d8018078d61a298ca6fb2d853d46e87fc99ac26b/lib'
+    library_path = '/opt/tmap8/lib/tmap8'
   []
 []
 ```

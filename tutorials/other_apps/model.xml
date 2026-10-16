@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material id="1" name="lithium">
+      <density value="0.534" units="g/cm3"/>
+      <nuclide name="Li6" ao="0.07589"/>
+      <nuclide name="Li7" ao="0.92411"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="1 -2 22 -23 24 -25" universe="1"/>
+    <cell id="2" material="1" region="2 -3 22 -23 24 -25" universe="1"/>
+    <cell id="3" material="1" region="3 -4 22 -23 24 -25" universe="1"/>
+    <cell id="4" material="1" region="4 -5 22 -23 24 -25" universe="1"/>
+    <cell id="5" material="1" region="5 -6 22 -23 24 -25" universe="1"/>
+    <cell id="6" material="1" region="6 -7 22 -23 24 -25" universe="1"/>
+    <cell id="7" material="1" region="7 -8 22 -23 24 -25" universe="1"/>
+    <cell id="8" material="1" region="8 -9 22 -23 24 -25" universe="1"/>
+    <cell id="9" material="1" region="9 -10 22 -23 24 -25" universe="1"/>
+    <cell id="10" material="1" region="10 -11 22 -23 24 -25" universe="1"/>
+    <cell id="11" material="1" region="11 -12 22 -23 24 -25" universe="1"/>
+    <cell id="12" material="1" region="12 -13 22 -23 24 -25" universe="1"/>
+    <cell id="13" material="1" region="13 -14 22 -23 24 -25" universe="1"/>
+    <cell id="14" material="1" region="14 -15 22 -23 24 -25" universe="1"/>
+    <cell id="15" material="1" region="15 -16 22 -23 24 -25" universe="1"/>
+    <cell id="16" material="1" region="16 -17 22 -23 24 -25" universe="1"/>
+    <cell id="17" material="1" region="17 -18 22 -23 24 -25" universe="1"/>
+    <cell id="18" material="1" region="18 -19 22 -23 24 -25" universe="1"/>
+    <cell id="19" material="1" region="19 -20 22 -23 24 -25" universe="1"/>
+    <cell id="20" material="1" region="20 -21 22 -23 24 -25" universe="1"/>
+    <surface id="1" type="x-plane" boundary="vacuum" coeffs="0.0"/>
+    <surface id="2" type="x-plane" coeffs="5.0"/>
+    <surface id="3" type="x-plane" coeffs="10.0"/>
+    <surface id="4" type="x-plane" coeffs="15.0"/>
+    <surface id="5" type="x-plane" coeffs="20.0"/>
+    <surface id="6" type="x-plane" coeffs="25.0"/>
+    <surface id="7" type="x-plane" coeffs="30.0"/>
+    <surface id="8" type="x-plane" coeffs="35.0"/>
+    <surface id="9" type="x-plane" coeffs="40.0"/>
+    <surface id="10" type="x-plane" coeffs="45.0"/>
+    <surface id="11" type="x-plane" coeffs="50.0"/>
+    <surface id="12" type="x-plane" coeffs="55.0"/>
+    <surface id="13" type="x-plane" coeffs="60.0"/>
+    <surface id="14" type="x-plane" coeffs="65.0"/>
+    <surface id="15" type="x-plane" coeffs="70.0"/>
+    <surface id="16" type="x-plane" coeffs="75.0"/>
+    <surface id="17" type="x-plane" coeffs="80.0"/>
+    <surface id="18" type="x-plane" coeffs="85.0"/>
+    <surface id="19" type="x-plane" coeffs="90.0"/>
+    <surface id="20" type="x-plane" coeffs="95.0"/>
+    <surface id="21" type="x-plane" boundary="vacuum" coeffs="100.0"/>
+    <surface id="22" type="y-plane" boundary="reflective" coeffs="-50.0"/>
+    <surface id="23" type="y-plane" boundary="reflective" coeffs="50.0"/>
+    <surface id="24" type="z-plane" boundary="reflective" coeffs="-50.0"/>
+    <surface id="25" type="z-plane" boundary="reflective" coeffs="50.0"/>
+  </geometry>
+  <settings>
+    <run_mode>fixed source</run_mode>
+    <particles>10000</particles>
+    <batches>50</batches>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="cartesian">
+        <x type="discrete">
+          <parameters>1e-06 1.0</parameters>
+        </x>
+        <y type="uniform" parameters="-50.0 50.0"/>
+        <z type="uniform" parameters="-50.0 50.0"/>
+      </space>
+      <angle type="monodirectional" reference_uvw="1.0 0.0 0.0"/>
+      <energy type="discrete">
+        <parameters>14100000.0 1.0</parameters>
+      </energy>
+    </source>
+  </settings>
+  </model>
