@@ -12,6 +12,7 @@ git submodule update --init --progress contrib/moab
 git submodule update --init --progress test/tests/nek_ci
 git submodule update --init --progress contrib/double-down
 git submodule update --init --progress contrib/embree
+git submodule update --init --recursive  --progress contrib/xdg
 
 set +ex
 
