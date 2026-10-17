@@ -94,3 +94,86 @@ dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices)
 
   return totalArea;
 }
+
+// Integrate a function over the STL surface; shown using an example function.
+// Pass in globalIntegrationPoints, then no global communication is needed
+dfloat integrate_function_over_STL(std::vector<IntegrationPoint> & integration_points)
+{
+  // Surface quadrature diagnostic on this rank
+  dfloat integratedValue = 0.0;
+
+  for (const auto& ip : integration_points)
+  {
+    // Calculate the function value at the integration point; arbitrary function
+    dfloat fValue = (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)) *  std::exp(-2 * (std::pow(ip.position.x(), 2) + std::pow(ip.position.y(), 2) + std::pow(ip.position.z(), 2)));
+
+    // Multiply by the weight of the integration point and accumulate
+    integratedValue += fValue * ip.weight;
+  }
+
+  return integratedValue;
+}
+
+bool try_parse_float(const std::string& token, dfloat& value)
+{
+  try
+  {
+    size_t pos;
+    value = std::stof(token, &pos);
+    return pos == token.size();
+  } catch (...) {
+      return false;
+  }
+}
+
+// Parse ASCII STL vertices from a file, and store the vertices and face normals
+bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::vector<FacetNormal>& normals)
+{
+  std::ifstream file(filename);
+  if (!file.is_open())
+  {
+    std::cerr << "Error opening file: " << filename << std::endl;
+    return false;
+  }
+
+  std::string line;
+  std::string ignore;
+
+  while (std::getline(file, line))
+  {
+    std::istringstream iss(line);
+    iss >> ignore;
+
+    if (ignore == "vertex")
+    {
+      // Parse vertex coordinates
+      Vertex vertex;
+      for (int i = 0; i < 3; ++i)
+      {
+        std::string token;
+        iss >> token;
+        if (!try_parse_float(token, i == 0 ? vertex.x : (i == 1 ? vertex.y : vertex.z)))
+        {
+          std::cerr << "Error parsing vertex coordinates." << std::endl;
+          return false;
+        }
+      }
+      vertices.push_back(vertex);
+    }
+    else if (ignore == "facet")
+    {
+      // Parse facet normal
+      FacetNormal normal;
+      iss >> ignore >> normal.nx >> normal.ny >> normal.nz;
+      normals.push_back(normal);
+    }
+  }
+
+  if (vertices.size() % 3 != 0)
+  {
+    std::cerr << "STL does not contain a valid set of coordinates!" << std::endl;
+    return false;
+  }
+
+  return true;
+}
