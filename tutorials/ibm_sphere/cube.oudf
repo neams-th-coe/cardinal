@@ -1,0 +1,338 @@
+#include <math.h>
+
+void udfDirichlet(bcData * bc)
+{
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = 0.0;
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 1.0;
+  }
+  else if (isField("scalar temperature"))
+    bc->sScalar = 0.0;
+}
+
+//////////// all remaining part of this file is associated with the immersed boundary method //////////
+
+inline dfloat D1(dfloat r) {
+    dfloat absR = fabs(r);
+
+    if (absR <= 1.0) {
+        return (17.0 / 48.0) + (sqrt(3.0) * M_PI / 108.0) + (absR / 4.0) - (r * r / 4.0) 
+               + ((1.0 - 2.0 * absR) / 16.0) * sqrt(-12.0 * r * r + 12.0 * absR + 1.0) 
+               - (sqrt(3.0) / 12.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 1.0));
+    } else if (absR > 1.0 && absR <= 2.0) {
+        return (55.0 / 48.0) - (sqrt(3.0) * M_PI / 108.0) - (13.0 * absR / 12.0) + (r * r / 4.0) 
+               + ((2.0 * absR - 3.0) / 48.0) * sqrt(-12.0 * r * r + 36.0 * absR - 23.0) 
+               + (sqrt(3.0) / 36.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 3.0));
+    } else {
+        return 0.0;
+    }
+}
+
+@kernel void CHT(const dlong Nelements,
+                 const dfloat kappa,
+                 @restrict const dfloat* o_x, // physical coordinate of Eulerian point (x component)
+                 @restrict const dfloat* o_y, // physical coordinate of Eulerian point (y component)
+                 @restrict const dfloat* o_z, // physical coordinate of Eulerian point (z component)
+                 const int fieldOffset,       // currently unused
+                 const dlong numLagrangePoints,
+                 @restrict const dfloat* x_s, // Lagrange x
+                 @restrict const dfloat* y_s, // Lagrange y
+                 @restrict const dfloat* z_s, // Lagrange z
+                 @restrict const dfloat* normal_x,
+                 @restrict const dfloat* normal_y,
+                 @restrict const dfloat* normal_z,
+                 @restrict const dfloat* Al,
+                 @restrict const dfloat* Sl,
+                 @restrict const int*   ElementNumber,
+                 @restrict const dfloat* vgeo,
+                 @restrict const dfloat* D,
+                 @restrict       dfloat* temperature,  // Eulerian T
+                 @restrict       dfloat* heat_source,
+                 @restrict const dfloat* sdf)           // Eulerian SDF
+{
+  const int Nq = p_Nq;
+  const int Np = p_Np;
+  const int N  = Nq - 1;
+
+  // Loop over elements
+  for (dlong e = 0; e < Nelements; ++e; @outer(0)) {
+
+    dfloat gradTx[p_Np];
+    dfloat gradTy[p_Np];
+    dfloat gradTz[p_Np];
+
+    // -------------------------------------------------------
+    // 1) Compute Eulerian temperature gradient at GLL points
+    // -------------------------------------------------------
+    for (int k = 0; k < Nq; ++k) {
+      for (int j = 0; j < Nq; ++j) {
+        for (int i = 0; i < Nq; ++i) {
+
+          const int a  = k*Nq*Nq + j*Nq + i;
+          const int id = e*Np + a;
+
+          dfloat dpdr = 0.0;
+          dfloat dpds = 0.0;
+          dfloat dpdt = 0.0;
+
+          for (int n = 0; n < Nq; ++n) {
+
+            // r-derivative: vary i
+            {
+              const int id_r = e*Np + k*Nq*Nq + j*Nq + n;
+              const dfloat Dr = D[i*Nq + n];
+              dpdr += Dr * temperature[id_r];
+            }
+
+            // s-derivative: vary j
+            {
+              const int id_s = e*Np + k*Nq*Nq + n*Nq + i;
+              const dfloat Ds = D[j*Nq + n];
+              dpds += Ds * temperature[id_s];
+            }
+
+            // t-derivative: vary k
+            {
+              const int id_t = e*Np + n*Nq*Nq + j*Nq + i;
+              const dfloat Dt = D[k*Nq + n];
+              dpdt += Dt * temperature[id_t];
+            }
+          }
+
+          // Map reference gradient to physical gradient
+          const dlong gid = e*Np*p_Nvgeo + a;
+
+          const dfloat drdx = vgeo[gid + p_RXID*p_Np];
+          const dfloat drdy = vgeo[gid + p_RYID*p_Np];
+          const dfloat drdz = vgeo[gid + p_RZID*p_Np];
+
+          const dfloat dsdx = vgeo[gid + p_SXID*p_Np];
+          const dfloat dsdy = vgeo[gid + p_SYID*p_Np];
+          const dfloat dsdz = vgeo[gid + p_SZID*p_Np];
+
+          const dfloat dtdx = vgeo[gid + p_TXID*p_Np];
+          const dfloat dtdy = vgeo[gid + p_TYID*p_Np];
+          const dfloat dtdz = vgeo[gid + p_TZID*p_Np];
+
+          const dfloat dTdx = drdx*dpdr + dsdx*dpds + dtdx*dpdt;
+          const dfloat dTdy = drdy*dpdr + dsdy*dpds + dtdy*dpdt;
+          const dfloat dTdz = drdz*dpdr + dsdz*dpds + dtdz*dpdt;
+
+          gradTx[a] = dTdx;
+          gradTy[a] = dTdy;
+          gradTz[a] = dTdz;
+        }
+      }
+    }
+
+    // -------------------------------------------------------
+    // Element sizes for kernel support
+    // -------------------------------------------------------
+    const dfloat ex = fabs(o_x[e*Np + (Np-1)] - o_x[e*Np + 0]);
+    const dfloat ey = fabs(o_y[e*Np + (Np-1)] - o_y[e*Np + 0]);
+    const dfloat ez = fabs(o_z[e*Np + (Np-1)] - o_z[e*Np + 0]);
+
+    const dfloat deltaX1 = ex / N;
+    const dfloat deltaX2 = ey / N;
+    const dfloat deltaX3 = ez / N;
+
+    const dfloat hL = (deltaX1 + deltaX2 + deltaX3) / 3.0;
+
+    // -------------------------------------------------------
+    // 2) Loop over Lagrange points belonging to this element
+    // -------------------------------------------------------
+    for (dlong jLag = 0; jLag < numLagrangePoints; ++jLag) {
+
+      if (ElementNumber[jLag] == e) {
+
+        const dfloat xs = x_s[jLag];
+        const dfloat ys = y_s[jLag];
+        const dfloat zs = z_s[jLag];
+
+        // Interpolate grad(T) from Eulerian GLL points to this Lagrange point
+        dfloat GradTemperatureL_X = 0.0;
+        dfloat GradTemperatureL_Y = 0.0;
+        dfloat GradTemperatureL_Z = 0.0;
+
+        for (int a = 0; a < Np; ++a) {
+
+          const int id = e*Np + a;
+
+          const dfloat dx = o_x[id] - xs;
+          const dfloat dy = o_y[id] - ys;
+          const dfloat dz = o_z[id] - zs;
+
+          const dfloat w =
+              D1(dx / deltaX1)
+            * D1(dy / deltaX2)
+            * D1(dz / deltaX3);
+
+          GradTemperatureL_X += w * gradTx[a];
+          GradTemperatureL_Y += w * gradTy[a];
+          GradTemperatureL_Z += w * gradTz[a];
+        }
+
+
+        const dfloat nx0 = normal_x[jLag];
+        const dfloat ny0 = normal_y[jLag];
+        const dfloat nz0 = normal_z[jLag];
+
+
+        const dfloat GradTemperatureL_N =
+            GradTemperatureL_X*nx0
+          + GradTemperatureL_Y*ny0
+          + GradTemperatureL_Z*nz0;
+
+
+        // heat flux
+        const dfloat qB = 1.0;
+
+        // Current heat-flux forcing form
+        const dfloat factor =
+         2.0 * (qB + kappa * GradTemperatureL_N) * Al[jLag];
+
+        // -------------------------------------------------------
+        // 3) Spread heat source to Eulerian GLL points
+        // -------------------------------------------------------
+        for (int k = 0; k < Nq; ++k) {
+          for (int m = 0; m < Nq; ++m) {
+            for (int n = 0; n < Nq; ++n; @inner(0)) {
+
+              const int a  = k*Nq*Nq + m*Nq + n;
+              const int id = e*Np + a;
+
+              const dfloat dx = o_x[id] - xs;
+              const dfloat dy = o_y[id] - ys;
+              const dfloat dz = o_z[id] - zs;
+
+              const dfloat w =
+                (
+                    D1(dx / deltaX1)
+                  * D1(dy / deltaX2)
+                  * D1(dz / deltaX3)
+                )
+                / (deltaX1 * deltaX2 * deltaX3);
+
+              heat_source[id] += factor * w;
+            }
+          }
+        }
+
+      } // end if ElementNumber[jLag] == e
+    }   // end Lagrange loop
+  }     // end element loop
+}
+
+@kernel void PenaltyNoSlipBC(const dlong Nelements,
+                             @restrict const dfloat* o_x,
+                             @restrict const dfloat* o_y,
+                             @restrict const dfloat* o_z,
+                             @restrict dfloat* velocities,
+                             const int offset,
+                             const int fieldOffset,
+                             @restrict dfloat* source,
+                             const dlong numLagrangePoints,
+                             @restrict const dfloat* x_s,
+                             @restrict const dfloat* y_s,
+                             @restrict const dfloat* z_s,
+                             @restrict const dfloat* normal_x,
+                             @restrict const dfloat* normal_y,
+                             @restrict const dfloat* normal_z,
+                             const dfloat dt,
+                             @restrict const dfloat* Al,
+                             @restrict const dfloat* Sl,
+                             @restrict const int* ElementNumber,
+                             const int componentIndex,
+                             @restrict dfloat* o_uL,
+                             @restrict const dfloat* GLL_weights, 
+                             @restrict const dfloat* gllNodes,    
+                             @restrict const int* elemList,       
+                             @restrict const dfloat* r_x,
+                             @restrict const dfloat* r_y,
+                             @restrict const dfloat* r_z,
+                             @restrict const dfloat* vgeo,
+                             @restrict const dfloat* sdf,
+                             @restrict dfloat* pressure,
+                             @restrict const int* elementOffsets,
+                             @restrict const int* elementLagrangeIndices,
+                             @restrict dfloat* Eulerian_pressure,           
+                             @restrict const dfloat* D)
+{
+    // Polynomial order for each dimension
+    int N = pow(p_Np, 1.0 / 3.0) - 1;
+    
+    // Parallelize over the number of Lagrange points
+    for (dlong j = 0; j < numLagrangePoints; ++j; @outer(0)) {
+        int eL = elemList[j]; // Element number containing this Lagrange point
+
+        // Compute element sizes in each direction
+        dfloat a_x = fabs(o_x[eL * p_Np + p_Np - 1] - o_x[eL * p_Np]);
+        dfloat a_y = fabs(o_y[eL * p_Np + p_Np - 1] - o_y[eL * p_Np]);
+        dfloat a_z = fabs(o_z[eL * p_Np + p_Np - 1] - o_z[eL * p_Np]);
+        
+         dfloat effectiveDeltaX1 = a_x/N;
+         dfloat effectiveDeltaX2 = a_y/N;
+         dfloat effectiveDeltaX3 = a_z/N;
+
+        int LagrangeOffset = componentIndex * numLagrangePoints;
+        dfloat uL_component = o_uL[j + LagrangeOffset] ;
+        
+
+        // Compute the force term for each Eulerian point using the interpolated Lagrange velocity
+        for (dlong l = 0; l < p_Nq; ++l; @inner(0)) {
+           
+      
+            for (dlong m = 0; m < p_Nq; ++m) {
+          
+
+                for (dlong n = 0; n < p_Nq; ++n) {
+                
+               
+                    // Iteration over nodes per element
+                    const int id = eL * p_Np + (l + m * p_Nq + n * p_Nq * p_Nq) + offset;
+                    const int pd = eL * p_Np + l + m * p_Nq + n * p_Nq * p_Nq;          // Point index
+        
+                    dfloat dx = (o_x[pd] - x_s[j]);
+                    dfloat dy = (o_y[pd] - y_s[j]);
+                    dfloat dz = (o_z[pd] - z_s[j]);
+                    
+                    
+                    dfloat distanceFactor = (D1(dx / effectiveDeltaX1) * D1(dy / effectiveDeltaX2) * D1(dz / effectiveDeltaX3)) 
+                                             / (effectiveDeltaX1 * effectiveDeltaX2 * effectiveDeltaX3);
+                    dfloat hL = (effectiveDeltaX1 + effectiveDeltaX2 + effectiveDeltaX3) / 3.0 ;
+        
+                    // Calculate the force term based on the interpolated velocity at the Lagrangian point
+                    dfloat forceTerm = -uL_component / dt;
+                    
+                    if (sdf[pd] < 0) { //  (0.7 prevents unstabilities for the current application)
+                      source[id] = -   0.7 * velocities[id] / dt; // where we have the solid part
+                      
+                    } else {
+                      source[id] += distanceFactor * forceTerm * Al[j] * Sl[j];
+                    }
+                }    
+            }        
+        }
+    }
+}
+    
+
+
+@kernel void viscosity(const dlong Nelements, const dfloat mu, @restrict const dfloat* sdf , @restrict dfloat* property)
+{
+  for (dlong e = 0; e < Nelements; ++e; @outer(0))
+  {
+    for (int n = 0; n < p_Np; ++n; @inner(0))
+    {
+      const int id = e * p_Np + n;
+
+      if (sdf[id] < 0)
+        property[id] = 10 * mu; // where we have the solid part
+      else
+        property[id] = mu;
+    }
+  }
+}
+
