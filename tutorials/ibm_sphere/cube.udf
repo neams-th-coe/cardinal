@@ -999,109 +999,110 @@ std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
 }
 
 // Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
-void writeSurfaceMeshToVTK(
-    const std::string& filename,
-    const std::vector<Point>& points,
-    const std::vector<std::array<std::size_t, 3>>& faces) {
+void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces)
+{
+  std::ofstream vtkFile(filename);
 
-    std::ofstream vtkFile(filename);
+  // Write VTK header
+  vtkFile << "# vtk DataFile Version 3.0\n";
+  vtkFile << "Surface Mesh Data\n";
+  vtkFile << "ASCII\n";
+  vtkFile << "DATASET POLYDATA\n";
 
-    // Write VTK header
-    vtkFile << "# vtk DataFile Version 3.0\n";
-    vtkFile << "Surface Mesh Data\n";
-    vtkFile << "ASCII\n";
-    vtkFile << "DATASET POLYDATA\n";
+  // Write vertices
+  vtkFile << "POINTS " << points.size() << " double\n";
+  for (const auto& point : points)
+    vtkFile << point.x() << " " << point.y() << " " << point.z() << "\n";
 
-    // Write vertices
-    vtkFile << "POINTS " << points.size() << " double\n";
-    for (const auto& point : points) {
-        vtkFile << point.x() << " " << point.y() << " " << point.z() << "\n";
-    }
+  // Write faces
+  vtkFile << "POLYGONS " << faces.size() << " " << (4 * faces.size()) << "\n";
+  for (const auto& face : faces)
+    vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
 
-    // Write faces
-    vtkFile << "POLYGONS " << faces.size() << " " << (4 * faces.size()) << "\n";
-    for (const auto& face : faces) {
-        vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
-    }
-
-    vtkFile.close();
+  vtkFile.close();
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
-std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(
-    const Point& v1, const Point& v2, const Point& v3)
+std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(const Point& v1, const Point& v2, const Point& v3)
 {
-    // 3-point Gaussian integration rule (barycentric coordinates)
-    std::array<std::array<dfloat, 3>, 3> barycentricPoints = {{
-        {1.0 / 6, 1.0 / 6, 2.0 / 3},
-        {2.0 / 3, 1.0 / 6, 1.0 / 6},
-        {1.0 / 6, 2.0 / 3, 1.0 / 6}
-    }};
+  // 3-point Gaussian integration rule (barycentric coordinates)
+  std::array<std::array<dfloat, 3>, 3> barycentricPoints = {{
+      {1.0 / 6, 1.0 / 6, 2.0 / 3},
+      {2.0 / 3, 1.0 / 6, 1.0 / 6},
+      {1.0 / 6, 2.0 / 3, 1.0 / 6}
+  }};
 
-    // Compute area of triangle
-    dfloat area = computeTriangleArea(v1, v2, v3);
+  // Compute area of triangle
+  dfloat area = computeTriangleArea(v1, v2, v3);
 
-    // Equal weights for the 3-point Gaussian rule
-    dfloat weight = area / 3.0;
+  // Equal weights for the 3-point Gaussian rule
+  dfloat weight = area / 3.0;
 
-    std::vector<IntegrationPoint> integrationPoints;
-    integrationPoints.reserve(3);
+  std::vector<IntegrationPoint> integrationPoints;
+  integrationPoints.reserve(3);
 
-    // Initialize STL implicit surface for normal computation
-    static vtkSmartPointer<vtkPolyData> s_stlPoly = nullptr;
-    static vtkSmartPointer<vtkImplicitPolyDataDistance> s_sdf = nullptr;
-    static bool s_initTried = false;
+  // Initialize STL implicit surface for normal computation
+  vtkSmartPointer<vtkPolyData> s_stlPoly = nullptr;
+  vtkSmartPointer<vtkImplicitPolyDataDistance> s_sdf = nullptr;
+  bool s_initTried = false;
 
-    if (!s_initTried) {
-        s_initTried = true;
-        vtkNew<vtkSTLReader> reader;
-        reader->SetFileName(kSTLFile.c_str());
-        reader->Update();
-        vtkPolyData* poly = reader->GetOutput();
-        if (poly && poly->GetNumberOfCells() > 0) {
-            s_stlPoly = poly;
-            vtkNew<vtkImplicitPolyDataDistance> ipd;
-            ipd->SetInput(s_stlPoly);
-            s_sdf = ipd;
-        } else {
-            std::cerr << "[computeIntegrationPointsForTriangle] ERROR: Failed to load STL or STL has no cells.\n";
-        }
+  if (!s_initTried)
+  {
+    s_initTried = true;
+    vtkNew<vtkSTLReader> reader;
+    reader->SetFileName(kSTLFile.c_str());
+    reader->Update();
+    vtkPolyData* poly = reader->GetOutput();
+    if (poly && poly->GetNumberOfCells() > 0)
+    {
+      s_stlPoly = poly;
+      vtkNew<vtkImplicitPolyDataDistance> ipd;
+      ipd->SetInput(s_stlPoly);
+      s_sdf = ipd;
+    }
+    else
+    {
+      std::cerr << "[computeIntegrationPointsForTriangle] ERROR: Failed to load STL or STL has no cells.";
+      MPI_Abort(platform->comm.mpiComm(), 1);
+    }
+  }
+
+  // Loop over integration points
+  for (const auto& bary : barycentricPoints)
+  {
+    Point position(
+        bary[0] * v1.x() + bary[1] * v2.x() + bary[2] * v3.x(),
+        bary[0] * v1.y() + bary[1] * v2.y() + bary[2] * v3.y(),
+        bary[0] * v1.z() + bary[1] * v2.z() + bary[2] * v3.z()
+    );
+
+    std::array<dfloat, 3> normal = {0.0, 0.0, 0.0};
+
+    if (s_sdf)
+    {
+      double q[3] = { position.x(), position.y(), position.z() };
+      double cp[3] = {0, 0, 0};
+      (void)s_sdf->EvaluateFunctionAndGetClosestPoint(q, cp);
+      double g[3] = {0.0, 0.0, 0.0};
+      s_sdf->EvaluateGradient(cp, g);
+
+      const double len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
+      if (len > 0.0) {
+          normal = { static_cast<dfloat>(g[0]/len),
+                     static_cast<dfloat>(g[1]/len),
+                     static_cast<dfloat>(g[2]/len) };
+      } else {
+          std::cerr << "[computeIntegrationPointsForTriangle] WARNING: Zero-length SDF gradient at integration point.\n";
+      }
+    } else {
+        std::cerr << "[computeIntegrationPointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
     }
 
-    // Loop over integration points
-    for (const auto& bary : barycentricPoints) {
-        Point position(
-            bary[0] * v1.x() + bary[1] * v2.x() + bary[2] * v3.x(),
-            bary[0] * v1.y() + bary[1] * v2.y() + bary[2] * v3.y(),
-            bary[0] * v1.z() + bary[1] * v2.z() + bary[2] * v3.z()
-        );
+    // Store the integration point
+    integrationPoints.push_back({ position, weight, normal });
+  }
 
-        std::array<dfloat, 3> normal = {0.0, 0.0, 0.0};
-
-        if (s_sdf) {
-            double q[3] = { position.x(), position.y(), position.z() };
-            double cp[3] = {0, 0, 0};
-            (void)s_sdf->EvaluateFunctionAndGetClosestPoint(q, cp);
-            double g[3] = {0.0, 0.0, 0.0};
-            s_sdf->EvaluateGradient(cp, g);
-
-            const double len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
-            if (len > 0.0) {
-                normal = { static_cast<dfloat>(g[0]/len),
-                           static_cast<dfloat>(g[1]/len),
-                           static_cast<dfloat>(g[2]/len) };
-            } else {
-                std::cerr << "[computeIntegrationPointsForTriangle] WARNING: Zero-length SDF gradient at integration point.\n";
-            }
-        } else {
-            std::cerr << "[computeIntegrationPointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
-        }
-
-        // Store the integration point
-        integrationPoints.push_back({ position, weight, normal });
-    }
-
-    return integrationPoints;
+  return integrationPoints;
 }
 
 // Function to compute 1-point Lagrange point for a triangle and its weight
