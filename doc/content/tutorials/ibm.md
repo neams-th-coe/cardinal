@@ -148,7 +148,7 @@ for temperature.
 !table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere.
 | Parameter | Value (cm) |
 | :- | :- |
-| Sphere diameter | 1.0 |
+| Sphere diameter | 2.0 |
 | Sphere center position | $(0, 0, 0)$ |
 | Domain vertical extent | $-10\leq z\leq 30$ |
 | Domain width | $ 8 \times 8$ |
