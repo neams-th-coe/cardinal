@@ -3,8 +3,7 @@
 In this tutorial, you will learn:
 
 - The basic concepts of immersed boundary methods
-- How to build an isothermal flow simulation in NekRS using the [!ac](IBM)
-- How to apply the [!ac](IBM) for heat flux boundary conditions in NekRS
+- How to build a flow simulation in NekRS using the [!ac](IBM) with no-slip and constant heat flux boundary conditions
 
 To access this tutorial,
 
@@ -138,14 +137,58 @@ Treatments may manipulate the velocity in other ways, such as by applying a reve
 
 Many applications of IBMs apply these considerations to {\it all} [!ac](DOFs) interior to the solid body, which can add unnecessary expense when the solid comprises a large portion of the overall volume [!cite](fadlun). One solution is to remove elements fully interior to the body as a pre-processing step, leaving only fluid and interface elements in the solve [!cite](hegazy_thesis). This is shown in the third image in [ibm_geometry], where elements interior to the sphere have been deleted. This has the added benefit of enhancing mass conservation, by eliminating some possible internal flows that draw mass from the fluid.
 
+### Heat Flux Boundary Conditions
+
+The preceding discussion has focused on how the no-slip boundary condition is applied
+within an immersed context. In this section, a constant heat flux boundary condition
+is also described.
+
+To apply a constant heat flux boundary condition on the immersed surface, a volumetric
+heat source is added to the conservation of energy equation
+that applies the presence of the heated surface to the fluid. The energy equation
+in NekRS is
+
+\begin{equation}
+\rho C_p\frac{\partial T}{\partial t}+\rho C_p\vec{V}\cdot\nabla T=\nabla\cdot(k\nabla T)+\dot{q}+\dot{q}'
+\end{equation}
+
+where $\rho$ is the density, $C_p$ is the specific heat, $T$ is the temperature, and
+$k$ is the thermal conductivity. The heat sources are distinguished between the
+heat sources imposed by the IBM ($\dot{q}'$) and those which may be present depending
+on the problem ($\dot{q}$, such as for nuclear heating from fission, radioactive decay,
+chemical reactions, etc.).
+
+For a constant heat flux boundary condition, we first compute the heat flux on the
+Lagrangian points by interpolating the temperature gradient from the Eulerian
+points to the Lagrangian points,
+
+\begin{equation}
+\nabla T(\vec{x}_L,t)=\sum_g \mathscr{D}(\vec{x}_g-\vec{x}_L)\nabla T(\vec{x}_g,t)
+\end{equation}
+
+At a Lagrangian point, this interpolated temperature gradient will likely not match
+the desired temperature gradient, $(\nabla T)_L(t)$. Therefore, a heat source is
+defined in terms of the mismatch in the heat flux, $\delta Q_L$, at the Lagrangian point,
+
+\begin{equation}
+\delta Q_L(\vec{x}_L, t)=2\left\lbrack Q_L(t)-\left(-k\nabla T(\vec{x}_L,t)\right)\right\rbrack
+\end{equation}
+
+where $Q_L(t)$ is the desired heat flux on the surface. Once this heat flux mismatch
+is obtained, it is spread back to the Eulerian grid points, scaling by a characteristic
+area to obtain the correct units,
+
+\begin{equation}
+\dot{q}'=\sum_l \delta Q_L(\vec{x}_L, t)\mathscr{D}(\vec{x}_g-\vec{x}_L)\Delta A_l
+\end{equation}
+
 ## Geometry
 
 This model consists of flow over a sphere with parameters summarized in [table1]. All
-quantities are given in non-dimensional form. This tutorial will first model an isothermal
-flow over the sphere, followed by applying a heat flux boundary condition and solving
-for temperature.
+quantities are given in non-dimensional form. For more information on the non-dimensional
+setup in NekRS, see [this page](nondimensional_ns.md).
 
-!table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere.
+!table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere. All quantities are non-dimensional.
 | Parameter | Value [-] |
 | :- | :- |
 | Sphere diameter | 2.0 |
@@ -153,6 +196,7 @@ for temperature.
 | Domain vertical extent | $-10\leq z\leq 30$ |
 | Domain width | $ 8 \times 8$ |
 | Reynolds number (based on radius) | 50 |
+| Surface heat flux | 1.0 |
 
 ## VTK
 id=vtk
@@ -209,7 +253,7 @@ are located in the `lib` folder. Update as needed for your configuration.
 files, you will see a `udf.cmake` file. Note that you may need to edit the
 path in the `find_package` call if your VTK version is different from 9.3.
 
-!listing /tutorials/ibm_sphere/isothermal/udf.cmake
+!listing /tutorials/ibm_sphere/udf.cmake
 
 
 ## Immersed Boundary Method Algorithm
@@ -302,25 +346,24 @@ exo2nek
 5. Run the flow simulation! Note in the `.udf` file, you will need to specify the path to the STL file, if
    different from the one used in this tutorial.
 
-## Isothermal Flow
-
-In this section, we will run an [!ac](IBM) case for isothermal flow over the sphere.
-The input files are inside the `tutorials/ibm_sphere/isothermal` directory.
-
-### Input Files
+## Input Files
 
 All of the details of the immersed boundary method are housed in the `cube.udf` and `cube.oudf` files.
 There are a lot of details in these files, since the method evolved over time and in some cases there is
 more than one option for how to define a part of the algorithm (for instance, the signed distance field
 can be computed using either [!ac](VTK) or Embree; different spreading operators were also tested).
 
-!listing /tutorials/ibm_sphere/isothermal/cube.udf language=cpp
+!listing /tutorials/ibm_sphere/cube.udf language=cpp
 
-!listing /tutorials/ibm_sphere/isothermal/cube.oudf language=cpp
+!listing /tutorials/ibm_sphere/cube.oudf language=cpp
+
+You will note that at the top of the `.udf` file there is a `#include "ibm.hpp"`, a file
+which contains several functions used to accomplish the geometric operations for the
+IBMmethod. Copy this file into any new directory where you are running IBM simulations.
 
 The `.par` file is routine, without any unique aspects specific to the IBM setup.
 
-!listing /tutorials/ibm_sphere/isothermal/cube.par
+!listing /tutorials/ibm_sphere/cube.par
 
 ### Execution and Postprocessing
 
@@ -349,7 +392,7 @@ During the simulation and when the simulation has completed, you will have creat
 
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
 
-For example, [ibm_velocity] shows the fluid velocity and pressure on the Eulerian grid. Note that in the vicinity of the immersed surface,
+For example, [ibm_velocity] shows the fluid velocity, pressure, and temperature on the Eulerian grid. Note that in the vicinity of the immersed surface,
 using a locally finer resolution (such as with NekNek) or a higher polynomial
 order/finer background mesh will diminish the small oscillations. See [!cite](hegazy_ibm)
 for more details on improving surface refinement and the tradeoffs
@@ -361,21 +404,3 @@ overlapping meshes.
   caption=Velocity and pressure computed by NekRS's IBM solver.
   style=width:60%;margin-left:auto;margin-right:auto
 
-## Heated Flow
-
-Now, these input files will be extended to include a heat flux boundary condition
-on the surface of the sphere. The basic concept is similar to how the no-slip
-boundary condition is applied - rather than applying a boundary condition precisely at
-an Eulerian degree of freedom, a body force is added to the conservation of energy equation
-that applies the presence of the heated surface to the fluid. The energy equation
-in NekRS is
-
-\begin{equation}
-\rho C_p\frac{\partial T}{\partial t}+\rho C_p\vec{V}\cdot\nabla T=\nabla\cdot(k\nabla T)+\dot{q}+\dot{q}'
-\end{equation}
-
-where $\rho$ is the density, $C_p$ is the specific heat, $T$ is the temperature, and
-$k$ is the thermal conductivity. The heat sources are distinguished between the
-heat sources imposed by the IBM ($\dot{q}'$) and those which may be present depending
-on the problem ($\dot{q}$, such as for nuclear heating from fission, radioactive decay,
-chemical reactions, etc.).
