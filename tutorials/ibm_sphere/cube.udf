@@ -91,9 +91,6 @@ static occa::kernel CHTKernel;
 // ============================================================
 static const std::string kSTLFile = "small_sphere.stl";
 
-// Define quad_points as a static variable
-static std::vector<Point> quad_points;
-
 // Signed distance field values
 static std::vector<dfloat> sdfValues;
 
@@ -424,20 +421,6 @@ void UDF_Setup()
   nrs->userProperties = &material_props;
 
   QuadPointsPerElement = mesh->Np;
-
-  // TODO: why not use the already existing x, y, z (to avoid duplicating memory)
-  std::vector<dfloat> x(n_gll_points), y(n_gll_points), z(n_gll_points);
-  mesh->o_x.copyTo(x.data());
-  mesh->o_y.copyTo(y.data());
-  mesh->o_z.copyTo(z.data());
-
-  quad_points.resize(n_gll_points);
-  for (int n = 0; n < n_gll_points; ++n)
-  {
-    quad_points[n].xValue = x[n];
-    quad_points[n].yValue = y[n];
-    quad_points[n].zValue = z[n];
-  }
 
   // apply initial conditions for velocity, then copy into the velocity array
   std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
@@ -1076,6 +1059,7 @@ bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::
 //    const std::vector<Point>& testPoints,
 //    const std::string& stlFilename)
 //{
+//    // TODO: testPoints is a vector of points, one for each GLL point
 //    if (!g_embreeInitialized) {
 //        g_embreeMesh = buildEmbreeMeshFromSTL(stlFilename);
 //        if (!g_embreeMesh.scene) {
@@ -1107,7 +1091,7 @@ bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::
 
 
 // Classify Points using VTK  (determines the signed distances magnitude & sign by reading the GLL points and the STL file)
-std::vector<dfloat> classifyPointsWithVTK(const std::vector<Point>& testPoints, const std::string& stlFilename)
+std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
 {
   // Load the STL file
   vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
@@ -1120,12 +1104,14 @@ std::vector<dfloat> classifyPointsWithVTK(const std::vector<Point>& testPoints, 
   vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
   implicitDistance->SetInput(polyData);
 
+  // Get the grid points of the Eulerian mesh
+  auto [x, y, z] = nrs->meshV->xyzHost();
+
   // Compute signed distances for all test points
-  std::vector<dfloat> distances(testPoints.size());
-  for (size_t i = 0; i < testPoints.size(); ++i)
+  std::vector<dfloat> distances(nrs->meshV->Nlocal);
+  for (size_t i = 0; i < nrs->meshV->Nlocal; ++i)
   {
-    const auto& point = testPoints[i];
-    double queryPoint[3] = {point.x(), point.y(), point.z()};
+    double queryPoint[3] = {x[i], y[i], z[i]};
     distances[i] = implicitDistance->EvaluateFunction(queryPoint);
   }
 
@@ -1389,8 +1375,9 @@ IsoSurfaceMesh extractIsoSurfaceMesh(const std::vector<std::array<dfloat, 3>> &m
 
 // Reconstruct the interface per element, build forcing/quadrature points,
 // then gather the visualization mesh and compare reconstructed area with STL area.
-void identifyCuttingTrianglesWithIntersections(const std::vector<Point>& quadPoints, int pointsPerElement)
+void identifyCuttingTrianglesWithIntersections()
 {
+    int pointsPerElement = nrs->meshV->Np;
     int p = std::cbrt(pointsPerElement) - 1; // Compute polynomial order
 
     globalIntegrationPoints.clear();
@@ -1399,14 +1386,16 @@ void identifyCuttingTrianglesWithIntersections(const std::vector<Point>& quadPoi
     std::vector<Point> localPoints;
     std::vector<std::array<std::size_t, 3>> localFaces;
 
+    auto [x, y, z] = nrs->meshV->xyzHost();
+
     // Loop over all elements
-    for (size_t elementIdx = 0; elementIdx < quadPoints.size(); elementIdx += pointsPerElement) {
+    for (size_t elementIdx = 0; elementIdx < nrs->meshV->Nlocal; elementIdx += pointsPerElement) {
         std::vector<Point> elementQuadPoints(pointsPerElement);
         std::vector<dfloat> elementSdfValues(pointsPerElement);
 
         for (int i = 0; i < pointsPerElement; ++i) {
             int idx = elementIdx + i;
-            elementQuadPoints[i] = quadPoints[idx];
+            elementQuadPoints[i] = Point(x[idx], y[idx], z[idx]);
             elementSdfValues[i] = sdfValues[idx];
         }
 
@@ -1546,7 +1535,8 @@ void identifyCuttingTrianglesWithIntersections(const std::vector<Point>& quadPoi
       // Compute the area of the STL surface
       dfloat stlSurfaceArea = computeSTLSurfaceArea(STLvertices);
 
-      // Compute the absolute and relative differences
+      // Compute the absolute and relative differences with the re-triangulated surface;
+      // if these are significantly different, abort the simulation
       dfloat absoluteDifference = std::fabs(triangulatedArea - stlSurfaceArea);
       dfloat relativeDifference = absoluteDifference / stlSurfaceArea;
 
@@ -1557,6 +1547,12 @@ void identifyCuttingTrianglesWithIntersections(const std::vector<Point>& quadPoi
       std::cout << "Absolute Difference:       " << absoluteDifference << std::endl;
       std::cout << "Relative Difference:       " << relativeDifference * 100.0 << " %" << std::endl;
       std::cout << std::endl;
+
+      if (relativeDifference > 0.05)
+      {
+        std::cout << "\nRe-triangulated surface area differs by more than 5\% from the original STL file! It is recommended that you use a higher polynomial order and/or finer Eulerian mesh to better capture your STL surface. You can also simply comment out this check to proceed if desired." << std::endl;
+        MPI_Abort(platform->comm.mpiComm(), 1);
+      }
     }
 }
 
@@ -1564,16 +1560,14 @@ void read_stl_file()
 {
   if (parse_stl(kSTLFile, STLvertices, STLnormals))
   {
-    const std::vector<Point> & testPoints = quad_points;
-
     // Classify points using VTK
-    sdfValues = classifyPointsWithVTK(quad_points, kSTLFile);
+    sdfValues = classifyPointsWithVTK(kSTLFile);
 
     // Uncomment to use EMBREE instead of VTK
     // sdfValues = classifyPointsWithEMBREE(quad_points, kSTLFile);
 
     // Call the function to identify cutting triangles with intersections
-    identifyCuttingTrianglesWithIntersections(quad_points, QuadPointsPerElement);
+    identifyCuttingTrianglesWithIntersections();
   }
   else
   {
