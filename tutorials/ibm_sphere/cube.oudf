@@ -6,7 +6,13 @@ void udfDirichlet(bcData * bc)
   {
     bc->uxFluid = 0.0;
     bc->uyFluid = 0.0;
-    bc->uzFluid = 1.0;
+
+    // apply parabolic velocity inlet profile
+    auto x = bc->x;
+    auto y = bc->y;
+    const dfloat dx = 4;
+    const dfloat dy = 4;
+    bc->uzFluid = (-1/(dx*dx)*x*x+1) * (-1/(dy*dy)*y*y+1) / 0.4444444;
   }
   else if (isField("scalar temperature"))
     bc->sScalar = 0.0;
@@ -18,12 +24,12 @@ inline dfloat D1(dfloat r) {
     dfloat absR = fabs(r);
 
     if (absR <= 1.0) {
-        return (17.0 / 48.0) + (sqrt(3.0) * M_PI / 108.0) + (absR / 4.0) - (r * r / 4.0) 
-               + ((1.0 - 2.0 * absR) / 16.0) * sqrt(-12.0 * r * r + 12.0 * absR + 1.0) 
+        return (17.0 / 48.0) + (sqrt(3.0) * M_PI / 108.0) + (absR / 4.0) - (r * r / 4.0)
+               + ((1.0 - 2.0 * absR) / 16.0) * sqrt(-12.0 * r * r + 12.0 * absR + 1.0)
                - (sqrt(3.0) / 12.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 1.0));
     } else if (absR > 1.0 && absR <= 2.0) {
-        return (55.0 / 48.0) - (sqrt(3.0) * M_PI / 108.0) - (13.0 * absR / 12.0) + (r * r / 4.0) 
-               + ((2.0 * absR - 3.0) / 48.0) * sqrt(-12.0 * r * r + 36.0 * absR - 23.0) 
+        return (55.0 / 48.0) - (sqrt(3.0) * M_PI / 108.0) - (13.0 * absR / 12.0) + (r * r / 4.0)
+               + ((2.0 * absR - 3.0) / 48.0) * sqrt(-12.0 * r * r + 36.0 * absR - 23.0)
                + (sqrt(3.0) / 36.0) * asin((sqrt(3.0) / 2.0) * (2.0 * absR - 3.0));
     } else {
         return 0.0;

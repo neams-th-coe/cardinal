@@ -361,6 +361,11 @@ You will note that at the top of the `.udf` file there is a `#include "ibm.hpp"`
 which contains several functions used to accomplish the geometric operations for the
 IBMmethod. Copy this file into any new directory where you are running IBM simulations.
 
+The inlet boundary condition for velocity (in the `udfDirichlet` function)
+is set to a parabolic profile (this is not
+the actual fully-developed analytic profile for laminar flow in a square duct, but it's
+quick to code up and sufficient for this tutorial).
+
 The `.par` file is routine, without any unique aspects specific to the IBM setup.
 
 !listing /tutorials/ibm_sphere/cube.par
