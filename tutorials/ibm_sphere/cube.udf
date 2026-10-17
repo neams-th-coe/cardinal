@@ -1053,6 +1053,7 @@ std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(const Point& v
     reader->SetFileName(kSTLFile.c_str());
     reader->Update();
     vtkPolyData* poly = reader->GetOutput();
+
     if (poly && poly->GetNumberOfCells() > 0)
     {
       s_stlPoly = poly;
@@ -1086,20 +1087,23 @@ std::vector<IntegrationPoint> computeIntegrationPointsForTriangle(const Point& v
       double g[3] = {0.0, 0.0, 0.0};
       s_sdf->EvaluateGradient(cp, g);
 
-      const double len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
-      if (len > 0.0) {
-          normal = { static_cast<dfloat>(g[0]/len),
-                     static_cast<dfloat>(g[1]/len),
-                     static_cast<dfloat>(g[2]/len) };
-      } else {
-          std::cerr << "[computeIntegrationPointsForTriangle] WARNING: Zero-length SDF gradient at integration point.\n";
+      auto len = std::sqrt(g[0]*g[0] + g[1]*g[1] + g[2]*g[2]);
+      if (len > 0.0)
+        normal = {g[0]/len, g[1]/len, g[2]/len};
+      else
+      {
+        std::cerr << "[computeIntegrationPointsForTriangle] WARNING: Zero-length SDF gradient at integration point.";
+        MPI_Abort(platform->comm.mpiComm(), 1);
       }
-    } else {
-        std::cerr << "[computeIntegrationPointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
+    }
+    else
+    {
+      std::cerr << "[computeIntegrationPointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
+      MPI_Abort(platform->comm.mpiComm(), 1);
     }
 
     // Store the integration point
-    integrationPoints.push_back({ position, weight, normal });
+    integrationPoints.push_back({position, weight, normal});
   }
 
   return integrationPoints;
@@ -1167,15 +1171,6 @@ std::vector<LagrangePoint> computeLagrangePointsForTriangle(
         std::cerr << "[computeLagrangePointsForTriangle] ERROR: STL SDF not initialized; cannot compute normal.\n";
     }
     return { {position, weight, characteristicArea, characteristicLength, elementNumber, normal} };
-}
-
-// Function to convert points to array
-std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point>& points) {
-    std::vector<std::array<dfloat, 3>> arrays;
-    for (const auto& point : points) {
-        arrays.push_back({point.x(), point.y(), point.z()});
-    }
-    return arrays;
 }
 
 // Extract an iso-surface mesh (points and faces) from the given structured grid data.
@@ -1328,9 +1323,8 @@ void identifyCuttingTrianglesWithIntersections()
 
     // Compute the offset for the current rank
     int pointOffset = 0;
-    for (int i = 0; i < rank; ++i) {
+    for (int i = 0; i < rank; ++i)
         pointOffset += allLocalNumPoints[i];
-    }
 
     // Adjust each local face by adding the point offset
     for (auto &face : localFaces) {

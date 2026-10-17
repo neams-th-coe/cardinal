@@ -177,3 +177,11 @@ bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::
 
   return true;
 }
+
+std::vector<std::array<dfloat, 3>> convertPointsToArrays(const std::vector<Point>& points)
+{
+  std::vector<std::array<dfloat, 3>> arrays;
+  for (const auto& point : points)
+    arrays.push_back({point.x(), point.y(), point.z()});
+  return arrays;
+}
