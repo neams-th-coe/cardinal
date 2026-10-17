@@ -95,9 +95,6 @@ static occa::kernel CHTKernel;
 // Signed distance field values
 static std::vector<dfloat> sdfValues;
 
-// define the number of quadrature points per element
-static int QuadPointsPerElement;
-
 // Vectors to hold the Lagrange velocities values on the host
 static std::vector<dfloat> uL_host;
 
@@ -413,7 +410,6 @@ void CombinedIBMSource(double time)
 void UDF_Setup()
 {
   auto mesh = nrs->meshV;
-  int n_gll_points = mesh->Np * mesh->Nelements;
 
   // Register both IBM momentum and temperature source terms
   nrs->userSource = &CombinedIBMSource;
@@ -421,12 +417,10 @@ void UDF_Setup()
   // kernel for changing the visosity
   nrs->userProperties = &material_props;
 
-  QuadPointsPerElement = mesh->Np;
-
   // apply initial conditions for velocity, then copy into the velocity array
   std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
 
-  for (int n = 0; n < n_gll_points; ++n)
+  for (int n = 0; n < mesh->Nlocal; ++n)
     U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
 
   nrs->fluid->o_solution().copyFrom(U.data(), U.size());
