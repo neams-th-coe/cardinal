@@ -433,55 +433,6 @@ void UDF_Setup()
   read_stl_file();
 }
 
-// Function to compute the area of a triangle given its vertices (used to compute the area of the traingulated surface, STL surface, and weight of Lagrangian and integration points)
-dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3) {
-    const dfloat ax = v2.x() - v1.x();
-    const dfloat ay = v2.y() - v1.y();
-    const dfloat az = v2.z() - v1.z();
-    const dfloat bx = v3.x() - v1.x();
-    const dfloat by = v3.y() - v1.y();
-    const dfloat bz = v3.z() - v1.z();
-
-    const dfloat crossX = ay * bz - az * by;
-    const dfloat crossY = az * bx - ax * bz;
-    const dfloat crossZ = ax * by - ay * bx;
-
-    return 0.5 * std::sqrt(crossX * crossX +
-                           crossY * crossY +
-                           crossZ * crossZ);
-}
-
-// Function to compute the total surface area of the STL file
-dfloat computeSTLSurfaceArea(const std::vector<Vertex>& vertices)
-{
-  dfloat totalArea = 0.0;
-
-  // Ensure the STL file contains triangles (3 vertices per face)
-  if (vertices.size() % 3 != 0) {
-      std::cerr << "Error: STL file does not contain a valid set of triangles!" << std::endl;
-      return 0.0;
-  }
-
-  // Iterate over the triangles in the STL file
-  for (size_t i = 0; i < vertices.size(); i += 3)
-  {
-    // Extract the three vertices of the triangle
-    const Vertex& v1 = vertices[i];
-    const Vertex& v2 = vertices[i + 1];
-    const Vertex& v3 = vertices[i + 2];
-
-    // Compute the area of the triangle
-    dfloat area = computeTriangleArea(Point(v1.x, v1.y, v1.z),
-                                      Point(v2.x, v2.y, v2.z),
-                                      Point(v3.x, v3.y, v3.z));
-
-    // Accumulate the total area
-    totalArea += area;
-  }
-
-  return totalArea;
-}
-
 dfloat integrate_function_over_STL()
 {
   // Surface quadrature diagnostic on this rank
@@ -546,6 +497,12 @@ bool parse_stl(const std::string& filename, std::vector<Vertex>& vertices, std::
             iss >> ignore >> normal.nx >> normal.ny >> normal.nz;
             normals.push_back(normal);
         }
+    }
+
+    if (vertices.size() % 3 != 0)
+    {
+      std::cerr << "STL does not contain a valid set of coordinates!" << std::endl;
+      return false;
     }
 
     return true;
@@ -1231,13 +1188,6 @@ std::vector<LagrangePoint> computeLagrangePointsForTriangle(
     std::array<dfloat, 3> barycentricPoint = {1.0 / 3, 1.0 / 3, 1.0 / 3};
     dfloat area = computeTriangleArea(v1, v2, v3);
 
-    const auto edgeLength = [](const Point& a, const Point& b) {
-        const dfloat dx = b.x() - a.x();
-        const dfloat dy = b.y() - a.y();
-        const dfloat dz = b.z() - a.z();
-        return std::sqrt(dx * dx + dy * dy + dz * dz);
-    };
-
     const dfloat L1 = edgeLength(v1, v2);
     const dfloat L2 = edgeLength(v2, v3);
     const dfloat L3 = edgeLength(v3, v1);
@@ -1571,7 +1521,8 @@ void read_stl_file()
   }
   else
   {
-    std::cerr << "Parsing STL failed." << std::endl;
+    // parse_stl returns various std:cerr messages, then we abort
+    MPI_Abort(platform->comm.mpiComm(), 1);
   }
 }
 
