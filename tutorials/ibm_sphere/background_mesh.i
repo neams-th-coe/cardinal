@@ -1,16 +1,19 @@
 [Mesh]
   [cube]
-    type = GeneratedMeshGenerator
+    type = CartesianMeshGenerator
     dim = 3
-    nx = 20
-    ny = 20
-    nz = 100
-    xmin = -4.0
-    xmax = 4.0
-    ymin = -4.0
-    ymax = 4.0
-    zmin = -10.0
-    zmax = 30.0
+    dx = '2 4 2'
+    dy = '2 4 2'
+    dz = '5 10 25'
+    ix = '5 20 5'
+    iy = '5 20 5'
+    iz = '5 40 15'
+  []
+  [translate]
+    type = TransformGenerator
+    input = cube
+    transform = translate
+    vector_value = '-4 -4 -10'
   []
 []
 

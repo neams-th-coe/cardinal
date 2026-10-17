@@ -407,5 +407,5 @@ overlapping meshes.
 !media ibm_velocity.png
   id=ibm_velocity
   caption=Velocity, pressure, and temperature computed by NekRS's IBM solver.
-  style=width:60%;margin-left:auto;margin-right:auto
+  style=width:80%;margin-left:auto;margin-right:auto
 

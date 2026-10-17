@@ -9,7 +9,7 @@
   scalars = temperature
 
 [FLUID PRESSURE]
-  residualTol = 1e-05
+  residualTol = 1e-06
 
 [FLUID VELOCITY]
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
