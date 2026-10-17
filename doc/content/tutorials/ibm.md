@@ -189,7 +189,7 @@ quantities are given in non-dimensional form. For more information on the non-di
 setup in NekRS, see [this page](nondimensional_ns.md).
 
 !table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere. All quantities are non-dimensional.
-| Parameter | Value [-] |
+| Parameter | Value |
 | :- | :- |
 | Sphere diameter | 2.0 |
 | Sphere center position | $(0, 0, 0)$ |
