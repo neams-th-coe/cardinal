@@ -75,7 +75,7 @@ Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) di
 &\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
 \end{equation}
 
-where $\vec{V}(\vec{x}_L,t)$ is the Eulerian velocity field, evaluated at a Lagrangian point. $\vec{V}_L$ is the desired Lagrangian surface velocity at the point $\vec{x}_L$. In general, the Eulerian velocity and the Lagrangian velocity will differ at the points on the immersed surface, unless the immersed boundary technique has perfectly enforced the no-slip boundary condition. Hence, the force terms are proportional to $\vec{V}_L-\vec{V}(\vec{x}_L)$ such that any discrepancy generates a force that aims to drive the velocities to match. In the case of a stationary boundary, $\vec{V}_L=0$, otherwise the boundary nodes $\vec{x}_s$ themselves must move. The coefficients $\alpha$, $\beta$, $\gamma$, and $\zeta$ are negative. The first two terms (in absence of the other non-immersed-boundary force terms in Eq. \eqref{eq:mom}) reduce the Navier-Stokes equations to a damped harmonic oscillator [!cite](goldstein). Additional terms involving spatial integrals and derivatives have also been posited [!cite](goldstein), which are indicated above as ``$\cdots$.''
+where $\vec{V}(\vec{x}_L,t)$ is the Eulerian velocity field, evaluated at a Lagrangian point. $\vec{V}_L$ is the desired Lagrangian surface velocity at the point $\vec{x}_L$. In general, the Eulerian velocity and the Lagrangian velocity will differ at the points on the immersed surface, unless the immersed boundary technique has perfectly enforced the no-slip boundary condition. Hence, the force terms are proportional to $\vec{V}_L-\vec{V}(\vec{x}_L)$ such that any discrepancy generates a force that aims to drive the velocities to match. In the case of a stationary boundary, $\vec{V}_L=0$, otherwise the boundary nodes $\vec{x}_s$ themselves must move. The coefficients $\alpha$, $\beta$, $\gamma$, and $\zeta$ are negative. The first two terms (in absence of the other non-immersed-boundary force terms in Eq. \eqref{eq:mom}) reduce the Navier-Stokes equations to a damped harmonic oscillator [!cite](goldstein). Additional terms involving spatial integrals and derivatives have also been posited [!cite](goldstein), which are indicated above as $\cdots$.
 
 In scenarios with moving boundaries, such as those pioneered by Peskin and colleagues, the transmitted force is computed from the internal body forces of the moving structure (approximated as collections of linked nodes considering internal stresses and strains) [!cite](peskin). Other types of surface boundary conditions, such as symmetry conditions, can also be formulated as forces.
 
@@ -115,7 +115,7 @@ More accurate techniques apply various forms of interpolation to construct the L
 
 where $\mathscr{D}$ is a three-dimensional product of 1-D functions such as Gaussians [!cite](peskin,goldstein) (the symbol $\mathscr{D}$ is used to indicate a smoothed function rather than a discrete delta function $\delta$ as in Eq. \eqref{eq:fd}) and $g$ are all the Eulerian grid points each of which is located at the point $\vec{x}_g$ that contribute (discussed shortly).
 
-Once the force is computed on the Lagrangian points, a ``spreading'' operator is used to send these forces back to the Eulerian points to transform Eq. \eqref{eq:fd} into a form useful for implementation:
+Once the force is computed on the Lagrangian points, a spreading operator is used to send these forces back to the Eulerian points to transform Eq. \eqref{eq:fd} into a form useful for implementation:
 
 \begin{equation}
 \label{eq:d2}
@@ -127,7 +127,7 @@ For both the interpolation and spreading operators, the Eulerian points $g$ that
 Using a larger stencil that extends beyond the cut element is more accurate [!cite](hegazy_thesis)
 , but comes at additional complexity for parallel communication when combined with domain decomposition.
 
-In the context of the discrete forcing approach, another option is to use a multidimensional linear interpolation to find the value of $\vec{V}_i^{n+1}$ (at the Eulerian point of interest) that is a linear scaling from the imposed Lagrangian velocity on the nearby surface and a ``virtual point'' along the line, in other words such that the force at the Eulerian point $(\vec{f}\ ')_i^{n+1}$ accounts for the fact that this DOF is not on the immersed surface [!cite](fadlun,ikeno).
+In the context of the discrete forcing approach, another option is to use a multidimensional linear interpolation to find the value of $\vec{V}_i^{n+1}$ (at the Eulerian point of interest) that is a linear scaling from the imposed Lagrangian velocity on the nearby surface and a virtual point along the line, in other words such that the force at the Eulerian point $(\vec{f}\ ')_i^{n+1}$ accounts for the fact that this DOF is not on the immersed surface [!cite](fadlun,ikeno).
 
 ### Treatment of the Solid Region
 
@@ -136,7 +136,7 @@ option is to simply retain the same continuous forcing term as in Eq. \eqref{eq:
 Alternatively, these internal points could be applied zero force altogether, with the flow allowed to freely develop [!cite](fadlun). A different approach is to apply the same spreading operator as used exterior to the body, but applied inwards to mirror the force on the interior as seen in the fluid [!cite](hegazy_thesis). Sometimes various force techniques are combined with an increase in the fluid viscosity to discourage internal flows [!cite](hegazy_thesis) (this is effectively the outcome in the hybrid porous-immersed techniques wherein $\epsilon=0$ results in infinite resistance [!cite](wongkham), though the latter is done automatically as opposed to an additional modification to the fluid's properties).
 Treatments may manipulate the velocity in other ways, such as by applying a reversed flow (with respect to the fluid domain) so as to minimize energy in the highest wavenumbers for stability purposes [!cite](goldstein). For [!ac](RANS) models, modified forms of the additional transport equations are typically employed at grid points in the solid [!cite](cervone).
 
-Many applications of IBMs apply these considerations to {\it all} [!ac](DOFs) interior to the solid body, which can add unnecessary expense when the solid comprises a large portion of the overall volume [!cite](fadlun). One solution is to remove elements fully interior to the domain as a pre-processing step, leaving only fluid and interface elements in the solve [!cite](hegazy_thesis). This is shown in the third image in Fig. \ref{fig:geometry}, where elements interior to pebbles have been deleted. This has the added benefit of enhancing mass conservation, by eliminating some possible internal flows that draw mass from the fluid.
+Many applications of IBMs apply these considerations to {\it all} [!ac](DOFs) interior to the solid body, which can add unnecessary expense when the solid comprises a large portion of the overall volume [!cite](fadlun). One solution is to remove elements fully interior to the body as a pre-processing step, leaving only fluid and interface elements in the solve [!cite](hegazy_thesis). This is shown in the third image in [ibm_geometry], where elements interior to the sphere have been deleted. This has the added benefit of enhancing mass conservation, by eliminating some possible internal flows that draw mass from the fluid.
 
 ## Geometry
 
@@ -146,20 +146,20 @@ flow over the sphere, followed by applying a heat flux boundary condition and so
 for temperature.
 
 !table id=table1 caption=Geometry and simulation parameters to be used for the flow over a sphere.
-| Parameter | Value (cm) |
+| Parameter | Value [-] |
 | :- | :- |
 | Sphere diameter | 2.0 |
 | Sphere center position | $(0, 0, 0)$ |
 | Domain vertical extent | $-10\leq z\leq 30$ |
 | Domain width | $ 8 \times 8$ |
-| Reynolds number | 100 |
+| Reynolds number (based on radius) | 50 |
 
 ## VTK
 id=vtk
 
 In order to use the immersed boundary method within NekRS, there is some additional software you will need to install.
 
-[!ac](VTK) is used for (optional) pre-processing the mesh to delete solid elements (step 3 in [#alg]),
+[!ac](VTK) is used for (optionally) pre-processing the mesh to delete solid elements (step 3 in [#alg]),
 as well as for the (required) signed distance field calculation used to relate the Eulerian and
 Lagrangian points. Instructions to install [!ac](VTK) version 9.3.0 into a folder at `${HOME}/vtk/install`
 are below (this is just an example, as you can use newer versions as well).
@@ -196,6 +196,13 @@ Add the following to your bashrc (be sure to change `VTK_ROOT` to where you have
 export VTK_ROOT="$HOME/vtk"
 export LD_LIBRARY_PATH="${VTK_ROOT}/install/lib"
 ```
+
+!alert note
+Some VTK installations will put the libraries in a `lib64` folder, and not a `lib` folder.
+Check your installation so that you correctly point to your VTK libraries with
+`LD_LIBRARY_PATH`. Other parts of this tutorial, such as the `udf.cmake` file and the
+command to compile the `delete_enclosed_elements` program, also assume your libraries
+are located in the `lib` folder. Update as needed for your configuration.
 
 [!ac](VTK) is also used for some routines during the flow solve. As such, you will need to make
 [!ac](VTK) accessible to NekRS's `.udf` files. In the directory with the case
@@ -286,7 +293,7 @@ cardinal-opt -i add_sidesets.i --mesh-only
 
 4. Run `exo2nek` to convert the background mesh into NekRS's `.re2` format. In this example, we would enter
    `add_sidesets_in` as the name of our mesh when prompted. We will name the output mesh `cube` to create a
-   file named `cube.re2`. Note that the inlet boundary is 1 and the outlet boundary is 2, which are periodic.
+   file named `cube.re2`. Note that the inlet boundary is 1 and the outlet boundary is 2, which are periodic. To install `exo2nek`, follow [these instructions](nek_tools.md).
 
 ```
 exo2nek
@@ -338,7 +345,7 @@ During the simulation and when the simulation has completed, you will have creat
   been re-triangulated so that each surface triangle is fully contained within one NekRS
   element. For instance, [ibm_geometry] shows a comparison of the original STL file (`small_sphere.stl`)
   with the retriangulated surface (`surface_mesh.vtk`). Area calculations are performed to ensure
-  minimial distortion in the geometry after re-triangulation.
+  minimal distortion in the geometry after re-triangulation.
 
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
 
