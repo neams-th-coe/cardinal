@@ -1161,13 +1161,6 @@ OpenMCProblemBase::tallyNormalizationValue() const
 const std::string
 OpenMCProblemBase::transientStatepointPath()
 {
-  if (!isTransient())
-  {
-    mooseDoOnce(mooseWarning("keep_transient_statepoint is set to True, but selected Executioner is Steady. "
-                 "Keeping original statepoint path, ", openmc::settings::path_output));
-    return openmc::settings::path_output;
-  }
-
   // Get path of current input file
   std::filesystem::path running_path =
       std::filesystem::absolute(getMooseApp().getLastInputFileName()).parent_path();
