@@ -123,10 +123,12 @@ OpenMCProblemBase::validParams()
       "./",
       "Prefix to the name of the directory to which statepoint files are written. If simulation is "
       "Steady or keep_transient_statepoint is false, this becomes the name of the directory to "
-      "which the singular resulting statepoint file is written, i.e. a directory named {statepoint_prefix}. "
+      "which the singular resulting statepoint file is written, i.e. a directory named "
+      "{statepoint_prefix}. "
       "If the simulation is Transient and "
       "keep_transient_statepoint = true, statepoint files are written to directories of the format "
-      "{statepoint_prefix}_ts_{timestep}, where {statepoint_prefix} will default to 'statepoint_folder' "
+      "{statepoint_prefix}_ts_{timestep}, where {statepoint_prefix} will default to "
+      "'statepoint_folder' "
       "if this parameter is not provided");
 
   params.addParam<bool>("keep_transient_statepoint",
@@ -478,12 +480,13 @@ OpenMCProblemBase::initialSetup()
   if (!isTransient())
   {
     if (_keep_transient_statepoint)
-      mooseWarning("'keep_transient_statepoint' was set to True, but you are not using a Transient executioner. 'keep_transient_statepoint' being set back to False");
+      mooseWarning("'keep_transient_statepoint' was set to True, but you are not using a Transient "
+                   "executioner. 'keep_transient_statepoint' being set back to False");
     _keep_transient_statepoint = false;
   }
 
-  // create a single folder to which the statepoints will be written - if using a steady executioner or
-  // we are not saving the individual statepoints from each run
+  // create a single folder to which the statepoints will be written - if using a steady executioner
+  // or we are not saving the individual statepoints from each run
   if (!isTransient() || !_keep_transient_statepoint)
   {
     /// path_output must end with a "/", otherwise statepoint will not output correctly
