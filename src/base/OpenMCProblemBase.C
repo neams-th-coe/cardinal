@@ -385,6 +385,19 @@ OpenMCProblemBase::firstSolve() const
 }
 
 void
+OpenMCProblemBase::createOutputDirectory()
+{
+  std::filesystem::path p = openmc::settings::path_output;
+  p = p.filename().empty() ? p.parent_path() : p;
+
+  if (std::filesystem::is_regular_file(p))
+    mooseError("Cannot create directory " + openmc::settings::path_output +
+               ", as a file with the same name already exists");
+
+  std::filesystem::create_directory(openmc::settings::path_output);
+}
+
+void
 OpenMCProblemBase::externalSolve()
 {
   TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
@@ -413,16 +426,7 @@ OpenMCProblemBase::externalSolve()
   if (_keep_transient_statepoint)
   {
     openmc::settings::path_output = transientStatepointPath();
-
-    std::filesystem::path p = openmc::settings::path_output;
-
-    /// Need to remove trailing "/" to do "is_regular_file"
-    changeDirectoryToFile(p);
-
-    if (std::filesystem::is_regular_file(p))
-      mooseError("Cannot create directory " + openmc::settings::path_output +
-                 ", as a file with the same name already exists");
-    std::filesystem::create_directory(openmc::settings::path_output);
+    createOutputDirectory();
   }
 
   if (_reset_seed)
@@ -484,20 +488,9 @@ OpenMCProblemBase::initialSetup()
   {
     /// path_output must end with a "/", otherwise statepoint will not output correctly
     openmc::settings::path_output = formattedOutputPath(_statepoint_prefix);
-    std::cout << openmc::settings::path_output << std::endl;
 
     if (isParamSetByUser("statepoint_prefix"))
-    {
-      /// Need to remove trailing "/" to do "is_regular_file"
-      std::filesystem::path p = openmc::settings::path_output;
-      changeDirectoryToFile(p);
-
-      if (std::filesystem::is_regular_file(p))
-        mooseError("Cannot create directory " + openmc::settings::path_output +
-                   ", as a file with the same name already exists");
-
-      std::filesystem::create_directory(openmc::settings::path_output);
-    }
+      createOutputDirectory();
   }
 
   // Initialize the IFP parameters tally.
@@ -1209,12 +1202,6 @@ OpenMCProblemBase::formattedOutputPath(const std::string & output_path)
     p += "/";
 
   return p.string();
-}
-
-void
-OpenMCProblemBase::changeDirectoryToFile(std::filesystem::path & input_path)
-{
-  input_path = input_path.filename().empty() ? input_path.parent_path() : input_path;
 }
 
 #endif
