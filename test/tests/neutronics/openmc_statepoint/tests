@@ -1,17 +1,18 @@
 [Tests]
-  # This test needs to be in its own directory to prevent a false positive if another test
-  # writes a statepoint.50.h5 file
+  design = 'OpenMCCellAverageProblem.md'
+
+  # These tests have very few particles, and OpenMC will error if there aren't enough source particles
+  # in the fission bank on a process, so the tests are limited to 8 ranks
+
   [check_statepoint_exists]
     type = CheckFiles
     input = openmc.i
     issues = '#1261'
-    design = 'OpenMCCellAverageProblem.md'
     check_files = 'statepoint.50.h5'
-    # This test has very few particles, and OpenMC will error if there aren't enough source particles
-    # in the fission bank on a process
     max_parallel = 8
     requirement = "A statepoint file must be written when the batches parameter matches the batches "
-                  "in settings.xml and they are both specified."
+                  "in settings.xml and they are both specified. This test also checks that if no "
+                  "statepoint prefix is provided, it defaults correctly to the current directory for a transient run."
     capabilities = 'openmc'
   []
 
@@ -19,30 +20,65 @@
     type = CheckFiles
     input = openmc.i
     issues = '#1312'
-    design = 'OpenMCCellAverageProblem.md'
     check_files = 'custom_dir/statepoint.50.h5'
-
-    cli_args = 'Problem/statepoint_prefix="./custom_dir"'
-    # This test has very few particles, and OpenMC will error if there aren't enough source particles
-    # in the fission bank on a process
+    cli_args = 'Problem/statepoint_prefix="custom_dir"'
     max_parallel = 8
-    requirement = "A statepoint file must be written to the parameter defined directory when the batches parameter matches the batches "
-                  "in settings.xml and they are both specified."
+    requirement = "A statepoint file will be written to the user-defined directory if a custom path is provided to a transient executioner"
     capabilities = 'openmc'
   []
-
-
   [check_statepoint_exists_in_directory_w_existing_filename]
     type = RunException
     input = openmc.i
     issues = '#1312'
-    design = 'OpenMCCellAverageProblem.md'
     expect_err = 'a file with the same name already exists'
-    # This test has very few particles, and OpenMC will error if there aren't enough source particles
-    # in the fission bank on a process
-    cli_args = 'Problem/statepoint_prefix="./existing_file/"'
+    cli_args = 'Problem/statepoint_prefix="existing_file/"'
     max_parallel = 8
-    requirement = "The user defined directory has the same name as an existing file. Expect test to throw due to attempting to create directory with the same name as the file."
+    requirement = "The system shall error if trying to write a statepoint file to a location that already exists"
+    capabilities = 'openmc'
+  []
+
+  [steady_keep_transients]
+    type = RunException
+    input = openmc_steady.i
+    issues = '#1312'
+    cli_args = 'Problem/keep_transient_statepoint=True --error'
+    expect_err = "'keep_transient_statepoint' was set to True, but you are not using a Transient executioner"
+    requirement = 'The system shall print a warning to the user that transient statepoints cannot be kept when a steady executioner is used, since only one set of statepoints is created.'
+    capabilities = 'openmc'
+  []
+  [steady_keep_transients_default]
+    type = CheckFiles
+    input = openmc_steady.i
+    issues = '#1312'
+    check_files = 'statepoint.100.h5'
+    requirement = 'The system shall continue to write steady executioner statepoints to the specified location (default) and ignore the request to keep transient statepoints because none exist'
+    capabilities = 'openmc'
+  []
+  [steady_keep_transients_prefix]
+    type = CheckFiles
+    input = openmc_steady.i
+    issues = '#1312'
+    cli_args = 'Problem/keep_transient_statepoint=True Problem/statepoint_prefix="abc" Problem/batches=95'
+    check_files = 'abc/statepoint.95.h5'
+    requirement = 'The system shall continue to write steady executioner statepoints to the specified location (custom directory) and ignore the request to keep transient statepoints because none exist'
+    capabilities = 'openmc'
+  []
+  [steady_dont_keep_transients_default]
+    type = CheckFiles
+    input = openmc_steady.i
+    issues = '#1312'
+    cli_args = 'Problem/batches=15'
+    check_files = 'statepoint.15.h5'
+    requirement = 'The system shall write steady executioner statepoints to the specified location (default)'
+    capabilities = 'openmc'
+  []
+  [steady_dont_keep_transients_prefix]
+    type = CheckFiles
+    input = openmc_steady.i
+    issues = '#1312'
+    cli_args = 'Problem/statepoint_prefix="abc" Problem/batches=15'
+    check_files = 'abc/statepoint.15.h5'
+    requirement = 'The system shall write steady executioner statepoints to the specified location (custom directory)'
     capabilities = 'openmc'
   []
 []

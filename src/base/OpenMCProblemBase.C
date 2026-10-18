@@ -122,15 +122,17 @@ OpenMCProblemBase::validParams()
       "statepoint_prefix",
       "./",
       "Prefix to the name of the directory to which statepoint files are written. If simulation is "
-      "Steady, or keep_transient_statepoint = false, this becomes the name of the directory to "
-      "which the singular resulting statepoint file is written. If the simulation is Transient and "
-      "keep_transient_statepoint=true, statepoint files are written to directories of the format "
-      "{statepoint_prefix}_ts_{timestep}.");
+      "Steady or keep_transient_statepoint is false, this becomes the name of the directory to "
+      "which the singular resulting statepoint file is written, i.e. a directory named {statepoint_prefix}. "
+      "If the simulation is Transient and "
+      "keep_transient_statepoint = true, statepoint files are written to directories of the format "
+      "{statepoint_prefix}_ts_{timestep}, where {statepoint_prefix} will default to 'statepoint_folder' "
+      "if this parameter is not provided");
 
   params.addParam<bool>("keep_transient_statepoint",
                         false,
                         "Whether or not statepoints from all timesteps should be kept, and written "
-                        "to separate directories.");
+                        "to separate directories. Unused for Steady executioners");
 
   return params;
 }
@@ -151,9 +153,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _reset_seed(getParam<bool>("reset_seed")),
     _initial_seed(openmc::openmc_get_seed()),
     _xml_directory(getParam<FileName>("xml_directory")),
-    _statepoint_prefix(getParam<FileName>("statepoint_prefix")),
-    _keep_transient_statepoint(getParam<bool>("keep_transient_statepoint"))
+    _statepoint_prefix(getParam<FileName>("statepoint_prefix"))
 {
+  _keep_transient_statepoint = getParam<bool>("keep_transient_statepoint");
+
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
                "Please add tallies with the [Tallies] block instead.");
@@ -259,22 +262,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
     catchOpenMCError(err, "set the number of batches");
-  }
-
-  if (isParamSetByUser("statepoint_prefix") && !_keep_transient_statepoint)
-  {
-    /// path_output must end with a "/", otherwise statepoint will not output correctly
-    openmc::settings::path_output = formattedOutputPath(_statepoint_prefix);
-
-    /// Need to remove trailing "/" to do "is_regular_file"
-    std::filesystem::path p = openmc::settings::path_output;
-    changeDirectoryToFile(p);
-
-    if (std::filesystem::is_regular_file(p))
-      mooseError("Cannot create directory " + openmc::settings::path_output +
-                 ", as a file with the same name already exists");
-
-    std::filesystem::create_directory(openmc::settings::path_output);
   }
 
   // The OpenMC wrapping doesn't require material properties itself, but we might
@@ -485,6 +472,35 @@ void
 OpenMCProblemBase::initialSetup()
 {
   CardinalProblem::initialSetup();
+
+  if (!isTransient())
+  {
+    if (_keep_transient_statepoint)
+      mooseWarning("'keep_transient_statepoint' was set to True, but you are not using a Transient executioner. 'keep_transient_statepoint' being set back to False");
+    _keep_transient_statepoint = false;
+  }
+
+  // create a single folder to which the statepoints will be written - if using a steady executioner or
+  // we are not saving the individual statepoints from each run
+  if (!isTransient() || !_keep_transient_statepoint)
+  {
+    /// path_output must end with a "/", otherwise statepoint will not output correctly
+    openmc::settings::path_output = formattedOutputPath(_statepoint_prefix);
+    std::cout << openmc::settings::path_output << std::endl;
+
+    if (isParamSetByUser("statepoint_prefix"))
+    {
+      /// Need to remove trailing "/" to do "is_regular_file"
+      std::filesystem::path p = openmc::settings::path_output;
+      changeDirectoryToFile(p);
+
+      if (std::filesystem::is_regular_file(p))
+        mooseError("Cannot create directory " + openmc::settings::path_output +
+                   ", as a file with the same name already exists");
+
+      std::filesystem::create_directory(openmc::settings::path_output);
+    }
+  }
 
   // Initialize the IFP parameters tally.
   if (_calc_kinetics_params)
@@ -1147,8 +1163,8 @@ OpenMCProblemBase::transientStatepointPath()
 {
   if (!isTransient())
   {
-    mooseWarning("keep_transient_statepoint is set to True, but selected Executioner is Steady. "
-                 "Keeping original statepoint path.");
+    mooseDoOnce(mooseWarning("keep_transient_statepoint is set to True, but selected Executioner is Steady. "
+                 "Keeping original statepoint path, ", openmc::settings::path_output));
     return openmc::settings::path_output;
   }
 
