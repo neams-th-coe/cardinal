@@ -423,8 +423,6 @@ OpenMCProblemBase::externalSolve()
       mooseError("Cannot create directory " + openmc::settings::path_output +
                  ", as a file with the same name already exists");
     std::filesystem::create_directory(openmc::settings::path_output);
-
-    openmc::settings::path_output = transientStatepointPath();
   }
 
   if (_reset_seed)
