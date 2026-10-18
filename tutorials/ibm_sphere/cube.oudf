@@ -192,7 +192,7 @@ inline dfloat D1(dfloat r) {
           + GradTemperatureL_Z*nz0;
 
 
-        // heat flux
+        // heat flux; TODO: needs treatment to ensure energy conservation
         const dfloat qB = 1.0;
 
         // Current heat-flux forcing form
