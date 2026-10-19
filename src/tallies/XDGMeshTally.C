@@ -40,25 +40,6 @@ XDGMeshTally::XDGMeshTally(const InputParameters & parameters) : MeshTallyBase(p
   if (_is_adaptive)
     mooseError("XDG mesh tallies do not support adaptive mesh refinement at present! Please use a "
                "'MeshTally' instead.");
-
-  // Gather all element types in the mesh.
-  std::unordered_set<ElemType> contained_elem;
-  auto begin = _openmc_problem.getMooseMesh().activeLocalElementsBegin();
-  auto end = _openmc_problem.getMooseMesh().activeLocalElementsEnd();
-  for (const auto & elem : libMesh::as_range(begin, end))
-    contained_elem.insert(elem->type());
-
-  // Check to make sure the mesh only contains a single element type.
-  if (contained_elem.size() > 1)
-    mooseError("XDG mesh tallies only support single-element-type meshes! Please "
-               "ensure your mesh uses a single element type, or use a 'MeshTally' instead.");
-
-  // Check to make sure all elements are TET4s or HEX8s.
-  for (auto elem_type : contained_elem)
-    if (elem_type != ElemType::TET4 && elem_type != ElemType::HEX8)
-      mooseError(
-          "XDG mesh tallies only support TET4 and HEX8 elements! Either "
-          "ensure your mesh only uses either TET4 or HEX8 elements, or use a 'MeshTally' instead.");
 }
 
 unsigned int
@@ -70,9 +51,12 @@ XDGMeshTally::getOpenMCMeshBuildDoFMaps()
     // Build the DoF maps necessary for AMR.
     buildDoFMaps(&_openmc_problem.getMooseMesh().getMesh());
 
-    _xdg_mesh_manager.reset(new xdg::LibMeshManager(&_openmc_problem.getMooseMesh().getMesh()));
-    _xdg_mesh_manager->init();
-    _xdg_mesh_manager->parse_metadata();
+    catchXDGError([&]()
+    {
+      _xdg_mesh_manager.reset(new xdg::LibMeshManager(&_openmc_problem.getMooseMesh().getMesh()));
+      _xdg_mesh_manager->init();
+      _xdg_mesh_manager->parse_metadata();
+    }, "When attempting to initialize a mesh tally based on the MOOSE [Mesh], XDG reported:\n");
 
     _xdg_instance.reset(new xdg::XDG(_xdg_mesh_manager, xdg::RTLibrary::EMBREE));
     openmc::model::meshes.emplace_back(
@@ -80,8 +64,11 @@ XDGMeshTally::getOpenMCMeshBuildDoFMaps()
   }
   else
   {
-    openmc::model::meshes.emplace_back(
+    catchXDGError([&]()
+    {
+      openmc::model::meshes.emplace_back(
         std::make_unique<openmc::XDGMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+    }, "When attempting to initialize a mesh tally from a file, XDG reported:\n");
   }
 
   return openmc::model::meshes.size() - 1;
