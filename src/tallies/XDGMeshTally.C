@@ -51,12 +51,15 @@ XDGMeshTally::getOpenMCMeshBuildDoFMaps()
     // Build the DoF maps necessary for AMR.
     buildDoFMaps(&_openmc_problem.getMooseMesh().getMesh());
 
-    catchXDGError([&]()
-    {
-      _xdg_mesh_manager.reset(new xdg::LibMeshManager(&_openmc_problem.getMooseMesh().getMesh()));
-      _xdg_mesh_manager->init();
-      _xdg_mesh_manager->parse_metadata();
-    }, "When attempting to initialize a mesh tally based on the MOOSE [Mesh], XDG reported:\n");
+    catchXDGError(
+        [&]()
+        {
+          _xdg_mesh_manager.reset(
+              new xdg::LibMeshManager(&_openmc_problem.getMooseMesh().getMesh()));
+          _xdg_mesh_manager->init();
+          _xdg_mesh_manager->parse_metadata();
+        },
+        "When attempting to initialize a mesh tally based on the MOOSE [Mesh], XDG reported:\n");
 
     _xdg_instance.reset(new xdg::XDG(_xdg_mesh_manager, xdg::RTLibrary::EMBREE));
     openmc::model::meshes.emplace_back(
@@ -64,11 +67,13 @@ XDGMeshTally::getOpenMCMeshBuildDoFMaps()
   }
   else
   {
-    catchXDGError([&]()
-    {
-      openmc::model::meshes.emplace_back(
-        std::make_unique<openmc::XDGMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
-    }, "When attempting to initialize a mesh tally from a file, XDG reported:\n");
+    catchXDGError(
+        [&]()
+        {
+          openmc::model::meshes.emplace_back(std::make_unique<openmc::XDGMesh>(
+              *_mesh_template_filename, _openmc_problem.scaling()));
+        },
+        "When attempting to initialize a mesh tally from a file, XDG reported:\n");
   }
 
   return openmc::model::meshes.size() - 1;
