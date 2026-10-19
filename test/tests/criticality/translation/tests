@@ -1,0 +1,34 @@
+[Tests]
+  design = 'TranslationSearch.md AddCriticalitySearchAction.md'
+  issues = '#1479 #1482'
+  [translation_search]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = 'The system shall conduct a criticality search by modifying a cell translation. This test is created by comparing the critical translation against a standalone OpenMC simulation in which the same cell is translated through the OpenMC C API. The two approaches match within statistics.'
+    capabilities = 'openmc'
+  []
+  [translation_warning]
+    type = RunException
+    input = openmc.i
+    cli_args = '--error'
+    expect_err = "The OpenMC geometry is being moved"
+    requirement = 'The system shall warn the user when a criticality search translates the OpenMC geometry while the mesh remains stationary.'
+    capabilities = 'openmc'
+  []
+  [not_a_filled_cell]
+    type = RunException
+    input = openmc.i
+    cli_args = "Problem/CriticalitySearch/cell_ids='3'"
+    expect_err = "Cannot apply a translation to cell"
+    requirement = 'The system shall error if a translation criticality search is applied to a cell which is not filled with a universe.'
+    capabilities = 'openmc'
+  []
+  [control_search]
+    type = CSVDiff
+    input = control.i
+    csvdiff = control_out.csv
+    requirement = 'The system shall conduct a criticality search following MOOSE control system modifying a cell translation.'
+    capabilities = 'openmc'
+  []
+[]

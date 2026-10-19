@@ -618,4 +618,10 @@ protected:
 
   /// Object to use for a criticality search
   CriticalitySearchBase * _criticality_search = nullptr;
+
+  /**
+   * Whether the criticality search is allowed to run or not. Used to toggle the criticality
+   * search with the MOOSE controls system.
+   */
+  const bool & _is_criticality_search_enabled_by_controls;
 };
