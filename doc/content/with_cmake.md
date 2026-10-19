@@ -84,9 +84,7 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
   you happen to already have a submodule checked out under `contrib/`, it's used (mirrored into
   `build/` on every build); otherwise it's cloned directly into the build tree at the exact pinned
   commit from `.gitmodules`. Either way, your own source checkout's `contrib/` is never modified,
-  and a bare `git clone` with no submodules initialized at all builds just fine. This also keeps
-  `git status`/`git diff` in your source checkout fast: none of these dependencies -- several of
-  them large -- ever need to exist there.
+  and a bare `git clone` with no submodules initialized at all builds just fine.
 - +The build directory doesn't have to be named `build`, or even live inside your checkout.+
   `cmake -S /path/to/cardinal -B /tmp/cardinal_build` works just as well, and putting it on fast
   local scratch (`/tmp`, or another non-networked filesystem) instead of a networked home directory
@@ -128,7 +126,7 @@ cmake -S . -B build -DENABLE_DAGMC=ON
 
 !alert! note title=Performance Improvement with Double-Down
 If you chose to enable DAGMC, we also provide support for [Double-Down](https://double-down.readthedocs.io/en/latest/) -
-a mixed-precision interface to the ray-tracing library [Embree](https://www.embree.org/). Embree support is disabled by
+a mixed-precision interface to the ray-tracing library [Embree](https://www.embree.org/). Double-down support is disabled by
 default, but we *strongly* recommend enabling it - you can expect to see around 100x speedup when using Double-Down
 on mesh-based geometries.
 
@@ -137,6 +135,9 @@ If you do want to use DAGMC with Embree, set:
 ```
 cmake -S . -B build -DENABLE_DAGMC=ON -DENABLE_DOUBLE_DOWN=ON
 ```
+
+Embree itself needs no separate configuration or build step here -- enabling Double-Down pulls it
+in and builds it automatically, the same way as every other dependency in [#overview].
 !alert-end!
 
 !alert! note title=Building PETSc's OpenBLAS for a single microarchitecture
