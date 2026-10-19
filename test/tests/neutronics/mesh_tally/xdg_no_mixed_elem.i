@@ -1,23 +1,34 @@
 [Mesh]
-  [mixed_elem_pin]
-    type = PolygonConcentricCircleMeshGenerator
-    num_sides = 4
-    num_sectors_per_side = '2 2 2 2'
-    ring_radii = 4.0
-    ring_intervals = 2
-    polygon_size = 5.0
+  [cube_1]
+    type = CartesianMeshGenerator
+    dim = 3
+    dx = '1'
+    dy = '1'
+    dz = '1'
+    ix = '1'
+    iy = '1'
+    iz = '1'
+    subdomain_id = '0'
   []
-  [delete_background]
-    type = BlockDeletionGenerator
-    input = mixed_elem_pin
-    block = '3'
+  [cube_2]
+    type = CartesianMeshGenerator
+    dim = 3
+    dx = '1'
+    dy = '1'
+    dz = '1'
+    ix = '1'
+    iy = '1'
+    iz = '1'
+    subdomain_id = '0'
   []
-  [extrude]
-    type = AdvancedExtruderGenerator
-    input = delete_background
-    heights = '1'
-    num_layers = '1'
-    direction = '0 0 1'
+  [to_tet]
+    type = ElementsToTetrahedronsConverter
+    input = cube_2
+  []
+  [cmbn]
+    type = CombinerGenerator
+    inputs = 'cube_1 to_tet'
+    positions = '0.0 0.0 0.0 1.0 0.0 0.0'
   []
 
   allow_renumbering = false
