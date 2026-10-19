@@ -330,6 +330,7 @@
     input = xdg_no_unsupported.i
     cli_args = '--mesh-only'
     requirement = "The system shall be able to generate a mixed TET4/HEX8 mesh to mesh template errors in XDG."
+    capabilities = 'xdg'
   []
   [xdg_hex_tet_only_from_file]
     type = RunException
