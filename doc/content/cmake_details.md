@@ -369,6 +369,17 @@ checkout fast regardless of which tier fired.
 `NO_BUILD`) rather than a specific filename -- more robust against any one file being
 renamed/removed upstream, and simple to verify.
 
+Because the pin is read fresh from the git index on every configure, a later `git pull`/checkout
+that moves a pin is picked up correctly on the next reconfigure: `ExternalProject_Add`'s own
+`GIT_TAG`-vs-last-checked-out-commit comparison (not anything Cardinal adds) re-fetches and
+re-checks-out automatically when the two differ. The remaining gap is CMake never reconfiguring at
+all on a bare `cmake --build` after such a pull, since nothing it already watches changed --
+`CardinalDependency.cmake` closes that by adding `${CMAKE_SOURCE_DIR}/.git/index` (updated by any
+checkout/merge/pull that changes a pin) to `CMAKE_CONFIGURE_DEPENDS`, forcing a reconfigure first.
+This also means a pin can be tried without a commit at all: `git update-index --cacheinfo
+160000,<sha>,<path>` stages a different pin directly, with no checkout of the submodule itself
+needed either, and the next `cmake --build` picks it up the same way.
+
 ### A pinned commit isn't always reachable by `git clone` -- but pin it correctly instead of working around it
 
 `ExternalProject_Add`'s `GIT_REPOSITORY`/`GIT_TAG` mechanism fetches only objects reachable from an

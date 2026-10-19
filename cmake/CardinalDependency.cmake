@@ -1,6 +1,18 @@
 include_guard(GLOBAL)
 include(ExternalProject)
 
+# cardinal_gitmodule_url()/cardinal_gitmodule_commit() (below) read a
+# submodule's pin from CMAKE_SOURCE_DIR's git index, not a tracked file
+# CMake otherwise knows to watch -- so a plain `cmake --build` after a
+# `git pull`/checkout that moves a pin, with no explicit `cmake` reconfigure
+# in between, would keep building the stale commit each submodule's
+# ExternalProject_Add was last configured with. Watching the index itself
+# (updated by any checkout/merge/pull that changes a pin) forces a
+# reconfigure first, so a changed pin is always picked up.
+if(EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/.git/index)
+endif()
+
 # cardinal_gitmodule_url(<relative submodule path> <out var>)
 #
 # Looks up the URL recorded for a submodule in .gitmodules. Section names in
@@ -25,16 +37,22 @@ endfunction()
 #
 # Looks up the commit Cardinal's superproject git index pins a submodule to
 # (the gitlink entry), so ExternalProject's GIT_TAG stays derived from
-# .gitmodules/the git index rather than being hand-copied into CMake.
+# .gitmodules/the git index rather than being hand-copied into CMake. Reads
+# the index's entry (`git rev-parse :<path>`), not HEAD's: this lets a
+# developer try a different pin with `git update-index --cacheinfo
+# 160000,<sha>,<path>` -- no commit, no checkout of the submodule itself
+# needed -- and have the next build pick it up (the CMAKE_CONFIGURE_DEPENDS
+# watch on .git/index, above, triggers the reconfigure that re-reads this).
+# Identical to reading HEAD whenever nothing's staged for this path.
 function(cardinal_gitmodule_commit path out_var)
   execute_process(
-    COMMAND git -C ${CMAKE_SOURCE_DIR} ls-tree HEAD -- ${path}
-    OUTPUT_VARIABLE _line
+    COMMAND git -C ${CMAKE_SOURCE_DIR} rev-parse :${path}
+    OUTPUT_VARIABLE _sha
     OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE _rc
     ERROR_QUIET)
-  if(_rc EQUAL 0 AND _line MATCHES "^[0-9]+ commit ([0-9a-f]+)")
-    set(${out_var} ${CMAKE_MATCH_1} PARENT_SCOPE)
+  if(_rc EQUAL 0 AND _sha MATCHES "^[0-9a-f]+$")
+    set(${out_var} ${_sha} PARENT_SCOPE)
   else()
     set(${out_var} "" PARENT_SCOPE)
   endif()
