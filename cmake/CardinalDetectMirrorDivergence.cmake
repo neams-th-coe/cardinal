@@ -94,12 +94,36 @@ function(cardinal_detect_mirror_divergence SOURCE_DIR DEST_DIR)
     return()
   endif()
 
+  # Keep only candidates that actually exist at the same relative path
+  # under SOURCE_DIR -- the find-prune above (via EXCLUDES) only knows
+  # about what the real mirror itself excludes, not about everything
+  # else CMake's own build machinery creates directly in DEST_DIR with
+  # no SOURCE_DIR counterpart at all (CMakeFiles/, CMakeCache.txt,
+  # Makefile.cardinal/unit/Makefile.unit, which mirror_source's own
+  # calling script writes via separate copy_if_different commands, ...).
+  # Those get touched on essentially every build and would otherwise
+  # reach the targeted rsync below as a path it can't find in
+  # SOURCE_DIR at all -- confirmed live: rsync --files-from aborts the
+  # *entire* batch with "some files/attrs were not transferred" (code
+  # 23) the moment even one listed path doesn't exist on the source
+  # side, which previously made this whole check silently skip itself
+  # (via the _rc check further down) on essentially every real build.
   string(REPLACE "\n" ";" _candidates "${_candidates_raw}")
   set(_relpaths)
   foreach(_abspath ${_candidates})
     string(REPLACE "${DEST_DIR}/" "" _relpath "${_abspath}")
-    list(APPEND _relpaths "${_relpath}")
+    if(EXISTS "${SOURCE_DIR}/${_relpath}")
+      list(APPEND _relpaths "${_relpath}")
+    endif()
   endforeach()
+
+  if(NOT _relpaths)
+    # Everything touched since the last check was build-tree-only
+    # bookkeeping with no SOURCE_DIR counterpart -- nothing left to
+    # actually compare.
+    file(TOUCH "${_stamp}")
+    return()
+  endif()
 
   # Targeted checksum check, restricted via --files-from to just the
   # handful of recently-touched candidates above -- not a full-tree
