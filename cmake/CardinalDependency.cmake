@@ -171,30 +171,23 @@ function(cardinal_add_submodule_dependency name)
     endif()
     message(STATUS "Cardinal: '${DEP_SUBMODULE_PATH}' not present in-source; ${name} will be cloned from ${_url} @ ${_commit} directly into the build tree")
 
-    # A custom DOWNLOAD_COMMAND (CardinalGitFetchBySha.cmake) is used here
-    # instead of ExternalProject's own GIT_REPOSITORY/GIT_TAG support: that
-    # built-in mechanism does a plain `git clone` + `git checkout <sha>`,
-    # which fails whenever the pinned commit isn't reachable from any
-    # upstream branch/tag tip -- which happens for real (contrib/moab, at
-    # least). Fetching the exact commit by SHA (what `git submodule update`
-    # itself does under the hood) works regardless. See that script for the
-    # full explanation.
-    set(_init_submodules TRUE)
+    # ExternalProject's own GIT_REPOSITORY/GIT_TAG support, matching
+    # scripts/get-dependencies.sh's own plain `git submodule update --init`
+    # (no --depth). GIT_SUBMODULES "" (only with NO_GIT_SUBMODULES) opts
+    # out of the default "update every submodule, recursively" behavior.
+    # See CardinalGitFetchBySha.cmake and cmake_details.md for the custom
+    # fetch mechanism this replaces.
+    set(_git_submodules_args "")
     if(DEP_NO_GIT_SUBMODULES)
-      set(_init_submodules FALSE)
+      set(_git_submodules_args GIT_SUBMODULES "")
     endif()
     ExternalProject_Add(${name}
       PREFIX                  ${_prefix}
       SOURCE_DIR              ${DEP_SOURCE_DIR}
       BINARY_DIR              ${DEP_BINARY_DIR}
-      DOWNLOAD_COMMAND        ${CMAKE_COMMAND}
-                              -DGIT_REPOSITORY=${_url}
-                              -DGIT_TAG=${_commit}
-                              -DSOURCE_DIR=${DEP_SOURCE_DIR}
-                              -DINIT_SUBMODULES=${_init_submodules}
-                              -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CardinalGitFetchBySha.cmake
-      # Pinned to an exact commit; nothing to re-sync on later reconfigures.
-      UPDATE_COMMAND          ${CMAKE_COMMAND} -E true
+      GIT_REPOSITORY          ${_url}
+      GIT_TAG                 ${_commit}
+      ${_git_submodules_args}
       CMAKE_ARGS              ${DEP_CMAKE_ARGS}
       INSTALL_DIR             ${DEP_INSTALL_DIR}
       DEPENDS                 ${DEP_DEPENDS}

@@ -1,23 +1,20 @@
-# cmake -P script used as a custom ExternalProject_Add DOWNLOAD_COMMAND (see
-# the tier-3 clone path in cardinal_add_submodule_dependency,
-# CardinalDependency.cmake).
+# NOT CURRENTLY USED -- cardinal_add_submodule_dependency's tier-3 clone path
+# (CardinalDependency.cmake) now uses ExternalProject's own built-in
+# GIT_REPOSITORY/GIT_TAG support instead, matching scripts/
+# get-dependencies.sh's own plain `git submodule update --init`. Kept here
+# rather than deleted in case that needs revisiting.
 #
-# Why this exists rather than just using ExternalProject's own built-in
-# GIT_REPOSITORY/GIT_TAG support: that mechanism (gitclone.cmake) does a plain
-# `git clone` -- which only fetches objects reachable from an advertised
-# branch/tag -- and then `git checkout <sha>`. That fails with "fatal:
-# reference is not a tree" whenever the pinned commit isn't at the tip of any
-# branch upstream, which happens for real: Cardinal's own contrib/moab pin
-# (bcf15c8ed0...) is exactly such a commit on the fathomteam/moab Bitbucket
-# repo, confirmed by a plain `git clone` of the full repo (all branches) not
-# containing the object at all.
-#
-# `git submodule update --init` succeeds on that same commit because git
-# instead does a direct `git fetch <url> <sha>`, which most servers honor
-# even for objects unreachable from any ref (verified here for Bitbucket and
-# GitHub) as long as the object exists at all. This script does the same:
-# fetch the exact commit by SHA, then check it out -- no reliance on it being
-# reachable from a branch/tag.
+# This script fetches one exact commit by SHA (`git fetch <url> <sha>`, the
+# same thing `git submodule update --init` does under the hood), which some
+# git servers honor even for a commit unreachable from any advertised
+# branch/tag -- unlike ExternalProject's own git step, a plain `git clone` +
+# `git checkout <sha>`, which only works if that commit is reachable from
+# some advertised ref. That only helps while the unreachable commit object
+# still physically exists upstream, though: it provides no protection at
+# all once that object is garbage-collected, which an orphaned
+# (not-on-any-branch) commit is always at some risk of eventually being.
+# Pinning to a commit that's reachable from a real branch in the first
+# place is the actual fix; see doc/content/cmake_details.md.
 #
 # Expected -D arguments: GIT_REPOSITORY, GIT_TAG, SOURCE_DIR, INIT_SUBMODULES
 # (TRUE/FALSE).

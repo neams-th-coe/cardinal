@@ -355,9 +355,9 @@ For each managed dependency, in priority order:
    `DOWNLOAD_COMMAND`/`UPDATE_COMMAND`, delegated to `CardinalMirrorSubmodule.cmake` (plain
    `rsync -rlpgo --update`, matching `mirror_source`'s own reasoning, plus a git-metadata repair --
    see below).
-3. +Not initialized anywhere.+ Cloned straight into the build tree, delegated to
-   `CardinalGitFetchBySha.cmake` rather than `ExternalProject_Add`'s own built-in
-   `GIT_REPOSITORY`/`GIT_TAG` support (see below). The URL comes from `.gitmodules`; the pinned
+3. +Not initialized anywhere.+ Cloned straight into the build tree via `ExternalProject_Add`'s own
+   built-in `GIT_REPOSITORY`/`GIT_TAG` support, matching `scripts/get-dependencies.sh`'s own plain
+   `git submodule update --init` (no `GIT_SHALLOW`). The URL comes from `.gitmodules`; the pinned
    commit comes from `git ls-tree HEAD -- <path>` on the superproject at configure time, so the pin
    has one source of truth instead of being hand-copied into CMake.
 
@@ -369,21 +369,25 @@ checkout fast regardless of which tier fired.
 `NO_BUILD`) rather than a specific filename -- more robust against any one file being
 renamed/removed upstream, and simple to verify.
 
-### A pinned commit isn't always reachable by `git clone`
+### A pinned commit isn't always reachable by `git clone` -- but pin it correctly instead of working around it
 
-`ExternalProject_Add`'s own `GIT_REPOSITORY`/`GIT_TAG` mechanism does a plain `git clone` --
-fetching only objects reachable from an advertised branch/tag -- then `git checkout <sha>`. This
-fails with "fatal: reference is not a tree" whenever the pinned commit isn't at the tip of any
-upstream branch, which happens for real: `contrib/moab`'s pin is exactly such a commit on the
-`fathomteam/moab` Bitbucket repo. `git submodule update --init` succeeds on that same commit because
-git instead fetches the exact SHA directly (`git fetch <url> <sha>`), which the server honors even
-though the commit is unreachable from any ref. `CardinalGitFetchBySha.cmake` does the same, with one
-added subtlety: it sets up a real `origin` remote first (`git remote add origin <url>` then
-`git fetch origin <sha>`), not a bare-URL fetch -- a bare-URL fetch leaves no `remote.origin.url`
-recorded at all, which breaks *relative* submodule URLs in whatever gets cloned this way (MOOSE's
-own `.gitmodules` points at libmesh with `url = ../../libMesh/libmesh`, resolved relative to the
-parent repo's own `origin` URL; with no origin configured, git instead falls back to resolving it
-against the local filesystem path of the current working directory).
+`ExternalProject_Add`'s `GIT_REPOSITORY`/`GIT_TAG` mechanism fetches only objects reachable from an
+advertised branch/tag, then checks out the exact commit -- which fails with "fatal: reference is not
+a tree" if the pinned commit isn't at the tip of any upstream branch. `contrib/moab`'s pin hit
+exactly this for real at one point (the same underlying problem later reported upstream as
+[#1477](https://github.com/neams-th-coe/cardinal/issues/1477), fixed there by repointing the pin at
+a commit that's actually on MOAB's own `master` branch, "as recommended for stability").
+
+An earlier version of this build worked around the symptom instead, with a custom fetch
+(`cmake/CardinalGitFetchBySha.cmake`, kept but unused) that fetches the exact commit by SHA --
+`git fetch <url> <sha>`, the same thing `git submodule update --init` does under the hood, which
+some servers honor even for a commit unreachable from any ref. That's a strictly narrower fix than
+it looks: it only helps while the unreachable commit object still physically exists upstream, and
+provides no protection at all once it's garbage-collected, which an orphaned (not-on-any-branch)
+commit is always at some risk of eventually being -- an exact-SHA fetch asks for the same object by
+a different means, not a more durable one. The actual fix is pinning to a commit that's reachable
+from a real branch in the first place, as #1477's resolution did; a fetch mechanism can't substitute
+for that.
 
 ### A submodule's `.git` is a gitlink, not a real repo -- mirroring breaks it
 
