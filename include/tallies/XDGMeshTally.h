@@ -33,6 +33,19 @@ public:
 protected:
   virtual unsigned int getOpenMCMeshBuildDoFMaps() override;
 
+  template <typename T>
+  void catchXDGError(T function, const std::string & description)
+  {
+    try
+    {
+      function();
+    }
+    catch (const std::exception & e)
+    {
+      mooseError(description, e.what());
+    }
+  }
+
   /// The XDG mesh manager representing this mesh.
   std::shared_ptr<xdg::LibMeshManager> _xdg_mesh_manager;
 
