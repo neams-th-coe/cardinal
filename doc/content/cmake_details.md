@@ -97,22 +97,19 @@ is needed.+ `make` runs unmodified as the final build step.
 
 ```cmake
 add_custom_target(mirror_source ALL
-  COMMAND rsync -rlpgo --update
-          --exclude=/contrib
-          --exclude=/.git
-          --exclude=/Makefile
-          --exclude=/build
-          --exclude=/install
-          --exclude=/CMakeLists.txt
-          --exclude=/cmake
-          ${CMAKE_SOURCE_DIR}/ ${CARDINAL_STAGE_DIR}/
+  COMMAND ${CMAKE_COMMAND}
+          -DSOURCE_DIR=${CMAKE_SOURCE_DIR} -DDEST_DIR=${CARDINAL_STAGE_DIR} -DENABLE_NEK=${ENABLE_NEK}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalMirrorSource.cmake
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
   ...)
 ```
 
 Reruns every build (`add_custom_target` has no tracked `OUTPUT`, so it's always considered out of
-date).
+date). The actual rsync invocation and its exclude list live in `cmake/CardinalMirrorSource.cmake`
+rather than directly in the custom command, because part of that exclude list has to be computed
+fresh on every invocation rather than fixed once at configure time -- see "Other CMake build
+directories" below.
 
 +Why `-rlpgo --update`, not `-a`:+ `-a` is `-rlptgoD`. The `-t` (preserve source mtime) is wrong
 here for two reasons:
@@ -155,13 +152,60 @@ just copy everything except what's excluded for concrete, functional reasons bel
   runs concurrently) a native build in that same checkout, copy that leftover/live build/install
   tree wholesale on top of this build's own `ExternalProject_Add` trees living at those same
   relative paths -- silently corrupting them. Excluded unconditionally, not just when such a
-  directory happens to exist.
+  directory happens to exist, and necessarily as a fixed, named pattern rather than the dynamic
+  scan below: `build` is a plain container directory with no `CMakeCache.txt` of its own (each
+  dependency's own CMake sub-build -- `build/openmc`, `build/nekrs`, ... -- has one a level
+  deeper), and `install` is never a CMake directory at all.
 - +`--exclude=/CMakeLists.txt --exclude=/cmake`:+ this build's own files. Cardinal's native
   Makefile has no use for either, so mirroring them would just leave a redundant, easily stale copy
   sitting next to CMake's own `CMakeCache.txt`/`CMakeFiles` for no purpose.
 - +`test/tests/nek_ci`+ is a submodule *outside* `contrib/` (NekRS's own CI test fixtures),
   resolved independently the same way, but only when `ENABLE_NEK` is on -- excluded from the
   generic mirror in that case too, so the two don't fight over the same destination.
+- +Byproduct excludes+ (`CARDINAL_BYPRODUCT_EXCLUDES`, `cmake/CardinalByproductExcludes.cmake`):
+  object files, archives, `.d` dependency files, and generated `*Revision.h` headers -- the same
+  in-place compiler/linker output described above, but phrased as rsync patterns so a prior native
+  build of this same checkout doesn't get mirrored on top of a fresh one. Shared with
+  `CardinalMirrorSubmodule.cmake` (below) so the two lists can't drift apart. Deliberately *not*
+  included here: a bare `build` pattern (matching a directory of that name anywhere in the tree,
+  not just at the top level) -- safe for a submodule that genuinely treats every `build/`
+  subdirectory as disposable (see "Byproduct excludes aren't submodule-generic" below), but not
+  something Cardinal's own top-level tree needs, and this list is shared across both uses.
+
+### Other CMake build directories
+
+Nothing above stops the build directory from mirroring *itself*: since `CARDINAL_STAGE_DIR` is
+`CMAKE_BINARY_DIR`, a build directory named anything other than the literal string `build` has no
+matching fixed exclude, so a first `cmake --build` would copy it into itself
+(`build1/build1`), and every later build would copy that copy into itself again
+(`build1/build1/build1`, ...). The same gap allows one build directory to mirror a sibling's
+contents wholesale -- `build1` and `build2` configured side by side in the same source tree, each
+with no fixed exclude naming the other.
+
+Both cases reduce to the same underlying fact: every CMake build directory has its own
+`CMakeCache.txt`, written during *configure*, before any build-time custom command (including this
+one) ever runs. `CardinalMirrorSource.cmake` scans the immediate children of `SOURCE_DIR` for any
+directory containing one and excludes it by name -- covering the current build directory
+(including itself, once it exists) and any sibling, with no name-based special case needed for
+either.
+
+This scan has to happen as part of the command's own execution, not be computed once and baked
+into the custom command's argument string at configure time: a sibling build directory created
+*after* this one was configured still needs to be excluded on this one's next build, and a fixed
+list frozen at generate time can never see it.
+
+### Byproduct excludes aren't submodule-generic
+
+`CARDINAL_BYPRODUCT_EXCLUDES` previously carried a bare `build` pattern, copied from MOOSE's own
+`.gitignore` (which really does mean "any directory named `build`, anywhere in the tree" -- MOOSE's
+own `conda/build` is a real, legitimate example). That's correct for MOOSE, but the list is shared
+across every in-source submodule `CardinalMirrorSubmodule.cmake` mirrors, and rsync's unanchored
+pattern matches a directory of that name at any depth in any of them -- not just MOOSE's own
+disposable ones. `contrib/nekRS`'s vendored OCCA library tracks a real
+`3rd_party/occa/scripts/build/` directory under that exact name, and the shared pattern silently
+excluded it, breaking NekRS's CMake configure outright. The pattern was removed; the remaining
+entries are all extension-based (`*.o`, `*.so`, `*.d`, ...), which carry no equivalent risk of
+colliding with a legitimately-tracked path in an arbitrary vendored project.
 
 ### `unit/Makefile`: a second renamed-copy, for a different reason
 
@@ -261,6 +305,44 @@ Validated on two differently-configured build trees (CPU with DAGMC+double-down,
 both `make -C unit -j16` and `cmake --build --target cardinal-unit -j16` build and link
 `cardinal-unit-<method>` correctly with no environment variables set beyond a plain shell, without
 re-running `Makefile.cardinal`, and `./unit/run_tests` passes all 9 unit tests every time.
+
+## Detecting edits made directly in the build tree
+
+`--update` (used by both `mirror_source` and `CardinalMirrorSubmodule.cmake`'s in-source submodule
+mirror) skips copying a file whenever the destination already looks newer than the source. That's
+also exactly what happens if a file is edited directly in the build tree instead of the real source
+tree: every later mirror run sees the edited copy as "destination newer" and leaves it alone
+permanently. The edit is never reflected back into the real, git-tracked source, is invisible to
+`git status`/`git diff`, and is lost the moment the build directory is deleted -- silently, with no
+warning from a plain `--update` rerun.
+
+`cardinal_detect_mirror_divergence()` (`cmake/CardinalDetectMirrorDivergence.cmake`), called right
+after both mirrors' real `rsync`, checks for this. Re-running the mirror as a full, checksum-based,
+`--update`-free dry run on every build would catch it, but at real cost: measured against the
+checked-out tree, ~0.86s for Cardinal's own source (~240MB/5,900 files) and ~2.75s for
+`contrib/moose` (~900MB/46,000 files) -- 4-7x the real mirror's own cost, paid on every build, to
+almost always find nothing.
+
+Instead, a stamp file (`DEST_DIR/.cardinal_mirror_stamp`) records when the mirror last confirmed a
+clean state. Only files actually touched in `DEST_DIR` since that stamp -- found via a `find
+-newer` stat walk, not a checksum pass, and pruned using the same exclude list the real mirror used
+-- reach the real, checksum-based comparison (`rsync --files-from`, restricted to just those
+candidates). Reduces the steady-state cost to ~0.13s/~0.68s respectively. Correctness doesn't
+depend on the prune list being exhaustive: it only decides what reaches the real content check,
+so under-pruning costs a few more cheap per-file comparisons, never a wrong result. The candidate
+scan additionally keeps only paths that exist at the same relative location under `SOURCE_DIR` --
+CMake's own build-time bookkeeping (`CMakeFiles/`, `Makefile.cardinal`, ...) has no such
+counterpart and would otherwise reach `rsync --files-from` as a path it can't find on the source
+side, which aborts that whole batch rather than just skipping the one unresolvable entry.
+
+A freshly-copied legitimate change (the real sync just updated `DEST_DIR` because `SOURCE_DIR`
+changed) shows up as a candidate the same way a stray edit would, but resolves silently: its
+content already matches `SOURCE_DIR` exactly, so the checksum comparison finds nothing to report.
+
+When a genuine divergence is found, the stamp deliberately isn't advanced: leaving it in place
+means the same file keeps reappearing as a candidate (and the warning keeps reappearing) on every
+later build until it's actually fixed, rather than firing once and going silent if missed in a
+long build log -- at no extra ongoing cost, since the candidate set stays small either way.
 
 ## Per-submodule three-tier resolution (`cardinal_add_submodule_dependency`)
 

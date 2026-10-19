@@ -2,36 +2,25 @@
 # ("already checked out in-source") path in cardinal_add_submodule_dependency.
 #
 # Mirrors an in-source submodule's working tree into the build tree via
-# rsync (mtime-based, --update, so only changed files are re-copied on each
-# build -- see that function for the full rationale), and separately
-# repairs the destination's own git metadata so any git command later run
-# from *inside* the mirrored copy (e.g. MOOSE's update_and_rebuild_*.sh
-# scripts run `git submodule update --init` on their own nested libmesh/
-# petsc/wasp submodules) operates correctly against the mirrored copy
-# itself, rather than failing or silently touching the original source.
+# rsync (mtime-based, --update), and separately repairs the destination's
+# own git metadata so a git command later run from *inside* the mirrored
+# copy (e.g. MOOSE's update_and_rebuild_*.sh scripts, which run `git
+# submodule update --init` on their own nested libmesh/petsc/wasp
+# submodules) operates on the mirror itself, not the original source.
 #
-# Why this needs its own handling rather than a plain rsync of the
-# directory (.git included): a submodule's .git is a *gitlink* file
-# (`gitdir: <relative path>`) pointing at the real git directory nested
-# under the superproject's own .git/modules/<path> -- copying that file
-# verbatim into the build tree either
-#   (a) points at a path that doesn't exist there at all (this file's own
-#       whole-repo mirror_source step in CMakeLists.txt deliberately
-#       excludes /.git), breaking anything that needs git -- confirmed:
-#       MOOSE's own submodule init for libmesh failed exactly this way
-#       when its mirrored copy's gitlink resolved to a nonexistent path; or
-#   (b) if repointed at the *original* gitdir's absolute path instead,
-#       would silently operate on the *original* source tree's working
-#       directory rather than the mirror -- that gitdir's own config sets
-#       core.worktree to a relative path back to the original checkout,
-#       which git honors regardless of where the gitlink pointing at it
-#       lives (confirmed directly by inspecting .git/modules/<path>/config
-#       for a real Cardinal checkout).
-#
-# Fix: copy the *real* git directory's contents into <dest>/.git (a real
-# directory, not a gitlink) and strip any core.worktree override from its
-# config, so the copy is a genuinely self-contained repository whose
-# worktree is itself.
+# A submodule's .git is a gitlink file pointing at the real git directory
+# nested under the superproject's own .git/modules/<path>. Copying that
+# file verbatim into the build tree is unsafe either way: the path it
+# points at doesn't exist in the mirror (mirror_source excludes /.git
+# from the whole-repo mirror), breaking anything that needs git; and if
+# instead repointed at the *original* gitdir's absolute path, that
+# gitdir's own config sets core.worktree back to the original checkout,
+# which git honors regardless of where the gitlink pointing at it lives
+# -- so git commands would silently operate on the original source tree,
+# not the mirror. Fixed by copying the real git directory's contents into
+# <dest>/.git (a real directory, not a gitlink) and stripping any
+# core.worktree override from its config, making the copy a genuinely
+# self-contained repository whose worktree is itself.
 #
 # Expected -D arguments: IN_SOURCE_DIR, DEST_DIR.
 cmake_minimum_required(VERSION 3.21)
@@ -42,16 +31,9 @@ endif()
 
 file(MAKE_DIRECTORY "${DEST_DIR}")
 
-# Exclude common compiler/linker/libtool byproducts (CARDINAL_BYPRODUCT_
-# EXCLUDES, shared with CardinalMirrorSource.cmake -- see that file for the
-# full rationale and the live-observed failure this guards against), in
-# addition to .git (handled separately below). Unlike mirror_source's own
-# /build and /install excludes in CMakeLists.txt, IN_SOURCE_DIR here is a
-# *third-party* dependency's own checkout (e.g. contrib/moose) -- if that
-# checkout has ever itself been built in place (NO_BUILD dependencies like
-# MOOSE compile in-place, with no separate build directory of their own to
-# exclude the way Cardinal's own top-level checkout has one), a plain
-# rsync mirrors those compiled artifacts right alongside the source.
+# CARDINAL_BYPRODUCT_EXCLUDES (shared with CardinalMirrorSource.cmake --
+# see that file) keeps a prior native, in-place build of this same
+# checkout from getting mirrored on top of a fresh one.
 include(${CMAKE_CURRENT_LIST_DIR}/CardinalByproductExcludes.cmake)
 
 execute_process(
@@ -92,26 +74,16 @@ if(_rc)
 endif()
 
 # Strip any core.worktree override -- see the file-level comment above.
-# `--file <path>` targets the config file directly rather than going
-# through git's normal repo/worktree discovery (`git -C ${DEST_DIR}
-# config ...`) -- discovery is exactly what's broken here (core.worktree
-# still points at the original checkout at this point), so it would fail
-# before ever reaching the --unset. `git config --unset` exits 5 (not 0)
-# when the key was never set, which isn't an error here -- e.g.
-# IN_SOURCE_DIR wasn't itself a submodule.
-#
-# Verified (and re-run) rather than blindly trusted: observed once, in a
-# real concurrent multi-target build (not reproduced running this same
-# script in isolation with the same arguments, so never root-caused), that
-# core.worktree survived a re-mirror despite this command apparently
-# running -- silently, since the old code swallowed every exit code
-# (ERROR_QUIET, no RESULT_VARIABLE at all) including a genuine transient
-# failure indistinguishable from "key was never set". Now checks the
-# actual result: code 5 is the documented, harmless "wasn't set" case;
-# anything else retries once (cheap insurance against exactly the kind of
-# one-off failure observed) and, only if that retry *also* doesn't leave
-# the config clean, surfaces a warning instead of continuing to fail
-# silently.
+# `--file <path>` targets the config file directly, rather than going
+# through git's normal repo/worktree discovery (which is exactly what's
+# broken here, since core.worktree still points at the original checkout
+# at this point). `git config --unset` exits 5 (not 0) when the key was
+# never set, which isn't an error here -- e.g. IN_SOURCE_DIR wasn't
+# itself a submodule. That exit code is checked explicitly, rather than
+# swallowed outright, so a genuine transient failure isn't
+# indistinguishable from the harmless "wasn't set" case; one retry is
+# cheap insurance against such a failure, and a warning (not a hard
+# error) surfaces if the config still isn't clean afterward.
 execute_process(
   COMMAND git config --file "${DEST_DIR}/.git/config" --unset core.worktree
   RESULT_VARIABLE _unset_rc)

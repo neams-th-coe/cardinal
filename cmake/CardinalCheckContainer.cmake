@@ -8,11 +8,20 @@ cmake_minimum_required(VERSION 3.21)
 # container happened to be running then -- and, like the recorded container
 # identity this compares against, are cached, sticky CMake variables that a
 # later reconfigure of the same build tree won't refresh. A build tree
-# reused under a swapped sandbox/.sif is exactly the case that produced
-# OpenMC's own confusing "non-existent path .../vtk-9.7" configure failure
-# during testing -- not a version-pin mismatch (see
-# CardinalCheckMooseVersion.cmake for that, separate, check), a stale
-# CMakeCache pointing at paths that belonged to a different container.
+# reused under a swapped sandbox/.sif can then build against a stale mix of
+# paths that belonged to a different container, often surfacing as a
+# confusing, unrelated-looking configure failure deep in a dependency's own
+# build rather than a clear container mismatch (see
+# doc/content/cmake_details.md, "Container checks", for a worked example).
+# This is a separate concern from CardinalCheckMooseVersion.cmake's
+# version-pin check: that compares contrib/moose's own pin against the
+# running container; this compares the running container against what this
+# *build tree* itself was configured under.
+#
+# MOOSE_APPTAINER_GENERATOR_NAME/_VERSION (compared below) are set by
+# released MOOSE apptainer images, not by CIVET or any Cardinal-specific
+# tooling; this check degrades to a silent no-op (empty-vs-empty) wherever
+# they're unset, e.g. outside any container.
 #
 # Invoked as its own standalone `cardinal-check-container` custom target
 # (CMakeLists.txt) -- a plain add_custom_target with no OUTPUT/BYPRODUCTS is
