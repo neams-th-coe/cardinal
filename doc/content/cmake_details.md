@@ -940,6 +940,14 @@ instead of reverting it: self-healing rather than a one-time patch.
 
 ## GPU/CUDA support
 
+### Option naming
+
+`ENABLE_CUDA`/`ENABLE_HIP`/`ENABLE_OPENCL`/`ENABLE_DPCPP`/`ENABLE_METAL` are named to match what
+they get forwarded as -- both NekRS's own `ENABLE_CUDA`/`HIP`/`OPENCL` and OCCA's own
+`OCCA_ENABLE_*` -- rather than Cardinal's Makefile `ENABLE_*` switches (`ENABLE_NEK`,
+`ENABLE_OPENMC`, ...) above them, which are a separate namespace: this superbuild's own top-level
+CMakeCache, not NekRS's nested one.
+
 ### `ENABLE_HYPRE_GPU`
 
 NekRS's own bundled HYPRE builds a CUDA/HIP device variant whenever `OCCA_CUDA_ENABLED`/

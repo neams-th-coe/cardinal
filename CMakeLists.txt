@@ -45,22 +45,16 @@ option(ENABLE_OPENMC      "Build Cardinal with OpenMC coupling"   ON)
 option(ENABLE_DAGMC       "Build OpenMC with DAGMC support"       OFF)
 option(ENABLE_DOUBLE_DOWN "Use Double-Down for DAGMC ray tracing" OFF)
 
-# NekRS's own OCCA device backends -- off by default (matching what the
-# container build effectively gets, since it has no GPU toolkits), but
-# exposed here (rather than hardcoded) so `ccmake` can turn them back on
-# for a GPU-enabled build. Named to match what they get forwarded as
-# (both NekRS's own ENABLE_CUDA/HIP/OPENCL and OCCA's OCCA_ENABLE_*,
-# below) rather than Cardinal's Makefile ENABLE_* switches above, which
-# are a separate namespace (this superbuild's own top-level CMakeCache,
-# not nekrs's nested one). ENABLE_CUDA/HIP/DPCPP (not OPENCL/METAL,
-# which Kokkos doesn't support) also pick PETSc's own GPU backend when
-# building PETSc from source -- see the --with-cuda/-hip/-sycl note near
-# CARDINAL_BUILD_PETSC below.
-option(ENABLE_CUDA   "Build NekRS/OCCA with CUDA support"       OFF)
-option(ENABLE_HIP    "Build NekRS/OCCA with HIP support"        OFF)
-option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
-option(ENABLE_DPCPP  "Build NekRS/OCCA with SYCL/DPCPP support" OFF)
-option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
+# NekRS's own OCCA device backends -- off by default, matching the
+# container build; exposed so `ccmake` can turn them on. CUDA/HIP/DPCPP
+# also pick PETSc's GPU backend if built from source (see
+# CARDINAL_BUILD_PETSC below). See doc/content/cmake_details.md for the
+# naming rationale.
+option(ENABLE_CUDA   "Build NekRS/OCCA and PETSc (if from source) with CUDA support" OFF)
+option(ENABLE_HIP    "Build NekRS/OCCA and PETSc (if from source) with HIP support" OFF)
+option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support" OFF)
+option(ENABLE_DPCPP  "Build NekRS/OCCA and PETSc (if from source) with SYCL/DPCPP support" OFF)
+option(ENABLE_METAL  "Build NekRS/OCCA with Metal support" OFF)
 
 # Only available for an Nvidia GPU (Makefile:59-68). Matches the Makefile's
 # own "forgot to set OCCA_CUDA_ENABLED for AMGX" fixup: force CUDA on too,
@@ -68,7 +62,7 @@ option(ENABLE_METAL  "Build NekRS/OCCA with Metal support"      OFF)
 option(ENABLE_AMGX "Build NekRS with AMGX support" OFF)
 if(ENABLE_AMGX AND NOT ENABLE_CUDA)
   message(STATUS "Cardinal: turning on CUDA backend because AMGX was requested")
-  set(ENABLE_CUDA ON CACHE BOOL "Build NekRS/OCCA with CUDA support" FORCE)
+  set(ENABLE_CUDA ON CACHE BOOL "Build NekRS/OCCA and PETSc (if from source) with CUDA support" FORCE)
 endif()
 
 # NekRS's own bundled HYPRE builds a CUDA/HIP device variant whenever
