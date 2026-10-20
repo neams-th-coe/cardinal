@@ -193,7 +193,7 @@ compiler paths and other settings (`PETSC_DIR`, `LIBMESH_DIR`, `HDF5_ROOT`, ...)
 once, at `cmake` configure time, from whichever container was running then, so continuing anyway
 is likely to build with settings that belong to a different container than the one actually
 running. If you hit this and want to switch containers, the fix is to start a fresh build
-directory, not to reconfigure this one -- see [cmake_details.md](cmake_details.md) for why.
+directory, not to reconfigure this one.
 
 #### Set Environment Variables
   id=env
@@ -216,7 +216,7 @@ directly and used for everything else too, for toolchain consistency -- `CC`/`CX
 environment don't come into it. Otherwise (building libMesh from source), the real MPI compilers are
 found automatically -- there's no need to set `CC`/`CXX`/`FC` yourself, and no need for the
 `export CC=mpicc`/`CXX=mpicxx`/`FC=mpif90` the Makefile workflow sometimes needs depending on which
-modules happen to be loaded. See [cmake_details.md](cmake_details.md) for the full story.
+modules happen to be loaded.
 
 #### GPU/OCCA Backend
   id=gpu
@@ -237,8 +237,6 @@ also present in Cardinal's native Makefile build against the same CUDA version, 
 this CMake build) -- if you hit this, configure with `-DENABLE_HYPRE_GPU=OFF` instead. HYPRE
 still runs correctly, just on the CPU, while everything else remains GPU-resident; this mirrors
 [the equivalent Frontier (HIP) workaround](hpc.md) already documented for the native build.
-See [cmake_details.md](cmake_details.md) for the full story, including validation on real GPU
-hardware.
 !alert-end!
 
 #### Build PETSc, libMesh, and WASP
@@ -297,8 +295,7 @@ outright: neither has a corresponding MOOSE method. Run `cmake -UCMAKE_BUILD_TYP
 `CMAKE_BUILD_TYPE` and hand control back to `METHOD`.
 
 Building with a changed `METHOD` environment variable without reconfiguring first is caught as
-an error (`cmake/CardinalCheckMethod.cmake`), rather than silently rebuilding the
-already-configured method. See [cmake_details.md](cmake_details.md) for the full mechanism.
+an error, rather than silently rebuilding the already-configured method.
 !alert-end!
 
 If you encounter issues while compiling, check out our [compile-time troubleshooting guide](compiletime.md)
@@ -368,8 +365,7 @@ The rendered site lands in `build/doc-site`, not inside your checkout's own `doc
 one target that reads directly from your checkout (`doc/content/*.md`, plus real git history,
 which MooseDocs' own SQA/requirement-traceability checks need to run against), but it writes
 nothing there: doxygen's own output, which the plain Makefile build always leaves inside the
-checkout itself (harmlessly -- it's `.gitignore`d), is redirected into `build/doc-site` too. See
-[cmake_details.md](cmake_details.md) for the full story.
+checkout itself (harmlessly -- it's `.gitignore`d), is redirected into `build/doc-site` too.
 
 ## Checking the Install
 
