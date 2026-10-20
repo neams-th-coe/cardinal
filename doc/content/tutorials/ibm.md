@@ -333,11 +333,11 @@ g++ -I${HOME}/vtk/install/include/vtk-9.3 -L${HOME}/vtk/install/lib -o delete_en
 cardinal-opt -i add_sidesets.i --mesh-only
 ```
 
-   For this tutorial, we have assigned the following sideset numbers: (1) inlet, (2) outlet, (3) four side-walls, and (4) surface of the cut elements that span the sphere surface. The inlet and outlet will be periodic, whereas surfaces 3 and 4 will be no-slip.
+   For this tutorial, we have assigned the following sideset numbers: (1) inlet, (2) outlet, (3) four side-walls, and (4) surface of the cut elements that span the sphere surface.
 
 4. Run `exo2nek` to convert the background mesh into NekRS's `.re2` format. In this example, we would enter
    `add_sidesets_in` as the name of our mesh when prompted. We will name the output mesh `cube` to create a
-   file named `cube.re2`. Note that the inlet boundary is 1 and the outlet boundary is 2, which are periodic. To install `exo2nek`, follow [these instructions](nek_tools.md).
+   file named `cube.re2`. To install `exo2nek`, follow [these instructions](nek_tools.md).
 
 ```
 exo2nek
