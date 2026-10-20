@@ -135,40 +135,21 @@ if(ENABLE_DAGMC AND NOT ENABLE_DOUBLE_DOWN)
 endif()
 
 # Reuse CMake's own standard CMAKE_BUILD_TYPE rather than inventing a
-# separate variable -- this superbuild's own project() has no compiled
-# languages (it only forwards this to the six pure-CMake dependency
-# sub-builds below: nekrs/moab/embree/doubledown/dagmc/openmc), but
-# CMAKE_BUILD_TYPE is still the conventional place for it.
+# separate variable -- forwarded to the six pure-CMake dependency
+# sub-builds below (nekrs/moab/embree/doubledown/dagmc/openmc).
 #
-# MOOSE/libMesh have their own, older build-type concept: METHOD (opt, dbg,
-# devel, prof, oprof -- see framework/build.mk and libmesh's own
-# m4/libmesh_method.m4). It picks which libMesh variant to link and which
-# framework/module/app libraries Cardinal's own Makefile.cardinal builds and
-# links (libmoose-$(METHOD).la etc). Native Cardinal builds control it with
-# a plain environment variable (`export METHOD=dbg; make`, per
-# without_conda.md) -- deliberately NOT a CMake cache variable here either,
-# so a build invoked exactly the native way (METHOD in the environment, no
-# -D anything) behaves identically under this superbuild. Every METHOD
-# except dbg is Release-family (Cardinal's own Makefile has no notion of a
-# "Debug devel/prof/oprof build"), so the two variables collapse onto the
-# same two-valued axis: METHOD=dbg matches CMAKE_BUILD_TYPE=Debug, every
-# other METHOD matches CMAKE_BUILD_TYPE=Release.
-#
-# Two distinct interfaces, matched to how each is actually invoked:
-#   - CMAKE_BUILD_TYPE explicitly set (-DCMAKE_BUILD_TYPE=... or ccmake):
-#     the CMake-native path -- becomes a normal cached, sticky config, exactly
-#     like any other CMake project. A conflicting METHOD in the environment
-#     on some later `cmake --build`/`make` is then an error rather than
-#     silently overriding the cache (see below) -- once you've told CMake
-#     Debug/Release explicitly, that's the standing config until you change
-#     it the same CMake way.
-#   - CMAKE_BUILD_TYPE left unset (the default -- empty, not "Release": the
-#     empty-vs-set state in the cache is exactly what this whole section
-#     keys off of, matching the LIBMESH_DIR/PETSC_DIR/WASP_DIR convention
-#     below): the METHOD environment variable controls instead, read fresh
-#     on every configure/build (never cached), exactly like the native
-#     Makefile's own `METHOD ?= opt` (framework/build.mk:28-31) -- unset
-#     METHOD too defaults to opt, same as native.
+# MOOSE/libMesh instead use their own, older METHOD concept (opt/dbg/devel/
+# prof/oprof -- framework/build.mk), set as a plain environment variable in
+# the native Makefile build; every METHOD but dbg is Release-family, so the
+# two collapse onto the same axis. Whichever interface is actually used
+# controls: CMAKE_BUILD_TYPE left unset (the default) means METHOD, read
+# fresh from the environment, controls (mirroring METHOD ?= opt);
+# CMAKE_BUILD_TYPE set explicitly (-D or ccmake) becomes a normal sticky
+# CMake setting, and a conflicting METHOD is then a configure-time error
+# instead of one silently overriding the other.
+# cmake/CardinalCheckMethod.cmake separately catches METHOD changing
+# without a reconfigure (it's otherwise frozen in at configure time). Full
+# mechanism: "CMAKE_BUILD_TYPE vs METHOD" in doc/content/cmake_details.md.
 set(CMAKE_BUILD_TYPE "" CACHE STRING "Build type forwarded to dependency CMake sub-builds (Release or Debug). Leave unset to let the METHOD environment variable control it instead, exactly as in the native Makefile build.")
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
 
