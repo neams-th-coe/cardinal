@@ -94,6 +94,9 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. Concretel
   [#petsc_libmesh]) instead of requiring a separate `update_and_rebuild_{petsc,libmesh,wasp}.sh`
   step; point at an existing install instead with `-DPETSC_DIR=...` etc (see [#env] below) to skip
   that.
+- If PETSc is built from source, its GPU backend (CUDA/HIP/SYCL, via Kokkos) is chosen explicitly
+  by `-DENABLE_CUDA`/`-DENABLE_HIP`/`-DENABLE_DPCPP` instead of being auto-detected from whatever
+  toolkit happens to be on the build host, as the native Makefile build does. See [#gpu] below.
 - Build options are CMake cache variables, not environment variables -- set with `-D<option>=<value>`
   at configure time, or interactively with `ccmake build`. See [#options].
 - +`CMAKE_INSTALL_PREFIX` is a real, standard CMake install prefix+ -- untouched by the ordinary
@@ -228,6 +231,12 @@ own options:
 ```
 cmake -S . -B build -DENABLE_CUDA=ON   # or -DENABLE_HIP=ON, -DENABLE_OPENCL=ON, ...
 ```
+
+If PETSc is built from source (no `-DPETSC_DIR=...` given), `-DENABLE_CUDA`/`-DENABLE_HIP`/
+`-DENABLE_DPCPP` also pick PETSc's own GPU backend, so NekRS and PETSc end up built consistently
+against the same toolkit instead of each auto-detecting on its own (`-DENABLE_OPENCL`/
+`-DENABLE_METAL` don't apply to PETSc, since it has no OpenCL/Metal backend). See [#petsc_libmesh]
+below.
 
 !alert! warning title=NekRS's bundled HYPRE and CUDA 13
 NekRS builds a GPU-resident variant of its bundled HYPRE (used for the multigrid coarse solve)

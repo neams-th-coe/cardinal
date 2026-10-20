@@ -863,12 +863,15 @@ building both.
   representative of every node the result will run on. Passed through as
   `--download-openblas-make-options=DYNAMIC_ARCH=0` (or `=1`), appended after
   `update_and_rebuild_petsc.sh`'s own hardcoded `DYNAMIC_ARCH=1` so it cleanly wins.
-- PETSc's own `--download-kokkos`/`--download-kokkos-kernels` (and NekRS's own OCCA backends)
-  auto-detect whatever CUDA/HIP/OpenCL/SYCL toolkit happens to be on the build host and silently
-  build GPU-enabled code regardless of what was asked for -- harmless in a container with none of
-  these toolkits, but not on a bare HPC host that does. Both are tied to the same
-  `ENABLE_CUDA`/`ENABLE_HIP`/`ENABLE_OPENCL`/`ENABLE_DPCPP`/`ENABLE_METAL` toggles (default `OFF`),
-  forwarded as `--with-cuda=0/1`/`--with-hip=0/1`/`--with-sycl=0/1`.
+- PETSc's own `--download-kokkos`/`--download-kokkos-kernels` (and, separately, NekRS's own OCCA
+  backends) auto-detect whatever CUDA/HIP/SYCL toolkit happens to be on the build host and
+  silently build GPU-enabled code regardless of what was asked for -- harmless in a container with
+  none of these toolkits, but not on a bare HPC host that does. The native Makefile build has no
+  control over this at all (`scripts/configure_petsc.sh` never passes `--with-cuda`/`-hip`/`-sycl`
+  either way); this superbuild adds one, tying PETSc's choice to the same `ENABLE_CUDA`/
+  `ENABLE_HIP`/`ENABLE_DPCPP` toggles used for NekRS/OCCA (default `OFF`), forwarded as
+  `--with-cuda=0/1`/`--with-hip=0/1`/`--with-sycl=0/1`. `ENABLE_OPENCL`/`ENABLE_METAL` don't apply
+  here -- PETSc's Kokkos has no OpenCL/Metal backend -- so they only ever affect NekRS/OCCA.
 
 ## Phase 2: DAGMC/MOAB/Embree/double-down
 

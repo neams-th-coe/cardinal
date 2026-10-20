@@ -52,7 +52,10 @@ option(ENABLE_DOUBLE_DOWN "Use Double-Down for DAGMC ray tracing" OFF)
 # (both NekRS's own ENABLE_CUDA/HIP/OPENCL and OCCA's OCCA_ENABLE_*,
 # below) rather than Cardinal's Makefile ENABLE_* switches above, which
 # are a separate namespace (this superbuild's own top-level CMakeCache,
-# not nekrs's nested one).
+# not nekrs's nested one). ENABLE_CUDA/HIP/DPCPP (not OPENCL/METAL,
+# which Kokkos doesn't support) also pick PETSc's own GPU backend when
+# building PETSc from source -- see the --with-cuda/-hip/-sycl note near
+# CARDINAL_BUILD_PETSC below.
 option(ENABLE_CUDA   "Build NekRS/OCCA with CUDA support"       OFF)
 option(ENABLE_HIP    "Build NekRS/OCCA with HIP support"        OFF)
 option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support"     OFF)
