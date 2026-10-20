@@ -56,8 +56,7 @@ that follow.
 !alert! tip title=How do I know if I have these dependencies?
 Most systems will already have these available.
 To figure out if you have these dependencies, check out
-[our prerequisite guide](prereqs.md). You will additionally need CMake 3.21 or newer
-(`cmake --version`).
+[our prerequisite guide](prereqs.md).
 !alert-end!
 
 ## How This Differs from the Makefile Build
@@ -68,7 +67,7 @@ rules) is unchanged and still does the real work. This CMake project is a
 *superbuild*: a separate, out-of-source `CMakeLists.txt` at the top level of the repository whose
 only job is to resolve and build the dependencies that have their own CMake sub-build (NekRS,
 OpenMC, and -- for [!ac](DAGMC) support -- MOAB, Embree, and Double-Down), then hand off to
-Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few things follow from that:
+Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. Concretely, this changes:
 
 - +The build directory *is* the equivalent of a normal Cardinal checkout.+ Running
   `cmake -S . -B build` mirrors your whole source tree into `build/` (excluding the dependencies
@@ -77,32 +76,26 @@ Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. A few thi
   Makefile build: `build/cardinal-opt`, `build/lib/`, `build/contrib/`, etc, all directly under
   `build/` -- not nested inside an extra `cardinal/` subdirectory. Because of this, you should treat
   `build/` as a real (if regeneratable) Cardinal checkout, e.g. `NEKRS_HOME` below points *into*
-  it, and `cardinal-opt` needs to be run from there.
-- +No submodules to manage, ever.+ There's no `./scripts/get-dependencies.sh` to run, no
-  `git submodule update --init`, and no need for a `--recurse-submodules` clone -- configuring
-  resolves MOOSE/NekRS/OpenMC/MOAB/Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` automatically. If
-  you happen to already have a submodule checked out under `contrib/`, it's used (mirrored into
-  `build/` on every build); otherwise it's cloned directly into the build tree at the exact pinned
-  commit from `.gitmodules`. Either way, your own source checkout's `contrib/` is never modified,
-  and a bare `git clone` with no submodules initialized at all builds just fine.
-- +The build directory doesn't have to be named `build`, or even live inside your checkout.+
-  `cmake -S /path/to/cardinal -B /tmp/cardinal_build` works just as well, and putting it on fast
-  local scratch (`/tmp`, or another non-networked filesystem) instead of a networked home directory
-  can noticeably speed up the build. If you do keep it in-tree under a name other than `build`,
-  though, make sure `.gitignore` actually covers it: as above, resolving dependencies clones real
-  git checkouts (each with their own `.git`) directly into the build tree, and `git status`/
-  `git add` from the checkout root will treat any such directory *not* covered by `.gitignore` as
-  an [embedded git repository](https://git-scm.com/book/en/v2/Git-Tools-Submodules) -- shown as one
-  opaque untracked entry, and, if ever `git add`-ed, staged as a bare commit-hash pointer rather
-  than its actual files, silently losing track of everything in it.
-- +PETSc/libMesh/WASP are built from source automatically if you don't already have them.+
-  Unlike the Makefile workflow, there's no separate `update_and_rebuild_{petsc,libmesh,wasp}.sh`
-  step to run yourself -- `cmake --build build` does it as part of the same build, using those
-  same scripts under the hood. If you already have any of them built (e.g. a system/module-provided
-  PETSc), point at it instead with `-DPETSC_DIR=...` etc (see [#env] below) and that one is skipped.
-- +Options are CMake cache variables, not environment variables+ -- set with `-D<option>=<value>`
-  at configure time, or interactively with `ccmake build` (toggle values, `c` to configure, `g` to
-  generate, then `cmake --build build`). See [#options].
+  it, and `cardinal-opt` needs to be run from there. Unlike the Makefile build, this directory does
+  not have to be named `build` or live inside your checkout at all --
+  `cmake -S /path/to/cardinal -B /tmp/cardinal_build` works just as well. If you do keep it in-tree
+  under a different name, make sure `.gitignore` actually covers it: resolving dependencies clones
+  real git checkouts (each with their own `.git`) directly into the build tree, and
+  `git status`/`git add` from the checkout root will treat an uncovered build tree as an
+  [embedded git repository](https://git-scm.com/book/en/v2/Git-Tools-Submodules) -- staged, if
+  ever `git add`-ed, as a bare commit-hash pointer rather than its actual files, silently losing
+  track of everything in it.
+- Submodules are resolved at configure time instead of via `./scripts/get-dependencies.sh`/
+  `git submodule update --init`: a submodule already checked out under `contrib/` is mirrored into
+  `build/` on every build, otherwise it's cloned directly into the build tree at the pinned commit
+  from `.gitmodules`. Either way, your own checkout's `contrib/` is never modified, and a bare
+  `git clone` with no submodules initialized builds just fine.
+- PETSc, libMesh, and WASP are built from source as part of `cmake --build build` (see
+  [#petsc_libmesh]) instead of requiring a separate `update_and_rebuild_{petsc,libmesh,wasp}.sh`
+  step; point at an existing install instead with `-DPETSC_DIR=...` etc (see [#env] below) to skip
+  that.
+- Build options are CMake cache variables, not environment variables -- set with `-D<option>=<value>`
+  at configure time, or interactively with `ccmake build`. See [#options].
 - +`CMAKE_INSTALL_PREFIX` is a real, standard CMake install prefix+ -- untouched by the ordinary
   build (`cmake --build build`), exactly like any other CMake project. Nothing lands there until
   you explicitly ask, with `cmake --build build --target install`; see [#running] below.
