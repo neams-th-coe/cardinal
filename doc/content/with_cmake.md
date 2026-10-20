@@ -296,11 +296,9 @@ configure-time error rather than one silently winning. `RelWithDebInfo`/`MinSize
 outright: neither has a corresponding MOOSE method. Run `cmake -UCMAKE_BUILD_TYPE build` to uncache
 `CMAKE_BUILD_TYPE` and hand control back to `METHOD`.
 
-`METHOD` itself is read fresh at `cmake` +configure+ time only, never at `cmake --build`/`make`
-time -- changing it and running `cmake --build` again without a fresh `cmake` reconfigure first
-does not change what gets built. `cmake/CardinalCheckMethod.cmake` catches exactly that case at
-build time and errors out, rather than silently rebuilding the already-configured method. See
-[cmake_details.md](cmake_details.md) for the full mechanism.
+Building with a changed `METHOD` environment variable without reconfiguring first is caught as
+an error (`cmake/CardinalCheckMethod.cmake`), rather than silently rebuilding the
+already-configured method. See [cmake_details.md](cmake_details.md) for the full mechanism.
 !alert-end!
 
 If you encounter issues while compiling, check out our [compile-time troubleshooting guide](compiletime.md)
