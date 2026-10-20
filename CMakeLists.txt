@@ -73,14 +73,9 @@ endif()
 # `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`),
 # defaulting ON regardless of caller. This can fail to build against a
 # given GPU toolchain independent of anything Cardinal or this superbuild
-# controls -- e.g. bundled HYPRE 2.32.0's CUDA device code doesn't build
-# against CUDA >=13.3 (CCCL >=3.3 stopped transitively including
-# thrust/tuple.h, fixed upstream in hypre-space/hypre#1547, well after
-# 2.32.0 -- see doc/content/cmake_details.md), and Cardinal's own
-# doc/content/hpc.md documents needing this off on Frontier (HIP) too,
-# historically by hand-editing config/nekrs.mk's CMake flags. Expose it
-# here instead so a superbuild user hitting the same class of problem can
-# just pass -DENABLE_HYPRE_GPU=OFF at configure time.
+# controls, so expose it as its own option rather than hand-editing
+# config/nekrs.mk's CMake flags -- see doc/content/cmake_details.md for
+# known cases.
 option(ENABLE_HYPRE_GPU "Build NekRS's bundled HYPRE with GPU (CUDA/HIP) device support" ON)
 
 # Nek5000's own mesh/conversion tools (genbox, genmap, ...), documented at
