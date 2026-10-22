@@ -46,8 +46,12 @@ additional body force is added to the momentum equation in order for the fluid t
 The mass and momentum equations for an incompressible fluid with constant viscosity is
 
 \begin{equation}
+\nabla\cdot\vec{V}=0
+\end{equation}
+
+\begin{equation}
 \label{eq:mom}
-\nabla\cdot\vec{V}=0,\hspace{1cm}\rho\left(\frac{\partial \vec{V}}{\partial t}+\vec{V}\cdot\nabla\vec{V}\right)=-\nabla P+\mu\nabla^2\vec{V}+\rho \vec{f}+\rho\vec{f}\ '
+\rho\left(\frac{\partial \vec{V}}{\partial t}+\vec{V}\cdot\nabla\vec{V}\right)=-\nabla P+\mu\nabla^2\vec{V}+\rho \vec{f}+\rho\vec{f}\ '
 \end{equation}
 
 where $\vec{V}$ is the velocity, $P$ is the pressure, $\mu$ is the viscosity, and $\rho$ is the density. The body forces are distinguished between the term added for the IBM methodology ($\vec{f}'$) and other possible body forces ($\vec{f}$) present depending on the problem (such as a Boussinesq term for buoyancy or a Lorentz force term for magnetohydrodynamics).
@@ -70,7 +74,7 @@ Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) di
 
 \begin{equation}
 \label{eq:f}
-\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\lbrack\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\rbrack dt'+\beta \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\gamma\frac{\pl \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack}{\pl t}+\\
+\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\lbrack\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\rbrack dt'+\beta \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\gamma\frac{\partial \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack}{\partial t}+\\
 &\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
 \end{equation}
 
@@ -265,7 +269,7 @@ shows a summary of several stages of the geometry preparation which will be desc
 !media ibm_geometry.png
   id=ibm_geometry
   caption=STL mesh (left) and VTK re-triangulation (middle) which is ultimately used in the NekRS IBM simulation to define the Lagrangian points. The right image shows the background Eulerian mesh after the elements fully inside the solid have been deleted.
-  style=width:60%;margin-left:auto;margin-right:auto
+  style=width:90%;margin-left:auto;margin-right:auto
 
 
 1. Generate an STL file corresponding to the immersed surface. This format represents the
@@ -407,5 +411,5 @@ overlapping meshes.
 !media ibm_velocity.png
   id=ibm_velocity
   caption=Velocity, pressure, and temperature computed by NekRS's IBM solver.
-  style=width:80%;margin-left:auto;margin-right:auto
+  style=width:90%;margin-left:auto;margin-right:auto
 
