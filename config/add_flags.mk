@@ -8,7 +8,15 @@ ifeq ($(ENABLE_OPENMC), yes)
   libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
 endif
 
+ifeq ($(ENABLE_XDG), yes)
+	libmesh_CXXFLAGS    += -DENABLE_XDG -DXDG_EMBREE4 -DXDG_ENABLE_LIBMESH
+
+	# this flag is used in OpenMC
+	libmesh_CXXFLAGS    += -DOPENMC_XDG_ENABLED
+endif
+
 ifeq ($(ENABLE_DAGMC), yes)
+  ADDITIONAL_CPPFLAGS += $(DAGMC_INCLUDES)
   libmesh_CXXFLAGS    += -DENABLE_DAGMC
 
   # this flag is used in OpenMC
