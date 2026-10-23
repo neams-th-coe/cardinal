@@ -74,8 +74,8 @@ Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) di
 
 \begin{equation}
 \label{eq:f}
-\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\lbrack\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\rbrack dt'+\beta \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\gamma\frac{\partial \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack}{\partial t}+\\
-&\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
+\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\{\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\} dt'+\beta \left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}+\gamma\frac{\partial \left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}{\partial t}+\\
+&\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}+\ \cdots
 \end{equation}
 
 where $\vec{V}(\vec{x}_L,t)$ is the Eulerian velocity field, evaluated at a Lagrangian point. $\vec{V}_L$ is the desired Lagrangian surface velocity at the point $\vec{x}_L$. In general, the Eulerian velocity and the Lagrangian velocity will differ at the points on the immersed surface, unless the immersed boundary technique has perfectly enforced the no-slip boundary condition. Hence, the force terms are proportional to $\vec{V}_L-\vec{V}(\vec{x}_L)$ such that any discrepancy generates a force that aims to drive the velocities to match. In the case of a stationary boundary, $\vec{V}_L=0$, otherwise the boundary nodes $\vec{x}_s$ themselves must move. The coefficients $\alpha$, $\beta$, $\gamma$, and $\zeta$ are negative. The first two terms (in absence of the other non-immersed-boundary force terms in [eq:mom]) reduce the Navier-Stokes equations to a damped harmonic oscillator [!cite](goldstein). Additional terms involving spatial integrals and derivatives have also been posited [!cite](goldstein), which are indicated above as $\cdots$.
@@ -139,7 +139,7 @@ option is to simply retain the same continuous forcing term as in [eq:f] [!cite]
 Alternatively, these internal points could be applied zero force altogether, with the flow allowed to freely develop [!cite](fadlun). A different approach is to apply the same spreading operator as used exterior to the body, but applied inwards to mirror the force on the interior as seen in the fluid [!cite](hegazy_thesis). Sometimes various force techniques are combined with an increase in the fluid viscosity to discourage internal flows [!cite](hegazy_thesis) (this is effectively the outcome in the hybrid porous-immersed techniques wherein $\epsilon=0$ results in infinite resistance [!cite](wongkham), though the latter is done automatically as opposed to an additional modification to the fluid's properties).
 Treatments may manipulate the velocity in other ways, such as by applying a reversed flow (with respect to the fluid domain) so as to minimize energy in the highest wavenumbers for stability purposes [!cite](goldstein). For [!ac](RANS) models, modified forms of the additional transport equations are typically employed at grid points in the solid [!cite](cervone).
 
-Many applications of IBMs apply these considerations to {\it all} [!ac](DOFs) interior to the solid body, which can add unnecessary expense when the solid comprises a large portion of the overall volume [!cite](fadlun). One solution is to remove elements fully interior to the body as a pre-processing step, leaving only fluid and interface elements in the solve [!cite](hegazy_thesis). This is shown in the third image in [ibm_geometry], where elements interior to the sphere have been deleted. This has the added benefit of enhancing mass conservation, by eliminating some possible internal flows that draw mass from the fluid.
+Many applications of IBMs apply these considerations to *all* [!ac](DOFs) interior to the solid body, which can add unnecessary expense when the solid comprises a large portion of the overall volume [!cite](fadlun). One solution is to remove elements fully interior to the body as a pre-processing step, leaving only fluid and interface elements in the solve [!cite](hegazy_thesis). This is shown in the third image in [ibm_geometry], where elements interior to the sphere have been deleted. This has the added benefit of enhancing mass conservation, by eliminating some possible internal flows that draw mass from the fluid.
 
 ### Heat Flux Boundary Conditions
 
@@ -175,7 +175,7 @@ the desired temperature gradient, $(\nabla T)_L(t)$. Therefore, a heat source is
 defined in terms of the mismatch in the heat flux, $\delta Q_L$, at the Lagrangian point,
 
 \begin{equation}
-\delta Q_L(\vec{x}_L, t)=2\left\lbrack Q_L(t)-\left(-k\nabla T(\vec{x}_L,t)\right)\right\rbrack
+\delta Q_L(\vec{x}_L, t)=2\left\{ Q_L(t)-\left(-k\nabla T(\vec{x}_L,t)\right)\right\}
 \end{equation}
 
 where $Q_L(t)$ is the desired heat flux on the surface. Once this heat flux mismatch
@@ -198,7 +198,7 @@ setup in NekRS, see [this page](nondimensional_ns.md).
 | Sphere diameter | 2.0 |
 | Sphere center position | $(0, 0, 0)$ |
 | Domain vertical extent | $-10\leq z\leq 30$ |
-| Domain width | $ 8 \times 8$ |
+| Domain width | $8 \times 8$ |
 | Reynolds number (based on radius) | 50 |
 | Surface heat flux | 1.0 |
 
