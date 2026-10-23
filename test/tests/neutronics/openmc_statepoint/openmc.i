@@ -14,13 +14,3 @@
   type = Transient
   num_steps = 1
 []
-
-[Postprocessors]
-  [k]
-    type = KEigenvalue
-  []
-[]
-
-[Outputs]
-  csv = true
-[]
