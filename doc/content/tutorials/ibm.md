@@ -73,9 +73,11 @@ In this section, the issue of the point forces not coinciding with Eulerian [!ac
 Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) discrete methods. Continuous methods formulate the additional force prior to discretization, as shown in [eq:mom] and differ in their selection of the structure of the body force $\vec{f}\ '$. One general formulation, when the desired surface velocity and surface position are known, can be written as
 
 \begin{equation}
+\begin{aligned}
 \label{eq:f}
-\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\{\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\} dt'+\beta \left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}+\gamma\frac{\partial \left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}{\partial t}+\\
-&\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\{\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\}+\ \cdots
+\vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\lbrack\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\rbrack dt'+\beta \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\gamma\frac{\partial \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack}{\partial t}+\\
+&\ \zeta \norm{\vec{V}(\vec{x}_L,t)-\vec{V}_L}\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
+\end{aligned}
 \end{equation}
 
 where $\vec{V}(\vec{x}_L,t)$ is the Eulerian velocity field, evaluated at a Lagrangian point. $\vec{V}_L$ is the desired Lagrangian surface velocity at the point $\vec{x}_L$. In general, the Eulerian velocity and the Lagrangian velocity will differ at the points on the immersed surface, unless the immersed boundary technique has perfectly enforced the no-slip boundary condition. Hence, the force terms are proportional to $\vec{V}_L-\vec{V}(\vec{x}_L)$ such that any discrepancy generates a force that aims to drive the velocities to match. In the case of a stationary boundary, $\vec{V}_L=0$, otherwise the boundary nodes $\vec{x}_s$ themselves must move. The coefficients $\alpha$, $\beta$, $\gamma$, and $\zeta$ are negative. The first two terms (in absence of the other non-immersed-boundary force terms in [eq:mom]) reduce the Navier-Stokes equations to a damped harmonic oscillator [!cite](goldstein). Additional terms involving spatial integrals and derivatives have also been posited [!cite](goldstein), which are indicated above as $\cdots$.
