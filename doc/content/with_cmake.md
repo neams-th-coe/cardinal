@@ -1,0 +1,381 @@
+# Building Cardinal with CMake
+
+!alert! note title=Alternative Build System
+This CMake-based build is an alternative to Cardinal's normal Makefile-based
+build, described in [the instructions for building without MOOSE's conda environment](without_conda.md)
+(and, for the OpenMC-only conda workflow, [with_conda.md](with_conda.md)). It has +not+
+replaced either of those as Cardinal's primary, best-supported build system, and it does +not+
+replace or depend on MOOSE's own (separately in-progress) CMake port. If you run into trouble here,
+or just want the most battle-tested path, please use [without_conda.md](without_conda.md) instead.
+See [cmake_details.md](cmake_details.md) for the design and implementation notes behind this build.
+
+This build works both with and without MOOSE's conda environment -- see the tldr below for both.
+!alert-end!
+
+!alert! note title=tldr
+
+On *CPU systems*, without MOOSE's conda environment, all that you need to compile Cardinal is:
+
+```
+cd $HOME
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
+cmake -S . -B build
+cmake --build build -j8
+export NEKRS_HOME=$HOME/cardinal/build/install
+```
+
+With MOOSE's conda environment, since [conda is currently incompatible with NekRS](with_conda.md)
+(the same restriction applies here, not just to the Makefile build):
+
+```
+conda activate moose
+cd $HOME
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
+export HDF5_ROOT=$CONDA_PREFIX
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+cmake -S . -B build -DENABLE_NEK=OFF
+cmake --build build -j8
+```
+
+If either of the above produces a `build/cardinal-opt` executable, you can
+jump straight to [#running]. If you are on a GPU system, want to customize the
+build, or were not successful with the above, please consult the detailed instructions
+that follow.
+!alert-end!
+
+## Access
+
+!include access.md
+
+## Prerequisites
+
+!include cardinal_prereqs.md
+
+!alert! tip title=How do I know if I have these dependencies?
+Most systems will already have these available.
+To figure out if you have these dependencies, check out
+[our prerequisite guide](prereqs.md).
+!alert-end!
+
+## How This Differs from the Makefile Build
+  id=overview
+
+Cardinal's own compile (`framework/build.mk`, `app.mk`, etc, and its `config/*.mk` dependency
+rules) is unchanged and still does the real work. This CMake project is a
+*superbuild*: a separate, out-of-source `CMakeLists.txt` at the top level of the repository whose
+only job is to resolve and build the dependencies that have their own CMake sub-build (NekRS,
+OpenMC, and -- for [!ac](DAGMC) support -- MOAB, Embree, and Double-Down), then hand off to
+Cardinal's existing, unmodified `Makefile` to compile Cardinal itself. Concretely, this changes:
+
+- +The build directory *is* the equivalent of a normal Cardinal checkout.+ Running
+  `cmake -S . -B build` mirrors your whole source tree into `build/` (excluding the dependencies
+  managed below), lays out each dependency exactly where the Makefile already expects it, and then
+  `cmake --build build` invokes `make` there for you. The result looks just like an in-place
+  Makefile build: `build/cardinal-opt`, `build/lib/`, `build/contrib/`, etc, all directly under
+  `build/` -- not nested inside an extra `cardinal/` subdirectory. Because of this, you should treat
+  `build/` as a real (if regeneratable) Cardinal checkout, e.g. `NEKRS_HOME` below points *into*
+  it, and `cardinal-opt` needs to be run from there. Unlike the Makefile build, this directory does
+  not have to be named `build` or live inside your checkout at all --
+  `cmake -S /path/to/cardinal -B /tmp/cardinal_build` works just as well. If you do keep it in-tree
+  under a different name, make sure `.gitignore` actually covers it: resolving dependencies clones
+  real git checkouts (each with their own `.git`) directly into the build tree, and
+  `git status`/`git add` from the checkout root will treat an uncovered build tree as an
+  [embedded git repository](https://git-scm.com/book/en/v2/Git-Tools-Submodules) -- staged, if
+  ever `git add`-ed, as a bare commit-hash pointer rather than its actual files, silently losing
+  track of everything in it.
+- Submodules are resolved at configure time instead of via `./scripts/get-dependencies.sh`/
+  `git submodule update --init`: a submodule already checked out under `contrib/` is mirrored into
+  `build/` on every build, otherwise it's cloned directly into the build tree at the pinned commit
+  from `.gitmodules`. Either way, your own checkout's `contrib/` is never modified, and a bare
+  `git clone` with no submodules initialized builds just fine.
+- PETSc, libMesh, and WASP are built from source as part of `cmake --build build` (see
+  [#petsc_libmesh]) instead of requiring a separate `update_and_rebuild_{petsc,libmesh,wasp}.sh`
+  step; point at an existing install instead with `-DPETSC_DIR=...` etc (see [#env] below) to skip
+  that.
+- If PETSc is built from source, its GPU backend (CUDA/HIP/SYCL, via Kokkos) is chosen explicitly
+  by `-DENABLE_CUDA`/`-DENABLE_HIP`/`-DENABLE_DPCPP` instead of being auto-detected from whatever
+  toolkit happens to be on the build host, as the native Makefile build does. See [#gpu] below.
+- Build options are CMake cache variables, not environment variables -- set with `-D<option>=<value>`
+  at configure time, or interactively with `ccmake build`. See [#options].
+- +`CMAKE_INSTALL_PREFIX` is a real, standard CMake install prefix+ -- untouched by the ordinary
+  build (`cmake --build build`), exactly like any other CMake project. Nothing lands there until
+  you explicitly ask, with `cmake --build build --target install`; see [#running] below.
+
+## Configuration Options
+  id=options
+
+Decide whether you want NekRS, OpenMC, both (the default), or neither:
+
+```
+cmake -S . -B build -DENABLE_NEK=OFF     # skip the NekRS-part of Cardinal
+cmake -S . -B build -DENABLE_OPENMC=OFF  # skip the OpenMC-part of Cardinal
+```
+
+We support the optional usage of [DAGMC](https://svalinn.github.io/DAGMC/)'s CAD-based models in
+OpenMC. This capability is off by default, but to build with [!ac](DAGMC) support, set:
+
+```
+cmake -S . -B build -DENABLE_DAGMC=ON
+```
+
+!alert! note title=Performance Improvement with Double-Down
+If you chose to enable DAGMC, we also provide support for [Double-Down](https://double-down.readthedocs.io/en/latest/) -
+a mixed-precision interface to the ray-tracing library [Embree](https://www.embree.org/). Double-down support is disabled by
+default, but we *strongly* recommend enabling it - you can expect to see around 100x speedup when using Double-Down
+on mesh-based geometries.
+
+If you do want to use DAGMC with Embree, set:
+
+```
+cmake -S . -B build -DENABLE_DAGMC=ON -DENABLE_DOUBLE_DOWN=ON
+```
+
+Embree itself needs no separate configuration or build step here -- enabling Double-Down pulls it
+in and builds it automatically, the same way as every other dependency in [#overview].
+!alert-end!
+
+!alert! note title=Building PETSc's OpenBLAS for a single microarchitecture
+If PETSc is built from source (no `-DPETSC_DIR=...` given), its bundled OpenBLAS is built for the
+build host's own CPU only (`-DOPENBLAS_DYNAMIC_ARCH=OFF`, the default here) rather than for every
+x86 microarchitecture it knows about -- +the opposite of+ `update_and_rebuild_petsc.sh`'s own
+default (`DYNAMIC_ARCH=1`) in the Makefile workflow. This is faster to build, but only safe if the
+build host's CPU is representative of every node the result will actually run on (e.g. a single
+workstation, or a container/allocation where the build and run hosts are the same machine). If
+that's not the case for you -- a cluster with a mixed-CPU node pool, say -- configure with
+`-DOPENBLAS_DYNAMIC_ARCH=ON` instead.
+!alert-end!
+
+Any of these can also be toggled interactively:
+
+```
+ccmake build
+```
+
+[Nek5000's own mesh tools](https://nek5000.github.io/NekDoc/tools.html) -- `exo2nek` and
+`gmsh2nek` by default, the two actually used in Cardinal's own tutorials and
+[nek_tools.md](nek_tools.md) -- are also built by default (`cmake --build build`), landing in
+`build/install/bin`. Building these two specifically needs network access, `wget`, and `openssl`
+(each separately fetches a third-party source tarball during its own build). Unlike every other
+dependency here, there's no pinned version to track -- it's always whatever the latest
+[Nek5000](https://github.com/Nek5000/Nek5000) is at the time you first configure/build (delete
+`build/` to pick up a newer one), fetched fresh unless you already have your own checkout at
+`contrib/Nek5000` (mirrored in instead, same as any other dependency here). Configure with
+`-DENABLE_NEK5000_TOOLS=OFF` to skip them, or `-DNEK5000_TOOLS_LIST="..."` to build a different
+set instead -- `"core"` (`genmap`, `genbox`, `n2to3`, `reatore2`, `nekmerge`; no network access
+needed), `"all"`, or a specific space-separated list of tool names -- and
+`-DNEK5000_TOOLS_MAXNEL=<n>` to raise the default element-count limit those tools are compiled
+with. This target is entirely independent of the rest of the build -- it doesn't need MOOSE,
+PETSc, libMesh, or Cardinal itself, so `cmake --build build --target nek5000-tools` works right
+after configuring, with nothing else built first.
+
+## Building
+  id=build
+
+#### Container checks
+  id=container_checks
+
+Every build (not just the first) automatically checks, before doing anything else, that:
+
+- the container you're building in right now is the same one you configured this build tree
+  under -- catches a swapped/rebuilt sandbox, or a build tree reused under a different container
+  entirely; and
+- that container matches what the checked-out `contrib/moose` commit's own version pin expects
+  (the same check MOOSE's native build does, and normally warns about, in `scripts/premake.py`).
+
+Both fail the build by default. If you need to downgrade either to a warning instead:
+
+```
+cmake -S . -B build -DCONTAINER_DRIFT_CHECK_FATAL=OFF    # container swapped since configure
+cmake -S . -B build -DCONTAINER_VERSION_CHECK_FATAL=OFF  # container doesn't match MOOSE's pin
+```
+
+Ignoring a stale MOOSE version pin is usually fine -- but ignoring a swapped container is not:
+compiler paths and other settings (`PETSC_DIR`, `LIBMESH_DIR`, `HDF5_ROOT`, ...) are all resolved
+once, at `cmake` configure time, from whichever container was running then, so continuing anyway
+is likely to build with settings that belong to a different container than the one actually
+running. If you hit this and want to switch containers, the fix is to start a fresh build
+directory, not to reconfigure this one.
+
+#### Set Environment Variables
+  id=env
+
+Two environment variables are relevant when *running* Cardinal built this way (the build itself
+does not need them set -- see [#overview] above). Put these in your `~/.bashrc`:
+
+``` language=bash
+# [REQUIRED] location of the NekRS install produced by the build -- note this is
+# *inside* the CMake build directory, not the top-level repository checkout.
+export NEKRS_HOME=$HOME/cardinal/build/install
+
+# [OPTIONAL] if running with OpenMC, you will need cross section data at runtime;
+# you will need to set this variable to point to a 'cross_sections.xml' file.
+export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+```
+
+If libMesh is pre-built (`LIBMESH_DIR` given), the compilers used to build it are read back from it
+directly and used for everything else too, for toolchain consistency -- `CC`/`CXX`/`FC` in the
+environment don't come into it. Otherwise (building libMesh from source), the real MPI compilers are
+found automatically -- there's no need to set `CC`/`CXX`/`FC` yourself, and no need for the
+`export CC=mpicc`/`CXX=mpicxx`/`FC=mpif90` the Makefile workflow sometimes needs depending on which
+modules happen to be loaded.
+
+#### GPU/OCCA Backend
+  id=gpu
+
+NekRS's device backends (CUDA, HIP, OpenCL, SYCL/DPCPP, Metal) are all off by default -- matching
+what a container build with no GPU toolkits installed would produce -- and are enabled with their
+own options:
+
+```
+cmake -S . -B build -DENABLE_CUDA=ON   # or -DENABLE_HIP=ON, -DENABLE_OPENCL=ON, ...
+```
+
+If PETSc is built from source (no `-DPETSC_DIR=...` given), `-DENABLE_CUDA`/`-DENABLE_HIP`/
+`-DENABLE_DPCPP` also pick PETSc's own GPU backend, so NekRS and PETSc end up built consistently
+against the same toolkit instead of each auto-detecting on its own (`-DENABLE_OPENCL`/
+`-DENABLE_METAL` don't apply to PETSc, since it has no OpenCL/Metal backend). See [#petsc_libmesh]
+below.
+
+!alert! warning title=NekRS's bundled HYPRE and CUDA 13
+NekRS builds a GPU-resident variant of its bundled HYPRE (used for the multigrid coarse solve)
+whenever a device backend is enabled, controlled by `ENABLE_HYPRE_GPU` (default `ON`). The
+vendored HYPRE version does not build against CUDA &ge;13.3 (a real upstream incompatibility,
+also present in Cardinal's native Makefile build against the same CUDA version, unrelated to
+this CMake build) -- if you hit this, configure with `-DENABLE_HYPRE_GPU=OFF` instead. HYPRE
+still runs correctly, just on the CPU, while everything else remains GPU-resident; this mirrors
+[the equivalent Frontier (HIP) workaround](hpc.md) already documented for the native build.
+!alert-end!
+
+#### Build PETSc, libMesh, and WASP
+  id=petsc_libmesh
+
+By default, `cmake --build build` builds all three of PETSc, libMesh, and WASP from source for
+you (see [#overview] above), so there is nothing extra to run. Each can instead point at an
+existing install:
+
+```
+cmake -S . -B build -DPETSC_DIR=/opt/petsc -DLIBMESH_DIR=/opt/libmesh -DWASP_DIR=/opt/wasp
+```
+
+`PETSC_DIR`, `LIBMESH_DIR`, and `WASP_DIR` are independent of each other, with one exception:
+a pre-built `LIBMESH_DIR` was compiled against some specific PETSc, so `LIBMESH_DIR` requires
+`PETSC_DIR` to also be given. `HDF5_ROOT` defaults to a location derived from `PETSC_DIR`
+(matching the Makefile workflow's own default) and can also be set explicitly if needed.
+
+If you're building one of these from source and need to pass it something not already covered
+by another CMake option (an extra `--with-...` PETSc configure flag, say), `PETSC_SCRIPT_ARGS`,
+`LIBMESH_SCRIPT_ARGS`, and `WASP_SCRIPT_ARGS` are appended to that dependency's own
+`update_and_rebuild_*.sh` configure run, e.g.
+`-DPETSC_SCRIPT_ARGS="--with-debugging=0 --download-slepc"`.
+
+!alert tip
+Building PETSc/libMesh from source is just as time consuming here as in the Makefile workflow.
+Set `-DMOOSE_BUILD_PARALLELISM=<N>` (defaults to `CMAKE_BUILD_PARALLEL_LEVEL` from the
+environment, else `min(available cores, 16)`) to control how parallel *that* part of the build
+is -- independent of the `-j<N>` you pass to `cmake --build`, since these scripts can't share
+that jobserver.
+!alert-end!
+
+#### Compile Cardinal
+  id=compiling
+
+```
+cmake --build build -j8
+```
+
+This mirrors your source into `build/`, resolves/builds whichever dependencies are needed, and
+finally invokes Cardinal's own `Makefile` there, all in one command -- always at whatever
+parallelism `-j` you asked for. This produces the executable `build/cardinal-<mode>`, where
+`<mode>` is MOOSE's own build method (`opt`, `dbg`, `devel`, `prof`, or `oprof`) -- same meaning as
+in the [native Makefile build](compiling.md). Set it the same way as native (default, unset
+`METHOD` means `opt`): `export METHOD=dbg`. Or, if you'd rather it be a normal, sticky CMake
+setting instead of an environment variable, `-DCMAKE_BUILD_TYPE=Debug`/`=Release` (via `cmake -D`
+or `ccmake`) works too.
+
+!alert! tip title=Using both METHOD and CMAKE_BUILD_TYPE, or changing METHOD on an existing build
+Skip this unless you're doing one of those.
+
+Setting both at once requires them to agree -- `METHOD=dbg` with `CMAKE_BUILD_TYPE=Debug`, every
+other `METHOD` with `Release` (Cardinal has no "Debug `devel`/`prof`/`oprof`") -- a mismatch is a
+configure-time error rather than one silently winning. `RelWithDebInfo`/`MinSizeRel` are rejected
+outright: neither has a corresponding MOOSE method. Run `cmake -UCMAKE_BUILD_TYPE build` to uncache
+`CMAKE_BUILD_TYPE` and hand control back to `METHOD`.
+
+Building with a changed `METHOD` environment variable without reconfiguring first is caught as
+an error, rather than silently rebuilding the already-configured method.
+!alert-end!
+
+If you encounter issues while compiling, check out our [compile-time troubleshooting guide](compiletime.md)
+(most of which still applies -- the actual compile step is Cardinal's ordinary Makefile build).
+
+## Running
+  id=running
+
+!include running.md
+
+Note that, per [#overview] above, `cardinal-opt` here lives in `build/`, not in the top-level
+repository checkout.
+
+!alert note title=Installing
+`build/` isn't meant to be kept around forever, but by default nothing needed to actually *run*
+Cardinal -- `cardinal-opt` itself, the MOOSE framework/module libraries it links, and
+nekRS/OpenMC/MOAB/Embree/Double-Down/[!ac](DAGMC)/`nuclear_data` -- exists anywhere else.
+Running:
+
+```
+cmake --install build --prefix /path/to/install
+```
+
+(equivalently, `cmake --build build --target install`, or set `CMAKE_INSTALL_PREFIX` at configure
+time with `--install-prefix /path/to/install`; default is `build/dist` -- see [#options] above)
+copies all of it into `/path/to/install`, rewriting RPATHs so the result no longer depends on
+`build/` at all -- safe to run from `/path/to/install/bin/cardinal-opt` even after deleting
+`build/` entirely. Laid out to look like `cardinal-opt`'s own checkout, not a pile of every
+dependency's files merged together: `cardinal-opt`, its own `lib/`, and `share/` sit directly
+under `/path/to/install`, while nekRS/OpenMC/MOAB/Embree/Double-Down/DAGMC/`nuclear_data` --
+which install as one shared tree, matching the native Makefile build's own `CARDINAL_DIR/install`
+-- go into `/path/to/install/install`. Nothing is copied there until you ask for it: like any
+other CMake project, `CMAKE_INSTALL_PREFIX` is left alone during the ordinary build, and changing
+it (`ccmake` included) never invalidates anything already built.
+
+Installing directly into your source checkout (`cmake --install build --prefix $(pwd)`, from
+inside the checkout) additionally symlinks `cardinal-opt` at the checkout root to
+`bin/cardinal-opt`, matching where the native Makefile build puts it -- skipped for any other
+install prefix, where there's no checkout layout for it to be matching.
+
+Installing always installs whichever `cardinal-<method>` this configuration last built (see
+[#compiling] above) -- so you can have both `cardinal-opt` and `cardinal-dbg` (or any other
+`METHOD`) installed at once, in the *same* `build/` and the *same* `/path/to/install`, just by
+reconfiguring and reinstalling in between, e.g.:
+
+```
+cmake --build build -j8 && cmake --install build --prefix /path/to/install   # cardinal-opt
+METHOD=dbg cmake build && cmake --build build -j8 && cmake --install build --prefix /path/to/install   # cardinal-dbg
+```
+
+Each install only adds files, never removes them, so both binaries (and only their own
+method-suffixed libraries -- no risk of `cardinal-opt` picking up a Debug library or vice versa)
+end up sitting side by side in `/path/to/install/bin`.
+!alert-end!
+
+## Building Documentation
+  id=doc
+
+`cmake --build build --target doc` builds Cardinal's documentation the same way
+[developers.md](developers.md) describes (`./moosedocs.py build`), against whichever
+`cardinal-<method>` this configuration built (built automatically first if you haven't already,
+since this target depends on it). MOOSE's `large_media` submodule -- needed by `moosedocs.py`
+itself, but sizeable, and irrelevant to compiling Cardinal -- is fetched automatically too, the
+first time you build this target, rather than something you need to check out yourself.
+
+The rendered site lands in `build/doc-site`, not inside your checkout's own `doc/` -- this is the
+one target that reads directly from your checkout (`doc/content/*.md`, plus real git history,
+which MooseDocs' own SQA/requirement-traceability checks need to run against), but it writes
+nothing there: doxygen's own output, which the plain Makefile build always leaves inside the
+checkout itself (harmlessly -- it's `.gitignore`d), is redirected into `build/doc-site` too.
+
+## Checking the Install
+
+!include checking_install.md
