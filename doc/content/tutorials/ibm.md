@@ -76,7 +76,7 @@ Force-based IBMs broadly fall into two categories, of (i) continuous and (ii) di
 \begin{aligned}
 \label{eq:f}
 \vec{f}\ '(\vec{x}_L,t)=&\ \alpha\int_0^t\left\lbrack\vec{V}(\vec{x}_L,t')-\vec{V}_L(t')\right\rbrack dt'+\beta \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\gamma\frac{\partial \left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack}{\partial t}+\\
-&\ \zeta \|\vec{V}(\vec{x}_L,t)\|-\vec{V}_L}\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
+&\ \zeta \|\vec{V}(\vec{x}_L,t)\|-\vec{V}_L\left\lbrack\vec{V}(\vec{x}_L,t)-\vec{V}_L\right\rbrack+\ \cdots
 \end{aligned}
 \end{equation}
 
