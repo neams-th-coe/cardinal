@@ -1,5 +1,6 @@
 [Tests]
   design = 'NekRSMesh.md'
+  issues = '1398'
   [nonexistent_stl]
     type = RunException
     input = nek.i
@@ -14,6 +15,22 @@
     cli_args = 'Mesh/stl="bad.stl"'
     expect_err = "STL file does not contain a valid set of vertices! Each triangle must be associated with 3 vertices; we identified 6 vertices but 3 triangles."
     requirement = "The system shall error if a face does not correspond to 3 vertices. This test checks also an edge case where the number of vertices may be in total divisible by 3, but in such a way that it does not correctly map to the number of triangles."
+    capabilities = 'nekrs'
+  []
+  [boundary_patch]
+    type = Exodiff
+    input = 'nek.i'
+    exodiff = 'nek_in.e'
+    cli_args = '--mesh-only'
+    requirement = "The system shall allow the construction of an STL file superimposed with the NekRS mesh mirror when using a boundary mesh mirror"
+    capabilities = 'nekrs'
+  []
+  [boundary_patch_with_volume]
+    type = Exodiff
+    input = 'nek_volume.i'
+    exodiff = 'nek_volume_in.e'
+    cli_args = '--mesh-only'
+    requirement = "The system shall allow the construction of an STL file superimposed with the NekRS mesh mirror when using a volume mesh mirror"
     capabilities = 'nekrs'
   []
 []
