@@ -124,12 +124,13 @@ OpenMCProblemBase::validParams()
       "Prefix to the name of the directory to which statepoint files are written. If simulation is "
       "Steady or keep_transient_statepoint is false, this becomes the name of the directory to "
       "which the singular resulting statepoint file is written, i.e. a directory named "
-      "{statepoint_prefix}. "
-      "If the simulation is Transient and "
+      "{statepoint_prefix}. If the simulation is Transient and "
       "keep_transient_statepoint = true, statepoint files are written to directories of the format "
       "{statepoint_prefix}_ts_{timestep}, where {statepoint_prefix} will default to "
-      "'statepoint_folder' "
-      "if this parameter is not provided");
+      "'statepoint_folder' if this parameter is not provided. Note that it may be possible for "
+      "OpenMC to run multiple times even if not using a Transient executioner (such as when "
+      "OpenMC is a FullSolveMultiApp to another app which is using a Transient executioner); "
+      "statepoints are not saved as this use case is not yet supported.");
 
   params.addParam<bool>("keep_transient_statepoint",
                         false,
