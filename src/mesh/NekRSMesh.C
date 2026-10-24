@@ -44,6 +44,9 @@ NekRSMesh::validParams()
       "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
   params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
   params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
+
+  params.addParam<std::string>("stl", "VTK file containing STL triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers");
+  params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");
   return params;
@@ -58,9 +61,14 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _scaling(getParam<Real>("scaling")),
     _fluid_block_id(getParam<unsigned int>("fluid_block_id")),
     _solid_block_id(getParam<unsigned int>("solid_block_id")),
+    _stl_filename(isParamValid("stl") ? &getParam<std::string>("stl") : nullptr),
+    _stl_block_id(getParam<unsigned int>("stl_block_id")),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
+  // TODO: check that stl_block_id does not conflict with an actual boundary in NekRS
+  // TODO: check if we can similarly add block IDs for the existing boundaries that we build
+
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
 
@@ -107,6 +115,58 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   }
 
   _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
+}
+
+void
+NekRSMesh::buildSTLSurface()
+{
+  if (!_stl_filename)
+    return;
+
+  std::ifstream file(*_stl_filename);
+  if (!file.is_open())
+    paramError("stl", "Error opening file: '", *_stl_filename, "'. Please check that the file exists.");
+
+  //std::string line;
+  //std::string ignore;
+
+  //while (std::getline(file, line))
+  //{
+  //  std::istringstream iss(line);
+  //  iss >> ignore;
+
+  //  if (ignore == "vertex")
+  //  {
+  //    // Parse vertex coordinates
+  //    Vertex vertex;
+  //    for (int i = 0; i < 3; ++i)
+  //    {
+  //      std::string token;
+  //      iss >> token;
+  //      if (!try_parse_float(token, i == 0 ? vertex.x : (i == 1 ? vertex.y : vertex.z)))
+  //      {
+  //        std::cerr << "Error parsing vertex coordinates." << std::endl;
+  //        return false;
+  //      }
+  //    }
+  //    vertices.push_back(vertex);
+  //  }
+  //  else if (ignore == "facet")
+  //  {
+  //    // Parse facet normal
+  //    FacetNormal normal;
+  //    iss >> ignore >> normal.nx >> normal.ny >> normal.nz;
+  //    normals.push_back(normal);
+  //  }
+
+
+  //if (vertices.size() % 3 != 0)
+  //{
+  //  std::cerr << "STL does not contain a valid set of coordinates!" << std::endl;
+  //  return false;
+  //}
+
+  //return true;
 }
 
 void
@@ -609,6 +669,8 @@ NekRSMesh::buildMesh()
     extractVolumeMesh();
 
   addElems();
+
+  buildSTLSurface();
 
   // We're looking up the elements by id, so we can't let the ids get
   // renumbered.

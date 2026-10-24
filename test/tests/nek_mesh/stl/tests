@@ -1,0 +1,11 @@
+[Tests]
+  design = 'NekRSMesh.md'
+  [nonexistent_stl]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/stl="not_here.vtk"'
+    expect_err = "Error opening file: 'not_here.vtk'"
+    requirement = "The system shall error if a non-existent STL file is used for building an immersed surface."
+    capabilities = 'nekrs'
+  []
+[]
