@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSMesh.h"
+#include "libmesh/face_tri3.h"
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_quad9.h"
 #include "libmesh/cell_hex8.h"
@@ -27,6 +28,7 @@
 #include "nekrs.hpp"
 #include "CardinalUtils.h"
 #include "VariadicTable.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", NekRSMesh);
 
@@ -45,7 +47,7 @@ NekRSMesh::validParams()
   params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
   params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
 
-  params.addParam<std::string>("stl", "VTK file containing STL triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers");
+  params.addParam<std::string>("stl", "STL file containing triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");
@@ -66,9 +68,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
-  // TODO: check that stl_block_id does not conflict with an actual boundary in NekRS
-  // TODO: check if we can similarly add block IDs for the existing boundaries that we build
-
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
 
@@ -77,6 +76,9 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
 
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
+
+  if (!_stl_filename)
+    checkUnusedParam(parameters, "stl_block_id", "not providing an 'stl' file");
 
   // see if NekRS's mesh even exists
   if (!nekrs::isInitialized())
@@ -118,55 +120,87 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
 }
 
 void
+NekRSMesh::tryParseFloat(const std::string & token, Real & value)
+{
+  try
+  {
+    size_t pos;
+    value = std::stof(token, &pos);
+    if (pos == token.size())
+      return;
+    else
+      mooseError("Error parsing STL coordinates");
+  }
+  catch (...)
+  {
+    mooseError("Error parsing STL coordinates");
+  }
+}
+
+void
 NekRSMesh::buildSTLSurface()
 {
   if (!_stl_filename)
     return;
 
+  if (isDistributedMesh())
+    mooseError("Using an STL file is not yet supported with distributed meshes!");
+
   std::ifstream file(*_stl_filename);
   if (!file.is_open())
     paramError("stl", "Error opening file: '", *_stl_filename, "'. Please check that the file exists.");
 
-  //std::string line;
-  //std::string ignore;
+  std::string line;
+  std::string ignore;
 
-  //while (std::getline(file, line))
-  //{
-  //  std::istringstream iss(line);
-  //  iss >> ignore;
+  while (std::getline(file, line))
+  {
+    std::istringstream iss(line);
+    iss >> ignore;
 
-  //  if (ignore == "vertex")
-  //  {
-  //    // Parse vertex coordinates
-  //    Vertex vertex;
-  //    for (int i = 0; i < 3; ++i)
-  //    {
-  //      std::string token;
-  //      iss >> token;
-  //      if (!try_parse_float(token, i == 0 ? vertex.x : (i == 1 ? vertex.y : vertex.z)))
-  //      {
-  //        std::cerr << "Error parsing vertex coordinates." << std::endl;
-  //        return false;
-  //      }
-  //    }
-  //    vertices.push_back(vertex);
-  //  }
-  //  else if (ignore == "facet")
-  //  {
-  //    // Parse facet normal
-  //    FacetNormal normal;
-  //    iss >> ignore >> normal.nx >> normal.ny >> normal.nz;
-  //    normals.push_back(normal);
-  //  }
+    if (ignore == "vertex")
+    {
+      // Parse vertex coordinates
+      Point vertex;
+      for (int i = 0; i < 3; ++i)
+      {
+        std::string token;
+        iss >> token;
+        tryParseFloat(token, vertex(i));
+      }
 
+      _stl_vertices.push_back(vertex);
+    }
+    else if (ignore == "facet")
+    {
+      // Parse facet normal
+      Point normal;
+      iss >> ignore >> normal(0) >> normal(1) >> normal(2);
+      _stl_normals.push_back(normal);
+    }
+  }
 
-  //if (vertices.size() % 3 != 0)
-  //{
-  //  std::cerr << "STL does not contain a valid set of coordinates!" << std::endl;
-  //  return false;
-  //}
+  if (_stl_vertices.size() / 3 != _stl_normals.size())
+    paramError("stl", "STL file does not contain a valid set of vertices! Each triangle must be associated with 3 vertices; we identified ", _stl_vertices.size(), " vertices but ", _stl_normals.size(), " triangles.");
 
-  //return true;
+  // now, create the libMesh elements corresponding to the STL triangles
+  for (int e = 0; e < _stl_normals.size(); e++)
+  {
+    auto elem = new Tri3;
+    _mesh->add_elem(elem);
+
+    // add one point for each vertex of the face element
+    for (int n = 0; n < Tri3::num_nodes; n++)
+    {
+      auto node_idx = e * Tri3::num_nodes + n;
+      Point p(_stl_vertices[node_idx](0), _stl_vertices[node_idx](1), _stl_vertices[node_idx](2));
+      p *= _scaling;
+      auto node_ptr = _mesh->add_point(p);
+      elem->set_node(n) = node_ptr;
+    }
+
+    elem->subdomain_id() = _stl_block_id;
+  }
 }
 
 void

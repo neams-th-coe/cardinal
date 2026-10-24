@@ -322,6 +322,11 @@ public:
   void updateDisplacement(const int e, const double * src, const field::NekWriteEnum field);
 
 protected:
+  /// Build the STL surface
+  void buildSTLSurface();
+
+  void tryParseFloat(const std::string & token, Real & value);
+
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
 
@@ -417,6 +422,12 @@ protected:
 
   /// Block ID for the solid portion of the mesh mirror
   const unsigned int & _solid_block_id;
+
+  /// Filename to reconstruct an STL surface from
+  const std::string * _stl_filename;
+
+  /// Block ID to assign to the elements on the STL surface
+  const unsigned int & _stl_block_id;
 
   /// Order of the nekRS solution
   int _nek_polynomial_order;
@@ -578,4 +589,10 @@ protected:
 
   /// Corner indices for GLL points of mesh mirror elements
   std::vector<std::vector<int>> _corner_indices;
+
+  /// STL vertices
+  std::vector<Point> _stl_vertices;
+
+  /// STL unit normals
+  std::vector<Point> _stl_normals;
 };
