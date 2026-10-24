@@ -33,6 +33,7 @@ FieldTransferBase::validParams()
       "usrwrk_slot",
       "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data; "
       "provide one entry for each quantity being passed");
+  params.addParam<MultiMooseEnum>("mesh", getMeshEnums(), "Portion of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh mirror, for which data transfers are accomplished simply by reading/writing the corresponding NekRS grid point value. 'stl' refers to the nodes in an STL file (if 'stl' is provided in the [Mesh]); in this case, the data transfers are accomplished using a mesh interpolation.");
   params.addClassDescription("Base class for transferring field data between NekRS and MOOSE.");
   params.registerBase("FieldTransfer");
   params.registerSystemAttributeName("FieldTransfer");
@@ -40,7 +41,9 @@ FieldTransferBase::validParams()
 }
 
 FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
-  : NekTransferBase(parameters), _variable(name())
+  : NekTransferBase(parameters),
+  _transfer_mesh(getParam<MultiMooseEnum>("mesh")),
+  _variable(name())
 {
   if (_direction == "to_nek")
   {
@@ -67,6 +70,13 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
     for (const auto & u : _usrwrk_slot)
       checkAllocatedUsrwrkSlot(u);
   }
+
+  // TODO: test simultaneously STL and mesh mirror
+
+  if (_direction == "to_nek")
+    for (const auto & t : _transfer_mesh)
+      if (t == "stl")
+        paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
 
   _n_per_surf = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0)
                                          : _nek_mesh->numVerticesPerSurface();
