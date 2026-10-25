@@ -71,8 +71,6 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
       checkAllocatedUsrwrkSlot(u);
   }
 
-  // TODO: test simultaneously STL and mesh mirror
-
   if (_direction == "to_nek")
     for (const auto & t : _transfer_mesh)
       if (t == "stl")
@@ -142,7 +140,7 @@ FieldTransferBase::addExternalVariable(const unsigned int slot,
 }
 
 void
-FieldTransferBase::fillAuxVariable(const unsigned int var_number, const double * value)
+FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const double * value)
 {
   auto & solution = _nek_problem.getAuxiliarySystem().solution();
   auto sys_number = _nek_problem.getAuxiliarySystem().number();
@@ -180,6 +178,49 @@ FieldTransferBase::fillAuxVariable(const unsigned int var_number, const double *
           auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
           solution.set(dof_idx, value[node_offset]);
         }
+      }
+    }
+  }
+
+  solution.close();
+}
+
+void
+FieldTransferBase::fillAuxVariableOnSTL(const unsigned int var_number, const double * value)
+{
+  auto & solution = _nek_problem.getAuxiliarySystem().solution();
+  auto sys_number = _nek_problem.getAuxiliarySystem().number();
+  auto pid = _communicator.rank();
+
+  // transfer onto the stl
+  for (unsigned int e = 0; e < _nek_mesh->numSTLElems(); e++)
+  {
+    auto element_offset = _nek_mesh->numElems() * _nek_mesh->nMoosePerNek();
+    auto elem_ptr = _nek_mesh->queryElemPtr(element_offset + e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!_nek_mesh->getMesh().is_serial());
+      continue;
+    }
+
+    for (unsigned int n = 0; n < _nek_mesh->numVerticesPerSTL(); n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+      // vertex is "owned" by the present MOOSE process.
+      if (node_ptr->processor_id() == pid)
+      {
+        //auto node_offset = (element_offset + e) * _nek_mesh->numVerticesPerSTL() + n;
+        auto node_offset = e * _nek_mesh->numVerticesPerSTL() + n;
+
+        // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary
+        // system
+        auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
+        solution.set(dof_idx, value[node_offset]);
       }
     }
   }

@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekFieldVariable.h"
+#include "pointInterpolation.hpp"
 
 registerMooseObject("CardinalApp", NekFieldVariable);
 
@@ -135,12 +136,57 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
 void
 NekFieldVariable::readDataFromNek()
 {
-  if (!_nek_mesh->volume())
-    _nek_problem.boundarySolution(_field, _external_data);
-  else
-    _nek_problem.volumeSolution(_field, _external_data);
+  auto nrs = nekrs::nrsPtr();
 
-  fillAuxVariable(_variable_number[_variable], _external_data);
+  for (const auto & t : _transfer_mesh)
+  {
+    if (t == "mirror")
+    {
+      if (!_nek_mesh->volume())
+        _nek_problem.boundarySolution(_field, _external_data);
+      else
+        _nek_problem.volumeSolution(_field, _external_data);
+
+      fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
+    }
+    else if (t == "stl")
+    {
+      // we assume that the STL file is in non-dimensional form, since it is really like part of
+      // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
+      // is needed here
+      std::vector<dfloat> x, y, z;
+      for (const auto & vertex : _nek_problem.STLVertices())
+      {
+        x.push_back(vertex(0));
+        y.push_back(vertex(1));
+        z.push_back(vertex(2));
+      }
+
+      // create an interpolator
+      auto interpolator = pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
+      interpolator.setPoints(x, y, z);
+      //const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
+      interpolator.find();
+
+      auto n_points = _nek_problem.nSTLVertices();
+      occa::memory o_points = platform->device.malloc<dfloat>(n_points);
+
+      // All of the STL vertices are read onto all ranks; what does the interpolator return?
+      // TODO: the function call to the interpolator will vary depending on each field
+      auto nrs = nekrs::nrsPtr();
+      interpolator.eval(nrs->Nscalar /* size of field being interpolated */,
+                        nekrs::fieldOffset(),
+                        nrs->scalar->o_S,
+                        n_points,
+                        o_points);
+
+      // the interpolation happens on device, so we need to copy it back to the host
+      std::vector<dfloat> interpolated(n_points);
+      o_points.copyTo(interpolated.data(), n_points);
+
+      fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
+    }
+  }
 }
 
 void

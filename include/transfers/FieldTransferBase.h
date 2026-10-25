@@ -51,11 +51,18 @@ public:
 
 protected:
   /**
-   * Fill an outgoing auxiliary variable field with nekRS solution data
+   * Fill an outgoing auxiliary variable field with nekRS solution data on the mesh mirror
    * @param[in] var_number auxiliary variable number
    * @param[in] value nekRS solution data to fill the variable with
    */
-  void fillAuxVariable(const unsigned int var_number, const double * value);
+  void fillAuxVariableOnMirror(const unsigned int var_number, const double * value);
+
+  /**
+   * Fill an outgoing auxiliary variable field with nekRS solution data on the STL vertices
+   * @param[in] var_number auxiliary variable number
+   * @param[in] value nekRS solution data to fill the variable with
+   */
+  void fillAuxVariableOnSTL(const unsigned int var_number, const double * value);
 
   /**
    * Add a MOOSE variable to facilitate coupling
@@ -74,6 +81,9 @@ protected:
                            const std::string name,
                            const Real additive,
                            const Real divisor);
+
+  /// Meshes participating in the data transfer
+  const MultiMooseEnum & _transfer_mesh;
 
   /// Variable name (or prefix of names) to create in MOOSE to facilitate data passing
   std::string _variable;

@@ -165,7 +165,7 @@ NekBoundaryFlux::readDataFromNek()
   else
     _nek_problem.volumeSolution(field::flux, _external_data);
 
-  fillAuxVariable(_variable_number[_variable], _external_data);
+  fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
 
   // the postprocessor is automatically populated because its execution controls its writing
 }
