@@ -1,6 +1,14 @@
 [Tests]
   design = 'NekRSMesh.md'
   issues = '1398'
+  [distributed]
+    type = RunException
+    input = nek.i
+    expect_err = "Using an STL file is not yet supported with distributed meshes!"
+    requirement = "The system shall error if using an STL file with a distributed mesh, as this is not tested or supported"
+    capabilities = 'nekrs'
+    mesh_mode = 'distributed'
+  []
   [nonexistent_stl]
     type = RunException
     input = nek.i

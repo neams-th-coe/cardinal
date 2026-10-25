@@ -6,5 +6,5 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  stl = 'surface_mesh.stl'
+  stl = 'small_sphere.stl'
 []
