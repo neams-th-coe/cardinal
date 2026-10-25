@@ -96,6 +96,29 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
+
+  for (const auto & t : _transfer_mesh)
+  {
+    if (t == "stl")
+    {
+      // we assume that the STL file is in non-dimensional form, since it is really like part of
+      // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
+      // is needed here
+      std::vector<dfloat> x, y, z;
+      for (const auto & vertex : _nek_mesh->STLVertices())
+      {
+        x.push_back(vertex(0));
+        y.push_back(vertex(1));
+        z.push_back(vertex(2));
+      }
+
+      // create an interpolator
+      _interpolator = new pointInterpolation_t(nekrs::entireMesh(), platform->comm.mpiComm());
+      _interpolator->setPoints(x, y, z);
+      const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
+      _interpolator->find(verbosity);
+    }
+  }
 }
 
 field::NekFieldEnum
@@ -146,8 +169,6 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
 void
 NekFieldVariable::readDataFromNek()
 {
-  auto nrs = nekrs::nrsPtr();
-
   for (const auto & t : _transfer_mesh)
   {
     if (t == "mirror")
@@ -161,33 +182,14 @@ NekFieldVariable::readDataFromNek()
     }
     else if (t == "stl")
     {
-      // we assume that the STL file is in non-dimensional form, since it is really like part of
-      // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
-      // is needed here
-      std::vector<dfloat> x, y, z;
-      for (const auto & vertex : _nek_mesh->STLVertices())
-      {
-        x.push_back(vertex(0));
-        y.push_back(vertex(1));
-        z.push_back(vertex(2));
-      }
-
-      // create an interpolator
-      auto interpolator = pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
-      interpolator.setPoints(x, y, z);
-      const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
-      interpolator.find(verbosity);
-
-      auto nrs = nekrs::nrsPtr();
       Point pt(1, 0, 0); // TODO: could make more elegant
       auto interpolated = nekrs::interpolateToPoints(
-          interpolator, _field, _nek_mesh->nSTLVertices(), pt /* unused */);
+          *_interpolator, _field, _nek_mesh->nSTLVertices(), pt /* unused */);
 
-      // we are filling one variable at a time, but the interpolator returns data with multiple
-      // components if we are fetching, e.g. velocity (3 components), scalars (all scalars
-      // simultaneously), etc. So, we need to mask the data going into this function call
       fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
     }
+    else
+      mooseError("Unhandled MeshEnum in NekFieldVariable!");
   }
 }
 
