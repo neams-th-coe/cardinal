@@ -34,6 +34,7 @@ MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
 MultiMooseEnum getParticleFilterEnums();
+MultiMooseEnum getMeshEnums();
 MooseEnum getSingleTallyScoreEnum();
 MooseEnum getSingleParticleFilterEnum();
 MooseEnum getEnergyGroupsEnum();

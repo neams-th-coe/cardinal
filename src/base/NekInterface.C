@@ -338,7 +338,7 @@ commSize()
 }
 
 std::vector<dfloat>
-interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum field, int n)
+interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum field, int n, const Point & component)
 {
   occa::memory o_interpolated;
   int n_values = n;
@@ -383,8 +383,87 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
   }
 
   // the interpolation happens on device, so we need to copy it back to the host
-  std::vector<dfloat> interpolated(n_values);
-  o_interpolated.copyTo(interpolated.data(), n_values);
+  std::vector<dfloat> all_interpolated_values(n_values);
+  o_interpolated.copyTo(all_interpolated_values.data(), n_values);
+
+  // but we only want one field; for some fields, such as velocity (3) and scalars (Nscalar),
+  // our all_interpolated_values array is filled with more than one "quantity." Here, we need to
+  // mask it out
+  std::vector<dfloat> interpolated(n);
+  switch (field)
+  {
+    case field::velocity_component:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i] * component(0) + all_interpolated_values[i + n] * component(1) + all_interpolated_values[i + 2*n] * component(2);
+      break;
+    case field::velocity_x:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::velocity_y:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n];
+      break;
+    case field::velocity_z:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2*n];
+      break;
+    case field::velocity:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = std::sqrt(all_interpolated_values[i] * all_interpolated_values[i] +
+                                    all_interpolated_values[i + n] * all_interpolated_values[i + n] +
+                                    all_interpolated_values[i + 2*n] * all_interpolated_values[i + 2*n]);
+      break;
+    case field::velocity_x_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i] * all_interpolated_values[i];
+      break;
+    case field::velocity_y_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n] * all_interpolated_values[i + n];
+      break;
+    case field::velocity_z_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2*n] * all_interpolated_values[i + 2*n];
+      break;
+    case field::pressure:
+    case field::temperature:
+      // pressure and temperature are both first entries because we enforce temperature to be zeroth scalar
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::scalar01:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(1)*n];
+      break;
+    case field::scalar02:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(2)*n];
+      break;
+    case field::scalar03:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(3)*n];
+      break;
+    case field::unity:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = 1.0;
+      break;
+    case field::usrwrk00:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::usrwrk01:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n];
+      break;
+    case field::usrwrk02:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2*n];
+      break;
+    default:
+      mooseError("Unhandled NekFieldEnum in interpolatePoints!");
+  }
+
   return interpolated;
 }
 

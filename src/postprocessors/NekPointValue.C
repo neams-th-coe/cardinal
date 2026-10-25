@@ -68,68 +68,10 @@ NekPointValue::execute()
     _nek_problem->copyIndividualScratchSlot(2);
 
   // interpolate the field onto those points
-  auto interpolated = nekrs::interpolateToPoints(interp, _field, n);
+  auto interpolated = nekrs::interpolateToPoints(interp, _field, n, _velocity_direction);
 
-  // because of NekRS's way of storing solution, we need extra steps to actually
-  // return what the user wants
-  switch (_field)
-  {
-    case field::velocity_component:
-      _value = interpolated[0] * _velocity_direction(0) + interpolated[1] * _velocity_direction(1) +
-               interpolated[2] * _velocity_direction(2);
-      break;
-    case field::velocity_x:
-      _value = interpolated[0];
-      break;
-    case field::velocity_y:
-      _value = interpolated[1];
-      break;
-    case field::velocity_z:
-      _value = interpolated[2];
-      break;
-    case field::velocity:
-      _value = std::sqrt(interpolated[0] * interpolated[0] + interpolated[1] * interpolated[1] +
-                         interpolated[2] * interpolated[2]);
-      break;
-    case field::velocity_x_squared:
-      _value = interpolated[0] * interpolated[0];
-      break;
-    case field::velocity_y_squared:
-      _value = interpolated[1] * interpolated[1];
-      break;
-    case field::velocity_z_squared:
-      _value = interpolated[2] * interpolated[2];
-      break;
-    case field::pressure:
-      _value = interpolated[0];
-      break;
-    case field::temperature:
-      _value = interpolated[0];
-      break;
-    case field::scalar01:
-      _value = interpolated[nekrs::scalarSlot(1)];
-      break;
-    case field::scalar02:
-      _value = interpolated[nekrs::scalarSlot(2)];
-      break;
-    case field::scalar03:
-      _value = interpolated[nekrs::scalarSlot(3)];
-      break;
-    case field::unity:
-      _value = 1;
-      break;
-    case field::usrwrk00:
-      _value = interpolated[0];
-      break;
-    case field::usrwrk01:
-      _value = interpolated[1];
-      break;
-    case field::usrwrk02:
-      _value = interpolated[2];
-      break;
-    default:
-      mooseError("Unhandled NekFieldEnum in NekPointValue!");
-  }
+  // only one point is being queried
+  _value = interpolated[0];
 
   // function value to subtract off; the function is dimensional, so evaluate at the
   // dimensional position and dimensional time. This time will be the time of the timestep if
