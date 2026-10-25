@@ -25,6 +25,7 @@
 #include "NekVolumeCoupling.h"
 #include "NekInterface.h"
 #include "NekUtility.h"
+#include "libmesh/face_tri3.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -81,6 +82,12 @@ public:
    * @return number of MOOSE elements per NekRS surface element
    */
   int nBuildPerSurfaceElem() const { return _n_build_per_surface_elem; }
+
+  int nSTLPoints() const { return _stl_vertices.size() * Tri3::num_nodes; }
+
+  int nSTLVertices() const { return _stl_vertices.size(); }
+
+  const std::vector<Point> & STLVertices() const { return _stl_vertices; }
 
   /**
    * Get the initial mesh x coordinates
@@ -161,6 +168,12 @@ public:
   const int & numElems() const { return _n_elems; }
 
   /**
+   * Get the number of elements in the STL file
+   * @return number of elements in STL file
+   */
+  const int numSTLElems() const { return _stl_normals.size(); }
+
+  /**
    * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh
    *
    * This function is used to perform the data transfer routines in NekRSProblem
@@ -168,6 +181,12 @@ public:
    * return number of vertices per element
    */
   const int & numVerticesPerElem() const { return _n_vertices_per_elem; }
+
+  /**
+   * Get the number of vertices per STL triangle
+   * @return number of vertices per triangle
+   */
+  const int numVerticesPerSTL() const { return Tri3::num_nodes; }
 
   /**
    * \brief Get the libMesh node index from nekRS's GLL index ordering

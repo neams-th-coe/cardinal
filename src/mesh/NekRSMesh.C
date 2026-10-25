@@ -19,7 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSMesh.h"
-#include "libmesh/face_tri3.h"
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_quad9.h"
 #include "libmesh/cell_hex8.h"
@@ -47,7 +46,7 @@ NekRSMesh::validParams()
   params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
   params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
 
-  params.addParam<std::string>("stl", "STL file containing triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers");
+  params.addParam<std::string>("stl", "STL file containing triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers. This file is assumed to be non-dimensional form, since it is part of the NekRS geometry construction.");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");
@@ -187,6 +186,10 @@ NekRSMesh::buildSTLSurface()
   for (int e = 0; e < _stl_normals.size(); e++)
   {
     auto elem = new Tri3;
+
+    // start indexing the element IDs in the STL file from the next available index
+    // after construction of the mesh mirror (which will have n_elems * n_moose_per_nek elements)
+    elem->set_id() = _n_elems * _n_moose_per_nek + e;
     _mesh->add_elem(elem);
 
     // add one point for each vertex of the face element
@@ -471,7 +474,7 @@ NekRSMesh::initializeMeshParams()
 void
 NekRSMesh::buildDummyMesh()
 {
-  int e = 1;
+  int e = 0;
   auto elem = new Quad4;
   elem->set_id() = e;
   elem->processor_id() = 0;
