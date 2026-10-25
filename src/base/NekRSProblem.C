@@ -667,10 +667,9 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
           t->readDataFromNek();
 
       // execute all outgoing scalar transfers
-      // TODO: is this the wrong trransfer?
       for (const auto & t : _scalar_transfers)
         if (t->direction() == "from_nek")
-          t->sendDataToNek();
+          t->readDataFromNek();
 
       break;
     }
