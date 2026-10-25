@@ -341,7 +341,7 @@ std::vector<dfloat>
 interpolateToPoints(pointInterpolation_t & interp,
                     const field::NekFieldEnum field,
                     int n,
-                    const Point & component)
+                    const Point component)
 {
   occa::memory o_interpolated;
   int n_values = n;

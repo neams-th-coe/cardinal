@@ -111,13 +111,13 @@ void setAbsoluteTol(double tol);
  * @param[in] field the field type
  * @param[in] n number of points
  * @param[in] component component vector to use for dotting with velocity; only used for
- * velocity_component fields
+ * velocity_component fields, so a default is provided to allow skipping entering it
  * @return interpolated values on those points
  */
 std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
                                         const field::NekFieldEnum field,
                                         int n,
-                                        const Point & component);
+                                        const Point component = Point(1, 0, 0));
 
 /**
  * Return the reference units for a usrwrk slot
