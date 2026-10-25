@@ -9,5 +9,8 @@
   checkpointControl = steps
   checkpointInterval = 2
 
+[MESH]
+  file = "../first_order/pyramid.re2"
+
 [FLUID VELOCITY]
   solver = none
