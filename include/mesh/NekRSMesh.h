@@ -350,6 +350,7 @@ protected:
   /// Build the STL surface
   void buildSTLSurface();
 
+  /// Parses an STL file and populates the list of vertices and unit normals
   void tryParseFloat(const std::string & token, Real & value);
 
   /// Store the rank-local element and rank ownership for volume coupling

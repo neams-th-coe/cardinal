@@ -49,8 +49,9 @@ NekRSMesh::validParams()
   params.addParam<std::string>(
       "stl",
       "STL file containing triangles and faces to read in order to construct an auxiliary surface "
-      "that can be used for data transfers. This file is assumed to be non-dimensional form, since "
-      "it is part of the NekRS geometry construction.");
+      "that can be used for data transfers. This file is assumed to be in the same unit system as the "
+      "NekRS case files, since this STL is part of the NekRS geometry construction. In other words, "
+      "if NekRS is non-dimensional, the STL should be non-dimensional.");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");

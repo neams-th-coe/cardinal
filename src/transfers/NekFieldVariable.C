@@ -183,7 +183,6 @@ NekFieldVariable::readDataFromNek()
     else if (t == "stl")
     {
       auto interpolated = nekrs::interpolateToPoints(*_interpolator, _field, _nek_mesh->nSTLVertices());
-
       fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
     }
     else
