@@ -370,6 +370,8 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
       interp.eval(nrs->Nscalar, nekrs::scalarFieldOffset(), nrs->scalar->o_S, n, o_interpolated);
       break;
     case field::unity:
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      // we don't actually use o_interpolated's data, for this trivial case
       break;
     case field::usrwrk00:
     case field::usrwrk01:
@@ -377,6 +379,10 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
       n_values = n * n_usrwrk_slots;
       o_interpolated = platform->device.malloc<dfloat>(n_values);
       interp.eval(n_usrwrk_slots, nekrs::fieldOffset(), nrs->bc.o_usrwrk, n, o_interpolated);
+      break;
+    case field::zero:
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      // we don't actually use o_interpolated's data, for this trivial case
       break;
     default:
       mooseError("Unhandled NekFieldEnum in interpolatePoints!");
@@ -459,6 +465,10 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
     case field::usrwrk02:
       for (unsigned int i = 0; i < n; ++i)
         interpolated[i] = all_interpolated_values[i + 2*n];
+      break;
+    case field::zero:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = 0.0;
       break;
     default:
       mooseError("Unhandled NekFieldEnum in interpolatePoints!");

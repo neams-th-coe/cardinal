@@ -34,4 +34,11 @@
     requirement = "The system shall error if trying to send data from the STL mesh to NekRS, an unsupported feature"
     issues = '#1398'
   []
+  [to_stl_ignore_volume]
+    type = CSVDiff
+    input = stl.i
+    csvdiff = stl_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values are far lower than 1% (and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for all possible fields that NekRS can write to the STL and for a volume mesh mirror which does not participate in the data exchange."
+    issues = '#1398'
+  []
 []

@@ -38,6 +38,14 @@ NekFieldVariable::validParams()
 NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
+  // TODO: this class should be made to inherit from NekFieldInterface; would need handling for
+  // the function shift options and testing. If inheriting, then we would not need this line which follows
+  // nor the fetching of _field (but would need to accommodate function, velocity_direction, and
+  // velocity_component. If we inherit from this interface class, we can ignore the velocity_direction
+  // and don't need to support it, since it can trivially be obtained in other ways. So, it's really just
+  // the function support which is needed to be tested.
+  nekrs::checkFieldValidity(_field);
+
   if (isParamValid("field"))
     _field = getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>();
   else
@@ -129,6 +137,8 @@ NekFieldVariable::convertToFieldEnum(const std::string name) const
     return field::usrwrk01;
   if (lowercase == "usrwrk02")
     return field::usrwrk02;
+  if (lowercase == "zero")
+    return field::zero;
 
   mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
 }
@@ -165,25 +175,16 @@ NekFieldVariable::readDataFromNek()
       // create an interpolator
       auto interpolator = pointInterpolation_t(nrs->meshV, platform->comm.mpiComm());
       interpolator.setPoints(x, y, z);
-      //const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
-      interpolator.find();
+      const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
+      interpolator.find(verbosity);
 
-      auto n_points = _nek_problem.nSTLVertices();
-      occa::memory o_points = platform->device.malloc<dfloat>(n_points);
-
-      // All of the STL vertices are read onto all ranks; what does the interpolator return?
-      // TODO: the function call to the interpolator will vary depending on each field
       auto nrs = nekrs::nrsPtr();
-      interpolator.eval(nrs->Nscalar /* size of field being interpolated */,
-                        nekrs::fieldOffset(),
-                        nrs->scalar->o_S,
-                        n_points,
-                        o_points);
+      Point pt(1,0,0); // TODO: could make more elegant
+      auto interpolated = nekrs::interpolateToPoints(interpolator, _field, _nek_problem.nSTLVertices(), pt /* unused */);
 
-      // the interpolation happens on device, so we need to copy it back to the host
-      std::vector<dfloat> interpolated(n_points);
-      o_points.copyTo(interpolated.data(), n_points);
-
+      // we are filling one variable at a time, but the interpolator returns data with multiple components
+      // if we are fetching, e.g. velocity (3 components), scalars (all scalars simultaneously), etc.
+      // So, we need to mask the data going into this function call
       fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
     }
   }
