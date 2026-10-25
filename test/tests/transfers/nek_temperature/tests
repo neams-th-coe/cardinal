@@ -55,4 +55,11 @@
     requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values are far lower than 1% (and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for all possible fields that NekRS can write to the STL and for a boundary mesh mirror which does not participate in the data exchange (omitting the userwrk transfers because these cannot be populated without a volume mesh mirror). All test results are identical to the 'to_stl_ignore_volume' test."
     issues = '#1398'
   []
+  [to_stl_with_boundary]
+    type = CSVDiff
+    input = stl_with_boundary.i
+    csvdiff = stl_with_boundary_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values around 1% (this is partly because the boundary condition is not replicated from the perfect analytic solution for simplicity, and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for a temperature transfer, with a boundary mesh mirror that also participates in the coupling. Temperatures are adequately reconstructed on the two separate meshes (mirror and stl)."
+    issues = '#1398'
+  []
 []
