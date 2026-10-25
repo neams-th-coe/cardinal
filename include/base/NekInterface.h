@@ -106,6 +106,15 @@ std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
 void setAbsoluteTol(double tol);
 
 /**
+ * Interpolate a field onto a set of points using NekRS's interpolator
+ * @param[in] interp an intialized interpolator
+ * @param[in] field the field type
+ * @param[in] n number of points
+ * @return interpolated values on those points
+ */
+std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum field, int n);
+
+/**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot
  * @return value by which to multiply the usrwrk slot to go from non-dimensional form into

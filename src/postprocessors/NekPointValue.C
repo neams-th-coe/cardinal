@@ -68,50 +68,7 @@ NekPointValue::execute()
     _nek_problem->copyIndividualScratchSlot(2);
 
   // interpolate the field onto those points
-  occa::memory o_interpolated;
-  int n_values = n;
-  switch (_field)
-  {
-    case field::velocity_component:
-    case field::velocity_x:
-    case field::velocity_y:
-    case field::velocity_z:
-    case field::velocity:
-    case field::velocity_x_squared:
-    case field::velocity_y_squared:
-    case field::velocity_z_squared:
-      n_values = n * 3; // nVFields
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nrs->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
-      break;
-    case field::pressure:
-      o_interpolated = platform->device.malloc<dfloat>(n);
-      interp.eval(1, nrs->fieldOffset, nrs->fluid->o_P, n, o_interpolated);
-      break;
-    case field::temperature:
-    case field::scalar01:
-    case field::scalar02:
-    case field::scalar03:
-      n_values = n * nrs->Nscalar;
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::scalarFieldOffset(), nrs->scalar->o_S, n, o_interpolated);
-      break;
-    case field::unity:
-      break;
-    case field::usrwrk00:
-    case field::usrwrk01:
-    case field::usrwrk02:
-      n_values = n * _nek_problem->nUsrWrkSlots();
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::fieldOffset(), nrs->bc.o_usrwrk, n, o_interpolated);
-      break;
-    default:
-      mooseError("Unhandled NekFieldEnum in NekPointValue!");
-  }
-
-  // the interpolation happens on device, so we need to copy it back to the host
-  std::vector<dfloat> interpolated(n_values);
-  o_interpolated.copyTo(interpolated.data(), n_values);
+  auto interpolated = nekrs::interpolateToPoints(interp, _field, n);
 
   // because of NekRS's way of storing solution, we need extra steps to actually
   // return what the user wants
