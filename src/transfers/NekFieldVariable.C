@@ -165,7 +165,7 @@ NekFieldVariable::readDataFromNek()
       // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
       // is needed here
       std::vector<dfloat> x, y, z;
-      for (const auto & vertex : _nek_problem.STLVertices())
+      for (const auto & vertex : _nek_mesh->STLVertices())
       {
         x.push_back(vertex(0));
         y.push_back(vertex(1));
@@ -180,7 +180,7 @@ NekFieldVariable::readDataFromNek()
 
       auto nrs = nekrs::nrsPtr();
       Point pt(1,0,0); // TODO: could make more elegant
-      auto interpolated = nekrs::interpolateToPoints(interpolator, _field, _nek_problem.nSTLVertices(), pt /* unused */);
+      auto interpolated = nekrs::interpolateToPoints(interpolator, _field, _nek_mesh->nSTLVertices(), pt /* unused */);
 
       // we are filling one variable at a time, but the interpolator returns data with multiple components
       // if we are fetching, e.g. velocity (3 components), scalars (all scalars simultaneously), etc.

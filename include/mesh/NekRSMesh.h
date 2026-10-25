@@ -83,10 +83,16 @@ public:
    */
   int nBuildPerSurfaceElem() const { return _n_build_per_surface_elem; }
 
-  int nSTLPoints() const { return _stl_vertices.size() * Tri3::num_nodes; }
-
+  /**
+   * Number of STL vertices in the mesh
+   * @return number of STL vertices in the mesh
+   */
   int nSTLVertices() const { return _stl_vertices.size(); }
 
+  /**
+   * Vector of all STL vertices, ordered according to their numbering as nodes
+   * @return vector of all STL vertices
+   */
   const std::vector<Point> & STLVertices() const { return _stl_vertices; }
 
   /**
