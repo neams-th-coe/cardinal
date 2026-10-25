@@ -61,7 +61,9 @@ ConservativeFieldTransfer::ConservativeFieldTransfer(const InputParameters & par
 
   for (const auto & t : _transfer_mesh)
     if (t == "stl")
-      paramError("mesh", "Transferring data from NekRS to the STL mesh is not yet supported for conservative field transfers!");
+      paramError("mesh",
+                 "Transferring data from NekRS to the STL mesh is not yet supported for "
+                 "conservative field transfers!");
 }
 
 std::string

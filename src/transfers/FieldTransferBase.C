@@ -33,7 +33,13 @@ FieldTransferBase::validParams()
       "usrwrk_slot",
       "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data; "
       "provide one entry for each quantity being passed");
-  params.addParam<MultiMooseEnum>("mesh", getMeshEnums(), "Portion of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh mirror, for which data transfers are accomplished simply by reading/writing the corresponding NekRS grid point value. 'stl' refers to the nodes in an STL file (if 'stl' is provided in the [Mesh]); in this case, the data transfers are accomplished using a mesh interpolation.");
+  params.addParam<MultiMooseEnum>(
+      "mesh",
+      getMeshEnums(),
+      "Portion of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh mirror, "
+      "for which data transfers are accomplished simply by reading/writing the corresponding NekRS "
+      "grid point value. 'stl' refers to the nodes in an STL file (if 'stl' is provided in the "
+      "[Mesh]); in this case, the data transfers are accomplished using a mesh interpolation.");
   params.addClassDescription("Base class for transferring field data between NekRS and MOOSE.");
   params.registerBase("FieldTransfer");
   params.registerSystemAttributeName("FieldTransfer");
@@ -41,9 +47,7 @@ FieldTransferBase::validParams()
 }
 
 FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
-  : NekTransferBase(parameters),
-  _transfer_mesh(getParam<MultiMooseEnum>("mesh")),
-  _variable(name())
+  : NekTransferBase(parameters), _transfer_mesh(getParam<MultiMooseEnum>("mesh")), _variable(name())
 {
   if (_direction == "to_nek")
   {
@@ -214,7 +218,6 @@ FieldTransferBase::fillAuxVariableOnSTL(const unsigned int var_number, const dou
       // vertex is "owned" by the present MOOSE process.
       if (node_ptr->processor_id() == pid)
       {
-        //auto node_offset = (element_offset + e) * _nek_mesh->numVerticesPerSTL() + n;
         auto node_offset = e * _nek_mesh->numVerticesPerSTL() + n;
 
         // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary

@@ -39,11 +39,11 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
   // TODO: this class should be made to inherit from NekFieldInterface; would need handling for
-  // the function shift options and testing. If inheriting, then we would not need this line which follows
-  // nor the fetching of _field (but would need to accommodate function, velocity_direction, and
-  // velocity_component. If we inherit from this interface class, we can ignore the velocity_direction
-  // and don't need to support it, since it can trivially be obtained in other ways. So, it's really just
-  // the function support which is needed to be tested.
+  // the function shift options and testing. If inheriting, then we would not need this line which
+  // follows nor the fetching of _field (but would need to accommodate function, velocity_direction,
+  // and velocity_component. If we inherit from this interface class, we can ignore the
+  // velocity_direction and don't need to support it, since it can trivially be obtained in other
+  // ways. So, it's really just the function support which is needed to be tested.
   nekrs::checkFieldValidity(_field);
 
   if (isParamValid("field"))
@@ -179,12 +179,13 @@ NekFieldVariable::readDataFromNek()
       interpolator.find(verbosity);
 
       auto nrs = nekrs::nrsPtr();
-      Point pt(1,0,0); // TODO: could make more elegant
-      auto interpolated = nekrs::interpolateToPoints(interpolator, _field, _nek_mesh->nSTLVertices(), pt /* unused */);
+      Point pt(1, 0, 0); // TODO: could make more elegant
+      auto interpolated = nekrs::interpolateToPoints(
+          interpolator, _field, _nek_mesh->nSTLVertices(), pt /* unused */);
 
-      // we are filling one variable at a time, but the interpolator returns data with multiple components
-      // if we are fetching, e.g. velocity (3 components), scalars (all scalars simultaneously), etc.
-      // So, we need to mask the data going into this function call
+      // we are filling one variable at a time, but the interpolator returns data with multiple
+      // components if we are fetching, e.g. velocity (3 components), scalars (all scalars
+      // simultaneously), etc. So, we need to mask the data going into this function call
       fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
     }
   }

@@ -46,7 +46,11 @@ NekRSMesh::validParams()
   params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
   params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
 
-  params.addParam<std::string>("stl", "STL file containing triangles and faces to read in order to construct an auxiliary surface that can be used for data transfers. This file is assumed to be non-dimensional form, since it is part of the NekRS geometry construction.");
+  params.addParam<std::string>(
+      "stl",
+      "STL file containing triangles and faces to read in order to construct an auxiliary surface "
+      "that can be used for data transfers. This file is assumed to be non-dimensional form, since "
+      "it is part of the NekRS geometry construction.");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");
@@ -147,7 +151,8 @@ NekRSMesh::buildSTLSurface()
 
   std::ifstream file(*_stl_filename);
   if (!file.is_open())
-    paramError("stl", "Error opening file: '", *_stl_filename, "'. Please check that the file exists.");
+    paramError(
+        "stl", "Error opening file: '", *_stl_filename, "'. Please check that the file exists.");
 
   std::string line;
   std::string ignore;
@@ -180,7 +185,13 @@ NekRSMesh::buildSTLSurface()
   }
 
   if (_stl_vertices.size() / 3 != _stl_normals.size())
-    paramError("stl", "STL file does not contain a valid set of vertices! Each triangle must be associated with 3 vertices; we identified ", _stl_vertices.size(), " vertices but ", _stl_normals.size(), " triangles.");
+    paramError("stl",
+               "STL file does not contain a valid set of vertices! Each triangle must be "
+               "associated with 3 vertices; we identified ",
+               _stl_vertices.size(),
+               " vertices but ",
+               _stl_normals.size(),
+               " triangles.");
 
   // now, create the libMesh elements corresponding to the STL triangles
   for (int e = 0; e < _stl_normals.size(); e++)

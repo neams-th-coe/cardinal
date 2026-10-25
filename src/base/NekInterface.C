@@ -338,7 +338,10 @@ commSize()
 }
 
 std::vector<dfloat>
-interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum field, int n, const Point & component)
+interpolateToPoints(pointInterpolation_t & interp,
+                    const field::NekFieldEnum field,
+                    int n,
+                    const Point & component)
 {
   occa::memory o_interpolated;
   int n_values = n;
@@ -400,7 +403,9 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
   {
     case field::velocity_component:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i] * component(0) + all_interpolated_values[i + n] * component(1) + all_interpolated_values[i + 2*n] * component(2);
+        interpolated[i] = all_interpolated_values[i] * component(0) +
+                          all_interpolated_values[i + n] * component(1) +
+                          all_interpolated_values[i + 2 * n] * component(2);
       break;
     case field::velocity_x:
       for (unsigned int i = 0; i < n; ++i)
@@ -412,13 +417,14 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
       break;
     case field::velocity_z:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + 2*n];
+        interpolated[i] = all_interpolated_values[i + 2 * n];
       break;
     case field::velocity:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = std::sqrt(all_interpolated_values[i] * all_interpolated_values[i] +
-                                    all_interpolated_values[i + n] * all_interpolated_values[i + n] +
-                                    all_interpolated_values[i + 2*n] * all_interpolated_values[i + 2*n]);
+        interpolated[i] =
+            std::sqrt(all_interpolated_values[i] * all_interpolated_values[i] +
+                      all_interpolated_values[i + n] * all_interpolated_values[i + n] +
+                      all_interpolated_values[i + 2 * n] * all_interpolated_values[i + 2 * n]);
       break;
     case field::velocity_x_squared:
       for (unsigned int i = 0; i < n; ++i)
@@ -430,25 +436,26 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
       break;
     case field::velocity_z_squared:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + 2*n] * all_interpolated_values[i + 2*n];
+        interpolated[i] = all_interpolated_values[i + 2 * n] * all_interpolated_values[i + 2 * n];
       break;
     case field::pressure:
     case field::temperature:
-      // pressure and temperature are both first entries because we enforce temperature to be zeroth scalar
+      // pressure and temperature are both first entries because we enforce temperature to be zeroth
+      // scalar
       for (unsigned int i = 0; i < n; ++i)
         interpolated[i] = all_interpolated_values[i];
       break;
     case field::scalar01:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(1)*n];
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(1) * n];
       break;
     case field::scalar02:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(2)*n];
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(2) * n];
       break;
     case field::scalar03:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(3)*n];
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(3) * n];
       break;
     case field::unity:
       for (unsigned int i = 0; i < n; ++i)
@@ -464,7 +471,7 @@ interpolateToPoints(pointInterpolation_t & interp, const field::NekFieldEnum fie
       break;
     case field::usrwrk02:
       for (unsigned int i = 0; i < n; ++i)
-        interpolated[i] = all_interpolated_values[i + 2*n];
+        interpolated[i] = all_interpolated_values[i + 2 * n];
       break;
     case field::zero:
       for (unsigned int i = 0; i < n; ++i)
