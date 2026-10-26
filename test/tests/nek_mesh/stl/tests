@@ -1,6 +1,6 @@
 [Tests]
   design = 'NekRSMesh.md'
-  issues = '1398'
+  issues = '#1398'
   [distributed]
     type = RunException
     input = nek.i
