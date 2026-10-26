@@ -481,6 +481,10 @@ interpolateToPoints(pointInterpolation_t & interp,
       mooseError("Unhandled NekFieldEnum in interpolatePoints!");
   }
 
+  // dimensionalize
+  for (unsigned int i = 0; i < n; ++i)
+    interpolated[i] = interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
+
   return interpolated;
 }
 
