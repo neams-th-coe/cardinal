@@ -36,25 +36,25 @@ NekRSMesh::validParams()
 {
   InputParameters params = MooseMesh::validParams();
   params.addParam<std::vector<int>>("boundary",
-                                    "Boundary ID(s) through which nekRS will be coupled to MOOSE");
-  params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
-  params.addParam<bool>("exact", false, "Whether the mesh mirror is an exact replica of the NekRS mesh");
+                                    "Boundary ID(s) through which NekRS will be coupled to MOOSE; these boundaries will be constructed in the [Mesh] and internal data structures will be established to facilitate data transfers to/from the grid points on these boundaries.");
+  params.addParam<bool>("volume", false, "Whether the NekRS volume will be coupled to MOOSE; the volume will be constructed in the [Mesh] and internal data structures will be established to facilitate data transfers to/from NekRS's volume of grid points.");
+  params.addParam<bool>("exact", false, "Whether the mesh mirror is an exact replica of the NekRS mesh; exactly one node point will be built in the [Mesh] for every grid point in NekRS");
   params.addParam<MooseEnum>(
-      "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
+      "order", getNekOrderEnum(), "Order of the mesh interpolation between NekRS and MOOSE");
   params.addRangeCheckedParam<Real>(
-      "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
-  params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
-  params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
+      "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to NekRS's mesh (and the embedded STL file, if present) to get into dimensional units. The [Mesh] will be dimensional.");
+  params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid portion of the mesh");
+  params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid portion of the mesh");
 
   params.addParam<std::string>(
       "stl",
-      "STL file containing triangles and faces to read in order to construct an auxiliary surface "
+      "STL file containing triangles to read in order to construct an auxiliary surface "
       "that can be used for data transfers. This file is assumed to be in the same unit system as "
-      "the NekRS case files, since this STL is part of the NekRS geometry construction. In other "
-      "words, if NekRS is non-dimensional, the STL should be non-dimensional.");
+      "the NekRS case files. In other words, if NekRS is non-dimensional, the STL should be non-dimensional.");
+  params.addRangeCheckedParam<Real>("stl_multiplier", 1.0, "stl_multiplier > 0.0", "Multiplicative scaling to apply to the coordinates in the STL file to get them into NekRS's unit system; This option can be used to take an existing STL file and convert it into NekRS's units.");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription(
-      "Construct a mirror of the NekRS mesh in boundary and/or volume format");
+      "Construct a mirror of the NekRS mesh in boundary and/or volume format, with an optional STL surface");
   return params;
 }
 
@@ -69,9 +69,16 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _solid_block_id(getParam<unsigned int>("solid_block_id")),
     _stl_filename(isParamValid("stl") ? &getParam<std::string>("stl") : nullptr),
     _stl_block_id(getParam<unsigned int>("stl_block_id")),
+    _stl_multiplier(getParam<Real>("stl_multiplier")),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
+  if (!_stl_filename)
+  {
+    checkUnusedParam(parameters, "stl_block_id", "not providing an 'stl' file");
+    checkUnusedParam(parameters, "stl_multiplier", "not providing an 'stl' file");
+  }
+
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
 
@@ -80,9 +87,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
 
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
-
-  if (!_stl_filename)
-    checkUnusedParam(parameters, "stl_block_id", "not providing an 'stl' file");
 
   // see if NekRS's mesh even exists
   if (!nekrs::isInitialized())
@@ -174,6 +178,9 @@ NekRSMesh::buildSTLSurface()
         tryParseFloat(token, vertex(i));
       }
 
+      // apply pre-scaling to adjust into NekRS's units (non-dimensional)
+      vertex *= _stl_multiplier;
+
       _stl_vertices.push_back(vertex);
     }
     else if (ignore == "facet")
@@ -194,6 +201,9 @@ NekRSMesh::buildSTLSurface()
                _stl_normals.size(),
                " triangles.");
 
+  if (_stl_vertices.size() == 0)
+    paramError("stl", "Failed to read STL file. One reason this may occur is if the file is binary format; Cardinal currently is limited to ASCII-format STL files; please contact the Cardinal developer team to support binary format.");
+
   // now, create the libMesh elements corresponding to the STL triangles
   for (int e = 0; e < _stl_normals.size(); e++)
   {
@@ -209,6 +219,8 @@ NekRSMesh::buildSTLSurface()
     {
       auto node_idx = e * Tri3::num_nodes + n;
       Point p(_stl_vertices[node_idx](0), _stl_vertices[node_idx](1), _stl_vertices[node_idx](2));
+
+      // apply scaling to get into dimensional units since we are building the [Mesh]
       p *= _scaling;
       auto node_ptr = _mesh->add_point(p);
       elem->set_node(n) = node_ptr;
@@ -271,6 +283,13 @@ NekRSMesh::printMeshInfo() const
     boundaries = Moose::stringify(nek_bids);
   vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems * _n_build_per_surface_elem,
     _n_volume_elems * _n_build_per_volume_elem);
+
+  if (_stl_filename)
+  {
+    // Convert to a filesystem path object to strip out slashes
+    std::filesystem::path p(*_stl_filename);
+    vt.addRow("STL (" + p.filename().string() + ")", 1, std::to_string(_stl_block_id), _stl_normals.size(), 0);
+  }
 
   vt.print(_console);
   _console << std::endl;

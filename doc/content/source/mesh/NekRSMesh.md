@@ -144,6 +144,24 @@ the following code snippet will generate a second-order volume mesh and sideset
   boundary = '2'
 []
 
+### STL Files
+
+To support immersed boundary methods, or to fetch the NekRS solution at arbitrary positions in
+space, you can optionally provide an `stl` file. This will then *add* to your `[Mesh]`
+a copy of the STL triangles, as shown in [stl_temperature]. These triangles are assigned their own
+subdomain ID with `stl_block_id`, so that you can discriminate them from the rest of the
+mesh mirror for special data transfers. Data will be transferred with this STL mesh,
+possibly in addition to the mirror mesh, by providing the `mesh` parameter in the
+[FieldTransfer](FieldTransfers.md) object of interest.
+
+!listing /test/tests/transfers/nek_temperature/stl_with_volume.i
+  end=AuxVariables
+
+!media stl_temperature.png
+  id=stl_temperature
+  caption=Example construction of an STL file in addition to the mesh mirror
+  style=width:80%;margin-left:auto;margin-right:auto
+
 ## Other Features
 
 When NekRS is run in non-dimensional form, the `.re2` mesh will also be in non-dimensional

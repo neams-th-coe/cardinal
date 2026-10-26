@@ -455,6 +455,9 @@ protected:
   /// Block ID to assign to the elements on the STL surface
   const unsigned int & _stl_block_id;
 
+  /// Multiplicative scaling to apply to the STL surface
+  const Real & _stl_multiplier;
+
   /// Order of the nekRS solution
   int _nek_polynomial_order;
 
