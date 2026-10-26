@@ -483,7 +483,8 @@ interpolateToPoints(pointInterpolation_t & interp,
 
   // dimensionalize
   for (unsigned int i = 0; i < n; ++i)
-    interpolated[i] = interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
+    interpolated[i] =
+        interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
 
   return interpolated;
 }
