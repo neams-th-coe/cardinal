@@ -15,7 +15,8 @@
 [Mesh]
   type = NekRSMesh
   boundary = '2'
-  stl = '../small_sphere.stl'
+  stl = '../../nek_mesh/stl/small_sphere.stl'
+  stl_multiplier = 0.25
 []
 
 [AuxVariables]
