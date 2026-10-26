@@ -56,12 +56,6 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "provide the 'field' parameter.");
   }
 
-  // TODO: this class should be made to inherit from NekFieldInterface; would need handling for
-  // the function shift options and testing. If inheriting, then we would not need this line which
-  // follows nor the fetching of _field (but would need to accommodate function, velocity_direction,
-  // and velocity_component. If we inherit from this interface class, we can ignore the
-  // velocity_direction and don't need to support it, since it can trivially be obtained in other
-  // ways. So, it's really just the function support which is needed to be tested.
   nekrs::checkFieldValidity(_field);
 
   if (_direction == "from_nek")

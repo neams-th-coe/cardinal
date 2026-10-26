@@ -1926,7 +1926,7 @@ get_velocity_z_squared(const int id, const int surf_offset)
 }
 
 void
-checkFieldValidity(const field::NekWriteEnum & field)
+checkFieldValidity(const field::NekWriteEnum field)
 {
   switch (field)
   {

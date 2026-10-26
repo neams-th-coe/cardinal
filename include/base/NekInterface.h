@@ -74,7 +74,7 @@ dfloat * getVgeo();
  * to access temperature, the problem must have a temperature variable
  * @param[in] field field to check
  */
-void checkFieldValidity(const field::NekFieldEnum & field);
+void checkFieldValidity(const field::NekFieldEnum field);
 void checkFieldValidity(const field::NekWriteEnum & field);
 
 void copyDeviceToHost();
