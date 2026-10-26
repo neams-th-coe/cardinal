@@ -152,7 +152,7 @@ a copy of the STL triangles, as shown in [stl_temperature]. These triangles are 
 subdomain ID with `stl_block_id`, so that you can discriminate them from the rest of the
 mesh mirror for special data transfers. Data will be transferred with this STL mesh,
 possibly in addition to the mirror mesh, by providing the `mesh` parameter in the
-[FieldTransfer](FieldTransfers.md) object of interest.
+[FieldTransfer](AddFieldTransferAction.md) object of interest.
 
 !listing /test/tests/transfers/nek_temperature/stl_with_volume.i
   end=AuxVariables
