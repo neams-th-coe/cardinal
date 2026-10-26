@@ -69,4 +69,11 @@
     requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values around 1% (this is partly because the boundary condition is not replicated from the perfect analytic solution for simplicity, and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for a temperature transfer, with a boundary mesh mirror that also participates in the coupling. Temperatures are adequately reconstructed on the two separate meshes (mirror and stl)."
     issues = '#1398'
   []
+  [stl_nondimensional]
+    type = CSVDiff
+    input = stl_nondimensional.i
+    csvdiff = stl_nondimensional_out.csv
+    requirement = "The system shall correctly dimensionalize the data onto the STL surface; this is checked by comparing the STL data transfer against an existing mesh mirror transfer in non-dimensional form"
+    issues = '#1398'
+  []
 []

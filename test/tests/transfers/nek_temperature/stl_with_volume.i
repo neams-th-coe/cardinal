@@ -17,7 +17,6 @@
       type = NekVolumetricData
       direction = to_nek
       usrwrk_slot = 1
-      field = temperature
     []
   []
 []
