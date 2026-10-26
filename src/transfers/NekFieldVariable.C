@@ -56,7 +56,7 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                      "provide the 'field' parameter.");
   }
 
-  nekrs::checkFieldValidity(_field);
+  nekrs::checkInputFieldValidity(_field);
 
   if (_direction == "from_nek")
     addExternalVariable(_variable);
