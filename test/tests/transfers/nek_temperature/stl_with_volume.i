@@ -58,7 +58,6 @@
 []
 
 [Postprocessors]
-
   # we do not expect these to be perfectly zero, because we are interpolating the
   # function (defined in the udf file) onto the STL points
   [max_error_t_0]

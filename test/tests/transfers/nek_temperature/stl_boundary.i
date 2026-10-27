@@ -274,139 +274,167 @@
   [max_error_t]
     type = ElementExtremeValue
     variable = d_t
+    block = 9999
   []
   [min_error_t]
     type = ElementExtremeValue
     variable = d_t
     value_type = min
+    block = 9999
   []
 
   [max_error_s1]
     type = ElementExtremeValue
     variable = d_s1
+    block = 9999
   []
   [min_error_s1]
     type = ElementExtremeValue
     variable = d_s1
     value_type = min
+    block = 9999
   []
 
   [max_error_s2]
     type = ElementExtremeValue
     variable = d_s2
+    block = 9999
   []
   [min_error_s2]
     type = ElementExtremeValue
     variable = d_s2
     value_type = min
+    block = 9999
   []
 
   [max_error_s3]
     type = ElementExtremeValue
     variable = d_s3
+    block = 9999
   []
   [min_error_s3]
     type = ElementExtremeValue
     variable = d_s3
     value_type = min
+    block = 9999
   []
 
   [max_error_p]
     type = ElementExtremeValue
     variable = d_p
+    block = 9999
   []
   [min_error_p]
     type = ElementExtremeValue
     variable = d_p
     value_type = min
+    block = 9999
   []
 
   [max_error_v]
     type = ElementExtremeValue
     variable = d_v
+    block = 9999
   []
   [min_error_v]
     type = ElementExtremeValue
     variable = d_v
     value_type = min
+    block = 9999
   []
 
   [max_error_vx]
     type = ElementExtremeValue
     variable = d_vx
+    block = 9999
   []
   [min_error_vx]
     type = ElementExtremeValue
     variable = d_vx
     value_type = min
+    block = 9999
   []
 
   [max_error_vy]
     type = ElementExtremeValue
     variable = d_vy
+    block = 9999
   []
   [min_error_vy]
     type = ElementExtremeValue
     variable = d_vy
     value_type = min
+    block = 9999
   []
 
   [max_error_vz]
     type = ElementExtremeValue
     variable = d_vz
+    block = 9999
   []
   [min_error_vz]
     type = ElementExtremeValue
     variable = d_vz
     value_type = min
+    block = 9999
   []
 
   [max_error_vx2]
     type = ElementExtremeValue
     variable = d_vx2
+    block = 9999
   []
   [min_error_vx2]
     type = ElementExtremeValue
     variable = d_vx2
     value_type = min
+    block = 9999
   []
 
   [max_error_vy2]
     type = ElementExtremeValue
     variable = d_vy2
+    block = 9999
   []
   [min_error_vy2]
     type = ElementExtremeValue
     variable = d_vy2
     value_type = min
+    block = 9999
   []
 
   [max_error_vz2]
     type = ElementExtremeValue
     variable = d_vz2
+    block = 9999
   []
   [min_error_vz2]
     type = ElementExtremeValue
     variable = d_vz2
     value_type = min
+    block = 9999
   []
   [max_unity]
     type = ElementExtremeValue
     variable = unity
+    block = 9999
   []
   [min_unity]
     type = ElementExtremeValue
     variable = unity
     value_type = min
+    block = 9999
   []
   [max_zero]
     type = ElementExtremeValue
     variable = zero
+    block = 9999
   []
   [min_zero]
     type = ElementExtremeValue
     variable = zero
     value_type = min
+    block = 9999
   []
 []
 

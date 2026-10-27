@@ -19,26 +19,28 @@
 []
 
 [Postprocessors]
-
   [max_t]
     type = ElementExtremeValue
     variable = scalar01
+    block = 9999
   []
   [min_t]
     type = ElementExtremeValue
     variable = scalar01
     value_type = min
+    block = 9999
   []
   [max_nek_t]
     type = NekVolumeExtremeValue
     field = scalar01
+    block = 9999
   []
   [min_nek_t]
     type = NekVolumeExtremeValue
     field = scalar01
     value_type = min
+    block = 9999
   []
-
 []
 
 [Executioner]
