@@ -43,7 +43,4 @@ protected:
 
   /// NekRS field to read/write
   field::NekFieldEnum _field;
-
-  /// Interpolator object to write to STL file
-  pointInterpolation_t * _interpolator;
 };

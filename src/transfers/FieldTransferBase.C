@@ -87,6 +87,29 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
   _v_face = (double *)calloc(_n_per_surf, sizeof(double));
   _v_elem = (double *)calloc(_n_per_vol, sizeof(double));
   _external_data = (double *)calloc(_nek_problem.nPoints(), sizeof(double));
+
+  for (const auto & t : _transfer_mesh)
+  {
+    if (t == "stl")
+    {
+      // we assume that the STL file is in non-dimensional form, since it is really like part of
+      // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
+      // is needed here
+      std::vector<dfloat> x, y, z;
+      for (const auto & vertex : _nek_mesh->STLVertices())
+      {
+        x.push_back(vertex(0));
+        y.push_back(vertex(1));
+        z.push_back(vertex(2));
+      }
+
+      // create an interpolator
+      _interpolator = new pointInterpolation_t(nekrs::entireMesh(), platform->comm.mpiComm());
+      _interpolator->setPoints(x, y, z);
+      const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
+      _interpolator->find(verbosity);
+    }
+  }
 }
 
 FieldTransferBase::~FieldTransferBase()

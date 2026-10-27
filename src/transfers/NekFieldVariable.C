@@ -19,7 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekFieldVariable.h"
-#include "pointInterpolation.hpp"
 
 registerMooseObject("CardinalApp", NekFieldVariable);
 
@@ -88,29 +87,6 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
-
-  for (const auto & t : _transfer_mesh)
-  {
-    if (t == "stl")
-    {
-      // we assume that the STL file is in non-dimensional form, since it is really like part of
-      // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
-      // is needed here
-      std::vector<dfloat> x, y, z;
-      for (const auto & vertex : _nek_mesh->STLVertices())
-      {
-        x.push_back(vertex(0));
-        y.push_back(vertex(1));
-        z.push_back(vertex(2));
-      }
-
-      // create an interpolator
-      _interpolator = new pointInterpolation_t(nekrs::entireMesh(), platform->comm.mpiComm());
-      _interpolator->setPoints(x, y, z);
-      const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
-      _interpolator->find(verbosity);
-    }
-  }
 }
 
 field::NekFieldEnum

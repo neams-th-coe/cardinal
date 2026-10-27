@@ -20,6 +20,7 @@
 
 #include "NekTransferBase.h"
 #include "AuxiliarySystem.h"
+#include "pointInterpolation.hpp"
 
 /**
  * Base class for facilitating a data transfer between MOOSE and the NekRS
@@ -120,4 +121,7 @@ protected:
 
   /// Scratch space to place external NekRS fields before writing into auxiliary variables
   double * _external_data = nullptr;
+
+  /// Interpolator object to write to STL file
+  pointInterpolation_t * _interpolator = nullptr;
 };
