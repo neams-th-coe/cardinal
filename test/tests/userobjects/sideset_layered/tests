@@ -6,6 +6,7 @@
     requirement = "The system shall error if an invalid boundary ID is specified"
     capabilities = 'nekrs'
     design = 'NekBinnedSideIntegral.md'
+    min_slots = 4 # 410 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [z_bins]
     type = Exodiff
@@ -15,6 +16,7 @@
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the quadrature point"
     capabilities = 'nekrs'
     design = 'NekBinnedSideIntegral.md NekBinnedSideAverage.md LayeredBin.md'
+    min_slots = 4 # 477 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [z_bins_by_centroid]
     type = Exodiff
@@ -23,6 +25,7 @@
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the face centroid"
     capabilities = 'nekrs'
     design = 'NekBinnedSideIntegral.md NekBinnedSideAverage.md LayeredBin.md'
+    min_slots = 4 # 473 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [side_average]
     type = Exodiff
@@ -31,5 +34,6 @@
     requirement = "The system shall correctly average over a sideset in the NekRS domain"
     capabilities = 'nekrs'
     design = 'NekBinnedSideAverage.md LayeredBin.md'
+    min_slots = 4 # 475 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

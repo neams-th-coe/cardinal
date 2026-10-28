@@ -7,6 +7,7 @@
     capabilities = 'nekrs'
     design = 'NekBinnedVolumeAverage.md'
     issues = '#1407'
+    min_slots = 4 # 382 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [subchannel_layered]
     type = Exodiff
@@ -16,6 +17,7 @@
                   "binning and demonstrate correct results for volume integrals and averages."
     capabilities = 'nekrs'
     design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
+    min_slots = 4 # 488 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [conflicting_bins]
     type = RunException
@@ -25,6 +27,7 @@
     requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
     capabilities = 'nekrs'
     design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
+    min_slots = 4 # 382 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [1d_output]
     type = CSVDiff
@@ -33,6 +36,7 @@
     requirement = "The output points shall be automatically output for a single-axis subchannel binning"
     capabilities = 'nekrs'
     design = 'HexagonalSubchannelBin.md NekBinnedVolumeAverage.md'
+    min_slots = 4 # 474 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [wrong_type]
     type = RunException
@@ -41,6 +45,7 @@
     requirement = "System shall error if a side user object is provided to a volume binning user object."
     capabilities = 'nekrs'
     design = 'NekBinnedVolumeAverage.md'
+    min_slots = 4 # 423 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [invalid_component]
     type = RunException
@@ -50,6 +55,7 @@
     requirement = "System shall error if attempting to use a normal velocity component with a user object that does not have normals defined"
     capabilities = 'nekrs'
     design = 'NekBinnedVolumeAverage.md'
+    min_slots = 4 # 383 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [user_component]
     type = Exodiff
@@ -60,6 +66,7 @@
                   "along a constant direction."
     capabilities = 'nekrs'
     design = 'HexagonalSubchannelBin.md LayeredBin.md NekBinnedVolumeAverage.md NekBinnedVolumeIntegral.md'
+    min_slots = 4 # 492 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [pin_1d]
     type = CSVDiff
@@ -68,5 +75,6 @@
     requirement = "A pin-centered subchannel bin shall give correct results for side averages of temperature."
     capabilities = 'nekrs'
     design = 'HexagonalSubchannelBin.md NekBinnedVolumeAverage.md'
+    min_slots = 4 # 475 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

@@ -21,6 +21,7 @@
                   "As the BISON mesh is refined, the error continually decreases until the temperatures "
                   "are very close to those predicted by the standalone MOOSE case."
     capabilities = 'nekrs'
+    min_slots = 10 # 458 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [cylinder_conduction_subcycle]
     type = CSVDiff
@@ -36,6 +37,7 @@
                   "is equivalent. We don't use exactly the same CSV gold file because the number of time steps "
                   "differs, and would trigger a failure."
     capabilities = 'nekrs'
+    min_slots = 10 # 466 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [cylinder_conduction_reversed]
     type = CSVDiff
@@ -48,6 +50,7 @@
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
     capabilities = 'nekrs'
+    min_slots = 10 # 466 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [cylinder_conduction_mini]
     type = CSVDiff
@@ -60,6 +63,7 @@
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."
     capabilities = 'nekrs'
+    min_slots = 10 # 467 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [cylinder_conduction_exact]
     type = CSVDiff
@@ -69,5 +73,6 @@
     requirement = "The system shall support an exact NekRS mesh mirror. The solution is compared against "
                   "the cylinder_conduction case and nearly identical solutions are obtained."
     capabilities = 'nekrs'
+    min_slots = 10 # 466 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []
