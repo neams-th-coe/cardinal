@@ -18,6 +18,15 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [overlapping_blocks]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/fluid_block_id=5 Mesh/stl_block_id=5'
+    expect_err = "Unique values must be used for 'fluid_block_id' \(5\), 'solid_block_id' \(1\), and '_stl_block_id' \(5\)."
+    requirement = "The system shall error if overlapping values are used for the block IDs in the mesh"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
   [order_stl]
     type = RunException
     input = nek.i

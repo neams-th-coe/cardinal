@@ -108,6 +108,14 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   else if (_order != order::first)
     paramError("order", "STL variables are currently limited to first order Lagrange; please change the 'order' parameter to 'FIRST'");
 
+  // for simplicity, we require unique values to be used for the block IDs for the fluid, solid,
+  // and STL surface. This makes the conservative transfers easier to deal with, because we automatically
+  // add some postprocessors to compute integrals (e.g. of heat flux, power density) and we'd need to
+  // be more careful if the block IDs overlapped with one another
+  std::set<unsigned int> block_ids = {_fluid_block_id, _solid_block_id, _stl_block_id};
+  if (block_ids.size() != 3)
+    mooseError("Unique values must be used for 'fluid_block_id' (", _fluid_block_id, "), 'solid_block_id' (", _solid_block_id, "), and '_stl_block_id' (", _stl_block_id, ").");
+
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
 
