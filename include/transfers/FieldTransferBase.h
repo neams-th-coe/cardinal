@@ -107,19 +107,19 @@ protected:
    */
   static std::map<std::string, std::pair<Real, Real>> _field_usrwrk_scales;
 
-  /// Number of points on the MOOSE mesh to write per element surface
+  /// Number of points on the MOOSE mirror mesh to write per element surface in NekRS
   int _n_per_surf;
 
-  /// Number of points on the MOOSE mesh to write per element volume
+  /// Number of points on the MOOSE mirror mesh to write per element volume in NekRS
   int _n_per_vol;
 
-  /// MOOSE data interpolated onto the (boundary) data transfer mesh
+  /// MOOSE mirror data interpolated onto the (boundary) data transfer mesh
   double * _v_face = nullptr;
 
-  /// MOOSE data interpolated onto the (volume) data transfer mesh
+  /// MOOSE mirror data interpolated onto the (volume) data transfer mesh
   double * _v_elem = nullptr;
 
-  /// Scratch space to place external NekRS fields before writing into auxiliary variables
+  /// Scratch space to place external NekRS fields before writing into auxiliary variables on the mirror mesh
   double * _external_data = nullptr;
 
   /// Interpolator object to write to STL file

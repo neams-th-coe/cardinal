@@ -90,6 +90,12 @@ public:
   int nSTLVertices() const { return _stl_vertices.size(); }
 
   /**
+   * Whether there is an STL file present
+   * @return if STL file is provided
+   */
+  bool hasSTLFile() const { return _stl_filename; }
+
+  /**
    * Vector of all STL vertices, ordered according to their numbering as nodes
    * @return vector of all STL vertices
    */

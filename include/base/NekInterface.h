@@ -106,6 +106,14 @@ std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
 void setAbsoluteTol(double tol);
 
 /**
+ * Convert from the field string into the enumeration used internally
+ * in the NekInterface system.
+ * @param[in] name field name
+ * @return field enumeration
+ */
+field::NekFieldEnum convertToFieldEnum(const std::string name);
+
+/**
  * Interpolate a field onto a set of points using NekRS's interpolator
  * @param[in] interp an intialized interpolator
  * @param[in] field the field type

@@ -337,6 +337,50 @@ commSize()
   return platform->comm.mpiCommSize();
 }
 
+field::NekFieldEnum convertToFieldEnum(const std::string name)
+{
+  auto lowercase = name;
+  std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), ::tolower);
+  if (lowercase == "velocity_x")
+    return field::velocity_x;
+  if (lowercase == "velocity_y")
+    return field::velocity_y;
+  if (lowercase == "velocity_z")
+    return field::velocity_z;
+  if (lowercase == "velocity")
+    return field::velocity;
+  if (lowercase == "velocity_component")
+    return field::velocity_component;
+  if (lowercase == "velocity_x_squared")
+    return field::velocity_x_squared;
+  if (lowercase == "velocity_y_squared")
+    return field::velocity_y_squared;
+  if (lowercase == "velocity_z_squared")
+    return field::velocity_z_squared;
+  if (lowercase == "temperature")
+    return field::temperature;
+  if (lowercase == "pressure")
+    return field::pressure;
+  if (lowercase == "scalar01")
+    return field::scalar01;
+  if (lowercase == "scalar02")
+    return field::scalar02;
+  if (lowercase == "scalar03")
+    return field::scalar03;
+  if (lowercase == "unity")
+    return field::unity;
+  if (lowercase == "usrwrk00")
+    return field::usrwrk00;
+  if (lowercase == "usrwrk01")
+    return field::usrwrk01;
+  if (lowercase == "usrwrk02")
+    return field::usrwrk02;
+  if (lowercase == "zero")
+    return field::zero;
+
+  mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
+}
+
 // TODO: will need to generalize to other types of fluxes once we add mass transport
 std::vector<dfloat>
 interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Point> & stl_normals, int n)

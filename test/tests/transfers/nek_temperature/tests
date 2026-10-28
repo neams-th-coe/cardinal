@@ -90,4 +90,13 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [missing_stl]
+    type = RunException
+    input = missing_stl.i
+    expect_err = "Cannot specify coupling to an STL file in the 'mesh'"
+    requirement = "The system shall error if trying to perform a transfer with an STL file, but this file has not been provided to the mesh"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
 []
