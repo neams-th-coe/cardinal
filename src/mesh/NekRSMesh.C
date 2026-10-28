@@ -105,6 +105,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     checkUnusedParam(parameters, "stl_multiplier", "not providing an 'stl' file");
     checkUnusedParam(parameters, "stl_translation", "not providing an 'stl' file");
   }
+  else if (_order != order::first)
+    paramError("order", "STL variables are currently limited to first order Lagrange; please change the 'order' parameter to 'FIRST'");
 
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");

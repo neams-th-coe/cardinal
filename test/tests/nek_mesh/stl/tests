@@ -18,6 +18,15 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [order_stl]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/order=SECOND'
+    expect_err = "STL variables are currently limited to"
+    requirement = "The system shall error if STL variables are specified as order other than first order Lagrange, since this feature is currently not supported"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
   [three_vertices]
     type = RunException
     input = nek.i
