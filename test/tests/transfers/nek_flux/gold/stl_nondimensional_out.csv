@@ -1,0 +1,3 @@
+time,flux_integral,flux_integral_stl,max_flux_mirror,max_flux_stl,min_flux_mirror,min_flux_stl,surface_area
+0,0,0,0,0,0,0,0
+0.0025,-1258584.1323616,-629975.88664331,62500.000022602,66448.472838004,-131231.27309897,-132965.71911014,77.910617400707

@@ -421,12 +421,10 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Poi
     // compute grad(T) * hat(n) at each point
     auto grad_T_cdot_n = all_interpolated_values[i] * normal(0) + all_interpolated_values[i + 1 * n] * normal(1) + all_interpolated_values[i + 2 * n] * normal(2);
     interpolated[i] = -k * grad_T_cdot_n;
-  }
 
-  // TODO: dimensionalize
-  //for (unsigned int i = 0; i < n; ++i)
-  //  interpolated[i] =
-  //      interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
+    // dimensionalize the solution if needed
+    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field::flux) + nekrs::nondimensionalAdditive(field::flux);
+  }
 
   return interpolated;
 }
