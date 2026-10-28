@@ -119,6 +119,8 @@ std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
                                         int n,
                                         const Point component = Point(1, 0, 0));
 
+std::vector<dfloat> interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Point> & stl_normals, int n);
+
 /**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot

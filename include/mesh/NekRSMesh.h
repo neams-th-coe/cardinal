@@ -179,6 +179,8 @@ public:
    */
   const int numSTLElems() const { return _stl_normals.size(); }
 
+  const std::vector<Point> & STLNormals() const { return _stl_normals; }
+
   /**
    * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh
    *
@@ -457,6 +459,9 @@ protected:
 
   /// Multiplicative scaling to apply to the STL surface
   const Real & _stl_multiplier;
+
+  /// Translation to apply to the STL surface
+  const Point * _stl_translation;
 
   /// Order of the nekRS solution
   int _nek_polynomial_order;

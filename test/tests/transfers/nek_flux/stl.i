@@ -14,9 +14,9 @@
 [Mesh]
   type = NekRSMesh
   boundary = '1 2 3 4 5 6'
-  stl = "small_sphere.stl"
-  stl_translation = '1.0 1.0 1.0'
-  stl_multiplier = 0.5
+  #stl = "other_sphere.stl"
+  stl = "../../nek_mesh/stl/small_sphere.stl"
+  stl_translation = '0.5 0.5 0.5'
 []
 
 [Executioner]
@@ -36,6 +36,11 @@
   [read_flux]
     type = ElementIntegralVariablePostprocessor
     variable = flux
+    block = 9999
+  []
+  [volume]
+    type = VolumePostprocessor
+    block = 9999
   []
 []
 

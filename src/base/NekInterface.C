@@ -337,6 +337,64 @@ commSize()
   return platform->comm.mpiCommSize();
 }
 
+// TODO: will need to generalize to other types of fluxes once we add mass transport
+std::vector<dfloat>
+interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Point> & stl_normals, int n)
+{
+  //auto mesh = nrs->meshV;
+  auto mesh = nrs->scalar->mesh("temperature");
+  auto fieldOffsetSum = mesh->dim * nrs->fieldOffset;
+  int n_values = n * mesh->dim; // TODO: number of scalars?
+
+  // the interpolator has been initialized with the corners of the STL triangles; so,
+  // we compute grad(T) at all of the Eulerian points, and then interpolate that to
+  // the Lagrangian points
+
+  auto o_S = nrs->scalar->o_solution("temperature");
+  auto o_gradS = opSEM::strongGrad(mesh, nrs->scalar->fieldOffset(), o_S);
+
+  // copy from host to device
+  //std::vector<dfloat> gradT(n_values);
+  //o_gradS.copyTo(gradT.data(), n_values);
+
+  // interpolate grad(T) on Eulerian points to Lagrangian points
+  occa::memory o_interpolated;
+  o_interpolated = platform->device.malloc<dfloat>(n_values);
+  interp.eval(mesh->dim, nekrs::scalarFieldOffset(), o_gradS, n, o_interpolated);
+
+  // the interpolation happens on device, so we need to copy it back to the host
+  std::vector<dfloat> all_interpolated_values(n_values);
+  o_interpolated.copyTo(all_interpolated_values.data(), n_values);
+
+  // now that we have grad(T) on the Lagrangian points, we need to take the dot product
+  // with the unit normal for each triangle. We have the results indexed according to
+  // the node, but the normals are indexed according to the element
+
+  // TODO: multiply by k
+  double k;
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+  std::vector<dfloat> interpolated(n);
+  for (unsigned int i = 0; i < n; ++i)
+  {
+    // vertices are grouped in 3's to map to each element
+    unsigned int stl_elem_idx = i / 3;
+
+    auto normal = stl_normals[stl_elem_idx];
+
+    // compute grad(T) * hat(n) at each point
+    auto grad_T_cdot_n = all_interpolated_values[i] * normal(0) + all_interpolated_values[i + 1 * n] * normal(1) + all_interpolated_values[i + 2 * n] * normal(2);
+    interpolated[i] = -k * grad_T_cdot_n;
+  }
+
+  // TODO: dimensionalize
+  //for (unsigned int i = 0; i < n; ++i)
+  //  interpolated[i] =
+  //      interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
+
+  return interpolated;
+}
+
+
 std::vector<dfloat>
 interpolateToPoints(pointInterpolation_t & interp,
                     const field::NekFieldEnum field,

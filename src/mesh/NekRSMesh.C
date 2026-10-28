@@ -76,6 +76,7 @@ NekRSMesh::validParams()
       "Multiplicative scaling to apply to the coordinates in the STL file to get them into NekRS's "
       "unit system; This option can be used to take an existing STL file and convert it into "
       "NekRS's units.");
+  params.addParam<Point>("stl_translation", "Translation to apply to the coordinates in the STL file; this is applied prior to any stl_multiplier being applied");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription("Construct a mirror of the NekRS mesh in boundary and/or volume "
                              "format, with an optional STL surface");
@@ -94,6 +95,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _stl_filename(isParamValid("stl") ? &getParam<std::string>("stl") : nullptr),
     _stl_block_id(getParam<unsigned int>("stl_block_id")),
     _stl_multiplier(getParam<Real>("stl_multiplier")),
+    _stl_translation(isParamValid("stl_translation") ? &getParam<Point>("stl_translation") : nullptr),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
@@ -101,6 +103,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   {
     checkUnusedParam(parameters, "stl_block_id", "not providing an 'stl' file");
     checkUnusedParam(parameters, "stl_multiplier", "not providing an 'stl' file");
+    checkUnusedParam(parameters, "stl_translation", "not providing an 'stl' file");
   }
 
   if (_exact && _order != order::first)
@@ -185,6 +188,8 @@ NekRSMesh::buildSTLSurface()
 
   std::string line;
   std::string ignore;
+  unsigned int i = 0;
+  unsigned int elem_idx = 0;
 
   while (std::getline(file, line))
   {
@@ -200,6 +205,9 @@ NekRSMesh::buildSTLSurface()
         std::string token;
         iss >> token;
         tryParseFloat(token, vertex(i));
+
+        if (_stl_translation)
+          vertex(i) += (*_stl_translation)(i);
       }
 
       // apply pre-scaling to adjust into NekRS's units (non-dimensional)
@@ -212,6 +220,11 @@ NekRSMesh::buildSTLSurface()
       // Parse facet normal
       Point normal;
       iss >> ignore >> normal(0) >> normal(1) >> normal(2);
+
+      // check that each normal has length 1
+      if (std::abs(normal.norm() - 1.0) > 1e-6)
+        mooseError("Unit normal vector detected with length ", normal.norm(), ": ", normal);
+
       _stl_normals.push_back(normal);
     }
   }

@@ -160,12 +160,26 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 void
 NekBoundaryFlux::readDataFromNek()
 {
-  if (!_nek_mesh->volume())
-    _nek_problem.boundarySolution(field::flux, _external_data);
-  else
-    _nek_problem.volumeSolution(field::flux, _external_data);
+  for (const auto & t : _transfer_mesh)
+  {
+    if (t == "mirror")
+    {
+      if (!_nek_mesh->volume())
+        _nek_problem.boundarySolution(field::flux, _external_data);
+      else
+        _nek_problem.volumeSolution(field::flux, _external_data);
 
-  fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
+      fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
+    }
+    else if (t == "stl")
+    {
+      // TODO: dont need to pass in number of vertices
+      auto interpolated = nekrs::interpolateHeatFluxToPoints(*_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices());
+      fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
+    }
+    else
+      mooseError("Unhandled MeshEnum in NekBoundaryFlux!");
+  }
 
   // the postprocessor is automatically populated because its execution controls its writing
 }
