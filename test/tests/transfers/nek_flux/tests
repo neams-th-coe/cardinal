@@ -20,10 +20,19 @@
     capabilities = 'nekrs'
   []
   [flux_stl]
-    type = RunException
+    type = CSVDiff
     input = moose_stl.i
-    csvdiff = moose_stl_out_nek0_out.csv
+    csvdiff = moose_stl_out_nek0.csv
     requirement = "The system shall compute non-dimensional heat flux on the STL surface from NekRS. This test first calculates the heat flux analytically on a sphere sideset in MOOSE, then transfers this information to a sub-app where NekRS is writing its heat flux on a Lagrangian STL surface. The distributions agree well (though not perfectly, since the MOOSE and NekRS meshes are not identical). A flux integral over the STL surface also matches the MOOSE-integrated value."
+    issues = '#1398'
+    capabilities = 'nekrs'
+  []
+  [flux_stl_custom_name]
+    type = CSVDiff
+    input = moose_stl.i
+    cli_args = "MultiApps/nek/cli_args='Problem/FieldTransfers/flux/stl_postprocessor_to_conserve=this' Outputs/file_base=this"
+    csvdiff = this_nek0.csv
+    requirement = "The system shall allow a custom name to be provided for the postprocessor used to ensure conservation of flux. The gold file is the same as the flux_stl test, except the name of the NekRS flux postprocessor is different."
     issues = '#1398'
     capabilities = 'nekrs'
   []
