@@ -406,10 +406,6 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Poi
   std::vector<dfloat> all_interpolated_values(n_values);
   o_interpolated.copyTo(all_interpolated_values.data(), n_values);
 
-  // now that we have grad(T) on the Lagrangian points, we need to take the dot product
-  // with the unit normal for each triangle. We have the results indexed according to
-  // the node, but the normals are indexed according to the element
-
   // TODO: this will only work correctly if the diffusion coefficient is constant;
   // also will need to generalize to other scalars
   double k;

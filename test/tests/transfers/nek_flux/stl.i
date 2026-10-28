@@ -14,9 +14,14 @@
 [Mesh]
   type = NekRSMesh
   boundary = '1 2 3 4 5 6'
-  #stl = "other_sphere.stl"
   stl = "../../nek_mesh/stl/small_sphere.stl"
   stl_translation = '0.5 0.5 0.5'
+[]
+
+[AuxVariables]
+  [moose_flux]
+    block = 9999
+  []
 []
 
 [Executioner]
@@ -25,22 +30,41 @@
   [TimeStepper]
     type = NekTimeStepper
   []
-
-  [Quadrature]
-    type = GAUSS_LOBATTO
-    order = FIRST
-  []
 []
 
 [Postprocessors]
-  [read_flux]
+  [moose_flux_integral]
     type = ElementIntegralVariablePostprocessor
-    variable = flux
+    variable = moose_flux
     block = 9999
   []
   [volume]
     type = VolumePostprocessor
     block = 9999
+  []
+
+  [max_nek_flux]
+    type = ElementExtremeValue
+    variable = flux
+    block = 9999
+  []
+  [min_nek_flux]
+    type = ElementExtremeValue
+    variable = flux
+    block = 9999
+    value_type = min
+  []
+
+  [max_moose_flux]
+    type = ElementExtremeValue
+    variable = moose_flux
+    block = 9999
+  []
+  [min_moose_flux]
+    type = ElementExtremeValue
+    variable = moose_flux
+    block = 9999
+    value_type = min
   []
 []
 

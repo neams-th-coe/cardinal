@@ -54,10 +54,23 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _boundary(_nek_mesh->boundary()),
     _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(field::flux))
 {
-  if (!_boundary)
-    mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
-               "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
+  if (_transfer_mesh.contains("mirror"))
+  {
+    if (!_boundary)
+      mooseError("When transferring data with the mesh mirror, NekBoundaryFlux requires 'boundary' "
+                 "to be provided in NekRSMesh.");
 
+    // right now, all of our systems used for transferring data assume that if we have a volume
+    // mesh mirror, that we will be writing data to that entire mesh mirror. But this is not the
+    // case if we want to write a flux, which we would only write on a boundary associated with
+    // a unit normal. For now, just prevent users from doing this.
+    if (_direction == "from_nek" && _nek_mesh->volume())
+      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary "
+                 "when the Mesh has 'volume = true.' Please contact the Cardinal developer team if "
+                 "you require this feature.");
+  }
+
+  // TODO: will need to be generalized for other scalars
   if (!nekrs::hasTemperatureVariable())
     mooseError("In order to read or write NekRS's boundary heat flux, your case files must have a "
                "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
@@ -72,17 +85,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "supported. Contact the Cardinal developer team if you need this feature.");
 
     checkUnusedParam(parameters, "initial_flux_integral", "'direction = from_nek'");
-
     addExternalVariable(_variable);
-
-    // right now, all of our systems used for transferring data assume that if we have a volume
-    // mesh mirror, that we will be writing data to that entire mesh mirror. But this is not the
-    // case if we want to write a heat flux - since the notion of a unit outward normal is s
-    // surface quantity. For now, just prevent users from doing this.
-    if (_nek_mesh->volume())
-      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary "
-                 "when the Mesh has 'volume = true.' Please contact the Cardinal developer team if "
-                 "you require this feature.");
   }
   else
   {
@@ -116,7 +119,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                    "will be unused.");
   }
 
-  // add postprocessors to hold integrated heat flux
+  // add postprocessors to hold integrated heat flux; we do not need to check for duplicate
+  // names, because MOOSE already handles this error checking
   if (_direction == "to_nek")
   {
     // add the postprocessor that receives the flux integral for normalization
@@ -146,41 +150,52 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   }
   else
   {
-    // create a NekHeatFluxIntegral postprocessor to compute the heat flux
-    auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
-    pp_params.set<std::vector<int>>("boundary") = *_boundary;
+    if (_transfer_mesh.contains("mirror"))
+    {
+      // create a NekHeatFluxIntegral postprocessor to compute the heat flux; this represents
+      // the actual heat flux computed by NekRS
+      auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
+      pp_params.set<std::vector<int>>("boundary") = *_boundary;
+      _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
+      _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
+    }
 
-    // we do not need to check for duplicate names, because MOOSE already handles
-    // this error checking
-    _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
-    _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
+    if (_transfer_mesh.contains("stl"))
+    {
+      // create a surface integral of the evaluated heat flux on the STL surface; note that
+      // the STL geometry is a volume (2-D), so that a volume integral is equivalent to a
+      // surface integral. The STL surface is not a physical sideset in the NekRS problem,
+      // so this postprocessor is only an approximation to the heat flux on this surface.
+      // TODO: check whether we need a different PP here
+      auto pp_params = _factory.getValidParams("ElementIntegralVariablePostprocessor");
+      pp_params.set<std::vector<SubdomainName>>("block").push_back(Moose::stringify(_nek_mesh->STLSubdomainID()));
+      pp_params.set<std::vector<VariableName>>("variable").push_back(_variable);
+      _nek_problem.addPostprocessor("ElementIntegralVariablePostprocessor", _postprocessor_name_stl, pp_params);
+      _flux_integral_stl = &getPostprocessorValueByName(_postprocessor_name_stl);
+    }
   }
 }
 
 void
 NekBoundaryFlux::readDataFromNek()
 {
-  for (const auto & t : _transfer_mesh)
+  if (_transfer_mesh.contains("mirror"))
   {
-    if (t == "mirror")
-    {
-      if (!_nek_mesh->volume())
-        _nek_problem.boundarySolution(field::flux, _external_data);
-      else
-        _nek_problem.volumeSolution(field::flux, _external_data);
-
-      fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
-    }
-    else if (t == "stl")
-    {
-      auto interpolated = nekrs::interpolateHeatFluxToPoints(*_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices());
-      fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
-    }
+    if (!_nek_mesh->volume())
+      _nek_problem.boundarySolution(field::flux, _external_data);
     else
-      mooseError("Unhandled MeshEnum in NekBoundaryFlux!");
+      _nek_problem.volumeSolution(field::flux, _external_data);
+
+    fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
   }
 
-  // the postprocessor is automatically populated because its execution controls its writing
+  if (_transfer_mesh.contains("stl"))
+  {
+    auto interpolated = nekrs::interpolateHeatFluxToPoints(*_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices());
+    fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
+  }
+
+  // the postprocessor(s) are automatically populated because its execution controls its writing
 }
 
 void

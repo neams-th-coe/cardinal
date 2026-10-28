@@ -90,6 +90,12 @@ public:
   int nSTLVertices() const { return _stl_vertices.size(); }
 
   /**
+   * STL subdomain ID
+   * @return STL subdomain ID
+   */
+  const unsigned int & STLSubdomainID() const { return _stl_block_id; }
+
+  /**
    * Whether there is an STL file present
    * @return if STL file is provided
    */

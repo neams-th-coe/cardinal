@@ -46,7 +46,7 @@
     type = DiffusionFluxAux
     variable = moose_flux
     diffusion_variable = moose_temp
-    diffusivity = 1.0
+    diffusivity = 2.0
     boundary = 0
     component = normal
   []
@@ -57,20 +57,44 @@
     type = SideDiffusiveFluxIntegral
     variable = moose_temp
     boundary = 0
-    diffusivity = 1.0
+    diffusivity = 2.0
   []
   [flux_integral_2]
     type = SideIntegralVariablePostprocessor
     variable = moose_flux
     boundary = 0
   []
+  [area]
+    type = AreaPostprocessor
+    boundary = 0
+  []
 []
 
 [Executioner]
-  type = Steady
+  type = Transient
+  num_steps = 1
 []
 
 [Outputs]
   csv = true
   exodus = true
+[]
+
+[MultiApps]
+  [nek]
+    type = TransientMultiApp
+    input_files = 'stl.i'
+    execute_on = timestep_end
+  []
+[]
+
+[Transfers]
+  [moose_flux]
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    to_multi_app = nek
+    source_variable = moose_flux
+    variable = moose_flux
+    from_boundaries = '0'
+    to_blocks = '9999'
+  []
 []

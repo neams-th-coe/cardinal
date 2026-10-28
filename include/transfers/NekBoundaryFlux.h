@@ -90,9 +90,12 @@ protected:
   /// Dimensional reference flux, computed from characteristic scales
   const Real _reference_flux_integral;
 
-  /// Total surface-integrated flux coming from the coupled MOOSE app.
+  /// Total surface-integrated flux on the mesh mirror
   const PostprocessorValue * _flux_integral = nullptr;
 
-  /// Sideset-wise surface-integrated flux coming from the coupled MOOSE app.
+  /// Sideset-wise surface-integrated flux on the mesh mirror
   const VectorPostprocessorValue * _flux_integral_vpp = nullptr;
+
+  /// Total surface-integrated flux on the STL file
+  const PostprocessorValue * _flux_integral_stl = nullptr;
 };

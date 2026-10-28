@@ -1,0 +1,3 @@
+time,flux_integral_stl,max_moose_flux,max_nek_flux,min_moose_flux,min_nek_flux,moose_flux_integral,volume
+0,0,0,0,0,0,0,0
+0.0005,-1.2599517732866,3.2865846118568,3.3224236419002,-6.4835569392947,-6.6482859555069,-1.2218170449852,3.1164246960283
