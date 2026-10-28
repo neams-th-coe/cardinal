@@ -40,11 +40,13 @@ ConservativeFieldTransfer::validParams()
   params.addParam<std::string>(
       "postprocessor_to_conserve",
       "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure "
-      "conservation of data on the mesh mirror; defaults to the name of the object plus '_integral'");
+      "conservation of data on the mesh mirror; defaults to the name of the object plus "
+      "'_integral'");
   params.addParam<std::string>(
       "stl_postprocessor_to_conserve",
       "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure "
-      "conservation of data on the STL file; defaults to the name of the object plus '_integral_stl'");
+      "conservation of data on the STL file; defaults to the name of the object plus "
+      "'_integral_stl'");
 
   params.addClassDescription("Base class for defining input parameters shared by conservative "
                              "transfers between NekRS and MOOSE");
@@ -60,10 +62,12 @@ ConservativeFieldTransfer::ConservativeFieldTransfer(const InputParameters & par
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
 
   if (!_transfer_mesh.contains("mirror"))
-    checkUnusedParam(parameters, "postprocessor_to_conserve", "the 'mesh' does not contain 'mirror'");
+    checkUnusedParam(
+        parameters, "postprocessor_to_conserve", "the 'mesh' does not contain 'mirror'");
 
   if (!_transfer_mesh.contains("stl"))
-    checkUnusedParam(parameters, "stl_postprocessor_to_conserve", "the 'mesh' does not contain 'stl'");
+    checkUnusedParam(
+        parameters, "stl_postprocessor_to_conserve", "the 'mesh' does not contain 'stl'");
 
   if (isParamValid("postprocessor_to_conserve"))
     _postprocessor_name = getParam<std::string>("postprocessor_to_conserve");

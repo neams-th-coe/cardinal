@@ -76,7 +76,9 @@ NekRSMesh::validParams()
       "Multiplicative scaling to apply to the coordinates in the STL file to get them into NekRS's "
       "unit system; This option can be used to take an existing STL file and convert it into "
       "NekRS's units.");
-  params.addParam<Point>("stl_translation", "Translation to apply to the coordinates in the STL file; this is applied prior to any stl_multiplier being applied");
+  params.addParam<Point>("stl_translation",
+                         "Translation to apply to the coordinates in the STL file; this is applied "
+                         "prior to any stl_multiplier being applied");
   params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
   params.addClassDescription("Construct a mirror of the NekRS mesh in boundary and/or volume "
                              "format, with an optional STL surface");
@@ -95,7 +97,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _stl_filename(isParamValid("stl") ? &getParam<std::string>("stl") : nullptr),
     _stl_block_id(getParam<unsigned int>("stl_block_id")),
     _stl_multiplier(getParam<Real>("stl_multiplier")),
-    _stl_translation(isParamValid("stl_translation") ? &getParam<Point>("stl_translation") : nullptr),
+    _stl_translation(isParamValid("stl_translation") ? &getParam<Point>("stl_translation")
+                                                     : nullptr),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
@@ -106,15 +109,23 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     checkUnusedParam(parameters, "stl_translation", "not providing an 'stl' file");
   }
   else if (_order != order::first)
-    paramError("order", "STL variables are currently limited to first order Lagrange; please change the 'order' parameter to 'FIRST'");
+    paramError("order",
+               "STL variables are currently limited to first order Lagrange; please change the "
+               "'order' parameter to 'FIRST'");
 
   // for simplicity, we require unique values to be used for the block IDs for the fluid, solid,
-  // and STL surface. This makes the conservative transfers easier to deal with, because we automatically
-  // add some postprocessors to compute integrals (e.g. of heat flux, power density) and we'd need to
-  // be more careful if the block IDs overlapped with one another
+  // and STL surface. This makes the conservative transfers easier to deal with, because we
+  // automatically add some postprocessors to compute integrals (e.g. of heat flux, power density)
+  // and we'd need to be more careful if the block IDs overlapped with one another
   std::set<unsigned int> block_ids = {_fluid_block_id, _solid_block_id, _stl_block_id};
   if (block_ids.size() != 3)
-    mooseError("Unique values must be used for 'fluid_block_id' (", _fluid_block_id, "), 'solid_block_id' (", _solid_block_id, "), and '_stl_block_id' (", _stl_block_id, ").");
+    mooseError("Unique values must be used for 'fluid_block_id' (",
+               _fluid_block_id,
+               "), 'solid_block_id' (",
+               _solid_block_id,
+               "), and '_stl_block_id' (",
+               _stl_block_id,
+               ").");
 
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");

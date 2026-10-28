@@ -31,11 +31,13 @@ FieldTransferBase::validParams()
   auto params = NekTransferBase::validParams();
   params.addParam<std::vector<unsigned int>>(
       "usrwrk_slot",
-      "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data (if the transfer is 'to_nek'); provide one entry for each quantity being passed");
+      "When 'direction = to_nek', the slot(s) in the usrwrk array to write the incoming data (if "
+      "the transfer is 'to_nek'); provide one entry for each quantity being passed");
   params.addParam<MultiMooseEnum>(
       "mesh",
       getMeshEnums(),
-      "Portion(s) of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh mirror, "
+      "Portion(s) of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh "
+      "mirror, "
       "for which data transfers are accomplished simply by reading/writing the corresponding NekRS "
       "grid point value. 'stl' refers to the nodes in an STL file (if 'stl' is provided in the "
       "[Mesh]); in this case, the data transfers are accomplished using a mesh interpolation.");
@@ -75,7 +77,6 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
       checkAllocatedUsrwrkSlot(u);
   }
 
-
   // get quantities which are used for mirror transfers
   _n_per_surf = _nek_mesh->exactMirror() ? std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0)
                                          : _nek_mesh->numVerticesPerSurface();
@@ -89,7 +90,10 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
   {
     // check that there is an STL file to communicate with
     if (!_nek_mesh->hasSTLFile())
-      paramError("mesh", "Cannot specify coupling to an STL file in the 'mesh', because the NekRSMesh does not have an associated STL file; NekRSMesh needs to have the 'stl' parameter provided");
+      paramError(
+          "mesh",
+          "Cannot specify coupling to an STL file in the 'mesh', because the NekRSMesh does not "
+          "have an associated STL file; NekRSMesh needs to have the 'stl' parameter provided");
 
     if (_direction == "to_nek")
       paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");

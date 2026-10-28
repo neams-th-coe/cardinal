@@ -337,7 +337,8 @@ commSize()
   return platform->comm.mpiCommSize();
 }
 
-field::NekFieldEnum convertToFieldEnum(const std::string name)
+field::NekFieldEnum
+convertToFieldEnum(const std::string name)
 {
   auto lowercase = name;
   std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), ::tolower);
@@ -383,9 +384,11 @@ field::NekFieldEnum convertToFieldEnum(const std::string name)
 
 // TODO: will need to generalize to other types of fluxes once we add mass transport
 std::vector<dfloat>
-interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Point> & stl_normals, int n)
+interpolateHeatFluxToPoints(pointInterpolation_t & interp,
+                            const std::vector<Point> & stl_normals,
+                            int n)
 {
-  //auto mesh = nrs->meshV;
+  // auto mesh = nrs->meshV;
   auto mesh = nrs->scalar->mesh("temperature");
   auto fieldOffsetSum = mesh->dim * nrs->fieldOffset;
   int n_values = n * mesh->dim; // TODO: number of scalars?
@@ -419,16 +422,18 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Poi
     auto normal = stl_normals[stl_elem_idx];
 
     // compute grad(T) * hat(n) at each point
-    auto grad_T_cdot_n = all_interpolated_values[i] * normal(0) + all_interpolated_values[i + 1 * n] * normal(1) + all_interpolated_values[i + 2 * n] * normal(2);
+    auto grad_T_cdot_n = all_interpolated_values[i] * normal(0) +
+                         all_interpolated_values[i + 1 * n] * normal(1) +
+                         all_interpolated_values[i + 2 * n] * normal(2);
     interpolated[i] = -k * grad_T_cdot_n;
 
     // dimensionalize the solution if needed
-    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field::flux) + nekrs::nondimensionalAdditive(field::flux);
+    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field::flux) +
+                      nekrs::nondimensionalAdditive(field::flux);
   }
 
   return interpolated;
 }
-
 
 std::vector<dfloat>
 interpolateToPoints(pointInterpolation_t & interp,
