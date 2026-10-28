@@ -24,7 +24,9 @@ solution - only an interpolated version of the NekRS solution.
   caption=Velocity from the NekRS field files (left) and after interpolation onto a second order mesh mirror (right).
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
-For transferring data to an STL file specified by `stl`, NekRS's spectral interpolation routine is used
+Data can also be transferred with an [!ac](STL) file embedded in the `[Mesh]` if `stl` is provided
+in [NekRSMesh](NekRSMesh.md).
+For transferring data with this STL file, NekRS's spectral interpolation routine is used
 to interpolate from the NekRS grid points onto the STL vertices.
 
 ## Example Input File Syntax
