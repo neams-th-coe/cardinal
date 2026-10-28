@@ -1022,25 +1022,25 @@ void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>
   vtkFile.close();
 
   // also write to STL
-  std::ofstream stlFile("surface_mesh.stl");
-  stlFile << "solid Body 1\n";
+  //std::ofstream stlFile("surface_mesh.stl");
+  //stlFile << "solid Body 1\n";
 
-  // for each element
-  for (unsigned int i = 0; i < faces.size(); i++)
-  {
-    auto face = faces[i];
-    auto pt = l_points[i];
-    stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
-    stlFile << "    outer loop\n";
-    for (const auto & idx : face)
-      stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
-    stlFile << "    endloop\n";
-    stlFile << "  endfacet\n";
+  //// for each element
+  //for (unsigned int i = 0; i < faces.size(); i++)
+  //{
+  //  auto face = faces[i];
+  //  auto pt = l_points[i];
+  //  stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+  //  stlFile << "    outer loop\n";
+  //  for (const auto & idx : face)
+  //    stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+  //  stlFile << "    endloop\n";
+  //  stlFile << "  endfacet\n";
 
-  }
+  //}
 
-  stlFile << "endsolid Body 1\n";
-  stlFile.close();
+  //stlFile << "endsolid Body 1\n";
+  //stlFile.close();
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
