@@ -173,7 +173,6 @@ NekBoundaryFlux::readDataFromNek()
     }
     else if (t == "stl")
     {
-      // TODO: dont need to pass in number of vertices
       auto interpolated = nekrs::interpolateHeatFluxToPoints(*_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices());
       fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
     }

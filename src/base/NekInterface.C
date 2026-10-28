@@ -353,10 +353,6 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Poi
   auto o_S = nrs->scalar->o_solution("temperature");
   auto o_gradS = opSEM::strongGrad(mesh, nrs->scalar->fieldOffset(), o_S);
 
-  // copy from host to device
-  //std::vector<dfloat> gradT(n_values);
-  //o_gradS.copyTo(gradT.data(), n_values);
-
   // interpolate grad(T) on Eulerian points to Lagrangian points
   occa::memory o_interpolated;
   o_interpolated = platform->device.malloc<dfloat>(n_values);
@@ -370,7 +366,8 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp, const std::vector<Poi
   // with the unit normal for each triangle. We have the results indexed according to
   // the node, but the normals are indexed according to the element
 
-  // TODO: multiply by k
+  // TODO: this will only work correctly if the diffusion coefficient is constant;
+  // also will need to generalize to other scalars
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
   std::vector<dfloat> interpolated(n);
