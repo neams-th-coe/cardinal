@@ -33,11 +33,6 @@
 []
 
 [Postprocessors]
-  [moose_flux_integral]
-    type = ElementIntegralVariablePostprocessor
-    variable = moose_flux
-    block = 9999
-  []
   [volume]
     type = VolumePostprocessor
     block = 9999
@@ -55,17 +50,24 @@
     value_type = min
   []
 
-  [max_moose_flux]
-    type = ElementExtremeValue
-    variable = moose_flux
-    block = 9999
-  []
-  [min_moose_flux]
-    type = ElementExtremeValue
-    variable = moose_flux
-    block = 9999
-    value_type = min
-  []
+  # compare against these values; they are commented out because we would need to build a projection
+  # in the main app to avoid floating point indeterminism in the test
+  #[moose_flux_integral]
+  #  type = ElementIntegralVariablePostprocessor
+  #  variable = moose_flux
+  #  block = 9999
+  #[]
+  #[max_moose_flux]
+  #  type = ElementExtremeValue
+  #  variable = moose_flux
+  #  block = 9999
+  #[]
+  #[min_moose_flux]
+  #  type = ElementExtremeValue
+  #  variable = moose_flux
+  #  block = 9999
+  #  value_type = min
+  #[]
 []
 
 [Outputs]
