@@ -101,7 +101,8 @@ MeshTallyBase::spatialFilter()
 {
   _mesh_index = getOpenMCMesh();
 
-  // Construct the mapping data structures to go from tally bin indices to variable degrees of freedom.
+  // Construct the mapping data structures to go from tally bin indices to variable degrees of
+  // freedom.
   if (!_mesh_template_filename)
     buildDoFMaps();
 
@@ -158,7 +159,8 @@ MeshTallyBase::getMeshFilter()
 void
 MeshTallyBase::buildDoFMaps()
 {
-  auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(&_openmc_problem.getMooseMesh().getMesh());
+  auto msh =
+      dynamic_cast<const libMesh::ReplicatedMesh *>(&_openmc_problem.getMooseMesh().getMesh());
   if (!msh)
     mooseError("Internal error: The mesh is not a replicated mesh.");
 
