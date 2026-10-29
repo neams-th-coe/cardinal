@@ -61,17 +61,20 @@ public:
 protected:
   /**
    * A virtual function derived classes should override to return OpenMC unstructured mesh
-   * created by the class. This function must also populate the DoF maps as-necessary for
-   * block restriction or AMR.
+   * created by the class.
    * @return the index in the openmc::mesh array for the mesh added by the derived class
    */
-  virtual unsigned int getOpenMCMeshBuildDoFMaps() = 0;
+  virtual unsigned int getOpenMCMesh() = 0;
 
   /**
-   * A function responsible for building datastructures necessary for adaptive mesh refinement.
-   * @param[in] mesh the mesh to use for building the DoF map
+   * A function responsible for fetching the mesh filter used to construct the unstructured mesh
+   * tally.
+   * @return a pointer to the OpenMC MeshFilter object created
    */
-  void buildDoFMaps(const libMesh::MeshBase * mesh);
+  virtual openmc::MeshFilter * getMeshFilter();
+
+  /// A function responsible for building data structures necessary for adaptive mesh refinement.
+  virtual void buildDoFMaps();
 
   /**
    * A function which stores the results of this tally into the created

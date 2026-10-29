@@ -99,7 +99,11 @@ MeshTallyBase::MeshTallyBase(const InputParameters & parameters)
 std::pair<unsigned int, openmc::Filter *>
 MeshTallyBase::spatialFilter()
 {
-  _mesh_index = getOpenMCMeshBuildDoFMaps();
+  _mesh_index = getOpenMCMesh();
+
+  // Construct the mapping data structures to go from tally bin indices to variable degrees of freedom.
+  if (!_mesh_template_filename)
+    buildDoFMaps();
 
   auto mesh_template =
       dynamic_cast<openmc::UnstructuredMesh *>(openmc::model::meshes[_mesh_index].get());
@@ -108,7 +112,7 @@ MeshTallyBase::spatialFilter()
   mesh_template->set_id(-1);
   mesh_template->output_ = false;
 
-  _mesh_filter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
+  _mesh_filter = getMeshFilter();
   _mesh_filter->set_mesh(_mesh_index);
   _mesh_filter->set_translation({_mesh_translation(0), _mesh_translation(1), _mesh_translation(2)});
 
@@ -145,10 +149,16 @@ MeshTallyBase::gatherLinkedSum()
   }
 }
 
-void
-MeshTallyBase::buildDoFMaps(const libMesh::MeshBase * mesh)
+openmc::MeshFilter *
+MeshTallyBase::getMeshFilter()
 {
-  auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(mesh);
+  return dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
+}
+
+void
+MeshTallyBase::buildDoFMaps()
+{
+  auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(&_openmc_problem.getMooseMesh().getMesh());
   if (!msh)
     mooseError("Internal error: The mesh is not a replicated mesh.");
 
@@ -158,10 +168,10 @@ MeshTallyBase::buildDoFMaps(const libMesh::MeshBase * mesh)
   {
     _bin_to_element_mapping.clear();
 
-    auto begin = _tally_blocks.size() > 0 ? mesh->active_subdomain_set_elements_begin(_tally_blocks)
-                                          : mesh->active_elements_begin();
-    auto end = _tally_blocks.size() > 0 ? mesh->active_subdomain_set_elements_end(_tally_blocks)
-                                        : mesh->active_elements_end();
+    auto begin = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_begin(_tally_blocks)
+                                          : msh->active_elements_begin();
+    auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
+                                        : msh->active_elements_end();
 
     unsigned int max_elem_id = 0;
     for (const auto & old_elem : libMesh::as_range(begin, end))
