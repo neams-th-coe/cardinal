@@ -313,7 +313,7 @@
     type = RunException
     input = xdg_no_mixed_elem.i
     mesh_mode = 'replicated'
-    expect_err = "Volume 0 has mixed element types, which is not supported."
+    expect_err = "Surface 0 has mixed face types, which is not supported."
     requirement = "The system shall error if attempting to tally on mixed element mesh mirror with XDG."
     capabilities = 'xdg'
   []
@@ -321,7 +321,7 @@
     type = RunException
     input = xdg_no_unsupported.i
     mesh_mode = 'replicated'
-    expect_err = "Unsupported libMesh element type"
+    expect_err = "Unsupported libMesh face type"
     requirement = "The system shall error if attempting to tally on a mesh mirror composed of elements other than TET4 or HEX8 in XDG."
     capabilities = 'xdg'
   []
@@ -337,7 +337,7 @@
     input = xdg_no_unsupported.i
     mesh_mode = 'replicated'
     cli_args = 'Problem/Tallies/Mesh/mesh_template=xdg_no_unsupported_in.e'
-    expect_err = "Unsupported libMesh element type"
+    expect_err = "Unsupported libMesh face type"
     requirement = "The system shall error if attempting to tally on a mesh template composed of elements other than TET4 or HEX8 with XDG."
     prereq = 'make_prism_mesh'
     capabilities = 'xdg'
