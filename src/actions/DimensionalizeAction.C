@@ -138,7 +138,7 @@ DimensionalizeAction::act()
         checkUnusedParam(parameters(), "s0" + is, "NekRS case files do not have a SCALAR" + is);
         checkUnusedParam(parameters(), "ds0" + is, "NekRS case files do not have a SCALAR" + is);
         checkUnusedParam(
-            parameters(), "transport_coeff" + is, "NekRS case files do not have a SCALAR" + is);
+            parameters(), "transport_coeff_" + is, "NekRS case files do not have a SCALAR" + is);
       }
     }
 

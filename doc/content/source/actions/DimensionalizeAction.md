@@ -36,7 +36,7 @@ t^\dagger\equiv\frac{t}{L_{ref}/u_{ref}}
 
 where $\dagger$ superscripts indicate nondimensional quantities.
 `U` is used to specify $u_{ref}$, `T` is used to specify $T_{ref}$,
-`dT` is used to specify $\Delta T$, `L` is used to specify $L_{ref}$.
+`dT` is used to specify $\Delta T$, `L` is used to specify $L_{ref}$,
 `rho` is used to specify $\rho_0$, and `Cp` is used to specify $C_{p,0}$
 (which does not appear above, but is necessary for scaling volumetric heat sources and boundary heat fluxes).
 Similar quantities, `transport_coeff_1`, `transport_coeff_2`, and `transport_coeff_3` indicate the coefficient on the time
@@ -77,7 +77,7 @@ in NekRS take the following form for mass,
 \begin{equation}
 \begin{aligned}
 \frac{\partial u_i}{\partial x_i}=&\ 0\\
-\frac{\partial(u_i^\dagger L_{ref})}{\partial (x_i^\dagger L_{ref})}=&\ 0\\
+\frac{\partial(u_i^\dagger u_{ref})}{\partial (x_i^\dagger L_{ref})}=&\ 0\\
 \frac{\partial u_i^\dagger}{\partial x_i^\dagger}=&\ 0\\
 \end{aligned}
 \end{equation}
