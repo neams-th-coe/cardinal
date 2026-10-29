@@ -30,7 +30,7 @@
     type = RunException
     input = stl.i
     expect_err = "Transferring data from the STL mesh to NekRS is not yet supported"
-    cli_args = 'Problem/FieldTransfers/temperature/direction="to_nek" Problem/FieldTransfers/temperature/usrwrk_slot=0'
+    cli_args = 'Problem/FieldTransfers/temperature/direction="to_nek" Problem/FieldTransfers/temperature/usrwrk_slot=4 Problem/n_usrwrk_slots=5'
     requirement = "The system shall error if trying to send data from the STL mesh to NekRS, an unsupported feature"
     issues = '#1398'
     capabilities = 'nekrs'
