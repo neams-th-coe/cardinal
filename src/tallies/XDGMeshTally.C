@@ -43,14 +43,11 @@ XDGMeshTally::XDGMeshTally(const InputParameters & parameters) : MeshTallyBase(p
 }
 
 unsigned int
-XDGMeshTally::getOpenMCMeshBuildDoFMaps()
+XDGMeshTally::getOpenMCMesh()
 {
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
-    // Build the DoF maps necessary for AMR.
-    buildDoFMaps(&_openmc_problem.getMooseMesh().getMesh());
-
     catchXDGError(
         [&]()
         {

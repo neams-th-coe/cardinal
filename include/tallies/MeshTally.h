@@ -28,5 +28,5 @@ public:
   MeshTally(const InputParameters & parameters);
 
 protected:
-  virtual unsigned int getOpenMCMeshBuildDoFMaps() override;
+  virtual unsigned int getOpenMCMesh() override;
 };

@@ -31,7 +31,7 @@ public:
   XDGMeshTally(const InputParameters & parameters);
 
 protected:
-  virtual unsigned int getOpenMCMeshBuildDoFMaps() override;
+  virtual unsigned int getOpenMCMesh() override;
 
   template <typename T>
   void catchXDGError(T function, const std::string & description)

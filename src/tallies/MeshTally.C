@@ -55,14 +55,11 @@ MeshTally::MeshTally(const InputParameters & parameters) : MeshTallyBase(paramet
 }
 
 unsigned int
-MeshTally::getOpenMCMeshBuildDoFMaps()
+MeshTally::getOpenMCMesh()
 {
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
-    // Build the DoF maps necessary for AMR.
-    buildDoFMaps(&_openmc_problem.getMooseMesh().getMesh());
-
     openmc::model::meshes.emplace_back(std::make_unique<openmc::AdaptiveLibMesh>(
         _openmc_problem.getMooseMesh().getMesh(), _openmc_problem.scaling(), _tally_blocks));
   }
