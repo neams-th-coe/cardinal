@@ -76,7 +76,8 @@ Extensions:
             News: news.md
 
     MooseDocs.extensions.appsyntax:
-        executable: ${ROOT_DIR}
+        executable: ${CARDINAL_EXECUTABLE_DIR}
+        app_name: cardinal
         remove:
             framework: !include ${MOOSE_DIR}/framework/doc/remove.yml
             cardinal:
