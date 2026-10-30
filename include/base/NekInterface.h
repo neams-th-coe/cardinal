@@ -131,6 +131,10 @@ std::vector<dfloat> interpolateHeatFluxToPoints(pointInterpolation_t & interp,
                                                 const std::vector<Point> & stl_normals,
                                                 int n);
 
+dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3);
+
+double usrwrkSTLIntegral(const unsigned int & slot, const std::vector<Point> & stl_vertices, const int & n_elems);
+
 /**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot

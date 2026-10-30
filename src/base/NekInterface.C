@@ -587,6 +587,44 @@ interpolateToPoints(pointInterpolation_t & interp,
   return interpolated;
 }
 
+dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3)
+{
+  const dfloat ax = v2(0) - v1(0);
+  const dfloat ay = v2(1) - v1(1);
+  const dfloat az = v2(2) - v1(2);
+  const dfloat bx = v3(0) - v1(0);
+  const dfloat by = v3(1) - v1(1);
+  const dfloat bz = v3(2) - v1(2);
+
+  const dfloat crossX = ay * bz - az * by;
+  const dfloat crossY = az * bx - ax * bz;
+  const dfloat crossZ = ax * by - ay * bx;
+
+  return 0.5 * std::sqrt(crossX * crossX + crossY * crossY + crossZ * crossZ);
+}
+
+double
+usrwrkSTLIntegral(const unsigned int & slot, const std::vector<Point> & stl_vertices, const int & n_elems)
+{
+  double integral = 0.0;
+  double total_area = 0.0;
+  for (unsigned int e = 0; e < n_elems; ++e)
+  {
+    // vertices are grouped in 3's to map to each element
+    auto elem_offset = e * 3;
+    auto area = computeTriangleArea(stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
+
+    integral += usrwrk[slot + e] * area;
+    total_area += area;
+  }
+
+  std::cout << "STL area: " << total_area << std::endl;
+
+  // TODO: parallel sum?
+  // TODO: non-dimensionalization
+  return integral;
+}
+
 bool
 scratchAvailable()
 {

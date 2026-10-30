@@ -34,6 +34,10 @@ NekMeshDeformation::validParams()
 NekMeshDeformation::NekMeshDeformation(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
+  if (_transfer_mesh.contains("stl"))
+    if (_direction == "to_nek")
+      paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
+
   if (_direction == "to_nek" /* && nekrs::hasBlendingSolver() */)
   {
     if (_usrwrk_slot.size() != 3)

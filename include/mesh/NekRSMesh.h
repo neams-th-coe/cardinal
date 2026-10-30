@@ -102,6 +102,12 @@ public:
   bool hasSTLFile() const { return _stl_filename; }
 
   /**
+   * The name of the STL file
+   * @return name of the STL file
+   */
+  const std::string & STLFilename() const { return *_stl_filename; }
+
+  /**
    * Vector of all STL vertices, ordered according to their numbering as nodes
    * @return vector of all STL vertices
    */

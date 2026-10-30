@@ -66,6 +66,24 @@ protected:
   void fillAuxVariableOnSTL(const unsigned int var_number, const double * value);
 
   /**
+   * Read from an auxiliary variable on the mesh mirror and write into usrwrk for a side
+   * @param[in] var_number auxiliary variable number to read from
+   * @param[in] d non-dimensional divisor
+   * @param[in] a non-dimensional additive
+   */
+  void sendFaceDataToNek(const unsigned int var_number, const Real d, const Real a);
+
+  /**
+   * Read from an auxiliary variable on the mesh mirror and write into usrwrk for a volume
+   * @param[in] var_number auxiliary variable number to read from
+   * @param[in] d non-dimensional divisor
+   * @param[in] a non-dimensional additive
+   */
+  void sendVolumetricDataToNek(const unsigned int var_number, const Real d, const Real a);
+
+  void sendSTLDataToNek(const unsigned int var_number);
+
+  /**
    * Add a MOOSE variable to facilitate coupling
    * @param[in] name variable name
    */
@@ -79,6 +97,10 @@ protected:
    * @param[in] divisor division to apply to the non-dimensional variable
    */
   void addExternalVariable(const unsigned int slot,
+                           const std::string name,
+                           const Real additive,
+                           const Real divisor);
+  void addExternalMonomialVariable(const unsigned int slot,
                            const std::string name,
                            const Real additive,
                            const Real divisor);

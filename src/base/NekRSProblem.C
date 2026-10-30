@@ -368,7 +368,7 @@ NekRSProblem::initialSetup()
   // a user object, or neither
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idxVol]";
+    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+n]";
     std::string udf = "platform->app->bc->o_usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
@@ -438,9 +438,10 @@ NekRSProblem::initialSetup()
              << std::endl;
     _console << "                  but Cardinal is not otherwise using it for coupling.\n"
              << std::endl;
-    _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
+    _console << "  How to Access:  C++ code to use in NekRS files; 'n' indicates a loop "
              << std::endl;
-    _console << "                  'n' indicates a loop variable over GLL points\n" << std::endl;
+    _console << "                  index over either GLL points (for Eulerian data) or " << std::endl;
+    _console << "                  Lagrange points (for STL data).\n" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
@@ -603,6 +604,7 @@ void
 NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
+  _aux->serializeSolution();
 
   if (!isDataTransferHappening(direction))
     return;
@@ -677,8 +679,9 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       mooseError("Unhandled Transfer::DIRECTION enum!");
   }
 
-  solution.close();
+  //solution.close();
   _aux->system().update();
+  _aux->solution().close();
 }
 
 bool

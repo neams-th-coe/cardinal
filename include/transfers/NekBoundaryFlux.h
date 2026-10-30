@@ -81,8 +81,11 @@ protected:
    */
   const bool & _conserve_flux_by_sideset;
 
-  /// Initial value to use for the total flux integral for ensuring conservation
+  /// Initial value to use for the total flux integral on the mirror for ensuring conservation
   const Real & _initial_flux_integral;
+
+  /// Initial value to use for the total flux integral on the STL for ensuring conservation
+  const Real & _initial_flux_integral_stl;
 
   /// Boundaries through which the flux transfer occurs
   const std::vector<int> * _boundary;

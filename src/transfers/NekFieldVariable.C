@@ -88,6 +88,10 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
+
+  if (_transfer_mesh.contains("stl"))
+    if (_direction == "to_nek")
+      paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
 }
 
 void
