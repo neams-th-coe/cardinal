@@ -11,5 +11,6 @@
     cli_args = 'Mesh/file/file=mesh_in.e'
     requirement = 'The system shall run a heat conduction calculation for a sodium fast reactor fuel assembly.'
     prereq = mesh
+    min_slots = 2 # 372 MB per slot observed during https://civet.inl.gov/job/4305077/ during step Tutorials. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

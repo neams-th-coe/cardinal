@@ -7,6 +7,7 @@
     requirement = "Temperatures, densities, and a heat source shall be coupled between OpenMC "
                   "and MOOSE and a solid pincell model."
     capabilities = 'openmc'
+    min_slots = 4 # 375 MB per slot observed during https://civet.inl.gov/job/4305073/ during step Test DagMC. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [pincell_null_fixed_mesh]
     type = Exodiff

@@ -5,7 +5,7 @@
     input = type_error.i
     expect_err = "This user object requires exactly one bin distribution to be a side distribution; you have specified: 0"
     requirement = "The system shall error if the userobjects aren't derived from the correct base class."
-    min_slots = 12 # memory heavy
+    min_slots = 19 # 616 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
   [gap_layered]
@@ -15,7 +15,7 @@
     rel_err = 6e-5
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    min_slots = 12 # memory heavy
+    min_slots = 22 # 700 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
   [gap_horizontal_layered]
@@ -24,7 +24,7 @@
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "A layered gap and 2-D hexagonal subchannel bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    min_slots = 12 # memory heavy
+    min_slots = 22 # 700 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
   [bins_too_fine]
@@ -33,7 +33,7 @@
     cli_args = "UserObjects/axial_binning/num_layers=1000"
     expect_err = "Failed to map any GLL points to bin 1!"
     requirement = "The system shall error if there are zero contributions to a gap bin."
-    min_slots = 12 # memory heavy
+    min_slots = 21 # 660 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
   [user_component]
@@ -43,7 +43,7 @@
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side averages of velocity along a "
                   "user-specified direction."
-    min_slots = 12 # memory heavy
+    min_slots = 22 # 697 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
 []

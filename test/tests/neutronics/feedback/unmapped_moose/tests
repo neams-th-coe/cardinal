@@ -6,5 +6,6 @@
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     requirement = "OpenMC postprocessors shall evaluate to -1 for unmapped MOOSE elements."
     capabilities = 'openmc'
+    min_slots = 4 # 372 MB per slot observed during https://civet.inl.gov/job/4305073/ during step Test DagMC. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []
