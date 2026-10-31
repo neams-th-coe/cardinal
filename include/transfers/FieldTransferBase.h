@@ -100,10 +100,6 @@ protected:
                            const std::string name,
                            const Real additive,
                            const Real divisor);
-  void addExternalMonomialVariable(const unsigned int slot,
-                           const std::string name,
-                           const Real additive,
-                           const Real divisor);
 
   /// Meshes participating in the data transfer
   const MultiMooseEnum & _transfer_mesh;

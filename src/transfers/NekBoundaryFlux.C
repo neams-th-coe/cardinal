@@ -324,7 +324,6 @@ NekBoundaryFlux::sendDataToNek()
   if (_transfer_mesh.contains("stl"))
   {
     _console << "Sending flux from '" << _nek_mesh->STLFilename() << "' to NekRS..." << std::endl;
-    std::cout << "variable number: " << _variable_number[_variable] << std::endl;
     sendSTLDataToNek(_variable_number[_variable]);
 
     // integrate the flux received onto the STL surface

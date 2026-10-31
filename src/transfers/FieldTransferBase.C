@@ -169,37 +169,6 @@ FieldTransferBase::addExternalVariable(const unsigned int slot,
 }
 
 void
-FieldTransferBase::addExternalMonomialVariable(const unsigned int slot,
-                                       const std::string name,
-                                       const Real shift,
-                                       const Real divisor)
-{
-  InputParameters var_params = _factory.getValidParams("MooseVariable");
-  var_params.set<MooseEnum>("family") = "MONOMIAL";
-  var_params.set<MooseEnum>("order") = "CONSTANT";
-
-  _nek_problem.checkDuplicateVariableName(name, "FieldTransfer");
-  _nek_problem.addAuxVariable("MooseVariable", name, var_params);
-  _variable_number.insert(std::pair<std::string, unsigned int>(
-      name, _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number()));
-  std::cout << "added monomial var, number: " << _nek_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number() << std::endl;
-
-  // check that no other field transfer is trying to write into the same slot;
-  // we don't need to check the scalar transfers, because they will always execute
-  // after the field transfers
-  bool duplicate_field = _field_usrwrk_map.find(slot) != _field_usrwrk_map.end();
-  if (duplicate_field)
-    paramError("usrwrk_slot",
-               "A duplicate slot, " + Moose::stringify(slot) +
-                   ", is being used by another FieldTransfer. Duplicate slots are not allowed for "
-                   "field transfers because these transfers will overwrite all data in that slot. "
-                   "If you need more slots, increase 'n_usrwrk_slots' in the [Problem] block.");
-
-  _field_usrwrk_map.insert({slot, name});
-  _field_usrwrk_scales.insert({name, std::make_pair(shift, divisor)});
-}
-
-void
 FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const double * value)
 {
   auto & solution = _nek_problem.getAuxiliarySystem().solution();
@@ -241,8 +210,6 @@ FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const 
       }
     }
   }
-
-  solution.close();
 }
 
 void
@@ -250,7 +217,6 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
 {
   // TODO: performance?
   auto & aux = _nek_problem.getAuxiliarySystem();
-  //aux.serializeSolution();
   auto & solution = aux.serializedSolution();
   auto sys_number = aux.number();
   auto pid = _communicator.rank();
@@ -272,37 +238,22 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
       libmesh_assert(!_nek_mesh->getMesh().is_serial());
       continue;
     }
-    std::cout << "got element, centroid: " << elem_ptr->vertex_average() << std::endl;
 
     Real sum = 0;
     for (unsigned int n = 0; n < _nek_mesh->numVerticesPerSTL(); n++)
     {
-      std::cout << "trying node " << n << std::endl;
       auto node_ptr = elem_ptr->node_ptr(n);
-      std::cout << "got node" << std::endl;
 
       // For each face vertex, we can only write into the MOOSE auxiliary fields if that
       // vertex is "owned" by the present MOOSE process. TODO: assumes all nodes on same rank.
       auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
-      std::cout << dof_idx << std::endl;
       sum += solution(dof_idx);
-      std::cout << "value: " << solution(dof_idx) << std::endl;
     }
-    //auto dof_idx = elem_ptr->dof_number(sys_number, var_number, 0);
-    //std::cout << dof_idx << std::endl;
 
     // TODO: check in slots other than zero
     usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] = sum / Tri3::num_nodes;
 
-    std::cout << "...." << std::endl;
   }
-  std::cout << "c" << std::endl;
-
-  //MPI_Allreduce(&usrwrk_local, &usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset()], nekrs::fieldOffset(), MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-
-
-  solution.close();
-  aux.update();
 }
 
 void
@@ -343,8 +294,6 @@ FieldTransferBase::fillAuxVariableOnSTL(const unsigned int var_number, const dou
       }
     }
   }
-
-  solution.close();
 }
 
 void
