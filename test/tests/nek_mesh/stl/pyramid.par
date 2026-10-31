@@ -6,8 +6,6 @@
   numSteps = 1
   dt = 1
   polynomialOrder = 3
-  checkpointControl = steps
-  checkpointInterval = 2
 
 [MESH]
   file = "../first_order/pyramid.re2"

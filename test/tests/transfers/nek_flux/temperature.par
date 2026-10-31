@@ -6,8 +6,6 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 7
-  checkpointControl = steps
-  checkpointInterval = 2
   scalars = temperature
 
 [MESH]
