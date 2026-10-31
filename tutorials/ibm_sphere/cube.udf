@@ -199,8 +199,10 @@ void CHTKernelHeatSource(double time)
 
     double k;
     platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
-    CHTKernel(nrs->meshV->Nelements, k,
-              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset,
+    CHTKernel(nrs->meshV->Nelements, k, time,
+              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+              platform->app->bc->o_usrwrk,
+              nrs->fieldOffset,
               numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
               o_characteristicArea, o_characteristicLength, o_ElementNumber,
               nrs->meshV->o_vgeo, nrs->meshV->o_D, o_S, o_FS, o_sdfValues);

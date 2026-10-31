@@ -38,9 +38,11 @@ inline dfloat D1(dfloat r) {
 
 @kernel void CHT(const dlong Nelements,
                  const dfloat kappa,
+                 const dfloat time,
                  @restrict const dfloat* o_x, // physical coordinate of Eulerian point (x component)
                  @restrict const dfloat* o_y, // physical coordinate of Eulerian point (y component)
                  @restrict const dfloat* o_z, // physical coordinate of Eulerian point (z component)
+                 @restrict const dfloat* o_usrwrk,
                  const int fieldOffset,       // currently unused
                  const dlong numLagrangePoints,
                  @restrict const dfloat* x_s, // Lagrange x
@@ -192,8 +194,10 @@ inline dfloat D1(dfloat r) {
           + GradTemperatureL_Z*nz0;
 
 
-        // heat flux; TODO: needs treatment to ensure energy conservation
-        const dfloat qB = 1.0;
+        // heat flux; NOTE: for constant heat flux, use the first line. For conjugate heat transfer
+        // it is instead the second line, where we read from the usrwrk array
+        //dfloat qB = 1.0;
+        dfloat qB = o_usrwrk[0 * fieldOffset + jLag];
 
         // Current heat-flux forcing form
         const dfloat factor =
