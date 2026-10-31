@@ -44,7 +44,11 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
     _initial_source_integral(getParam<Real>("initial_source_integral"))
 {
   if (_transfer_mesh.contains("stl") && _direction == "to_nek")
-    paramError("mesh", "Transferring boundary data from an STL file to a NekRS volumetric source is not supported; for immersed boundary coupling, you instead want to create a volumetric kernel in NekRS that will utilize the Lagrangian boundary data to construct a volume source.");
+    paramError(
+        "mesh",
+        "Transferring boundary data from an STL file to a NekRS volumetric source is not "
+        "supported; for immersed boundary coupling, you instead want to create a volumetric kernel "
+        "in NekRS that will utilize the Lagrangian boundary data to construct a volume source.");
 
   if (_direction == "to_nek")
   {
