@@ -33,14 +33,6 @@ public:
   virtual void sendDataToNek() override;
 
 protected:
-  /**
-   * Convert from the field string into the enumeration used internally
-   * in the NekInterface system.
-   * @param[in] name field name
-   * @return field enumeration
-   */
-  field::NekFieldEnum convertToFieldEnum(const std::string name) const;
-
   /// NekRS field to read/write
   field::NekFieldEnum _field;
 };

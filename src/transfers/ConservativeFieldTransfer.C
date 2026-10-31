@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "ConservativeFieldTransfer.h"
+#include "UserErrorChecking.h"
 #include "NekInterface.h"
 
 InputParameters
@@ -39,7 +40,13 @@ ConservativeFieldTransfer::validParams()
   params.addParam<std::string>(
       "postprocessor_to_conserve",
       "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure "
-      "conservation; defaults to the name of the object plus '_integral'");
+      "conservation of data on the mesh mirror; defaults to the name of the object plus "
+      "'_integral'");
+  params.addParam<std::string>(
+      "stl_postprocessor_to_conserve",
+      "Name of the postprocessor/vectorpostprocessor containing the integral(s) used to ensure "
+      "conservation of data on the STL file; defaults to the name of the object plus "
+      "'_integral_stl'");
 
   params.addClassDescription("Base class for defining input parameters shared by conservative "
                              "transfers between NekRS and MOOSE");
@@ -54,10 +61,23 @@ ConservativeFieldTransfer::ConservativeFieldTransfer(const InputParameters & par
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
 
+  if (!_transfer_mesh.contains("mirror"))
+    checkUnusedParam(
+        parameters, "postprocessor_to_conserve", "the 'mesh' does not contain 'mirror'");
+
+  if (!_transfer_mesh.contains("stl"))
+    checkUnusedParam(
+        parameters, "stl_postprocessor_to_conserve", "the 'mesh' does not contain 'stl'");
+
   if (isParamValid("postprocessor_to_conserve"))
     _postprocessor_name = getParam<std::string>("postprocessor_to_conserve");
   else
     _postprocessor_name = name() + "_integral";
+
+  if (isParamValid("stl_postprocessor_to_conserve"))
+    _postprocessor_name_stl = getParam<std::string>("stl_postprocessor_to_conserve");
+  else
+    _postprocessor_name_stl = name() + "_integral_stl";
 }
 
 std::string
@@ -74,6 +94,13 @@ ConservativeFieldTransfer::normalizationHint() const
        "- Your tolerances for comparing the re-normalized value with the incoming data are too "
        "tight. If the NekRS integrated value is close enough to the MOOSE integrated value, you "
        "can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters";
+
+  if (_transfer_mesh.contains("stl"))
+    s += "\n\n- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries "
+         "(like on corners between sidesets), you will end up renormalizing those shared nodes "
+         "once per sideset that they lie on. There is no guarantee that the total imposed flux "
+         "would be preserved.";
+
   return s;
 }
 

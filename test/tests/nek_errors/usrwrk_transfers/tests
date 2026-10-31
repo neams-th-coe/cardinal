@@ -46,7 +46,7 @@
   [flux_no_boundary]
     type = RunException
     input = flux.i
-    expect_err = "NekBoundaryFlux can only be used when there is boundary coupling of NekRS with MOOSE, i.e. when 'boundary' is provided in NekRSMesh."
+    expect_err = "When transferring data with the mesh mirror, NekBoundaryFlux requires 'boundary' to be provided in NekRSMesh."
     requirement = "The system shall error when a boundary flux transfer is applied when there is not boundary coupling"
     capabilities = 'nekrs'
     design = 'NekBoundaryFlux.md'

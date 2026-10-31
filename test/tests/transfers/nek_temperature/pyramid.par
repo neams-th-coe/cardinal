@@ -8,7 +8,7 @@
   polynomialOrder = 1
   checkpointControl = steps
   checkpointInterval = 1
-  scalars = temperature
+  scalars = temperature, one, two, three
 
 [MESH]
   file=../../nek_output/pyramid.re2
@@ -23,3 +23,13 @@
   transportCoeff = 1.0
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann, zeroNeumann
   residualTol = 1e-6
+
+[SCALAR ONE]
+  solver = none
+
+[SCALAR TWO]
+  solver = none
+
+[SCALAR THREE]
+  solver = none
+

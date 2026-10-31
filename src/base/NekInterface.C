@@ -337,6 +337,293 @@ commSize()
   return platform->comm.mpiCommSize();
 }
 
+field::NekFieldEnum
+convertToFieldEnum(const std::string name)
+{
+  auto lowercase = name;
+  std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), ::tolower);
+  if (lowercase == "velocity_x")
+    return field::velocity_x;
+  if (lowercase == "velocity_y")
+    return field::velocity_y;
+  if (lowercase == "velocity_z")
+    return field::velocity_z;
+  if (lowercase == "velocity")
+    return field::velocity;
+  if (lowercase == "velocity_component")
+    return field::velocity_component;
+  if (lowercase == "velocity_x_squared")
+    return field::velocity_x_squared;
+  if (lowercase == "velocity_y_squared")
+    return field::velocity_y_squared;
+  if (lowercase == "velocity_z_squared")
+    return field::velocity_z_squared;
+  if (lowercase == "temperature")
+    return field::temperature;
+  if (lowercase == "pressure")
+    return field::pressure;
+  if (lowercase == "scalar01")
+    return field::scalar01;
+  if (lowercase == "scalar02")
+    return field::scalar02;
+  if (lowercase == "scalar03")
+    return field::scalar03;
+  if (lowercase == "unity")
+    return field::unity;
+  if (lowercase == "usrwrk00")
+    return field::usrwrk00;
+  if (lowercase == "usrwrk01")
+    return field::usrwrk01;
+  if (lowercase == "usrwrk02")
+    return field::usrwrk02;
+  if (lowercase == "zero")
+    return field::zero;
+
+  mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
+}
+
+// TODO: will need to generalize to other types of fluxes once we add mass transport
+std::vector<dfloat>
+interpolateHeatFluxToPoints(pointInterpolation_t & interp,
+                            const std::vector<Point> & stl_normals,
+                            int n)
+{
+  // auto mesh = nrs->meshV;
+  auto mesh = nrs->scalar->mesh("temperature");
+  auto fieldOffsetSum = mesh->dim * nrs->fieldOffset;
+  int n_values = n * mesh->dim; // TODO: number of scalars?
+
+  // the interpolator has been initialized with the corners of the STL triangles; so,
+  // we compute grad(T) at all of the Eulerian points, and then interpolate that to
+  // the Lagrangian points
+
+  auto o_S = nrs->scalar->o_solution("temperature");
+  auto o_gradS = opSEM::strongGrad(mesh, nrs->scalar->fieldOffset(), o_S);
+
+  // interpolate grad(T) on Eulerian points to Lagrangian points
+  occa::memory o_interpolated;
+  o_interpolated = platform->device.malloc<dfloat>(n_values);
+  interp.eval(mesh->dim, nekrs::scalarFieldOffset(), o_gradS, n, o_interpolated);
+
+  // the interpolation happens on device, so we need to copy it back to the host
+  std::vector<dfloat> all_interpolated_values(n_values);
+  o_interpolated.copyTo(all_interpolated_values.data(), n_values);
+
+  // TODO: this will only work correctly if the diffusion coefficient is constant;
+  // also will need to generalize to other scalars
+  double k;
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+  std::vector<dfloat> interpolated(n);
+  for (unsigned int i = 0; i < n; ++i)
+  {
+    // vertices are grouped in 3's to map to each element
+    unsigned int stl_elem_idx = i / 3;
+
+    auto normal = stl_normals[stl_elem_idx];
+
+    // compute grad(T) * hat(n) at each point
+    auto grad_T_cdot_n = all_interpolated_values[i] * normal(0) +
+                         all_interpolated_values[i + 1 * n] * normal(1) +
+                         all_interpolated_values[i + 2 * n] * normal(2);
+    interpolated[i] = -k * grad_T_cdot_n;
+
+    // dimensionalize the solution if needed
+    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field::flux) +
+                      nekrs::nondimensionalAdditive(field::flux);
+  }
+
+  return interpolated;
+}
+
+std::vector<dfloat>
+interpolateToPoints(pointInterpolation_t & interp,
+                    const field::NekFieldEnum field,
+                    int n,
+                    const Point component)
+{
+  occa::memory o_interpolated;
+  int n_values = n;
+
+  switch (field)
+  {
+    case field::velocity_component:
+    case field::velocity_x:
+    case field::velocity_y:
+    case field::velocity_z:
+    case field::velocity:
+    case field::velocity_x_squared:
+    case field::velocity_y_squared:
+    case field::velocity_z_squared:
+      n_values = n * 3;
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(3, nrs->fluid->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
+      break;
+    case field::pressure:
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(1, nrs->fieldOffset, nrs->fluid->o_P, n, o_interpolated);
+      break;
+    case field::temperature:
+    case field::scalar01:
+    case field::scalar02:
+    case field::scalar03:
+      n_values = n * nrs->Nscalar;
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(nrs->Nscalar, nekrs::scalarFieldOffset(), nrs->scalar->o_S, n, o_interpolated);
+      break;
+    case field::unity:
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      // we don't actually use o_interpolated's data, for this trivial case
+      break;
+    case field::usrwrk00:
+    case field::usrwrk01:
+    case field::usrwrk02:
+      n_values = n * n_usrwrk_slots;
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(n_usrwrk_slots, nekrs::fieldOffset(), nrs->bc.o_usrwrk, n, o_interpolated);
+      break;
+    case field::zero:
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      // we don't actually use o_interpolated's data, for this trivial case
+      break;
+    default:
+      mooseError("Unhandled NekFieldEnum in interpolatePoints!");
+  }
+
+  // the interpolation happens on device, so we need to copy it back to the host
+  std::vector<dfloat> all_interpolated_values(n_values);
+  o_interpolated.copyTo(all_interpolated_values.data(), n_values);
+
+  // but we only want one field; for some fields, such as velocity (3) and scalars (Nscalar),
+  // our all_interpolated_values array is filled with more than one "quantity." Here, we need to
+  // mask it out
+  std::vector<dfloat> interpolated(n);
+  switch (field)
+  {
+    case field::velocity_component:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i] * component(0) +
+                          all_interpolated_values[i + n] * component(1) +
+                          all_interpolated_values[i + 2 * n] * component(2);
+      break;
+    case field::velocity_x:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::velocity_y:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n];
+      break;
+    case field::velocity_z:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2 * n];
+      break;
+    case field::velocity:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] =
+            std::sqrt(all_interpolated_values[i] * all_interpolated_values[i] +
+                      all_interpolated_values[i + n] * all_interpolated_values[i + n] +
+                      all_interpolated_values[i + 2 * n] * all_interpolated_values[i + 2 * n]);
+      break;
+    case field::velocity_x_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i] * all_interpolated_values[i];
+      break;
+    case field::velocity_y_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n] * all_interpolated_values[i + n];
+      break;
+    case field::velocity_z_squared:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2 * n] * all_interpolated_values[i + 2 * n];
+      break;
+    case field::pressure:
+    case field::temperature:
+      // pressure and temperature are both first entries because we enforce temperature to be zeroth
+      // scalar
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::scalar01:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(1) * n];
+      break;
+    case field::scalar02:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(2) * n];
+      break;
+    case field::scalar03:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + nekrs::scalarSlot(3) * n];
+      break;
+    case field::unity:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = 1.0;
+      break;
+    case field::usrwrk00:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i];
+      break;
+    case field::usrwrk01:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + n];
+      break;
+    case field::usrwrk02:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = all_interpolated_values[i + 2 * n];
+      break;
+    case field::zero:
+      for (unsigned int i = 0; i < n; ++i)
+        interpolated[i] = 0.0;
+      break;
+    default:
+      mooseError("Unhandled NekFieldEnum in interpolatePoints!");
+  }
+
+  // dimensionalize
+  for (unsigned int i = 0; i < n; ++i)
+    interpolated[i] =
+        interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
+
+  return interpolated;
+}
+
+dfloat
+computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
+{
+  const dfloat ax = v2(0) - v1(0);
+  const dfloat ay = v2(1) - v1(1);
+  const dfloat az = v2(2) - v1(2);
+  const dfloat bx = v3(0) - v1(0);
+  const dfloat by = v3(1) - v1(1);
+  const dfloat bz = v3(2) - v1(2);
+
+  const dfloat crossX = ay * bz - az * by;
+  const dfloat crossY = az * bx - ax * bz;
+  const dfloat crossZ = ax * by - ay * bx;
+
+  return 0.5 * std::sqrt(crossX * crossX + crossY * crossY + crossZ * crossZ);
+}
+
+double
+usrwrkSTLIntegral(const unsigned int & slot,
+                  const std::vector<Point> & stl_vertices,
+                  const int & n_elems)
+{
+  double integral = 0.0;
+  for (unsigned int e = 0; e < n_elems; ++e)
+  {
+    // vertices are grouped in 3's to map to each element
+    auto elem_offset = e * 3;
+    auto area = computeTriangleArea(
+        stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
+
+    integral += usrwrk[slot + e] * area;
+  }
+
+  // TODO: non-dimensionalization
+  return integral;
+}
+
 bool
 scratchAvailable()
 {
@@ -1774,7 +2061,7 @@ get_velocity_z_squared(const int id, const int surf_offset)
 }
 
 void
-checkFieldValidity(const field::NekWriteEnum & field)
+checkWriteFieldValidity(const field::NekWriteEnum field)
 {
   switch (field)
   {
@@ -1796,12 +2083,12 @@ checkFieldValidity(const field::NekWriteEnum & field)
     case field::mesh_velocity_z:
       break;
     default:
-      mooseError("Unhandled NekWriteEnum in checkFieldValidity!");
+      mooseError("Unhandled NekWriteEnum in checkWriteFieldValidity!");
   }
 }
 
 void
-checkFieldValidity(const field::NekFieldEnum & field)
+checkInputFieldValidity(const field::NekFieldEnum field)
 {
   // by placing this check here, as opposed to inside the NekFieldInterface,
   // we can also leverage this error checking for the 'outputs' of NekRSProblem,
@@ -1856,7 +2143,7 @@ double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
 {
   double (*f)(int, int);
 
-  checkFieldValidity(field);
+  checkWriteFieldValidity(field);
 
   switch (field)
   {
@@ -1874,7 +2161,7 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
 {
   // we include this here as well, in addition to within the NekFieldInterface, because
   // the NekRSProblem accesses these methods without inheriting from NekFieldInterface
-  checkFieldValidity(field);
+  checkInputFieldValidity(field);
 
   double (*f)(int, int);
 

@@ -43,6 +43,10 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
   : ConservativeFieldTransfer(parameters),
     _initial_source_integral(getParam<Real>("initial_source_integral"))
 {
+  if (_transfer_mesh.contains("stl"))
+    if (_direction == "to_nek")
+      paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
+
   if (_direction == "to_nek")
   {
     // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
@@ -88,6 +92,12 @@ NekVolumetricSource::NekVolumetricSource(const InputParameters & parameters)
 
   addExternalPostprocessor(_postprocessor_name, _initial_source_integral);
   _source_integral = &getPostprocessorValueByName(_postprocessor_name);
+
+  for (const auto & t : _transfer_mesh)
+    if (t == "stl")
+      paramError("mesh",
+                 "Transferring data from NekRS to the STL mesh is not yet supported for "
+                 "conservative field transfers!");
 }
 
 bool
@@ -125,15 +135,8 @@ NekVolumetricSource::sendDataToNek()
 
   auto d = nekrs::nondimensionalDivisor(field::heat_source);
   auto a = nekrs::nondimensionalAdditive(field::heat_source);
-  for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
-  {
-    // We can only write into the nekRS scratch space if that face is "owned" by the current process
-    if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-      continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-    _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
-  }
+  sendVolumetricDataToNek(_variable_number[_variable], d, a);
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
   // the heat source, we will need to normalize the total source on the nekRS side by the
