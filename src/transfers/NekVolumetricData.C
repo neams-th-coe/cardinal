@@ -33,9 +33,8 @@ NekVolumetricData::validParams()
 NekVolumetricData::NekVolumetricData(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
-  if (_transfer_mesh.contains("stl"))
-    if (_direction == "to_nek")
-      paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
+  if (_transfer_mesh.contains("stl") && _direction == "to_nek")
+    paramError("mesh", "Transferring boundary data from an STL file to a NekRS volumetric field is not supported; for immersed boundary coupling, you instead want to create a volumetric kernel in NekRS that will utilize the Lagrangian boundary data to construct a volume field.");
 
   if (_usrwrk_slot.size() > 1)
     paramError("usrwrk_slot",

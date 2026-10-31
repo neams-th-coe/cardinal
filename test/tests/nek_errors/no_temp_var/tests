@@ -17,4 +17,24 @@
     capabilities = 'nekrs'
     design = 'NekVolumetricSource.md'
   []
+  [stl_source]
+    type = RunException
+    input = source.i
+    cli_args = "Mesh/stl='../../nek_mesh/stl/small_sphere.stl' Problem/FieldTransfers/heat/mesh='stl'"
+    expect_err = "Transferring boundary data from an STL file to a NekRS volumetric source is not supported"
+    requirement = "The system shall error if trying to send STL boundary data into NekRS as a volume source, since this should instead be accomplished using a kernel within NekRS directly."
+    capabilities = 'nekrs'
+    issues = '#1398'
+    design = 'NekVolumetricSource.md'
+  []
+  [stl_data]
+    type = RunException
+    input = source.i
+    cli_args = "Mesh/stl='../../nek_mesh/stl/small_sphere.stl' Problem/FieldTransfers/heat/mesh='stl' Problem/FieldTransfers/heat/type=NekVolumetricData"
+    expect_err = "Transferring boundary data from an STL file to a NekRS volumetric field is not supported"
+    requirement = "The system shall error if trying to send STL boundary data into NekRS as a volume field, since this should instead be accomplished using a kernel within NekRS directly."
+    capabilities = 'nekrs'
+    issues = '#1398'
+    design = 'NekVolumetricData.md'
+  []
 []
