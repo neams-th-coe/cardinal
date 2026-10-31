@@ -1717,19 +1717,19 @@ get_heat_flux(const int id, const int surf_offset)
 double
 get_scalar01_flux(const int id, const int surf_offset)
 {
-  return get_flux(1, id, surf_offset);
+  return get_flux(scalarSlot(1), id, surf_offset);
 }
 
 double
 get_scalar02_flux(const int id, const int surf_offset)
 {
-  return get_flux(2, id, surf_offset);
+  return get_flux(scalarSlot(2), id, surf_offset);
 }
 
 double
 get_scalar03_flux(const int id, const int surf_offset)
 {
-  return get_flux(3, id, surf_offset);
+  return get_flux(scalarSlot(3), id, surf_offset);
 }
 
 double
