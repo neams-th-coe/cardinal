@@ -88,13 +88,6 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   else
     checkUnusedParam(parameters, "initial_flux_integral", "the 'mesh' does not contain 'mirror'");
 
-  // TODO: test
-  if (_transfer_mesh.contains("stl") && _transfer_mesh.contains("mirror"))
-    mooseError("Cardinal does not yet support a single transfer being used to read flux from both "
-               "an STL surface and the mesh mirror, because different-order variables are created "
-               "for each. Please use two separate NekBoundaryFlux transfers, one for the mirro and "
-               "the other for the STL.");
-
   if (!_transfer_mesh.contains("stl"))
     checkUnusedParam(parameters, "initial_flux_integral_stl", "the 'mesh' does not contain 'stl'");
 

@@ -27,7 +27,7 @@ mirror or with an STL file?).
 | | Transfer is *from* NekRS | Transfer is *to* NekRS |
 | :- | :- | :- |
 | Transfer is on the mesh mirror | [NekHeatFluxIntegral](NekHeatFluxIntegral.md) named `<name of the object>_integral` | [Receiver](Receiver.md) named `<name of the object>_integral` that a MultiApp should write into with a [conservative transfer](https://mooseframework.inl.gov/source/transfers/MultiAppConservativeTransfer.html) |
-| Transfer is on the STL surface | [ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md) named `<name of the object>_integral_stl` applied to the flux on the STL surface | not yet supported |
+| Transfer is on the STL surface | [ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md) named `<name of the object>_integral_stl` applied to the flux on the STL surface | [Receiver](Receiver.md) |
 
 ### Flux Normalization Per Sideset (for mirror meshes only)
 
