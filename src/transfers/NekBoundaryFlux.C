@@ -332,7 +332,7 @@ NekBoundaryFlux::sendDataToNek()
 
     // integrate the flux received onto the STL surface
     double nek_flux = nekrs::usrwrkSTLIntegral(
-        _usrwrk_slot[0], _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+        _usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
 
     auto moose_flux = *_flux_integral_stl;
     std::filesystem::path p(_nek_mesh->STLFilename());

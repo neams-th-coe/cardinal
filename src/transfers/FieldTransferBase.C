@@ -248,7 +248,6 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
       sum += solution(dof_idx);
     }
 
-    // TODO: check in slots other than zero
     usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] = sum / Tri3::num_nodes;
   }
 }
