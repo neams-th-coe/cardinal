@@ -141,6 +141,15 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
       mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
                    ".par', NekRS will not solve for temperature. The heat flux sent by this object "
                    "will be unused.");
+
+    // for a flux on the STL surface to be used, it needs to be combined with a heat source kernel;
+    // NOTE: this check is imperfect, because even if there is a source kernel, we cannot tell
+    // which passive scalar equation it is applied to
+    if (_transfer_mesh.contains("stl"))
+      if (nekrs::hasTemperatureSolve() && !nekrs::hasHeatSourceKernel())
+        mooseWarning(
+            "In order to use the STL flux sent to NekRS, you must have an OCCA source "
+            "kernel in the passive scalar equations! The STL flux will currently be unused.");
   }
 
   // add postprocessors to hold integrated heat flux; we do not need to check for duplicate

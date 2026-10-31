@@ -75,4 +75,14 @@
     capabilities = 'nekrs'
     design = 'NekUsrWrkSTLIntegral.md'
   []
+  [no_kernel]
+    type = RunException
+    input = read_stl.i
+    cli_args = 'Problem/casename="temperature" --error'
+    expect_err = "In order to use the STL flux sent to NekRS, you must have an OCCA source kernel in the passive scalar equations! The STL flux will currently be unused."
+    requirement = "The system shall throw a warning if STL fluxes are read from the mesh but there is not a corresponding source kernel to apply the data in NekRS"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
 []
