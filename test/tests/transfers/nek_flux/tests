@@ -65,4 +65,14 @@
     capabilities = 'nekrs'
     design = 'NekUsrWrkSTLIntegral.md'
   []
+  [invalid_slot]
+    type = RunException
+    input = read_stl.i
+    cli_args = "Postprocessors/stl_integral_0/usrwrk_slot=4"
+    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 3"
+    requirement = "The system shall error if trying to perform an integral of the usrwrk array over an STL file in a slot which has not been allocated"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekUsrWrkSTLIntegral.md'
+  []
 []
