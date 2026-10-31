@@ -1,7 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'brick'
-  n_usrwrk_slots = 1
+  n_usrwrk_slots = 3
 
   [FieldTransfers]
     [flux]
@@ -9,12 +9,20 @@
       direction = to_nek
       mesh = 'stl'
 
-      initial_flux_integral_stl = 1
+      initial_flux_integral_stl = 1.5
       usrwrk_slot = 0
     []
+    [usrwrk01]
+      type = NekVolumetricData
+      direction = to_nek
+      usrwrk_slot = 1
+    []
+    [usrwrk02]
+      type = NekVolumetricData
+      direction = to_nek
+      usrwrk_slot = 2
+    []
   []
-
-  allow_renumbering = false
 []
 
 [ICs]
@@ -23,6 +31,16 @@
     variable = flux
     block = 9999
     function = f
+  []
+  [usrwrk01]
+    type = ConstantIC
+    variable = usrwrk01
+    value = 7.5
+  []
+  [usrwrk02]
+    type = ConstantIC
+    variable = usrwrk02
+    value = 1.0
   []
 []
 
@@ -35,15 +53,9 @@
 
 [Mesh]
   type = NekRSMesh
-  boundary = '1 2 3 4 5 6'
+  volume = true
   stl = "../../nek_mesh/stl/small_sphere.stl"
   stl_translation = '0.5 0.5 0.5'
-[]
-
-[AuxVariables]
-  [moose_flux]
-    block = 9999
-  []
 []
 
 [Executioner]
@@ -55,43 +67,21 @@
 []
 
 [Postprocessors]
-  [moose_flux_integral]
-    type = ElementIntegralVariablePostprocessor
-    variable = moose_flux
-    block = 9999
+  [stl_integral_0] # should be equal to 1.5
+    type = NekUsrWrkSTLIntegral
+    usrwrk_slot = 0
   []
-  [volume]
-    type = VolumePostprocessor
-    block = 9999
+  [stl_integral_1] # should be close to 7.5 times stl_area
+    type = NekUsrWrkSTLIntegral
+    usrwrk_slot = 1
   []
-
-  [max_nek_flux]
-    type = ElementExtremeValue
-    variable = flux
-    block = 9999
-  []
-  [min_nek_flux]
-    type = ElementExtremeValue
-    variable = flux
-    block = 9999
-    value_type = min
-  []
-
-  [max_moose_flux]
-    type = ElementExtremeValue
-    variable = moose_flux
-    block = 9999
-  []
-  [min_moose_flux]
-    type = ElementExtremeValue
-    variable = moose_flux
-    block = 9999
-    value_type = min
+  [stl_area] # should be close to pi, since this is the STL surface area when scaled
+    type = NekUsrWrkSTLIntegral
+    usrwrk_slot = 2
   []
 []
 
 [Outputs]
-  exodus = true
   csv = true
 []
 
