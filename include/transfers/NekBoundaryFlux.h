@@ -61,6 +61,17 @@ protected:
   normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
 
   /**
+   * Normalize the flux sent to nekRS on an STL file to conserve the total flux
+   * @param[in] moose_integral total integrated flux from MOOSE to conserve
+   * @param[in] nek_integral total integrated flux in nekRS to adjust
+   * @param[out] normalized_nek_integral final normalized nek flux integral
+   * @return whether normalization was successful, i.e. normalized_nek_integral equals
+   * moose_integral
+   */
+  bool
+  normalizeSTLFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
+
+  /**
    * Normalize the flux sent to nekRS to conserve the total flux
    * @param[in] moose_integral total integrated flux from MOOSE to conserve
    * @param[in] nek_integral total integrated flux in nekRS to adjust

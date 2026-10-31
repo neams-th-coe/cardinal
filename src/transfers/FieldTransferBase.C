@@ -215,11 +215,9 @@ FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const 
 void
 FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
 {
-  // TODO: performance?
   auto & aux = _nek_problem.getAuxiliarySystem();
   auto & solution = aux.serializedSolution();
   auto sys_number = aux.number();
-  auto pid = _communicator.rank();
   auto usrwrk = nekrs::host_wrk();
 
   // loop through the STL triangles; the data we will write into the usrwrk array is the
@@ -245,14 +243,13 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
       auto node_ptr = elem_ptr->node_ptr(n);
 
       // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process. TODO: assumes all nodes on same rank.
+      // vertex is "owned" by the present MOOSE process.
       auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
       sum += solution(dof_idx);
     }
 
     // TODO: check in slots other than zero
     usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] = sum / Tri3::num_nodes;
-
   }
 }
 

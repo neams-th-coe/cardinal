@@ -607,7 +607,6 @@ double
 usrwrkSTLIntegral(const unsigned int & slot, const std::vector<Point> & stl_vertices, const int & n_elems)
 {
   double integral = 0.0;
-  double total_area = 0.0;
   for (unsigned int e = 0; e < n_elems; ++e)
   {
     // vertices are grouped in 3's to map to each element
@@ -615,12 +614,8 @@ usrwrkSTLIntegral(const unsigned int & slot, const std::vector<Point> & stl_vert
     auto area = computeTriangleArea(stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
 
     integral += usrwrk[slot + e] * area;
-    total_area += area;
   }
 
-  std::cout << "STL area: " << total_area << std::endl;
-
-  // TODO: parallel sum?
   // TODO: non-dimensionalization
   return integral;
 }

@@ -94,6 +94,13 @@ ConservativeFieldTransfer::normalizationHint() const
        "- Your tolerances for comparing the re-normalized value with the incoming data are too "
        "tight. If the NekRS integrated value is close enough to the MOOSE integrated value, you "
        "can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters";
+
+  if (_transfer_mesh.contains("stl"))
+    s += "\n\n- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries "
+        "(like on corners between sidesets), you will end up renormalizing those shared nodes "
+        "once per sideset that they lie on. There is no guarantee that the total imposed flux "
+        "would be preserved.";
+
   return s;
 }
 

@@ -316,7 +316,7 @@ NekBoundaryFlux::sendDataToNek()
 
       total_moose_flux = moose_flux;
 
-      // For the sake of printing diagnostics to the screen regarding the flux normalization,
+      // For the sake of printing diagnostics to the screen regarding the flux normalization
       successful_normalization = normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
     }
   }
@@ -335,19 +335,22 @@ NekBoundaryFlux::sendDataToNek()
              << "]: Normalizing total NekRS flux of "
              << Moose::stringify(nek_flux * nek_flux_print_mult)
              << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
+
+    checkInitialFluxValues(nek_flux, moose_flux);
+
+    total_moose_flux = moose_flux;
+
+    // For the sake of printing diagnostics to the screen regarding the flux normalization
+    successful_normalization = normalizeSTLFlux(moose_flux, nek_flux, normalized_nek_flux);
   }
 
- // if (!successful_normalization)
- //   mooseError(
- //       "Flux normalization process failed! NekRS integrated flux: ",
- //       normalized_nek_flux,
- //       " MOOSE integrated flux: ",
- //       total_moose_flux,
- //       normalizationHint(),
- //       "\n\n- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries "
- //       "(like on corners between sidesets), you will end up renormalizing those shared nodes "
- //       "once per sideset that they lie on. There is no guarantee that the total imposed flux "
- //       "would be preserved.");
+  if (!successful_normalization)
+    mooseError(
+        "Flux normalization process failed! NekRS integrated flux: ",
+        normalized_nek_flux,
+        " MOOSE integrated flux: ",
+        total_moose_flux,
+        normalizationHint());
 }
 
 void
@@ -422,6 +425,34 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
                 _rel_tol
           : true;
   bool low_abs_err = std::abs(normalized_nek_integral - total_moose_integral) < _abs_tol;
+
+  return low_rel_err || low_abs_err;
+}
+
+bool
+NekBoundaryFlux::normalizeSTLFlux(const double moose_integral,
+                                  double nek_integral,
+                                  double & normalized_nek_integral)
+{
+  // scale the nek flux to dimensional form for the sake of normalizing against
+  // a dimensional MOOSE flux
+  nek_integral *= _reference_flux_integral;
+
+  // avoid divide-by-zero
+  if (std::abs(nek_integral) < _abs_tol)
+    return true;
+
+  const double ratio = moose_integral / nek_integral;
+
+  auto usrwrk = nekrs::host_wrk();
+  for (unsigned int e = 0; e < _nek_mesh->numSTLElems(); e++)
+    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] *= ratio;
+
+  // check that the normalization worked properly - confirm against dimensional form
+  auto integral = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+  normalized_nek_integral = integral * _reference_flux_integral;
+  bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;
+  bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < _abs_tol;
 
   return low_rel_err || low_abs_err;
 }
