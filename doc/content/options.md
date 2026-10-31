@@ -34,3 +34,13 @@ If you do want to use DAGMC with Embree, set:
 export ENABLE_DOUBLE_DOWN=yes
 ```
 !alert-end!
+
+We also support building OpenMC with support for [!ac](XDG), which allows for the use of Embree to perform ray tracing
+operations on unstructured meshes for tallying. [!ac](XDG) support is disabled by default, but we *strongly* recommend
+enabling it if you're planning on using unstructured mesh tallies as it can provide a 1.5x-3x speedup.
+
+If you do want to use [!ac](XDG), set:
+
+```
+export ENABLE_XDG=yes
+```
