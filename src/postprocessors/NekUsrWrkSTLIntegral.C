@@ -39,7 +39,7 @@ NekUsrWrkSTLIntegral::NekUsrWrkSTLIntegral(const InputParameters & parameters)
 {
   if (_usrwrk_slot >= _nek_problem->nUsrWrkSlots())
     mooseError("'usrwrk_slot' must be less than number of allocated usrwrk slots: ",
-      _nek_problem->nUsrWrkSlots());
+               _nek_problem->nUsrWrkSlots());
 
   if (!_nek_mesh->hasSTLFile())
     mooseError("This object can only be used when an 'stl' file is provided to NekRSMesh");
@@ -48,7 +48,8 @@ NekUsrWrkSTLIntegral::NekUsrWrkSTLIntegral(const InputParameters & parameters)
 Real
 NekUsrWrkSTLIntegral::getValue() const
 {
-  return nekrs::usrwrkSTLIntegral(_usrwrk_slot * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+  return nekrs::usrwrkSTLIntegral(
+      _usrwrk_slot * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
 }
 
 #endif

@@ -32,7 +32,8 @@ NekBoundaryFlux::validParams()
       "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
       "overridden once the coupled app executes its transfer of the boundary flux term integral "
       "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
-      "first, or if you are running NekRS in isolation but still want to apply a mirror boundary flux "
+      "first, or if you are running NekRS in isolation but still want to apply a mirror boundary "
+      "flux "
       "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
       "will need to populate an initial shape (or constant value) to the auxvariable holding the "
       "flux if you want to see this parameter take effect.");
@@ -44,7 +45,8 @@ NekBoundaryFlux::validParams()
       "Initial value to use for the 'postprocessor_to_conserve'; this initial value will be "
       "overridden once the coupled app executes its transfer of the boundary flux term integral "
       "into the 'postprocessor_to_conserve'. You may want to use this parameter if NekRS runs "
-      "first, or if you are running NekRS in isolation but still want to apply an STL boundary flux "
+      "first, or if you are running NekRS in isolation but still want to apply an STL boundary "
+      "flux "
       "term via Cardinal. Remember that this parameter is only used to normalize the flux, so you "
       "will need to populate an initial shape (or constant value) to the auxvariable holding the "
       "flux if you want to see this parameter take effect.");
@@ -88,7 +90,10 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 
   // TODO: test
   if (_transfer_mesh.contains("stl") && _transfer_mesh.contains("mirror"))
-    mooseError("Cardinal does not yet support a single transfer being used to read flux from both an STL surface and the mesh mirror, because different-order variables are created for each. Please use two separate NekBoundaryFlux transfers, one for the mirro and the other for the STL.");
+    mooseError("Cardinal does not yet support a single transfer being used to read flux from both "
+               "an STL surface and the mesh mirror, because different-order variables are created "
+               "for each. Please use two separate NekBoundaryFlux transfers, one for the mirro and "
+               "the other for the STL.");
 
   if (!_transfer_mesh.contains("stl"))
     checkUnusedParam(parameters, "initial_flux_integral_stl", "the 'mesh' does not contain 'stl'");
@@ -123,12 +128,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     auto d = nekrs::nondimensionalDivisor(field::flux);
     auto a = nekrs::nondimensionalAdditive(field::flux);
 
-    // TODO: relax this constraint, it would be better to write sendSTLDataToNek so that it works
-    // with linear Lagrange
-    //if (_transfer_mesh.contains("mirror"))
-      addExternalVariable(_usrwrk_slot[0], _variable, a, d);
-    //else
-    //  addExternalMonomialVariable(_usrwrk_slot[0], _variable, a, d);
+    addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
     // Check that the correct flux boundary condition is set on all of nekRS's
     // boundaries. To avoid throwing this error for test cases where we have a
@@ -158,7 +158,9 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     if (_conserve_flux_by_sideset)
     {
       if (_transfer_mesh.contains("stl"))
-        paramError("conserve_flux_by_sideset", "This option is not yet supported for STL data transfers; please contact the Cardinal developer team if you need this feature");
+        paramError("conserve_flux_by_sideset",
+                   "This option is not yet supported for STL data transfers; please contact the "
+                   "Cardinal developer team if you need this feature");
 
       if (isParamSetByUser("initial_flux_integral"))
         mooseWarning("The 'initial_flux_integral' capability is not yet supported when "
@@ -266,8 +268,8 @@ NekBoundaryFlux::sendDataToNek()
     sendFaceDataToNek(_variable_number[_variable], d, a);
 
     // integrate the flux over each individual boundary
-    std::vector<double> nek_flux_sidesets =
-        nekrs::usrwrkSideIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
+    std::vector<double> nek_flux_sidesets = nekrs::usrwrkSideIntegral(
+        _usrwrk_slot[0] * nekrs::fieldOffset(), *_boundary, nek_mesh::all);
 
     if (_conserve_flux_by_sideset)
     {
@@ -327,12 +329,12 @@ NekBoundaryFlux::sendDataToNek()
     sendSTLDataToNek(_variable_number[_variable]);
 
     // integrate the flux received onto the STL surface
-    double nek_flux = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0], _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+    double nek_flux = nekrs::usrwrkSTLIntegral(
+        _usrwrk_slot[0], _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
 
     auto moose_flux = *_flux_integral_stl;
     std::filesystem::path p(_nek_mesh->STLFilename());
-    _console << "[" << p.filename().string()
-             << "]: Normalizing total NekRS flux of "
+    _console << "[" << p.filename().string() << "]: Normalizing total NekRS flux of "
              << Moose::stringify(nek_flux * nek_flux_print_mult)
              << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
 
@@ -345,12 +347,11 @@ NekBoundaryFlux::sendDataToNek()
   }
 
   if (!successful_normalization)
-    mooseError(
-        "Flux normalization process failed! NekRS integrated flux: ",
-        normalized_nek_flux,
-        " MOOSE integrated flux: ",
-        total_moose_flux,
-        normalizationHint());
+    mooseError("Flux normalization process failed! NekRS integrated flux: ",
+               normalized_nek_flux,
+               " MOOSE integrated flux: ",
+               total_moose_flux,
+               normalizationHint());
 }
 
 void
@@ -449,7 +450,8 @@ NekBoundaryFlux::normalizeSTLFlux(const double moose_integral,
     usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] *= ratio;
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integral = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+  auto integral = nekrs::usrwrkSTLIntegral(
+      _usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
   normalized_nek_integral = integral * _reference_flux_integral;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;
   bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < _abs_tol;

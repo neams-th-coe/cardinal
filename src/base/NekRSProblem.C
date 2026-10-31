@@ -440,7 +440,8 @@ NekRSProblem::initialSetup()
              << std::endl;
     _console << "  How to Access:  C++ code to use in NekRS files; 'n' indicates a loop "
              << std::endl;
-    _console << "                  index over either GLL points (for Eulerian data) or " << std::endl;
+    _console << "                  index over either GLL points (for Eulerian data) or "
+             << std::endl;
     _console << "                  Lagrange points (for STL data).\n" << std::endl;
     vt.print(_console);
     _console << std::endl;
@@ -863,7 +864,7 @@ NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
       (*outgoing_data)[node_index] =
-          (_serialized_solution(dof_idx)-additive_scale) / divisor_scale;
+          (_serialized_solution(dof_idx) - additive_scale) / divisor_scale;
     }
   }
 }
@@ -907,7 +908,7 @@ NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
 
         auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
         (*outgoing_data)[node_index] =
-            (_serialized_solution(dof_idx)-additive_scale) / divisor_scale;
+            (_serialized_solution(dof_idx) - additive_scale) / divisor_scale;
       }
     }
   }
@@ -944,7 +945,7 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                                 : _nek_mesh->volumeNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = (_serialized_solution(dof_idx)-additive) / divisor;
+      (*outgoing_data)[node_index] = (_serialized_solution(dof_idx) - additive) / divisor;
     }
   }
 }

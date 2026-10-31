@@ -587,7 +587,8 @@ interpolateToPoints(pointInterpolation_t & interp,
   return interpolated;
 }
 
-dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3)
+dfloat
+computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
 {
   const dfloat ax = v2(0) - v1(0);
   const dfloat ay = v2(1) - v1(1);
@@ -604,14 +605,17 @@ dfloat computeTriangleArea(const Point& v1, const Point& v2, const Point& v3)
 }
 
 double
-usrwrkSTLIntegral(const unsigned int & slot, const std::vector<Point> & stl_vertices, const int & n_elems)
+usrwrkSTLIntegral(const unsigned int & slot,
+                  const std::vector<Point> & stl_vertices,
+                  const int & n_elems)
 {
   double integral = 0.0;
   for (unsigned int e = 0; e < n_elems; ++e)
   {
     // vertices are grouped in 3's to map to each element
     auto elem_offset = e * 3;
-    auto area = computeTriangleArea(stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
+    auto area = computeTriangleArea(
+        stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
 
     integral += usrwrk[slot + e] * area;
   }
