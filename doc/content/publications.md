@@ -275,6 +275,10 @@ L. Harbour, P. Shriwise, A. Novak, and D. Gaston,
 
 # Adaptive Mesh Refinement
 
+K.C. Sawatzky, E.W. Ahammed, P.P.H. Wilson, P.C. Shriwise, P.K. Romano, and A.J. Novak,
+["Adaptive Mesh Refinement for Monte Carlo Unstructured Mesh Tallies: Studies from Rod Bundles to a Whole Core"](https://doi.org/10.1016/j.anucene.2026.112888)
+*Annals of Nuclear Energy* (2027)
+
 E.W. Ahammed, K. Sawatzky, L. Gross, A. Novak, P. Shriwise, P. Romano, and P. Wilson,
 "Development of Mesh Tally Amalgamation Algorithm for Coupled High Fidelity Multiphysics Simulation"
 *Proceedings of Physor* (2026)
