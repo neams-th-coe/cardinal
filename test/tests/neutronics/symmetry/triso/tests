@@ -14,5 +14,6 @@
     prereq = generate_mesh
     requirement = "The system shall correctly reflect points about a symmetry plane"
     capabilities = 'openmc'
+    min_slots = 4 # 370 MB per slot observed during https://civet.inl.gov/job/4305073/ during step Test DagMC. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

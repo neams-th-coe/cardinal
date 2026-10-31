@@ -36,7 +36,7 @@
     cli_args = "AuxVariables/heat_source/order=FIRST"
     expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source' through the FieldTransfer system"
     requirement = "The system shall error if the user specifies a duplicate variable with a name overlapping with special names reserved for Cardinal data transfers."
-    min_slots = 6 # memory heavy
+    min_slots = 8 # 492 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
     design = 'NekVolumetricSource.md'
   []

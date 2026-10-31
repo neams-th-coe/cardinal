@@ -8,5 +8,6 @@
     csvdiff = main_out_nek0.csv
     requirement = 'The system shall solve for isothermal flow over a pebble.'
     capabilities = 'nekrs'
+    min_slots = 2 # 597 MB per slot observed during https://civet.inl.gov/job/4305077/ during step Tutorials. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

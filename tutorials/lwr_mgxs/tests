@@ -6,7 +6,7 @@
     type = RunApp
     input = mesh.i
     cli_args = '--mesh-only'
-    min_slots = 2 # memory heavy
+    min_slots = 12 # 571 MB per slot observed during https://civet.inl.gov/job/4305077/ during step Tutorials. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "The system shall be able to create a mesh for the LWR assembly to use when generating MGXS."
   []
   [assembly_mgxs]

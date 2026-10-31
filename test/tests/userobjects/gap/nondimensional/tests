@@ -4,7 +4,7 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out_subchannel0.csv
-    min_slots = 2 # memory heavy
+    min_slots = 4 # 426 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "Spatially-binned volume averages shall be correctly dimensionalized for "
                   "nondimensional cases and computed correctly. This is tested by passing the "
                   "variable values themselves onto the same receiving subchannel gap mesh, and "

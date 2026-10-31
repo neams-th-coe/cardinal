@@ -8,7 +8,7 @@
                   "binning and demonstrate correct results for side integrals and averages in directions "
                   "normal to the gap planes."
     capabilities = 'nekrs'
-    min_slots = 4 # memory heavy
+    min_slots = 8 # 703 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     max_time = 400
   []
   [normal_component_aux]
@@ -16,7 +16,7 @@
     input = nek_axial.i
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "The correct unit normals shall be formed for a layered Cartesian gap bin."
-    min_slots = 4 # memory heavy
+    min_slots = 8 # 703 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'nekrs'
   []
 []

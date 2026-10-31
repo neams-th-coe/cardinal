@@ -11,6 +11,7 @@
     cli_args = 'Problem/particles=500 Problem/inactive_batches=50 Problem/batches=100 Executioner/num_steps=1'
     requirement = "The system shall run OpenMC on an LWR pincell"
     capabilities = 'openmc'
+    min_slots = 2 # 523 MB per slot observed during https://civet.inl.gov/job/4305077/ during step Tutorials. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [lwr_pincell]
     type = CSVDiff
