@@ -2061,7 +2061,7 @@ get_velocity_z_squared(const int id, const int surf_offset)
 }
 
 void
-checkWriteFieldValidity(const field::NekWriteEnum field)
+checkFieldValidity(const field::NekWriteEnum & field)
 {
   switch (field)
   {
@@ -2083,12 +2083,12 @@ checkWriteFieldValidity(const field::NekWriteEnum field)
     case field::mesh_velocity_z:
       break;
     default:
-      mooseError("Unhandled NekWriteEnum in checkWriteFieldValidity!");
+      mooseError("Unhandled NekWriteEnum in checkFieldValidity!");
   }
 }
 
 void
-checkInputFieldValidity(const field::NekFieldEnum field)
+checkFieldValidity(const field::NekFieldEnum & field)
 {
   // by placing this check here, as opposed to inside the NekFieldInterface,
   // we can also leverage this error checking for the 'outputs' of NekRSProblem,
@@ -2143,7 +2143,7 @@ double (*solutionPointer(const field::NekWriteEnum & field))(int, int)
 {
   double (*f)(int, int);
 
-  checkWriteFieldValidity(field);
+  checkFieldValidity(field);
 
   switch (field)
   {
@@ -2161,7 +2161,7 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int, int)
 {
   // we include this here as well, in addition to within the NekFieldInterface, because
   // the NekRSProblem accesses these methods without inheriting from NekFieldInterface
-  checkInputFieldValidity(field);
+  checkFieldValidity(field);
 
   double (*f)(int, int);
 
