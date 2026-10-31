@@ -106,6 +106,38 @@ std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
 void setAbsoluteTol(double tol);
 
 /**
+ * Convert from the field string into the enumeration used internally
+ * in the NekInterface system.
+ * @param[in] name field name
+ * @return field enumeration
+ */
+field::NekFieldEnum convertToFieldEnum(const std::string name);
+
+/**
+ * Interpolate a field onto a set of points using NekRS's interpolator
+ * @param[in] interp an intialized interpolator
+ * @param[in] field the field type
+ * @param[in] n number of points
+ * @param[in] component component vector to use for dotting with velocity; only used for
+ * velocity_component fields, so a default is provided to allow skipping entering it
+ * @return interpolated values on those points
+ */
+std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
+                                        const field::NekFieldEnum field,
+                                        int n,
+                                        const Point component = Point(1, 0, 0));
+
+std::vector<dfloat> interpolateHeatFluxToPoints(pointInterpolation_t & interp,
+                                                const std::vector<Point> & stl_normals,
+                                                int n);
+
+dfloat computeTriangleArea(const Point & v1, const Point & v2, const Point & v3);
+
+double usrwrkSTLIntegral(const unsigned int & slot,
+                         const std::vector<Point> & stl_vertices,
+                         const int & n_elems);
+
+/**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot
  * @return value by which to multiply the usrwrk slot to go from non-dimensional form into

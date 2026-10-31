@@ -1,6 +1,4 @@
 [Tests]
-  design = 'NekBoundaryFlux.md'
-
   [flux]
     type = CSVDiff
     input = nek.i
@@ -9,6 +7,7 @@
     requirement = "The system shall be able to read the flux from NekRS and write onto a boundary mesh mirror. This is tested by setting a known temperature distribution in NekRS such that the analytic heat flux can be computed and compared."
     issues = '#1166'
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
   [volume]
     type = RunException
@@ -18,5 +17,82 @@
     requirement = "The system shall error if trying to write heat flux on a boundary when the mesh mirror is a volume mesh."
     issues = '#1166'
     capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
+  [flux_stl]
+    type = CSVDiff
+    input = moose_stl.i
+    csvdiff = moose_stl_out_nek0.csv
+    requirement = "The system shall compute dimensional heat flux on the STL surface from NekRS. This test first calculates the heat flux analytically on a sphere sideset in MOOSE, then transfers this information to a sub-app where NekRS is writing its heat flux on a Lagrangian STL surface. The distributions agree well (though not perfectly, since the MOOSE and NekRS meshes are not identical). A flux integral over the STL surface also matches the MOOSE-integrated value."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
+  [flux_stl_nondimensional]
+    type = CSVDiff
+    input = stl_nondimensional.i
+    csvdiff = stl_nondimensional_out.csv
+    requirement = "The system shall compute non-dimensional heat flux on the STL surface from NekRS. This test also computes the non-dimensional heat flux on the mesh mirror, and compares against the STL surface; the STL surface is not the same topology as the mesh mirror, but it is a sphere circumscribed in the square so we check general magnitudes and spatial reconstruction to ensure that the dimensional scaling has been correctly applied."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
+  [flux_stl_custom_name]
+    type = CSVDiff
+    input = moose_stl.i
+    cli_args = "MultiApps/nek/cli_args='Problem/FieldTransfers/flux/stl_postprocessor_to_conserve=this' Outputs/file_base=this"
+    csvdiff = this_nek0.csv
+    requirement = "The system shall allow a custom name to be provided for the postprocessor used to ensure conservation of flux. The gold file is the same as the flux_stl test, except the name of the NekRS flux postprocessor is different."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+  []
+  [read_stl]
+    type = CSVDiff
+    input = read_stl.i
+    csvdiff = read_stl_out.csv
+    requirement = "The system shall be able to perform integrals on the STL surface. This test checks that the NekBoundaryFlux will correctly normalize the flux post-transfer, and that the integral itself is done correctly by integrating dummy data in the usrwrk array and comparing to known surface areas of the STL."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md NekUsrWrkSTLIntegral.md'
+  []
+  [shifted_slot]
+    type = CSVDiff
+    input = read_stl.i
+    csvdiff = read_stl_out.csv
+    cli_args = "Problem/FieldTransfers/flux/usrwrk_slot=3 Postprocessors/stl_integral_0/usrwrk_slot=3"
+    requirement = "The system shall be able to perform integrals of the flux on the STL surface when the flux is written into a generic usrwrk slot. This test is identical to the read_stl test, except that the flux is written into a different usrwrk slot."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md NekUsrWrkSTLIntegral.md'
+  []
+  [no_stl]
+    type = RunException
+    input = no_stl.i
+    expect_err = "This object can only be used when an 'stl' file is provided to NekRSMesh"
+    requirement = "The system shall error if trying to perform an integral over an STL file when none was provided to the mesh"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekUsrWrkSTLIntegral.md'
+  []
+  [invalid_slot]
+    type = RunException
+    input = read_stl.i
+    cli_args = "Postprocessors/stl_integral_0/usrwrk_slot=4"
+    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 4"
+    requirement = "The system shall error if trying to perform an integral of the usrwrk array over an STL file in a slot which has not been allocated"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekUsrWrkSTLIntegral.md'
+  []
+  [no_kernel]
+    type = RunException
+    input = read_stl.i
+    cli_args = 'Problem/casename="temperature" --error'
+    expect_err = "In order to use the STL flux sent to NekRS, you must have an OCCA source kernel in the passive scalar equations! The STL flux will currently be unused."
+    requirement = "The system shall throw a warning if STL fluxes are read from the mesh but there is not a corresponding source kernel to apply the data in NekRS"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
 []

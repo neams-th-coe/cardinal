@@ -84,7 +84,7 @@ NekRSProblem::validParams()
 
 NekRSProblem::NekRSProblem(const InputParameters & params)
   : CardinalProblem(params),
-    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _serialized_solution(_aux->serializedSolution()),
     _casename(getParam<std::string>("casename")),
     _write_fld_files(getParam<bool>("write_fld_files")),
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
@@ -368,7 +368,7 @@ NekRSProblem::initialSetup()
   // a user object, or neither
   for (int i = 0; i < _n_usrwrk_slots; ++i)
   {
-    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+bc->idxVol]";
+    std::string oudf = "bc->usrwrk[" + std::to_string(i) + "*bc->fieldOffset+n]";
     std::string udf = "platform->app->bc->o_usrwrk[" + std::to_string(i) + "*nrs->fieldOffset+n]";
 
     if (field_usrwrk_map.find(i) != field_usrwrk_map.end())
@@ -438,9 +438,11 @@ NekRSProblem::initialSetup()
              << std::endl;
     _console << "                  but Cardinal is not otherwise using it for coupling.\n"
              << std::endl;
-    _console << "  How to Access:  C++ code to use in NekRS files; for the .udf instructions,"
+    _console << "  How to Access:  C++ code to use in NekRS files; 'n' indicates a loop "
              << std::endl;
-    _console << "                  'n' indicates a loop variable over GLL points\n" << std::endl;
+    _console << "                  index over either GLL points (for Eulerian data) or "
+             << std::endl;
+    _console << "                  Lagrange points (for STL data).\n" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
@@ -602,22 +604,16 @@ NekRSProblem::isDataTransferHappening(ExternalProblem::Direction direction)
 void
 NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
-  auto & solution = _aux->solution();
-
   if (!isDataTransferHappening(direction))
     return;
+
+  _aux->serializeSolution();
 
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (_first)
-      {
-        _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-        _first = false;
-      }
-
-      solution.localize(*_serialized_solution);
+      _first = false;
 
       bool data_transferred_to_nek = false;
 
@@ -653,8 +649,6 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       copyHostToDevice();
 
       break;
-
-      return;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
@@ -667,10 +661,9 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
           t->readDataFromNek();
 
       // execute all outgoing scalar transfers
-      // TODO: is this the wrong trransfer?
       for (const auto & t : _scalar_transfers)
         if (t->direction() == "from_nek")
-          t->sendDataToNek();
+          t->readDataFromNek();
 
       break;
     }
@@ -678,7 +671,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       mooseError("Unhandled Transfer::DIRECTION enum!");
   }
 
-  solution.close();
+  _aux->solution().close();
   _aux->system().update();
 }
 
@@ -871,7 +864,7 @@ NekRSProblem::mapFaceDataToNekFace(const unsigned int & e,
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
       (*outgoing_data)[node_index] =
-          ((*_serialized_solution)(dof_idx)-additive_scale) / divisor_scale;
+          (_serialized_solution(dof_idx) - additive_scale) / divisor_scale;
     }
   }
 }
@@ -915,7 +908,7 @@ NekRSProblem::mapFaceDataToNekVolume(const unsigned int & e,
 
         auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
         (*outgoing_data)[node_index] =
-            ((*_serialized_solution)(dof_idx)-additive_scale) / divisor_scale;
+            (_serialized_solution(dof_idx) - additive_scale) / divisor_scale;
       }
     }
   }
@@ -952,7 +945,7 @@ NekRSProblem::mapVolumeDataToNekVolume(const unsigned int & e,
                                                 : _nek_mesh->volumeNodeIndex(n);
 
       auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
-      (*outgoing_data)[node_index] = ((*_serialized_solution)(dof_idx)-additive) / divisor;
+      (*outgoing_data)[node_index] = (_serialized_solution(dof_idx) - additive) / divisor;
     }
   }
 }

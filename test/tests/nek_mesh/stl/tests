@@ -1,0 +1,66 @@
+[Tests]
+  design = 'NekRSMesh.md'
+  issues = '#1398'
+  [distributed]
+    type = RunException
+    input = nek.i
+    expect_err = "Using an STL file is not yet supported with distributed meshes!"
+    requirement = "The system shall error if using an STL file with a distributed mesh, as this is not tested or supported"
+    capabilities = 'nekrs'
+    mesh_mode = 'distributed'
+  []
+  [nonexistent_stl]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/stl="not_here.stl"'
+    expect_err = "Error opening file: 'not_here.stl'"
+    requirement = "The system shall error if a non-existent STL file is used for building an immersed surface."
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [overlapping_blocks]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/fluid_block_id=5 Mesh/stl_block_id=5'
+    expect_err = "Unique values must be used for 'fluid_block_id' \(5\), 'solid_block_id' \(1\), and '_stl_block_id' \(5\)."
+    requirement = "The system shall error if overlapping values are used for the block IDs in the mesh"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [order_stl]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/order=SECOND'
+    expect_err = "STL variables are currently limited to"
+    requirement = "The system shall error if STL variables are specified as order other than first order Lagrange, since this feature is currently not supported"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [three_vertices]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/stl="bad.stl"'
+    expect_err = "STL file does not contain a valid set of vertices! Each triangle must be associated with 3 vertices; we identified 6 vertices but 3 triangles."
+    requirement = "The system shall error if a face does not correspond to 3 vertices. This test checks also an edge case where the number of vertices may be in total divisible by 3, but in such a way that it does not correctly map to the number of triangles."
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [boundary_patch]
+    type = Exodiff
+    input = 'nek.i'
+    exodiff = 'nek_in.e'
+    cli_args = '--mesh-only'
+    requirement = "The system shall allow the construction of an STL file superimposed with the NekRS mesh mirror when using a boundary mesh mirror"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [boundary_patch_with_volume]
+    type = Exodiff
+    input = 'nek_volume.i'
+    exodiff = 'nek_volume_in.e'
+    cli_args = '--mesh-only'
+    requirement = "The system shall allow the construction of an STL file superimposed with the NekRS mesh mirror when using a volume mesh mirror"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+[]

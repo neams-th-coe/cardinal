@@ -61,6 +61,18 @@ protected:
   normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
 
   /**
+   * Normalize the flux sent to nekRS on an STL file to conserve the total flux
+   * @param[in] moose_integral total integrated flux from MOOSE to conserve
+   * @param[in] nek_integral total integrated flux in nekRS to adjust
+   * @param[out] normalized_nek_integral final normalized nek flux integral
+   * @return whether normalization was successful, i.e. normalized_nek_integral equals
+   * moose_integral
+   */
+  bool normalizeSTLFlux(const double moose_integral,
+                        double nek_integral,
+                        double & normalized_nek_integral);
+
+  /**
    * Normalize the flux sent to nekRS to conserve the total flux
    * @param[in] moose_integral total integrated flux from MOOSE to conserve
    * @param[in] nek_integral total integrated flux in nekRS to adjust
@@ -81,8 +93,11 @@ protected:
    */
   const bool & _conserve_flux_by_sideset;
 
-  /// Initial value to use for the total flux integral for ensuring conservation
+  /// Initial value to use for the total flux integral on the mirror for ensuring conservation
   const Real & _initial_flux_integral;
+
+  /// Initial value to use for the total flux integral on the STL for ensuring conservation
+  const Real & _initial_flux_integral_stl;
 
   /// Boundaries through which the flux transfer occurs
   const std::vector<int> * _boundary;
@@ -90,9 +105,12 @@ protected:
   /// Dimensional reference flux, computed from characteristic scales
   const Real _reference_flux_integral;
 
-  /// Total surface-integrated flux coming from the coupled MOOSE app.
+  /// Total surface-integrated flux on the mesh mirror
   const PostprocessorValue * _flux_integral = nullptr;
 
-  /// Sideset-wise surface-integrated flux coming from the coupled MOOSE app.
+  /// Sideset-wise surface-integrated flux on the mesh mirror
   const VectorPostprocessorValue * _flux_integral_vpp = nullptr;
+
+  /// Total surface-integrated flux on the STL file
+  const PostprocessorValue * _flux_integral_stl = nullptr;
 };

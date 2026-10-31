@@ -33,6 +33,13 @@ NekVolumetricData::validParams()
 NekVolumetricData::NekVolumetricData(const InputParameters & parameters)
   : FieldTransferBase(parameters)
 {
+  if (_transfer_mesh.contains("stl") && _direction == "to_nek")
+    paramError(
+        "mesh",
+        "Transferring boundary data from an STL file to a NekRS volumetric field is not supported; "
+        "for immersed boundary coupling, you instead want to create a volumetric kernel in NekRS "
+        "that will utilize the Lagrangian boundary data to construct a volume field.");
+
   if (_usrwrk_slot.size() > 1)
     paramError("usrwrk_slot",
                "'usrwrk_slot' must be of length 1 for general volume transfers; you have entered "
@@ -53,16 +60,8 @@ NekVolumetricData::sendDataToNek()
 
   auto d = 1.0;
   auto a = 0.0;
-  for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
-  {
-    // We can only write into the nekRS scratch space if that element is "owned" by the current
-    // process
-    if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
-      continue;
 
-    _nek_problem.mapVolumeDataToNekVolume(e, _variable_number[_variable], d, a, &_v_elem);
-    _nek_problem.writeVolumeSolution(_usrwrk_slot[0] * nekrs::fieldOffset(), e, _v_elem);
-  }
+  sendVolumetricDataToNek(_variable_number[_variable], d, a);
 }
 
 #endif

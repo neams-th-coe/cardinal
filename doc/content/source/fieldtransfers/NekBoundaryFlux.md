@@ -5,21 +5,31 @@
 `NekBoundaryFlux` is a [FieldTransfer](AddFieldTransferAction.md) that sends a boundary flux between NekRS and MOOSE. First, this object
 creates an [AuxVariable](AuxVariable.md) using the name of the object; this variable will hold
 the flux which NekRS reads (for `direction = to_nek`) or will be written by NekRS (for
-`direction = from_nek`).
+`direction = from_nek`). This object can transfer flux between NekRS and the mesh mirror,
+and/or between NekRS and an STL file embedded in the `[Mesh]` if `stl` is provided
+in [NekRSMesh](NekRSMesh.md).
+For transferring data with this STL file, NekRS's spectral interpolation routine is used
+to interpolate from the NekRS grid points onto the STL vertices. Otherwise, the data on the
+[!ac](GLL) points is simply copied to/from the mesh mirror.
 
 ## Flux Normalization
 
-The internal NekRS mesh is based on the spectral element method (with Guass-Lobatto
-quadrature), whereas a coupled MOOSE applcation which wants to write/use a boundary flux will
-likely be using a different quadrature rule.
-In order to ensure perfect conservation of the
-flux as it is exchanged between NekRS and MOOSE, a [Receiver](Receiver.md) postprocessor is automatically added with
-name taken as `<name of the object>_integral`. For `direction = to_nek`, this postprocessor
-should be populated by a parent/sub application with the total integrated flux in the originating
-MOOSE application. For `direction = from_nek`, this postprocessor will be filled by the
-total integrated flux computed internally in NekRS.
+In order to ensure conservation properties, it is necessary to not only transfer the flux
+values between NekRS and MOOSE, but also to transfer the integrated surface flux which can
+be used to re-normalize that flux when it is then used to apply a boundary condition.
+By default, this object will add postprocessor(s) that contain the integrated flux; the
+type(s) and name(s) of these postprocessor(s) will vary depending on (i) the direction
+of the flux transfer (is flux being read from NekRS or written to NekRS?) and (ii) what portion
+of the `[Mesh]` the flux is being transferred with (is the flux being transferred with the mesh
+mirror or with an STL file?).
 
-### Flux Normalization
+!table id=Summary of the postprocessors added to assist with conservation
+| | Transfer is *from* NekRS | Transfer is *to* NekRS |
+| :- | :- | :- |
+| Transfer is on the mesh mirror | [NekHeatFluxIntegral](NekHeatFluxIntegral.md) named `<name of the object>_integral` | [Receiver](Receiver.md) named `<name of the object>_integral` that a MultiApp should write into with a [conservative transfer](https://mooseframework.inl.gov/source/transfers/MultiAppConservativeTransfer.html) |
+| Transfer is on the STL surface | [ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md) named `<name of the object>_integral_stl` applied to the flux on the STL surface | [Receiver](Receiver.md) |
+
+### Flux Normalization Per Sideset (for mirror meshes only)
 
 By default, `NekBoundaryFlux`
 will lump all "receiving" sidesets in NekRS together for the purpose of flux normalization.

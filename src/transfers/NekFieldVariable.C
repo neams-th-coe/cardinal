@@ -47,7 +47,7 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     std::transform(obj_name.begin(), obj_name.end(), obj_name.begin(), ::toupper);
     bool found_name = std::find(enums.begin(), enums.end(), obj_name) != enums.end();
     if (found_name)
-      _field = convertToFieldEnum(obj_name);
+      _field = nekrs::convertToFieldEnum(obj_name);
     else
       paramError("field",
                  "We tried to choose a default 'field' as '" + name() +
@@ -74,7 +74,8 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
     // in a source term, for instance.
   }
 
-  // TODO: add test to relax this
+  // TODO: add test to relax this. Can I just replace this by NekVolumetricData? perhaps I also need
+  // NekBoundaryData to be created
   if (_direction == "to_nek" && _field != field::temperature)
     paramError("field",
                "NekFieldVariable currently only supports transfers 'to_nek' for 'temperature'. "
@@ -87,60 +88,31 @@ NekFieldVariable::NekFieldVariable(const InputParameters & parameters)
                "specific direction, extract the three components of velocity and perform the "
                "postprocessing operation using a ParsedAux. If this is hindering your workflow, "
                "please contact the Cardinal developer team.");
-}
 
-field::NekFieldEnum
-NekFieldVariable::convertToFieldEnum(const std::string name) const
-{
-  auto lowercase = name;
-  std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), ::tolower);
-  if (lowercase == "velocity_x")
-    return field::velocity_x;
-  if (lowercase == "velocity_y")
-    return field::velocity_y;
-  if (lowercase == "velocity_z")
-    return field::velocity_z;
-  if (lowercase == "velocity")
-    return field::velocity;
-  if (lowercase == "velocity_component")
-    return field::velocity_component;
-  if (lowercase == "velocity_x_squared")
-    return field::velocity_x_squared;
-  if (lowercase == "velocity_y_squared")
-    return field::velocity_y_squared;
-  if (lowercase == "velocity_z_squared")
-    return field::velocity_z_squared;
-  if (lowercase == "temperature")
-    return field::temperature;
-  if (lowercase == "pressure")
-    return field::pressure;
-  if (lowercase == "scalar01")
-    return field::scalar01;
-  if (lowercase == "scalar02")
-    return field::scalar02;
-  if (lowercase == "scalar03")
-    return field::scalar03;
-  if (lowercase == "unity")
-    return field::unity;
-  if (lowercase == "usrwrk00")
-    return field::usrwrk00;
-  if (lowercase == "usrwrk01")
-    return field::usrwrk01;
-  if (lowercase == "usrwrk02")
-    return field::usrwrk02;
-
-  mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
+  if (_transfer_mesh.contains("stl"))
+    if (_direction == "to_nek")
+      paramError("mesh", "Transferring data from the STL mesh to NekRS is not yet supported!");
 }
 
 void
 NekFieldVariable::readDataFromNek()
 {
-  if (!_nek_mesh->volume())
-    _nek_problem.boundarySolution(_field, _external_data);
-  else
-    _nek_problem.volumeSolution(_field, _external_data);
+  if (_transfer_mesh.contains("mirror"))
+  {
+    if (!_nek_mesh->volume())
+      _nek_problem.boundarySolution(_field, _external_data);
+    else
+      _nek_problem.volumeSolution(_field, _external_data);
 
-  fillAuxVariable(_variable_number[_variable], _external_data);
+    fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
+  }
+
+  if (_transfer_mesh.contains("stl"))
+  {
+    auto interpolated =
+        nekrs::interpolateToPoints(*_interpolator, _field, _nek_mesh->nSTLVertices());
+    fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
+  }
 }
 
 void

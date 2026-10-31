@@ -199,8 +199,10 @@ void CHTKernelHeatSource(double time)
 
     double k;
     platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
-    CHTKernel(nrs->meshV->Nelements, k,
-              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset,
+    CHTKernel(nrs->meshV->Nelements, k, time,
+              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+              platform->app->bc->o_usrwrk,
+              nrs->fieldOffset,
               numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
               o_characteristicArea, o_characteristicLength, o_ElementNumber,
               nrs->meshV->o_vgeo, nrs->meshV->o_D, o_S, o_FS, o_sdfValues);
@@ -998,8 +1000,8 @@ std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
   return distances;
 }
 
-// Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
-void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces)
+// Function to write surface mesh data to a VTK and STL file (for visualizing the resulting triangulated surface)
+void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces, const std::vector<LagrangePoint> & l_points)
 {
   std::ofstream vtkFile(filename);
 
@@ -1020,6 +1022,27 @@ void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>
     vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
 
   vtkFile.close();
+
+  // also write to STL
+  //std::ofstream stlFile("surface_mesh.stl");
+  //stlFile << "solid Body 1\n";
+
+  //// for each element
+  //for (unsigned int i = 0; i < faces.size(); i++)
+  //{
+  //  auto face = faces[i];
+  //  auto pt = l_points[i];
+  //  stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+  //  stlFile << "    outer loop\n";
+  //  for (const auto & idx : face)
+  //    stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+  //  stlFile << "    endloop\n";
+  //  stlFile << "  endfacet\n";
+
+  //}
+
+  //stlFile << "endsolid Body 1\n";
+  //stlFile.close();
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
@@ -1387,7 +1410,7 @@ void identifyCuttingTrianglesWithIntersections()
 
     // Write the VTK file for the reconstructed mesh
     if (rank == 0)
-      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
+      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.

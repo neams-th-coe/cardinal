@@ -68,119 +68,17 @@ NekPointValue::execute()
     _nek_problem->copyIndividualScratchSlot(2);
 
   // interpolate the field onto those points
-  occa::memory o_interpolated;
-  int n_values = n;
-  switch (_field)
-  {
-    case field::velocity_component:
-    case field::velocity_x:
-    case field::velocity_y:
-    case field::velocity_z:
-    case field::velocity:
-    case field::velocity_x_squared:
-    case field::velocity_y_squared:
-    case field::velocity_z_squared:
-      n_values = n * 3; // nVFields
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nrs->fieldOffset, nrs->scalar->o_U, n, o_interpolated);
-      break;
-    case field::pressure:
-      o_interpolated = platform->device.malloc<dfloat>(n);
-      interp.eval(1, nrs->fieldOffset, nrs->fluid->o_P, n, o_interpolated);
-      break;
-    case field::temperature:
-    case field::scalar01:
-    case field::scalar02:
-    case field::scalar03:
-      n_values = n * nrs->Nscalar;
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::scalarFieldOffset(), nrs->scalar->o_S, n, o_interpolated);
-      break;
-    case field::unity:
-      break;
-    case field::usrwrk00:
-    case field::usrwrk01:
-    case field::usrwrk02:
-      n_values = n * _nek_problem->nUsrWrkSlots();
-      o_interpolated = platform->device.malloc<dfloat>(n_values);
-      interp.eval(n_values, nekrs::fieldOffset(), nrs->bc.o_usrwrk, n, o_interpolated);
-      break;
-    default:
-      mooseError("Unhandled NekFieldEnum in NekPointValue!");
-  }
+  auto interpolated = nekrs::interpolateToPoints(interp, _field, n, _velocity_direction);
 
-  // the interpolation happens on device, so we need to copy it back to the host
-  std::vector<dfloat> interpolated(n_values);
-  o_interpolated.copyTo(interpolated.data(), n_values);
-
-  // because of NekRS's way of storing solution, we need extra steps to actually
-  // return what the user wants
-  switch (_field)
-  {
-    case field::velocity_component:
-      _value = interpolated[0] * _velocity_direction(0) + interpolated[1] * _velocity_direction(1) +
-               interpolated[2] * _velocity_direction(2);
-      break;
-    case field::velocity_x:
-      _value = interpolated[0];
-      break;
-    case field::velocity_y:
-      _value = interpolated[1];
-      break;
-    case field::velocity_z:
-      _value = interpolated[2];
-      break;
-    case field::velocity:
-      _value = std::sqrt(interpolated[0] * interpolated[0] + interpolated[1] * interpolated[1] +
-                         interpolated[2] * interpolated[2]);
-      break;
-    case field::velocity_x_squared:
-      _value = interpolated[0] * interpolated[0];
-      break;
-    case field::velocity_y_squared:
-      _value = interpolated[1] * interpolated[1];
-      break;
-    case field::velocity_z_squared:
-      _value = interpolated[2] * interpolated[2];
-      break;
-    case field::pressure:
-      _value = interpolated[0];
-      break;
-    case field::temperature:
-      _value = interpolated[0];
-      break;
-    case field::scalar01:
-      _value = interpolated[nekrs::scalarSlot(1)];
-      break;
-    case field::scalar02:
-      _value = interpolated[nekrs::scalarSlot(2)];
-      break;
-    case field::scalar03:
-      _value = interpolated[nekrs::scalarSlot(3)];
-      break;
-    case field::unity:
-      _value = 1;
-      break;
-    case field::usrwrk00:
-      _value = interpolated[0];
-      break;
-    case field::usrwrk01:
-      _value = interpolated[1];
-      break;
-    case field::usrwrk02:
-      _value = interpolated[2];
-      break;
-    default:
-      mooseError("Unhandled NekFieldEnum in NekPointValue!");
-  }
+  // only one point is being queried
+  _value = interpolated[0];
 
   // function value to subtract off; the function is dimensional, so evaluate at the
   // dimensional position and dimensional time. This time will be the time of the timestep if
   // called with execute_on = timestep_begin; otherwise, it will be the time corresponding to
   // the next time step if called with execute_on = timestep_end (the default)
   auto function_value = _function ? _function->value(_t, _point) : 0.0;
-  _value = _value * nekrs::nondimensionalDivisor(_field) + nekrs::nondimensionalAdditive(_field) -
-           function_value;
+  _value -= function_value;
 }
 
 Real

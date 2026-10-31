@@ -12,7 +12,7 @@ void UDF_Setup()
   std::vector<dfloat> temp(mesh->Nlocal, 0.0);
   auto [x, y, z] = mesh->xyzHost();
   for (int n = 0; n < mesh->Nlocal; n++)
-    temp[n] = (exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n]);
+    temp[n] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n];
 
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
 }

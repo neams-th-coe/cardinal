@@ -1,0 +1,4 @@
+void udfDirichlet(bcData * bc)
+{
+  bc->sScalar = 0.0;
+}

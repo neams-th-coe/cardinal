@@ -27,6 +27,7 @@
 #include "nekrs.hpp"
 #include "CardinalUtils.h"
 #include "VariadicTable.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", NekRSMesh);
 
@@ -34,18 +35,53 @@ InputParameters
 NekRSMesh::validParams()
 {
   InputParameters params = MooseMesh::validParams();
-  params.addParam<std::vector<int>>("boundary",
-                                    "Boundary ID(s) through which nekRS will be coupled to MOOSE");
-  params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
-  params.addParam<bool>("exact", false, "Whether the mesh mirror is an exact replica of the NekRS mesh");
+  params.addParam<std::vector<int>>(
+      "boundary",
+      "Boundary ID(s) through which NekRS will be coupled to MOOSE; these boundaries will be "
+      "constructed in the [Mesh] and internal data structures will be established to facilitate "
+      "data transfers to/from the grid points on these boundaries.");
+  params.addParam<bool>(
+      "volume",
+      false,
+      "Whether the NekRS volume will be coupled to MOOSE; the volume will be constructed in the "
+      "[Mesh] and internal data structures will be established to facilitate data transfers "
+      "to/from NekRS's volume of grid points.");
+  params.addParam<bool>("exact",
+                        false,
+                        "Whether the mesh mirror is an exact replica of the NekRS mesh; exactly "
+                        "one node point will be built in the [Mesh] for every grid point in NekRS");
   params.addParam<MooseEnum>(
-      "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
+      "order", getNekOrderEnum(), "Order of the mesh interpolation between NekRS and MOOSE");
   params.addRangeCheckedParam<Real>(
-      "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
-  params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
-  params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
-  params.addClassDescription(
-      "Construct a mirror of the NekRS mesh in boundary and/or volume format");
+      "scaling",
+      1.0,
+      "scaling > 0.0",
+      "Scaling factor to apply to NekRS's mesh (and the embedded STL file, if present) to get into "
+      "dimensional units. The [Mesh] will be dimensional.");
+  params.addParam<unsigned int>(
+      "fluid_block_id", 0, "Subdomain ID to use for the fluid portion of the mesh");
+  params.addParam<unsigned int>(
+      "solid_block_id", 1, "Subdomain ID to use for the solid portion of the mesh");
+
+  params.addParam<std::string>(
+      "stl",
+      "STL file containing triangles to read in order to construct an auxiliary surface "
+      "that can be used for data transfers. This file is assumed to be in the same unit system as "
+      "the NekRS case files. In other words, if NekRS is non-dimensional, the STL should be "
+      "non-dimensional.");
+  params.addRangeCheckedParam<Real>(
+      "stl_multiplier",
+      1.0,
+      "stl_multiplier > 0.0",
+      "Multiplicative scaling to apply to the coordinates in the STL file to get them into NekRS's "
+      "unit system; This option can be used to take an existing STL file and convert it into "
+      "NekRS's units.");
+  params.addParam<Point>("stl_translation",
+                         "Translation to apply to the coordinates in the STL file; this is applied "
+                         "prior to any stl_multiplier being applied");
+  params.addParam<unsigned int>("stl_block_id", 9999, "Subdomain ID to use for the STL triangles");
+  params.addClassDescription("Construct a mirror of the NekRS mesh in boundary and/or volume "
+                             "format, with an optional STL surface");
   return params;
 }
 
@@ -58,9 +94,39 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _scaling(getParam<Real>("scaling")),
     _fluid_block_id(getParam<unsigned int>("fluid_block_id")),
     _solid_block_id(getParam<unsigned int>("solid_block_id")),
+    _stl_filename(isParamValid("stl") ? &getParam<std::string>("stl") : nullptr),
+    _stl_block_id(getParam<unsigned int>("stl_block_id")),
+    _stl_multiplier(getParam<Real>("stl_multiplier")),
+    _stl_translation(isParamValid("stl_translation") ? &getParam<Point>("stl_translation")
+                                                     : nullptr),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
+  if (!_stl_filename)
+  {
+    checkUnusedParam(parameters, "stl_block_id", "not providing an 'stl' file");
+    checkUnusedParam(parameters, "stl_multiplier", "not providing an 'stl' file");
+    checkUnusedParam(parameters, "stl_translation", "not providing an 'stl' file");
+  }
+  else if (_order != order::first)
+    paramError("order",
+               "STL variables are currently limited to first order Lagrange; please change the "
+               "'order' parameter to 'FIRST'");
+
+  // for simplicity, we require unique values to be used for the block IDs for the fluid, solid,
+  // and STL surface. This makes the conservative transfers easier to deal with, because we
+  // automatically add some postprocessors to compute integrals (e.g. of heat flux, power density)
+  // and we'd need to be more careful if the block IDs overlapped with one another
+  std::set<unsigned int> block_ids = {_fluid_block_id, _solid_block_id, _stl_block_id};
+  if (block_ids.size() != 3)
+    mooseError("Unique values must be used for 'fluid_block_id' (",
+               _fluid_block_id,
+               "), 'solid_block_id' (",
+               _solid_block_id,
+               "), and '_stl_block_id' (",
+               _stl_block_id,
+               ").");
+
   if (_exact && _order != order::first)
     mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
 
@@ -107,6 +173,122 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   }
 
   _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
+}
+
+void
+NekRSMesh::tryParseFloat(const std::string & token, Real & value)
+{
+  try
+  {
+    size_t pos;
+    value = std::stof(token, &pos);
+    if (pos == token.size())
+      return;
+    else
+      mooseError("Error parsing STL coordinates");
+  }
+  catch (...)
+  {
+    mooseError("Error parsing STL coordinates");
+  }
+}
+
+void
+NekRSMesh::buildSTLSurface()
+{
+  if (!_stl_filename)
+    return;
+
+  if (isDistributedMesh())
+    mooseError("Using an STL file is not yet supported with distributed meshes!");
+
+  std::ifstream file(*_stl_filename);
+  if (!file.is_open())
+    paramError(
+        "stl", "Error opening file: '", *_stl_filename, "'. Please check that the file exists.");
+
+  std::string line;
+  std::string ignore;
+  unsigned int i = 0;
+  unsigned int elem_idx = 0;
+
+  while (std::getline(file, line))
+  {
+    std::istringstream iss(line);
+    iss >> ignore;
+
+    if (ignore == "vertex")
+    {
+      // Parse vertex coordinates
+      Point vertex;
+      for (int i = 0; i < 3; ++i)
+      {
+        std::string token;
+        iss >> token;
+        tryParseFloat(token, vertex(i));
+
+        if (_stl_translation)
+          vertex(i) += (*_stl_translation)(i);
+      }
+
+      // apply pre-scaling to adjust into NekRS's units (non-dimensional)
+      vertex *= _stl_multiplier;
+
+      _stl_vertices.push_back(vertex);
+    }
+    else if (ignore == "facet")
+    {
+      // Parse facet normal
+      Point normal;
+      iss >> ignore >> normal(0) >> normal(1) >> normal(2);
+
+      // check that each normal has length 1
+      if (std::abs(normal.norm() - 1.0) > 1e-6)
+        mooseError("Unit normal vector detected with length ", normal.norm(), ": ", normal);
+
+      _stl_normals.push_back(normal);
+    }
+  }
+
+  if (_stl_vertices.size() / 3 != _stl_normals.size())
+    paramError("stl",
+               "STL file does not contain a valid set of vertices! Each triangle must be "
+               "associated with 3 vertices; we identified ",
+               _stl_vertices.size(),
+               " vertices but ",
+               _stl_normals.size(),
+               " triangles.");
+
+  if (_stl_vertices.size() == 0)
+    paramError("stl",
+               "Failed to read STL file. One reason this may occur is if the file is binary "
+               "format; Cardinal currently is limited to ASCII-format STL files; please contact "
+               "the Cardinal developer team to support binary format.");
+
+  // now, create the libMesh elements corresponding to the STL triangles
+  for (int e = 0; e < _stl_normals.size(); e++)
+  {
+    auto elem = new Tri3;
+
+    // start indexing the element IDs in the STL file from the next available index
+    // after construction of the mesh mirror (which will have n_elems * n_moose_per_nek elements)
+    elem->set_id() = _n_elems * _n_moose_per_nek + e;
+    _mesh->add_elem(elem);
+
+    // add one point for each vertex of the face element
+    for (int n = 0; n < Tri3::num_nodes; n++)
+    {
+      auto node_idx = e * Tri3::num_nodes + n;
+      Point p(_stl_vertices[node_idx](0), _stl_vertices[node_idx](1), _stl_vertices[node_idx](2));
+
+      // apply scaling to get into dimensional units since we are building the [Mesh]
+      p *= _scaling;
+      auto node_ptr = _mesh->add_point(p);
+      elem->set_node(n) = node_ptr;
+    }
+
+    elem->subdomain_id() = _stl_block_id;
+  }
 }
 
 void
@@ -162,6 +344,17 @@ NekRSMesh::printMeshInfo() const
     boundaries = Moose::stringify(nek_bids);
   vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems * _n_build_per_surface_elem,
     _n_volume_elems * _n_build_per_volume_elem);
+
+  if (_stl_filename)
+  {
+    // Convert to a filesystem path object to strip out slashes
+    std::filesystem::path p(*_stl_filename);
+    vt.addRow("STL (" + p.filename().string() + ")",
+              1,
+              std::to_string(_stl_block_id),
+              _stl_normals.size(),
+              0);
+  }
 
   vt.print(_console);
   _console << std::endl;
@@ -377,7 +570,7 @@ NekRSMesh::initializeMeshParams()
 void
 NekRSMesh::buildDummyMesh()
 {
-  int e = 1;
+  int e = 0;
   auto elem = new Quad4;
   elem->set_id() = e;
   elem->processor_id() = 0;
@@ -609,6 +802,8 @@ NekRSMesh::buildMesh()
     extractVolumeMesh();
 
   addElems();
+
+  buildSTLSurface();
 
   // We're looking up the elements by id, so we can't let the ids get
   // renumbered.

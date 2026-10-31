@@ -26,4 +26,77 @@
     issues = '#1230'
     capabilities = 'nekrs'
   []
+  [stl_to_nek]
+    type = RunException
+    input = stl.i
+    expect_err = "Transferring data from the STL mesh to NekRS is not yet supported"
+    cli_args = 'Problem/FieldTransfers/temperature/direction="to_nek" Problem/FieldTransfers/temperature/usrwrk_slot=4 Problem/n_usrwrk_slots=5'
+    requirement = "The system shall error if trying to send data from the STL mesh to NekRS, an unsupported feature"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [stl_outside]
+    type = CSVDiff
+    input = stl_outside.i
+    csvdiff = stl_outside_out.csv
+    requirement = "The system shall apply zero values for STL points outside of the NekRS domain. This test checks that the minimum interpolated data is zero, corresponding to data outside the NekRS domain."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [to_stl_ignore_volume]
+    type = CSVDiff
+    input = stl.i
+    csvdiff = stl_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values are far lower than 1% (and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for all possible fields that NekRS can write to the STL and for a volume mesh mirror which does not participate in the data exchange."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [to_stl_with_volume]
+    type = CSVDiff
+    input = stl_with_volume.i
+    csvdiff = stl_with_volume_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values are far lower than 1% (and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for a temperature transfer, with a volume mesh mirror that also participates in the coupling. Temperatures are adequately reconstructed on the two separate meshes (mirror and stl)."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [to_stl_ignore_boundary]
+    type = CSVDiff
+    input = stl_boundary.i
+    csvdiff = stl_boundary_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values are far lower than 1% (and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for all possible fields that NekRS can write to the STL and for a boundary mesh mirror which does not participate in the data exchange (omitting the userwrk transfers because these cannot be populated without a volume mesh mirror). All test results are identical to the 'to_stl_ignore_volume' test."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [to_stl_with_boundary]
+    type = CSVDiff
+    input = stl_with_boundary.i
+    csvdiff = stl_with_boundary_out.csv
+    requirement = "The system shall read NekRS data onto the STL mesh for a dimensional run. This test reconstructs the same functional form of initial conditions given in the UDF, on the MOOSE side, and computes the maximum and miminum absolute differences compared to the interpolated data. All values around 1% (this is partly because the boundary condition is not replicated from the perfect analytic solution for simplicity, and perfect agreement is not to be expected, since an interpolation is happening on the NekRS side). The test checks for a temperature transfer, with a boundary mesh mirror that also participates in the coupling. Temperatures are adequately reconstructed on the two separate meshes (mirror and stl)."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [stl_nondimensional]
+    type = CSVDiff
+    input = stl_nondimensional.i
+    csvdiff = stl_nondimensional_out.csv
+    requirement = "The system shall correctly dimensionalize the data onto the STL surface; this is checked by comparing the STL data transfer against an existing mesh mirror transfer in non-dimensional form"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [missing_stl]
+    type = RunException
+    input = missing_stl.i
+    expect_err = "Cannot specify coupling to an STL file in the 'mesh'"
+    requirement = "The system shall error if trying to perform a transfer with an STL file, but this file has not been provided to the mesh"
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
 []

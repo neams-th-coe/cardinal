@@ -40,6 +40,9 @@ protected:
   /// Relative tolerance for checking conservation
   const Real & _rel_tol;
 
-  /// Name of the postprocessor/vectorpostprocessor used to apply conservation
+  /// Name of the postprocessor/vectorpostprocessor used to apply conservation on the mesh mirror
   std::string _postprocessor_name;
+
+  /// Name of the postprocessor used to apply conservation on the STL file
+  std::string _postprocessor_name_stl;
 };
