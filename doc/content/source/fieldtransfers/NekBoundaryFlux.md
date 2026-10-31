@@ -6,7 +6,7 @@
 creates an [AuxVariable](AuxVariable.md) using the name of the object; this variable will hold
 the flux which NekRS reads (for `direction = to_nek`) or will be written by NekRS (for
 `direction = from_nek`). This object can transfer flux between NekRS and the mesh mirror,
-and/or between NekRS and an [!ac](STL) file embedded in the `[Mesh]` if `stl` is provided
+and/or between NekRS and an STL file embedded in the `[Mesh]` if `stl` is provided
 in [NekRSMesh](NekRSMesh.md).
 For transferring data with this STL file, NekRS's spectral interpolation routine is used
 to interpolate from the NekRS grid points onto the STL vertices. Otherwise, the data on the
