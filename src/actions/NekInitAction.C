@@ -20,6 +20,7 @@
 
 #include "NekInitAction.h"
 #include "NekInterface.h"
+#include "UserErrorChecking.h"
 
 #include "MooseApp.h"
 #include <chrono>

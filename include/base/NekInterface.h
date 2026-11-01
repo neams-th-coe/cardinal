@@ -79,6 +79,12 @@ void checkFieldValidity(const field::NekWriteEnum & field);
 
 void copyDeviceToHost();
 
+/// Copy the NekRS velocity, pressure, and scalar solutions from device to host
+void copySolutionToHost();
+
+/// Copy the NekRS mesh coordinates from device to host
+void copyMeshToHost();
+
 /**
  * Compute the minimum distance to a wall as a mesh field
  * @param[in] boundary_id boundary(s) on which to compute the distance to the wall
