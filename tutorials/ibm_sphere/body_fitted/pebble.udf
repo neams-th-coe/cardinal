@@ -1,0 +1,33 @@
+#include "udf.hpp"
+
+
+#ifdef __okl__
+#include "pebble.oudf"
+#endif
+
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+}
+
+void UDF_Setup()
+{
+  auto mesh = nrs->meshV;
+
+  // apply initial conditions for velocity, then copy into the velocity array
+  //std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+
+  //for (int n = 0; n < mesh->Nlocal; ++n)
+  //  U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
+
+  //nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+}
+
+
+void UDF_ExecuteStep(double time, int tstep)
+{
+
+}
+
+
+
