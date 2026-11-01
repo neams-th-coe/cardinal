@@ -6,13 +6,7 @@ void udfDirichlet(bcData * bc)
   {
     bc->uxFluid = 0.0;
     bc->uyFluid = 0.0;
-
-    // apply parabolic velocity inlet profile
-    auto x = bc->x;
-    auto y = bc->y;
-    const dfloat dx = 4;
-    const dfloat dy = 4;
-    bc->uzFluid = (-1/(dx*dx)*x*x+1) * (-1/(dy*dy)*y*y+1) / 0.4444444;
+    bc->uzFluid = 1.0;
   }
   else if (isField("scalar temperature"))
     bc->sScalar = 0.0;
