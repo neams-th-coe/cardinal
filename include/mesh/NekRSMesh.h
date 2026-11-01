@@ -65,6 +65,8 @@ public:
   /// Initialize previous displacement values to zero for boundary mirror-based moving mesh problems
   void initializePreviousDisplacements();
 
+  const std::map<int, int> & rankToLagrange() const { return _rank_to_num_lagrange_points; }
+
   /**
    * NekRS mesh polynomial order
    * @return NekRS polynomial order
@@ -647,4 +649,7 @@ protected:
 
   /// STL unit normals
   std::vector<Point> _stl_normals;
+
+  /// Map from each NekRS rank to the number of Lagrange points owned by that rank
+  std::map<int, int> _rank_to_num_lagrange_points;
 };

@@ -265,6 +265,28 @@ NekRSMesh::buildSTLSurface()
                "format; Cardinal currently is limited to ASCII-format STL files; please contact "
                "the Cardinal developer team to support binary format.");
 
+  // get the assignment of Lagrange points to the rank, according to the ranks.txt file that NekRS
+  // will write out for the immersed boundary methodology. This information is only needed if
+  // data is being sent into NekRS by a transfer. TODO: error checking.
+  std::ifstream rank_file("ranks.txt");
+  if (rank_file.is_open())
+  {
+    std::string line;
+    int i = 0;
+    while (std::getline(rank_file, line))
+      _rank_to_num_lagrange_points[i++] = std::stof(line);
+  }
+  else
+  {
+    // default choice, assign all those elements to rank 0
+    _rank_to_num_lagrange_points[0] = _stl_normals.size();
+  }
+
+  // TODO: this check is only needed for data going TO Nek
+  for (const auto & [rank, num_pts] : _rank_to_num_lagrange_points)
+    if (num_pts > nekrs::fieldOffset())
+      mooseError("Cardinal writes STL data into a slot in the usrwrk array on each rank; rank ", rank, " maps to ", num_pts, " Lagrange points, which exceeds the size of a usrwrk array slot (", nekrs::fieldOffset(), "). You must lower the number of MPI ranks in your NekRS run or contact the Cardinal developer team to remove this restriction.");
+
   // now, create the libMesh elements corresponding to the STL triangles
   for (int e = 0; e < _stl_normals.size(); e++)
   {
@@ -273,6 +295,7 @@ NekRSMesh::buildSTLSurface()
     // start indexing the element IDs in the STL file from the next available index
     // after construction of the mesh mirror (which will have n_elems * n_moose_per_nek elements)
     elem->set_id() = _n_elems * _n_moose_per_nek + e;
+    elem->processor_id() = nekrs::globalLagrangeIndexToRank(e, _rank_to_num_lagrange_points);
     _mesh->add_elem(elem);
 
     // add one point for each vertex of the face element
@@ -809,23 +832,19 @@ NekRSMesh::buildMesh()
   // renumbered.
   _mesh->allow_renumbering(false);
 
-  // If we have a DistributedMesh then:
-  if (!_mesh->is_replicated())
-  {
-    // we've already partitioned the elements to match the nekrs
-    // mesh, and libMesh shouldn't try to improve on that.  We won't
-    // ever be doing any element deletion or coarsening, so we don't
-    // even need libMesh's "critical" partitioning.
-    _mesh->skip_partitioning(true);
+  // we've already partitioned the elements to match the nekrs
+  // mesh, and libMesh shouldn't try to improve on that.  We won't
+  // ever be doing any element deletion or coarsening, so we don't
+  // even need libMesh's "critical" partitioning.
+  _mesh->skip_partitioning(true);
 
-    // But that means we have to update the partitioning metadata
-    // ourselves
-    _mesh->recalculate_n_partitions();
+  // But that means we have to update the partitioning metadata
+  // ourselves
+  _mesh->recalculate_n_partitions();
 
-    // But, we haven't yet partitioned nodes, and if we tell libMesh
-    // not to do that automatically then we need to do it manually
-    libMesh::Partitioner::set_node_processor_ids(*_mesh);
-  }
+  // But, we haven't yet partitioned nodes, and if we tell libMesh
+  // not to do that automatically then we need to do it manually
+  libMesh::Partitioner::set_node_processor_ids(*_mesh);
 
   _mesh->prepare_for_use();
 }

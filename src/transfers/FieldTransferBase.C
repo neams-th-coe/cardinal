@@ -219,23 +219,27 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
   auto & solution = aux.serializedSolution();
   auto sys_number = aux.number();
   auto usrwrk = nekrs::host_wrk();
+  auto pid = _communicator.rank();
 
   // loop through the STL triangles; the data we will write into the usrwrk array is the
   // centroid value of the auxvariable. TODO: this will only be valid for linear Lagrange
   // basis functions, which we currently do restrict to be true elsewhere. But if we
   // relax that to support e.g. second order, etc., we will need to update this function.
+  int local_index = 0;
   for (unsigned int e = 0; e < _nek_mesh->numSTLElems(); e++)
   {
     auto element_offset = _nek_mesh->numElems() * _nek_mesh->nMoosePerNek();
     auto elem_ptr = _nek_mesh->queryElemPtr(element_offset + e);
 
-    // Only work on elements we can find on our local chunk of a
-    // distributed mesh
+    // Only work on elements we can find on our local chunk of the mesh
     if (!elem_ptr)
     {
       libmesh_assert(!_nek_mesh->getMesh().is_serial());
       continue;
     }
+
+    if (elem_ptr->processor_id() != pid)
+      continue;
 
     Real sum = 0;
     for (unsigned int n = 0; n < _nek_mesh->numVerticesPerSTL(); n++)
@@ -248,7 +252,7 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
       sum += solution(dof_idx);
     }
 
-    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] = sum / Tri3::num_nodes;
+    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + local_index++] = sum / Tri3::num_nodes;
   }
 }
 

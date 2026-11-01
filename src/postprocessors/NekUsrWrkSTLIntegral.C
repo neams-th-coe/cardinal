@@ -49,7 +49,7 @@ Real
 NekUsrWrkSTLIntegral::getValue() const
 {
   return nekrs::usrwrkSTLIntegral(
-      _usrwrk_slot * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->numSTLElems());
+      _usrwrk_slot * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->rankToLagrange(), _nek_mesh->numSTLElems());
 }
 
 #endif

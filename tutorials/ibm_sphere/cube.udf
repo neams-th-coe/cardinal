@@ -80,8 +80,9 @@ std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface f
 
 // Define a global variable to hold the integrationPoints
 std::vector<IntegrationPoint> globalIntegrationPoints;
+std::vector<LagrangePoint> globalLagrangePoints;
 
-// Define a global variable to hold the LagrangePoints
+// Lagrange points on this rank
 std::vector<LagrangePoint> localLagrangePoints;
 
 std::vector<Vertex> STLvertices;  // Declare vertices as a global variable
@@ -1029,31 +1030,28 @@ void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>
   std::cout << " done" << std::endl;
 
   // also write to STL
-  //std::cout << "writing STL file 'retriangulated.stl'...";
-  //std::ofstream stlFile("retriangulated.stl");
-  //stlFile << "solid Body 1\n";
+  std::cout << "writing STL file 'retriangulated.stl'...";
+  std::ofstream stlFile("retriangulated.stl");
+  stlFile << "solid Body 1\n";
 
-  //// for each element
-  //for (unsigned int i = 0; i < faces.size(); i++)
-  //{
-  //  auto face = faces[i];
+  // for each element
+  for (unsigned int i = 0; i < faces.size(); i++)
+  {
+    auto face = faces[i];
+    auto pt = l_points[i];
 
-  //  auto pt = l_points[i];
+    stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+    stlFile << "    outer loop\n";
+    for (const auto & idx : face)
+      stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+    stlFile << "    endloop\n";
+    stlFile << "  endfacet\n";
 
-  //  // compute the unit normal with the right-hand rule, assuming the points are ordered nicely!
+  }
 
-  //  stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
-  //  stlFile << "    outer loop\n";
-  //  for (const auto & idx : face)
-  //    stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
-  //  stlFile << "    endloop\n";
-  //  stlFile << "  endfacet\n";
-
-  //}
-
-  //stlFile << "endsolid Body 1\n";
-  //stlFile.close();
-  //std::cout << "done" << std::endl;
+  stlFile << "endsolid Body 1\n";
+  stlFile.close();
+  std::cout << "done" << std::endl;
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
@@ -1350,6 +1348,7 @@ void identifyCuttingTrianglesWithIntersections()
 
     // Get the number of local points
     int localNumPoints = localPoints.size();
+    int localNumLagrangePoints = localLagrangePoints.size();
 
     // Gather the number of points from all processes
     std::vector<int> allLocalNumPoints(size);
@@ -1368,8 +1367,8 @@ void identifyCuttingTrianglesWithIntersections()
     }
 
     // === Step 1: Gather All Points and Faces ===
-    std::vector<Point> globalPoints;
-    std::vector<std::array<std::size_t, 3>> globalFaces;
+    //std::vector<Point> globalPoints;
+    //std::vector<std::array<std::size_t, 3>> globalFaces;
 
     int localNumFaces = localFaces.size();
 
@@ -1381,28 +1380,56 @@ void identifyCuttingTrianglesWithIntersections()
     // Prepare arrays for MPI_Gatherv counts and displacements (on rank 0)
     std::vector<int> recvCountsPoints;
     std::vector<int> recvCountsFaces;
-    std::vector<int> pointDisplacements(size, 0), faceDisplacements(size, 0);
+    std::vector<int> recvCountsLagrangePoints;
+    std::vector<int> pointDisplacements(size, 0), faceDisplacements(size, 0), lagrangePointDisplacements(size, 0);
 
     if (rank == 0) { // rank 0 does the conversion
         recvCountsPoints.resize(size);
         recvCountsFaces.resize(size);
+        recvCountsLagrangePoints.resize(size);
         int totalBytesPoints = 0;
         int totalBytesFaces = 0;
+        int totalBytesLagrangePoints = 0;
         for (int i = 0; i < size; ++i) {
             // Convert element counts to byte counts
             recvCountsPoints[i] = allNumPoints[i] * sizeof(Point);
             recvCountsFaces[i]  = allNumFaces[i]  * sizeof(std::array<std::size_t, 3>);
+            recvCountsLagrangePoints[i] = allNumFaces[i] * sizeof(LagrangePoint);
+
             if (i > 0) {
                 pointDisplacements[i] = pointDisplacements[i-1] + recvCountsPoints[i-1];
                 faceDisplacements[i]  = faceDisplacements[i-1]  + recvCountsFaces[i-1];
+                lagrangePointDisplacements[i] = lagrangePointDisplacements[i-1] + recvCountsLagrangePoints[i-1];
             }
+
             totalBytesPoints += recvCountsPoints[i];
             totalBytesFaces  += recvCountsFaces[i];
+            totalBytesLagrangePoints += recvCountsLagrangePoints[i];
+            std::cout << "rank " << i << " num points: " << allNumPoints[i] << " num faces: " << allNumFaces[i] << std::endl;
         }
+
         // Resize global vectors to hold all the data
         globalPoints.resize(totalBytesPoints / sizeof(Point));
         globalFaces.resize(totalBytesFaces / sizeof(std::array<std::size_t, 3>));
+        globalLagrangePoints.resize(totalBytesLagrangePoints / sizeof(LagrangePoint));
+
+        // fill out global_point_to_rank, an array that is indexed by the global Lagrange point and which
+        // returns the element rank that owns it
+        // write into a file that Cardinal can read
+        std::ofstream rankFile("ranks.txt");
+
+        for (int i = 0; i < size; ++i)
+          rankFile << allNumFaces[i] << "\n";
+        rankFile.close();
     }
+
+    // get lagrange points into global array so that rank 0 can use the normals here to write an STL output file
+    MPI_Gatherv(localLagrangePoints.data(),
+                localNumLagrangePoints * sizeof(LagrangePoint), MPI_BYTE,
+                globalLagrangePoints.data(),
+                (rank == 0 ? recvCountsLagrangePoints.data() : nullptr),
+                (rank == 0 ? lagrangePointDisplacements.data() : nullptr),
+                MPI_BYTE, 0, platform->comm.mpiComm());
 
     //  Gather Data Using MPI_Gatherv with MPI_BYTE
     MPI_Gatherv(localPoints.data(),
@@ -1412,6 +1439,16 @@ void identifyCuttingTrianglesWithIntersections()
                 (rank == 0 ? pointDisplacements.data() : nullptr),
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
+    // For Cardinal to work properly, there cannot be more Lagrange points on a rank
+    // than there are GLL points, because we use a single slot in the usrwrk array in order
+    // to store the incoming data (there would need to be adjustments to control multiple slots)
+    // This would also need updating if there is more than one Lagrange point per triangle.
+    if (localNumFaces > nrs->meshV->fieldOffset)
+    {
+      std::cout << "On rank " << rank << ", found " << localNumFaces << " STL triangles, but the offset in the usrwrk array is of size " << nrs->meshV->fieldOffset << ". If you are not using Cardinal, you can comment out this error message in the udf file." << std::endl;
+      MPI_Abort(platform->comm.mpiComm(), 1);
+    }
+
     MPI_Gatherv(localFaces.data(),
                 localNumFaces * sizeof(std::array<std::size_t, 3>), MPI_BYTE,
                 globalFaces.data(),
@@ -1419,11 +1456,11 @@ void identifyCuttingTrianglesWithIntersections()
                 (rank == 0 ? faceDisplacements.data() : nullptr),
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
-    // Write the VTK file for the reconstructed mesh
-    std::cout << "rank: " << rank << " number lagrange points: " << localLagrangePoints.size() << std::endl;
     if (rank == 0)
     {
-      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, localLagrangePoints);
+      std::cout << "\nglobal points: " << globalPoints.size() << " global faces: " << globalFaces.size() << " global lagrange points: " << globalLagrangePoints.size() << std::endl;
+      // Write the VTK file for the reconstructed mesh
+      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
     }
 
     // Check conservation of surface quadrature weights: each centroid carries

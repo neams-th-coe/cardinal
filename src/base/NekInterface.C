@@ -604,24 +604,48 @@ computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
   return 0.5 * std::sqrt(crossX * crossX + crossY * crossY + crossZ * crossZ);
 }
 
+int
+globalLagrangeIndexToRank(const unsigned int & index, const std::map<int, int> & rank_to_num_l_points)
+{
+  unsigned int max = rank_to_num_l_points.at(0);
+  for (const auto & [rank, num_pts] : rank_to_num_l_points)
+  {
+    if (index < max)
+      return rank;
+    else
+      max += rank_to_num_l_points.at(rank + 1);
+  }
+
+  mooseError("Internal error in globalLagrangeIndexToRank");
+  return 0;
+}
+
 double
 usrwrkSTLIntegral(const unsigned int & slot,
                   const std::vector<Point> & stl_vertices,
+                  const std::map<int, int> & rank_to_num_l_points,
                   const int & n_elems)
 {
   double integral = 0.0;
+  int local_index = 0;
   for (unsigned int e = 0; e < n_elems; ++e)
   {
-    // vertices are grouped in 3's to map to each element
-    auto elem_offset = e * 3;
-    auto area = computeTriangleArea(
-        stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
+    if (nekrs::globalLagrangeIndexToRank(e, rank_to_num_l_points) == commRank())
+    {
+      // vertices are grouped in 3's to map to each element
+      auto elem_offset = e * 3;
+      auto area = computeTriangleArea(
+          stl_vertices[elem_offset], stl_vertices[elem_offset + 1], stl_vertices[elem_offset + 2]);
 
-    integral += usrwrk[slot + e] * area;
+      integral += usrwrk[slot + local_index++] * area;
+    }
   }
 
+  double total_integral = 0;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
+
   // TODO: non-dimensionalization
-  return integral;
+  return total_integral;
 }
 
 bool
@@ -644,6 +668,7 @@ scratchAvailable()
 void
 initializeScratch(const unsigned int & n_slots)
 {
+  mooseWarning("initializing scratch");
   if (n_slots == 0)
     return;
 

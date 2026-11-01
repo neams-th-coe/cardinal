@@ -2,8 +2,9 @@
   backend = CPU
 
 [GENERAL]
+  startFrom = p3.fld
   polynomialOrder = 3
-  numSteps = 10000
+  numSteps = 50000
   dt = 1e-2
   writeInterval = 1000
   scalars = temperature
@@ -12,7 +13,7 @@
   residualTol = 1e-06
 
 [FLUID VELOCITY]
-  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroDirichlet
   residualTol = 1e-08
   density = 1.0
   viscosity = -50

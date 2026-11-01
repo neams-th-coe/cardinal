@@ -133,8 +133,11 @@ std::vector<dfloat> interpolateHeatFluxToPoints(pointInterpolation_t & interp,
 
 dfloat computeTriangleArea(const Point & v1, const Point & v2, const Point & v3);
 
+int globalLagrangeIndexToRank(const unsigned int & index, const std::map<int, int> & rank_to_lagrange);
+
 double usrwrkSTLIntegral(const unsigned int & slot,
                          const std::vector<Point> & stl_vertices,
+                         const std::map<int, int> & rank_to_lagrange,
                          const int & n_elems);
 
 /**

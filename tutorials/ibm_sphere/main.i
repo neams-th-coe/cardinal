@@ -19,8 +19,15 @@ sphere_volume = 4.171210
   # of the sphere is not perfectly 4/3 * pi * 1^3, hence the adjustment here.
   [heat]
     type = BodyForce
-    value = ${fparse 1*4*pi*1^2/sphere_volume}
+    function = 'q'
     variable = temp
+  []
+[]
+
+[Functions]
+  [q]
+    type = ParsedFunction
+    expression = 'if (x > 0, ${fparse 1*4*pi*1^2/sphere_volume}*2, 0.0)'
   []
 []
 

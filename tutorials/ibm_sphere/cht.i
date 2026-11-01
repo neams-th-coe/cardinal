@@ -1,7 +1,7 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  stl = "small_sphere.stl"
+  stl = "retriangulated.stl"
 []
 
 [Problem]
