@@ -1003,6 +1003,7 @@ std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
 // Function to write surface mesh data to a VTK and STL file (for visualizing the resulting triangulated surface)
 void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces, const std::vector<LagrangePoint> & l_points)
 {
+  std::cout << "writing VTK file " << filename << "...";
   std::ofstream vtkFile(filename);
 
   // Write VTK header
@@ -1022,27 +1023,34 @@ void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>
     vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
 
   vtkFile.close();
+  std::cout << " done" << std::endl;
 
   // also write to STL
-  //std::ofstream stlFile("surface_mesh.stl");
-  //stlFile << "solid Body 1\n";
+  std::cout << "writing STL file 'retriangulated.stl'...";
+  std::ofstream stlFile("retriangulated.stl");
+  stlFile << "solid Body 1\n";
 
-  //// for each element
-  //for (unsigned int i = 0; i < faces.size(); i++)
-  //{
-  //  auto face = faces[i];
-  //  auto pt = l_points[i];
-  //  stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
-  //  stlFile << "    outer loop\n";
-  //  for (const auto & idx : face)
-  //    stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
-  //  stlFile << "    endloop\n";
-  //  stlFile << "  endfacet\n";
+  // for each element
+  for (unsigned int i = 0; i < faces.size(); i++)
+  {
+    auto face = faces[i];
 
-  //}
+    auto pt = l_points[i];
 
-  //stlFile << "endsolid Body 1\n";
-  //stlFile.close();
+    // compute the unit normal with the right-hand rule, assuming the points are ordered nicely!
+
+    stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+    stlFile << "    outer loop\n";
+    for (const auto & idx : face)
+      stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+    stlFile << "    endloop\n";
+    stlFile << "  endfacet\n";
+
+  }
+
+  stlFile << "endsolid Body 1\n";
+  stlFile.close();
+  std::cout << "done" << std::endl;
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
@@ -1409,8 +1417,11 @@ void identifyCuttingTrianglesWithIntersections()
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
     // Write the VTK file for the reconstructed mesh
+    std::cout << "rank: " << rank << " number lagrange points: " << globalLagrangePoints.size() << std::endl;
     if (rank == 0)
+    {
       writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
+    }
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.
@@ -1437,6 +1448,7 @@ void identifyCuttingTrianglesWithIntersections()
       std::cout << "Triangulated Surface Area: " << triangulatedArea << std::endl;
       std::cout << "Absolute Difference:       " << absoluteDifference << std::endl;
       std::cout << "Relative Difference:       " << relativeDifference * 100.0 << " %" << std::endl;
+      std::cout << "Number retriangulated in STL: " << globalLagrangePoints.size() << std::endl;
       std::cout << std::endl;
 
       if (relativeDifference > 0.05)
