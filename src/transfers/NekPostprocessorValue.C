@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekPostprocessorValue.h"
+#include "NekRSProblem.h"
 
 registerMooseObject("CardinalApp", NekPostprocessorValue);
 
