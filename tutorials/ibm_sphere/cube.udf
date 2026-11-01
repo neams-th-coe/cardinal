@@ -82,7 +82,7 @@ std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface f
 std::vector<IntegrationPoint> globalIntegrationPoints;
 
 // Define a global variable to hold the LagrangePoints
-std::vector<LagrangePoint> globalLagrangePoints;
+std::vector<LagrangePoint> localLagrangePoints;
 
 std::vector<Vertex> STLvertices;  // Declare vertices as a global variable
 std::vector<FacetNormal> STLnormals;  // Declare normals as global
@@ -105,7 +105,7 @@ void CHTKernelHeatSource(double time)
    auto o_S  = nrs->scalar->o_solution("temperature");
    auto o_FS = nrs->scalar->o_EXT;
 
-    size_t numLagrangePoints = globalLagrangePoints.size();
+    size_t numLagrangePoints = localLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
     std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
@@ -114,17 +114,17 @@ void CHTKernelHeatSource(double time)
 
     for (size_t i = 0; i < numLagrangePoints; ++i)
     {
-        xLagrange[i] = globalLagrangePoints[i].position.x();
-        yLagrange[i] = globalLagrangePoints[i].position.y();
-        zLagrange[i] = globalLagrangePoints[i].position.z();
-        characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
-        Area[i] = globalLagrangePoints[i].weight;
-        characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
-        ElementNumber[i] = globalLagrangePoints[i].elementNumber;
+        xLagrange[i] = localLagrangePoints[i].position.x();
+        yLagrange[i] = localLagrangePoints[i].position.y();
+        zLagrange[i] = localLagrangePoints[i].position.z();
+        characteristicArea[i] = localLagrangePoints[i].characteristicArea;
+        Area[i] = localLagrangePoints[i].weight;
+        characteristicLength[i] = localLagrangePoints[i].characteristicLength;
+        ElementNumber[i] = localLagrangePoints[i].elementNumber;
 
-        normal_x[i] = globalLagrangePoints[i].normal[0];
-        normal_y[i] = globalLagrangePoints[i].normal[1];
-        normal_z[i] = globalLagrangePoints[i].normal[2];
+        normal_x[i] = localLagrangePoints[i].normal[0];
+        normal_y[i] = localLagrangePoints[i].normal[1];
+        normal_z[i] = localLagrangePoints[i].normal[2];
     }
 
     occa::memory o_xLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
@@ -217,7 +217,7 @@ void PenaltyNoSlipBCCustomSource(double time)
     auto o_U = nrs->fluid->o_U;
     auto o_FU = nrs->fluid->o_explicitTerms();
 
-    size_t numLagrangePoints = globalLagrangePoints.size();
+    size_t numLagrangePoints = localLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
     std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
@@ -226,18 +226,18 @@ void PenaltyNoSlipBCCustomSource(double time)
 
 
     for (size_t i = 0; i < numLagrangePoints; ++i) {
-        xLagrange[i] = globalLagrangePoints[i].position.x();
-        yLagrange[i] = globalLagrangePoints[i].position.y();
-        zLagrange[i] = globalLagrangePoints[i].position.z();
-        characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
-        Area[i] = globalLagrangePoints[i].weight;
-        characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
-        ElementNumber[i] = globalLagrangePoints[i].elementNumber;
+        xLagrange[i] = localLagrangePoints[i].position.x();
+        yLagrange[i] = localLagrangePoints[i].position.y();
+        zLagrange[i] = localLagrangePoints[i].position.z();
+        characteristicArea[i] = localLagrangePoints[i].characteristicArea;
+        Area[i] = localLagrangePoints[i].weight;
+        characteristicLength[i] = localLagrangePoints[i].characteristicLength;
+        ElementNumber[i] = localLagrangePoints[i].elementNumber;
 
         // normal
-        normal_x[i] = globalLagrangePoints[i].normal[0];
-        normal_y[i] = globalLagrangePoints[i].normal[1];
-        normal_z[i] = globalLagrangePoints[i].normal[2];
+        normal_x[i] = localLagrangePoints[i].normal[0];
+        normal_y[i] = localLagrangePoints[i].normal[1];
+        normal_z[i] = localLagrangePoints[i].normal[2];
     }
 
     occa::memory o_xLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
@@ -419,13 +419,16 @@ void UDF_Setup()
   // kernel for changing the visosity
   nrs->userProperties = &material_props;
 
-  // apply initial conditions for velocity, then copy into the velocity array
-  std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+  if (platform->options.getArgs("RESTART FILE NAME").empty())
+  {
+    // apply initial conditions for velocity, then copy into the velocity array
+    std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
 
-  for (int n = 0; n < mesh->Nlocal; ++n)
-    U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
+    for (int n = 0; n < mesh->Nlocal; ++n)
+      U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
 
-  nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+    nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+  }
 
   read_stl_file();
 }
@@ -1026,31 +1029,31 @@ void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>
   std::cout << " done" << std::endl;
 
   // also write to STL
-  std::cout << "writing STL file 'retriangulated.stl'...";
-  std::ofstream stlFile("retriangulated.stl");
-  stlFile << "solid Body 1\n";
+  //std::cout << "writing STL file 'retriangulated.stl'...";
+  //std::ofstream stlFile("retriangulated.stl");
+  //stlFile << "solid Body 1\n";
 
-  // for each element
-  for (unsigned int i = 0; i < faces.size(); i++)
-  {
-    auto face = faces[i];
+  //// for each element
+  //for (unsigned int i = 0; i < faces.size(); i++)
+  //{
+  //  auto face = faces[i];
 
-    auto pt = l_points[i];
+  //  auto pt = l_points[i];
 
-    // compute the unit normal with the right-hand rule, assuming the points are ordered nicely!
+  //  // compute the unit normal with the right-hand rule, assuming the points are ordered nicely!
 
-    stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
-    stlFile << "    outer loop\n";
-    for (const auto & idx : face)
-      stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
-    stlFile << "    endloop\n";
-    stlFile << "  endfacet\n";
+  //  stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+  //  stlFile << "    outer loop\n";
+  //  for (const auto & idx : face)
+  //    stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+  //  stlFile << "    endloop\n";
+  //  stlFile << "  endfacet\n";
 
-  }
+  //}
 
-  stlFile << "endsolid Body 1\n";
-  stlFile.close();
-  std::cout << "done" << std::endl;
+  //stlFile << "endsolid Body 1\n";
+  //stlFile.close();
+  //std::cout << "done" << std::endl;
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
@@ -1281,7 +1284,7 @@ void identifyCuttingTrianglesWithIntersections()
     int p = std::cbrt(pointsPerElement) - 1; // Compute polynomial order
 
     globalIntegrationPoints.clear();
-    globalLagrangePoints.clear();
+    localLagrangePoints.clear();
 
     std::vector<Point> localPoints;
     std::vector<std::array<std::size_t, 3>> localFaces;
@@ -1316,7 +1319,7 @@ void identifyCuttingTrianglesWithIntersections()
             auto LagrangePoints    = computeLagrangePointsForTriangle(v1, v2, v3, elementIdx / pointsPerElement);
 
             globalIntegrationPoints.insert(globalIntegrationPoints.end(), integrationPoints.begin(), integrationPoints.end());
-            globalLagrangePoints.insert(globalLagrangePoints.end(), LagrangePoints.begin(), LagrangePoints.end());
+            localLagrangePoints.insert(localLagrangePoints.end(), LagrangePoints.begin(), LagrangePoints.end());
         }
 
         // Adjust face indices
@@ -1417,16 +1420,16 @@ void identifyCuttingTrianglesWithIntersections()
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
     // Write the VTK file for the reconstructed mesh
-    std::cout << "rank: " << rank << " number lagrange points: " << globalLagrangePoints.size() << std::endl;
+    std::cout << "rank: " << rank << " number lagrange points: " << localLagrangePoints.size() << std::endl;
     if (rank == 0)
     {
-      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
+      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, localLagrangePoints);
     }
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.
     dfloat localArea = 0.0;
-    for (const auto & point : globalLagrangePoints)
+    for (const auto & point : localLagrangePoints)
       localArea += point.weight;
 
     dfloat triangulatedArea = 0.0;
@@ -1448,7 +1451,6 @@ void identifyCuttingTrianglesWithIntersections()
       std::cout << "Triangulated Surface Area: " << triangulatedArea << std::endl;
       std::cout << "Absolute Difference:       " << absoluteDifference << std::endl;
       std::cout << "Relative Difference:       " << relativeDifference * 100.0 << " %" << std::endl;
-      std::cout << "Number retriangulated in STL: " << globalLagrangePoints.size() << std::endl;
       std::cout << std::endl;
 
       if (relativeDifference > 0.05)
