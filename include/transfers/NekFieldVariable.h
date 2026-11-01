@@ -19,6 +19,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
+#include "FieldTransferBase.h"
 
 /// Transfers field data (NekRS solution fields) between NekRS and MOOSE
 class NekFieldVariable : public FieldTransferBase

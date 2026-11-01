@@ -19,6 +19,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
+#include "FieldTransferBase.h"
 
 /// Couples NekRS and MOOSE through mesh displacements
 class NekMeshDeformation : public FieldTransferBase

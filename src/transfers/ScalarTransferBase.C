@@ -19,6 +19,8 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "ScalarTransferBase.h"
+#include "FieldTransferBase.h"
+#include "UserErrorChecking.h"
 
 std::map<unsigned int, unsigned int> ScalarTransferBase::_counter;
 
