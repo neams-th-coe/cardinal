@@ -18,6 +18,7 @@
 
 #include "CardinalProblem.h"
 #include "NonlinearSystem.h"
+#include "AuxiliarySystem.h"
 
 InputParameters
 CardinalProblem::validParams()

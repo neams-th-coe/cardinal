@@ -19,6 +19,8 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekBoundaryFlux.h"
+#include "NekRSProblem.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", NekBoundaryFlux);
 

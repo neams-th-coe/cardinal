@@ -18,6 +18,8 @@
 
 #include "LayeredGapBin.h"
 
+#include "libmesh/mesh_tools.h"
+
 registerMooseObject("CardinalApp", LayeredGapBin);
 
 InputParameters

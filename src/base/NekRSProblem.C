@@ -23,6 +23,8 @@
 #include "DimensionalizeAction.h"
 #include "FieldTransferBase.h"
 #include "NekMeshDeformation.h"
+#include "UserErrorChecking.h"
+#include "VariadicTable.h"
 
 registerMooseObject("CardinalApp", NekRSProblem);
 
