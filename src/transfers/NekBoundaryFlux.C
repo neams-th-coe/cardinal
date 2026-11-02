@@ -329,8 +329,10 @@ NekBoundaryFlux::sendDataToNek()
     sendSTLDataToNek(_variable_number[_variable]);
 
     // integrate the flux received onto the STL surface
-    double nek_flux = nekrs::usrwrkSTLIntegral(
-        _usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->rankToLagrange(), _nek_mesh->numSTLElems());
+    double nek_flux = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(),
+                                               _nek_mesh->STLVertices(),
+                                               _nek_mesh->rankToLagrange(),
+                                               _nek_mesh->numSTLElems());
 
     auto moose_flux = *_flux_integral_stl;
     std::filesystem::path p(_nek_mesh->STLFilename());
@@ -450,8 +452,10 @@ NekBoundaryFlux::normalizeSTLFlux(const double moose_integral,
     usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + e] *= ratio;
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integral = nekrs::usrwrkSTLIntegral(
-      _usrwrk_slot[0] * nekrs::fieldOffset(), _nek_mesh->STLVertices(), _nek_mesh->rankToLagrange(), _nek_mesh->numSTLElems());
+  auto integral = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(),
+                                           _nek_mesh->STLVertices(),
+                                           _nek_mesh->rankToLagrange(),
+                                           _nek_mesh->numSTLElems());
   normalized_nek_integral = integral * _reference_flux_integral;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < _rel_tol;
   bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < _abs_tol;

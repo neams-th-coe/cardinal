@@ -182,8 +182,6 @@ NekInitAction::act()
     // Initialize scratch space in NekRS to write data incoming data from MOOSE
     nekrs::initializeScratch(_n_usrwrk_slots);
   }
-
-  //nekrs::udfExecuteStep(0, -1, false);
 }
 
 std::map<std::string, std::map<std::string, std::string>>
