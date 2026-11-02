@@ -15,7 +15,7 @@ in [NekRSMesh](NekRSMesh.md).
 | | Transfer is *from* NekRS | Transfer is *to* NekRS |
 | :- | :- | :- |
 | Transfer is on the mesh mirror | NekRS solution at GLL points copied into mesh | MOOSE solution on the mesh points copied into NekRS usrwrk array, indexed by GLL points on each rank |
-| Transfer is on the STL surface | NekRS's spectral point interpolator interpolates from NekRS GLL points onto the STL vertices | MOOSE solution at STL triangle centroids is copied into NekRS usrwrk array, indexed by STL triangles (global to all ranks) |
+| Transfer is on the STL surface | NekRS's spectral point interpolator interpolates from NekRS GLL points onto the STL vertices | MOOSE solution at STL triangle centroids is copied into NekRS usrwrk array, indexed by STL triangles (local to each rank) |
 
 ## Flux Normalization
 
