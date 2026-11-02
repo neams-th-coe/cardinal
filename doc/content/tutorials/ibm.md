@@ -415,7 +415,7 @@ that we want to obtain in this tutorial.
 
 In order to help illustrate the domain decomposition used for the STL data transfers,
 we also add an auxiliary variable, `rank`, which will be filled with the MPI rank
-owning each element with a [ProcessorIDAux](ProcessorIDAUx.md).
+owning each element with a [ProcessorIDAux](ProcessorIDAux.md).
 
 !listing /tutorials/ibm_sphere/constant_flux.i
   start=AuxVariables
@@ -469,7 +469,7 @@ the agreement with the body-fitted reference.
 
 !media ibm_lines.png
   id=ibm_lines
-  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case.
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case. The [!ac](IBM) mesh has 53760 elements and the body-fitted references has 171704 elements.
   style=width:90%;margin-left:auto;margin-right:auto
 
 As mentioned earlier, the original STL surface is re-triangulated into a new STL surface, with
@@ -544,15 +544,15 @@ For comparison, a body-fitted case is available in the `body_fitted_cht` directo
 the temperature, velocity, and pressure along a line in the streamwise direction for the body-fitted
 simulation in comparison to the [!ac](IBM) simulation. Polynomial and/or mesh refinement improves
 the agreement with the body-fitted reference. [ibm_lines_cht2] shows the same type of comparison, on
-a horizontal line spanning the fluid flow, i.e. along $x=0$.
+two different horizontal lines spanning the flow.
 
 !media ibm_lines_cht.png
   id=ibm_lines_cht
-  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along the streamwise direction at $x=0$ and $y=0$.
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along the streamwise direction at $x=0$ and $y=0$. The [!ac](IBM) mesh has 53760 elements and the body-fitted references has 171704 elements.
   style=width:90%;margin-left:auto;margin-right:auto
 
 !media ibm_lines_cht2.png
   id=ibm_lines_cht2
-  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along the line $x=0$.
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along two lines through the flow.
   style=width:90%;margin-left:auto;margin-right:auto
 
