@@ -668,7 +668,6 @@ scratchAvailable()
 void
 initializeScratch(const unsigned int & n_slots)
 {
-  mooseWarning("initializing scratch");
   if (n_slots == 0)
     return;
 
