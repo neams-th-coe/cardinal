@@ -533,26 +533,21 @@ During the simulation and when the simulation has completed, you will have creat
 - `main_out.e`, which contains the MOOSE heat conduction solution
 - `main_out_nek0.e`, which contains the intermediate mesh with which NekRS exchanges data
 
-For example, [ibm_velocity_cht] shows the fluid velocity, pressure, and temperature on the Eulerian grid.
+For example, [ibm_velocity_cht] shows the fluid temperature on the Eulerian grid, with the solid temperature
+on the sphere as computed by MOOSE.
 
 !media ibm_velocity_cht.png
   id=ibm_velocity_cht
-  caption=Velocity, pressure, and temperature computed by NekRS's IBM solver for a conjugate heat transfer case.
+  caption=Temperature computed by NekRS's IBM solver coupled to MOOSE heat conduction for a conjugate heat transfer case.
   style=width:90%;margin-left:auto;margin-right:auto
 
 For comparison, a body-fitted case is available in the `body_fitted_cht` directory. [ibm_lines_cht] shows
-the temperature, velocity, and pressure along a line in the streamwise direction for the body-fitted
+the temperature, velocity, and pressure along two lines in the flow for the body-fitted
 simulation in comparison to the [!ac](IBM) simulation. Polynomial and/or mesh refinement improves
-the agreement with the body-fitted reference. [ibm_lines_cht2] shows the same type of comparison, on
-two different horizontal lines spanning the flow.
+the agreement with the body-fitted reference.
 
 !media ibm_lines_cht.png
   id=ibm_lines_cht
-  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along the streamwise direction at $x=0$ and $y=0$. The [!ac](IBM) mesh has 53760 elements and the body-fitted references has 171704 elements.
-  style=width:90%;margin-left:auto;margin-right:auto
-
-!media ibm_lines_cht2.png
-  id=ibm_lines_cht2
   caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along two lines through the flow.
   style=width:90%;margin-left:auto;margin-right:auto
 
