@@ -68,7 +68,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _initial_flux_integral_stl(getParam<Real>("initial_flux_integral_stl")),
     _boundary(_nek_mesh->boundary()),
-    _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(field::flux))
+    _reference_flux_integral(nekrs::referenceArea() *
+                             nekrs::nondimensionalDivisor(field::heat_flux))
 {
   if (_transfer_mesh.contains("mirror"))
   {
@@ -357,7 +358,7 @@ void
 NekBoundaryFlux::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
 {
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
