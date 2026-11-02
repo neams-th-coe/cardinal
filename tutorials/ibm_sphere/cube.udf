@@ -1005,29 +1005,8 @@ std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
 }
 
 // Function to write surface mesh data to a VTK and STL file (for visualizing the resulting triangulated surface)
-void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces, const std::vector<LagrangePoint> & l_points)
+void writeSurfaceMeshToSTL(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces, const std::vector<LagrangePoint> & l_points)
 {
-  std::cout << "writing VTK file " << filename << "...";
-  std::ofstream vtkFile(filename);
-
-  // Write VTK header
-  vtkFile << "# vtk DataFile Version 3.0\n";
-  vtkFile << "Surface Mesh Data\n";
-  vtkFile << "ASCII\n";
-  vtkFile << "DATASET POLYDATA\n";
-
-  // Write vertices
-  vtkFile << "POINTS " << points.size() << " double\n";
-  for (const auto& point : points)
-    vtkFile << point.x() << " " << point.y() << " " << point.z() << "\n";
-
-  // Write faces
-  vtkFile << "POLYGONS " << faces.size() << " " << (4 * faces.size()) << "\n";
-  for (const auto& face : faces)
-    vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
-
-  vtkFile.close();
-  std::cout << " done" << std::endl;
 
   // also write to STL
   std::cout << "writing STL file 'retriangulated.stl'...";
@@ -1405,7 +1384,6 @@ void identifyCuttingTrianglesWithIntersections()
             totalBytesPoints += recvCountsPoints[i];
             totalBytesFaces  += recvCountsFaces[i];
             totalBytesLagrangePoints += recvCountsLagrangePoints[i];
-            std::cout << "rank " << i << " num points: " << allNumPoints[i] << " num faces: " << allNumFaces[i] << std::endl;
         }
 
         // Resize global vectors to hold all the data
@@ -1415,7 +1393,6 @@ void identifyCuttingTrianglesWithIntersections()
 
         // fill out global_point_to_rank, an array that is indexed by the global Lagrange point and which
         // returns the element rank that owns it
-        // write into a file that Cardinal can read
         std::ofstream rankFile("ranks.txt");
 
         for (int i = 0; i < size; ++i)
@@ -1439,16 +1416,6 @@ void identifyCuttingTrianglesWithIntersections()
                 (rank == 0 ? pointDisplacements.data() : nullptr),
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
-    // For Cardinal to work properly, there cannot be more Lagrange points on a rank
-    // than there are GLL points, because we use a single slot in the usrwrk array in order
-    // to store the incoming data (there would need to be adjustments to control multiple slots)
-    // This would also need updating if there is more than one Lagrange point per triangle.
-    if (localNumFaces > nrs->meshV->fieldOffset)
-    {
-      std::cout << "On rank " << rank << ", found " << localNumFaces << " STL triangles, but the offset in the usrwrk array is of size " << nrs->meshV->fieldOffset << ". If you are not using Cardinal, you can comment out this error message in the udf file." << std::endl;
-      MPI_Abort(platform->comm.mpiComm(), 1);
-    }
-
     MPI_Gatherv(localFaces.data(),
                 localNumFaces * sizeof(std::array<std::size_t, 3>), MPI_BYTE,
                 globalFaces.data(),
@@ -1457,11 +1424,7 @@ void identifyCuttingTrianglesWithIntersections()
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
     if (rank == 0)
-    {
-      std::cout << "\nglobal points: " << globalPoints.size() << " global faces: " << globalFaces.size() << " global lagrange points: " << globalLagrangePoints.size() << std::endl;
-      // Write the VTK file for the reconstructed mesh
-      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
-    }
+      writeSurfaceMeshToSTL("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.

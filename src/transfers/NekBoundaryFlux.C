@@ -209,11 +209,13 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
       // the STL geometry is a volume (2-D), so that a volume integral is equivalent to a
       // surface integral. The STL surface is not a physical sideset in the NekRS problem,
       // so this postprocessor is only an approximation to the heat flux on this surface.
-      // TODO: check whether we need a different PP here
       auto pp_params = _factory.getValidParams("ElementIntegralVariablePostprocessor");
       pp_params.set<std::vector<SubdomainName>>("block").push_back(
           Moose::stringify(_nek_mesh->STLSubdomainID()));
+
+      // applied to the variable received from MOOSE
       pp_params.set<std::vector<VariableName>>("variable").push_back(_variable);
+
       _nek_problem.addPostprocessor(
           "ElementIntegralVariablePostprocessor", _postprocessor_name_stl, pp_params);
       _flux_integral_stl = &getPostprocessorValueByName(_postprocessor_name_stl);

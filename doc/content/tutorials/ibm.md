@@ -551,3 +551,8 @@ the agreement with the body-fitted reference.
   caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along two lines through the flow.
   style=width:90%;margin-left:auto;margin-right:auto
 
+In general, obtaining an accurate temperature solve is more sensitive to the mesh resolution around the
+sphere, since the boundary condition applied to the cut element faces is much more approximate than
+the zero-slip used for velocity. For the temperature boundary condition on the cut faces, a zero heat
+flux boundary condition is used (which is necessary to obtain the correct total heat deposited in the fluid).
+As described in [!cite](hegazy_ibm), features such as NekNek can greatly improve the fidelity.

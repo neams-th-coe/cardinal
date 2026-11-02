@@ -1,7 +1,9 @@
 [Mesh]
   type = NekRSMesh
-  volume = true
   stl = "retriangulated.stl"
+
+  # dummy, needs to be part of the mesh mirror constructed
+  boundary = '1'
 []
 
 [Problem]
@@ -36,12 +38,6 @@
 []
 
 [Postprocessors]
-  [source_flux_integral]
-    type = ElementIntegralVariablePostprocessor
-    variable = flux
-    block = 9999
-    execute_on = transfer
-  []
   [outlet_bulk_T]
     type = NekMassFluxWeightedSideAverage
     boundary = '2'
@@ -61,7 +57,6 @@
 
 [Outputs]
   csv = true
-  hide = 'inlet_bulk_T outlet_bulk_T'
-  time_step_interval = 100
+  hide = 'inlet_bulk_T outlet_bulk_T flux_integral_stl dT'
   exodus = true
 []

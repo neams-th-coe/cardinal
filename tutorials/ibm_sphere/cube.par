@@ -2,7 +2,6 @@
   backend = CPU
 
 [GENERAL]
-  startFrom = p3.fld
   polynomialOrder = 3
   numSteps = 50000
   dt = 1e-2
