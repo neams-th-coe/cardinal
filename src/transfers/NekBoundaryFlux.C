@@ -92,10 +92,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     checkUnusedParam(parameters, "initial_flux_integral_stl", "the 'mesh' does not contain 'stl'");
 
   // TODO: will need to be generalized for other scalars
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("In order to read or write NekRS's boundary heat flux, your case files must have a "
-               "[TEMPERATURE] block. Note that you can set 'solver = none' in '" +
-               _nek_problem.casename() + ".par' if you don't want to solve for temperature.");
+  nekrs::checkFieldValidity(field::temperature);
 
   // add the variables for the coupling and perform checks on problem setup
   if (_direction == "from_nek")
@@ -118,8 +115,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
 
     // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
     // interpretation
-    auto d = nekrs::nondimensionalDivisor(field::flux);
-    auto a = nekrs::nondimensionalAdditive(field::flux);
+    auto d = nekrs::nondimensionalDivisor(field::heat_flux);
+    auto a = nekrs::nondimensionalAdditive(field::heat_flux);
 
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
@@ -229,9 +226,9 @@ NekBoundaryFlux::readDataFromNek()
   if (_transfer_mesh.contains("mirror"))
   {
     if (!_nek_mesh->volume())
-      _nek_problem.boundarySolution(field::flux, _external_data);
+      _nek_problem.boundarySolution(field::heat_flux, _external_data);
     else
-      _nek_problem.volumeSolution(field::flux, _external_data);
+      _nek_problem.volumeSolution(field::heat_flux, _external_data);
 
     fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
   }
@@ -249,8 +246,8 @@ NekBoundaryFlux::readDataFromNek()
 void
 NekBoundaryFlux::sendDataToNek()
 {
-  auto d = nekrs::nondimensionalDivisor(field::flux);
-  auto a = nekrs::nondimensionalAdditive(field::flux);
+  auto d = nekrs::nondimensionalDivisor(field::heat_flux);
+  auto a = nekrs::nondimensionalAdditive(field::heat_flux);
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
   // the heat flux, we will need to normalize the flux on the nekRS side by the
@@ -258,7 +255,7 @@ NekBoundaryFlux::sendDataToNek()
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
   double normalized_nek_flux = 0.0;
   double total_moose_flux;
   bool successful_normalization = false;

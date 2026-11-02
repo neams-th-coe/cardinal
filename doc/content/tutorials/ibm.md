@@ -457,7 +457,7 @@ overlapping meshes.
 
 !media ibm_velocity.png
   id=ibm_velocity
-  caption=Velocity, pressure, and temperature computed by NekRS's IBM solver.
+  caption=Velocity, pressure, and temperature computed by NekRS's IBM solver for polynomial order 3.
   style=width:90%;margin-left:auto;margin-right:auto
 
 For comparison, a body-fitted case is available in the `body_fitted` directory (you
