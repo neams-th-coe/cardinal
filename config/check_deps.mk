@@ -18,6 +18,7 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+TMAP8_DIR           ?= $(CONTRIB_DIR)/tmap8
 
 # Then, we can find which optional dependencies we have been pulled in
 # by seeing if those directories are empty or not
