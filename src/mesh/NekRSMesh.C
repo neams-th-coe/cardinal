@@ -282,18 +282,6 @@ NekRSMesh::buildSTLSurface()
     _rank_to_num_lagrange_points[0] = _stl_normals.size();
   }
 
-  // TODO: this check is only needed for data going TO Nek
-  for (const auto & [rank, num_pts] : _rank_to_num_lagrange_points)
-    if (num_pts > nekrs::fieldOffset())
-      mooseError("Cardinal writes STL data into a slot in the usrwrk array on each rank; rank ",
-                 rank,
-                 " maps to ",
-                 num_pts,
-                 " Lagrange points, which exceeds the size of a usrwrk array slot (",
-                 nekrs::fieldOffset(),
-                 "). You must lower the number of MPI ranks in your NekRS run or contact the "
-                 "Cardinal developer team to remove this restriction.");
-
   // now, create the libMesh elements corresponding to the STL triangles
   for (int e = 0; e < _stl_normals.size(); e++)
   {
@@ -319,6 +307,21 @@ NekRSMesh::buildSTLSurface()
 
     elem->subdomain_id() = _stl_block_id;
   }
+}
+
+void
+NekRSMesh::checkSTLDataOffset() const
+{
+  for (const auto & [rank, num_pts] : _rank_to_num_lagrange_points)
+    if (num_pts > nekrs::fieldOffset())
+      mooseError("Cardinal writes STL data into a slot in the usrwrk array on each rank; rank ",
+                 rank,
+                 " maps to ",
+                 num_pts,
+                 " Lagrange points, which exceeds the size of a usrwrk array slot (",
+                 nekrs::fieldOffset(),
+                 "). You must lower the number of MPI ranks in your NekRS run or contact the "
+                 "Cardinal developer team to remove this restriction.");
 }
 
 void

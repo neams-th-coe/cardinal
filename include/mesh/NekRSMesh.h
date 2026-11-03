@@ -67,6 +67,8 @@ public:
 
   const std::map<int, int> & rankToLagrange() const { return _rank_to_num_lagrange_points; }
 
+  void checkSTLDataOffset() const;
+
   /**
    * NekRS mesh polynomial order
    * @return NekRS polynomial order

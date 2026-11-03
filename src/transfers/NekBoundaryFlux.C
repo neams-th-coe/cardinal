@@ -144,10 +144,14 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     // NOTE: this check is imperfect, because even if there is a source kernel, we cannot tell
     // which passive scalar equation it is applied to
     if (_transfer_mesh.contains("stl"))
+    {
+      _nek_mesh->checkSTLDataOffset();
+
       if (nekrs::hasTemperatureSolve() && !nekrs::hasHeatSourceKernel())
         mooseWarning(
             "In order to use the STL flux sent to NekRS, you must have an OCCA source "
             "kernel in the passive scalar equations! The STL flux will currently be unused.");
+    }
   }
 
   // add postprocessors to hold integrated heat flux; we do not need to check for duplicate

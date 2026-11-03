@@ -95,4 +95,16 @@
     capabilities = 'nekrs'
     design = 'NekBoundaryFlux.md'
   []
+  [rank_check]
+    type = RunException
+    input = read_stl.i
+
+    # this test checks that an error is thrown if the DOFs per rank is lower than the number of STL triangles per rank. This number cannot be made lower
+    min_parallel = 5
+    expect_err = "Cardinal writes STL data into a slot in the usrwrk array on each rank; rank 0 maps to 960 Lagrange points, which exceeds the size of a usrwrk array slot \(512\)."
+    requirement = "The system shall error if the assumption that the STL triangle data, on each rank, will fit into a single slot in the usrwrk array, which has a size equal to the number of GLL points per rank."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekRSMesh.md NekBoundaryFlux.md'
+  []
 []
