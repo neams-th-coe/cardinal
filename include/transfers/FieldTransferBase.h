@@ -82,7 +82,8 @@ protected:
   void sendVolumetricDataToNek(const unsigned int var_number, const Real d, const Real a);
 
   /**
-   * Read from an auxiliary variable on the mesh STL and write into usrwrk, one entry per STL triangle
+   * Read from an auxiliary variable on the mesh STL and write into usrwrk, one entry per STL
+   * triangle
    * @param[in] var_number auxiliary variable number to read from
    */
   void sendSTLDataToNek(const unsigned int var_number);
