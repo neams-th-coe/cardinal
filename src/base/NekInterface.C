@@ -388,10 +388,9 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp,
                             const std::vector<Point> & stl_normals,
                             int n)
 {
-  // auto mesh = nrs->meshV;
   auto mesh = nrs->scalar->mesh("temperature");
   auto fieldOffsetSum = mesh->dim * nrs->fieldOffset;
-  int n_values = n * mesh->dim; // TODO: number of scalars may need to multiply here
+  int n_values = n * mesh->dim;
 
   // the interpolator has been initialized with the corners of the STL triangles; so,
   // we compute grad(T) at all of the Eulerian points, and then interpolate that to
