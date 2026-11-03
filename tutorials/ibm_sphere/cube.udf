@@ -90,6 +90,7 @@ std::vector<FacetNormal> STLnormals;  // Declare normals as global
 
 // declare user-defined device kernel
 static deviceKernel PenaltyNoSlipBCKernel;
+static deviceKernel conductivityKernel;
 static deviceKernel viscosityKernel;
 static occa::kernel CHTKernel;
 
@@ -394,11 +395,19 @@ void material_props(double time)
   platform->options.getArgs("FLUID VISCOSITY", mu);
   auto o_mue = nrs->fluid->o_diffusionCoeff();
   viscosityKernel(nrs->meshV->Nelements, mu, o_sdfValues , o_mue);
+
+  // modify thermal conductivity inside the body to reflect solid properties
+  dfloat kf;
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", kf);
+  auto & scalar = nrs->scalar;
+  auto o_k = scalar->o_prop.slice(0 * scalar->fieldOffsetSum);
+  conductivityKernel(nrs->meshV->Nelements, kf, o_sdfValues , o_k);
 }
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
   PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
+  conductivityKernel = oudfBuildKernel(kernelInfo, "thermal_conductivity");
   viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
   CHTKernel = oudfBuildKernel(kernelInfo , "CHT");
 }

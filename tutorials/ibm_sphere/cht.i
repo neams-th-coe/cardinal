@@ -2,7 +2,7 @@
   type = NekRSMesh
   stl = "retriangulated.stl"
 
-  # dummy, needs to be part of the mesh mirror constructed
+  # dummy, not used
   boundary = '1'
 []
 

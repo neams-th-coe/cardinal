@@ -513,6 +513,12 @@ The rest of the file is fairly standard and not specific to the use of [!ac](IBM
 
 !listing /tutorials/ibm_sphere/cht.i
 
+!alert note
+For [!ac](CHT), it is important to set the thermal conductivity of the [!ac](GLL) points
+inside the body to match the thermal conductivity of the actual solid with which they
+are transferring heat. So, take care to use the correct value of thermal conductivity in
+the `conductivity_kernel` function in the `.oudf` file.
+
 ### Execution and Postprocessing
 
 To run the immersed boundary simulation with [!ac](CHT),
@@ -556,3 +562,4 @@ sphere, since the boundary condition applied to the cut element faces is much mo
 the zero-slip used for velocity. For the temperature boundary condition on the cut faces, a zero heat
 flux boundary condition is used (which is necessary to obtain the correct total heat deposited in the fluid).
 As described in [!cite](hegazy_ibm), features such as NekNek can greatly improve the fidelity.
+

@@ -340,3 +340,18 @@ inline dfloat D1(dfloat r) {
   }
 }
 
+@kernel void thermal_conductivity(const dlong Nelements, const dfloat kappa, @restrict const dfloat* sdf , @restrict dfloat* property)
+{
+  for (dlong e = 0; e < Nelements; ++e; @outer(0))
+  {
+    for (int n = 0; n < p_Np; ++n; @inner(0))
+    {
+      const int id = e * p_Np + n;
+
+      if (sdf[id] < 0)
+        property[id] = 0.1; // where we have the solid part
+      else
+        property[id] = kappa;
+    }
+  }
+}

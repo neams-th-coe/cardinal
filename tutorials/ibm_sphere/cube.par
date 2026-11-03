@@ -3,7 +3,7 @@
 
 [GENERAL]
   polynomialOrder = 3
-  numSteps = 50000
+  numSteps = 10000
   dt = 1e-2
   writeInterval = 1000
   scalars = temperature
@@ -16,6 +16,8 @@
   residualTol = 1e-08
   density = 1.0
   viscosity = -50
+
+# boundary 4 is the cut elements
 
 [SCALAR TEMPERATURE]
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann
