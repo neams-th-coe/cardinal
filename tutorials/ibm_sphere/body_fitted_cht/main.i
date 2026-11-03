@@ -47,7 +47,7 @@ sphere_volume = 4.171210
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 3000
+  num_steps = 6000
   petsc_options_value = 'hypre boomeramg'
   dt = 0.02
   nl_rel_tol = 1e-5

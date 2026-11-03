@@ -65,8 +65,16 @@ public:
   /// Initialize previous displacement values to zero for boundary mirror-based moving mesh problems
   void initializePreviousDisplacements();
 
+  /**
+   * Get the number of Lagrange points on each rank
+   * @return map from rank index to number of Lagrange points on that rank
+   */
   const std::map<int, int> & rankToLagrange() const { return _rank_to_num_lagrange_points; }
 
+  /**
+   * Check that the number of Lagrange points on each rank does not exceed the field offset length
+   * in the usrwrk array
+   */
   void checkSTLDataOffset() const;
 
   /**
@@ -201,6 +209,10 @@ public:
    */
   const int numSTLElems() const { return _stl_normals.size(); }
 
+  /**
+   * Get the STL unit normals on each triangle
+   * @return STL unit normals, indexed by global STL index
+   */
   const std::vector<Point> & STLNormals() const { return _stl_normals; }
 
   /**
@@ -646,10 +658,10 @@ protected:
   /// Corner indices for GLL points of mesh mirror elements
   std::vector<std::vector<int>> _corner_indices;
 
-  /// STL vertices
+  /// STL vertices, indexed by global STL index
   std::vector<Point> _stl_vertices;
 
-  /// STL unit normals
+  /// STL unit normals, indexed by global STL index
   std::vector<Point> _stl_normals;
 
   /// Map from each NekRS rank to the number of Lagrange points owned by that rank

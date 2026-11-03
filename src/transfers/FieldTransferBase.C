@@ -107,6 +107,9 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
     }
 
     // create an interpolator
+    // TODO: each rank could build its own interpolator using only the Lagrange points that it owns;
+    // right now, this builds the interpolator with all points. Switching to rank-local would require
+    // some parallel communication in the routines that do integrations, etc.
     _interpolator = new pointInterpolation_t(nekrs::entireMesh(), platform->comm.mpiComm());
     _interpolator->setPoints(x, y, z);
     const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
