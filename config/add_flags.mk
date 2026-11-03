@@ -39,6 +39,13 @@ ifneq ($(GRIFFIN_CONTENT),)
  include             $(FRAMEWORK_DIR)/app.mk
 endif
 
+ifneq ($(TMAP8_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_TMAP8_COUPLING
+  APPLICATION_DIR     := $(TMAP8_DIR)
+  APPLICATION_NAME    := tmap8
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
+
 ifneq ($(BISON_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_BISON_COUPLING
   APPLICATION_DIR     := $(BISON_DIR)
