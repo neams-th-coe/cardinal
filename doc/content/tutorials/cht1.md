@@ -313,7 +313,7 @@ as material properties.
 The [HeatConduction](HeatConduction.md)
  kernel requires a material property for the thermal conductivity;
 material properties are also required for the heat transfer coefficient and far-field
-temperature for the [ConvectiveHeatFluxBC](ConvectiveHeatFluxBC.md)
+temperature for the [ConvectiveDiffusiveFluxBC](ConvectiveDiffusiveFluxBC.md)
 boundary condition. These material properties are specified
 in the `Materials` block. Here, different values for thermal conductivity are used
 in the graphite and steel.
@@ -402,7 +402,7 @@ to control its own time stepping (except for synchronization points).
 
 Finally, several postprocessors are included to perform
 integrals and global min/max calculations over the NekRS domain for diagnostic purposes.
-Here, the [NekHeatFluxIntegral](NekHeatFluxIntegral.md)
+Here, the [NekDiffusiveFluxIntegral](NekDiffusiveFluxIntegral.md)
 postprocessor computes $-k\nabla T\cdot\hat{n}$ over a boundary in the NekRS mesh. The
 [NekVolumeExtremeValue](NekVolumeExtremeValue.md) postprocessors then compute the maximum
 and minimum temperatures throughout the entire NekRS domain (i.e. not only on the [!ac](CHT)

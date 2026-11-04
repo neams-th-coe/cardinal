@@ -82,7 +82,10 @@ field::NekWriteEnum
 fluxToWriteField(const unsigned int scalar_id)
 {
   if (scalar_id == 0)
+  {
+    enforceScalarZeroIsTemperature();
     return field::heat_flux;
+  }
   if (scalar_id == 1)
     return field::scalar01_flux;
   if (scalar_id == 2)
@@ -274,6 +277,9 @@ hasScalarSolve(const unsigned int scalar_id)
 bool
 hasScalarVariable(int scalarId)
 {
+  if (!nrs->Nscalar)
+    return false;
+
   if (hasTemperatureVariable())
     return scalarId < nrs->Nscalar;
   else
@@ -415,6 +421,13 @@ viscosity()
   return scales.rho_ref * scales.U_ref * scales.L_ref / Re;
 }
 
+void
+enforceScalarZeroIsTemperature()
+{
+  if (scalarName(0) != "temperature")
+    mooseError(firstPassiveScalarNamingError());
+}
+
 double
 Pr()
 {
@@ -422,7 +435,9 @@ Pr()
   setupAide & options = platform->options;
   options.getArgs("FLUID DENSITY", rho);
   options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
-  options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+
+  enforceScalarZeroIsTemperature();
+  double k = scalarDiffusionCoefficient(0);
 
   dfloat Pe = 1.0 / k;
   dfloat conductivity = scales.rho_ref * scales.U_ref * scales.Cp_ref * scales.L_ref / Pe;
@@ -1437,20 +1452,25 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
 }
 
 double
-heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
+scalarDiffusionCoeff(const unsigned int & scalar_id)
 {
-  mesh_t * mesh = getMesh(pp_mesh);
-
   // TODO: This function only works correctly if the conductivity is constant, because
   // otherwise we need to copy the conductivity from device to host
   double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+  platform->options.getArgs("SCALAR" + scalarDigitStr(scalar_id) + " DIFFUSIONCOEFF", k);
+  return k;
+}
+
+double
+diffusiveFluxIntegral(const std::vector<int> & boundary_id, const unsigned int & scalar_id, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  double k = scalarDiffusionCoeff(scalar_id);
 
   double integral = 0.0;
   double * grad_T = (double *)calloc(3 * mesh->Np, sizeof(double));
 
-  const auto sid = nrs->scalar->nameToIndex.find("temperature")->second;
-  const int offset = sid * scalarFieldOffset();
+  const int offset = scalar_id * scalarFieldOffset();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1492,7 +1512,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
 
   // multiply by the reference heat flux and an area factor to dimensionalize
-  total_integral *= scales.heat_flux_ref * scales.A_ref;
+  total_integral *= nondimensionalDivisor(fluxToWriteField(scalar_id)) * scales.A_ref;
 
   return total_integral;
 }
@@ -1547,6 +1567,18 @@ gradient(const int offset,
 }
 
 std::string
+onlyScalarName(const std::string object)
+{
+  if (!nrs->Nscalar)
+    mooseError("There are no scalars in the NekRS problem, so we failed to identify a suitable default for the 'scalar' parameter in " + object + ".");
+
+  if (Nscalar() > 1)
+    mooseError("There is more than one scalar in the NekRS problem, so we failed to identify a default for the 'scalar' parameter in " + object + ". Please specify 'scalar'.");
+
+  return scalarName(0);
+}
+
+std::string
 scalarName(const unsigned int & scalar_id)
 {
   if (!hasScalarVariable(scalar_id))
@@ -1564,7 +1596,8 @@ unsigned int
 scalarID(const std::string & name)
 {
   if (nrs->scalar)
-    return nrs->scalar->nameToIndex.find(name)->second;
+    if (nrs->scalar->nameToIndex.count(name))
+      return nrs->scalar->nameToIndex.find(name)->second;
 
   mooseError("The NekRS case files do not have a scalar by the name '" + name + "'.");
 }
@@ -1706,9 +1739,7 @@ get_temperature(const int id, const int surf_offset)
 double
 get_flux(const int sid, const int id, const int surf_offset)
 {
-  // TODO: this function does not support non-constant diffusion coefficient
-  double k;
-  platform->options.getArgs("SCALAR0" + std::to_string(sid) + " DIFFUSIONCOEFF", k);
+  double k = scalarDiffusionCoeff(sid);
 
   // this call of nek_mesh::all should be fine because flux is not a 'field' which can be
   // provided to the postprocessors which have the option to operate only on part of the mesh
@@ -1827,8 +1858,7 @@ firstPassiveScalarNamingError()
   if (Nscalar() == 0)
     s += " However, your par file does not have any passive scalars.";
   else
-    s += " However, your first passive scalar is named " +
-         platform->options.getArgs("SCALAR00 NAME") + ".";
+    s += " However, your first passive scalar is named " + scalarName(0) + ".";
 
   return s;
 }

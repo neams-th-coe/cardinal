@@ -38,7 +38,7 @@
 
 [Postprocessors]
   [flux_in_nek]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
   []
   [max_nek_T]

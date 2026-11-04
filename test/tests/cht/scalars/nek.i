@@ -19,7 +19,7 @@
       direction = to_nek
       usrwrk_slot = 0
       postprocessor_to_conserve = flux_integral
-      flux = scalar02_flux
+      scalar = "two"
     []
     [temp]
       type = NekFieldVariable

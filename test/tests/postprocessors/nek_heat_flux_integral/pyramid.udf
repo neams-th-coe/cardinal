@@ -11,15 +11,20 @@ void UDF_Setup()
 
   // arbitrary arrays on the host where we will fill some initial data
   std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+  std::vector<dfloat> two(mesh->Nlocal, 0.0);
 
   auto [x, y, z] = mesh->xyzHost();
 
   for (int n = 0; n < mesh->Nlocal; ++n)
+  {
     temp[n] = 100*(exp(x[n]) + exp(y[n])+exp(z[n])+sin(y[n]) + x[n]*y[n]*z[n]) +
       500 * x[n] + 500 * y[n];
+    two[n] = exp(x[n]) + exp(y[n]) + exp(z[n]);
+  }
 
   // copy host data into the device data
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+  nrs->scalar->o_solution("two").copyFrom(two.data(), two.size());
 }
 
 void UDF_ExecuteStep(double time, int tstep)

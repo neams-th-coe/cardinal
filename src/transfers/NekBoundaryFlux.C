@@ -26,7 +26,7 @@ InputParameters
 NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
-  params.addParam<std::string>("scalar", "temperature", "Name of the scalar field in NekRS that this flux corresponds to. For example, if this transfer corresponds to a heat flux, then enter the name of the temperature scalar. This is only important if running in non-dimensional form, because different fluxes, e.g. of heat or mass, have different characteristic scales and therefore require different scalings.");
+  params.addParam<std::string>("scalar", "Name of the scalar field in NekRS that this flux corresponds to. For example, if this transfer corresponds to a heat flux, then enter the name of the temperature scalar. This is only important if running in non-dimensional form, because different fluxes, e.g. of heat or mass, have different characteristic scales and therefore require different scalings. If only one scalar is present, this defaults to that scalar.");
   params.addParam<Real>(
       "initial_flux_integral",
       0,
@@ -53,8 +53,8 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _boundary(_nek_mesh->boundary()),
-    _scalar_name(getParam<std::string>("scalar")),
-    _scalar_id(nekrs::scalarID(_scalar_name) /* checks for existence of the scalar */),
+    _scalar_name(isParamValid("scalar") ? getParam<std::string>("scalar") : nekrs::onlyScalarName("NekBoundaryFlux")),
+    _scalar_id(nekrs::scalarID(_scalar_name)),
     _write_field(nekrs::fluxToWriteField(_scalar_id)),
     _reference_flux_integral(nekrs::referenceArea() *
                              nekrs::nondimensionalDivisor(_write_field))
@@ -147,14 +147,14 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   }
   else
   {
-    // create a NekHeatFluxIntegral postprocessor to compute the flux
-    // TODO: generalize to other fluxes
-    auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
+    // create a NekDiffusiveFluxIntegral postprocessor to compute the flux
+    auto pp_params = _factory.getValidParams("NekDiffusiveFluxIntegral");
     pp_params.set<std::vector<int>>("boundary") = *_boundary;
+    pp_params.set<std::string>("scalar") = _scalar_name;
 
     // we do not need to check for duplicate names, because MOOSE already handles
     // this error checking
-    _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
+    _nek_problem.addPostprocessor("NekDiffusiveFluxIntegral", _postprocessor_name, pp_params);
     _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
   }
 }

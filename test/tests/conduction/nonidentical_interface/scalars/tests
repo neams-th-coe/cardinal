@@ -4,7 +4,7 @@
   [scalar01_coupling]
     type = CSVDiff
     input = main.i
-    exodiff = main_out.csv
+    csvdiff = main_out.csv
     min_parallel = 4
     requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
                   "the correct interface and volume temperatures that are obtained from a standalone "

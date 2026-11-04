@@ -5,7 +5,7 @@
   [sfr_pincell]
     type = CSVDiff
     input = main.i
-    exodiff = main_out.csv
+    csvdiff = main_out.csv
     min_parallel = 4
     heavy = true
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
