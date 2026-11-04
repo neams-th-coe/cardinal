@@ -54,6 +54,13 @@ static int build_only;
  */
 int Nscalar();
 
+/**
+ * Get the index corresponding to a scalar of a given name
+ * @param[in] name scalar name
+ * @return scalar index
+ */
+unsigned int scalarID(const std::string & name);
+
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
 
@@ -106,18 +113,11 @@ std::vector<dfloat> yPlus(const std::vector<int> & boundary_id);
 std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
 
 /**
- * Get the variable field that corresponds to a given flux
- * @param[in] f type of flux
- * @return type of equation this corresponds to
- */
-field::NekFieldEnum fluxToEquationField(const flux::NekFluxEnum & f);
-
-/**
- * Convert between a flux enumeration and write enumeration
- * @param[in] f type of flux
+ * Convert between a scalar index and write enumeration (in terms of flux)
+ * @param[in] scalar_id scalar index
  * @return type of quantity to be written
  */
-field::NekWriteEnum fluxToWriteField(const flux::NekFluxEnum & f);
+field::NekWriteEnum fluxToWriteField(const unsigned int scalar_id);
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -334,6 +334,13 @@ bool hasTemperatureVariable();
  * @return whether nekRS will solve for temperature
  */
 bool hasTemperatureSolve();
+
+/**
+ * Whether nekRS actually solves for a given scalar (as opposed to setting its solver to 'none')
+ * @param[in] scalar_id scalar index
+ * @return whether nekRS will solve for the scalar
+ */
+bool hasScalarSolve(const unsigned int scalar_id);
 
 /**
  * Whether nekRS's input file indicates that the problem has a scalar0(scalarId) variable
@@ -697,13 +704,6 @@ double sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFi
 int Nfaces();
 
 /**
- * Whether the specific boundary is a flux boundary
- * @param[in] boundary boundary ID
- * @return whether boundary is a flux boundary
- */
-bool isHeatFluxBoundary(const int boundary);
-
-/**
  * Whether the specific boundary is a moving mesh boundary
  * @param[in] boundary boundary ID
  * @return whether boundary is a moving mesh boundary
@@ -716,13 +716,6 @@ bool isMovingMeshBoundary(const int boundary);
  * @return whether boundary is a temperature boundary
  */
 bool isTemperatureBoundary(const int boundary);
-
-/**
- * String name indicating the temperature boundary condition type on a given boundary
- * @param[in] boundary boundary ID
- * @return string name of boundary condition type
- */
-const std::string temperatureBoundaryType(const int boundary);
 
 /**
  * Polynomial order used in nekRS solution

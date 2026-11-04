@@ -42,6 +42,20 @@ public:
 
 protected:
   /**
+   * Whether the specific boundary is a user-specified flux boundary in the NekRS model
+   * @param[in] boundary boundary ID
+   * @return whether boundary is a flux boundary
+   */
+  bool isFluxBoundary(const int boundary) const;
+
+  /**
+   * String name indicating the scalar boundary condition type on a given boundary
+   * @param[in] boundary boundary ID
+   * @return string name of boundary condition type
+   */
+  std::string scalarBoundaryType(const int boundary) const;
+
+  /**
    * Print a warning to the user if the initial fluxes (before normalization) differ
    * significantly, since this can (but not always) indicate an error with model setup.
    * @param[in] nek_flux flux to be received by Nek
@@ -87,8 +101,11 @@ protected:
   /// Boundaries through which the flux transfer occurs
   const std::vector<int> * _boundary;
 
-  /// NekRS equation to which this flux corresonds, in order to use correct non-dimensional scaling
-  flux::NekFluxEnum _flux_type;
+  /// Name of the scalar that this flux corresponds to
+  const std::string & _scalar_name;
+
+  /// Index of the scalar that this flux corresponds to
+  const unsigned int _scalar_id;
 
   /// NekRS quantity that will ultimately be written by this transfer
   field::NekWriteEnum _write_field;

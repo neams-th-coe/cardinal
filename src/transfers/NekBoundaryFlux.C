@@ -26,10 +26,7 @@ InputParameters
 NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
-  params.addParam<MooseEnum>(
-      "flux",
-      getNekFluxEnum(),
-      "Which type of flux this transfer corresponds to; this is only important if running in non-dimensional form. For instance, if 'heat_flux', then the quantity transferred between NekRS and MOOSE represents a heat flux. If 'scalar01', then the quantity transferred instead represents a flux of whatever scalar01 corresponds to, such as a mass flux. These quantities may have different characteristic scales and therefore require different scalings.");
+  params.addParam<std::string>("scalar", "temperature", "Name of the scalar field in NekRS that this flux corresponds to. For example, if this transfer corresponds to a heat flux, then enter the name of the temperature scalar. This is only important if running in non-dimensional form, because different fluxes, e.g. of heat or mass, have different characteristic scales and therefore require different scalings.");
   params.addParam<Real>(
       "initial_flux_integral",
       0,
@@ -56,16 +53,15 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _boundary(_nek_mesh->boundary()),
-    _flux_type(getParam<MooseEnum>("flux").getEnum<flux::NekFluxEnum>()),
-    _write_field(nekrs::fluxToWriteField(_flux_type)),
+    _scalar_name(getParam<std::string>("scalar")),
+    _scalar_id(nekrs::scalarID(_scalar_name) /* checks for existence of the scalar */),
+    _write_field(nekrs::fluxToWriteField(_scalar_id)),
     _reference_flux_integral(nekrs::referenceArea() *
                              nekrs::nondimensionalDivisor(_write_field))
 {
   if (!_boundary)
     mooseError("NekBoundaryFlux can only be used when there is boundary coupling of NekRS with "
                "MOOSE, i.e. when 'boundary' is provided in NekRSMesh.");
-
-  nekrs::checkFieldValidity(nekrs::fluxToEquationField(_flux_type));
 
   // add the variables for the coupling and perform checks on problem setup
   if (_direction == "from_nek")
@@ -100,22 +96,25 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     auto a = nekrs::nondimensionalAdditive(_write_field);
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
 
-    // Check that the correct flux boundary condition is set on all of nekRS's
-    // boundaries. To avoid throwing this error for test cases where we have a
-    // [TEMPERATURE] block but set its solve to 'none', we screen by whether the
-    // temperature solve is enabled
-    if (_boundary && nekrs::hasTemperatureSolve())
+    // Check that a flux boundary condition is set on all of NekRS's boundaries to which we are
+    // sending flux. To avoid throwing this error for test cases where we have the corresponding
+    // [SCALAR XX] block but set its solve to 'none', we screen by whether the scalar
+    // solve is enabled
+    if (_boundary && nekrs::hasScalarSolve(_scalar_id))
       for (const auto & b : *_boundary)
-        if (!nekrs::isHeatFluxBoundary(b))
+        if (!isFluxBoundary(b))
           mooseError("In order to send a boundary flux to NekRS, you must have a flux "
                      "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
-                     std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
+                     std::to_string(b) +
+                     " for scalar '" +
+                     _scalar_name +
+                     "' is of type '" +
+                     scalarBoundaryType(b) +
                      "' instead of 'udfNeumann'.");
 
-    if (!nekrs::hasTemperatureSolve())
-      mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
-                   ".par', NekRS will not solve for temperature. The flux sent by this object "
-                   "will be unused.");
+    if (!nekrs::hasScalarSolve(_scalar_id))
+      mooseWarning("By setting 'solver = none' for scalar '" + _scalar_name + "', NekRS will not solve for '"
+                   + _scalar_name + "'. The flux sent by this object will be unused.");
   }
 
   // add postprocessors to hold integrated flux
@@ -149,6 +148,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   else
   {
     // create a NekHeatFluxIntegral postprocessor to compute the flux
+    // TODO: generalize to other fluxes
     auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
     pp_params.set<std::vector<int>>("boundary") = *_boundary;
 
@@ -157,6 +157,22 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
     _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
   }
+}
+
+bool
+NekBoundaryFlux::isFluxBoundary(const int boundary) const
+{
+  auto sid = scalarDigitStr(_scalar_id);
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return bcType == bdryBase::bcType_udfNeumann;
+}
+
+std::string
+NekBoundaryFlux::scalarBoundaryType(const int boundary) const
+{
+  auto sid = scalarDigitStr(_scalar_id);
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return platform->app->bc->sBcIDToText.at(bcType);
 }
 
 void

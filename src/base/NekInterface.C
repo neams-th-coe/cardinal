@@ -79,39 +79,18 @@ setStartTime(const double & start)
 }
 
 field::NekWriteEnum
-fluxToWriteField(const flux::NekFluxEnum & f)
+fluxToWriteField(const unsigned int scalar_id)
 {
-  switch (f)
-  {
-    case flux::heat_flux:
-      return field::heat_flux;
-    case flux::scalar01_flux:
-      return field::scalar01_flux;
-    case flux::scalar02_flux:
-      return field::scalar02_flux;
-    case flux::scalar03_flux:
-      return field::scalar03_flux;
-    default:
-      mooseError("Unhandled NekFluxEnum!");
-  }
-}
+  if (scalar_id == 0)
+    return field::heat_flux;
+  if (scalar_id == 1)
+    return field::scalar01_flux;
+  if (scalar_id == 2)
+    return field::scalar02_flux;
+  if (scalar_id == 3)
+    return field::scalar03_flux;
 
-field::NekFieldEnum
-fluxToEquationField(const flux::NekFluxEnum & f)
-{
-  switch (f)
-  {
-    case flux::heat_flux:
-      return field::temperature;
-    case flux::scalar01_flux:
-      return field::scalar01;
-    case flux::scalar02_flux:
-      return field::scalar02;
-    case flux::scalar03_flux:
-      return field::scalar03;
-    default:
-      mooseError("Unhandled NekFluxEnum!");
-  }
+  mooseError("Unhandled scalar index in fluxToWriteField!");
 }
 
 void
@@ -284,6 +263,12 @@ bool
 hasTemperatureSolve()
 {
   return hasTemperatureVariable() ? nrs->scalar->compute[0] : false;
+}
+
+bool
+hasScalarSolve(const unsigned int scalar_id)
+{
+  return Nscalar() ? nrs->scalar->compute[scalar_id] : false;
 }
 
 bool
@@ -1561,17 +1546,27 @@ gradient(const int offset,
   }
 }
 
-bool
-isHeatFluxBoundary(const int boundary)
+std::string
+scalarName(const unsigned int & scalar_id)
 {
-  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
-  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  if (!hasScalarVariable(scalar_id))
+    mooseError("NekRS problem does not have a scalar with index ", scalar_id);
 
-  // the purpose of this function is to check if the user has a non-zero flux boundary
-  // condition so that if MOOSE sends data to NekRS it will actually be used (even
-  // though zeroNeumann is technically a heat flux condition, it would not indicate
-  // the user has set up their model correctly)
-  return bcType == bdryBase::bcType_udfNeumann;
+  auto smap = nrs->scalar->nameToIndex;
+  for (auto it = smap.begin(); it != smap.end(); ++it)
+    if (it->second == scalar_id)
+      return it->first;
+
+  mooseError("internal error");
+}
+
+unsigned int
+scalarID(const std::string & name)
+{
+  if (nrs->scalar)
+    return nrs->scalar->nameToIndex.find(name)->second;
+
+  mooseError("The NekRS case files do not have a scalar by the name '" + name + "'.");
 }
 
 bool
@@ -1588,15 +1583,6 @@ isTemperatureBoundary(const int boundary)
 
   auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
   return bcType == bdryBase::bcType_udfDirichlet;
-}
-
-const std::string
-temperatureBoundaryType(const int boundary)
-{
-  auto sid = scalarDigitStr(nrs->scalar->nameToIndex.find("temperature")->second);
-
-  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
-  return platform->app->bc->sBcIDToText.at(bcType);
 }
 
 int
