@@ -68,6 +68,13 @@ double scalarDiffusionCoeff(const unsigned int & scalar_id);
  */
 void enforceScalarZeroIsTemperature();
 
+/**
+ * Get the constant diffusion coefficient
+ * @param[in] scalar_id scalar ID
+ * @return diffusion coefficient for this scalar
+ */
+double scalarDiffusionCoeff(const unsigned int & scalar_id);
+
 /** Get the name of the only scalar (as a default), or else throw an error
  * @param[in] name name of the object which calls this function, to give a useful error message
  * @return scalar name
