@@ -313,7 +313,7 @@ as material properties.
 The [HeatConduction](HeatConduction.md)
  kernel requires a material property for the thermal conductivity;
 material properties are also required for the heat transfer coefficient and far-field
-temperature for the [ConvectiveDiffusiveFluxBC](ConvectiveDiffusiveFluxBC.md)
+temperature for the [ConvectiveHeatFluxBC](ConvectiveHeatFluxBC.md)
 boundary condition. These material properties are specified
 in the `Materials` block. Here, different values for thermal conductivity are used
 in the graphite and steel.
