@@ -82,11 +82,13 @@ protected:
   void sendVolumetricDataToNek(const unsigned int var_number, const Real d, const Real a);
 
   /**
-   * Read from an auxiliary variable on the mesh STL and write into usrwrk, one entry per STL
-   * triangle
+   * Read from an auxiliary variable on the mesh STL and write into usrwrk,
+   * one entry per STL triangle
    * @param[in] var_number auxiliary variable number to read from
+   * @param[in] d non-dimensional divisor
+   * @param[in] a non-dimensional additive
    */
-  void sendSTLDataToNek(const unsigned int var_number);
+  void sendSTLDataToNek(const unsigned int var_number, const Real d, const Real a);
 
   /**
    * Add a MOOSE variable to facilitate coupling

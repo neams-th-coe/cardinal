@@ -25,8 +25,7 @@
 /**
  * This postprocessor is used to integrate the usrwrk array over an
  * STL file. The contents in the usrwrk are interepreted to be one value
- * per STL triangle (at the centroid). TODO: this will need to be generalized
- * and tested if we ever change the order of the STL data transfers
+ * per STL triangle (at the centroid).
  */
 class NekUsrWrkSTLIntegral : public GeneralPostprocessor, public NekBase
 {

@@ -38,7 +38,6 @@ NekBoundaryFlux::validParams()
       "will need to populate an initial shape (or constant value) to the auxvariable holding the "
       "flux if you want to see this parameter take effect.");
 
-  // TODO: support initial_flux_integral_stl (check it is unused)
   params.addParam<Real>(
       "initial_flux_integral_stl",
       0,
@@ -332,7 +331,7 @@ NekBoundaryFlux::sendDataToNek()
   if (_transfer_mesh.contains("stl"))
   {
     _console << "Sending flux from '" << _nek_mesh->STLFilename() << "' to NekRS..." << std::endl;
-    sendSTLDataToNek(_variable_number[_variable]);
+    sendSTLDataToNek(_variable_number[_variable], d, a);
 
     // integrate the flux received onto the STL surface
     double nek_flux = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(),

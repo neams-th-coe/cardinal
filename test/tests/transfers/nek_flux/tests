@@ -29,9 +29,9 @@
     design = 'NekBoundaryFlux.md'
   []
   [flux_stl_nondimensional]
-    type = CSVDiff
+    type = Exodiff
     input = stl_nondimensional.i
-    csvdiff = stl_nondimensional_out.csv
+    exodiff = stl_nondimensional_out.e
     requirement = "The system shall compute non-dimensional heat flux on the STL surface from NekRS. This test also computes the non-dimensional heat flux on the mesh mirror, and compares against the STL surface; the STL surface is not the same topology as the mesh mirror, but it is a sphere circumscribed in the square so we check general magnitudes and spatial reconstruction to ensure that the dimensional scaling has been correctly applied."
     issues = '#1398'
     capabilities = 'nekrs'
@@ -106,5 +106,15 @@
     issues = '#1398'
     capabilities = 'nekrs'
     design = 'NekRSMesh.md NekBoundaryFlux.md'
+  []
+  [custom_stl_postprocessor]
+    type = CSVDiff
+    input = read_stl.i
+    cli_args = 'Problem/FieldTransfers/flux/stl_postprocessor_to_conserve="that" Outputs/file_base=that'
+    csvdiff = 'that.csv'
+    requirement = "The system shall allow a custom selection for the postprocessor used to normalize the STL integrated flux. The gold file is identical to the 'read_stl' test, but with a different name for a postprocessor."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
   []
 []

@@ -216,7 +216,7 @@ FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const 
 }
 
 void
-FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
+FieldTransferBase::sendSTLDataToNek(const unsigned int var_number, const Real d, const Real a)
 {
   auto & aux = _nek_problem.getAuxiliarySystem();
   auto & solution = aux.serializedSolution();
@@ -255,7 +255,7 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number)
       sum += solution(dof_idx);
     }
 
-    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + local_index++] = sum / Tri3::num_nodes;
+    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + local_index++] = (sum / Tri3::num_nodes - a) / d;
   }
 }
 
