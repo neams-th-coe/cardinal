@@ -643,8 +643,6 @@ usrwrkSTLIntegral(const unsigned int & slot,
 
   double total_integral = 0;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm());
-
-  // TODO: non-dimensionalization
   return total_integral;
 }
 

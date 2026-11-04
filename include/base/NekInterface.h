@@ -163,7 +163,8 @@ int globalLagrangeIndexToRank(const unsigned int & index,
                               const std::map<int, int> & rank_to_lagrange);
 
 /**
- * Conduct integral over the STL surface
+ * Conduct integral over the STL surface; results are not dimensionalized because we do not
+ * necessarily know the contents in the usrwrk array
  * @param[in] slot slot in usrwrk array to integrate
  * @param[in] stl_vertices STL vertices, indexed by global index
  * @param[in] rank_to_langrange number of points owned by each rank
@@ -504,7 +505,8 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Integrate the scratch space over boundaries
+ * Integrate the scratch space over boundaries; results are not dimensionalized because we do not
+ * necessarily know the contents in the usrwrk array
  * @param[in] slot slot in scratch space
  * @param[in] boundary boundaries over which to integrate the scratch space
  * @param[in] pp_mesh portion of NekRS mesh to integrate over

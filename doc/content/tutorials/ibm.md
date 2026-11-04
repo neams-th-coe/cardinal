@@ -212,7 +212,7 @@ In order to use the immersed boundary method within NekRS, there is some additio
 
 [!ac](VTK) is used for (optionally) pre-processing the mesh to delete solid elements (step 3 in [#alg]),
 as well as for the (required) signed distance field calculation used to relate the Eulerian and
-Lagrangian points. Instructions to install [!ac](VTK) version 9.3.0 into a folder at `${HOME}/tk/install`
+Lagrangian points. Instructions to install [!ac](VTK) version 9.3.0 into a folder at `${HOME}/vtk/install`
 are below (this is just an example, as you can use newer versions as well).
 
 ```
@@ -533,9 +533,7 @@ During the simulation and when the simulation has completed, you will have creat
 - `retriangulation.stl` contains a STL representation of the original STL surface, after it has
   been re-triangulated so that each surface triangle is fully contained within one NekRS
   element.
-
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
-
 - `main_out.e`, which contains the MOOSE heat conduction solution
 - `main_out_nek0.e`, which contains the intermediate mesh with which NekRS exchanges data
 
@@ -545,7 +543,7 @@ on the sphere as computed by MOOSE.
 !media ibm_velocity_cht.png
   id=ibm_velocity_cht
   caption=Temperature computed by NekRS's IBM solver coupled to MOOSE heat conduction for a conjugate heat transfer case.
-  style=width:90%;margin-left:auto;margin-right:auto
+  style=width:60%;margin-left:auto;margin-right:auto
 
 For comparison, a body-fitted case is available in the `body_fitted_cht` directory. [ibm_lines_cht] shows
 the temperature, velocity, and pressure along two lines in the flow for the body-fitted
@@ -556,10 +554,3 @@ the agreement with the body-fitted reference.
   id=ibm_lines_cht
   caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along two lines through the flow.
   style=width:90%;margin-left:auto;margin-right:auto
-
-In general, obtaining an accurate temperature solve is more sensitive to the mesh resolution around the
-sphere, since the boundary condition applied to the cut element faces is much more approximate than
-the zero-slip used for velocity. For the temperature boundary condition on the cut faces, a zero heat
-flux boundary condition is used (which is necessary to obtain the correct total heat deposited in the fluid).
-As described in [!cite](hegazy_ibm), features such as NekNek can greatly improve the fidelity.
-
