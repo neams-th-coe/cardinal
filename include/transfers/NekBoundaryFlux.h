@@ -102,7 +102,7 @@ protected:
   const std::vector<int> * _boundary;
 
   /// Name of the scalar that this flux corresponds to
-  const std::string & _scalar_name;
+  const std::string _scalar_name;
 
   /// Index of the scalar that this flux corresponds to
   const unsigned int _scalar_id;

@@ -45,5 +45,5 @@ protected:
   const std::string _scalar_name;
 
   /// Index for the scalar to compute the diffusive flux for
-  const unsigned int & _scalar_id;
+  const unsigned int _scalar_id;
 };

@@ -60,7 +60,7 @@
   [default]
     type = RunException
     input = nek_bc.i
-    expect_err = "There is more than one scalar in the NekRS problem, so we failed to identify a default for the 'scalar' parameter. Please specify 'scalar'."
+    expect_err = "There is more than one scalar in the NekRS problem, so we failed to identify a default for the 'scalar' parameter in NekBoundaryFlux. Please specify 'scalar'."
     requirement = "The system shall error if the attempted default for the scalar parameter cannot be deduced because there is more than one scalar"
     max_parallel = 12
     capabilities = 'nekrs'
