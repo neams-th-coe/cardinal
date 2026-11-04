@@ -55,6 +55,13 @@ static int build_only;
 int Nscalar();
 
 /**
+ * Get the diffusion coefficient for a scalar
+ * @param[in] scalar_id scalar index
+ * @return constant diffusion coefficient
+ */
+double scalarDiffusionCoeff(const unsigned int & scalar_id);
+
+/**
  * In some, but not all places in Cardinal, we are required that the first passive scalar
  * is temperature (for instance, when converting back and forth between field enumerations
  * and indices. This check enforces this assumption.

@@ -6,6 +6,7 @@
     input = main.i
     csvdiff = main_out.csv
     min_parallel = 4
+    rel_err = 1e-5
     requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
                   "the correct interface and volume temperatures that are obtained from a standalone "
                   "MOOSE heat conduction simulation in the `../moose.i` file of both cylinders. "

@@ -15,13 +15,15 @@
                   "variables - we just require that they are reasonably close. A fairly fine mesh "
                   "is used in MOOSE to get closer to the higher-polynomial-order integration in nekRS."
     capabilities = 'nekrs'
+    issues = '#1077'
   []
   [misnamed_scalar]
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/two_side1/scalar="hello"'
     expect_err = "The NekRS case files do not have a scalar by the name 'hello'"
-    requirements = "The system shall error if trying to fetch a scalar by a non-existent name"
+    requirement = "The system shall error if trying to fetch a scalar by a non-existent name"
     capabilities = 'nekrs'
+    issues = '#1077'
   []
 []
