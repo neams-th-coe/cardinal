@@ -431,7 +431,7 @@ enforceScalarZeroIsTemperature()
 double
 Pr()
 {
-  dfloat rho, rho_cp, k;
+  dfloat rho, rho_cp;
   setupAide & options = platform->options;
   options.getArgs("FLUID DENSITY", rho);
   options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
