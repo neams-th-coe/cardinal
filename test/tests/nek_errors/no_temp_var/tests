@@ -13,7 +13,7 @@
     type = RunException
     input = nek.i
     cli_args = 'Problem/casename="brick_name"'
-    expect_err = "Cardinal assumes that the first passive scalar is temperature, but you have named it 'other'. If this scalar represents temperature, be sure to name it 'temperature'. Otherwise, please add a dummy scalar named 'temperature' with 'solver = none'."
+    expect_err = "Cardinal assumes that the temperature variable is the first passive scalar, which must be named 'temperature' in the par file \(i.e. in a \[SCALAR TEMPERATURE\] block\). However, your first passive scalar is named 'other'."
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS based on the name not matching 'temperature'"
     capabilities = 'nekrs'

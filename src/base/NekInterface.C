@@ -1864,7 +1864,7 @@ firstPassiveScalarNamingError()
   if (Nscalar() == 0)
     s += " However, your par file does not have any passive scalars.";
   else
-    s += " However, your first passive scalar is named " + scalarName(0) + ".";
+    s += " However, your first passive scalar is named '" + scalarName(0) + "'.";
 
   return s;
 }
