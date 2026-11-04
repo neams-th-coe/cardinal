@@ -255,7 +255,8 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number, const Real d,
       sum += solution(dof_idx);
     }
 
-    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + local_index++] = (sum / Tri3::num_nodes - a) / d;
+    usrwrk[_usrwrk_slot[0] * nekrs::fieldOffset() + local_index++] =
+        (sum / Tri3::num_nodes - a) / d;
   }
 }
 
