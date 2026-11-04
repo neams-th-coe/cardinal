@@ -670,8 +670,8 @@ double pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & 
  * @return heat flux area integral
  */
 double diffusiveFluxIntegral(const std::vector<int> & boundary_id,
-                        const unsigned int & scalar_id,
-                        const nek_mesh::NekMeshEnum pp_mesh);
+                             const unsigned int & scalar_id,
+                             const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Limit the temperature in nekRS to within the range of [min_T, max_T]

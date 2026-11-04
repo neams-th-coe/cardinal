@@ -99,7 +99,7 @@ enum NekFluxEnum
   scalar02_flux,
   scalar03_flux
 };
-}
+} // namespace flux
 
 namespace field
 {

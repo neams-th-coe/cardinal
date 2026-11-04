@@ -26,14 +26,20 @@ InputParameters
 NekDiffusiveFluxIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addParam<std::string>("scalar", "Name of the scalar field in NekRS that this flux corresponds to. For example, if this transfer corresponds to a heat flux, then enter the name of the temperature scalar. If only one scalar is present, this defaults to that scalar.");
-  params.addClassDescription("Diffusive flux (e.g. a conductive heat flux) integrated over boundary(s) in the NekRS mesh");
+  params.addParam<std::string>(
+      "scalar",
+      "Name of the scalar field in NekRS that this flux corresponds to. For example, if this "
+      "transfer corresponds to a heat flux, then enter the name of the temperature scalar. If only "
+      "one scalar is present, this defaults to that scalar.");
+  params.addClassDescription(
+      "Diffusive flux (e.g. a conductive heat flux) integrated over boundary(s) in the NekRS mesh");
   return params;
 }
 
 NekDiffusiveFluxIntegral::NekDiffusiveFluxIntegral(const InputParameters & parameters)
   : NekSidePostprocessor(parameters),
-    _scalar_name(isParamValid("scalar") ? getParam<std::string>("scalar") : nekrs::onlyScalarName("NekDiffusiveFluxIntegral")),
+    _scalar_name(isParamValid("scalar") ? getParam<std::string>("scalar")
+                                        : nekrs::onlyScalarName("NekDiffusiveFluxIntegral")),
     _scalar_id(nekrs::scalarID(_scalar_name))
 {
 }

@@ -1462,7 +1462,9 @@ scalarDiffusionCoeff(const unsigned int & scalar_id)
 }
 
 double
-diffusiveFluxIntegral(const std::vector<int> & boundary_id, const unsigned int & scalar_id, const nek_mesh::NekMeshEnum pp_mesh)
+diffusiveFluxIntegral(const std::vector<int> & boundary_id,
+                      const unsigned int & scalar_id,
+                      const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   double k = scalarDiffusionCoeff(scalar_id);
@@ -1570,10 +1572,14 @@ std::string
 onlyScalarName(const std::string object)
 {
   if (!nrs->Nscalar)
-    mooseError("There are no scalars in the NekRS problem, so we failed to identify a suitable default for the 'scalar' parameter in " + object + ".");
+    mooseError("There are no scalars in the NekRS problem, so we failed to identify a suitable "
+               "default for the 'scalar' parameter in " +
+               object + ".");
 
   if (Nscalar() > 1)
-    mooseError("There is more than one scalar in the NekRS problem, so we failed to identify a default for the 'scalar' parameter in " + object + ". Please specify 'scalar'.");
+    mooseError("There is more than one scalar in the NekRS problem, so we failed to identify a "
+               "default for the 'scalar' parameter in " +
+               object + ". Please specify 'scalar'.");
 
   return scalarName(0);
 }
