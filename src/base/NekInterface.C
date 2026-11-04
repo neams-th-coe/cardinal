@@ -437,7 +437,7 @@ Pr()
   options.getArgs("SCALAR00 TRANSPORTCOEFF", rho_cp);
 
   enforceScalarZeroIsTemperature();
-  double k = scalarDiffusionCoefficient(0);
+  double k = scalarDiffusionCoeff(0);
 
   dfloat Pe = 1.0 / k;
   dfloat conductivity = scales.rho_ref * scales.U_ref * scales.Cp_ref * scales.L_ref / Pe;
