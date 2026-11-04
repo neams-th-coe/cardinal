@@ -3,6 +3,8 @@ Applications:
         app_types:
             - Cardinal
         content_directory: ${ROOT_DIR}/doc/content
+        exe_directory: ${CARDINAL_EXECUTABLE_DIR}
+        exe_name: cardinal
         remove:
             - ${MOOSE_DIR}/framework/doc/remove.yml
         show_warning: false
