@@ -26,13 +26,18 @@ By default, this object will add postprocessor(s) that contain the integrated fl
 type(s) and name(s) of these postprocessor(s) will vary depending on (i) the direction
 of the flux transfer (is flux being read from NekRS or written to NekRS?) and (ii) what portion
 of the `[Mesh]` the flux is being transferred with (is the flux being transferred with the mesh
-mirror or with an STL file?).
+mirror or with an STL file?). When the transfer is *to* NekRS, these postprocessors are
+used internally in this flux transfer in order to compare against the data integrated
+over the NekRS mesh (for normalization). When the transfer is *from* NekRS, these postprocessors
+can be used with a [MultiAppConservativeTransfer](MultiAppConservativeTransfer.md) type transfer.
 
 !table id=Summary of the postprocessors added to assist with conservation
 | | Transfer is *from* NekRS | Transfer is *to* NekRS |
 | :- | :- | :- |
 | Transfer is on the mesh mirror | [NekHeatFluxIntegral](NekHeatFluxIntegral.md) named `<name of the object>_integral` | [Receiver](Receiver.md) named `<name of the object>_integral` that a MultiApp should write into with a [conservative transfer](https://mooseframework.inl.gov/source/transfers/MultiAppConservativeTransfer.html) |
 | Transfer is on the STL surface | [ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md) named `<name of the object>_integral_stl` applied to the flux on the STL surface | [Receiver](Receiver.md) |
+
+## Sending Flux Into NekRS
 
 ### Flux Normalization Per Sideset (for mirror meshes only)
 
@@ -90,18 +95,29 @@ cannot be used if:
 
 There are a few different heat fluxes involved when coupling NekRS via [!ac](CHT)
 to MOOSE. When you run a [!ac](CHT) calculation, for each time step you will see
-something like the following printed to the screen:
+something like the following printed to the screen if you are using a transfer
+with the mirror mesh:
 
 !listing!
-Sending heat flux to NekRS boundary 1
-Normalizing total NekRS flux of 78.8581 to the conserved MOOSE value of 78.6508
+Sending flux from MOOSE to NekRS boundary 1...
+boundary 1: Normalizing total NekRS flux of 78.8581 to the conserved MOOSE value of 78.6508
+!listing-end!
+
+and if you are using a transfer with an STL file, theny ou will see something like the
+following:
+
+!listing!
+Sending flux from 'pebble.stl' to NekRS...
+pebble.stl: Normalizing total NekRS flux of 78.8581 to the conserved MOOSE value of 78.6508
 !listing-end!
 
 Here, the "total NekRS flux of ..." is the integral of `platform->app->bc->o_usrwrk` over the
-high-order NekRS spectral element mesh. Conversely, the "conserved MOOSE value of ..."
+high-order NekRS spectral element mesh (for mirror transfers) or over the STL file (for
+STL transfers). Conversely, the "conserved MOOSE value of ..."
 is the total heat flux that MOOSE is setting in NekRS (read from the `<name_of_object>_integral`
-postprocessor that this object creates. These two numbers will be
-different unless all of the following are true:
+postprocessor for mirror transfers, or read from the `<name_of_object>_integral_stl`
+postprocessor postprocessor for stl transfers). The flux sent by MOOSE and the flux received
+by NekRS will be different unless all of the following are true:
 
 - The NekRS and MOOSE meshes are identical
 - The NekRS polynomial order matches the MOOSE polynomial order, and for the same
@@ -113,19 +129,22 @@ different unless all of the following are true:
 
 Any differences between the "total NekRS flux" and the "conserved MOOSE value" will
 simply arise due to differences in the integration of a field over their respective meshes,
-and is not anything of concern - in fact, Cardinal is specifically designed to renormalized
+and is not anything of concern - in fact, Cardinal is specifically designed to renormalize
 so that conservation is maintained.
 However, you may see large differences if the geometry is curved, since the NekRS high-order
 mesh will capture the curvature and result in very different area integrals.
 We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
 via the MOOSE output files.
 
-You can also monitor the heat flux in NekRS by computing $-k\nabla T\cdot\hat{n}$ using a
-[NekHeatFluxIntegral](NekHeatFluxIntegral.md) postprocessor. In general, the quantity
-computed by this postprocessor will *not* match the heat flux set by MOOSE because
-both the finite and spectral element methods solve weak forms where Neumann boundary
-conditions are only *weakly* imposed. That is, we set the heat flux but only enforce
-it by driving the entire nonlinear residual to a small-enough number, so heat flux
+You can also monitor the flux in NekRS by computing $-k\nabla T\cdot\hat{n}$ using a
+[NekHeatFluxIntegral](NekHeatFluxIntegral.md) postprocessor for mirror transfers,
+or by reading the flux *out* from NekRS with a second `NekBoundaryFlux` transfer but with
+`direction = from_nek` (which you could then integrate on the STL surface with an
+[ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md)).
+Remember that flux boundary conditions, in general, will not perfectly match the values imposed
+because both the finite and spectral element methods solve weak forms where Neumann boundary
+conditions are only *weakly* imposed. That is, we set the flux but only enforce
+it by driving the entire nonlinear residual to a small-enough number, so flux
 boundary conditions are never perfectly observed like Dirichlet boundary conditions are.
 
 ## Example Input File Syntax

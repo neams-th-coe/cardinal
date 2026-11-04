@@ -269,7 +269,7 @@ NekBoundaryFlux::sendDataToNek()
 
   if (_transfer_mesh.contains("mirror"))
   {
-    _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
+    _console << "Sending flux from MOOSE to NekRS boundary " << Moose::stringify(*_boundary) << "..."
              << std::endl;
     sendFaceDataToNek(_variable_number[_variable], d, a);
 
