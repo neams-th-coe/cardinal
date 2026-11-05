@@ -122,6 +122,8 @@ FieldTransferBase::~FieldTransferBase()
   freePointer(_v_face);
   freePointer(_v_elem);
   freePointer(_external_data);
+  delete _interpolator;
+  _interpolator = nullptr;
 }
 
 void
@@ -241,6 +243,8 @@ FieldTransferBase::sendSTLDataToNek(unsigned int var_number, Real d, Real a)
       continue;
     }
 
+    // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+    // vertex is "owned" by the present MOOSE process.
     if (elem_ptr->processor_id() != pid)
       continue;
 
@@ -248,9 +252,6 @@ FieldTransferBase::sendSTLDataToNek(unsigned int var_number, Real d, Real a)
     for (unsigned int n = 0; n < _nek_mesh->numVerticesPerSTL(); n++)
     {
       auto node_ptr = elem_ptr->node_ptr(n);
-
-      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process.
       auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
       sum += solution(dof_idx);
     }

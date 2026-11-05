@@ -601,7 +601,7 @@ computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
   const dfloat crossY = az * bx - ax * bz;
   const dfloat crossZ = ax * by - ay * bx;
 
-  return 0.5 * std::sqrt(crossX * crossX + crossY * crossY + crossZ * crossZ);
+  return 0.5 * std::sqrt(std::abs(crossX * crossX + crossY * crossY + crossZ * crossZ));
 }
 
 int

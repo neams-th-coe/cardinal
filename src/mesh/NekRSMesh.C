@@ -267,7 +267,7 @@ NekRSMesh::buildSTLSurface()
 
   // get the assignment of Lagrange points to the rank, according to the ranks.txt file that NekRS
   // will write out for the immersed boundary methodology. This information is only needed if
-  // data is being sent into NekRS by a transfer. TODO: error checking.
+  // data is being sent into NekRS by a transfer.
   std::ifstream rank_file("ranks.txt");
   if (rank_file.is_open())
   {

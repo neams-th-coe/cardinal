@@ -469,7 +469,7 @@ the agreement with the body-fitted reference.
 
 !media ibm_lines.png
   id=ibm_lines
-  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case. The [!ac](IBM) mesh has 53760 elements and the body-fitted references has 171704 elements.
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case. The [!ac](IBM) mesh has 53760 elements and the body-fitted reference has 171704 elements and uses polynomial order 3.
   style=width:90%;margin-left:auto;margin-right:auto
 
 As mentioned earlier, the original STL surface is re-triangulated into a new STL surface, with
