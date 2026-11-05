@@ -56,14 +56,14 @@ protected:
    * @param[in] var_number auxiliary variable number
    * @param[in] value nekRS solution data to fill the variable with
    */
-  void fillAuxVariableOnMirror(const unsigned int var_number, const double * value);
+  void fillAuxVariableOnMirror(unsigned int var_number, const double * value);
 
   /**
    * Fill an outgoing auxiliary variable field with nekRS solution data on the STL vertices
    * @param[in] var_number auxiliary variable number
    * @param[in] value nekRS solution data to fill the variable with
    */
-  void fillAuxVariableOnSTL(const unsigned int var_number, const double * value);
+  void fillAuxVariableOnSTL(unsigned int var_number, const double * value);
 
   /**
    * Read from an auxiliary variable on the mesh mirror and write into usrwrk for a side
@@ -71,7 +71,7 @@ protected:
    * @param[in] d non-dimensional divisor
    * @param[in] a non-dimensional additive
    */
-  void sendFaceDataToNek(const unsigned int var_number, const Real d, const Real a);
+  void sendFaceDataToNek(unsigned int var_number, Real d, Real a);
 
   /**
    * Read from an auxiliary variable on the mesh mirror and write into usrwrk for a volume
@@ -79,7 +79,7 @@ protected:
    * @param[in] d non-dimensional divisor
    * @param[in] a non-dimensional additive
    */
-  void sendVolumetricDataToNek(const unsigned int var_number, const Real d, const Real a);
+  void sendVolumetricDataToNek(unsigned int var_number, Real d, Real a);
 
   /**
    * Read from an auxiliary variable on the mesh STL and write into usrwrk,
@@ -88,7 +88,7 @@ protected:
    * @param[in] d non-dimensional divisor
    * @param[in] a non-dimensional additive
    */
-  void sendSTLDataToNek(const unsigned int var_number, const Real d, const Real a);
+  void sendSTLDataToNek(unsigned int var_number, Real d, Real a);
 
   /**
    * Add a MOOSE variable to facilitate coupling

@@ -214,7 +214,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
       // so this postprocessor is only an approximation to the heat flux on this surface.
       auto pp_params = _factory.getValidParams("ElementIntegralVariablePostprocessor");
       pp_params.set<std::vector<SubdomainName>>("block").push_back(
-          Moose::stringify(_nek_mesh->STLSubdomainID()));
+          Moose::stringify(_nek_mesh->stlSubdomainID()));
 
       // applied to the variable received from MOOSE
       pp_params.set<std::vector<VariableName>>("variable").push_back(_variable);
@@ -330,17 +330,17 @@ NekBoundaryFlux::sendDataToNek()
 
   if (_transfer_mesh.contains("stl"))
   {
-    _console << "Sending flux from '" << _nek_mesh->STLFilename() << "' to NekRS..." << std::endl;
+    _console << "Sending flux from '" << _nek_mesh->stlFilename() << "' to NekRS..." << std::endl;
     sendSTLDataToNek(_variable_number[_variable], d, a);
 
     // integrate the flux received onto the STL surface
     double nek_flux = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(),
-                                               _nek_mesh->STLVertices(),
+                                               _nek_mesh->stlVertices(),
                                                _nek_mesh->rankToLagrange(),
                                                _nek_mesh->numSTLElems());
 
     auto moose_flux = *_flux_integral_stl;
-    std::filesystem::path p(_nek_mesh->STLFilename());
+    std::filesystem::path p(_nek_mesh->stlFilename());
     _console << "[" << p.filename().string() << "]: Normalizing total NekRS flux of "
              << Moose::stringify(nek_flux * nek_flux_print_mult)
              << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
@@ -438,7 +438,7 @@ NekBoundaryFlux::normalizeFluxBySideset(const std::vector<double> & moose_integr
 }
 
 bool
-NekBoundaryFlux::normalizeSTLFlux(const double moose_integral,
+NekBoundaryFlux::normalizeSTLFlux(double moose_integral,
                                   double nek_integral,
                                   double & normalized_nek_integral)
 {
@@ -458,7 +458,7 @@ NekBoundaryFlux::normalizeSTLFlux(const double moose_integral,
 
   // check that the normalization worked properly - confirm against dimensional form
   auto integral = nekrs::usrwrkSTLIntegral(_usrwrk_slot[0] * nekrs::fieldOffset(),
-                                           _nek_mesh->STLVertices(),
+                                           _nek_mesh->stlVertices(),
                                            _nek_mesh->rankToLagrange(),
                                            _nek_mesh->numSTLElems());
   normalized_nek_integral = integral * _reference_flux_integral;

@@ -35,7 +35,7 @@ FieldTransferBase::validParams()
       "the transfer is 'to_nek'); provide one entry for each quantity being passed");
   params.addParam<MultiMooseEnum>(
       "mesh",
-      getMeshEnums(),
+      getNekRSMeshEnums(),
       "Portion(s) of the MOOSE mesh with which to transfer data; 'mirror' refers to the mesh "
       "mirror, "
       "for which data transfers are accomplished simply by reading/writing the corresponding NekRS "
@@ -99,7 +99,7 @@ FieldTransferBase::FieldTransferBase(const InputParameters & parameters)
     // the geometry description in NekRS; so, no conversion to non-dimensional from dimensional
     // is needed here
     std::vector<dfloat> x, y, z;
-    for (const auto & vertex : _nek_mesh->STLVertices())
+    for (const auto & vertex : _nek_mesh->stlVertices())
     {
       x.push_back(vertex(0));
       y.push_back(vertex(1));
@@ -172,7 +172,7 @@ FieldTransferBase::addExternalVariable(const unsigned int slot,
 }
 
 void
-FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const double * value)
+FieldTransferBase::fillAuxVariableOnMirror(unsigned int var_number, const double * value)
 {
   auto & solution = _nek_problem.getAuxiliarySystem().solution();
   auto sys_number = _nek_problem.getAuxiliarySystem().number();
@@ -216,7 +216,7 @@ FieldTransferBase::fillAuxVariableOnMirror(const unsigned int var_number, const 
 }
 
 void
-FieldTransferBase::sendSTLDataToNek(const unsigned int var_number, const Real d, const Real a)
+FieldTransferBase::sendSTLDataToNek(unsigned int var_number, Real d, Real a)
 {
   auto & aux = _nek_problem.getAuxiliarySystem();
   auto & solution = aux.serializedSolution();
@@ -261,7 +261,7 @@ FieldTransferBase::sendSTLDataToNek(const unsigned int var_number, const Real d,
 }
 
 void
-FieldTransferBase::fillAuxVariableOnSTL(const unsigned int var_number, const double * value)
+FieldTransferBase::fillAuxVariableOnSTL(unsigned int var_number, const double * value)
 {
   auto & solution = _nek_problem.getAuxiliarySystem().solution();
   auto sys_number = _nek_problem.getAuxiliarySystem().number();
@@ -301,7 +301,7 @@ FieldTransferBase::fillAuxVariableOnSTL(const unsigned int var_number, const dou
 }
 
 void
-FieldTransferBase::sendFaceDataToNek(const unsigned int var_number, const Real d, const Real a)
+FieldTransferBase::sendFaceDataToNek(unsigned int var_number, Real d, Real a)
 {
   if (!_nek_mesh->volume())
   {
@@ -332,9 +332,9 @@ FieldTransferBase::sendFaceDataToNek(const unsigned int var_number, const Real d
 }
 
 void
-FieldTransferBase::sendVolumetricDataToNek(const unsigned int var_number,
-                                           const Real d,
-                                           const Real a)
+FieldTransferBase::sendVolumetricDataToNek(unsigned int var_number,
+                                                 Real d,
+                                                 Real a)
 {
   for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
   {

@@ -117,7 +117,7 @@ void setAbsoluteTol(double tol);
  * @param[in] name field name
  * @return field enumeration
  */
-field::NekFieldEnum convertToFieldEnum(const std::string name);
+field::NekFieldEnum convertToFieldEnum(const std::string & name);
 
 /**
  * Interpolate a field onto a set of points using NekRS's interpolator
@@ -129,9 +129,9 @@ field::NekFieldEnum convertToFieldEnum(const std::string name);
  * @return interpolated values on those points
  */
 std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
-                                        const field::NekFieldEnum field,
+                                        field::NekFieldEnum field,
                                         int n,
-                                        const Point component = Point(1, 0, 0));
+                                        const Point & component = Point(1, 0, 0));
 
 /**
  * Interpolate the heat flux onto a set of points using NekRS's interpolator
@@ -159,7 +159,7 @@ dfloat computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
  * @param[in] rank_to_langrange number of points owned by each rank
  * @return rank owning this Lagrange point
  */
-int globalLagrangeIndexToRank(const unsigned int & index,
+int globalLagrangeIndexToRank(unsigned int index,
                               const std::map<int, int> & rank_to_lagrange);
 
 /**
@@ -171,10 +171,10 @@ int globalLagrangeIndexToRank(const unsigned int & index,
  * @param[in] n_elems number of STL elements
  * @return integral of usrwrk slot over the STL surface
  */
-double usrwrkSTLIntegral(const unsigned int & slot,
+double usrwrkSTLIntegral(unsigned int slot,
                          const std::vector<Point> & stl_vertices,
                          const std::map<int, int> & rank_to_lagrange,
-                         const int & n_elems);
+                         int n_elems);
 
 /**
  * Return the reference units for a usrwrk slot

@@ -105,7 +105,7 @@ public:
    * STL subdomain ID
    * @return STL subdomain ID
    */
-  const unsigned int & STLSubdomainID() const { return _stl_block_id; }
+  const unsigned int & stlSubdomainID() const { return _stl_block_id; }
 
   /**
    * Whether there is an STL file present
@@ -117,13 +117,13 @@ public:
    * The name of the STL file
    * @return name of the STL file
    */
-  const std::string & STLFilename() const { return *_stl_filename; }
+  const std::string & stlFilename() const { return *_stl_filename; }
 
   /**
    * Vector of all STL vertices, ordered according to their numbering as nodes
    * @return vector of all STL vertices
    */
-  const std::vector<Point> & STLVertices() const { return _stl_vertices; }
+  const std::vector<Point> & stlVertices() const { return _stl_vertices; }
 
   /**
    * Get the initial mesh x coordinates

@@ -102,7 +102,7 @@ getTallyScoreEnum()
 }
 
 MultiMooseEnum
-getMeshEnums()
+getNekRSMeshEnums()
 {
   return MultiMooseEnum("mirror stl", "mirror");
 }

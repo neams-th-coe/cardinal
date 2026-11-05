@@ -68,7 +68,7 @@ protected:
    * @return whether normalization was successful, i.e. normalized_nek_integral equals
    * moose_integral
    */
-  bool normalizeSTLFlux(const double moose_integral,
+  bool normalizeSTLFlux(double moose_integral,
                         double nek_integral,
                         double & normalized_nek_integral);
 

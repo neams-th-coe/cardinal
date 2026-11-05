@@ -338,7 +338,7 @@ commSize()
 }
 
 field::NekFieldEnum
-convertToFieldEnum(const std::string name)
+convertToFieldEnum(const std::string & name)
 {
   auto lowercase = name;
   std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), ::tolower);
@@ -380,6 +380,7 @@ convertToFieldEnum(const std::string name)
     return field::zero;
 
   mooseError("Unhandled NekFieldEnum in NekFieldVariable!");
+  return field::zero;
 }
 
 // TODO: will need to generalize to other types of fluxes once we add mass transport
@@ -436,9 +437,9 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp,
 
 std::vector<dfloat>
 interpolateToPoints(pointInterpolation_t & interp,
-                    const field::NekFieldEnum field,
+                    field::NekFieldEnum field,
                     int n,
-                    const Point component)
+                    const Point & component)
 {
   occa::memory o_interpolated;
   int n_values = n;
@@ -604,7 +605,7 @@ computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
 }
 
 int
-globalLagrangeIndexToRank(const unsigned int & index,
+globalLagrangeIndexToRank(unsigned int index,
                           const std::map<int, int> & rank_to_num_l_points)
 {
   unsigned int max = rank_to_num_l_points.at(0);
@@ -621,10 +622,10 @@ globalLagrangeIndexToRank(const unsigned int & index,
 }
 
 double
-usrwrkSTLIntegral(const unsigned int & slot,
+usrwrkSTLIntegral(unsigned int slot,
                   const std::vector<Point> & stl_vertices,
                   const std::map<int, int> & rank_to_num_l_points,
-                  const int & n_elems)
+                  int n_elems)
 {
   double integral = 0.0;
   int local_index = 0;

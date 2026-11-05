@@ -19,8 +19,8 @@ in [NekRSMesh](NekRSMesh.md).
 
 ## Flux Normalization
 
-In order to ensure conservation properties, it is necessary to not only transfer the flux
-values between NekRS and MOOSE, but also to transfer the integrated surface flux which can
+In order to ensure fields are conserved, it is necessary to not only transfer the flux
+values between NekRS and MOOSE, but also to transfer the surface integral of the flux which can
 be used to re-normalize that flux when it is then used to apply a boundary condition.
 By default, this object will add postprocessor(s) that contain the integrated flux; the
 type(s) and name(s) of these postprocessor(s) will vary depending on (i) the direction
