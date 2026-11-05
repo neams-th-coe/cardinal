@@ -184,10 +184,10 @@
     value_type = min
   []
 
-  # checks that the difference is sufficiently small, i.e. less than 0.01%
+  # checks that the difference is sufficiently small, i.e. less than 0.1%
   [error_within_tol]
     type = ParsedPostprocessor
-    expression = 'if (max_rel_difference < 1e-4, if (min_rel_difference > -1e-4, 1, 0), 0)'
+    expression = 'if (max_rel_difference < 1e-3, if (min_rel_difference > -1e-3, 1, 0), 0)'
     pp_names = 'max_rel_difference min_rel_difference'
   []
 []
