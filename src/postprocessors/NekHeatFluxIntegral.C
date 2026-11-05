@@ -33,7 +33,7 @@ NekHeatFluxIntegral::validParams()
 NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters)
   : NekSidePostprocessor(parameters)
 {
-  mooseError("This object is deprecated; replace it with NekDiffusiveFluxIntegral.");
+  mooseDeprecated("This object is deprecated; replace it with NekDiffusiveFluxIntegral.");
 }
 
 Real
