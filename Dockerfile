@@ -107,30 +107,30 @@ RUN mkdir -p contrib/nekRS contrib/openmc contrib/DAGMC contrib/moab contrib/dou
           config/nekrs.mk config/openmc.mk
 
 COPY --from=submodules /cardinal/contrib/embree contrib/embree
-RUN make build_embree
+RUN make build_embree -j$(nproc)
 
 RUN rm -f contrib/moab/DOCKERFILE_PLACEHOLDER
 COPY --from=submodules /cardinal/contrib/moab contrib/moab
-RUN make build_moab
+RUN make build_moab -j$(nproc)
 
 RUN rm -f contrib/double-down/DOCKERFILE_PLACEHOLDER
 COPY --from=submodules /cardinal/contrib/double-down contrib/double-down
-RUN make build_doubledown
+RUN make build_doubledown -j$(nproc)
 
 RUN rm -f contrib/DAGMC/DOCKERFILE_PLACEHOLDER
 COPY --from=submodules /cardinal/contrib/DAGMC contrib/DAGMC
-RUN make build_dagmc
+RUN make build_dagmc -j$(nproc)
 
 RUN rm -f contrib/nekRS/DOCKERFILE_PLACEHOLDER
 COPY config/nekrs.mk config/nekrs.mk
 COPY --from=submodules /cardinal/contrib/nekRS contrib/nekRS
-RUN make build_nekrs || \
+RUN make build_nekrs -j$(nproc) || \
       (cat build/nekrs/HYPRE_BUILD-prefix/src/HYPRE_BUILD/src/config.log; exit 1)
 
 RUN rm -f contrib/openmc/DOCKERFILE_PLACEHOLDER
 COPY config/openmc.mk config/openmc.mk
 COPY --from=submodules /cardinal/contrib/openmc contrib/openmc
-RUN make build_openmc
+RUN make build_openmc -j$(nproc)
 
 # Remove the MooseConfig.h placeholder so the real build regenerates it
 # -- otherwise its build-time mtime (newer than anything COPY'd from
