@@ -1,6 +1,6 @@
 [Problem]
   type = NekRSProblem
-  casename = 'cylinder'
+  casename = 'cylinder2'
   n_usrwrk_slots = 1
 
   [FieldTransfers]
@@ -32,20 +32,7 @@
   []
 []
 
-[Postprocessors]
-  [max_temp_nek]
-    type = NekVolumeExtremeValue
-    field = scalar01
-    value_type = max
-  []
-  [min_temp_nek]
-    type = NekVolumeExtremeValue
-    field = scalar01
-    value_type = min
-  []
-[]
-
 [Outputs]
   exodus = true
-  #execute_on = 'final'
+  csv = true
 []

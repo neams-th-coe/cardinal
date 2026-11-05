@@ -70,4 +70,20 @@
                   "the cylinder_conduction case and nearly identical solutions are obtained."
     capabilities = 'nekrs'
   []
+  [scalar01_coupling]
+    type = CSVDiff
+    input = main_scalar.i
+    csvdiff = main_scalar_out.csv
+    prereq = cylinder_conduction
+    min_parallel = 4
+    requirement = "A coupled MOOSE-nekRS two-region cylinder scalar conduction problem shall predict "
+                  "the correct interface and volume temperatures that are obtained from a standalone "
+                  "MOOSE heat conduction simulation in the `moose.i` file of both cylinders. "
+                  "This test specifically checks that conjugate transfer using non-temperature passive "
+                  "scalars functions the same as if the quantities were temperature. This check is done by "
+                  "loading in the temperature distribution from the cylinder_conduction test to compare the "
+                  "scalar against."
+    capabilities = 'nekrs'
+    issues = '#1077'
+  []
 []

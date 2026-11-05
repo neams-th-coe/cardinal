@@ -3,7 +3,7 @@
     type = AnnularMeshGenerator
     rmin = 0
     rmax = 0.75
-    nt = 40
+    nt = 60
     nr = 15
     growth_r = -1.2
   []
@@ -72,7 +72,7 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    input_files = 'nek.i'
+    input_files = 'nek_scalar.i'
     execute_on = 'timestep_end'
   []
 []
@@ -112,6 +112,12 @@
   []
   [source]
   []
+
+  # load in the MOOSE temperature solution, which we will compare against
+  [moose_temp]
+  []
+  [difference]
+  []
 []
 
 [ICs]
@@ -132,6 +138,26 @@
     diffusivity = thermal_conductivity
     boundary = '1'
   []
+  [moose_temp]
+    type = SolutionAux
+    variable = moose_temp
+    solution = moose_temperature
+    from_variable = 'temperature'
+  []
+  [difference]
+    type = ParsedAux
+    variable = difference
+    expression = '(temperature - moose_temp) / moose_temp'
+    coupled_variables = 'temperature moose_temp'
+  []
+[]
+
+[UserObjects]
+  [moose_temperature]
+    type = SolutionUserObject
+    mesh = nek_master_out.e
+    system_variables = 'temperature'
+  []
 []
 
 [Materials]
@@ -148,26 +174,26 @@
     variable = flux
     boundary = '1'
   []
-  [max_temp_bison]
-    type = NodalExtremeValue
-    variable = temperature
-    value_type = max
+  [max_rel_difference]
+    type = ElementExtremeValue
+    variable = difference
   []
-  [max_interface_T]
-    type = NodalExtremeValue
-    variable = nek_temp
-    value_type = max
-  []
-  [min_interface_T]
-    type = NodalExtremeValue
-    variable = nek_temp
+  [min_rel_difference]
+    type = ElementExtremeValue
+    variable = difference
     value_type = min
+  []
+
+  # checks that the difference is sufficiently small, i.e. less than 0.01%
+  [error_within_tol]
+    type = ParsedPostprocessor
+    expression = 'if (max_rel_difference < 1e-4, if (min_rel_difference > -1e-4, 1, 0), 0)'
+    pp_names = 'max_rel_difference min_rel_difference'
   []
 []
 
 [Outputs]
-  exodus = true
   execute_on = 'final'
-  print_linear_residuals = false
   csv = true
+  hide = 'flux_integral max_rel_difference min_rel_difference'
 []
