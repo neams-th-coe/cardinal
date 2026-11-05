@@ -605,8 +605,7 @@ computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
 }
 
 int
-globalLagrangeIndexToRank(unsigned int index,
-                          const std::map<int, int> & rank_to_num_l_points)
+globalLagrangeIndexToRank(unsigned int index, const std::map<int, int> & rank_to_num_l_points)
 {
   unsigned int max = rank_to_num_l_points.at(0);
   for (const auto & [rank, num_pts] : rank_to_num_l_points)

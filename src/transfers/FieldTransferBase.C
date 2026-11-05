@@ -333,9 +333,7 @@ FieldTransferBase::sendFaceDataToNek(unsigned int var_number, Real d, Real a)
 }
 
 void
-FieldTransferBase::sendVolumetricDataToNek(unsigned int var_number,
-                                                 Real d,
-                                                 Real a)
+FieldTransferBase::sendVolumetricDataToNek(unsigned int var_number, Real d, Real a)
 {
   for (unsigned int e = 0; e < _nek_mesh->numVolumeElems(); e++)
   {

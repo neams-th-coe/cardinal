@@ -159,8 +159,7 @@ dfloat computeTriangleArea(const Point & v1, const Point & v2, const Point & v3)
  * @param[in] rank_to_langrange number of points owned by each rank
  * @return rank owning this Lagrange point
  */
-int globalLagrangeIndexToRank(unsigned int index,
-                              const std::map<int, int> & rank_to_lagrange);
+int globalLagrangeIndexToRank(unsigned int index, const std::map<int, int> & rank_to_lagrange);
 
 /**
  * Conduct integral over the STL surface; results are not dimensionalized because we do not
