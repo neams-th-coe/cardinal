@@ -14,6 +14,7 @@
 # * DOUBLEDOWN_DIR   : Top-level Double-Down dir (default: $(CONTRIB_DIR)/double-down)
 # * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
 # * GRIFFIN_DIR      : Top-level Griffin dir (default: $(CONTRIB_DIR)/griffin)
+# * TMAP8_DIR        : Top-level TMAP8 dir (default: $(CONTRIB_DIR)/tmap8)
 # * BISON_DIR        : Top-level Bison dir (default: $(CONTRIB_DIR)/bison)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)

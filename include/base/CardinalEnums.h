@@ -117,8 +117,14 @@ enum NekFieldEnum
 /// Enumeration of possible fields to write in nekRS
 enum NekWriteEnum
 {
-  flux,
+  heat_flux,
   heat_source,
+  scalar01_flux,
+  scalar01_source,
+  scalar02_flux,
+  scalar02_source,
+  scalar03_flux,
+  scalar03_source,
   x_displacement,
   y_displacement,
   z_displacement,
