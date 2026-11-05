@@ -39,7 +39,11 @@ RUN . /environment && \
 
 RUN git submodule update --init --progress contrib/nekRS && \
     git submodule update --init --progress contrib/openmc && \
-    git submodule update --init --progress contrib/nuclear_data
+    git submodule update --init --progress contrib/nuclear_data && \
+    git submodule update --init --progress contrib/DAGMC && \
+    git submodule update --init --progress contrib/moab && \
+    git submodule update --init --progress contrib/embree && \
+    git submodule update --init --progress contrib/double-down
 
 FROM idaholab/moose-dev:${MOOSEDEV_TAG}
 
@@ -49,6 +53,8 @@ ENV BASH_ENV=/environment
 SHELL ["/bin/bash", "-c"]
 
 ENV NEKRS_HOME=/cardinal/install
+ENV ENABLE_DAGMC=yes
+ENV ENABLE_DOUBLE_DOWN=yes
 
 WORKDIR /cardinal
 
@@ -62,29 +68,63 @@ COPY config/check_deps.mk config/check_deps.mk
 COPY config/check_modules.mk config/check_modules.mk
 COPY config/check_nekrs.mk config/check_nekrs.mk
 COPY config/add_flags.mk config/add_flags.mk
+COPY config/moab.mk config/moab.mk
+COPY config/dagmc.mk config/dagmc.mk
+COPY config/embree.mk config/embree.mk
+COPY config/double_down.mk config/double_down.mk
 COPY --from=submodules /cardinal/contrib/moose/framework/build.mk contrib/moose/framework/build.mk
 COPY --from=submodules /cardinal/contrib/moose/framework/moose.mk contrib/moose/framework/moose.mk
 COPY --from=submodules /cardinal/contrib/moose/framework/app.mk contrib/moose/framework/app.mk
 COPY --from=submodules /cardinal/contrib/moose/framework/contrib/neml2.mk contrib/moose/framework/contrib/neml2.mk
 COPY --from=submodules /cardinal/contrib/moose/modules/modules.mk contrib/moose/modules/modules.mk
 
-# NekRS changes less often than OpenMC, so build it first. openmc.mk,
-# contrib/openmc, and the HIT parser are only existence-checked here,
-# not needed for real until later.
-COPY config/nekrs.mk config/nekrs.mk
-COPY --from=submodules /cardinal/contrib/nekRS contrib/nekRS
-# Cardinal's own CFLAGS/LDFLAGS (incl. "-include .../MooseConfig.h")
-# leak into third-party sub-builds like HYPRE's; MooseConfig.h is
-# normally generated as a side effect of building $(app_EXEC), which
-# this layer never asks for. A placeholder satisfies the compile check;
+# Ordered by dependency first (embree and moab are independent leaves;
+# double_down needs both; dagmc needs double_down), then by frequency of
+# change among independencies (embree: 1 commit touching it, moab: 9,
+# double-down: 3, dagmc: 7, nekRS: 33, openmc: 82) so each layer
+# invalidates as few of the later ones as possible.
+#
+# config/*.mk, contrib/{nekRS,openmc,DAGMC,moab,double-down}, and the HIT
+# parser are only existence-checked here (same ls-based check
+# config/check_deps.mk uses for all of them, run unconditionally once
+# ENABLE_DAGMC/ENABLE_DOUBLE_DOWN=yes regardless of which target is being
+# built) -- not needed for real until their own layers below. Cardinal's
+# own CFLAGS/LDFLAGS (incl. "-include .../MooseConfig.h") leak into
+# third-party sub-builds like HYPRE's; MooseConfig.h is normally
+# generated as a side effect of building $(app_EXEC), which none of
+# these layers ask for. The placeholder satisfies the compile check;
 # removed before the final build so it regenerates for real.
-RUN mkdir -p contrib/openmc contrib/moose/framework/contrib/hit \
+RUN mkdir -p contrib/nekRS contrib/openmc contrib/DAGMC contrib/moab contrib/double-down \
+             contrib/moose/framework/contrib/hit \
              contrib/moose/framework/include/base && \
-    touch contrib/openmc/DOCKERFILE_PLACEHOLDER \
+    touch contrib/nekRS/DOCKERFILE_PLACEHOLDER \
+          contrib/openmc/DOCKERFILE_PLACEHOLDER \
+          contrib/DAGMC/DOCKERFILE_PLACEHOLDER \
+          contrib/moab/DOCKERFILE_PLACEHOLDER \
+          contrib/double-down/DOCKERFILE_PLACEHOLDER \
           contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER \
           contrib/moose/framework/include/base/MooseConfig.h \
-          config/openmc.mk && \
-    make build_nekrs || \
+          config/nekrs.mk config/openmc.mk
+
+COPY --from=submodules /cardinal/contrib/embree contrib/embree
+RUN make build_embree
+
+RUN rm -f contrib/moab/DOCKERFILE_PLACEHOLDER
+COPY --from=submodules /cardinal/contrib/moab contrib/moab
+RUN make build_moab
+
+RUN rm -f contrib/double-down/DOCKERFILE_PLACEHOLDER
+COPY --from=submodules /cardinal/contrib/double-down contrib/double-down
+RUN make build_doubledown
+
+RUN rm -f contrib/DAGMC/DOCKERFILE_PLACEHOLDER
+COPY --from=submodules /cardinal/contrib/DAGMC contrib/DAGMC
+RUN make build_dagmc
+
+RUN rm -f contrib/nekRS/DOCKERFILE_PLACEHOLDER
+COPY config/nekrs.mk config/nekrs.mk
+COPY --from=submodules /cardinal/contrib/nekRS contrib/nekRS
+RUN make build_nekrs || \
       (cat build/nekrs/HYPRE_BUILD-prefix/src/HYPRE_BUILD/src/config.log; exit 1)
 
 RUN rm -f contrib/openmc/DOCKERFILE_PLACEHOLDER
