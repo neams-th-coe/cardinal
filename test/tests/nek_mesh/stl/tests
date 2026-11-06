@@ -63,4 +63,13 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [invalid_normal]
+    type = Runexception
+    input = nek.i
+    cli_args = 'Mesh/stl="bad_normal.stl"'
+    expect_err = "Unit normal vector detected with length 1.99025"
+    requirement = "The system shall error if the unit normals in the ASCII STL file do not have lengths which equal 1"
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
 []
