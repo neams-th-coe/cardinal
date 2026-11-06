@@ -57,7 +57,7 @@
     type = CSVDiff
     input = read_stl.i
     csvdiff = read_stl_out.csv
-    requirement = "The system shall be able to perform integrals on the STL surface. This test checks that the NekBoundaryFlux will correctly normalize the flux post-transfer, and that the integral itself is done correctly by integrating dummy data in the usrwrk array and comparing to known surface areas of the STL."
+    requirement = "The system shall be able to perform integrals on the STL surface. This test checks that the NekBoundaryFlux will correctly normalize the flux post-transfer, and that the integral itself is done correctly by integrating dummy data in the usrwrk array and comparing to known surface areas of the STL. This test includes multiple fluxes being read into different usrwrk slots, for generality."
     issues = '#1398'
     capabilities = 'nekrs'
     design = 'NekBoundaryFlux.md NekUsrWrkSTLIntegral.md'
@@ -66,7 +66,7 @@
     type = CSVDiff
     input = read_stl.i
     csvdiff = read_stl_out.csv
-    cli_args = "Problem/FieldTransfers/flux/usrwrk_slot=3 Postprocessors/stl_integral_0/usrwrk_slot=3"
+    cli_args = "Problem/FieldTransfers/flux/usrwrk_slot=4 Postprocessors/stl_integral_0/usrwrk_slot=4"
     requirement = "The system shall be able to perform integrals of the flux on the STL surface when the flux is written into a generic usrwrk slot. This test is identical to the read_stl test, except that the flux is written into a different usrwrk slot."
     issues = '#1398'
     capabilities = 'nekrs'
@@ -84,8 +84,8 @@
   [invalid_slot]
     type = RunException
     input = read_stl.i
-    cli_args = "Postprocessors/stl_integral_0/usrwrk_slot=4"
-    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 4"
+    cli_args = "Postprocessors/stl_integral_0/usrwrk_slot=5"
+    expect_err = "'usrwrk_slot' must be less than number of allocated usrwrk slots: 5"
     requirement = "The system shall error if trying to perform an integral of the usrwrk array over an STL file in a slot which has not been allocated"
     issues = '#1398'
     capabilities = 'nekrs'

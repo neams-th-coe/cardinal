@@ -1,7 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'brick'
-  n_usrwrk_slots = 4
+  n_usrwrk_slots = 5
 
   [FieldTransfers]
     [flux]
@@ -12,6 +12,15 @@
 
       initial_flux_integral_stl = 1.5
       usrwrk_slot = 0
+    []
+    [mass_flux]
+      type = NekBoundaryFlux
+      direction = to_nek
+      mesh = 'stl'
+      scalar = "two"
+
+      initial_flux_integral_stl = 150
+      usrwrk_slot = 3
     []
     [usrwrk01]
       type = NekVolumetricData
@@ -30,6 +39,12 @@
   [flux]
     type = FunctionIC
     variable = flux
+    block = 9999
+    function = f
+  []
+  [mass_flux]
+    type = FunctionIC
+    variable = mass_flux
     block = 9999
     function = f
   []
@@ -72,6 +87,10 @@
     type = NekUsrWrkSTLIntegral
     usrwrk_slot = 0
   []
+  [stl_integral_mass] # should be equal to 150
+    type = NekUsrWrkSTLIntegral
+    usrwrk_slot = 3
+  []
   [stl_integral_1] # should be close to 7.5 times stl_area
     type = NekUsrWrkSTLIntegral
     usrwrk_slot = 1
@@ -85,4 +104,3 @@
 [Outputs]
   csv = true
 []
-
