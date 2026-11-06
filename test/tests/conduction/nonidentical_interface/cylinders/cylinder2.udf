@@ -1,0 +1,18 @@
+#ifdef __okl__
+#include "cylinder.oudf"
+#endif
+
+void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
+{
+}
+
+void UDF_Setup()
+{
+  auto mesh = nrs->meshV;
+  std::vector<dfloat> other(mesh->Nlocal, 800.0);
+  nrs->scalar->o_solution("other").copyFrom(other.data(), other.size());
+}
+
+void UDF_ExecuteStep(double time, int tstep)
+{
+}

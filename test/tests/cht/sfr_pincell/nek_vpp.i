@@ -34,7 +34,7 @@
 
 [Postprocessors]
   [nek_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
   []
   [average_inlet_T]
@@ -128,7 +128,7 @@
 
   # # heat flux integral
   # [nek_flux]
-  #   type = NekHeatFluxIntegral
+  #   type = NekDiffusiveFluxIntegral
   #   boundary = '1'
   # []
 

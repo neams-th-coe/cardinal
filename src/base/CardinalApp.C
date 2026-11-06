@@ -37,6 +37,10 @@
 #include "RadiationTransportApp.h"
 #endif
 
+#ifdef ENABLE_TMAP8_COUPLING
+#include "TMAP8App.h"
+#endif
+
 #ifdef ENABLE_BISON_COUPLING
 #include "BisonApp.h"
 #endif
@@ -107,6 +111,10 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 #ifdef ENABLE_GRIFFIN_COUPLING
   GriffinApp::registerAll(f, af, s);
   RadiationTransportApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_TMAP8_COUPLING
+  TMAP8App::registerAll(f, af, s);
 #endif
 
 #ifdef ENABLE_BISON_COUPLING

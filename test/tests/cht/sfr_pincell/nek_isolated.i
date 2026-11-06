@@ -42,7 +42,7 @@
 
 [Postprocessors]
   [nek_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
   []
 []

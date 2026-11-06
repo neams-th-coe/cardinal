@@ -137,7 +137,7 @@ We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
 via the MOOSE output files.
 
 You can also monitor the flux in NekRS by computing $-k\nabla T\cdot\hat{n}$ using a
-[NekHeatFluxIntegral](NekHeatFluxIntegral.md) postprocessor for mirror transfers,
+[NekDiffusiveFluxIntegral](NekDiffusiveFluxIntegral.md) postprocessor for mirror transfers,
 or by reading the flux *out* from NekRS with a second `NekBoundaryFlux` transfer but with
 `direction = from_nek` (which you could then integrate on the STL surface with an
 [ElementIntegralVariablePostprocessor](ElementIntegralVariablePostprocessor.md)).

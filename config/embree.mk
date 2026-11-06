@@ -17,10 +17,10 @@ $(EMBREE_BUILDDIR)/Makefile: $(EMBREE_DIR)/CMakeLists.txt
 	$(EMBREE_DIR)
 
 build_embree: | $(EMBREE_BUILDDIR)/Makefile
-	make VERBOSE=1 -C $(EMBREE_BUILDDIR) install
+	$(MAKE) VERBOSE=1 -C $(EMBREE_BUILDDIR) install
 
 cleanall_embree: | $(EMBREE_BUILDDIR)/Makefile
-	make -C $(EMBREE_BUILDDIR) clean
+	$(MAKE) -C $(EMBREE_BUILDDIR) clean
 
 clobber_embree:
 	rm -rf $(EMBREE_LIB) $(EMBREE_BUILDDIR) $(EMBREE_INSTALL_DIR)

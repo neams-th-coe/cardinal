@@ -22,36 +22,49 @@
 []
 
 [Postprocessors]
-  [flux_side1]
-    type = NekHeatFluxIntegral
+  [two_side1]
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
+    scalar = "two"
+  []
+  [flux_side1]
+    type = NekDiffusiveFluxIntegral
+    boundary = '1'
+    scalar = "temperature"
   []
   [flux_side2]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '2'
+    scalar = "temperature"
   []
   [flux_side3]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '3'
+    scalar = "temperature"
   []
   [flux_side4]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '4'
+    scalar = "temperature"
   []
   [flux_side5]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '5'
+    scalar = "temperature"
   []
   [flux_side6]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '6'
+    scalar = "temperature"
   []
   [flux_side7]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '7'
+    scalar = "temperature"
   []
   [flux_side8]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '8'
+    scalar = "temperature"
   []
 []

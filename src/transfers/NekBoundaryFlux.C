@@ -26,6 +26,13 @@ InputParameters
 NekBoundaryFlux::validParams()
 {
   auto params = ConservativeFieldTransfer::validParams();
+  params.addParam<std::string>(
+      "scalar",
+      "Name of the scalar field in NekRS that this flux corresponds to. For example, if this "
+      "transfer corresponds to a heat flux, then enter the name of the temperature scalar. This is "
+      "only important if running in non-dimensional form, because different fluxes, e.g. of heat "
+      "or mass, have different characteristic scales and therefore require different scalings. If "
+      "only one scalar is present, this defaults to that scalar.");
   params.addParam<Real>(
       "initial_flux_integral",
       0,
@@ -67,8 +74,11 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     _initial_flux_integral(getParam<Real>("initial_flux_integral")),
     _initial_flux_integral_stl(getParam<Real>("initial_flux_integral_stl")),
     _boundary(_nek_mesh->boundary()),
-    _reference_flux_integral(nekrs::referenceArea() *
-                             nekrs::nondimensionalDivisor(field::heat_flux))
+    _scalar_name(isParamValid("scalar") ? getParam<std::string>("scalar")
+                                        : nekrs::onlyScalarName("NekBoundaryFlux")),
+    _scalar_id(nekrs::scalarID(_scalar_name)),
+    _write_field(nekrs::fluxToWriteField(_scalar_id)),
+    _reference_flux_integral(nekrs::referenceArea() * nekrs::nondimensionalDivisor(_write_field))
 {
   if (_transfer_mesh.contains("mirror"))
   {
@@ -91,10 +101,6 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   if (!_transfer_mesh.contains("stl"))
     checkUnusedParam(parameters, "initial_flux_integral_stl", "the 'mesh' does not contain 'stl'");
 
-  // TODO: will need to be generalized for other scalars
-  nekrs::checkFieldValidity(field::temperature);
-
-  // add the variables for the coupling and perform checks on problem setup
   if (_direction == "from_nek")
   {
     if (_conserve_flux_by_sideset)
@@ -113,31 +119,28 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
                  "a vector of length " +
                      Moose::stringify(_usrwrk_slot.size()));
 
-    // TODO: this will need to be generalized if the same transfer is used for fluxes of varying
-    // interpretation
-    auto d = nekrs::nondimensionalDivisor(field::heat_flux);
-    auto a = nekrs::nondimensionalAdditive(field::heat_flux);
+    auto d = nekrs::nondimensionalDivisor(_write_field);
+    auto a = nekrs::nondimensionalAdditive(_write_field);
 
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
-
-    // Check that the correct flux boundary condition is set on all of nekRS's
-    // boundaries. To avoid throwing this error for test cases where we have a
-    // [TEMPERATURE] block but set its solve to 'none', we screen by whether the
-    // temperature solve is enabled. This check only makes sense for the mirror mesh, because
-    // otherwise the STL is not an actual sideset
+    
+    // Check that a flux boundary condition is set on all of NekRS's boundaries to which we are
+    // sending flux. To avoid throwing this error for test cases where we have the corresponding
+    // [SCALAR XX] block but set its solve to 'none', we screen by whether the scalar
+    // solve is enabled
     if (_transfer_mesh.contains("mirror"))
-      if (_boundary && nekrs::hasTemperatureSolve())
+      if (_boundary && nekrs::hasScalarSolve(_scalar_id))
         for (const auto & b : *_boundary)
-          if (!nekrs::isHeatFluxBoundary(b))
-            mooseError("In order to send a boundary heat flux to NekRS, you must have a heat flux "
+          if (!isFluxBoundary(b))
+            mooseError("In order to send a boundary flux to NekRS, you must have a flux "
                        "condition for each 'boundary' set in 'NekRSMesh'! Boundary " +
-                       std::to_string(b) + " is of type '" + nekrs::temperatureBoundaryType(b) +
-                       "' instead of 'udfNeumann'.");
+                       std::to_string(b) + " for scalar '" + _scalar_name + "' is of type '" +
+                       scalarBoundaryType(b) + "' instead of 'udfNeumann'.");
 
-    if (!nekrs::hasTemperatureSolve())
-      mooseWarning("By setting 'solver = none' for temperature in '" + _nek_problem.casename() +
-                   ".par', NekRS will not solve for temperature. The heat flux sent by this object "
-                   "will be unused.");
+    if (!nekrs::hasScalarSolve(_scalar_id))
+      mooseWarning("By setting 'solver = none' for scalar '" + _scalar_name +
+                   "', NekRS will not solve for '" + _scalar_name +
+                   "'. The flux sent by this object will be unused.");
 
     // for a flux on the STL surface to be used, it needs to be combined with a heat source kernel;
     // NOTE: this check is imperfect, because even if there is a source kernel, we cannot tell
@@ -153,8 +156,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     }
   }
 
-  // add postprocessors to hold integrated heat flux; we do not need to check for duplicate
-  // names, because MOOSE already handles this error checking
+  // add postprocessors to hold integrated flux
   if (_direction == "to_nek")
   {
     // add the postprocessor that receives the flux integral for normalization
@@ -200,9 +202,13 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     {
       // create a NekHeatFluxIntegral postprocessor to compute the heat flux; this represents
       // the actual heat flux computed by NekRS
-      auto pp_params = _factory.getValidParams("NekHeatFluxIntegral");
+      auto pp_params = _factory.getValidParams("NekDiffusiveFluxIntegral");
       pp_params.set<std::vector<int>>("boundary") = *_boundary;
-      _nek_problem.addPostprocessor("NekHeatFluxIntegral", _postprocessor_name, pp_params);
+      pp_params.set<std::string>("scalar") = _scalar_name;
+      
+      // we do not need to check for duplicate names, because MOOSE already handles
+      // this error checking
+      _nek_problem.addPostprocessor("NekDiffusiveFluxIntegral", _postprocessor_name, pp_params);
       _flux_integral = &getPostprocessorValueByName(_postprocessor_name);
     }
 
@@ -226,15 +232,31 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
   }
 }
 
+bool
+NekBoundaryFlux::isFluxBoundary(const int boundary) const
+{
+  auto sid = scalarDigitStr(_scalar_id);
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return bcType == bdryBase::bcType_udfNeumann;
+}
+
+std::string
+NekBoundaryFlux::scalarBoundaryType(const int boundary) const
+{
+  auto sid = scalarDigitStr(_scalar_id);
+  auto bcType = platform->app->bc->typeId(boundary, "scalar" + sid);
+  return platform->app->bc->sBcIDToText.at(bcType);
+}
+
 void
 NekBoundaryFlux::readDataFromNek()
 {
   if (_transfer_mesh.contains("mirror"))
   {
     if (!_nek_mesh->volume())
-      _nek_problem.boundarySolution(field::heat_flux, _external_data);
+      _nek_problem.boundarySolution(_write_field, _external_data);
     else
-      _nek_problem.volumeSolution(field::heat_flux, _external_data);
+      _nek_problem.volumeSolution(_write_field, _external_data);
 
     fillAuxVariableOnMirror(_variable_number[_variable], _external_data);
   }
@@ -252,16 +274,19 @@ NekBoundaryFlux::readDataFromNek()
 void
 NekBoundaryFlux::sendDataToNek()
 {
-  auto d = nekrs::nondimensionalDivisor(field::heat_flux);
-  auto a = nekrs::nondimensionalAdditive(field::heat_flux);
+  _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
+           << std::endl;
+  auto d = nekrs::nondimensionalDivisor(_write_field);
+  auto a = nekrs::nondimensionalAdditive(_write_field);
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
-  // the heat flux, we will need to normalize the flux on the nekRS side by the
+  // the flux, we will need to normalize the flux on the nekRS side by the
   // flux computed by the coupled MOOSE app. For this and the next check of the
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(_write_field);
+
   double normalized_nek_flux = 0.0;
   double total_moose_flux;
   bool successful_normalization = false;
@@ -365,7 +390,7 @@ void
 NekBoundaryFlux::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
 {
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(field::heat_flux);
+  const double nek_flux_print_mult = scale_squared * nekrs::nondimensionalDivisor(_write_field);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,

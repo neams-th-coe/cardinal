@@ -20,6 +20,7 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+TMAP8_DIR           ?= $(CONTRIB_DIR)/tmap8
 
 # Then, we can find which optional dependencies we have been pulled in
 # by seeing if those directories are empty or not
@@ -34,6 +35,7 @@ DOUBLEDOWN_CONTENT := $(shell ls $(DOUBLEDOWN_DIR) 2> /dev/null)
 EMBREE_CONTENT     := $(shell ls $(EMBREE_DIR) 2> /dev/null)
 MOAB_CONTENT       := $(shell ls $(MOAB_DIR) 2> /dev/null)
 GRIFFIN_CONTENT    := $(shell ls $(GRIFFIN_DIR) 2> /dev/null)
+TMAP8_CONTENT      := $(shell ls $(TMAP8_DIR) 2> /dev/null)
 BISON_CONTENT      := $(shell ls $(BISON_DIR) 2> /dev/null)
 SAM_CONTENT        := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT    := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
@@ -197,6 +199,24 @@ ifneq ($(BISON_CONTENT),)
       $(info Cardinal is using water from     $(IAPWS95_DIR))
     endif
   endif
+endif
+
+ifneq ($(TMAP8_CONTENT),)
+  # get the modules that TMAP8 requires; we list all of those from the TMAP8
+  # makefile, regardless of what value is set for these in the Cardinal makefile
+  $(info Cardinal is using TMAP8 from   $(TMAP8_DIR))
+  HEAT_TRANSFER      := yes
+  PHASE_FIELD        := yes
+  MISC               := yes
+  NAVIER_STOKES      := yes
+  RAY_TRACING        := yes
+  SOLID_PROPERTIES   := yes
+  STOCHASTIC_TOOLS   := yes
+  REACTOR            := yes
+  THERMAL_HYDRAULICS := yes
+  CHEMICAL_REACTIONS := yes
+  FLUID_PROPERTIES   := yes
+  RDG                := yes
 endif
 
 ifneq ($(GRIFFIN_CONTENT),)

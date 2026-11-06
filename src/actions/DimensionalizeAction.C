@@ -176,27 +176,27 @@ DimensionalizeAction::act()
     if (nekrs::hasScalarVariable(1))
     {
       vt.addRow("Scalar 01", "(s - " + compress(_s01) + ") /" + compress(_ds01));
-      vt.addRow("Scalar flux",
+      vt.addRow("Scalar 01 flux",
                 "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar01_flux)));
-      vt.addRow("Scalar volume source",
+      vt.addRow("Scalar 01 volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar01_source)));
     }
 
     if (nekrs::hasScalarVariable(2))
     {
       vt.addRow("Scalar 02", "(s - " + compress(_s02) + ") /" + compress(_ds02));
-      vt.addRow("Scalar flux",
+      vt.addRow("Scalar 02 flux",
                 "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar02_flux)));
-      vt.addRow("Scalar volume source",
+      vt.addRow("Scalar 02 volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar02_source)));
     }
 
     if (nekrs::hasScalarVariable(3))
     {
       vt.addRow("Scalar 03", "(s - " + compress(_s03) + ") /" + compress(_ds03));
-      vt.addRow("Scalar flux",
+      vt.addRow("Scalar 03 flux",
                 "j'' / " + compress(nekrs::nondimensionalDivisor(field::scalar03_flux)));
-      vt.addRow("Scalar volume source",
+      vt.addRow("Scalar 03 volume source",
                 "cdot / " + compress(nekrs::nondimensionalDivisor(field::scalar03_source)));
     }
 

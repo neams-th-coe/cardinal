@@ -29,10 +29,10 @@ $(NEKRS_BUILDDIR)/Makefile: $(NEKRS_DIR)/CMakeLists.txt
 	$(NEKRS_DIR)
 
 build_nekrs: | $(NEKRS_BUILDDIR)/Makefile
-	make -C $(NEKRS_BUILDDIR) install
+	$(MAKE) -C $(NEKRS_BUILDDIR) install
 
 cleanall_nekrs: |  $(NEKRS_BUILDDIR)/Makefile
-	make -C $(NEKRS_BUILDDIR) uninstall clean
+	$(MAKE) -C $(NEKRS_BUILDDIR) uninstall clean
 
 clobber_nekrs:
 	rm -rf $(NEKRS_LIB) $(NEKRS_BUILDDIR) $(NEKRS_INSTALL_DIR)

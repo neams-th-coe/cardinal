@@ -42,11 +42,11 @@ interval = 100
 
 [Postprocessors]
   [pin_flux_in_nek]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
   []
   [duct_flux_in_nek]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '4'
   []
   [max_nek_T]

@@ -13,6 +13,9 @@
   [temp_test]
     order = SECOND
   []
+  [two_test]
+    order = SECOND
+  []
 []
 
 [ICs]
@@ -20,6 +23,11 @@
     type = FunctionIC
     variable = temp_test
     function = temp
+  []
+  [two_test]
+    type = FunctionIC
+    variable = two_test
+    function = two
   []
 []
 
@@ -35,6 +43,10 @@
   [temp]
     type = ParsedFunction
     expression = '100*(exp(x)+exp(y)+exp(z)+sin(y)+x*y*z)+500*y+500*x'
+  []
+  [two]
+    type = ParsedFunction
+    expression = '(exp(x)+exp(y)+exp(z))*15/25'
   []
 []
 
@@ -98,5 +110,11 @@
     variable = temp_test
     diffusivity = k
     boundary = '8'
+  []
+  [two_side1]
+    type = SideDiffusiveFluxIntegral
+    variable = two_test
+    diffusivity = k
+    boundary = '1'
   []
 []
