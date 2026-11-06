@@ -8,15 +8,15 @@ ARG MOOSEDEV_TAG=latest
 # which changes on every commit), but downstream COPY --from steps are
 # content-addressed, so the per-dependency cache granularity below is
 # unaffected by that.
-FROM idaholab/moose-dev:${MOOSEDEV_TAG} AS submodules
+FROM idaholab/moose-dev:${MOOSEDEV_TAG} AS submodules-moose
 ARG MOOSEDEV_TAG
 WORKDIR /cardinal
 COPY .git .git
 COPY .gitmodules .gitmodules
 
-# Fetched and checked on its own, before the other (larger) submodules,
-# so a version mismatch fails fast without spending time/bandwidth on
-# them first.
+# Fetched and checked on its own, before the other submodules branch off
+# of this stage below, so a version mismatch fails fast without spending
+# time/bandwidth on them first.
 RUN git submodule update --init --progress contrib/moose
 
 # MOOSE's own version check (scripts/premake.py) only fires under a login
@@ -37,13 +37,31 @@ RUN . /environment && \
       exit 1; \
     fi
 
-RUN git submodule update --init --progress contrib/nekRS && \
-    git submodule update --init --progress contrib/openmc && \
-    git submodule update --init --progress contrib/nuclear_data && \
-    git submodule update --init --progress contrib/DAGMC && \
-    git submodule update --init --progress contrib/moab && \
-    git submodule update --init --progress contrib/embree && \
-    git submodule update --init --progress contrib/double-down
+# Each remaining submodule gets its own stage, branching off
+# submodules-moose (so none of them start until the version check above
+# has passed) rather than one combined RUN -- lets BuildKit fetch them
+# concurrently instead of one at a time, and each downstream COPY --from
+# below only misses cache if that specific submodule's pin changed.
+FROM submodules-moose AS submodules-nekrs
+RUN git submodule update --init --progress contrib/nekRS
+
+FROM submodules-moose AS submodules-openmc
+RUN git submodule update --init --progress contrib/openmc
+
+FROM submodules-moose AS submodules-nuclear-data
+RUN git submodule update --init --progress contrib/nuclear_data
+
+FROM submodules-moose AS submodules-dagmc
+RUN git submodule update --init --progress contrib/DAGMC
+
+FROM submodules-moose AS submodules-moab
+RUN git submodule update --init --progress contrib/moab
+
+FROM submodules-moose AS submodules-embree
+RUN git submodule update --init --progress contrib/embree
+
+FROM submodules-moose AS submodules-double-down
+RUN git submodule update --init --progress contrib/double-down
 
 FROM idaholab/moose-dev:${MOOSEDEV_TAG}
 
@@ -59,7 +77,7 @@ ENV ENABLE_DOUBLE_DOWN=yes
 WORKDIR /cardinal
 
 # Tiny (~49KB) and rarely changes.
-COPY --from=submodules /cardinal/contrib/nuclear_data contrib/nuclear_data
+COPY --from=submodules-nuclear-data /cardinal/contrib/nuclear_data contrib/nuclear_data
 
 # Only the config/*.mk and MOOSE files actually needed to parse the
 # Makefile, not their much larger, more frequently changing trees.
@@ -72,11 +90,11 @@ COPY config/moab.mk config/moab.mk
 COPY config/dagmc.mk config/dagmc.mk
 COPY config/embree.mk config/embree.mk
 COPY config/double_down.mk config/double_down.mk
-COPY --from=submodules /cardinal/contrib/moose/framework/build.mk contrib/moose/framework/build.mk
-COPY --from=submodules /cardinal/contrib/moose/framework/moose.mk contrib/moose/framework/moose.mk
-COPY --from=submodules /cardinal/contrib/moose/framework/app.mk contrib/moose/framework/app.mk
-COPY --from=submodules /cardinal/contrib/moose/framework/contrib/neml2.mk contrib/moose/framework/contrib/neml2.mk
-COPY --from=submodules /cardinal/contrib/moose/modules/modules.mk contrib/moose/modules/modules.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/framework/build.mk contrib/moose/framework/build.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/framework/moose.mk contrib/moose/framework/moose.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/framework/app.mk contrib/moose/framework/app.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/framework/contrib/neml2.mk contrib/moose/framework/contrib/neml2.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/modules/modules.mk contrib/moose/modules/modules.mk
 
 # Ordered by dependency first (embree and moab are independent leaves;
 # double_down needs both; dagmc needs double_down), then by frequency of
@@ -106,30 +124,30 @@ RUN mkdir -p contrib/nekRS contrib/openmc contrib/DAGMC contrib/moab contrib/dou
           contrib/moose/framework/include/base/MooseConfig.h \
           config/nekrs.mk config/openmc.mk
 
-COPY --from=submodules /cardinal/contrib/embree contrib/embree
+COPY --from=submodules-embree /cardinal/contrib/embree contrib/embree
 RUN make build_embree -j$(nproc)
 
 RUN rm -f contrib/moab/DOCKERFILE_PLACEHOLDER
-COPY --from=submodules /cardinal/contrib/moab contrib/moab
+COPY --from=submodules-moab /cardinal/contrib/moab contrib/moab
 RUN make build_moab -j$(nproc)
 
 RUN rm -f contrib/double-down/DOCKERFILE_PLACEHOLDER
-COPY --from=submodules /cardinal/contrib/double-down contrib/double-down
+COPY --from=submodules-double-down /cardinal/contrib/double-down contrib/double-down
 RUN make build_doubledown -j$(nproc)
 
 RUN rm -f contrib/DAGMC/DOCKERFILE_PLACEHOLDER
-COPY --from=submodules /cardinal/contrib/DAGMC contrib/DAGMC
+COPY --from=submodules-dagmc /cardinal/contrib/DAGMC contrib/DAGMC
 RUN make build_dagmc -j$(nproc)
 
 RUN rm -f contrib/nekRS/DOCKERFILE_PLACEHOLDER
 COPY config/nekrs.mk config/nekrs.mk
-COPY --from=submodules /cardinal/contrib/nekRS contrib/nekRS
+COPY --from=submodules-nekrs /cardinal/contrib/nekRS contrib/nekRS
 RUN make build_nekrs -j$(nproc) || \
       (cat build/nekrs/HYPRE_BUILD-prefix/src/HYPRE_BUILD/src/config.log; exit 1)
 
 RUN rm -f contrib/openmc/DOCKERFILE_PLACEHOLDER
 COPY config/openmc.mk config/openmc.mk
-COPY --from=submodules /cardinal/contrib/openmc contrib/openmc
+COPY --from=submodules-openmc /cardinal/contrib/openmc contrib/openmc
 RUN make build_openmc -j$(nproc)
 
 # Remove the MooseConfig.h placeholder so the real build regenerates it
@@ -145,7 +163,7 @@ RUN rm -f contrib/moose/framework/include/base/MooseConfig.h \
 # submodules stage rather than on Cardinal's working tree, so a commit
 # that doesn't bump the moose submodule (the common case) doesn't force
 # it to be re-copied.
-COPY --from=submodules /cardinal/contrib/moose contrib/moose
+COPY --from=submodules-moose /cardinal/contrib/moose contrib/moose
 # COPY merges rather than replaces, so this fills in Cardinal's own
 # tracked files without disturbing contrib/moose above.
 COPY . .
