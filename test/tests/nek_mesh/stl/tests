@@ -64,7 +64,7 @@
     mesh_mode = 'replicated'
   []
   [invalid_normal]
-    type = Runexception
+    type = RunException
     input = nek.i
     cli_args = 'Mesh/stl="bad_normal.stl"'
     expect_err = "Unit normal vector detected with length 1.99025"
@@ -78,6 +78,15 @@
     cli_args = 'Mesh/stl="nonnumeric.stl"'
     expect_err = "Error parsing STL coordinate: 0.191p42"
     requirement = "The system shall error if detecting a non-numeric entry in an ASCII STL file."
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
+  [binary_format]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/stl="gold/nek_in.e"'
+    expect_err = "Failed to read STL"
+    requirement = "The system shall error if trying to read a binary file, since only ASCII is currently supported"
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
