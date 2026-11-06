@@ -138,20 +138,16 @@ RUN make build_openmc -j$(nproc)
 RUN rm -f contrib/moose/framework/include/base/MooseConfig.h \
            contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER
 
-# COPY preserves checkout-time mtimes, which across separate CI runs
-# are always newer than yesterday's cached build output -- Make would
-# otherwise reconfigure and rebuild from scratch here. Backdating the
-# source tree (rather than touching build/install to "now") matters:
-# ExternalProject_Add targets like HYPRE rely on their own stamp files
-# being internally consistent with each other, and bumping everything
-# under build/ to ~the same timestamp in filesystem-traversal order
-# scrambles that ordering, forcing a full rebuild anyway.
-COPY . .
 # The rest of MOOSE (framework/src, modules/*, scripts, python, ...)
-# wasn't needed until now; COPY merges rather than replaces, so this
-# fills it in without disturbing the subset already copied above.
+# wasn't needed until now -- the dependency builds above only needed
+# framework/build.mk (copied separately, above). Copying it here, before
+# Cardinal's own COPY . ., keeps this layer cache-keyed on the
+# submodules stage rather than on Cardinal's working tree, so a commit
+# that doesn't bump the moose submodule (the common case) doesn't force
+# it to be re-copied.
 COPY --from=submodules /cardinal/contrib/moose contrib/moose
-RUN find . \( -path ./build -o -path ./install \) -prune -o \
-    -exec touch -t 202001010000 {} +
+# COPY merges rather than replaces, so this fills in Cardinal's own
+# tracked files without disturbing contrib/moose above.
+COPY . .
 
 RUN make -j$(nproc)
