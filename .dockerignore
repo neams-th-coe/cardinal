@@ -1,0 +1,10 @@
+# A local checkout may already have submodules initialized and/or a
+# build/install tree from a regular (non-Docker) build -- none of that
+# may leak into the build context. Submodule content always comes from
+# the submodules-* stages (fetched fresh from .git at the pinned
+# commit, regardless of what's checked out locally), and build/install
+# are produced fresh by this Dockerfile's own make steps. Mirrors what
+# .gitignore already excludes from the real working tree.
+contrib/
+build
+install/**
