@@ -26,4 +26,5 @@
   solver = none
 
 [SCALAR TWO]
+  diffusionCoeff = 7
   solver = none

@@ -9,6 +9,12 @@
       mesh = 'stl'
       scalar = "temperature"
     []
+    [mass_flux]
+      type = NekBoundaryFlux
+      direction = from_nek
+      mesh = 'stl'
+      scalar = "two"
+    []
   []
 []
 
@@ -21,6 +27,9 @@
 
 [AuxVariables]
   [moose_flux]
+    block = 9999
+  []
+  [moose_mass_flux]
     block = 9999
   []
 []
@@ -50,6 +59,17 @@
     block = 9999
     value_type = min
   []
+  [max_nek_mass_flux]
+    type = ElementExtremeValue
+    variable = mass_flux
+    block = 9999
+  []
+  [min_nek_mass_flux]
+    type = ElementExtremeValue
+    variable = mass_flux
+    block = 9999
+    value_type = min
+  []
 
   # compare against these values; they are commented out because we would need to build a projection
   # in the main app to avoid floating point indeterminism in the test
@@ -66,6 +86,22 @@
   #[min_moose_flux]
   #  type = ElementExtremeValue
   #  variable = moose_flux
+  #  block = 9999
+  #  value_type = min
+  #[]
+  #[moose_mass_flux_integral]
+  #  type = ElementIntegralVariablePostprocessor
+  #  variable = moose_mass_flux
+  #  block = 9999
+  #[]
+  #[max_moose_mass_flux]
+  #  type = ElementExtremeValue
+  #  variable = moose_mass_flux
+  #  block = 9999
+  #[]
+  #[min_moose_mass_flux]
+  #  type = ElementExtremeValue
+  #  variable = moose_mass_flux
   #  block = 9999
   #  value_type = min
   #[]

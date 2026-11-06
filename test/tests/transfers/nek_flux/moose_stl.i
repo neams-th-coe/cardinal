@@ -20,7 +20,13 @@
 [AuxVariables]
   [moose_temp]
   []
+  [moose_mass]
+  []
   [moose_flux]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [moose_mass_flux]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -32,12 +38,21 @@
     variable = moose_temp
     function = moose_temp
   []
+  [moose_mass]
+    type = FunctionIC
+    variable = moose_mass
+    function = moose_mass
+  []
 []
 
 [Functions]
   [moose_temp]
     type = ParsedFunction
     expression = 'exp(x)+sin(y)+x*y*z'
+  []
+  [moose_mass]
+    type = ParsedFunction
+    expression = 'exp(2*x)+sin(2*y)+7*x*y*z'
   []
 []
 
@@ -47,6 +62,14 @@
     variable = moose_flux
     diffusion_variable = moose_temp
     diffusivity = 2.0
+    boundary = 0
+    component = normal
+  []
+  [moose_mass_flux]
+    type = DiffusionFluxAux
+    variable = moose_mass_flux
+    diffusion_variable = moose_mass
+    diffusivity = 7.0
     boundary = 0
     component = normal
   []
@@ -63,6 +86,12 @@
     type = SideIntegralVariablePostprocessor
     variable = moose_flux
     boundary = 0
+  []
+  [mass_flux_integral_1]
+    type = SideDiffusiveFluxIntegral
+    variable = moose_mass
+    boundary = 0
+    diffusivity = 7.0
   []
   [area]
     type = AreaPostprocessor
@@ -94,6 +123,14 @@
     to_multi_app = nek
     source_variable = moose_flux
     variable = moose_flux
+    from_boundaries = '0'
+    to_blocks = '9999'
+  []
+  [moose_mass_flux]
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    to_multi_app = nek
+    source_variable = moose_mass_flux
+    variable = moose_mass_flux
     from_boundaries = '0'
     to_blocks = '9999'
   []

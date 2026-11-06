@@ -175,15 +175,17 @@ std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
                                         const Point & component = Point(1, 0, 0));
 
 /**
- * Interpolate the heat flux onto a set of points using NekRS's interpolator
+ * Interpolate the diffusive flux onto a set of points using NekRS's interpolator
  * @param[in] interp an intialized interpolator
  * @param[in] stl_normals STL unit normals
  * @param[in] n number of points
+ * @param[in] scalar_id scalar ID to take the diffusive flux of
  * @return interpolated values on those points
  */
-std::vector<dfloat> interpolateHeatFluxToPoints(pointInterpolation_t & interp,
+std::vector<dfloat> interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
                                                 const std::vector<Point> & stl_normals,
-                                                int n);
+                                                int n,
+                                                unsigned int scalar_id);
 
 /**
  * Compute triangle area from three vertices

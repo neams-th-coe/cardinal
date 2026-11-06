@@ -91,7 +91,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     // case if we want to write a flux, which we would only write on a boundary associated with
     // a unit normal. For now, just prevent users from doing this.
     if (_direction == "from_nek" && _nek_mesh->volume())
-      mooseError("The NekBoundaryFlux does not currently support writing heat flux on a boundary "
+      mooseError("The NekBoundaryFlux does not currently support writing flux on a boundary "
                  "when the Mesh has 'volume = true.' Please contact the Cardinal developer team if "
                  "you require this feature.");
   }
@@ -263,8 +263,8 @@ NekBoundaryFlux::readDataFromNek()
 
   if (_transfer_mesh.contains("stl"))
   {
-    auto interpolated = nekrs::interpolateHeatFluxToPoints(
-        *_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices());
+    auto interpolated = nekrs::interpolateDiffusiveFluxToPoints(
+        *_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices(), _scalar_id);
     fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
   }
 

@@ -410,13 +410,14 @@ convertToFieldEnum(const std::string & name)
   return field::zero;
 }
 
-// TODO: will need to generalize to other types of fluxes once we add mass transport
 std::vector<dfloat>
-interpolateHeatFluxToPoints(pointInterpolation_t & interp,
+interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
                             const std::vector<Point> & stl_normals,
-                            int n)
+                            int n,
+                            unsigned int scalar_id)
 {
-  auto mesh = nrs->scalar->mesh("temperature");
+  auto scalar_name = scalarName(scalar_id);
+  auto mesh = nrs->scalar->mesh(scalar_name);
   auto fieldOffsetSum = mesh->dim * nrs->fieldOffset;
   int n_values = n * mesh->dim;
 
@@ -424,7 +425,7 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp,
   // we compute grad(T) at all of the Eulerian points, and then interpolate that to
   // the Lagrangian points
 
-  auto o_S = nrs->scalar->o_solution("temperature");
+  auto o_S = nrs->scalar->o_solution(scalar_name);
   auto o_gradS = opSEM::strongGrad(mesh, nrs->scalar->fieldOffset(), o_S);
 
   // interpolate grad(T) on Eulerian points to Lagrangian points
@@ -436,11 +437,9 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp,
   std::vector<dfloat> all_interpolated_values(n_values);
   o_interpolated.copyTo(all_interpolated_values.data(), n_values);
 
-  // TODO: this will only work correctly if the diffusion coefficient is constant;
-  // also will need to generalize to other scalars
-  double k;
-  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
+  double k = scalarDiffusionCoeff(scalar_id);
   std::vector<dfloat> interpolated(n);
+  auto field = fluxToWriteField(scalar_id);
   for (unsigned int i = 0; i < n; ++i)
   {
     // vertices are grouped in 3's to map to each element
@@ -455,8 +454,8 @@ interpolateHeatFluxToPoints(pointInterpolation_t & interp,
     interpolated[i] = -k * grad_T_cdot_n;
 
     // dimensionalize the solution if needed
-    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field::heat_flux) +
-                      nekrs::nondimensionalAdditive(field::heat_flux);
+    interpolated[i] = interpolated[i] * nekrs::nondimensionalDivisor(field) +
+                      nekrs::nondimensionalAdditive(field);
   }
 
   return interpolated;
