@@ -38,7 +38,7 @@
     # anything smaller than this as zero
     abs_zero = 1e-8
 
-    requirement = "The system shall compute non-dimensional heat flux on the STL surface from NekRS. This test also computes the non-dimensional heat flux on the mesh mirror, and compares against the STL surface; the STL surface is not the same topology as the mesh mirror, but it is a sphere circumscribed in the square so we check general magnitudes and spatial reconstruction to ensure that the dimensional scaling has been correctly applied."
+    requirement = "The system shall compute non-dimensional heat and mass flux on the STL surface from NekRS. This test also computes the non-dimensional heat and mass flux on the mesh mirror, and compares against the STL surface; the STL surface is not the same topology as the mesh mirror, but it is a sphere circumscribed in the square so we check general magnitudes and spatial reconstruction to ensure that the dimensional scaling has been correctly applied."
     issues = '#1398'
     capabilities = 'nekrs'
     design = 'NekBoundaryFlux.md'

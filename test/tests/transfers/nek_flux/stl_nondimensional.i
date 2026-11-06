@@ -9,6 +9,12 @@
       mesh = 'stl mirror'
       scalar = "temperature"
     []
+    [mass_flux]
+      type = NekBoundaryFlux
+      direction = from_nek
+      mesh = 'stl mirror'
+      scalar = "two"
+    []
   []
 
   [Dimensionalize]
@@ -17,6 +23,10 @@
     T = 25.0
     rho = 10.0
     Cp = 40.0
+
+    ds02 = 7500.0
+    s02 = 1000.0
+    transport_coeff_2 = 6.5e2
   []
 []
 
@@ -37,29 +47,6 @@
 []
 
 [Postprocessors]
-  [max_flux_stl]
-    type = ElementExtremeValue
-    variable = flux
-    block = 9999
-  []
-  [min_flux_stl]
-    type = ElementExtremeValue
-    variable = flux
-    block = 9999
-    value_type = min
-  []
-  [max_flux_mirror]
-    type = ElementExtremeValue
-    variable = flux
-    block = 0
-  []
-  [min_flux_mirror]
-    type = ElementExtremeValue
-    variable = flux
-    block = 0
-    value_type = min
-  []
-
   [surface_area] # should be 4 * pi * (0.5*5)**2
     type = VolumePostprocessor
     block = 9999
