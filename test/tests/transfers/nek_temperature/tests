@@ -99,4 +99,14 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [invalid_direction_stl]
+    type = RunException
+    input = stl.i
+    cli_args = "Problem/FieldTransfers/temperature/direction=to_nek Problem/FieldTransfers/temperature/usrwrk_slot=3"
+    expect_err = "Transferring data from the STL mesh to NekRS is not yet supported!"
+    requirement = "The system shall error if trying to read STL data into a field variable, since this is not yet supported."
+    issues = '#1398'
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
 []

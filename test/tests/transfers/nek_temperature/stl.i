@@ -1,7 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
-  n_usrwrk_slots = 3
+  n_usrwrk_slots = 4
 
   [FieldTransfers]
     # transfer some data into the usrwrk array so that we can evaluate it on the STL
