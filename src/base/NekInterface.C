@@ -412,9 +412,9 @@ convertToFieldEnum(const std::string & name)
 
 std::vector<dfloat>
 interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
-                            const std::vector<Point> & stl_normals,
-                            int n,
-                            unsigned int scalar_id)
+                                 const std::vector<Point> & stl_normals,
+                                 int n,
+                                 unsigned int scalar_id)
 {
   auto scalar_name = scalarName(scalar_id);
   auto mesh = nrs->scalar->mesh(scalar_name);

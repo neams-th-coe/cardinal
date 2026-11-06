@@ -123,7 +123,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
     auto a = nekrs::nondimensionalAdditive(_write_field);
 
     addExternalVariable(_usrwrk_slot[0], _variable, a, d);
-    
+
     // Check that a flux boundary condition is set on all of NekRS's boundaries to which we are
     // sending flux. To avoid throwing this error for test cases where we have the corresponding
     // [SCALAR XX] block but set its solve to 'none', we screen by whether the scalar
@@ -205,7 +205,7 @@ NekBoundaryFlux::NekBoundaryFlux(const InputParameters & parameters)
       auto pp_params = _factory.getValidParams("NekDiffusiveFluxIntegral");
       pp_params.set<std::vector<int>>("boundary") = *_boundary;
       pp_params.set<std::string>("scalar") = _scalar_name;
-      
+
       // we do not need to check for duplicate names, because MOOSE already handles
       // this error checking
       _nek_problem.addPostprocessor("NekDiffusiveFluxIntegral", _postprocessor_name, pp_params);

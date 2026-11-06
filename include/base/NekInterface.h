@@ -183,9 +183,9 @@ std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
  * @return interpolated values on those points
  */
 std::vector<dfloat> interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
-                                                const std::vector<Point> & stl_normals,
-                                                int n,
-                                                unsigned int scalar_id);
+                                                     const std::vector<Point> & stl_normals,
+                                                     int n,
+                                                     unsigned int scalar_id);
 
 /**
  * Compute triangle area from three vertices
