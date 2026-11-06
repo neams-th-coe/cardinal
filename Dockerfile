@@ -2,6 +2,11 @@
 # exact tag it needs; see the version-match RUN step below.
 ARG MOOSEDEV_TAG=latest
 
+# Where the final, self-contained `make install` output goes (see the
+# very end of this file). Overridable via --build-arg for a different
+# deployment layout.
+ARG CARDINAL_PREFIX=/opt/cardinal
+
 # A plain git clone leaves public submodules uninitialized; fetch them
 # here so users don't have to run scripts/get-dependencies.sh first.
 # This stage's RUN always re-executes (its cache key is keyed off .git,
@@ -10,6 +15,7 @@ ARG MOOSEDEV_TAG=latest
 # unaffected by that.
 FROM idaholab/moose-dev:${MOOSEDEV_TAG} AS submodules-moose
 ARG MOOSEDEV_TAG
+ARG CARDINAL_PREFIX
 WORKDIR /cardinal
 COPY .git .git
 COPY .gitmodules .gitmodules
@@ -36,6 +42,20 @@ RUN . /environment && \
       echo "Rebuild with: docker build --build-arg MOOSEDEV_TAG=$required ." >&2; \
       exit 1; \
     fi
+
+# Configure MOOSE once, here, before anything is ever compiled. This
+# generates the real, final conf_vars.mk (setting PREFIX, so
+# CONTRIB_INSTALL_DIR's own ?= default would otherwise disagree with
+# it) and MooseConfig.h up front, instead of deferring MooseConfig.h to
+# a placeholder swapped for the real thing right before the final
+# build. Doing this after anything is already compiled regenerates
+# MooseConfig.h with a fresh timestamp -- newer than every object file
+# that already #includes it -- which Make sees as needing a full
+# rebuild (confirmed empirically: a `make install` retrofitted onto an
+# already-built tree triggered one). Doing it first avoids that
+# entirely, since nothing yet exists for the new timestamp to
+# invalidate.
+RUN . /environment && cd contrib/moose && ./configure --prefix=${CARDINAL_PREFIX}
 
 # Each remaining submodule gets its own stage, branching off
 # submodules-moose (so none of them start until the version check above
@@ -64,13 +84,20 @@ FROM submodules-moose AS submodules-double-down
 RUN git submodule update --init --progress contrib/double-down
 
 FROM idaholab/moose-dev:${MOOSEDEV_TAG}
+ARG CARDINAL_PREFIX
 
 ENV HDF5_ROOT=/opt/petsc
 ENV BASH_ENV=/environment
 
 SHELL ["/bin/bash", "-c"]
 
-ENV NEKRS_HOME=/cardinal/install
+# Routes OpenMC/NekRS/MOAB/DAGMC/Embree/Double-Down's own `make install`
+# steps straight into the final prefix instead of Cardinal's default
+# ($(CARDINAL_DIR)/install), so `make install` at the very end doesn't
+# need to relocate them afterward -- confirmed empirically that without
+# this, the installed binary still depends on the original build tree.
+ENV CONTRIB_INSTALL_DIR=${CARDINAL_PREFIX}
+ENV NEKRS_HOME=${CARDINAL_PREFIX}
 ENV ENABLE_DAGMC=yes
 ENV ENABLE_DOUBLE_DOWN=yes
 
@@ -95,6 +122,11 @@ COPY --from=submodules-moose /cardinal/contrib/moose/framework/moose.mk contrib/
 COPY --from=submodules-moose /cardinal/contrib/moose/framework/app.mk contrib/moose/framework/app.mk
 COPY --from=submodules-moose /cardinal/contrib/moose/framework/contrib/neml2.mk contrib/moose/framework/contrib/neml2.mk
 COPY --from=submodules-moose /cardinal/contrib/moose/modules/modules.mk contrib/moose/modules/modules.mk
+# Real, final versions (./configure already ran in submodules-moose) --
+# not placeholders -- so PREFIX/CONTRIB_INSTALL_DIR and MooseConfig.h
+# are consistent from the very first dependency build below.
+COPY --from=submodules-moose /cardinal/contrib/moose/conf_vars.mk contrib/moose/conf_vars.mk
+COPY --from=submodules-moose /cardinal/contrib/moose/framework/include/base/MooseConfig.h contrib/moose/framework/include/base/MooseConfig.h
 
 # Ordered by dependency first (embree and moab are independent leaves;
 # double_down needs both; dagmc needs double_down), then by frequency of
@@ -102,26 +134,22 @@ COPY --from=submodules-moose /cardinal/contrib/moose/modules/modules.mk contrib/
 # double-down: 3, dagmc: 7, nekRS: 33, openmc: 82) so each layer
 # invalidates as few of the later ones as possible.
 #
-# config/*.mk, contrib/{nekRS,openmc,DAGMC,moab,double-down}, and the HIT
-# parser are only existence-checked here (same ls-based check
-# config/check_deps.mk uses for all of them, run unconditionally once
-# ENABLE_DAGMC/ENABLE_DOUBLE_DOWN=yes regardless of which target is being
-# built) -- not needed for real until their own layers below. Cardinal's
-# own CFLAGS/LDFLAGS (incl. "-include .../MooseConfig.h") leak into
-# third-party sub-builds like HYPRE's; MooseConfig.h is normally
-# generated as a side effect of building $(app_EXEC), which none of
-# these layers ask for. The placeholder satisfies the compile check;
-# removed before the final build so it regenerates for real.
+# config/*.mk and contrib/{nekRS,openmc,DAGMC,moab,double-down} are only
+# existence-checked here (same ls-based check config/check_deps.mk uses
+# for all of them, run unconditionally once ENABLE_DAGMC/
+# ENABLE_DOUBLE_DOWN=yes regardless of which target is being built) --
+# not needed for real until their own layers below. The HIT parser
+# placeholder satisfies the same kind of compile-time check for
+# Cardinal's own CFLAGS/LDFLAGS (which leak "-include .../hit...") into
+# third-party sub-builds like HYPRE's; removed before the final build.
 RUN mkdir -p contrib/nekRS contrib/openmc contrib/DAGMC contrib/moab contrib/double-down \
-             contrib/moose/framework/contrib/hit \
-             contrib/moose/framework/include/base && \
+             contrib/moose/framework/contrib/hit && \
     touch contrib/nekRS/DOCKERFILE_PLACEHOLDER \
           contrib/openmc/DOCKERFILE_PLACEHOLDER \
           contrib/DAGMC/DOCKERFILE_PLACEHOLDER \
           contrib/moab/DOCKERFILE_PLACEHOLDER \
           contrib/double-down/DOCKERFILE_PLACEHOLDER \
           contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER \
-          contrib/moose/framework/include/base/MooseConfig.h \
           config/nekrs.mk config/openmc.mk
 
 COPY --from=submodules-embree /cardinal/contrib/embree contrib/embree
@@ -150,11 +178,7 @@ COPY config/openmc.mk config/openmc.mk
 COPY --from=submodules-openmc /cardinal/contrib/openmc contrib/openmc
 RUN make build_openmc -j$(nproc)
 
-# Remove the MooseConfig.h placeholder so the real build regenerates it
-# -- otherwise its build-time mtime (newer than anything COPY'd from
-# the checkout) could fool Make into thinking it's already up to date.
-RUN rm -f contrib/moose/framework/include/base/MooseConfig.h \
-           contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER
+RUN rm -f contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER
 
 # The rest of MOOSE (framework/src, modules/*, scripts, python, ...)
 # wasn't needed until now -- the dependency builds above only needed
@@ -169,3 +193,16 @@ COPY --from=submodules-moose /cardinal/contrib/moose contrib/moose
 COPY . .
 
 RUN make -j$(nproc)
+
+# The standard MOOSE/Cardinal install mechanism (see
+# https://mooseframework.inl.gov/application_development/build_system.html#make-install):
+# copies cardinal-opt and every required library into CONTRIB_INSTALL_DIR
+# (already routed to CARDINAL_PREFIX above, so NekRS/OpenMC/MOAB/DAGMC/
+# Embree/Double-Down land in the same tree rather than needing their
+# RPATHs patched after the fact -- confirmed empirically that without
+# that routing, the installed binary still depends on the original
+# /cardinal build tree existing). Also installs MOOSE's/the enabled
+# modules' data directories and Cardinal's own INSTALLABLE_DIRS test/
+# tutorial inputs. MOOSE_SKIP_DOCS avoids a hard dependency on the
+# large_media submodule, which this image doesn't fetch.
+RUN MOOSE_SKIP_DOCS=1 make install -j$(nproc)
