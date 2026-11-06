@@ -274,8 +274,6 @@ NekBoundaryFlux::readDataFromNek()
 void
 NekBoundaryFlux::sendDataToNek()
 {
-  _console << "Sending flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
-           << std::endl;
   auto d = nekrs::nondimensionalDivisor(_write_field);
   auto a = nekrs::nondimensionalAdditive(_write_field);
 
