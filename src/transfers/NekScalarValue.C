@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekScalarValue.h"
+#include "NekRSProblem.h"
 
 registerMooseObject("CardinalApp", NekScalarValue);
 
