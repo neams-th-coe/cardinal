@@ -53,7 +53,7 @@
     field = temperature
   []
   [heat_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '2'
   []
   [nek_min_1]

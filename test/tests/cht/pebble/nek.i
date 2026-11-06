@@ -45,7 +45,7 @@
   # of nrs->usrwrk, instead this is directly an integral of k*grad(T)*hat(n).
   # So this should closely match 'flux_integral'
   [flux_in_nek]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '1'
   []
 

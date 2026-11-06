@@ -50,7 +50,7 @@ fluid_solid_interface = '1 2 7'
 
 [Postprocessors]
   [boundary_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = ${fluid_solid_interface}
   []
   [max_nek_T]

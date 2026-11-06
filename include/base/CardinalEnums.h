@@ -89,6 +89,18 @@ enum BinnedVelocityComponentEnum
 };
 } // namespace component
 
+namespace flux
+{
+/// Enumeration of possible fluxes to read/write with NekRS
+enum NekFluxEnum
+{
+  heat_flux,
+  scalar01_flux,
+  scalar02_flux,
+  scalar03_flux
+};
+} // namespace flux
+
 namespace field
 {
 /// Enumeration of possible fields to read from nekRS

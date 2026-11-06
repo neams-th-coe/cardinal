@@ -106,7 +106,7 @@ We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
 via the MOOSE output files.
 
 You can also monitor the heat flux in NekRS by computing $-k\nabla T\cdot\hat{n}$ using a
-[NekHeatFluxIntegral](NekHeatFluxIntegral.md) postprocessor. In general, the quantity
+[NekDiffusiveFluxIntegral](NekDiffusiveFluxIntegral.md) postprocessor. In general, the quantity
 computed by this postprocessor will *not* match the heat flux set by MOOSE because
 both the finite and spectral element methods solve weak forms where Neumann boundary
 conditions are only *weakly* imposed. That is, we set the heat flux but only enforce

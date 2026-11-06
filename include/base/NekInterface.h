@@ -54,6 +54,40 @@ static int build_only;
  */
 int Nscalar();
 
+/**
+ * Get the diffusion coefficient for a scalar
+ * @param[in] scalar_id scalar index
+ * @return constant diffusion coefficient
+ */
+double scalarDiffusionCoeff(const unsigned int & scalar_id);
+
+/**
+ * In some, but not all places in Cardinal, we are required that the first passive scalar
+ * is temperature (for instance, when converting back and forth between field enumerations
+ * and indices. This check enforces this assumption.
+ */
+void enforceScalarZeroIsTemperature();
+
+/** Get the name of the only scalar (as a default), or else throw an error
+ * @param[in] name name of the object which calls this function, to give a useful error message
+ * @return scalar name
+ */
+std::string onlyScalarName(const std::string name);
+
+/**
+ * Get the name for a scalar given its index
+ * @param[in] scalar_id scalar index
+ * @return scalar name
+ */
+std::string scalarName(const unsigned int & scalar_id);
+
+/**
+ * Get the index corresponding to a scalar of a given name
+ * @param[in] name scalar name
+ * @return scalar index
+ */
+unsigned int scalarID(const std::string & name);
+
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
 
@@ -104,6 +138,13 @@ std::vector<dfloat> yPlus(const std::vector<int> & boundary_id);
  * @return components of drag (force fluid exerts on walls)
  */
 std::vector<dfloat> viscousDrag(const std::vector<int> & boundary);
+
+/**
+ * Convert between a scalar index and write enumeration (in terms of flux)
+ * @param[in] scalar_id scalar index
+ * @return type of quantity to be written
+ */
+field::NekWriteEnum fluxToWriteField(const unsigned int scalar_id);
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -320,6 +361,13 @@ bool hasTemperatureVariable();
  * @return whether nekRS will solve for temperature
  */
 bool hasTemperatureSolve();
+
+/**
+ * Whether nekRS actually solves for a given scalar (as opposed to setting its solver to 'none')
+ * @param[in] scalar_id scalar index
+ * @return whether nekRS will solve for the scalar
+ */
+bool hasScalarSolve(const unsigned int scalar_id);
 
 /**
  * Whether nekRS's input file indicates that the problem has a scalar0(scalarId) variable
@@ -621,13 +669,16 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 double pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
- * Compute the heat flux over a set of boundary IDs
+ * Compute the diffusive flux (e.g. -k * grad(T) * hat(n) for a scalar representing
+ * temperature) over a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @param[in] scalar_id scalar index
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return heat flux area integral
  */
-double heatFluxIntegral(const std::vector<int> & boundary_id,
-                        const nek_mesh::NekMeshEnum pp_mesh);
+double diffusiveFluxIntegral(const std::vector<int> & boundary_id,
+                             const unsigned int & scalar_id,
+                             const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Limit the temperature in nekRS to within the range of [min_T, max_T]
@@ -683,13 +734,6 @@ double sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFi
 int Nfaces();
 
 /**
- * Whether the specific boundary is a flux boundary
- * @param[in] boundary boundary ID
- * @return whether boundary is a flux boundary
- */
-bool isHeatFluxBoundary(const int boundary);
-
-/**
  * Whether the specific boundary is a moving mesh boundary
  * @param[in] boundary boundary ID
  * @return whether boundary is a moving mesh boundary
@@ -702,13 +746,6 @@ bool isMovingMeshBoundary(const int boundary);
  * @return whether boundary is a temperature boundary
  */
 bool isTemperatureBoundary(const int boundary);
-
-/**
- * String name indicating the temperature boundary condition type on a given boundary
- * @param[in] boundary boundary ID
- * @return string name of boundary condition type
- */
-const std::string temperatureBoundaryType(const int boundary);
 
 /**
  * Polynomial order used in nekRS solution
