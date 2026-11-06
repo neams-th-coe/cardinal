@@ -72,4 +72,13 @@
     capabilities = 'nekrs'
     mesh_mode = 'replicated'
   []
+  [nonnumeric]
+    type = RunException
+    input = nek.i
+    cli_args = 'Mesh/stl="nonnumeric.stl"'
+    expect_err = "Error parsing STL coordinate: 0.191p42"
+    requirement = "The system shall error if detecting a non-numeric entry in an ASCII STL file."
+    capabilities = 'nekrs'
+    mesh_mode = 'replicated'
+  []
 []

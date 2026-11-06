@@ -185,11 +185,11 @@ NekRSMesh::tryParseFloat(const std::string & token, Real & value)
     if (pos == token.size())
       return;
     else
-      mooseError("Error parsing STL coordinates");
+      mooseError("Error parsing STL coordinate: ", token);
   }
   catch (...)
   {
-    mooseError("Error parsing STL coordinates");
+    mooseError("Error parsing STL coordinate: ", token);
   }
 }
 
