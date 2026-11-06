@@ -8,6 +8,7 @@
       type = NekBoundaryFlux
       direction = to_nek
       mesh = 'stl'
+      scalar = "temperature"
 
       initial_flux_integral_stl = 1.5
       usrwrk_slot = 0

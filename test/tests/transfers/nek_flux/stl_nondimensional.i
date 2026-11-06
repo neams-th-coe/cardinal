@@ -7,6 +7,7 @@
       type = NekBoundaryFlux
       direction = from_nek
       mesh = 'stl mirror'
+      scalar = "temperature"
     []
   []
 
