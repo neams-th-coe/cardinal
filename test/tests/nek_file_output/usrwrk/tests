@@ -5,7 +5,7 @@
     type = CheckFiles
     input = nek.i
     check_files = 'aaa0.f00000 aaa0.f00001 aaa0.f00002 ccc0.f00000 ccc0.f00001 ccc0.f00002'
-    min_slots = 4 # memory heavy
+    min_slots = 8 # 681 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "The system shall allow the user to write the user scratch space slots to field files."
     capabilities = 'nekrs'
   []
@@ -16,7 +16,7 @@
     csvdiff = read1_out.csv
     prereq = check_scratch
     working_directory = 'read'
-    min_slots = 2 # memory heavy
+    min_slots = 6 # 747 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "The system shall write the correct usrwrk data into the scratch space. This is tested "
                   "by reading the written aaa0.f00001 file into a new simulation and applying it to the scalars, such "
                   "that various Cardinal postprocessors can read those values and confirm a match. This test "
@@ -32,7 +32,7 @@
     csvdiff = read2_out.csv
     prereq = check_scratch
     working_directory = 'read'
-    min_slots = 2 # memory heavy
+    min_slots = 6 # 746 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "The system shall write the correct usrwrk data into the scratch space. This is tested "
                   "by reading the written ccc0.f00001 file into a new simulation and applying it to the scalars, such "
                   "that various Cardinal postprocessors can read those values and confirm a match. This test "

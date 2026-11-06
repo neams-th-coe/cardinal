@@ -7,6 +7,7 @@
     requirement = "The system shall allow pressure drag to be computed in the x, y, and z directions in dimensional form. This test compares drag as computed via Nek with by-hand calculations using combinations of native MOOSE postprocessors acting on the NekRS pressure mapped to the mesh mirror, for dimensional form"
     capabilities = 'nekrs'
     design = 'NekPressureSurfaceForce.md'
+    min_slots = 4 # 439 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [pressure_nondim]
     type = CSVDiff
@@ -16,6 +17,7 @@
     requirement = "The system shall allow pressure drag to be computed in the x, y, and z directions in non-dimensional form. This test compares drag as computed via Nek with by-hand calculations using combinations of native MOOSE postprocessors acting on the NekRS pressure mapped to the mesh mirror, for nondimensional form"
     capabilities = 'nekrs'
     design = 'NekPressureSurfaceForce.md DimensionalizeAction.md'
+    min_slots = 4 # 439 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [invalid_mesh]
     type = RunException
@@ -25,5 +27,6 @@
     requirement = "The system shall error if trying to compute pressure drag on non-fluid NekRS boundaries"
     capabilities = 'nekrs'
     design = 'NekPressureSurfaceForce.md'
+    min_slots = 4 # 368 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

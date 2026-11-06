@@ -16,5 +16,6 @@
                   "Temperatures match to within 0.1% between the nondimensional version and the "
                   "dimensional version in ../cylinder."
     capabilities = 'nekrs'
+    min_slots = 11 # 528 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

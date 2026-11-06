@@ -14,6 +14,7 @@
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close."
     capabilities = 'nekrs'
+    min_slots = 4 # 446 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [invalid_field]
     type = RunException
@@ -22,5 +23,6 @@
     expect_err = "This class does not support 'field = velocity_component'"
     requirement = "System shall error if using an unsupported field with a mass flux weighted postprocessor."
     capabilities = 'nekrs'
+    min_slots = 4 # 373 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

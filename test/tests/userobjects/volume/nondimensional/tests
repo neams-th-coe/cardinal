@@ -4,7 +4,7 @@
     type = Exodiff
     input = nek.i
     exodiff = nek_out_subchannel0.e
-    min_slots = 2 # memory heavy
+    min_slots = 4 # 491 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "Spatially-binned volume integrals and averages shall be correctly dimensionalized for "
                   "nondimensional cases. An equivalent setup with a dimensional problem is available at "
                   "../dimensional. The user object averages/integrals computed here exactly match."

@@ -6,6 +6,7 @@
     requirement = 'The system shall generate a boundary mesh to receive a side userobject during a multiapp transfer.'
     capabilities = 'nekrs'
     design = 'NekRSProblem.md'
+    min_slots = 4 # 386 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [nondim]
     type = Exodiff
@@ -17,5 +18,6 @@
                   "../dimensional. The user object averages/integrals computed here exactly match."
     capabilities = 'nekrs'
     design = 'NekBinnedSideAverage.md NekBinnedSideIntegral.md DimensionalizeAction.md'
+    min_slots = 4 # 422 MB per slot observed during https://civet.inl.gov/job/4305074/ during step Test nekRS. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []
