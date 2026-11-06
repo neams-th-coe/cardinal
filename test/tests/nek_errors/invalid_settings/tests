@@ -57,11 +57,22 @@
     capabilities = 'nekrs'
     design = 'NekRSProblem.md'
   []
+  [default]
+    type = RunException
+    input = nek_bc.i
+    expect_err = "There is more than one scalar in the NekRS problem, so we failed to identify a default for the 'scalar' parameter in NekBoundaryFlux. Please specify 'scalar'."
+    requirement = "The system shall error if the attempted default for the scalar parameter cannot be deduced because there is more than one scalar"
+    max_parallel = 12
+    capabilities = 'nekrs'
+    design = 'NekBoundaryFlux.md'
+    issues = '#1077'
+  []
   [missing_flux_bc]
     type = RunException
     input = nek_bc.i
-    expect_err = "In order to send a boundary heat flux to NekRS, you must have a heat flux condition for each 'boundary' set in 'NekRSMesh'! Boundary 2 is of type 'zeroNeumann' instead of 'udfNeumann'."
-    requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
+    cli_args = "Problem/FieldTransfers/flux/scalar='temperature'"
+    expect_err = "In order to send a boundary flux to NekRS, you must have a flux condition for each 'boundary' set in 'NekRSMesh'! Boundary 2 for scalar 'temperature' is of type 'zeroNeumann' instead of 'udfNeumann'."
+    requirement = "MOOSE shall throw an error if there is no receiving flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
     max_parallel = 12
     capabilities = 'nekrs'

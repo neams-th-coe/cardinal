@@ -43,7 +43,7 @@
     value_type = min
   []
   [heat_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '2'
   []
 []

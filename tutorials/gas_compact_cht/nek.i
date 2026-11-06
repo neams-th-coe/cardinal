@@ -61,7 +61,7 @@
 
 [Postprocessors]
   [boundary_flux]
-    type = NekHeatFluxIntegral
+    type = NekDiffusiveFluxIntegral
     boundary = '3'
   []
   [inlet_T]

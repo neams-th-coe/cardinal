@@ -122,7 +122,7 @@
 
   ## heat flux integral
   #[nek_flux]
-  #  type = NekHeatFluxIntegral
+  #  type = NekDiffusiveFluxIntegral
   #  boundary = '1'
   #[]
 

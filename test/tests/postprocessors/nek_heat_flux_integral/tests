@@ -1,12 +1,12 @@
 [Tests]
-  design = 'NekHeatFluxIntegral.md'
+  design = 'NekDiffusiveFluxIntegral.md'
   [nek_heat_flux_integral]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
     rel_err = 5e-4
-    requirement = "NekHeatFluxIntegral shall correctly compute the heat flux integral "
-                  "on the nekRS mesh. The gold file was created "
+    requirement = "NekDiffusiveFluxIntegral shall correctly compute the flux integral of scalars"
+                  "on the nekRS mesh in dimensional form. The gold file was created "
                   "by running the moose.i input, which computes the same integrals using "
                   "existing MOOSE postprocessors on the same mesh on auxvariables that match "
                   "the functional form of the solution fields initialized in the pyramid.udf. "
@@ -15,5 +15,15 @@
                   "variables - we just require that they are reasonably close. A fairly fine mesh "
                   "is used in MOOSE to get closer to the higher-polynomial-order integration in nekRS."
     capabilities = 'nekrs'
+    issues = '#1077'
+  []
+  [misnamed_scalar]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/two_side1/scalar="hello"'
+    expect_err = "The NekRS case files do not have a scalar by the name 'hello'"
+    requirement = "The system shall error if trying to fetch a scalar by a non-existent name"
+    capabilities = 'nekrs'
+    issues = '#1077'
   []
 []

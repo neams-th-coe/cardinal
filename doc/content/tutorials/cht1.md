@@ -402,7 +402,7 @@ to control its own time stepping (except for synchronization points).
 
 Finally, several postprocessors are included to perform
 integrals and global min/max calculations over the NekRS domain for diagnostic purposes.
-Here, the [NekHeatFluxIntegral](NekHeatFluxIntegral.md)
+Here, the [NekDiffusiveFluxIntegral](NekDiffusiveFluxIntegral.md)
 postprocessor computes $-k\nabla T\cdot\hat{n}$ over a boundary in the NekRS mesh. The
 [NekVolumeExtremeValue](NekVolumeExtremeValue.md) postprocessors then compute the maximum
 and minimum temperatures throughout the entire NekRS domain (i.e. not only on the [!ac](CHT)

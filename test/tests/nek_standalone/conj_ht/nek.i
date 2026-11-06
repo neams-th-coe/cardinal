@@ -42,12 +42,12 @@
    mesh = 'all'
  []
  [HeatFluxIntegral_BC3_flow]
-   type = NekHeatFluxIntegral
+   type = NekDiffusiveFluxIntegral
    boundary = '3'
    mesh = 'fluid'
  []
  [HeatFluxIntegral_BC3_all]
-   type = NekHeatFluxIntegral
+   type = NekDiffusiveFluxIntegral
    boundary = '3'
    mesh = 'all'
  []
