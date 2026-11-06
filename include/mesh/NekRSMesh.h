@@ -213,7 +213,7 @@ public:
    * Get the STL unit normals on each triangle
    * @return STL unit normals, indexed by global STL index
    */
-  const std::vector<Point> & STLNormals() const { return _stl_normals; }
+  const std::vector<Point> & stlNormals() const { return _stl_normals; }
 
   /**
    * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh

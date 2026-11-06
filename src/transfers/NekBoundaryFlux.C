@@ -264,7 +264,7 @@ NekBoundaryFlux::readDataFromNek()
   if (_transfer_mesh.contains("stl"))
   {
     auto interpolated = nekrs::interpolateDiffusiveFluxToPoints(
-        *_interpolator, _nek_mesh->STLNormals(), _nek_mesh->nSTLVertices(), _scalar_id);
+        *_interpolator, _nek_mesh->stlNormals(), _nek_mesh->nSTLVertices(), _scalar_id);
     fillAuxVariableOnSTL(_variable_number[_variable], interpolated.data());
   }
 
