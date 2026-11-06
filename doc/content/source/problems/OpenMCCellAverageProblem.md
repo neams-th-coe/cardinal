@@ -1,10 +1,11 @@
 # OpenMCCellAverageProblem
 
-This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux is to identify a mapping between OpenMC cells and a [MooseMesh](MooseMesh.md).
+This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE.
+The crux is to identify a mapping between OpenMC cells (or fields) and a [MooseMesh](MooseMesh.md).
 The data flow contains two major steps:
 
 - Temperature and/or density field data on the [MooseMesh](MooseMesh.md)
-  are volume-averaged and applied to the corresponding OpenMC cells.
+  are volume-averaged and applied to the corresponding OpenMC cells or fields.
 - Tallies are mapped from OpenMC into `CONSTANT MONOMIAL` fields on the
   [MooseMesh](MooseMesh.md) through the [tally system](AddTallyAction.md).
 
@@ -151,6 +152,36 @@ Then Cardinal is instead building the following automatically for you:
     family = MONOMIAL
     order = CONSTANT
   []
+[]
+```
+
+## Temperature feedback
+
+By default, `OpenMCCellAverageProblem` transfers temperature to OpenMC cells using
+a mapping between [MooseMesh](MooseMesh.md) elements and OpenMC cells. This mapping
+is described in more details in the following section.
+
+OpenMC supports specifying temperature distribution in a model through a mesh-based
+temperature field (currently limited to regular meshes). Cardinal is capable of
+leveraging this feature to transfer temperature directly from the MOOSE mesh to the
+mesh of the OpenMC temperature field.
+
+When using this feature, it is required that the MOOSE mesh be identical to the OpenMC
+mesh, or appropriately scaled using the proper scaling factor declared in the input.
+This requirement arises because the temperature transfer relies on an implicit mapping
+that assumes the same cell (element) ordering in both the MOOSE and OpenMC meshes.
+No spatial search or explicit mapping is performed, so any mismatch in mesh structure
+or element ordering will result in incorrect temperature assignments. A recommended
+approach to ensure consistency between the two meshes is to use an `OpenMCMeshGenerator`
+with no translation or rotation aplied, which guarantees that the generated
+MOOSE mesh directly mirrors the OpenMC mesh in both geometry and element ordering.
+
+To enable this feature, set the `temperature_field_transfer` paramater to true:
+
+```
+[Problem]
+  type = OpenMCCellAverageProblem
+  temperature_field_transfer = true
 []
 ```
 
