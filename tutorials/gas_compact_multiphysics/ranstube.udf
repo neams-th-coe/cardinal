@@ -16,7 +16,7 @@ void turbulent_props(double time)
 
   // fetch the laminar thermal conductivity and specify the desired turbulent Pr
   dfloat k_laminar;
-  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k_laminar);
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k_laminar);
 
   // the turbulent conductivity is applied to temperature, the first passive scalar
   scalarScaledAdd(mesh->Nlocal, k_laminar, 1.0 / Pr_T,
