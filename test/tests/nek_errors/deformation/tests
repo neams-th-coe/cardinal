@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekMeshDeformation.md'
   [missing_mesh_solver]
     type = RunException
     input = nek.i
@@ -28,5 +29,14 @@
     max_parallel = 64
     expect_err = "'elast_nomv.par' has a solver in the"
     requirement = "The system shall error if Cardinal is using the NekRS mesh blending solver without indicating the moving boundary of interest"
+  []
+  [stl]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/stl='../../nek_mesh/stl/small_sphere.stl' Problem/FieldTransfers/disp/mesh='stl' Mesh/order=FIRST"
+    expect_err = "Transferring data from the STL mesh to NekRS is not yet supported!"
+    requirement = "The system shall error if trying to read displacements from an STL mesh, since this is not yet supported."
+    capabilities = 'nekrs'
+    issues = '#1398'
   []
 []

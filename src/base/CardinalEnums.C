@@ -102,6 +102,12 @@ getTallyScoreEnum()
 }
 
 MultiMooseEnum
+getNekRSMeshEnums()
+{
+  return MultiMooseEnum("mirror stl", "mirror");
+}
+
+MultiMooseEnum
 getParticleFilterEnums()
 {
   return MultiMooseEnum("neutron photon electron positron");

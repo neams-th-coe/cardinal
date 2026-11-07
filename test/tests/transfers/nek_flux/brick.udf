@@ -10,11 +10,16 @@ void UDF_Setup()
   auto mesh = nrs->meshV;
 
   std::vector<dfloat> temp(mesh->Nlocal, 0.0);
+  std::vector<dfloat> two(mesh->Nlocal, 0.0);
   auto [x, y, z] = mesh->xyzHost();
   for (int n = 0; n < mesh->Nlocal; n++)
-    temp[n] = (exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n]);
+  {
+    temp[n] = exp(x[n]) + sin(y[n]) + x[n]*y[n]*z[n];
+    two[n] = exp(2*x[n]) + sin(2*y[n]) + 7*x[n]*y[n]*z[n];
+  }
 
   nrs->scalar->o_solution("temperature").copyFrom(temp.data(), temp.size());
+  nrs->scalar->o_solution("two").copyFrom(two.data(), two.size());
 }
 
 void UDF_ExecuteStep(double time, int tstep)

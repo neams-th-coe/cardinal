@@ -153,6 +153,72 @@ field::NekWriteEnum fluxToWriteField(const unsigned int scalar_id);
 void setAbsoluteTol(double tol);
 
 /**
+ * Convert from the field string into the enumeration used internally
+ * in the NekInterface system.
+ * @param[in] name field name
+ * @return field enumeration
+ */
+field::NekFieldEnum convertToFieldEnum(const std::string & name);
+
+/**
+ * Interpolate a field onto a set of points using NekRS's interpolator
+ * @param[in] interp an intialized interpolator
+ * @param[in] field the field type
+ * @param[in] n number of points
+ * @param[in] component component vector to use for dotting with velocity; only used for
+ * velocity_component fields, so a default is provided to allow skipping entering it
+ * @return interpolated values on those points
+ */
+std::vector<dfloat> interpolateToPoints(pointInterpolation_t & interp,
+                                        field::NekFieldEnum field,
+                                        int n,
+                                        const Point & component = Point(1, 0, 0));
+
+/**
+ * Interpolate the diffusive flux onto a set of points using NekRS's interpolator
+ * @param[in] interp an intialized interpolator
+ * @param[in] stl_normals STL unit normals
+ * @param[in] n number of points
+ * @param[in] scalar_id scalar ID to take the diffusive flux of
+ * @return interpolated values on those points
+ */
+std::vector<dfloat> interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
+                                                     const std::vector<Point> & stl_normals,
+                                                     int n,
+                                                     unsigned int scalar_id);
+
+/**
+ * Compute triangle area from three vertices
+ * @param[in] v1 vertex 1
+ * @param[in] v2 vertex 2
+ * @param[in] v3 vertex 3
+ * @return triangle area
+ */
+dfloat computeTriangleArea(const Point & v1, const Point & v2, const Point & v3);
+
+/**
+ * Get rank owning a given global Lagrange point
+ * @param[in] index global index of the Lagrange point
+ * @param[in] rank_to_langrange number of points owned by each rank
+ * @return rank owning this Lagrange point
+ */
+int globalLagrangeIndexToRank(unsigned int index, const std::map<int, int> & rank_to_lagrange);
+
+/**
+ * Conduct integral over the STL surface; results are not dimensionalized because we do not
+ * necessarily know the contents in the usrwrk array
+ * @param[in] slot slot in usrwrk array to integrate
+ * @param[in] stl_vertices STL vertices, indexed by global index
+ * @param[in] rank_to_langrange number of points owned by each rank
+ * @param[in] n_elems number of STL elements
+ * @return integral of usrwrk slot over the STL surface
+ */
+double usrwrkSTLIntegral(unsigned int slot,
+                         const std::vector<Point> & stl_vertices,
+                         const std::map<int, int> & rank_to_lagrange,
+                         int n_elems);
+
+/**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot
  * @return value by which to multiply the usrwrk slot to go from non-dimensional form into
@@ -488,7 +554,8 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Integrate the scratch space over boundaries
+ * Integrate the scratch space over boundaries; results are not dimensionalized because we do not
+ * necessarily know the contents in the usrwrk array
  * @param[in] slot slot in scratch space
  * @param[in] boundary boundaries over which to integrate the scratch space
  * @param[in] pp_mesh portion of NekRS mesh to integrate over

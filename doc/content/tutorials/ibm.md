@@ -4,6 +4,7 @@ In this tutorial, you will learn:
 
 - The basic concepts of immersed boundary methods
 - How to build a flow simulation in NekRS using the [!ac](IBM) with no-slip and constant heat flux boundary conditions
+- How to perform [!ac](CHT) coupling of NekRS's [!ac](IBM) with MOOSE
 
 To access this tutorial,
 
@@ -188,7 +189,7 @@ area to obtain the correct units,
 \dot{q}'=\sum_l \delta Q_L(\vec{x}_L, t)\mathscr{D}(\vec{x}_g-\vec{x}_L)\Delta A_l
 \end{equation}
 
-## Geometry
+## Problem Setup
 
 This model consists of flow over a sphere with parameters summarized in [table1]. All
 quantities are given in non-dimensional form. For more information on the non-dimensional
@@ -262,10 +263,10 @@ path in the `find_package` call if your VTK version is different from 9.3.
 !listing /tutorials/ibm_sphere/udf.cmake
 
 
-## Immersed Boundary Method Algorithm
+## Algorithm
 id=alg
 
-This section describes how immersed boundary methods are implemented in NekRS. [ibm_geometry]
+This section describes how immersed boundary methods are implemented in NekRS and Cardinal. [ibm_geometry]
 shows a summary of several stages of the geometry preparation which will be described in the list below.
 
 !media ibm_geometry.png
@@ -284,6 +285,11 @@ shows a summary of several stages of the geometry preparation which will be desc
    of the NekRS mesh (more on this later).
 
 !listing /tutorials/ibm_sphere/small_sphere.stl
+
+!alert note
+Cardinal currently assumes that the STL file has unit normals specified (in contrast to some conventions
+where the right-hand rule is used to compute the unit normal, leaving the actual normal values
+unused). The unit normals in the STL file must be the actual unit normals for the object.
 
 2. Generate a "background" mesh on which the Eulerian flow solve will occur. This mesh can be
    generated using any software you like to generate meshes with. Since our flow domain is a
@@ -352,8 +358,10 @@ exo2nek
 5. Run the flow simulation! Note in the `.udf` file, you will need to specify the path to the STL file, if
    different from the one used in this tutorial.
 
-## Input Files
+## Constant Heat Flux
 
+This section will describe how to perform [!ac](IBM) simulations for constant heat flux boundary
+conditions, combined with no-slip boundary conditions on the immersed surface.
 All of the details of the immersed boundary method are housed in the `cube.udf` and `cube.oudf` files.
 There are a lot of details in these files, since the method evolved over time and in some cases there is
 more than one option for how to define a part of the algorithm (for instance, the signed distance field
@@ -361,47 +369,84 @@ can be computed using either [!ac](VTK) or Embree; different spreading operators
 
 !listing /tutorials/ibm_sphere/cube.udf language=cpp
 
+Of particular note, for the heat flux boundary condition, is the line in `cube.oudf` where `qB` is
+specified. For a constant heat flux, you can either set the value equal to 1.0 (or whatever the
+desired heat flux is), or you can allow Cardinal to set that value in the scratch space array
+for you (we use this approach in the tutorial so that we can easily re-use the same files for
+the [!ac](CHT) case later).
+
 !listing /tutorials/ibm_sphere/cube.oudf language=cpp
 
 You will note that at the top of the `.udf` file there is a `#include "ibm.hpp"`, a file
 which contains several functions used to accomplish the geometric operations for the
 IBMmethod. Copy this file into any new directory where you are running IBM simulations.
 
-The inlet boundary condition for velocity (in the `udfDirichlet` function)
-is set to a parabolic profile (this is not
-the actual fully-developed analytic profile for laminar flow in a square duct, but it's
-quick to code up and sufficient for this tutorial).
-
 The `.par` file is routine, without any unique aspects specific to the IBM setup.
 
 !listing /tutorials/ibm_sphere/cube.par
+
+If you want to run the [!ac](IBM) case via Cardinal, there are several options:
+
+- Because this is a simple constant heat flux case, you could just set `dfloat qB = 1.0;`
+  in the `.oudf` file and run NekRS in standalone mode (e.g. with `nrsmpi`).
+- You can have Cardinal pass in a constant heat flux into the usrwrk array corresponding
+  to the STL surface.
+
+For the latter, the `constant_flux.i` file will run NekRS and pass in a heat flux of 1.0
+to NekRS.
+The `stl` filename that should be used with the [NekRSMesh](NekRSMesh.md) should be
+the re-triangulated STL surface (e.g. the second image in [ibm_geometry]).
+NekRS will automatically dump this file, named `retriangulated.stl`).
+At present, Cardinal still requires something in the mesh mirror to get constructed,
+hence we specify `volume = true` in the mesh just as a dummy quantity (which will be
+built as a mirror of NekRS's volume, but is otherwise unused in any transfers).
+
+!listing /tutorials/ibm_sphere/constant_flux.i
+  block=Mesh
+
+Then, the `Problem` block will specify how to send in a constant heat flux to NekRS
+using a [NekBoundaryFlux](NekBoundaryFlux.md). There is no corresponding MOOSE application
+that actually writes this field, so we initialize it to 1.0 and specify the value of
+`initial_flux_integral_stl` to be sure it is normalized to the constant heat flux of 1.0
+that we want to obtain in this tutorial.
+
+!listing /tutorials/ibm_sphere/constant_flux.i
+  block=Problem
+
+In order to help illustrate the domain decomposition used for the STL data transfers,
+we also add an auxiliary variable, `rank`, which will be filled with the MPI rank
+owning each element with a [ProcessorIDAux](ProcessorIDAux.md).
+
+!listing /tutorials/ibm_sphere/constant_flux.i
+  start=AuxVariables
+  end=ICs
+
+All other aspects of the `constant_flux.i` input file are typical of Cardinal simulations,
+and hence are not discussed here.
 
 ### Execution and Postprocessing
 
 To run the immersed boundary simulation,
 
 ```
-mpiexec -np 10 cardinal-opt -i nek.i
+mpiexec -np 10 cardinal-opt -i constant_flux.i
 ```
 
-This will run NekRS with 10 MPI ranks. Alternatively, you could use the following to run without the
-Cardinal wrapping,
-
-```
-nrsmpi cube 10
-```
-
+This will run NekRS with 10 MPI ranks.
 To run the simulation faster, you can increase the number of ranks, or
 simply decrease the polynomial order (of course, your solution may not be as accurate).
 During the simulation and when the simulation has completed, you will have created a number of different output files:
 
-- `surface_mesh.vtk` contains a VTK representation of the original STL surface, after it has
+- `retriangulation.stl` contains a STL representation of the original STL surface, after it has
   been re-triangulated so that each surface triangle is fully contained within one NekRS
   element. For instance, [ibm_geometry] shows a comparison of the original STL file (`small_sphere.stl`)
-  with the retriangulated surface (`surface_mesh.vtk`). Area calculations are performed to ensure
+  with the retriangulated surface (`retriangulation.stl`). Area calculations are performed to ensure
   minimal distortion in the geometry after re-triangulation.
 
 - `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
+
+- `constant_flux_out.e`, which contains the auxiliary variables used to pass in the constant heat flux (`flux`)
+  and `rank`, which shows the domain decomposition of the STL triangles as well as the mesh mirror.
 
 For example, [ibm_velocity] shows the fluid velocity, pressure, and temperature on the Eulerian grid. Note that in the vicinity of the immersed surface,
 using a locally finer resolution (such as with NekNek) or a higher polynomial
@@ -412,6 +457,100 @@ overlapping meshes.
 
 !media ibm_velocity.png
   id=ibm_velocity
-  caption=Velocity, pressure, and temperature computed by NekRS's IBM solver.
+  caption=Velocity, pressure, and temperature computed by NekRS's IBM solver for polynomial order 3.
   style=width:90%;margin-left:auto;margin-right:auto
 
+For comparison, a body-fitted case is available in the `body_fitted` directory (you
+will need to download the exodus mesh file from [Box](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
+if you want to run this case yourself). [ibm_lines] shows
+the temperature, velocity, and pressure along a line in the streamwise direction for the body-fitted
+simulation in comparison to the [!ac](IBM) simulation. Polynomial and/or mesh refinement improves
+the agreement with the body-fitted reference.
+
+!media ibm_lines.png
+  id=ibm_lines
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case. The [!ac](IBM) mesh has 53760 elements and the body-fitted reference has 171704 elements and uses polynomial order 3.
+  style=width:90%;margin-left:auto;margin-right:auto
+
+As mentioned earlier, the original STL surface is re-triangulated into a new STL surface, with
+resulting triangles that are entirely local to a single element. [ibm_ranks] shows the
+MPI rank assignment to the re-triangulated STL surface (white element edges on the sphere)
+and the NekRs mesh itself (dark blue element edges in the background).
+
+!media ibm_ranks.png
+  id=ibm_ranks
+  caption=The re-triangulated STL surface results in triangles that are local to an element
+  style=width:50%;margin-left:auto;margin-right:auto
+
+
+## Conjugate Heat Transfer
+
+For [!ac](CHT), Cardinal will write into the usrwrk array the heat flux values to be applied
+at the STL Lagrangian points. In contrast to [!ac](CHT) accomplished with body-fitted methods,
+the usrwrk array is instead indexed by the STL triangles belonging to
+each rank (though Cardinal abstracts away this detail for you!).
+
+For this [!ac](CHT) case, we will again consider flow over a sphere, but in this case only
+half of the sphere ($y>0$) will be heated. This will allow us to better illustrate that the
+[!ac](CHT) solution is correct by giving a very asymmetric case which will result in non-uniform
+heat fluxes.
+
+MOOSE will solve for heat conduction in the sphere, while NekRS's [!ac](IBM) will solve for
+the flow and heat transfer in the fluid. The MOOSE input file is `main.i`. In this file,
+we build a sphere mesh, establish the heat conduction and volumetric heating terms, and
+set a Dirichlet boundary condition on the sphere surface, which will be equated to the
+NekRS temperature. The data transfers and coupling are the same as if NekRS were running
+a body-fitted simulation.
+
+!listing /tutorials/ibm_sphere/main.i
+
+NekRS's [!ac](IBM) method is then run as a sub-application in the `cht.i` file. In the mesh
+block, we provide the `stl` filename representing the re-triangulated surface (which
+NekRS will automatically dump during its initialization steps). Then, in the `Problem` block,
+we add two transfers to send heat flux to the STL surface with a [NekBoundaryFlux](NekBoundaryFlux.md)
+and to extract temperature on the STL surface with a [NekFieldVariable](NekFieldVariable.md).
+The rest of the file is fairly standard and not specific to the use of [!ac](IBM).
+
+!listing /tutorials/ibm_sphere/cht.i
+
+!alert note
+For [!ac](CHT), it is important to set the thermal conductivity of the [!ac](GLL) points
+inside the body to match the thermal conductivity of the actual solid with which they
+are transferring heat. So, take care to use the correct value of thermal conductivity in
+the `conductivity_kernel` function in the `.oudf` file.
+
+### Execution and Postprocessing
+
+To run the immersed boundary simulation with [!ac](CHT),
+
+```
+mpiexec -np 10 cardinal-opt -i main.i
+```
+
+This will run NekRS with 10 MPI ranks.
+During the simulation and when the simulation has completed, you will have created a number of different output files:
+
+- `retriangulation.stl` contains a STL representation of the original STL surface, after it has
+  been re-triangulated so that each surface triangle is fully contained within one NekRS
+  element.
+- `cube0.f*`, the NekRS field files which contain the solution on the Eulerian grid
+- `main_out.e`, which contains the MOOSE heat conduction solution
+- `main_out_nek0.e`, which contains the intermediate mesh with which NekRS exchanges data
+
+For example, [ibm_velocity_cht] shows the fluid temperature on the Eulerian grid, with the solid temperature
+on the sphere as computed by MOOSE.
+
+!media ibm_velocity_cht.png
+  id=ibm_velocity_cht
+  caption=Temperature computed by NekRS's IBM solver coupled to MOOSE heat conduction for a conjugate heat transfer case.
+  style=width:60%;margin-left:auto;margin-right:auto
+
+For comparison, a body-fitted case is available in the `body_fitted_cht` directory. [ibm_lines_cht] shows
+the temperature, velocity, and pressure along two lines in the flow for the body-fitted
+simulation in comparison to the [!ac](IBM) simulation. Polynomial and/or mesh refinement improves
+the agreement with the body-fitted reference.
+
+!media ibm_lines_cht.png
+  id=ibm_lines_cht
+  caption=Temperature, velocity, and pressure computed with the [!ac](IBM) implementation at different polynomial orders, in comparison to a reference body-fitted case along two lines through the flow.
+  style=width:90%;margin-left:auto;margin-right:auto

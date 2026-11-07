@@ -1,0 +1,25 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  startFrom = restart.fld
+  polynomialOrder = 3
+  numSteps = 20000
+  dt = 5e-3
+  writeInterval = 1000
+  scalars = temperature
+
+[FLUID PRESSURE]
+  residualTol = 1e-05
+
+[FLUID VELOCITY]
+  boundaryTypeMap = udfDirichlet,zeroNeumann, zeroNeumann, zeroDirichlet
+  residualTol = 1e-08
+  density = 1.0
+  viscosity = -50.0
+
+[SCALAR TEMPERATURE]
+  boundaryTypeMap = udfDirichlet , zeroNeumann, zeroNeumann, udfNeumann
+  residualTol = 1e-08
+  transportCoeff = 1.0
+  diffusionCoeff = -50.0
