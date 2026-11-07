@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -24,7 +24,7 @@
   [Tallies]
     [Mesh]
       type = MeshTally
-      mesh_template = '../meshes/sphere.e'
+      mesh_template = '../meshes/hex_cube.e'
       output = 'unrelaxed_tally_std_dev'
 
       normalize_by_global_tally = true

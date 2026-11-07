@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid1]
     type = SubdomainIDGenerator
@@ -10,7 +10,7 @@
   []
   [sphereb]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid2]
     type = SubdomainIDGenerator
@@ -19,7 +19,7 @@
   []
   [spherec]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid3]
     type = SubdomainIDGenerator
@@ -48,7 +48,7 @@
     [Mesh]
       type = MeshTally
       mesh_translations_file = pebble_centers.txt
-      mesh_template = '../meshes/sphere.e'
+      mesh_template = '../meshes/hex_cube.e'
 
       normalize_by_global_tally = false
     []
@@ -79,10 +79,25 @@
     variable = kappa_fission
     block = '300'
   []
+  [pebble_1_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.0'
+  []
+  [pebble_2_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 4.0'
+  []
+  [pebble_3_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 8.0'
+  []
 []
 
 [Outputs]
   execute_on = final
-  exodus = true
+  csv = true
   hide = 'temp  cell_instance cell_id'
 []
