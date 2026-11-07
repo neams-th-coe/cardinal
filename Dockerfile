@@ -1,3 +1,6 @@
+# syntax=docker/dockerfile:1
+# Needed for RUN --mount=type=bind below.
+
 # Defaults to "latest" since contrib/moose isn't fetched yet to know the
 # exact tag it needs; see the version-match RUN step below.
 ARG MOOSEDEV_TAG=latest
@@ -6,6 +9,20 @@ ARG MOOSEDEV_TAG=latest
 # very end of this file). Overridable via --build-arg for a different
 # deployment layout.
 ARG CARDINAL_PREFIX=/opt/cardinal
+
+# Cardinal's own ENABLE_* build switches, as ARGs rather than hardcoded
+# twice: the "build" stage's `make`/`make build_X` steps and the
+# "install" stage's `make install` (which re-examines the same targets
+# against a bind-mounted /cardinal -- see below) both need the exact
+# same values, or `make install` recomputes a dependency's cmake flags
+# differently than what it was actually built with and triggers a real
+# (if otherwise harmless) reconfigure attempt. A single source of truth
+# here means adding or flipping one of these later can't silently
+# desync the two stages.
+ARG ENABLE_NEK=yes
+ARG ENABLE_OPENMC=yes
+ARG ENABLE_DAGMC=yes
+ARG ENABLE_DOUBLE_DOWN=yes
 
 # A plain git clone leaves public submodules uninitialized; fetch them
 # here so users don't have to run scripts/get-dependencies.sh first.
@@ -83,8 +100,12 @@ RUN git submodule update --init --progress contrib/embree
 FROM submodules-moose AS submodules-double-down
 RUN git submodule update --init --progress contrib/double-down
 
-FROM idaholab/moose-dev:${MOOSEDEV_TAG}
+FROM idaholab/moose-dev:${MOOSEDEV_TAG} AS build
 ARG CARDINAL_PREFIX
+ARG ENABLE_NEK
+ARG ENABLE_OPENMC
+ARG ENABLE_DAGMC
+ARG ENABLE_DOUBLE_DOWN
 
 ENV HDF5_ROOT=/opt/petsc
 ENV BASH_ENV=/environment
@@ -98,8 +119,10 @@ SHELL ["/bin/bash", "-c"]
 # this, the installed binary still depends on the original build tree.
 ENV CONTRIB_INSTALL_DIR=${CARDINAL_PREFIX}
 ENV NEKRS_HOME=${CARDINAL_PREFIX}
-ENV ENABLE_DAGMC=yes
-ENV ENABLE_DOUBLE_DOWN=yes
+ENV ENABLE_NEK=${ENABLE_NEK}
+ENV ENABLE_OPENMC=${ENABLE_OPENMC}
+ENV ENABLE_DAGMC=${ENABLE_DAGMC}
+ENV ENABLE_DOUBLE_DOWN=${ENABLE_DOUBLE_DOWN}
 
 WORKDIR /cardinal
 
@@ -189,20 +212,81 @@ RUN rm -f contrib/moose/framework/contrib/hit/DOCKERFILE_PLACEHOLDER
 # it to be re-copied.
 COPY --from=submodules-moose /cardinal/contrib/moose contrib/moose
 # COPY merges rather than replaces, so this fills in Cardinal's own
-# tracked files without disturbing contrib/moose above.
-COPY . .
+# tracked files without disturbing contrib/moose above. --exclude keeps
+# .git/Dockerfile/.dockerignore (none of which are app source, but
+# .git's content differs every commit on its own) out of this layer's
+# cache key, which would otherwise force the whole compile below to
+# redo on every commit. A .dockerignore entry can't do this instead --
+# it would also hide .git from submodules-moose's own COPY .git .git,
+# which genuinely needs it.
+COPY --exclude=.git --exclude=Dockerfile --exclude=.dockerignore . .
 
 RUN make -j$(nproc)
+
+# Default build target (the last stage, and the CI workflow passes no
+# --target): just moose-dev with Cardinal's self-contained install --
+# adds ~512M rather than the ~3.2G the "build" stage above carries
+# (full submodule source, CMake build directories, .git). `docker build
+# --target build .` gets the full dev tree instead, e.g. to live-patch
+# and rebuild a single already-built dependency in place.
+FROM idaholab/moose-dev:${MOOSEDEV_TAG} AS install
+ARG CARDINAL_PREFIX
+ARG ENABLE_NEK
+ARG ENABLE_OPENMC
+ARG ENABLE_DAGMC
+ARG ENABLE_DOUBLE_DOWN
+
+ENV BASH_ENV=/environment
+SHELL ["/bin/bash", "-c"]
+
+# NEKRS_HOME is the only one of these actually read at runtime (by
+# NekRS itself, not just by Cardinal's own Makefile) -- everything the
+# RUN below passes inline is a pure Makefile/CMake build-time flag with
+# no runtime reads anywhere in the source, confirmed by grep.
+ENV NEKRS_HOME=${CARDINAL_PREFIX}
+ENV PATH=${CARDINAL_PREFIX}/bin:$PATH
 
 # The standard MOOSE/Cardinal install mechanism (see
 # https://mooseframework.inl.gov/application_development/build_system.html#make-install):
 # copies cardinal-opt and every required library into CONTRIB_INSTALL_DIR
-# (already routed to CARDINAL_PREFIX above, so NekRS/OpenMC/MOAB/DAGMC/
-# Embree/Double-Down land in the same tree rather than needing their
-# RPATHs patched after the fact -- confirmed empirically that without
-# that routing, the installed binary still depends on the original
-# /cardinal build tree existing). Also installs MOOSE's/the enabled
-# modules' data directories and Cardinal's own INSTALLABLE_DIRS test/
-# tutorial inputs. MOOSE_SKIP_DOCS avoids a hard dependency on the
+# (routed to CARDINAL_PREFIX, matching the "build" stage, so NekRS/
+# OpenMC/MOAB/DAGMC/Embree/Double-Down land in the same tree rather than
+# needing their RPATHs patched after the fact -- confirmed empirically
+# that without that routing, the installed binary still depends on the
+# original /cardinal build tree existing). Also installs MOOSE's/the
+# enabled modules' data directories and Cardinal's own INSTALLABLE_DIRS
+# test/tutorial inputs. MOOSE_SKIP_DOCS avoids a hard dependency on the
 # large_media submodule, which this image doesn't fetch.
-RUN MOOSE_SKIP_DOCS=1 make install -j$(nproc)
+#
+# /cardinal is bind-mounted, not copied, so "build" doesn't carry a
+# redundant copy of CARDINAL_PREFIX alongside the full dev tree. Needs
+# ,rw: build_embree/build_moab/etc. are .PHONY, so make install's
+# dependency chain always re-runs their recipe (`$(MAKE) -C $(BUILDDIR)
+# install`), and CMake's own generated install target unconditionally
+# writes install_manifest.txt into its build directory on every
+# invocation, not just when something actually changed. Harmless here:
+# BuildKit bind-mount writes during a RUN go to a throwaway overlay,
+# never back into "build"'s actual layers. Every ENABLE_* flag below
+# also has to match the "build" stage exactly (passed from the same
+# ARGs, not retyped here) -- otherwise make install recomputes a
+# dependency's cmake flags differently than what it was actually built
+# with and triggers a real reconfigure (confirmed separately, before
+# ,rw was added here: that reconfigure attempt failed outright against
+# a read-only mount).
+#
+# .git is mounted separately, from submodules-moose rather than build:
+# "build" deliberately excludes .git from its own COPY . . (see above),
+# but INSTALLABLE_DIRS's install_copy_inputs.sh hard-requires a real
+# `git rev-parse --show-toplevel` to resolve (unlike MooseRevision.h
+# generation, which tolerates a missing .git) -- confirmed by the
+# install failing with "fatal: not a git repository" without this.
+RUN --mount=type=bind,from=build,source=/cardinal,target=/cardinal,rw \
+    --mount=type=bind,from=submodules-moose,source=/cardinal/.git,target=/cardinal/.git \
+    cd /cardinal && \
+    CONTRIB_INSTALL_DIR=${CARDINAL_PREFIX} \
+    ENABLE_NEK=${ENABLE_NEK} \
+    ENABLE_OPENMC=${ENABLE_OPENMC} \
+    ENABLE_DAGMC=${ENABLE_DAGMC} \
+    ENABLE_DOUBLE_DOWN=${ENABLE_DOUBLE_DOWN} \
+    MOOSE_SKIP_DOCS=1 \
+    make install -j$(nproc)
