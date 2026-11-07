@@ -1301,7 +1301,13 @@ void identifyCuttingTrianglesWithIntersections()
             Point v2(isoMesh.points[face[1]][0], isoMesh.points[face[1]][1], isoMesh.points[face[1]][2]);
             Point v3(isoMesh.points[face[2]][0], isoMesh.points[face[2]][1], isoMesh.points[face[2]][2]);
 
+            // Check for degeneracy before doing any other work on this triangle
+            auto area = computeTriangleArea(v1, v2, v3);
+            if (!(area > 1e-10))   // false for NaN, so NaN triangles get skipped too
+              continue;
+
             auto integrationPoints = computeIntegrationPointsForTriangle(v1, v2, v3);
+
             auto LagrangePoints    = computeLagrangePointsForTriangle(v1, v2, v3, elementIdx / pointsPerElement);
 
             globalIntegrationPoints.insert(globalIntegrationPoints.end(), integrationPoints.begin(), integrationPoints.end());
