@@ -78,7 +78,7 @@ void uservp(double time)
   platform->options.getArgs("SCALAR" + sid + " REGULARIZATION AVM ABSOLUTE TOL", absTol);
 
   dfloat rhoD0;
-  platform->options.getArgs("SCALAR" + sid + " DIFFUSIVITY", rhoD0);
+  platform->options.getArgs("SCALAR" + sid + " DIFFUSIONCOEFF", rhoD0);
 
   auto& scalar = nrs->scalar;
 
