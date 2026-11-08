@@ -26,8 +26,8 @@
   []
   [control_dg_relaxation]
     type = CSVDiff
-    input = control_const_relax.i
-    csvdiff = control_const_relax_out.csv
+    input = control_dufek_gudowski.i
+    csvdiff = control_dufek_gudowski_out.csv
     requirement = "The system shall allow the MOOSE control system to enable/disable Dufek-Gudowski relaxation. "
                   "This test golds against the values of the relaxation factor alpha (computed from tally "
                   "fields), which are checked against manually computed values. The number of particles "
