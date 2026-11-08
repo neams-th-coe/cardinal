@@ -23,6 +23,10 @@
 
   xml_directory = './cell_tallies'
 
+  # Keep the statepoint next to this input. Left at its default, it goes next to the
+  # included input, where another test spec may be writing the same file at the same time.
+  statepoint_prefix = './'
+
   [Tallies/Cell]
     output = 'unrelaxed_tally'
   []
