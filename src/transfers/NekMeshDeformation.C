@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekMeshDeformation.h"
+#include "NekRSProblem.h"
 #include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", NekMeshDeformation);
