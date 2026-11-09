@@ -1,0 +1,1440 @@
+cmake_minimum_required(VERSION 3.21)
+project(CardinalSuperbuild NONE)
+
+# This is a *superbuild*: it never compiles Cardinal itself. It resolves and
+# builds the third-party dependencies that have their own CMake sub-build
+# (currently NekRS and OpenMC) and then hands off to Cardinal's existing,
+# unmodified Makefile to compile the app.
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR
+    "Cardinal's CMake build must be configured out-of-source, e.g.\n"
+    "  cmake -S ${CMAKE_SOURCE_DIR} -B <build-dir>")
+endif()
+
+include(ExternalProject)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(CardinalDependency)
+include(CardinalMoosePrereq)
+include(CardinalNek5000Tools)
+
+# Defines the cardinal-check-container target (every other target that has
+# no DEPENDS of its own depends on it, making it unconditionally the first
+# thing any build does) plus moose-check-container's own FATAL/warning
+# option -- see cmake/CardinalContainerChecks.cmake and
+# cmake/CardinalCheckContainer.cmake for what these catch and why.
+include(CardinalContainerChecks)
+
+# The final "hand off to make" step (below) relies on the $(MAKE) recursive-
+# invocation convention so it shares the *same* jobserver `cmake --build -jN`
+# (or plain `make -jN` in this build dir) already establishes, rather than
+# this CMakeLists.txt guessing a parallelism number of its own. That
+# convention is specific to the Makefiles generator.
+if(NOT CMAKE_GENERATOR MATCHES "Makefiles")
+  message(FATAL_ERROR
+    "Cardinal's CMake superbuild requires a Makefiles generator (got "
+    "'${CMAKE_GENERATOR}'), so its final build step can share the "
+    "invoking make's -j setting via the $(MAKE) convention.")
+endif()
+
+# -----------------------------------------------------------------------------
+# Options mirroring the Makefile's own ENABLE_* switches (Makefile:41-51)
+# -----------------------------------------------------------------------------
+option(ENABLE_NEK         "Build Cardinal with NekRS coupling"    ON)
+option(ENABLE_OPENMC      "Build Cardinal with OpenMC coupling"   ON)
+option(ENABLE_DAGMC       "Build OpenMC with DAGMC support"       OFF)
+option(ENABLE_DOUBLE_DOWN "Use Double-Down for DAGMC ray tracing" OFF)
+
+# NekRS's own OCCA device backends -- off by default, matching the
+# container build; exposed so `ccmake` can turn them on. CUDA/HIP/DPCPP
+# also pick PETSc's GPU backend if built from source (see
+# CARDINAL_BUILD_PETSC below). See doc/content/cmake_details.md for the
+# naming rationale.
+option(ENABLE_CUDA   "Build NekRS/OCCA and PETSc (if from source) with CUDA support" OFF)
+option(ENABLE_HIP    "Build NekRS/OCCA and PETSc (if from source) with HIP support" OFF)
+option(ENABLE_OPENCL "Build NekRS/OCCA with OpenCL support" OFF)
+option(ENABLE_DPCPP  "Build NekRS/OCCA and PETSc (if from source) with SYCL/DPCPP support" OFF)
+option(ENABLE_METAL  "Build NekRS/OCCA with Metal support" OFF)
+
+# Only available for an Nvidia GPU (Makefile:59-68). Matches the Makefile's
+# own "forgot to set OCCA_CUDA_ENABLED for AMGX" fixup: force CUDA on too,
+# rather than silently configuring an AMGX that can never be used.
+option(ENABLE_AMGX "Build NekRS with AMGX support" OFF)
+if(ENABLE_AMGX AND NOT ENABLE_CUDA)
+  message(STATUS "Cardinal: turning on CUDA backend because AMGX was requested")
+  set(ENABLE_CUDA ON CACHE BOOL "Build NekRS/OCCA and PETSc (if from source) with CUDA support" FORCE)
+endif()
+
+# NekRS's own bundled HYPRE builds a CUDA/HIP device variant whenever
+# ENABLE_CUDA/ENABLE_HIP is on (cmake/hypre.cmake:
+# `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR OCCA_HIP_ENABLED))`),
+# defaulting ON regardless of caller. This can fail to build against a
+# given GPU toolchain independent of anything Cardinal or this superbuild
+# controls, so expose it as its own option rather than hand-editing
+# config/nekrs.mk's CMake flags -- see doc/content/cmake_details.md for
+# known cases.
+option(ENABLE_HYPRE_GPU "Build NekRS's bundled HYPRE with GPU (CUDA/HIP) device support" ON)
+
+# Nek5000's own mesh/conversion tools (genbox, genmap, ...), documented at
+# https://nek5000.github.io/NekDoc/tools.html -- of no use without NekRS/
+# Nek5000 meshes to work with, hence defaulting to ENABLE_NEK's own value
+# rather than a fixed ON/OFF.
+option(ENABLE_NEK5000_TOOLS "Build Nek5000's own mesh tools (genbox, genmap, ...)" ${ENABLE_NEK})
+
+# Not tools/maketools' own "core" keyword (genmap, genbox, n2to3,
+# reatore2, nekmerge) -- despite needing nothing beyond a C/Fortran
+# compiler, none of those are actually used anywhere in Cardinal's own
+# docs/tutorials. exo2nek/gmsh2nek (Exodus/Gmsh -> NekRS's .re2 mesh
+# format) are the only two tools Cardinal's tutorials and doc/content/
+# nek_tools.md reference -- so that's the default here instead, even
+# though (unlike every other default in this superbuild) each of them
+# separately `wget`s a third-party source tarball during their own build
+# (maketools.inc's chk_web), needing network access, `wget`, and
+# `openssl` beyond what building them would otherwise require. Override
+# with "core", "all", or a specific space-separated tool list.
+set(NEK5000_TOOLS_LIST "exo2nek gmsh2nek" CACHE STRING "Which Nek5000 tools to build: \"core\", \"all\", or a space-separated list of tool names (see tools/maketools)")
+
+# tools/maketools' own MAXNEL: the largest number of elements a tool like
+# genbox/genmap can be compiled to handle.
+set(NEK5000_TOOLS_MAXNEL "150000" CACHE STRING "Max number of elements Nek5000's tools are compiled to handle (maketools' own MAXNEL)")
+
+# PETSc's configure_petsc.sh always builds its downloaded OpenBLAS with
+# DYNAMIC_ARCH=1 -- kernels for every x86 microarchitecture it knows
+# about (Prescott, Core2, ..., Zen, SkylakeX, ...), auto-selected at
+# runtime via CPUID. Safe on a cluster where the build host and the
+# nodes you'll actually run on might differ, but much slower to build.
+# OFF (host-only, faster) by default here -- deliberately *not* matching
+# configure_petsc.sh's own DYNAMIC_ARCH=1 default, since the common case
+# for this build (a single workstation, or a container/allocation whose
+# build and run hosts are the same machine/CPU) doesn't need it; turn ON
+# with ccmake if the build host's CPU might not be representative of
+# every node you'll run on.
+option(OPENBLAS_DYNAMIC_ARCH
+  "Build PETSc's OpenBLAS for many x86 microarchitectures (portable across mixed-CPU clusters, slower); OFF builds only for the host's own CPU" OFF)
+
+if(ENABLE_DOUBLE_DOWN AND NOT ENABLE_DAGMC)
+  message(FATAL_ERROR "ENABLE_DOUBLE_DOWN requires ENABLE_DAGMC")
+endif()
+
+# check_deps.mk silently downgrades ENABLE_DAGMC to no when ENABLE_OPENMC is
+# off (DAGMC only matters as an OpenMC geometry backend) -- fail loudly at
+# configure time instead, matching how ENABLE_DOUBLE_DOWN-without-ENABLE_
+# DAGMC is handled just above, rather than silently building nothing.
+if(ENABLE_DAGMC AND NOT ENABLE_OPENMC)
+  message(FATAL_ERROR "ENABLE_DAGMC requires ENABLE_OPENMC")
+endif()
+
+if(ENABLE_DAGMC AND NOT ENABLE_DOUBLE_DOWN)
+  message(WARNING
+    "Cardinal: building with DAGMC but without Double-Down. For mesh-based "
+    "geometries, Double-Down can yield speedups of ~100x and is highly "
+    "recommended (-DENABLE_DOUBLE_DOWN=ON).")
+endif()
+
+# Reuse CMake's own standard CMAKE_BUILD_TYPE rather than inventing a
+# separate variable -- forwarded to the six pure-CMake dependency
+# sub-builds below (nekrs/moab/embree/doubledown/dagmc/openmc).
+#
+# MOOSE/libMesh instead use their own, older METHOD concept (opt/dbg/devel/
+# prof/oprof -- framework/build.mk), set as a plain environment variable in
+# the native Makefile build; every METHOD but dbg is Release-family, so the
+# two collapse onto the same axis. Whichever interface is actually used
+# controls: CMAKE_BUILD_TYPE left unset (the default) means METHOD, read
+# fresh from the environment, controls (mirroring METHOD ?= opt);
+# CMAKE_BUILD_TYPE set explicitly (-D or ccmake) becomes a normal sticky
+# CMake setting, and a conflicting METHOD is then a configure-time error
+# instead of one silently overriding the other.
+# cmake/CardinalCheckMethod.cmake separately catches METHOD changing
+# without a reconfigure (it's otherwise frozen in at configure time). Full
+# mechanism: "CMAKE_BUILD_TYPE vs METHOD" in doc/content/cmake_details.md.
+set(CMAKE_BUILD_TYPE "" CACHE STRING "Build type forwarded to dependency CMake sub-builds (Release or Debug). Leave unset to let the METHOD environment variable control it instead, exactly as in the native Makefile build.")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Release Debug)
+
+if(CMAKE_BUILD_TYPE)
+  # Explicit CMake-native choice: sticky, cached. Validate it, then check any
+  # METHOD in the environment against it rather than letting one silently
+  # override the other.
+  if(NOT CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(FATAL_ERROR
+      "Cardinal: CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} has no corresponding "
+      "MOOSE METHOD -- use -DCMAKE_BUILD_TYPE=Release or Debug (or leave it "
+      "unset and control the build type with the METHOD environment "
+      "variable instead, as in the native Makefile build).")
+  endif()
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(_cardinal_method dbg)
+  else()
+    set(_cardinal_method opt)  # every METHOD but dbg is Release-family
+  endif()
+
+  if(DEFINED ENV{METHOD} AND NOT "$ENV{METHOD}" STREQUAL "")
+    if((CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT "$ENV{METHOD}" STREQUAL "dbg") OR
+       (NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND "$ENV{METHOD}" STREQUAL "dbg"))
+      message(FATAL_ERROR
+        "Cardinal: METHOD=$ENV{METHOD} in the environment conflicts with the "
+        "cached -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}. Cardinal's own "
+        "Makefile treats METHOD=dbg as matching CMAKE_BUILD_TYPE=Debug, and "
+        "every other METHOD (opt, devel, prof, oprof) as matching "
+        "CMAKE_BUILD_TYPE=Release -- those are the only valid pairs. Either "
+        "match them (unset METHOD, or export a METHOD that corresponds to "
+        "${CMAKE_BUILD_TYPE}), or run 'cmake -UCMAKE_BUILD_TYPE <build-dir>' "
+        "to uncache CMAKE_BUILD_TYPE and let METHOD control it again.")
+    endif()
+    # Consistent with the cached CMAKE_BUILD_TYPE (e.g. devel/prof/oprof
+    # under a cached Release) -- use it as given rather than collapsing to
+    # the opt/dbg default picked above.
+    set(_cardinal_method "$ENV{METHOD}")
+  endif()
+else()
+  # Never explicitly set -- METHOD (environment variable, unforced) controls,
+  # exactly like framework/build.mk's own METHOD ?= opt.
+  if(DEFINED ENV{METHOD} AND NOT "$ENV{METHOD}" STREQUAL "")
+    set(_cardinal_method "$ENV{METHOD}")
+  else()
+    set(_cardinal_method opt)
+  endif()
+
+  # Plain set, not CACHE FORCE -- same reasoning as the LIBMESH_DIR/
+  # PETSC_DIR/WASP_DIR note below: force-writing this would make the next
+  # reconfigure see CMAKE_BUILD_TYPE as though the user had explicitly
+  # chosen it, permanently flipping into the "sticky, cached" branch above
+  # even after METHOD changes or is unset again.
+  if(_cardinal_method STREQUAL "dbg")
+    set(CMAKE_BUILD_TYPE Debug)
+  else()
+    set(CMAKE_BUILD_TYPE Release)
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
+# Layout
+#
+# Everything -- mirrored app source, contrib/<dep>, build/<dep>, install/ --
+# lives directly in the CMake build tree, so the result of a CMake build
+# looks like the result of an in-tree Makefile build (cardinal-opt, lib/,
+# src/, ... right at the top), not nested inside an extra subdirectory. The
+# one real collision this creates is Cardinal's own hand-written top-level
+# Makefile against CMake's own generated one of the same name; mirror_source
+# (below) resolves that by mirroring everything else normally but copying
+# Makefile itself under a different name (Makefile.cardinal), and the final
+# "cardinal" target invokes that explicitly via `$(MAKE) -f Makefile.cardinal`.
+# -----------------------------------------------------------------------------
+set(CARDINAL_STAGE_DIR   ${CMAKE_BINARY_DIR})
+
+# CARDINAL_INSTALL_DIR is nekRS/OpenMC/MOAB/Embree/double-down/DAGMC/
+# nuclear_data's shared install prefix -- but deliberately a *fixed*,
+# build-tree-local path, not CMAKE_INSTALL_PREFIX, and not user-facing at
+# all. Every one of those dependencies forwards it as their own
+# ExternalProject_Add -DCMAKE_INSTALL_PREFIX=..., which becomes part of
+# their CONFIGURE_COMMAND -- and ExternalProject_Add stamps/reconfigures
+# based on a hash of that whole command. If this tracked CMAKE_INSTALL_
+# PREFIX instead, changing where the user wants the *final* result to end
+# up (e.g. via ccmake) would silently change every dependency's own
+# CMAKE_ARGS too, forcing a full reconfigure+rebuild of all of them just
+# to relocate an already-good build -- exactly the "changing the install
+# directory makes the build go stale" trap CMAKE_INSTALL_PREFIX is meant
+# to avoid (a real, plain CMake install prefix is never consulted at
+# build time, only at `cmake --install`/`--target install` time). See
+# "Installing the app itself" below for how CMAKE_INSTALL_PREFIX (the
+# real, user-facing, ccmake-editable prefix -- left alone during the
+# ordinary build, exactly like any other CMake project) is actually used:
+# only as the *destination* of a copy of this staging tree, done once,
+# on demand, at install time.
+set(CARDINAL_INSTALL_DIR ${CARDINAL_STAGE_DIR}/install)
+
+# Mirror everything except the large, separately-managed submodules and
+# CMake/Make build byproducts, via CardinalMirrorSource.cmake -- see that
+# file for the exclude list and the full rationale behind it (including
+# why the list is computed fresh on every invocation rather than fixed at
+# configure time, and why a native Makefile build run in this same
+# checkout doesn't get mirrored on top of this build). Reruns every build
+# (add_custom_target has no tracked OUTPUT, so it's always considered out
+# of date) -- the same role as the manual `rsync -a` in SYNC_tmp/
+# SYNC_nvme, but automatic.
+#
+# unit/Makefile.unit is copied as an ordinary mirror_source build step,
+# same as Makefile.cardinal (below) -- it's real Cardinal source, so a
+# locally-edited unit/Makefile (or a fresh `git pull` picking up an
+# upstream change to it) should be picked up on the next build like any
+# other source file, not just on the next `cmake` reconfigure. This is
+# safe even though it's a build- rather than configure-time step
+# specifically because "cardinal-unit" DEPENDS the same dependency list
+# "cardinal" does (below), which includes mirror_source -- so CMake's own
+# dependency graph guarantees mirror_source has completed, and
+# unit/Makefile.unit already exists, before anything ever tries to
+# actually invoke it.
+#
+# cmake/UnitMakefile (the forwarder placed at unit/Makefile) is different:
+# unlike unit/Makefile.unit, it's *this superbuild's own* file (same
+# category as CMakeLists.txt/cmake/ itself, excluded from the mirror just
+# above for the same reason), entirely static -- it carries no
+# configuration-specific content at all, just a fixed forwarding recipe --
+# so there's no "picks up an upstream edit" reason for it to wait for a
+# build step, and configure_file(COPYONLY) (right after this target)
+# writes it immediately at `cmake` configure time instead, same idea as
+# Makefile.cardinal/Makefile.unit but without needing to wait on
+# mirror_source at all.
+add_custom_target(mirror_source ALL
+  COMMAND ${CMAKE_COMMAND}
+          -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+          -DDEST_DIR=${CARDINAL_STAGE_DIR}
+          -DENABLE_NEK=${ENABLE_NEK}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalMirrorSource.cmake
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_SOURCE_DIR}/Makefile ${CARDINAL_STAGE_DIR}/Makefile.cardinal
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          ${CARDINAL_STAGE_DIR}/unit
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${CMAKE_SOURCE_DIR}/unit/Makefile ${CARDINAL_STAGE_DIR}/unit/Makefile.unit
+  DEPENDS cardinal-check-container
+  COMMENT "Mirroring Cardinal source into the build tree"
+  VERBATIM)
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/UnitMakefile
+                ${CARDINAL_STAGE_DIR}/unit/Makefile
+                COPYONLY)
+
+# -----------------------------------------------------------------------------
+# MOOSE (framework + modules) -- always required. Not a CMake project (MOOSE
+# has its own, separate CMake port in progress upstream, which this
+# deliberately does not depend on), so its source is resolved with NO_BUILD:
+# Cardinal's own Makefile compiles it directly, exactly as it does today.
+#
+# Split into moose-add (the actual fetch) and moose-check-container (the
+# versioner.yaml check below, which needs moose-add's source but nothing
+# built) so the check doesn't block on anything beyond that fetch -- "moose"
+# itself is just their aggregate, kept as the name every other target below
+# already DEPENDS on, so both come along for free without touching those.
+# -----------------------------------------------------------------------------
+cardinal_add_submodule_dependency(moose-add
+  SUBMODULE_PATH contrib/moose
+  SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moose
+  BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moose
+  INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+  MARKER_FILE     .git
+  DEPENDS         cardinal-check-container
+  NO_BUILD
+  NO_GIT_SUBMODULES)
+
+# Version-pin check: is contrib/moose's own versioner.yaml (now fetched by
+# moose-add) satisfied by the running container? See
+# cmake/CardinalCheckMooseVersion.cmake for the full story, and
+# cardinal-check-container (above) for the *other*, unrelated container
+# check every target -- this one included, via moose-add -- also depends on.
+#
+# Its own standalone add_custom_target (no OUTPUT/BYPRODUCTS), same reason
+# as cardinal-check-container above: that's what makes it genuinely
+# always-run, not just run-once. Every dependency target below whose own
+# configure or build could itself fail confusingly under the wrong
+# container -- petsc/libmesh/wasp (when built from source), nekrs, moab,
+# embree, doubledown, dagmc, openmc -- DEPENDS on "moose" (directly, or
+# transitively through another of these), so this check is reported clearly
+# *before* any of those get a chance to fail on their own with something
+# unrelated-looking (found live: an older container's different VTK layout
+# made OpenMC's own configure fail with "Imported target ... includes
+# non-existent path .../vtk-9.7", well before this check -- back when it
+# only ran as part of the final `cardinal` target's own recipe -- ever got a
+# chance to run).
+add_custom_target(moose-check-container
+  COMMAND ${CMAKE_COMMAND} -DMOOSE_DIR=${CARDINAL_STAGE_DIR}/contrib/moose
+          -DCONTAINER_VERSION_CHECK_FATAL=${CONTAINER_VERSION_CHECK_FATAL}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMooseVersion.cmake
+  DEPENDS moose-add
+  COMMENT "Cardinal: checking container against contrib/moose's versioner.yaml"
+  VERBATIM)
+
+add_custom_target(moose DEPENDS moose-add moose-check-container)
+
+# -----------------------------------------------------------------------------
+# WASP/libMesh/PETSc: each independently either a pre-built install or built
+# from source via MOOSE's own scripts -- never touches MOOSE's own build
+# system beyond invoking these scripts exactly as BUILD/SETENV already
+# document.
+#
+# The three are independent except for one real constraint: a pre-built
+# LIBMESH_DIR was compiled against some specific PETSc, and there's no way
+# to discover which one from LIBMESH_DIR alone -- so LIBMESH_DIR requires
+# PETSC_DIR to also be given. WASP has no build or link dependency on either
+# of the other two (it's a standalone CMake+Ninja tool), so it's fully
+# independent; e.g. PETSC_DIR alone can be given (a system/module-provided
+# PETSc -- by far the slowest, most painful of the three to build from
+# source) while libMesh and WASP are still built from scratch.
+# -----------------------------------------------------------------------------
+set(WASP_DIR    "$ENV{WASP_DIR}"    CACHE PATH "Top-level WASP install (leave unset to build from source)")
+set(LIBMESH_DIR "$ENV{LIBMESH_DIR}" CACHE PATH "Top-level libMesh install (leave unset to build from source; requires PETSC_DIR also set)")
+set(PETSC_DIR   "$ENV{PETSC_DIR}"   CACHE PATH "Top-level PETSc install (leave unset to build from source)")
+set(HDF5_ROOT   "$ENV{HDF5_ROOT}"   CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)")
+
+if(LIBMESH_DIR AND NOT PETSC_DIR)
+  message(FATAL_ERROR
+    "Cardinal: LIBMESH_DIR is set but PETSC_DIR is not -- a pre-built "
+    "libMesh was compiled against some specific PETSc, and there's no way "
+    "to discover which one from LIBMESH_DIR alone. Set PETSC_DIR too.")
+endif()
+
+if(NOT PETSC_DIR)
+  set(CARDINAL_BUILD_PETSC TRUE)
+else()
+  set(CARDINAL_BUILD_PETSC FALSE)
+endif()
+if(NOT LIBMESH_DIR)
+  set(CARDINAL_BUILD_LIBMESH TRUE)
+else()
+  set(CARDINAL_BUILD_LIBMESH FALSE)
+endif()
+if(NOT WASP_DIR)
+  set(CARDINAL_BUILD_WASP TRUE)
+else()
+  set(CARDINAL_BUILD_WASP FALSE)
+endif()
+
+# Compiler discovery: if libMesh is pre-built, ask it directly (most
+# authoritative -- this is the same toolchain MOOSE/Cardinal itself needs to
+# use). Otherwise, libMesh doesn't exist yet so there's no chicken-and-egg
+# trick available -- ask CMake's own FindMPI to resolve the real MPI
+# compiler wrappers instead (see below). Trust that the user knows what
+# they're doing if PETSC_DIR is externally provided (e.g. a module load
+# already implies a compatible compiler) rather than trying to
+# reverse-engineer PETSc's own build.
+if(NOT CARDINAL_BUILD_LIBMESH)
+  if(NOT EXISTS ${LIBMESH_DIR}/bin/libmesh-config)
+    message(FATAL_ERROR "Could not find ${LIBMESH_DIR}/bin/libmesh-config -- is LIBMESH_DIR (${LIBMESH_DIR}) correct?")
+  endif()
+
+  # The Makefile normally derives this deep inside framework/build.mk,
+  # which only runs once `make` starts -- too late for our ExternalProject
+  # configure steps, which need it up front.
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cc
+    OUTPUT_VARIABLE LIBMESH_CC OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --cxx
+    OUTPUT_VARIABLE LIBMESH_CXX OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LIBMESH_DIR}/bin/libmesh-config --fc
+    OUTPUT_VARIABLE LIBMESH_FC OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  foreach(_c LIBMESH_CC LIBMESH_CXX LIBMESH_FC)
+    if(NOT ${_c})
+      message(FATAL_ERROR "libmesh-config did not report a compiler for ${_c}")
+    endif()
+  endforeach()
+
+  message(STATUS "Cardinal: compilers from libmesh-config -- CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
+else()
+  # Don't just trust CC/CXX/FC from the environment: it's easy to end up
+  # with a plain, non-MPI-aware one completely by accident (e.g. an HPC
+  # "compiler" module -- loaded for some unrelated reason, or left over
+  # from a previous session -- exporting its own CC=gcc as a generic
+  # convenience hint that has nothing to do with MPI). PETSc's/libMesh's
+  # own configure both require an MPI compiler; a wrong one doesn't fail
+  # here, it sails through and only blows up several minutes into one of
+  # those, with a message about that symptom rather than the actual cause
+  # -- see doc/content/hpc_build_run_tips.md's own `export CC=mpicc` /
+  # `CXX=mpicxx` / `FC=mpif90`, needed for exactly the same reason (and
+  # with exactly the same "depends on which modules happen to be loaded"
+  # unpredictability) in the old Make-based build.
+  #
+  # CMake's own FindMPI module already does this detection robustly and
+  # portably -- including cases a hand-rolled check wouldn't get right,
+  # e.g. Cray's cc/CC/ftn wrappers, which are already MPI-capable with no
+  # separate mpicc/mpicxx/mpif90 to find. Enabling the languages first
+  # means FindMPI can tell a plain CC=gcc apart from an actual MPI
+  # compiler and search PATH for mpicc/mpicxx/mpif90 on its own, rather
+  # than the CMakeLists.txt itself taking CC/CXX/FC at face value.
+  enable_language(C CXX Fortran)
+  find_package(MPI REQUIRED COMPONENTS C CXX Fortran)
+  set(LIBMESH_CC  ${MPI_C_COMPILER})
+  set(LIBMESH_CXX ${MPI_CXX_COMPILER})
+  set(LIBMESH_FC  ${MPI_Fortran_COMPILER})
+
+  message(STATUS "Cardinal: building libMesh with CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}")
+endif()
+
+# Cardinal's own Makefile (Makefile:322-324: LIBMESH_CC_LIST := $(subst
+# $(space),;,$(libmesh_CC)), etc) converts these to a semicolon-separated
+# CMake list before handing them to any CMake-based dependency's own
+# configure as CMAKE_C_COMPILER/CMAKE_CXX_COMPILER/CMAKE_Fortran_COMPILER.
+# CMake accepts a semicolon-list value for these variables, treating
+# entries after the first as required compiler arguments -- a bare string
+# with embedded spaces (e.g. a compiler wrapper reported as "ccache
+# mpicc", or a compound CC/CXX/FC override) would otherwise be misread as
+# a single, invalid executable path. Only used for CMAKE_ARGS below, not
+# for OCCA_CXX or the plain CC/CXX/FC exports to the PETSc/libMesh/WASP
+# scripts further down -- config/nekrs.mk's own -DOCCA_CXX and Makefile:
+# 262-264's own `export CC := ...` etc likewise pass these raw,
+# unconverted. $<SEMICOLON>, not a literal ';': the result is itself one
+# CMAKE_ARGS list entry threaded through ExternalProject_Add -- a literal
+# ';' here would instead split it into two separate CMAKE_ARGS entries
+# (see the CMAKE_INSTALL_RPATH note in the MOAB block below for the same
+# issue).
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_CC_LIST  "${LIBMESH_CC}")
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_CXX_LIST "${LIBMESH_CXX}")
+string(REPLACE " " "$<SEMICOLON>" LIBMESH_FC_LIST  "${LIBMESH_FC}")
+
+if(CARDINAL_BUILD_PETSC OR CARDINAL_BUILD_LIBMESH OR CARDINAL_BUILD_WASP)
+  set(_moose_dir     ${CARDINAL_STAGE_DIR}/contrib/moose)
+  set(_moose_scripts ${_moose_dir}/scripts)
+
+  # These scripts call `make -jN` with an explicit numeric N internally, not
+  # $(MAKE) -- an explicit -jN on a recursive make always starts its own
+  # independent job pool rather than joining an inherited jobserver (the
+  # same mechanism behind the earlier "-j128 forced in submake" surprise,
+  # generalized). Since we won't patch MOOSE's scripts, there's no way to
+  # make them jobserver-aware, so some concrete number is unavoidable here
+  # (unlike the final "cardinal" step below, which shares cmake --build's
+  # own jobserver and so never needs to guess). Defaults from CMake's own
+  # standard CMAKE_BUILD_PARALLEL_LEVEL env var if that's set at configure
+  # time (note it's only read once, at configure time -- a later
+  # `cmake --build -jN` with a different N won't retroactively change
+  # this); if that's not set either, see the min(available cores, 16)
+  # default below.
+  set(MOOSE_BUILD_PARALLELISM "$ENV{CMAKE_BUILD_PARALLEL_LEVEL}" CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment, else min(available cores, 16).")
+  if(NOT MOOSE_BUILD_PARALLELISM)
+    # Unlike the final "cardinal" build step (which shares cmake --build's
+    # own jobserver via $(MAKE) and so must never guess a number), these
+    # scripts genuinely can't share that jobserver -- some concrete number
+    # is unavoidable. Default to something reasonable (capped at 16 so an
+    # unattended default doesn't grab an entire shared/login-node machine)
+    # rather than hard-failing; it's just a CACHE STRING, so -DMOOSE_BUILD_
+    # PARALLELISM=<N> or editing it directly in ccmake overrides it same as
+    # any other cache variable.
+    cmake_host_system_information(RESULT _ncpu QUERY NUMBER_OF_LOGICAL_CORES)
+    if(_ncpu GREATER 16)
+      set(_default_moose_build_parallelism 16)
+    else()
+      set(_default_moose_build_parallelism ${_ncpu})
+    endif()
+    set(MOOSE_BUILD_PARALLELISM ${_default_moose_build_parallelism} CACHE STRING "Parallel jobs (-j) for building PETSc/libMesh/WASP from source. Defaults from CMAKE_BUILD_PARALLEL_LEVEL if set in the environment, else min(available cores, 16)." FORCE)
+    message(WARNING
+      "Cardinal: MOOSE_BUILD_PARALLELISM not set (nor CMAKE_BUILD_PARALLEL_LEVEL "
+      "in the environment) -- defaulting to ${MOOSE_BUILD_PARALLELISM} "
+      "(min(available cores, 16)); these scripts can't share cmake --build's "
+      "own -j. Set -DMOOSE_BUILD_PARALLELISM=<N> (or edit it in ccmake) to "
+      "override.")
+  endif()
+
+  # Escape hatches for anything not already exposed as its own CMake option
+  # above (ENABLE_CUDA/ENABLE_HIP/..., OPENBLAS_DYNAMIC_ARCH, etc) -- forwarded
+  # verbatim, after our own hard-coded args, to each script's underlying
+  # configure (PETSc's own `configure`, libMesh's `configure`, WASP's `cmake`;
+  # all three already accept and forward arbitrary extra arguments this way).
+  # Since PETSc's/libMesh's configure treat repeated --key=value options as
+  # last-one-wins, anything set here can also override one of our hard-coded
+  # args below rather than just add to them.
+  set(PETSC_SCRIPT_ARGS   "" CACHE STRING "Extra arguments appended to update_and_rebuild_petsc.sh's full (non-\"--fast\") configure run.")
+  set(LIBMESH_SCRIPT_ARGS "" CACHE STRING "Extra arguments appended to update_and_rebuild_libmesh.sh's full (non-\"--fast\") configure run.")
+  set(WASP_SCRIPT_ARGS    "" CACHE STRING "Extra arguments appended to update_and_rebuild_wasp.sh's full (non-\"--fast\") configure run.")
+  separate_arguments(PETSC_SCRIPT_ARGS)
+  separate_arguments(LIBMESH_SCRIPT_ARGS)
+  separate_arguments(WASP_SCRIPT_ARGS)
+
+  # These scripts' CONFIGURE_COMMAND/BUILD_COMMAND run as a plain custom
+  # command (bash ${DEP_SCRIPT}, not the literal $(MAKE) token), so they
+  # never get CMake's special jobserver-fd-preserving recipe treatment --
+  # the inherited MAKEFLAGS text (e.g. "-j16 --jobserver-auth=3,4") still
+  # leaks into their environment, but fds 3/4 no longer point at the real
+  # jobserver pipe by the time it reaches them. PETSc's own libs rule
+  # (lib/petsc/conf/rules_doc.mk) sees that stale "-j" in MAKEFLAGS,
+  # assumes a real jobserver is already handing out tokens, and
+  # deliberately adds none of its own -- silently building one file at a
+  # time. Overriding MAKEFLAGS here to a clean "-jN" (no jobserver-auth
+  # reference) makes GNU Make bootstrap its own fresh, working jobserver
+  # for the invocation instead of trusting the broken inherited fds.
+  set(_moose_makeflags MAKEFLAGS=-j${MOOSE_BUILD_PARALLELISM})
+
+  if(CARDINAL_BUILD_PETSC)
+    set(PETSC_ARCH "arch-moose" CACHE STRING "PETSc build arch (matches update_and_rebuild_petsc.sh/Makefile's own default)")
+    # Matches what the script installs to by default (Makefile:73-75) --
+    # PETSc installs in place at $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX set).
+    # Plain set, not CACHE FORCE -- see the note at the end of this block.
+    set(PETSC_DIR ${_moose_dir}/petsc)
+
+    # configure_petsc.sh hardcodes --download-openblas-make-options=
+    # 'DYNAMIC_ARCH=1'; PETSc's own configure treats repeated --key=value
+    # options as last-one-wins, and update_and_rebuild_petsc.sh appends our
+    # SCRIPT_ARGS after its own hardcoded options, so this cleanly
+    # overrides it without touching the MOOSE script.
+    if(OPENBLAS_DYNAMIC_ARCH)
+      set(_petsc_openblas_dynamic_arch 1)
+    else()
+      set(_petsc_openblas_dynamic_arch 0)
+    endif()
+
+    # Same story as OCCA/HYPRE elsewhere, but for PETSc's own
+    # --download-kokkos/--download-kokkos-kernels: configure_petsc.sh never
+    # says --with-cuda or --with-hip either way, so PETSc's configure
+    # auto-detects whatever CUDA/HIP toolkit happens to be on this host and
+    # silently builds GPU-enabled Kokkos. Tie this to the same ENABLE_CUDA/
+    # ENABLE_HIP toggles used for NekRS/OCCA, so one ccmake switch controls
+    # GPU support consistently across the whole from-source build.
+    if(ENABLE_CUDA)
+      set(_petsc_with_cuda 1)
+    else()
+      set(_petsc_with_cuda 0)
+    endif()
+    if(ENABLE_HIP)
+      set(_petsc_with_hip 1)
+    else()
+      set(_petsc_with_hip 0)
+    endif()
+    if(ENABLE_DPCPP)
+      set(_petsc_with_sycl 1)
+    else()
+      set(_petsc_with_sycl 0)
+    endif()
+
+    cardinal_add_moose_prereq(petsc
+      SCRIPT      ${_moose_scripts}/update_and_rebuild_petsc.sh
+      SOURCE_DIR  ${_moose_dir}/petsc
+      ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+                  PETSC_ARCH=${PETSC_ARCH}
+                  MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
+                  ${_moose_makeflags}
+      SCRIPT_ARGS --download-openblas-make-options=DYNAMIC_ARCH=${_petsc_openblas_dynamic_arch}
+                  --with-cuda=${_petsc_with_cuda}
+                  --with-hip=${_petsc_with_hip}
+                  --with-sycl=${_petsc_with_sycl}
+                  ${PETSC_SCRIPT_ARGS}
+      DEPENDS     moose cardinal-check-container)
+  endif()
+
+  if(CARDINAL_BUILD_LIBMESH)
+    set(_libmesh_depends moose cardinal-check-container)
+    if(CARDINAL_BUILD_PETSC)
+      list(APPEND _libmesh_depends petsc)
+    endif()
+
+    # HPC login nodes commonly lack libtirpc-devel (no rpc/xdr.h) -- unlike
+    # the container image, which bundles it. libMesh's configure hard-fails
+    # on that ("XDR was not found, but --enable-xdr-required was
+    # specified.") since update_and_rebuild_libmesh.sh always passes
+    # --enable-xdr-required by default. doc/content/hpc_build_run_tips.md
+    # documents the fix: build with XDR (legacy binary I/O; Cardinal
+    # normally uses Exodus) disabled outright via these two flags.
+    cardinal_add_moose_prereq(libmesh
+      SCRIPT      ${_moose_scripts}/update_and_rebuild_libmesh.sh
+      SOURCE_DIR  ${_moose_dir}/libmesh
+      ENV         CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+                  PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH}
+                  METHOD=${_cardinal_method}
+                  MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
+                  ${_moose_makeflags}
+      SCRIPT_ARGS --disable-xdr-required --disable-xdr
+                  ${LIBMESH_SCRIPT_ARGS}
+      DEPENDS     ${_libmesh_depends})
+
+    # Plain set, not CACHE FORCE -- see the note below.
+    set(LIBMESH_DIR ${_moose_dir}/libmesh/installed)
+  endif()
+
+  if(CARDINAL_BUILD_WASP)
+    cardinal_add_moose_prereq(wasp
+      SCRIPT     ${_moose_scripts}/update_and_rebuild_wasp.sh
+      SOURCE_DIR ${_moose_dir}/framework/contrib/wasp
+      ENV        CC=${LIBMESH_CC} CXX=${LIBMESH_CXX} FC=${LIBMESH_FC}
+                 MOOSE_JOBS=${MOOSE_BUILD_PARALLELISM}
+                 ${_moose_makeflags}
+      SCRIPT_ARGS ${WASP_SCRIPT_ARGS}
+      DEPENDS    moose cardinal-check-container)
+
+    # Plain set, not CACHE FORCE -- see the note below.
+    set(WASP_DIR ${_moose_dir}/framework/contrib/wasp/install)
+  endif()
+
+  # petsc's and wasp's *configure* steps (the full, non-`--fast` script) each
+  # run `git submodule update --init --recursive <path>` against the same
+  # shared MOOSE_DIR checkout. With no ordering between the two,
+  # ExternalProject can start both configure steps at once when we're
+  # building both from source -- and they race on MOOSE_DIR/.git/config:
+  #   error: could not lock config file .git/config: File exists
+  #   fatal: Failed to register url for submodule path 'framework/contrib/wasp'
+  # Serialize just the configure steps (not the whole build) so PETSc's slow
+  # build can still overlap with WASP's much faster one once both
+  # submodules are fetched.
+  if(CARDINAL_BUILD_PETSC AND CARDINAL_BUILD_WASP)
+    add_dependencies(wasp-configure petsc-configure)
+  endif()
+
+  # PETSC_DIR/LIBMESH_DIR/WASP_DIR (whichever were computed above)
+  # deliberately stay plain (non-cache) local overrides, not written back
+  # with CACHE ... FORCE: the empty-vs-set state of each in the cache is
+  # exactly what this whole section keys off of. Force-writing one would
+  # make a from-source build look like a pre-built install was given for
+  # it on the *next* reconfigure, permanently flipping it to "pre-built"
+  # (and failing, since nothing was actually installed at that computed
+  # path as a genuine pre-built install).
+endif()
+
+# HDF5_ROOT: derived from PETSC_DIR either way, but the layout differs -- our
+# own from-source PETSc uses $PETSC_DIR/$PETSC_ARCH (no PETSC_PREFIX set),
+# while an externally-provided PETSC_DIR is a flat, complete prefix with no
+# arch subdirectory (matching how libMesh's own configure treats PETSC_DIR
+# when PETSC_ARCH is left unset). FORCE it into the cache so ccmake shows the
+# value actually in use; safe here (unlike PETSC_DIR/LIBMESH_DIR/WASP_DIR
+# above) since nothing branches on whether HDF5_ROOT itself was user-set vs.
+# derived.
+#
+# Deliberately placed *outside* (after) the CARDINAL_BUILD_PETSC/LIBMESH/WASP
+# block above, not inside it: this used to live inside that block, which
+# meant it silently never ran at all -- HDF5_ROOT stayed permanently empty in
+# the cache -- whenever PETSc/libMesh/WASP were all pre-built (i.e. the
+# common container case, where that whole block is skipped). MOAB's and
+# OpenMC's own CMAKE_ARGS forward this value explicitly regardless (so their
+# own sub-builds were never affected), but nothing forwarded the *computed*
+# value on to Cardinal's own native Makefile step -- it fell back to
+# whatever HDF5_ROOT happened to already be in the ambient shell environment
+# invoking `cmake --build`/`make`, silently wrong (or empty) if the user
+# hadn't separately exported it themselves. Found live: a user reported
+# needing to export HDF5_ROOT manually for it to "make it to the moose
+# sub-dependencies" despite this superbuild computing it correctly.
+if(NOT HDF5_ROOT)
+  if(CARDINAL_BUILD_PETSC)
+    set(HDF5_ROOT ${PETSC_DIR}/${PETSC_ARCH} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
+  else()
+    set(HDF5_ROOT ${PETSC_DIR} CACHE PATH "Top-level HDF5 install (default: derived from PETSC_DIR)" FORCE)
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
+# nuclear_data -- required whenever ENABLE_OPENMC is on (check_deps.mk); just
+# a header (ADDITIONAL_INCLUDES in the Makefile), not a CMake project.
+# -----------------------------------------------------------------------------
+if(ENABLE_OPENMC)
+  cardinal_add_submodule_dependency(nuclear_data
+    SUBMODULE_PATH contrib/nuclear_data
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nuclear_data
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nuclear_data
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    MARKER_FILE     .git
+    DEPENDS         cardinal-check-container
+    NO_BUILD
+    NO_GIT_SUBMODULES)
+endif()
+
+# -----------------------------------------------------------------------------
+# NekRS (config/nekrs.mk)
+# -----------------------------------------------------------------------------
+
+# Same names, meanings, and defaults as config/nekrs.mk's own
+# NEKRS_CFLAGS/CXXFLAGS/FFLAGS/NEK5000_PPLIST and OCCA_CXXFLAGS
+# (config/nekrs.mk:2-6) -- real CACHE options here rather than hardcoded,
+# since that file's own comment ("These have the same names and meanings
+# as in makenrs") already marks them as user-tunable, not fixed constants.
+set(NEKRS_CFLAGS   "" CACHE STRING "Extra CMAKE_C_FLAGS for NekRS's own CMake build")
+set(NEKRS_CXXFLAGS "" CACHE STRING "Extra CMAKE_CXX_FLAGS for NekRS's own CMake build")
+set(NEKRS_FFLAGS   "" CACHE STRING "Extra CMAKE_Fortran_FLAGS for NekRS's own CMake build")
+set(NEKRS_NEK5000_PPLIST "PARRSB DPROCMAP" CACHE STRING "NekRS's own NEK5000_PPLIST")
+set(OCCA_CXXFLAGS "-O2 -ftree-vectorize -funroll-loops -march=native -mtune=native"
+  CACHE STRING "Compiler flags OCCA uses to JIT-compile its own CPU kernels at runtime (a NekRS build-time setting only in the sense that it's baked into the installed nekrs.conf; OCCA itself reads it fresh from the environment at every kernel compile)")
+
+if(ENABLE_NEK)
+  # NekRS's own CMakeLists.txt defaults some of its own OCCA_ENABLE_*
+  # cache variables to ON regardless of caller -- OCCA_ENABLE_CUDA/HIP/
+  # DPCPP, via set(... CACHE BOOL ...) (CMakeLists.txt:143-145;
+  # OCCA_ENABLE_OPENCL/METAL default OFF there already, :146-147). On a
+  # bare HPC host with GPU toolkits present (unlike the container, which
+  # has neither) that silently builds OCCA's CUDA/HIP backends -- and,
+  # transitively, nekRS's own bundled device-enabled HYPRE
+  # (cmake/hypre.cmake: `if(ENABLE_HYPRE_GPU AND (OCCA_CUDA_ENABLED OR
+  # OCCA_HIP_ENABLED))`) -- even if that's not what was asked for. Forward
+  # our own ENABLE_CUDA/HIP/OPENCL/DPCPP/METAL cache variables (default
+  # OFF, toggle with ccmake) directly as OCCA's own cache variables so a
+  # plain set(... CACHE ...) can't turn them back on (that never overwrites
+  # a cache entry that already exists, and -D on the command line always
+  # creates/wins one first).
+  cardinal_add_submodule_dependency(nekrs
+    SUBMODULE_PATH contrib/nekRS
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/nekRS
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nekrs
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         cardinal-check-container
+    CMAKE_ARGS
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+      # Passed explicitly (default empty), not left unset: unset would let
+      # CMake fall back to any ambient CFLAGS/CXXFLAGS/FFLAGS in the
+      # environment, which the Makefile build never picks up here either.
+      "-DCMAKE_C_FLAGS=${NEKRS_CFLAGS}"
+      "-DCMAKE_CXX_FLAGS=${NEKRS_CXXFLAGS}"
+      "-DCMAKE_Fortran_FLAGS=${NEKRS_FFLAGS}"
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_INSTALL_MESSAGE=LAZY
+      "-DNEK5000_PPLIST=${NEKRS_NEK5000_PPLIST}"
+      -DOCCA_CXX=${LIBMESH_CC}
+      "-DOCCA_CXXFLAGS=${OCCA_CXXFLAGS}"
+      -DENABLE_AMGX=${ENABLE_AMGX}
+      -DENABLE_HYPRE_GPU=${ENABLE_HYPRE_GPU}
+      -DOCCA_ENABLE_CUDA=${ENABLE_CUDA}
+      -DOCCA_ENABLE_HIP=${ENABLE_HIP}
+      -DOCCA_ENABLE_OPENCL=${ENABLE_OPENCL}
+      -DOCCA_ENABLE_DPCPP=${ENABLE_DPCPP}
+      -DOCCA_ENABLE_METAL=${ENABLE_METAL})
+
+  # NekRS's own CI test fixtures -- a separate submodule outside contrib/
+  # (test/tests/nek_ci), not needed to build Cardinal itself, only to
+  # run its NekRS-related tests. Not a CMake project, just test input
+  # files -- same NO_BUILD/MARKER_FILE .git treatment as nuclear_data.
+  cardinal_add_submodule_dependency(nek_ci
+    SUBMODULE_PATH test/tests/nek_ci
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/test/tests/nek_ci
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/nek_ci
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    MARKER_FILE     .git
+    DEPENDS         cardinal-check-container
+    NO_BUILD
+    NO_GIT_SUBMODULES)
+endif()
+
+# -----------------------------------------------------------------------------
+# Nek5000's own tools (genbox, genmap, ...) -- not one of Cardinal's own
+# dependencies (nothing here links against them), just a convenience build
+# of https://github.com/Nek5000/Nek5000.git's tools/ for users who want
+# them. Deliberately not a git submodule -- see CardinalNek5000Tools.cmake
+# for the full reasoning (no commit to pin, no CMake build of its own).
+# -----------------------------------------------------------------------------
+if(ENABLE_NEK5000_TOOLS)
+  cardinal_add_nek5000_tools(nek5000-tools
+    LOCAL_PATH  contrib/Nek5000
+    SOURCE_DIR  ${CARDINAL_STAGE_DIR}/contrib/Nek5000
+    INSTALL_DIR ${CARDINAL_INSTALL_DIR}/bin
+    GIT_URL     https://github.com/Nek5000/Nek5000.git
+    TOOLS       ${NEK5000_TOOLS_LIST}
+    FC          ${LIBMESH_FC}
+    CC          ${LIBMESH_CC}
+    MAXNEL      ${NEK5000_TOOLS_MAXNEL}
+    DEPENDS     cardinal-check-container)
+endif()
+
+# -----------------------------------------------------------------------------
+# DAGMC/MOAB/Embree/double-down (config/moab.mk, embree.mk, double_down.mk,
+# dagmc.mk) -- CAD/mesh-based geometry support, consumed by OpenMC (below)
+# via -DDAGMC_DIR. Same pattern as NekRS/OpenMC above: each gets its own
+# independent CMake sub-build via cardinal_add_submodule_dependency (not
+# NO_BUILD), with CMAKE_ARGS matching config/*.mk's own cmake invocations
+# exactly, and BINARY_DIR/INSTALL_DIR matching the *_BUILDDIR/*_INSTALL_DIR
+# paths those *.mk files themselves compute (Makefile:136-146) so Cardinal's
+# own build_moab/build_embree/build_doubledown/build_dagmc rules -- run
+# unconditionally as part of the final `make -f Makefile.cardinal` step --
+# find our already-configured build trees and just do a cheap, idempotent
+# `make install` rather than reconfiguring from scratch.
+#
+# Build order mirrors the *.mk files' own prerequisite chain (Makefile:281-
+# 314): MOAB and Embree are independent of each other; double-down needs
+# both; DAGMC needs MOAB always, and additionally double-down/Embree only
+# when ENABLE_DOUBLE_DOWN is on (check_deps.mk only requires double-down/
+# Embree in that case -- DAGMC can build without ray-tracing acceleration).
+# -----------------------------------------------------------------------------
+if(ENABLE_DAGMC)
+  # Matches the Makefile's own default (Makefile:88): EIGEN3_DIR ?=
+  # $(LIBMESH_DIR)/include. Only relevant when DAGMC is on (MOAB/DAGMC are
+  # the only consumers), so declared here rather than alongside HDF5_ROOT
+  # above.
+  set(EIGEN3_DIR "$ENV{EIGEN3_DIR}" CACHE PATH "Top-level eigen3 dir (should contain FindEigen3.cmake); default: derived from LIBMESH_DIR")
+  if(NOT EIGEN3_DIR)
+    set(EIGEN3_DIR ${LIBMESH_DIR}/include CACHE PATH "Top-level eigen3 dir (should contain FindEigen3.cmake); default: derived from LIBMESH_DIR" FORCE)
+  endif()
+
+  # moab's CMakeLists.txt does a hard `find_package(HDF5 REQUIRED ...)`
+  # (matched below at -DHDF5_ROOT) against whatever HDF5_ROOT resolves to --
+  # when building PETSc from source, that's ${PETSC_DIR}/${PETSC_ARCH}, which
+  # doesn't exist until PETSc's own build/install actually finishes. With no
+  # DEPENDS on petsc, ExternalProject could start moab-configure immediately
+  # (found live: "Could NOT find HDF5" as soon as moab-configure won the
+  # race). No corresponding libmesh dependency is needed here: moab's own
+  # Eigen3 lookup (matched below at -DEIGEN3_DIR) is `find_package(Eigen3
+  # OPTIONAL_COMPONENTS)` in moab's CMakeLists.txt -- a missing/nonexistent
+  # path there is a non-fatal "not found", not a hard configure failure.
+  set(_moab_depends cardinal-check-container)
+  if(CARDINAL_BUILD_PETSC)
+    list(APPEND _moab_depends petsc)
+  endif()
+
+  cardinal_add_submodule_dependency(moab
+    SUBMODULE_PATH contrib/moab
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/moab
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/moab
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_moab_depends}
+    CMAKE_ARGS
+      -DENABLE_MPI=ON
+      -DENABLE_HDF5=ON
+      -DENABLE_TESTING=OFF
+      -DENABLE_BLASLAPACK=OFF
+      -DEIGEN3_DIR=${EIGEN3_DIR}
+      -DHDF5_DIR=${HDF5_ROOT}
+      # -DHDF5_DIR alone (moab.mk's own flag, matched above) isn't enough:
+      # MOAB's CMakeLists.txt calls plain `find_package(HDF5 REQUIRED
+      # COMPONENTS C HL)`, resolved in MODULE mode by CMake's own bundled
+      # FindHDF5.cmake -- that module doesn't consult HDF5_DIR at all, only
+      # HDF5_ROOT (as a CMake variable/cache entry, falling back to
+      # $ENV{HDF5_ROOT} only if that's unset -- confirmed by reading
+      # FindHDF5.cmake directly). Cardinal's own native moab.mk gets this
+      # for free because the Makefile itself `export HDF5_ROOT`s (Makefile:
+      # 93-95) before config/moab.mk's cmake invocation ever runs; our own
+      # independent ExternalProject_Add sub-build has no such ambient
+      # export to inherit, so it must be passed explicitly. Found live:
+      # MOAB's own configure failed with "Could NOT find HDF5" as soon as
+      # HDF5_ROOT wasn't already exported in the invoking shell -- i.e. this
+      # superbuild's own carefully-computed HDF5_ROOT (above) wasn't
+      # actually reaching MOAB's configure at all without this.
+      -DHDF5_ROOT=${HDF5_ROOT}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+      -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      # A real semicolon-separated CMake list value threaded through
+      # ExternalProject_Add's CMAKE_ARGS needs $<SEMICOLON> -- a bare ';'
+      # here would just split this into two separate CMAKE_ARGS entries.
+      -DCMAKE_INSTALL_RPATH=${HDF5_ROOT}/lib$<SEMICOLON>${CARDINAL_INSTALL_DIR}/lib
+      -DCMAKE_INSTALL_LIBDIR=lib
+      -DCMAKE_INSTALL_MESSAGE=LAZY)
+
+  # Works around a real bug in MOAB's own exported CMake config -- see
+  # CardinalFixupMoabConfig.cmake for the full explanation. Runs after
+  # moab's own install step (STEP_TARGETS above includes "install", giving
+  # us the moab-install target to hang this off of) and before anything
+  # that consumes MOABConfig.cmake, i.e. DAGMC always, and double-down when
+  # enabled.
+  #
+  # Patches *two* copies, not just the installed one: the final "build
+  # cardinal" step below hands off to Cardinal's own native Makefile,
+  # which -- entirely independently of everything above -- always redoes
+  # its own build_moab (`make -C $(MOAB_BUILDDIR) install`) on every
+  # invocation (build_moab is a .PHONY target with no staleness check of
+  # its own; this is normal, pre-existing behavior of Cardinal's Makefile,
+  # unrelated to this superbuild). That `make install` blindly re-copies
+  # MOAB's own build-tree MOABConfig.cmake -- the un-patched template CMake
+  # generates during MOAB's *configure* step -- over our patched installed
+  # copy, silently reverting the fix (observed directly). Patching that
+  # build-tree template too means every later re-install, ours or
+  # Cardinal's native one, keeps re-copying an already-fixed file instead
+  # of reverting it: self-healing rather than a one-time patch.
+  add_custom_target(moab_fixup
+    COMMAND ${CMAKE_COMMAND}
+            -DMOAB_CONFIG=${CARDINAL_STAGE_DIR}/build/moab/MOABConfig.cmake
+            -P ${CMAKE_SOURCE_DIR}/cmake/CardinalFixupMoabConfig.cmake
+    COMMAND ${CMAKE_COMMAND}
+            -DMOAB_CONFIG=${CARDINAL_INSTALL_DIR}/lib/cmake/MOAB/MOABConfig.cmake
+            -P ${CMAKE_SOURCE_DIR}/cmake/CardinalFixupMoabConfig.cmake
+    DEPENDS moab-install
+    COMMENT "Cardinal: patching MOABConfig.cmake (CMP0004 workaround)"
+    VERBATIM)
+
+  if(ENABLE_DOUBLE_DOWN)
+    cardinal_add_submodule_dependency(embree
+      SUBMODULE_PATH contrib/embree
+      SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/embree
+      BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/embree
+      INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+      DEPENDS         cardinal-check-container
+      CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+        -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+        -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_INSTALL_MESSAGE=LAZY
+        -DEMBREE_TUTORIALS=OFF
+        -DEMBREE_TUTORIALS_GLFW=OFF
+        -DEMBREE_TASKING_SYSTEM=INTERNAL
+        -DEMBREE_IGNORE_CMAKE_CXX_FLAGS=OFF)
+
+    cardinal_add_submodule_dependency(doubledown
+      SUBMODULE_PATH contrib/double-down
+      SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/double-down
+      BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/double-down
+      INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+      DEPENDS         moab moab_fixup embree cardinal-check-container
+      CMAKE_ARGS
+        -DEMBREE_DIR=${CARDINAL_INSTALL_DIR}
+        -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+        -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+        -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+        -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+        -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+        -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_INSTALL_MESSAGE=LAZY)
+  endif()
+
+  set(_dagmc_depends moab moab_fixup cardinal-check-container)
+  if(ENABLE_DOUBLE_DOWN)
+    list(APPEND _dagmc_depends doubledown embree)
+  endif()
+
+  # DOUBLE_DOWN/Eigen3_DIR/MOAB_DIR spellings below (as opposed to the
+  # ENABLE_DOUBLE_DOWN/EIGEN3_DIR/CARDINAL_INSTALL_DIR vars they're forwarded
+  # from) match dagmc.mk's own -D flags exactly (Cardinal's own DAGMC
+  # CMakeLists.txt expects this exact casing).
+  cardinal_add_submodule_dependency(dagmc
+    SUBMODULE_PATH contrib/DAGMC
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/DAGMC
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/DAGMC
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_dagmc_depends}
+    CMAKE_ARGS
+      -DBUILD_TALLY=OFF
+      -DBUILD_TESTS=OFF
+      -DBUILD_CI_TESTS=OFF
+      -DBUILD_STATIC_LIBS=OFF
+      -DBUILD_STATIC_EXE=OFF
+      -DBUILD_UWUW=OFF
+      -DENABLE_NETCDF=ON
+      -DDOUBLE_DOWN=${ENABLE_DOUBLE_DOWN}
+      -DDOUBLE_DOWN_DIR=${CARDINAL_INSTALL_DIR}
+      -DEigen3_DIR=${EIGEN3_DIR}
+      -DMOAB_DIR=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+      -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_INSTALL_LIBDIR=lib
+      -DCMAKE_INSTALL_MESSAGE=LAZY)
+endif()
+
+# -----------------------------------------------------------------------------
+# OpenMC (config/openmc.mk)
+# -----------------------------------------------------------------------------
+if(ENABLE_OPENMC)
+  set(_openmc_vendored ON)
+  if(EXISTS "$ENV{CONDA_PREFIX}/share/moose-compilers")
+    set(_openmc_vendored OFF)
+  endif()
+
+  # OpenMC's own CMakeLists does find_package(LIBMESH) (pkg_check_modules
+  # against CMAKE_PREFIX_PATH) -- if libMesh is pre-built it always
+  # pre-exists at configure time so no ordering is needed, but if we're
+  # building it ourselves it doesn't exist until the libmesh target
+  # actually finishes building. Same story for DAGMC: only needed once it
+  # actually finishes building, and only when ENABLE_DAGMC is on.
+  set(_openmc_depends cardinal-check-container)
+  if(CARDINAL_BUILD_LIBMESH)
+    list(APPEND _openmc_depends libmesh)
+  endif()
+  if(ENABLE_DAGMC)
+    list(APPEND _openmc_depends dagmc)
+  endif()
+
+  cardinal_add_submodule_dependency(openmc
+    SUBMODULE_PATH contrib/openmc
+    SOURCE_DIR      ${CARDINAL_STAGE_DIR}/contrib/openmc
+    BINARY_DIR      ${CARDINAL_STAGE_DIR}/build/openmc
+    INSTALL_DIR     ${CARDINAL_INSTALL_DIR}
+    DEPENDS         ${_openmc_depends}
+    CMAKE_ARGS
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DOPENMC_USE_LIBMESH=ON
+      -DOPENMC_USE_MPI=ON
+      -DOPENMC_USE_DAGMC=${ENABLE_DAGMC}
+      -DDAGMC_DIR=${CARDINAL_INSTALL_DIR}
+      -DOPENMC_FORCE_VENDORED_LIBS=${_openmc_vendored}
+      -DCMAKE_C_COMPILER=${LIBMESH_CC_LIST}
+      -DCMAKE_CXX_COMPILER=${LIBMESH_CXX_LIST}
+      -DCMAKE_Fortran_COMPILER=${LIBMESH_FC_LIST}
+      -DCMAKE_PREFIX_PATH=${LIBMESH_DIR}
+      -DHDF5_ROOT=${HDF5_ROOT}
+      -DCMAKE_INSTALL_PREFIX=${CARDINAL_INSTALL_DIR}
+      -DCMAKE_INSTALL_LIBDIR=${CARDINAL_INSTALL_DIR}/lib
+      -DCMAKE_CXX_STANDARD=17
+      "-DCMAKE_CXX_FLAGS=-Wno-error=reorder"
+      -DCMAKE_INSTALL_MESSAGE=LAZY)
+endif()
+
+# -----------------------------------------------------------------------------
+# Final step: hand off to Cardinal's existing, unmodified Makefile.
+# -----------------------------------------------------------------------------
+set(_cardinal_depends mirror_source moose cardinal-check-container)
+if(CARDINAL_BUILD_WASP)
+  list(APPEND _cardinal_depends wasp)
+endif()
+if(CARDINAL_BUILD_LIBMESH)
+  list(APPEND _cardinal_depends libmesh)  # pulls in petsc transitively, if we're building that too
+endif()
+set(_make_enable_args
+  ENABLE_NEK=$<IF:$<BOOL:${ENABLE_NEK}>,yes,no>
+  ENABLE_OPENMC=$<IF:$<BOOL:${ENABLE_OPENMC}>,yes,no>
+  ENABLE_DAGMC=$<IF:$<BOOL:${ENABLE_DAGMC}>,yes,no>
+  ENABLE_DOUBLE_DOWN=$<IF:$<BOOL:${ENABLE_DOUBLE_DOWN}>,yes,no>)
+
+
+if(ENABLE_NEK)
+  list(APPEND _cardinal_depends nekrs nek_ci)
+endif()
+if(ENABLE_OPENMC)
+  list(APPEND _cardinal_depends openmc nuclear_data)
+endif()
+# dagmc's own DEPENDS (moab, and doubledown/embree when ENABLE_DOUBLE_DOWN)
+# already chains transitively through openmc's DEPENDS above -- listed
+# explicitly anyway, matching this file's style of spelling out the full
+# dependency set for the final step rather than relying on a reader to
+# trace it through openmc's own DEPENDS.
+if(ENABLE_DAGMC)
+  list(APPEND _cardinal_depends dagmc)
+endif()
+
+add_custom_target(cardinal ALL
+  # NEKRS_HOME/CONTRIB_INSTALL_DIR/HDF5_ROOT/PETSC_DIR/LIBMESH_DIR/WASP_DIR
+  # are computed paths we deliberately force regardless of the ambient
+  # environment (check_nekrs.mk hard-requires NEKRS_HOME ==
+  # CONTRIB_INSTALL_DIR). Without forcing PETSC_DIR/LIBMESH_DIR/WASP_DIR/
+  # HDF5_ROOT here too, Cardinal's own native Makefile step falls back to
+  # whatever each happens to already be in the ambient shell environment
+  # invoking `cmake --build`/`make` -- and when unset there, to Cardinal's
+  # own from-source-layout defaults (Makefile:73,75, moose.mk:94:
+  # PETSC_DIR ?= $(MOOSE_DIR)/petsc, LIBMESH_DIR ?= $(MOOSE_DIR)/libmesh/
+  # installed, WASP_DIR ?= $(MOOSE_DIR)/framework/contrib/wasp/install),
+  # silently pointing at nothing whether the actual (pre-built or
+  # from-source) install is really there or not. This went unnoticed for a
+  # while because a real ambient environment (e.g. the moose-dev
+  # container's own /opt/* variables) happens to make it work by accident
+  # -- surfaced only by testing with those unset and given purely via -D
+  # instead: `make: *** No rule to make target '.../contrib/moose/petsc/
+  # lib/petsc/conf/petscvariables'` despite -DPETSC_DIR=/opt/petsc having
+  # been given at configure time.
+  #
+  # OPENMC_CROSS_SECTIONS is left out of this override list on purpose: it
+  # must come from whatever the user has exported in the shell that invokes
+  # `cmake --build`/`make`, not get frozen at CMake *configure* time via
+  # $ENV{...}.
+  #
+  # $(MAKE), not a literal `make`/`make -jN`: CMake's Makefiles generator
+  # substitutes this with a recursive make invocation that shares the
+  # invoking make's jobserver, so this step's parallelism is always exactly
+  # whatever `-j` the user passed to `cmake --build`/`make` in this build
+  # directory -- never a number this CMakeLists.txt invents itself, and
+  # never more cores than were actually requested.
+  #
+  # _make_enable_args go through this same -E env, as environment variables,
+  # rather than as trailing `make VAR=value` command-line arguments: GNU
+  # Make gives a command-line-set variable unconditional priority over any
+  # plain `VAR := value` assignment the makefile itself makes later --
+  # only `override VAR := value` can beat it, which Cardinal's Makefile
+  # doesn't use. Cardinal's own Makefile relies on exactly that freedom:
+  # check_deps.mk/the Makefile itself canonicalize ENABLE_DAGMC/
+  # ENABLE_DOUBLE_DOWN from yes/no into ON/OFF (and, when OpenMC is off,
+  # silently downgrade ENABLE_DAGMC to no) via plain `:=`. Passing
+  # ENABLE_DAGMC=yes on the make command line silently blocks that
+  # canonicalization -- confirmed directly: build_embree/build_doubledown
+  # never get their ON/OFF-gated stub definitions (Makefile:308-314) in
+  # that case, so `make` fails with "No rule to make target 'build_embree'"
+  # despite ENABLE_DOUBLE_DOWN being off, not because it's mis-detected.
+  # An environment variable doesn't have this problem: it's the lowest-
+  # precedence source of a variable's value, so the makefile's own
+  # reassignments apply normally, exactly like a native user's `export
+  # ENABLE_DAGMC=yes; make` would.
+  #
+  # METHOD=${_cardinal_method}: forced here for the same reason as
+  # NEKRS_HOME/PETSC_DIR/etc above -- without it, framework/build.mk's own
+  # `METHOD ?= opt` default would apply regardless of CMAKE_BUILD_TYPE/METHOD
+  # (see the CMAKE_BUILD_TYPE/METHOD block near the top of this file),
+  # producing cardinal-opt linked against whatever METHOD libMesh actually
+  # has installed -- silently wrong (or a hard configure-time mismatch, if
+  # libMesh was built from source and CARDINAL_BUILD_LIBMESH's own forced
+  # METHOD= only produced that one variant). This does mean METHOD is fixed
+  # at `cmake` *configure* time, not at `cmake --build`/`make` time -- same
+  # as every other forced var here, and the only choice that makes sense
+  # anyway, since a from-source libMesh was already built for one specific
+  # METHOD at configure time too. Since it's frozen here, a later
+  # `METHOD=<other> cmake --build`/`make` (no reconfigure) would otherwise
+  # silently keep building the originally-configured METHOD with no
+  # indication anything was ignored -- confirmed directly by testing. Guard
+  # against that with a build-time (not just configure-time) check, as a
+  # separate COMMAND up front so it runs under the *real* ambient
+  # environment rather than the `-E env METHOD=${_cardinal_method}`
+  # override below.
+  COMMAND ${CMAKE_COMMAND} -DCARDINAL_METHOD=${_cardinal_method}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMethod.cmake
+  COMMAND ${CMAKE_COMMAND} -E env
+          NEKRS_HOME=${CARDINAL_INSTALL_DIR}
+          CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          HDF5_ROOT=${HDF5_ROOT}
+          PETSC_DIR=${PETSC_DIR}
+          LIBMESH_DIR=${LIBMESH_DIR}
+          WASP_DIR=${WASP_DIR}
+          METHOD=${_cardinal_method}
+          ${_make_enable_args}
+          --
+          $(MAKE) -f Makefile.cardinal
+  WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
+  DEPENDS ${_cardinal_depends}
+  COMMENT "Building Cardinal via its own Makefile in ${CARDINAL_STAGE_DIR}"
+  USES_TERMINAL
+  VERBATIM)
+
+# -----------------------------------------------------------------------------
+# Cardinal's unit tests (unit/Makefile.unit -- see the mirror_source target
+# near the top of this file for why it's a renamed copy of unit's own,
+# unmodified Makefile). Not ALL: like cardinal-install below, this is
+# opt-in, matching the native build's own "you have to separately cd unit
+# && make" convention -- run_tests (via `cardinal`, ALL) is the test suite
+# that runs by default.
+#
+# unit/Makefile.unit is its own fully independent native-Makefile build
+# (its own ENABLE_NEK/ENABLE_OPENMC/ENABLE_DAGMC/ENABLE_DOUBLE_DOWN/
+# PETSC_DIR/LIBMESH_DIR/WASP_DIR/HDF5_ROOT `?=` defaults, entirely separate
+# from anything this superbuild computes), with no built-in way to know how
+# *this* build was actually configured -- invoking it with mismatched
+# settings doesn't error out, it silently rebuilds/reinstalls whichever
+# dependency disagrees (confirmed directly: the default ENABLE_DAGMC=no
+# against a tree built with DAGMC on rebuilt libopenmc.so *without* DAGMC
+# support, breaking the link of the already-built, DAGMC-enabled
+# libcardinal-opt.so with "undefined reference to
+# openmc::DAGSurface/DAGUniverse"). Force the same settings the "cardinal"
+# target above forces, for exactly the same reasons (see its own comments)
+# -- NEKRS_HOME is left out here too: unit/Makefile.unit computes it
+# unconditionally itself (`export NEKRS_HOME=$(CARDINAL_DIR)`, not `?=`),
+# so forcing it here would be redundant, not safer.
+#
+# DEPENDS ${_cardinal_depends}, deliberately *not* DEPENDS cardinal: it's
+# tempting to assume unit/Makefile.unit needs the "cardinal" target's own
+# cardinal-<method> already linked, since its own cardinal-unit-<method>
+# links against lib/libcardinal-<method>.so -- but unit/Makefile.unit is
+# actually fully self-contained: it `include`s $(FRAMEWORK_DIR)/app.mk
+# *twice*, once for APPLICATION_NAME=cardinal (building that exact same
+# library itself, from the main app's own source) and again for
+# APPLICATION_NAME=cardinal-unit (its own test binary) -- and separately
+# `include`s config/nekrs.mk/openmc.mk/etc, the same build_nekrs/
+# build_openmc/... rules Makefile.cardinal itself uses. It needs the
+# *sources* (and ideally the already-built installs) of MOOSE/NekRS/OpenMC/
+# etc to exist, exactly like "cardinal" itself does -- so DEPENDS the same
+# list "cardinal" depends on, not the "cardinal" target itself. Depending
+# on "cardinal" would force `cmake --build --target cardinal-unit` to also
+# fully re-run the *entire* `$(MAKE) -f Makefile.cardinal` invocation every
+# time (custom targets have no output tracking, so a DEPENDS on one always
+# re-runs it) -- on top of unit/Makefile.unit's own already-redundant
+# self-contained rebuild of the same dependencies, doubling the missing-
+# order-only-prereqs slowness rather than just inheriting it once.
+# Confirmed directly: with DEPENDS cardinal, `make -C unit` produced a
+# 30,000+ line log that fully rebuilt/re-verified "cardinal" (Makefile.
+# cardinal's own ~10,000-line run) before ever reaching unit's own build.
+#
+# ${_cardinal_depends} still (transitively) includes mirror_source, so this
+# guarantees unit/Makefile.unit already exists before this target's own
+# recipe ever runs, regardless of whether it's reached via
+# `cmake --build --target cardinal-unit` directly or via unit/Makefile's
+# own forwarding shim (cmake/UnitMakefile, copied in by mirror_source too).
+#
+# CARDINAL_MAKEFILE=../Makefile.cardinal: unit/Makefile.unit's own default
+# (../Makefile) assumes the plain-Makefile build, where that name is
+# Cardinal's real top-level Makefile; here it's reserved for CMake's own
+# generated build-system Makefile instead (Makefile.cardinal above is
+# where Cardinal's real one actually landed), so tell it explicitly
+# rather than have it guess from which files happen to exist on disk.
+add_custom_target(cardinal-unit
+  COMMAND ${CMAKE_COMMAND} -DCARDINAL_METHOD=${_cardinal_method}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalCheckMethod.cmake
+  COMMAND ${CMAKE_COMMAND} -E env
+          CONTRIB_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          HDF5_ROOT=${HDF5_ROOT}
+          PETSC_DIR=${PETSC_DIR}
+          LIBMESH_DIR=${LIBMESH_DIR}
+          WASP_DIR=${WASP_DIR}
+          METHOD=${_cardinal_method}
+          ${_make_enable_args}
+          --
+          $(MAKE) -C unit -f Makefile.unit CARDINAL_MAKEFILE=../Makefile.cardinal
+  WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}
+  DEPENDS ${_cardinal_depends}
+  COMMENT "Building Cardinal's unit tests via unit/Makefile.unit in ${CARDINAL_STAGE_DIR}/unit"
+  USES_TERMINAL
+  VERBATIM)
+
+# -----------------------------------------------------------------------------
+# Installing the app itself. CARDINAL_APP below is cardinal-${_cardinal_method}
+# -- whichever method this configuration actually built (see the
+# CMAKE_BUILD_TYPE/METHOD block near the top of this file), not hardcoded to
+# cardinal-opt. No risk of cross-contamination between methods: MOOSE's own
+# method-suffixed library names (lib<name>-<method>.so, for every METHOD --
+# see libmesh_method.m4) mean CardinalInstallApp.cmake's
+# patchelf --print-needed discovery (see that script) only ever finds the
+# libraries actually matching whichever cardinal-<method> it was given.
+#
+# CARDINAL_INSTALL_DIR (see above) already holds nekRS/OpenMC/MOAB/Embree/
+# double-down/DAGMC/nuclear_data -- but it's the fixed, internal staging
+# location, populated as a side effect of the ordinary build, not the
+# real (CMAKE_INSTALL_PREFIX) install prefix a user actually asked for.
+# Neither it nor the app itself (cardinal-opt, plus the MOOSE framework/
+# module libraries it links -- nothing installs *those* anywhere at all
+# today) end up in CMAKE_INSTALL_PREFIX without this step.
+#
+# CMAKE_INSTALL_PREFIX defaults to CARDINAL_STAGE_DIR/dist (via the same
+# CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT idiom used elsewhere in this
+# file) -- deliberately *not* CARDINAL_INSTALL_DIR itself: CardinalInstall
+# App.cmake (below) always nests the staged dependency tree one level
+# under CMAKE_INSTALL_PREFIX (CMAKE_INSTALL_PREFIX/install -- see that
+# script), so defaulting CMAKE_INSTALL_PREFIX to CARDINAL_INSTALL_DIR
+# would ask it to copy CARDINAL_INSTALL_DIR into CARDINAL_INSTALL_DIR/
+# install -- a directory copied into its own new subdirectory. Unlike the
+# CARDINAL_INSTALL_DIR mistake this replaced, nothing above this point
+# reads CMAKE_INSTALL_PREFIX, so editing it (--install-prefix, or in
+# ccmake) never touches any dependency's own CMAKE_ARGS or forces a
+# rebuild -- only this install step, run on demand, ever sees it.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX ${CARDINAL_STAGE_DIR}/dist CACHE PATH
+    "Real install prefix for the whole build (app + all dependencies)." FORCE)
+endif()
+
+# CardinalInstallApp.cmake does the actual work: copies CARDINAL_INSTALL_
+# DIR's own staged tree into CMAKE_INSTALL_PREFIX/install (kept in its
+# own subdirectory rather than CMAKE_INSTALL_PREFIX's root, since it's a
+# merge of six independent projects' own install trees -- matches
+# Cardinal's own Makefile.cardinal, which merges them the same way), then
+# copies the app and every shared library it needs that lives inside
+# CARDINAL_STAGE_DIR into CMAKE_INSTALL_PREFIX's own bin/lib/share,
+# rewriting RPATH (via patchelf) on every copy so the result is genuinely
+# self-contained -- see that script for the full explanation of why a
+# plain file copy alone isn't enough (RUNPATH isn't transitive), and for
+# why the app's own bin/lib/share can't also be nested under install/
+# (MOOSE's own installed-data-file lookup requires it not to be).
+#
+# Exposed two ways: a plain custom target (cardinal-install, this
+# project's own established idiom -- e.g. moab_fixup above) for
+# `cmake --build build --target cardinal-install`, and, since "install" is
+# also the natural/standard CMake spelling for this, a real hook into
+# CMake's own built-in `install` target too. The latter reruns the exact
+# same cardinal-install target (rather than duplicating its logic) via a
+# nested `cmake --build`, which is also what guarantees the app actually
+# gets (re)built first -- CMake's own `install` target, unlike ours, does
+# *not* imply a prior build on its own.
+add_custom_target(cardinal-install
+  COMMAND ${CMAKE_COMMAND}
+          -DCARDINAL_APP=${CARDINAL_STAGE_DIR}/cardinal-${_cardinal_method}
+          -DCARDINAL_STAGE_DIR=${CARDINAL_STAGE_DIR}
+          -DCARDINAL_INSTALL_DIR=${CARDINAL_INSTALL_DIR}
+          -DCARDINAL_FINAL_INSTALL_DIR=${CMAKE_INSTALL_PREFIX}
+          -DCARDINAL_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+          -P ${CMAKE_SOURCE_DIR}/cmake/CardinalInstallApp.cmake
+  DEPENDS cardinal
+  COMMENT "Installing Cardinal (app + all dependencies) into ${CMAKE_INSTALL_PREFIX}"
+  USES_TERMINAL
+  VERBATIM)
+
+install(CODE "
+  execute_process(
+    COMMAND \"${CMAKE_COMMAND}\" --build \"${CMAKE_BINARY_DIR}\" --target cardinal-install
+    RESULT_VARIABLE _cardinal_install_rc)
+  if(NOT _cardinal_install_rc EQUAL 0)
+    message(FATAL_ERROR \"Cardinal: 'cmake --build ... --target cardinal-install' failed\")
+  endif()
+")
+
+# large_media (MOOSE's own submodule, not one of Cardinal's -- so outside
+# cardinal_add_submodule_dependency's own three-tier resolution above, which
+# is built around Cardinal's own .gitmodules/pinned commits) is required by
+# moosedocs.py itself, unconditionally, but deliberately not fetched by
+# moose-add (NO_GIT_SUBMODULES, above) -- most of MOOSE's own many submodules
+# are irrelevant to compiling Cardinal, and large_media itself is sizeable
+# (documentation images/videos), not something every ordinary build should
+# pay for. Resolved lazily instead, exactly like every other genuinely
+# optional dependency in this file (nekrs/openmc/dagmc/nek5000-tools/...) --
+# only ever fetched when something that actually needs it (the "doc" target,
+# below) is built. moose-add's own .git (a real, ordinary clone -- MARKER_
+# FILE .git, not a gitless mirror) already knows large_media's URL/pinned
+# commit from MOOSE's own .gitmodules, so this needs no CMake-side
+# bookkeeping of its own, unlike a real Cardinal submodule -- just the same
+# `git submodule update --init` the plain Makefile workflow's own
+# instructions already tell a contributor to run by hand.
+add_custom_target(moose-large-media
+  COMMAND git submodule update --init --depth 1 large_media
+  WORKING_DIRECTORY ${CARDINAL_STAGE_DIR}/contrib/moose
+  DEPENDS moose-add
+  COMMENT "Fetching MOOSE's large_media submodule"
+  USES_TERMINAL
+  VERBATIM)
+
+# -----------------------------------------------------------------------------
+# Cardinal's documentation (doc/moosedocs.py). Not ALL: matches cardinal-unit/
+# cardinal-install's own "opt-in" convention -- docs aren't part of an
+# ordinary build.
+#
+# Unlike every other target in this file, this one reads directly from
+# CMAKE_SOURCE_DIR rather than CARDINAL_STAGE_DIR. moosedocs.py's own
+# MooseDocs import sets ROOT_DIR from mooseutils.git_root_dir() -- a real
+# git checkout is hard-required, since moosesqa's requirement-traceability/
+# SQA extensions run actual (read-only -- git rev-parse/ls-files/blame/...,
+# never a mutating command) git commands against it -- and Cardinal's
+# doc/content/*.md source lives there too, not in the mirrored build tree
+# (which mirror_source deliberately excludes /.git from -- see mirror_source
+# above). The only thing this target actually sources from the build tree
+# is the executable itself: appsyntax's class-syntax generation and
+# moosesqa's SQAMooseAppReport both need to run a real, already-built
+# cardinal-<method> to introspect its registered MOOSE syntax, and that
+# only ever exists in CARDINAL_STAGE_DIR, never in CMAKE_SOURCE_DIR.
+#
+# This target writes nothing into CMAKE_SOURCE_DIR at all -- unlike the
+# plain Makefile build, where doxygen's own OUTPUT_DIRECTORY (doc/content/
+# doxygen/Doxyfile) always lands inside the checkout itself (harmlessly --
+# see doc/content/doxygen/html*'s own .gitignore entry -- but still inside
+# it). moosedocs.py overrides that via CARDINAL_DOXYGEN_OUTPUT_DIR (piping
+# the real, unmodified Doxyfile through `doxygen -` with one assignment
+# appended, rather than patching the checked-in file -- see its own
+# comment), pointed directly at doc-site/doxygen below -- exactly where
+# MooseDocs' own content-copy step would have put it had doxygen written
+# under doc/content in the first place (doc/content/doxygen.md links to
+# doxygen/html/classes.html, relative to the rendered site itself). No
+# separate copy step needed: doxygen runs before MooseDocs' own "Copying
+# content" step even starts, and that step only ever writes the specific
+# files it discovers under doc/content (not a directory sync/mirror of
+# the whole destination), so it leaves a doxygen/ subdirectory it never
+# discovered there alone.
+#
+# CARDINAL_EXECUTABLE_DIR: doc/config.yml's appsyntax.executable and
+# doc/sqa_reports.yml's Applications.cardinal.exe_directory both default to
+# ${ROOT_DIR} (correct for the plain build, where the executable really
+# does land next to the checkout) -- overridden here since ROOT_DIR must
+# stay the real checkout for the git-dependent reasons above.
+#
+# MOOSE_DIR mirrors every other target in this file that references it
+# (e.g. moose-check-container above): the actually-resolved submodule only
+# ever lives in CARDINAL_STAGE_DIR/contrib/moose, never in
+# CMAKE_SOURCE_DIR/contrib/moose (never checked out there at all, in the
+# normal superbuild workflow -- see mirror_source's own --exclude=/contrib).
+#
+# METHOD, forced for the same reason "cardinal"/"cardinal-unit" force it
+# above: without it, mooseutils.find_moose_executable falls back to probing
+# opt/oprof/dbg/devel in that fixed order, silently picking up the wrong
+# variant's executable if more than one happens to exist in
+# CARDINAL_EXECUTABLE_DIR.
+#
+# `build`, not `check`: this is the command doc/content/developers.md itself
+# documents as how a contributor builds Cardinal's docs (`./moosedocs.py
+# build`, run from within doc/) -- `check` is a separate, stricter SQA-lint
+# command with its own report format, not what "building the docs" means.
+#
+# --destination: MooseDocs.base.Translator's own default (~/.local/share/
+# moose/site) is independent of ROOT_DIR entirely -- config.yml doesn't
+# override it -- so left alone the actual rendered site would land outside
+# both CMAKE_SOURCE_DIR and CARDINAL_STAGE_DIR, in the invoking user's home
+# directory. Point it into CARDINAL_STAGE_DIR instead, keeping this
+# target's real build output alongside every other target's, in the same
+# build tree a fresh `rm -rf`/reconfigure actually cleans up.
+#
+# The leading `make_directory doc-site`, before doxygen ever runs: doxygen
+# will create a single missing leaf directory for OUTPUT_DIRECTORY (e.g.
+# doc-site/doxygen, if doc-site itself already exists) but refuses to
+# create more than one missing level at once ("Output directory '...' does
+# not exist and cannot be created", confirmed directly) -- and doc-site
+# itself doesn't exist yet at this point, since it's MooseDocs' own build
+# step (moosedocs.py, invoked after doxygen) that normally creates it.
+add_custom_target(doc
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CARDINAL_STAGE_DIR}/doc-site
+  COMMAND ${CMAKE_COMMAND} -E env
+          MOOSE_DIR=${CARDINAL_STAGE_DIR}/contrib/moose
+          CARDINAL_EXECUTABLE_DIR=${CARDINAL_STAGE_DIR}
+          CARDINAL_DOXYGEN_OUTPUT_DIR=${CARDINAL_STAGE_DIR}/doc-site/doxygen
+          METHOD=${_cardinal_method}
+          --
+          python3 moosedocs.py build --destination ${CARDINAL_STAGE_DIR}/doc-site
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/doc
+  DEPENDS cardinal moose-large-media
+  COMMENT "Building Cardinal documentation from ${CMAKE_SOURCE_DIR}/doc"
+  USES_TERMINAL
+  VERBATIM)
