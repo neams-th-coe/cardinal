@@ -2702,57 +2702,35 @@ OpenMCCellAverageProblem::sendVelocityToOpenMC() const
   if (_velocity_field_transfer) {
     _console << "Sending velocity to OpenMC velocity field... " << std::endl;
 
-    // Do we need a element->element mapping between the MOOSE mirror mesh and the mesh in the OpenMC temperature field?
-
     const auto & sys_number = _aux->number();
 
     // Go through elements from the MOOSE mirror mesh
-    for (const auto & c : _local_cell_to_elem) {
-      for (const auto & e : c.second) {
+    for (const auto & elem : getMooseMesh().getMesh().active_local_element_ptr_range()) {
 
-        // Get element
-        unsigned int global_id = globalElemID(e);
-        const auto * elem = getMooseMesh().queryElemPtr(global_id);
+      // Skip elements not in a subdomain with velocity variables defined
+      if (!_subdomain_to_velocity_x_vars.count(elem->subdomain_id()))
+        continue;
 
-        // Send velocity
+      // Get DoF index and retrieve velocity from serialized solution
 
-        // ---------------
-        // velocity_x
-        // ---------------
+      // velocity_x
+      auto v = _subdomain_to_velocity_x_vars.at(elem->subdomain_id()).first;
+      auto dof_idx = elem->dof_number(sys_number, v, 0);
+      Real vx = _serialized_solution(dof_idx);
 
-        // Get DoF index for velocity on this element
-        auto v = _subdomain_to_velocity_x_vars.at(elem->subdomain_id()).first;
-        auto dof_idx = elem->dof_number(sys_number, v, 0);
+      // velocity_y
+      v = _subdomain_to_velocity_y_vars.at(elem->subdomain_id()).first;
+      dof_idx = elem->dof_number(sys_number, v, 0);
+      Real vy = _serialized_solution(dof_idx);
+    
+      // velocity_z
+      v = _subdomain_to_velocity_z_vars.at(elem->subdomain_id()).first;
+      dof_idx = elem->dof_number(sys_number, v, 0);
+      Real vz = _serialized_solution(dof_idx);
 
-        // Retrieve velocity from the serialized solution
-        Real vx = _serialized_solution(dof_idx);
-
-        // ---------------
-        // velocity_y
-        // ---------------
-
-        // Get DoF index for velocity on this element
-        v = _subdomain_to_velocity_y_vars.at(elem->subdomain_id()).first;
-        dof_idx = elem->dof_number(sys_number, v, 0);
-
-        // Retrieve velocity from the serialized solution
-        Real vy = _serialized_solution(dof_idx);
-      
-        // ---------------
-        // velocity_z
-        // ---------------
-
-        // Get DoF index for velocity on this element
-        v = _subdomain_to_velocity_z_vars.at(elem->subdomain_id()).first;
-        dof_idx = elem->dof_number(sys_number, v, 0);
-
-        // Retrieve velocity from the serialized solution
-        Real vz = _serialized_solution(dof_idx);
-
-        // Send the velocity to OpenMC using the same ID or a cell->cell map
-        openmc_velocity_field_set_velocity(global_id, vx, vy, vz);
-
-      }
+      // Send velocity to OpenMC
+      unsigned int global_id = elem->id();
+      openmc_velocity_field_set_velocity(global_id, vx, vy, vz);
     }
   }
   return;
