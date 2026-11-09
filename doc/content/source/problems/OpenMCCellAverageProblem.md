@@ -154,6 +154,34 @@ Then Cardinal is instead building the following automatically for you:
 []
 ```
 
+## Velocity feedback
+
+Delayed Neutron Precursor (DNP) drift can be modeled in OpenMC using a velocity field
+representing the flow inside the system. `OpenMCCellAverageProblem` can transfer velocity
+directly from the MOOSE mesh to the mesh of the OpenMC velocity field.
+
+When using this feature, it is required that the MOOSE mesh be identical to the OpenMC
+mesh, or appropriately scaled using the proper scaling factor declared in the input.
+This requirement arises because the velocity transfer relies on an implicit mapping
+that assumes the same cell (element) ordering in both the MOOSE and OpenMC meshes.
+No spatial search or explicit mapping is performed, so any mismatch in mesh structure
+or element ordering will result in incorrect velocity assignments. A recommended
+approach to ensure consistency between the two meshes is to use an `OpenMCMeshGenerator`
+with no translation or rotation aplied, which guarantees that the generated
+MOOSE mesh directly mirrors the OpenMC mesh in both geometry and element ordering.
+
+To enable this feature, set the `velocity_field_transfer` paramater to true:
+
+```
+[Problem]
+  type = OpenMCCellAverageProblem
+  velocity_field_transfer = true
+[]
+```
+
+Then, declare the transfers for `velocity_x`, `velocity_y` and `velocity_z` appropriately
+between the different applications when using multi-app coupling.
+
 ## Cell to Element Mapping
 
 Next, a mapping from the elements in the [MooseMesh](MooseMesh.md)
