@@ -9,6 +9,7 @@
                   "The solution for temperature, density, and heat source show an exact agreement with "
                   "a case built without distributed cells in ../single_level."
     capabilities = 'openmc'
+    min_slots = 2 # 363 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [pincell_null_mat]
     type = Exodiff
@@ -20,6 +21,7 @@
                   "but with material feedback applied by material. The gold file is identical to a cell-based "
                   "feedback because we still have one unique material per cell."
     capabilities = 'openmc'
+    min_slots = 2 # 365 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [pincell_null_fixed_mesh]
     type = Exodiff
@@ -29,6 +31,7 @@
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
     capabilities = 'openmc'
+    min_slots = 2 # 363 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [heating]
     type = CSVDiff
@@ -37,6 +40,7 @@
     cli_args = 'Outputs/file_base=heating_out'
     requirement = "The system shall allow the user to specify a 'heating' score in the OpenMC tally."
     capabilities = 'openmc'
+    min_slots = 2 # 339 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [heating_local]
     type = CSVDiff
@@ -45,6 +49,7 @@
     cli_args = 'Problem/Tallies/Cell/score=heating_local Outputs/file_base=heating_local_out'
     requirement = "The system shall allow the user to specify a 'heating-local' score in the OpenMC tally."
     capabilities = 'openmc'
+    min_slots = 2 # 348 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [damage_energy]
     type = CSVDiff
@@ -53,6 +58,7 @@
     cli_args = "Problem/Tallies/Cell/score='damage_energy kappa_fission' Problem/Tallies/Cell/name='heat_source kappa_fission' Problem/source_rate_normalization=kappa_fission Outputs/file_base=damage_energy_out"
     requirement = "The system shall allow the user to specify a 'damage-energy' score in the OpenMC tally."
     capabilities = 'openmc'
+    min_slots = 2 # 350 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [fission_q_prompt]
     type = CSVDiff
@@ -61,6 +67,7 @@
     cli_args = 'Problem/Tallies/Cell/score=fission_q_prompt Outputs/file_base=fission_q_prompt_out'
     requirement = "The system shall allow the user to specify a 'fission-q-prompt' score in the OpenMC tally."
     capabilities = 'openmc'
+    min_slots = 2 # 349 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [fission_q_recoverable]
     type = CSVDiff
@@ -69,6 +76,7 @@
     cli_args = 'Problem/Tallies/Cell/score=fission_q_recoverable Outputs/file_base=fission_q_recoverable_out'
     requirement = "The system shall allow the user to specify a 'fission-q-recoverable' score in the OpenMC tally."
     capabilities = 'openmc'
+    min_slots = 2 # 349 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [duplicate_variable]
     type = RunException
@@ -77,5 +85,6 @@
     expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source' through the Tally system"
     requirement = "The system shall error if the user adds a duplicate variable with a name Cardinal reserves for OpenMC coupling."
     capabilities = 'openmc'
+    min_slots = 2 # 351 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

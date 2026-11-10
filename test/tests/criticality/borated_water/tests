@@ -8,6 +8,7 @@
     expect_err = "The 'minimum' boron ppm \(-1.000000\) must be positive!"
     requirement = 'The system shall error if an invalid minimum boron ppm is provided.'
     capabilities = 'openmc'
+    min_slots = 2 # 334 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [non_dilute]
     type = RunException
@@ -16,6 +17,7 @@
     expect_err = "The borated water composition is computed using a dilute species approximation. Results will not be accurate if the boron species is no longer dilute, which we take as 5\% weight concentration or higher. Please decrease 'maximum' \(53000.000000\) to an upper limit which is in the dilute regime."
     requirement = 'The system shall error if an invalid maximum boron ppm is provided.'
     capabilities = 'openmc'
+    min_slots = 2 # 330 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [warn_nuclides]
     type = RunException
@@ -24,6 +26,7 @@
     expect_err = "The criticality search will clear out all nuclides in material 1 and replace them with the naturally-abundant nuclides in hydrogen, oxygen, and boron. Any other nuclides which existed in the material will be deleted.\n\nThe material you provided contains nuclides which are not the natural isotopes of H, B, and O: U234 U235 U238 H3. These will be deleted from material 1 when the boron concentration is changed."
     requirement = "The system shall warn the user if nuclides will be erased by the borated water criticality search. This test covers both non-H,B,O elements as well as non-natural isotopes of these elements."
     capabilities = 'openmc'
+    min_slots = 2 # 335 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [absent_nuclides]
     type = RunException
@@ -32,6 +35,7 @@
     expect_err = "Only absent isotopes of hydrogen, oxygen, or boron will be used to adjust natural abundances. The entry 'W182' will be unused."
     requirement = "The system shall warn the user if they are omitting a nuclide from their cross section library which is irrelevant for boric acid control."
     capabilities = 'openmc'
+    min_slots = 2 # 319 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [borated_water]
     type = CSVDiff
@@ -41,5 +45,6 @@
     # the relative nuclide concentrations are also printed to the screen and shown to match against
     # those added by OpenMC's borated_water function
     capabilities = 'openmc'
+    min_slots = 2 # 335 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

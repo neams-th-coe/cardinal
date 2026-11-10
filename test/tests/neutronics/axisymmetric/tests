@@ -7,6 +7,6 @@
     expect_err = "OpenMC coupling to axisymmetric meshes is not yet supported"
     requirement = "The system shall error if attempting to use an axisymmetric mesh mirror because MOOSE's element volume functions only return areas for axisymmetric."
     capabilities = 'openmc'
-    min_slots = 5 # 556 MB per slot observed during https://civet.inl.gov/job/4355957/ during step Test DagMC found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
+    min_slots = 5 # 563 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test --distributed-mesh -p 3 found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

@@ -40,7 +40,7 @@
                   "also splits tests this way. This test runs OpenMC and heat conduction for one step."
     prereq = 'solid_mesh fluid_mesh_to_hex20'
     capabilities = 'openmc'
-    min_slots = 2 # 642 MB per slot observed during https://civet.inl.gov/job/4355961/ during step Tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
+    min_slots = 2 # 652 MB per slot observed during https://civet.inl.gov/job/4362041/ during step Test tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [nek]
     type = RunApp
@@ -50,7 +50,7 @@
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way. This test runs heat conduction and NekRS for one step."
-    min_slots = 9 # 575 MB per slot observed during https://civet.inl.gov/job/4355961/ during step Tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
+    min_slots = 9 # 559 MB per slot observed during https://civet.inl.gov/job/4362041/ during step Test tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     prereq = 'solid_mesh'
     capabilities = 'nekrs'
   []

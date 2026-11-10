@@ -15,7 +15,7 @@
     rel_err = 6e-5
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    min_slots = 13 # 699 MB per slot observed during https://civet.inl.gov/job/4355958/ during step Test nekRS found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
+    min_slots = 13 # 710 MB per slot observed during https://civet.inl.gov/job/4362038/ during step Test --distributed-mesh -p 3 found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
     capabilities = 'nekrs'
   []
   [gap_horizontal_layered]
@@ -24,7 +24,7 @@
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "A layered gap and 2-D hexagonal subchannel bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
-    min_slots = 13 # 699 MB per slot observed during https://civet.inl.gov/job/4355958/ during step Test nekRS found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
+    min_slots = 13 # 699 MB per slot observed during https://civet.inl.gov/job/4362038/ during step Test --distributed-mesh -p 3 found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
     capabilities = 'nekrs'
   []
   [bins_too_fine]
@@ -43,7 +43,7 @@
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side averages of velocity along a "
                   "user-specified direction."
-    min_slots = 13 # 703 MB per slot observed during https://civet.inl.gov/job/4355958/ during step Test nekRS found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
+    min_slots = 13 # 711 MB per slot observed during https://civet.inl.gov/job/4362038/ during step Test --distributed-mesh -p 3 found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
     capabilities = 'nekrs'
   []
 []
