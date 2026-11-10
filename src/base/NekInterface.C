@@ -458,6 +458,8 @@ interpolateDiffusiveFluxToPoints(pointInterpolation_t & interp,
                       nekrs::nondimensionalAdditive(field);
   }
 
+  o_interpolated.free();
+
   return interpolated;
 }
 
