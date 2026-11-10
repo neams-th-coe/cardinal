@@ -612,6 +612,8 @@ interpolateToPoints(pointInterpolation_t & interp,
     interpolated[i] =
         interpolated[i] * nondimensionalDivisor(field) + nondimensionalAdditive(field);
 
+  o_interpolated.free();
+
   return interpolated;
 }
 
