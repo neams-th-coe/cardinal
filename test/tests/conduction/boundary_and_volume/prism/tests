@@ -32,9 +32,8 @@
   [pyramid_exact]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'MultiApps/nek/input_files="nek_exact.i" Outputs/csv=true Outputs/file_base=openmc_exact_out'
     csvdiff = openmc_exact_out.csv
-    cli_args = 'Outputs/hide="source_bison source_nek source_integral_nek source_integral_bison flux_integral"'
+    cli_args = 'MultiApps/nek/input_files="nek_exact.i" Outputs/csv=true Outputs/file_base=openmc_exact_out Outputs/hide="source_bison source_nek source_integral_nek source_integral_bison flux_integral max_diff_in_nek max_diff_in_bison"'
     min_parallel = 8
     heavy = true
     rel_err = 1e-4
