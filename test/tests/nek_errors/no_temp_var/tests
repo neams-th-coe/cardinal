@@ -38,6 +38,7 @@
     requirement = "The system shall error if trying to send STL boundary data into NekRS as a volume source, since this should instead be accomplished using a kernel within NekRS directly."
     capabilities = 'nekrs'
     issues = '#1398'
+    mesh_mode = 'replicated'
     design = 'NekVolumetricSource.md'
   []
   [stl_data]
@@ -48,6 +49,7 @@
     requirement = "The system shall error if trying to send STL boundary data into NekRS as a volume field, since this should instead be accomplished using a kernel within NekRS directly."
     capabilities = 'nekrs'
     issues = '#1398'
+    mesh_mode = 'replicated'
     design = 'NekVolumetricData.md'
   []
 []

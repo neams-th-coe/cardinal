@@ -21,6 +21,7 @@
     expect_err = "This option is not yet supported for STL data transfers"
     requirement = "The system shall error if trying to individually support conservation with STL surfaces, as this feature is not yet supported."
     capabilities = 'nekrs'
+    mesh_mode = 'replicated'
   []
   [vpp_disjoint]
     type = CSVDiff
