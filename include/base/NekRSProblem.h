@@ -399,7 +399,7 @@ protected:
   /// Initialize interpolation matrices for transfers in/out of nekRS
   void initializeInterpolationMatrices();
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+  NumericVector<Number> & _serialized_solution;
 
   /**
    * Get a three-character prefix for use in writing output files for repeated

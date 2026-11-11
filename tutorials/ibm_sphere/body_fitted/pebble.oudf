@@ -1,0 +1,16 @@
+void udfDirichlet(bcData *bc)
+{
+  if (isField("fluid velocity"))
+  {
+    bc->uxFluid = 0.0;
+    bc->uyFluid = 0.0;
+    bc->uzFluid = 1.0;
+  }
+  else if (isField("scalar temperature"))
+    bc->sScalar = 0.0;
+}
+
+void udfNeumann(bcData *bc)
+{
+  bc->fluxScalar = 1.0;
+}

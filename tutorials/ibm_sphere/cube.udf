@@ -80,15 +80,17 @@ std::vector<std::array<std::size_t, 3>> globalFaces;   // All Immersed surface f
 
 // Define a global variable to hold the integrationPoints
 std::vector<IntegrationPoint> globalIntegrationPoints;
-
-// Define a global variable to hold the LagrangePoints
 std::vector<LagrangePoint> globalLagrangePoints;
+
+// Lagrange points on this rank
+std::vector<LagrangePoint> localLagrangePoints;
 
 std::vector<Vertex> STLvertices;  // Declare vertices as a global variable
 std::vector<FacetNormal> STLnormals;  // Declare normals as global
 
 // declare user-defined device kernel
 static deviceKernel PenaltyNoSlipBCKernel;
+static deviceKernel conductivityKernel;
 static deviceKernel viscosityKernel;
 static occa::kernel CHTKernel;
 
@@ -105,7 +107,7 @@ void CHTKernelHeatSource(double time)
    auto o_S  = nrs->scalar->o_solution("temperature");
    auto o_FS = nrs->scalar->o_EXT;
 
-    size_t numLagrangePoints = globalLagrangePoints.size();
+    size_t numLagrangePoints = localLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
     std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
@@ -114,17 +116,17 @@ void CHTKernelHeatSource(double time)
 
     for (size_t i = 0; i < numLagrangePoints; ++i)
     {
-        xLagrange[i] = globalLagrangePoints[i].position.x();
-        yLagrange[i] = globalLagrangePoints[i].position.y();
-        zLagrange[i] = globalLagrangePoints[i].position.z();
-        characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
-        Area[i] = globalLagrangePoints[i].weight;
-        characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
-        ElementNumber[i] = globalLagrangePoints[i].elementNumber;
+        xLagrange[i] = localLagrangePoints[i].position.x();
+        yLagrange[i] = localLagrangePoints[i].position.y();
+        zLagrange[i] = localLagrangePoints[i].position.z();
+        characteristicArea[i] = localLagrangePoints[i].characteristicArea;
+        Area[i] = localLagrangePoints[i].weight;
+        characteristicLength[i] = localLagrangePoints[i].characteristicLength;
+        ElementNumber[i] = localLagrangePoints[i].elementNumber;
 
-        normal_x[i] = globalLagrangePoints[i].normal[0];
-        normal_y[i] = globalLagrangePoints[i].normal[1];
-        normal_z[i] = globalLagrangePoints[i].normal[2];
+        normal_x[i] = localLagrangePoints[i].normal[0];
+        normal_y[i] = localLagrangePoints[i].normal[1];
+        normal_z[i] = localLagrangePoints[i].normal[2];
     }
 
     occa::memory o_xLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
@@ -199,8 +201,10 @@ void CHTKernelHeatSource(double time)
 
     double k;
     platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", k);
-    CHTKernel(nrs->meshV->Nelements, k,
-              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z, nrs->fieldOffset,
+    CHTKernel(nrs->meshV->Nelements, k, time,
+              nrs->meshV->o_x, nrs->meshV->o_y, nrs->meshV->o_z,
+              platform->app->bc->o_usrwrk,
+              nrs->fieldOffset,
               numLagrangePoints, o_xLagrange, o_yLagrange, o_zLagrange,  o_normal_x, o_normal_y, o_normal_z,
               o_characteristicArea, o_characteristicLength, o_ElementNumber,
               nrs->meshV->o_vgeo, nrs->meshV->o_D, o_S, o_FS, o_sdfValues);
@@ -215,7 +219,7 @@ void PenaltyNoSlipBCCustomSource(double time)
     auto o_U = nrs->fluid->o_U;
     auto o_FU = nrs->fluid->o_explicitTerms();
 
-    size_t numLagrangePoints = globalLagrangePoints.size();
+    size_t numLagrangePoints = localLagrangePoints.size();
 
     std::vector<dfloat> xLagrange(numLagrangePoints), yLagrange(numLagrangePoints), zLagrange(numLagrangePoints);
     std::vector<dfloat> characteristicArea(numLagrangePoints), Area(numLagrangePoints), characteristicLength(numLagrangePoints);
@@ -224,18 +228,18 @@ void PenaltyNoSlipBCCustomSource(double time)
 
 
     for (size_t i = 0; i < numLagrangePoints; ++i) {
-        xLagrange[i] = globalLagrangePoints[i].position.x();
-        yLagrange[i] = globalLagrangePoints[i].position.y();
-        zLagrange[i] = globalLagrangePoints[i].position.z();
-        characteristicArea[i] = globalLagrangePoints[i].characteristicArea;
-        Area[i] = globalLagrangePoints[i].weight;
-        characteristicLength[i] = globalLagrangePoints[i].characteristicLength;
-        ElementNumber[i] = globalLagrangePoints[i].elementNumber;
+        xLagrange[i] = localLagrangePoints[i].position.x();
+        yLagrange[i] = localLagrangePoints[i].position.y();
+        zLagrange[i] = localLagrangePoints[i].position.z();
+        characteristicArea[i] = localLagrangePoints[i].characteristicArea;
+        Area[i] = localLagrangePoints[i].weight;
+        characteristicLength[i] = localLagrangePoints[i].characteristicLength;
+        ElementNumber[i] = localLagrangePoints[i].elementNumber;
 
         // normal
-        normal_x[i] = globalLagrangePoints[i].normal[0];
-        normal_y[i] = globalLagrangePoints[i].normal[1];
-        normal_z[i] = globalLagrangePoints[i].normal[2];
+        normal_x[i] = localLagrangePoints[i].normal[0];
+        normal_y[i] = localLagrangePoints[i].normal[1];
+        normal_z[i] = localLagrangePoints[i].normal[2];
     }
 
     occa::memory o_xLagrange = platform->device.malloc(numLagrangePoints * sizeof(dfloat));
@@ -391,11 +395,19 @@ void material_props(double time)
   platform->options.getArgs("FLUID VISCOSITY", mu);
   auto o_mue = nrs->fluid->o_diffusionCoeff();
   viscosityKernel(nrs->meshV->Nelements, mu, o_sdfValues , o_mue);
+
+  // modify thermal conductivity inside the body to reflect solid properties
+  dfloat kf;
+  platform->options.getArgs("SCALAR00 DIFFUSIONCOEFF", kf);
+  auto & scalar = nrs->scalar;
+  auto o_k = scalar->o_prop.slice(0 * scalar->fieldOffsetSum);
+  conductivityKernel(nrs->meshV->Nelements, kf, o_sdfValues , o_k);
 }
 
 void UDF_LoadKernels(deviceKernelProperties & kernelInfo)
 {
   PenaltyNoSlipBCKernel = oudfBuildKernel(kernelInfo , "PenaltyNoSlipBC");
+  conductivityKernel = oudfBuildKernel(kernelInfo, "thermal_conductivity");
   viscosityKernel = oudfBuildKernel(kernelInfo, "viscosity");
   CHTKernel = oudfBuildKernel(kernelInfo , "CHT");
 }
@@ -417,13 +429,16 @@ void UDF_Setup()
   // kernel for changing the visosity
   nrs->userProperties = &material_props;
 
-  // apply initial conditions for velocity, then copy into the velocity array
-  std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
+  if (platform->options.getArgs("RESTART FILE NAME").empty())
+  {
+    // apply initial conditions for velocity, then copy into the velocity array
+    std::vector<dfloat> U(mesh->dim * nrs->fluid->fieldOffset, 0.0);
 
-  for (int n = 0; n < mesh->Nlocal; ++n)
-    U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
+    for (int n = 0; n < mesh->Nlocal; ++n)
+      U[n + 2 * nrs->fluid->fieldOffset] = 1.0;  // z-velocity
 
-  nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+    nrs->fluid->o_solution().copyFrom(U.data(), U.size());
+  }
 
   read_stl_file();
 }
@@ -998,28 +1013,33 @@ std::vector<dfloat> classifyPointsWithVTK(const std::string& stlFilename)
   return distances;
 }
 
-// Function to write surface mesh data to a VTK file (for visualizing the resulting triangulated surface)
-void writeSurfaceMeshToVTK(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces)
+// Function to write surface mesh data to a VTK and STL file (for visualizing the resulting triangulated surface)
+void writeSurfaceMeshToSTL(const std::string& filename, const std::vector<Point>& points, const std::vector<std::array<std::size_t, 3>>& faces, const std::vector<LagrangePoint> & l_points)
 {
-  std::ofstream vtkFile(filename);
 
-  // Write VTK header
-  vtkFile << "# vtk DataFile Version 3.0\n";
-  vtkFile << "Surface Mesh Data\n";
-  vtkFile << "ASCII\n";
-  vtkFile << "DATASET POLYDATA\n";
+  // also write to STL
+  std::cout << "writing STL file 'retriangulated.stl'...";
+  std::ofstream stlFile("retriangulated.stl");
+  stlFile << "solid Body 1\n";
 
-  // Write vertices
-  vtkFile << "POINTS " << points.size() << " double\n";
-  for (const auto& point : points)
-    vtkFile << point.x() << " " << point.y() << " " << point.z() << "\n";
+  // for each element
+  for (unsigned int i = 0; i < faces.size(); i++)
+  {
+    auto face = faces[i];
+    auto pt = l_points[i];
 
-  // Write faces
-  vtkFile << "POLYGONS " << faces.size() << " " << (4 * faces.size()) << "\n";
-  for (const auto& face : faces)
-    vtkFile << "3 " << face[0] << " " << face[1] << " " << face[2] << "\n";
+    stlFile << "  facet normal " << pt.normal[0] << " " << pt.normal[1] << " " << pt.normal[2] << "\n";
+    stlFile << "    outer loop\n";
+    for (const auto & idx : face)
+      stlFile << "      vertex " << points[idx].x() << " " << points[idx].y() << " " << points[idx].z() <<"\n";
+    stlFile << "    endloop\n";
+    stlFile << "  endfacet\n";
 
-  vtkFile.close();
+  }
+
+  stlFile << "endsolid Body 1\n";
+  stlFile.close();
+  std::cout << "done" << std::endl;
 }
 
 // Function to compute 3-point Gauss integration points for a triangle and their weights
@@ -1250,7 +1270,7 @@ void identifyCuttingTrianglesWithIntersections()
     int p = std::cbrt(pointsPerElement) - 1; // Compute polynomial order
 
     globalIntegrationPoints.clear();
-    globalLagrangePoints.clear();
+    localLagrangePoints.clear();
 
     std::vector<Point> localPoints;
     std::vector<std::array<std::size_t, 3>> localFaces;
@@ -1281,11 +1301,17 @@ void identifyCuttingTrianglesWithIntersections()
             Point v2(isoMesh.points[face[1]][0], isoMesh.points[face[1]][1], isoMesh.points[face[1]][2]);
             Point v3(isoMesh.points[face[2]][0], isoMesh.points[face[2]][1], isoMesh.points[face[2]][2]);
 
+            // Check for degeneracy before doing any other work on this triangle
+            auto area = computeTriangleArea(v1, v2, v3);
+            if (!(area > 1e-10))   // false for NaN, so NaN triangles get skipped too
+              continue;
+
             auto integrationPoints = computeIntegrationPointsForTriangle(v1, v2, v3);
+
             auto LagrangePoints    = computeLagrangePointsForTriangle(v1, v2, v3, elementIdx / pointsPerElement);
 
             globalIntegrationPoints.insert(globalIntegrationPoints.end(), integrationPoints.begin(), integrationPoints.end());
-            globalLagrangePoints.insert(globalLagrangePoints.end(), LagrangePoints.begin(), LagrangePoints.end());
+            localLagrangePoints.insert(localLagrangePoints.end(), LagrangePoints.begin(), LagrangePoints.end());
         }
 
         // Adjust face indices
@@ -1316,6 +1342,7 @@ void identifyCuttingTrianglesWithIntersections()
 
     // Get the number of local points
     int localNumPoints = localPoints.size();
+    int localNumLagrangePoints = localLagrangePoints.size();
 
     // Gather the number of points from all processes
     std::vector<int> allLocalNumPoints(size);
@@ -1334,8 +1361,8 @@ void identifyCuttingTrianglesWithIntersections()
     }
 
     // === Step 1: Gather All Points and Faces ===
-    std::vector<Point> globalPoints;
-    std::vector<std::array<std::size_t, 3>> globalFaces;
+    //std::vector<Point> globalPoints;
+    //std::vector<std::array<std::size_t, 3>> globalFaces;
 
     int localNumFaces = localFaces.size();
 
@@ -1347,28 +1374,54 @@ void identifyCuttingTrianglesWithIntersections()
     // Prepare arrays for MPI_Gatherv counts and displacements (on rank 0)
     std::vector<int> recvCountsPoints;
     std::vector<int> recvCountsFaces;
-    std::vector<int> pointDisplacements(size, 0), faceDisplacements(size, 0);
+    std::vector<int> recvCountsLagrangePoints;
+    std::vector<int> pointDisplacements(size, 0), faceDisplacements(size, 0), lagrangePointDisplacements(size, 0);
 
     if (rank == 0) { // rank 0 does the conversion
         recvCountsPoints.resize(size);
         recvCountsFaces.resize(size);
+        recvCountsLagrangePoints.resize(size);
         int totalBytesPoints = 0;
         int totalBytesFaces = 0;
+        int totalBytesLagrangePoints = 0;
         for (int i = 0; i < size; ++i) {
             // Convert element counts to byte counts
             recvCountsPoints[i] = allNumPoints[i] * sizeof(Point);
             recvCountsFaces[i]  = allNumFaces[i]  * sizeof(std::array<std::size_t, 3>);
+            recvCountsLagrangePoints[i] = allNumFaces[i] * sizeof(LagrangePoint);
+
             if (i > 0) {
                 pointDisplacements[i] = pointDisplacements[i-1] + recvCountsPoints[i-1];
                 faceDisplacements[i]  = faceDisplacements[i-1]  + recvCountsFaces[i-1];
+                lagrangePointDisplacements[i] = lagrangePointDisplacements[i-1] + recvCountsLagrangePoints[i-1];
             }
+
             totalBytesPoints += recvCountsPoints[i];
             totalBytesFaces  += recvCountsFaces[i];
+            totalBytesLagrangePoints += recvCountsLagrangePoints[i];
         }
+
         // Resize global vectors to hold all the data
         globalPoints.resize(totalBytesPoints / sizeof(Point));
         globalFaces.resize(totalBytesFaces / sizeof(std::array<std::size_t, 3>));
+        globalLagrangePoints.resize(totalBytesLagrangePoints / sizeof(LagrangePoint));
+
+        // fill out global_point_to_rank, an array that is indexed by the global Lagrange point and which
+        // returns the element rank that owns it
+        std::ofstream rankFile("ranks.txt");
+
+        for (int i = 0; i < size; ++i)
+          rankFile << allNumFaces[i] << "\n";
+        rankFile.close();
     }
+
+    // get lagrange points into global array so that rank 0 can use the normals here to write an STL output file
+    MPI_Gatherv(localLagrangePoints.data(),
+                localNumLagrangePoints * sizeof(LagrangePoint), MPI_BYTE,
+                globalLagrangePoints.data(),
+                (rank == 0 ? recvCountsLagrangePoints.data() : nullptr),
+                (rank == 0 ? lagrangePointDisplacements.data() : nullptr),
+                MPI_BYTE, 0, platform->comm.mpiComm());
 
     //  Gather Data Using MPI_Gatherv with MPI_BYTE
     MPI_Gatherv(localPoints.data(),
@@ -1385,14 +1438,13 @@ void identifyCuttingTrianglesWithIntersections()
                 (rank == 0 ? faceDisplacements.data() : nullptr),
                 MPI_BYTE, 0, platform->comm.mpiComm());
 
-    // Write the VTK file for the reconstructed mesh
     if (rank == 0)
-      writeSurfaceMeshToVTK("surface_mesh.vtk", globalPoints, globalFaces);
+      writeSurfaceMeshToSTL("surface_mesh.vtk", globalPoints, globalFaces, globalLagrangePoints);
 
     // Check conservation of surface quadrature weights: each centroid carries
     // its triangle area. Reduce the scalar sum rather than gather all points.
     dfloat localArea = 0.0;
-    for (const auto & point : globalLagrangePoints)
+    for (const auto & point : localLagrangePoints)
       localArea += point.weight;
 
     dfloat triangulatedArea = 0.0;

@@ -9,6 +9,7 @@ Tv = 5
     [flux]
       type = NekBoundaryFlux
       direction = from_nek
+      scalar = "temperature"
     []
   []
 

@@ -1,0 +1,21 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1
+  dt = 5.0e-4
+  polynomialOrder = 7
+  scalars = temperature
+
+[MESH]
+  file = ../../common_inputs/brick2.re2
+
+[FLUID VELOCITY]
+  solver = none
+
+[FLUID PRESSURE]
+
+[SCALAR TEMPERATURE]
+  diffusionCoeff = 2
+  boundaryTypeMap = t, t, t, t, t, t
