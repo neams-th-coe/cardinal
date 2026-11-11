@@ -4,15 +4,19 @@
 [Mesh]
   type = FileMesh
   file = prism.exo
-
-  # Refining the mesh gives better agreement with the MOOSE standalone case, but
-  # to keep the gold file small, we dont refine here
-  uniform_refine = 0
 []
 
 [Problem]
   type = FEProblem
   solve = false
+[]
+
+[UserObjects]
+  [moose_temperature]
+    type = SolutionUserObject
+    mesh = moose_out.e
+    system_variables = 'temperature'
+  []
 []
 
 [AuxVariables]
@@ -28,9 +32,41 @@
   [nek_temp] # This is received from nekRS
     initial_condition = 500.0
   []
+  [moose_temp]
+  []
+  [diff_in_bison]
+    block = '2'
+  []
+  [diff_in_nek]
+    block = '1'
+  []
 []
 
+# the minimum temperature imposed on one of the boundaries is 860, so we use that as
+# a reference scale T0 in order to compare temperatures
+min_t = 860
+
 [AuxKernels]
+  [moose_temp]
+    type = SolutionAux
+    variable = moose_temp
+    solution = moose_temperature
+    from_variable = 'temperature'
+  []
+  [diff_in_1]
+    type = ParsedAux
+    variable = diff_in_bison
+    coupled_variables = 'moose_temp bison_temp'
+    expression = 'abs(moose_temp - bison_temp) / ${min_t}'
+    block = '2'
+  []
+  [diff_in_2]
+    type = ParsedAux
+    variable = diff_in_nek
+    coupled_variables = 'moose_temp nek_temp'
+    expression = 'abs(moose_temp - nek_temp) / ${min_t}'
+    block = '1'
+  []
   [source1]
     type = ParsedAux
     variable = source_nek
@@ -62,6 +98,16 @@
   []
   [flux_integral]
     type = Receiver
+  []
+  [max_diff_in_nek]
+    type = ElementExtremeValue
+    variable = diff_in_nek
+    block = '1'
+  []
+  [max_diff_in_bison]
+    type = ElementExtremeValue
+    variable = diff_in_bison
+    block = '2'
   []
   [max_T_int]
     type = NodalExtremeValue

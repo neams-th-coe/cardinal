@@ -12,10 +12,12 @@
   residualTol = 1e-06
 
 [FLUID VELOCITY]
-  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet, zeroDirichlet
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroDirichlet
   residualTol = 1e-08
   density = 1.0
   viscosity = -50
+
+# boundary 4 is the cut elements
 
 [SCALAR TEMPERATURE]
   boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann, zeroNeumann

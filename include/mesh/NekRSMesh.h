@@ -25,6 +25,7 @@
 #include "NekVolumeCoupling.h"
 #include "NekInterface.h"
 #include "NekUtility.h"
+#include "libmesh/face_tri3.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -65,6 +66,18 @@ public:
   void initializePreviousDisplacements();
 
   /**
+   * Get the number of Lagrange points on each rank
+   * @return map from rank index to number of Lagrange points on that rank
+   */
+  const std::map<int, int> & rankToLagrange() const { return _rank_to_num_lagrange_points; }
+
+  /**
+   * Check that the number of Lagrange points on each rank does not exceed the field offset length
+   * in the usrwrk array
+   */
+  void checkSTLDataOffset() const;
+
+  /**
    * NekRS mesh polynomial order
    * @return NekRS polynomial order
    */
@@ -81,6 +94,36 @@ public:
    * @return number of MOOSE elements per NekRS surface element
    */
   int nBuildPerSurfaceElem() const { return _n_build_per_surface_elem; }
+
+  /**
+   * Number of STL vertices in the mesh
+   * @return number of STL vertices in the mesh
+   */
+  int nSTLVertices() const { return _stl_vertices.size(); }
+
+  /**
+   * STL subdomain ID
+   * @return STL subdomain ID
+   */
+  const unsigned int & stlSubdomainID() const { return _stl_block_id; }
+
+  /**
+   * Whether there is an STL file present
+   * @return if STL file is provided
+   */
+  bool hasSTLFile() const { return _stl_filename; }
+
+  /**
+   * The name of the STL file
+   * @return name of the STL file
+   */
+  const std::string & stlFilename() const { return *_stl_filename; }
+
+  /**
+   * Vector of all STL vertices, ordered according to their numbering as nodes
+   * @return vector of all STL vertices
+   */
+  const std::vector<Point> & stlVertices() const { return _stl_vertices; }
 
   /**
    * Get the initial mesh x coordinates
@@ -161,6 +204,18 @@ public:
   const int & numElems() const { return _n_elems; }
 
   /**
+   * Get the number of elements in the STL file
+   * @return number of elements in STL file
+   */
+  const int numSTLElems() const { return _stl_normals.size(); }
+
+  /**
+   * Get the STL unit normals on each triangle
+   * @return STL unit normals, indexed by global STL index
+   */
+  const std::vector<Point> & stlNormals() const { return _stl_normals; }
+
+  /**
    * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh
    *
    * This function is used to perform the data transfer routines in NekRSProblem
@@ -168,6 +223,12 @@ public:
    * return number of vertices per element
    */
   const int & numVerticesPerElem() const { return _n_vertices_per_elem; }
+
+  /**
+   * Get the number of vertices per STL triangle
+   * @return number of vertices per triangle
+   */
+  const int numVerticesPerSTL() const { return Tri3::num_nodes; }
 
   /**
    * \brief Get the libMesh node index from nekRS's GLL index ordering
@@ -322,6 +383,16 @@ public:
   void updateDisplacement(const int e, const double * src, const field::NekWriteEnum field);
 
 protected:
+  /// Build the STL surface
+  void buildSTLSurface();
+
+  /*
+   *Parses an STL file and populates the list of vertices and unit normals
+   * @param[in] token line
+   * @param[out] value parsed value
+   */
+  void tryParseFloat(const std::string & token, Real & value);
+
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
 
@@ -417,6 +488,18 @@ protected:
 
   /// Block ID for the solid portion of the mesh mirror
   const unsigned int & _solid_block_id;
+
+  /// Filename to reconstruct an STL surface from
+  const std::string * _stl_filename;
+
+  /// Block ID to assign to the elements on the STL surface
+  const unsigned int & _stl_block_id;
+
+  /// Multiplicative scaling to apply to the STL surface
+  const Real & _stl_multiplier;
+
+  /// Translation to apply to the STL surface
+  const Point * _stl_translation;
 
   /// Order of the nekRS solution
   int _nek_polynomial_order;
@@ -578,4 +661,13 @@ protected:
 
   /// Corner indices for GLL points of mesh mirror elements
   std::vector<std::vector<int>> _corner_indices;
+
+  /// STL vertices, indexed by global STL index
+  std::vector<Point> _stl_vertices;
+
+  /// STL unit normals, indexed by global STL index
+  std::vector<Point> _stl_normals;
+
+  /// Map from each NekRS rank to the number of Lagrange points owned by that rank
+  std::map<int, int> _rank_to_num_lagrange_points;
 };

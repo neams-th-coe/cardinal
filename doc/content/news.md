@@ -5,6 +5,7 @@ significant changes to report.
 
 ### 2026
 
+- [November 2026](news/november2026.md)
 - [July 2026](news/july2026.md)
 - [June 2026](news/june2026.md)
 

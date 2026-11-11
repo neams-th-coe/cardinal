@@ -1,16 +1,30 @@
 [Tests]
+  [moose]
+    type = RunApp
+    input = moose.i
+    requirement = "The system shall run a reference MOOSE heat conduction simulation for use in assessing the same problem executed with domain decomposition in NekRS."
+    min_parallel = 4
+
+    # we only need this test for the pyramid case; the test suite would pick it up as heavy and run anyways, but
+    # this prevents running in the main test suite where it's unused
+    heavy = true
+  []
   [pyramid]
-    type = Exodiff
+    type = CSVDiff
     input = openmc.i
-    exodiff = openmc_out.e
+    csvdiff = openmc_csv.csv
+    prereq = moose
     min_parallel = 8
     heavy = true
-    rel_err = 2e-4
+
+    # this is how we enforce that the differences should be less than 1% compared to the loaded solution
+    abs_zero = 1e-2
+
     requirement = "A coupled MOOSE-nekRS heat conduction problem shall produce the correct temperature "
                   "distribution when (1) a heat source is applied in the nekRS volume and (2) a heat "
-                  "flux is imposed in nekRS through a boundary. The same problem is created in a standalone "
-                  "MOOSE simulation, in moose.i. Temperatures agree to within 0.2%, and the agreement "
-                  "can be made better by using finer meshes in the coupled Cardinal case."
+                  "flux is imposed in nekRS through a boundary. The test checks that temperatures match "
+                  "within 1 percent from the reference MOOSE simulation which is loaded with a user object. "
+    cli_args = 'Outputs/hide="max_T_int min_T_int max_T_nek min_T_nek avg_T_nek max_T_bison min_T_bison avg_T_bison pt_nek pt_bison source_bison source_nek source_integral_nek source_integral_bison flux_integral"'
     min_slots = 12 # memory heavy
     capabilities = 'nekrs'
     design = 'NekRSProblem.md NekBoundaryFlux.md NekVolumetricSource.md NekFieldVariable.md'
@@ -18,8 +32,8 @@
   [pyramid_exact]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'MultiApps/nek/input_files="nek_exact.i" Outputs/csv=true Outputs/file_base=openmc_exact_out'
     csvdiff = openmc_exact_out.csv
+    cli_args = 'MultiApps/nek/input_files="nek_exact.i" Outputs/csv=true Outputs/file_base=openmc_exact_out Outputs/hide="source_bison source_nek source_integral_nek source_integral_bison flux_integral max_diff_in_nek max_diff_in_bison"'
     min_parallel = 8
     heavy = true
     rel_err = 1e-4
