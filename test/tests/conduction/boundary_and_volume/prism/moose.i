@@ -1,7 +1,7 @@
 [Mesh]
   type = FileMesh
   file = prism.exo
-  uniform_refine = 2
+  uniform_refine = 1
 []
 
 [Variables]
