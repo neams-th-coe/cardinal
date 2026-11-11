@@ -340,7 +340,6 @@ NekBoundaryFlux::sendDataToNek()
                << "]: Normalizing total NekRS flux of "
                << Moose::stringify(nek_flux * nek_flux_print_mult)
                << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
-      _console << Moose::stringify(nek_flux) << " " << nek_flux_print_mult << std::endl;
 
       checkInitialFluxValues(nek_flux, moose_flux);
 
