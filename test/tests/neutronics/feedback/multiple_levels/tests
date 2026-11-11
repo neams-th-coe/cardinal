@@ -10,5 +10,6 @@
                   "Surrounding this pincell is an exterior cell on level 0. Cell IDs, instances, and temperatures "
                   "all correctly reflect using the lowest available level in the exterior region."
     capabilities = 'openmc'
+    min_slots = 2 # 338 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

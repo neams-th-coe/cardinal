@@ -7,6 +7,7 @@
     capabilities = 'openmc'
     issues = '#1114'
     design = 'AddTallyAction.md'
+    min_slots = 2 # 352 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 
   [photon_nu_scatter_heating]
@@ -18,5 +19,6 @@
     capabilities = 'openmc'
     issues = '#1089'
     design = 'AddTallyAction.md'
+    min_slots = 2 # 354 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []

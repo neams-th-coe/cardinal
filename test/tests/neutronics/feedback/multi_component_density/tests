@@ -6,6 +6,7 @@
     expect_err = "'density_variables' and 'density_blocks' must be the same length!"
     requirement = "The system shall error if the blocks and variables are not the same length"
     capabilities = 'openmc'
+    min_slots = 2 # 336 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [empty]
     type = RunException
@@ -14,6 +15,7 @@
     expect_err = "Entries in 'density_blocks' cannot be empty!"
     requirement = "The system shall error if a sub-vector is empty"
     capabilities = 'openmc'
+    min_slots = 2 # 339 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [multi_temp]
     type = RunException
@@ -22,6 +24,7 @@
     expect_err = "Each entry in 'density_variables' must be of length 1. Entry 0 is of length 2."
     requirement = "The system shall error if an entry in density_variables is not of unity length"
     capabilities = 'openmc'
+    min_slots = 2 # 331 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [block_already_used]
     type = RunException
@@ -30,5 +33,6 @@
     expect_err = "Subdomains cannot be repeated in 'density_blocks'! Subdomain '2' is duplicated."
     requirement = "The system shall error if trying to collate multiple density variables onto the same block due to undefined behavior"
     capabilities = 'openmc'
+    min_slots = 2 # 335 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []
