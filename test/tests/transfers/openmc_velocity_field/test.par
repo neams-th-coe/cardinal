@@ -1,0 +1,30 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 5
+  numSteps = 10
+  dt = targetCFL=2.0 + initial=5e-4
+  timeStepper = tombo2
+  checkpointInterval = 5
+  regularization = hpfrt+nModes=1+scalingCoeff=100.0
+  advectionSubCyclingSteps = 2
+  scalars = temperature
+
+[PROBLEMTYPE]
+  equation = navierstokes
+
+[FLUID PRESSURE]
+  residualTol = 0.0001
+
+[FLUID VELOCITY]
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroDirichlet
+  residualTol = 1e-06
+  density = 1.0
+  viscosity = 1.0e-3
+
+[SCALAR TEMPERATURE]
+  boundaryTypeMap = udfDirichlet, zeroNeumann, zeroNeumann
+  rhoCp = 1.0
+  conductivity = 0.01
+  residualTol = 1e-06

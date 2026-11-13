@@ -800,6 +800,11 @@ protected:
   void sendDensityToOpenMC() const;
 
   /**
+   * TODO
+   */
+  void sendVelocityToOpenMC() const;
+
+  /**
    * Check if a mapped location is in the outer universe of a lattice
    * @param[in] level lattice level
    * @return whether the location is in the outer universe
@@ -889,6 +894,11 @@ protected:
    * after being updated in syncSolutions.
    */
   const bool & _export_properties;
+
+  /**
+   * TODO
+   */
+  const bool & _velocity_field_transfer;
 
   /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
   const bool _using_skinner;
@@ -1005,6 +1015,9 @@ protected:
   /// Blocks in MOOSE mesh that provide temperature feedback
   std::vector<SubdomainID> _temp_blocks;
 
+  /// Blocks in MOOSE mesh that provide velocity feedback
+  std::vector<SubdomainID> _velocity_blocks;
+
   /// Blocks for which the cell fills are identical
   std::unordered_set<SubdomainID> _identical_cell_fill_blocks;
 
@@ -1113,6 +1126,9 @@ protected:
   /// Mapping from density variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _density_vars_to_blocks;
 
+  /// Mapping from velocity variable name to the subdomains on which to read it from
+  std::map<std::string, std::vector<SubdomainName>> _velocity_vars_to_blocks;
+
   /// Optional volume calculation for cells which map to MOOSE
   OpenMCVolumeCalculation * _volume_calc;
 
@@ -1205,4 +1221,12 @@ private:
 
   /// Mapping from cell index to the OpenMC Cell Material Modifier that contains its material list
   std::map<int32_t, OpenMCCellMaterialFill *> _cell_material_modifiers;
+  /// Mapping from subdomain IDs to which aux variable to read velocity (m/s) from
+  std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_velocity_x_vars;
+
+  /// Mapping from subdomain IDs to which aux variable to read velocity (m/s) from
+  std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_velocity_y_vars;
+
+  /// Mapping from subdomain IDs to which aux variable to read velocity (m/s) from
+  std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_velocity_z_vars;
 };
