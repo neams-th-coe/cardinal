@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
 
   allow_renumbering = false
@@ -17,12 +17,12 @@
   [Tallies]
     [Mesh]
       type = MeshTally
-      mesh_template = '../meshes/sphere.e'
+      mesh_template = '../meshes/hex_cube.e'
       normalize_by_global_tally = false
     []
     [h3]
       type = MeshTally
-      mesh_template = '../meshes/sphere.e'
+      mesh_template = '../meshes/hex_cube.e'
       mesh_translations = '0 0 16'
       score = 'H3_production'
       normalize_by_global_tally = false

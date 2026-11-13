@@ -22,6 +22,10 @@
 #include "CreateProblemAction.h"
 #include "AddMeshGeneratorAction.h"
 
+#ifdef ENABLE_XDG
+#include "xdg/config.h"
+#endif
+
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
 InputParameters
@@ -161,8 +165,16 @@ OpenMCInitAction::initOpenMC(const std::string & xml_directory)
   // Add terminating nullptr
   argv.push_back(nullptr);
 
+  openmc::settings::libmesh_comm = getMooseApp().getCommunicator().get();
+
   // Initialize OpenMC
   openmc_init(argv.size() - 1, argv.data(), &_communicator.get());
+
+#ifdef ENABLE_XDG
+  // After initialization, we modify the XDG config status to throw on fatal errors instead
+  // of quitting.
+  xdg::XDGConfig::config().set_fatal_error_handling(xdg::ErrorPolicy::THROW);
+#endif
 }
 
 #endif
