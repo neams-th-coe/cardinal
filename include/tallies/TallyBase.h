@@ -246,6 +246,14 @@ public:
   unsigned int numExtFilterBins() const { return _num_ext_filter_bins; }
 
   /**
+   * Get the external filters (added in [Problem/Filters]) applied to this tally. These are
+   * ordered such that the last filter's bins vary fastest in the flattened external bin
+   * indexing used by getScoreVars().
+   * @return the external filters applied to this tally
+   */
+  const std::vector<std::shared_ptr<FilterBase>> & getExtFilters() const { return _ext_filters; }
+
+  /**
    * A function to get the blocks associated with this CellTally.
    * @return a set of blocks associated with this tally.
    */
