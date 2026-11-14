@@ -26,6 +26,7 @@
 
 #include "AngularLegendreFilter.h"
 #include "EnergyOutFilter.h"
+#include "SpatialLegendreFilter.h"
 #include "DelayedGroupFilter.h"
 
 #include "openmc/tallies/filter_universe.h"
@@ -295,6 +296,17 @@ TallyBase::TallyBase(const InputParameters & parameters)
       paramError("estimator",
                  "The filter " + f->name() +
                      " requires an analog estimator! Please ensure 'estimator' is set to analog.");
+
+    // OpenMC scores spatial Legendre filters at the particle's position, which is only
+    // meaningful for collision and analog estimators (a tracklength estimator would score
+    // the entire track length at the end point of the track).
+    if (dynamic_cast<SpatialLegendreFilter *>(f.get()) &&
+        _estimator != openmc::TallyEstimator::COLLISION &&
+        _estimator != openmc::TallyEstimator::ANALOG)
+      paramError("estimator",
+                 "The filter " + f->name() +
+                     " requires a collision or analog estimator! Please ensure 'estimator' is set "
+                     "to collision or analog.");
 
     if (dynamic_cast<DelayedGroupFilter *>(f.get()))
       for (const auto & s : _tally_score)
