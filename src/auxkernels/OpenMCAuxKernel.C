@@ -46,23 +46,6 @@ OpenMCAuxKernelTempl<ComputeValueType>::mappedElement()
   return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
 }
 
-template <typename ComputeValueType>
-void
-OpenMCAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(const std::string & param_name)
-{
-  if (this->isCoupled(param_name))
-  {
-    const auto fe_type = this->getFieldVar(param_name, 0)->feType();
-    if (fe_type.family != libMesh::MONOMIAL || fe_type.order != libMesh::CONSTANT)
-      this->paramError(param_name,
-                       "Only CONSTANT MONOMIAL shape functions are supported. Please "
-                       "ensure that '" +
-                           param_name + "' is of type MONOMIAL and order CONSTANT.");
-  }
-  else
-    this->paramError(param_name, param_name + " is uncoupled!");
-}
-
 // Explicitly instantiates the three versions of the OpenMCAuxKernelTempl class
 template class OpenMCAuxKernelTempl<Real>;
 template class OpenMCAuxKernelTempl<RealVectorValue>;
