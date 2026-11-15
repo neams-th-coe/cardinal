@@ -26,7 +26,7 @@ T_INLET  = 573.0
 
 ## Initial density of the coolant (kg/m^3) as used for computing
 ## multi-group cross sections.
-RHO_INIT = 1002.984889253
+RHO_INIT = 723.219601768
 
 ## The mass flowrate into the pincell (kg/s).
 M_DOT = 3.5

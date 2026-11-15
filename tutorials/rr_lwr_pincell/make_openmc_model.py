@@ -110,6 +110,7 @@ def main() -> None:
   h2o.add_element('O', h2o_frac[0], percent_type = 'ao')
   h2o.add_element('B', h2o_frac[1], percent_type = 'ao')
   h2o.set_density('atom/cm3', np.sum(h2o_comp))
+  h2o.set_density('g/cm3', 0.723219602)
   h2o.add_s_alpha_beta('c_H_in_H2O')
   print(f'Water mass density: {h2o.get_mass_density()} (g/cc)')
 
