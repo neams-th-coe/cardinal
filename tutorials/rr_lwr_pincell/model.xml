@@ -251,7 +251,7 @@
       </space>
     </source>
     <energy_mode>multi-group</energy_mode>
-    <temperature_default>598.0</temperature_default>
+    <temperature_default>573.0</temperature_default>
     <temperature_method>interpolation</temperature_method>
     <temperature_multipole>true</temperature_multipole>
     <temperature_range>294.0 3000.0</temperature_range>
