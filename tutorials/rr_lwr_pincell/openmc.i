@@ -3,7 +3,7 @@
 [Mesh]
   [file]
     type = FileMeshGenerator
-    file = solid_mesh_in.e
+    file = openmc_mesh_in.e
   []
 []
 

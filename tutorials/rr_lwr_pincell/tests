@@ -5,6 +5,12 @@
     cli_args = '--mesh-only'
     requirement = "The system shall be able to create a mesh for the solid region in a pincell."
   []
+  [openmc_mesh]
+    type = RunApp
+    input = openmc_mesh.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall be able to create a pincell mesh mirror for OpenMC."
+  []
   [openmc]
     type = CSVDiff
     input = openmc.i
@@ -13,7 +19,7 @@
     rel_err = 6e-5
     requirement = "The system shall be able to run OpenMC in random ray mode with temperature and "
                   "density feedback from MOOSE."
-    prereq = 'solid_mesh'
+    prereq = 'solid_mesh openmc_mesh'
     capabilities = 'openmc'
   []
 []
