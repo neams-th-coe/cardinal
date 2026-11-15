@@ -24,14 +24,14 @@ template <typename ComputeValueType>
 InputParameters
 OpenMCAuxKernelTempl<ComputeValueType>::validParams()
 {
-  InputParameters params = AuxKernelTempl<ComputeValueType>::validParams();
+  InputParameters params = ConstMonomialAuxKernelTempl<ComputeValueType>::validParams();
   params += TallyInterface::validParams();
   return params;
 }
 
 template <typename ComputeValueType>
 OpenMCAuxKernelTempl<ComputeValueType>::OpenMCAuxKernelTempl(const InputParameters & parameters)
-  : AuxKernelTempl<ComputeValueType>(parameters), TallyInterface(this, parameters)
+  : ConstMonomialAuxKernelTempl<ComputeValueType>(parameters), TallyInterface(this, parameters)
 {
   if (this->isNodal())
     mooseError("This auxkernel can only be used with elemental variables!");
