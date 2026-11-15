@@ -38,7 +38,7 @@
 [Functions]
   [T_fluid]
     type = ParsedFunction
-    expression = '${T_INLET} + ${fparse T_OUTLET - T_INLET} * ((z + ${fparse 0.5 * 1e-2 * HEIGHT}) / ${fparse 1e-2 * HEIGHT})'
+    expression = '${T_INLET} + ${fparse T_OUTLET - T_INLET} * (z / ${fparse 1e-2 * HEIGHT})'
   []
 []
 
