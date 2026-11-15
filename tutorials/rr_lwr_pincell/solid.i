@@ -9,7 +9,7 @@
 
 [Variables]
   [temp]
-    initial_condition = ${T_AVG}
+    initial_condition = ${T_INLET}
   []
 []
 
@@ -18,6 +18,9 @@
     family = MONOMIAL
     order = CONSTANT
     block = 'uo2_tri uo2'
+  []
+  [T_wall]
+    block = 'clad'
   []
 []
 
@@ -35,20 +38,11 @@
   []
 []
 
-[Functions]
-  [T_fluid]
-    type = ParsedFunction
-    expression = '${T_INLET} + ${fparse T_OUTLET - T_INLET} * (z / ${fparse 1e-2 * HEIGHT})'
-  []
-[]
-
 [BCs]
-  [surface]
-    type = ConvectiveFluxFunction
-    T_infinity = T_fluid
-
-    coefficient = ${CONV_HT_COEFF}
+  [cladding_outer_bc]
+    type = MatchedValueBC
     variable = temp
+    v = T_wall
     boundary = 'clad_or'
   []
 []

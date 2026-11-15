@@ -38,14 +38,14 @@
     num_layers = '${AXIAL_LAYERS}'
     direction = '0.0 0.0 1.0'
   []
-  [Delete_Gap]
+  [Delete_Gap_Clad]
     type = BlockDeletionGenerator
     input = '3D_Core'
-    block = 'gap'
+    block = 'gap clad'
   []
   [To_Meters]
     type = TransformGenerator
-    input = 'Delete_Gap'
+    input = 'Delete_Gap_Clad'
     transform = SCALE
     vector_value = '1e-2 1e-2 1e-2'
   []
