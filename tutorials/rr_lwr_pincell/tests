@@ -15,7 +15,7 @@
     type = CSVDiff
     input = openmc.i
     csvdiff = openmc_out.csv
-    cli_args = 'Problem/particles=100 Executioner/num_steps=1 Problem/inactive_batches=50 Problem/batches=100'
+    cli_args = 'Executioner/num_steps=1 Problem/inactive_batches=50 Problem/batches=100'
     rel_err = 6e-5
     requirement = "The system shall be able to run OpenMC in random ray mode with temperature and "
                   "density feedback from MOOSE."
