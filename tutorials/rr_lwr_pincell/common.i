@@ -26,6 +26,12 @@ T_INLET  = 573.0
 T_OUTLET = 623.0
 T_AVG    = 598
 
+## The mass flowrate into the pincell (kg/s).
+M_DOT = 3.5
+
+## The outlet pressure (Pa).
+P_OUTLET = 15.51e6
+
 ## The convective heat transfer coefficient (W/m2/K)
 CONV_HT_COEFF = 1000.0
 
