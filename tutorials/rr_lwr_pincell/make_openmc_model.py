@@ -118,8 +118,8 @@ def main() -> None:
   fuel_gap_or = openmc.ZCylinder(r = specs.R_FUEL + specs.T_F_C_GAP)
   fuel_zr_or  = openmc.ZCylinder(r = specs.R_FUEL + specs.T_F_C_GAP + specs.T_ZR_CLAD)
   fuel_bb = openmc.model.RectangularPrism(width = specs.PITCH, height = specs.PITCH, boundary_type = 'reflective')
-  pin_bot = openmc.ZPlane(z0 = 0.0,                boundary_type = 'vacuum')
-  pin_top = openmc.ZPlane(z0 = 0.5 * specs.HEIGHT, boundary_type = 'vacuum')
+  pin_bot = openmc.ZPlane(z0 = 0.0,          boundary_type = 'vacuum')
+  pin_top = openmc.ZPlane(z0 = specs.HEIGHT, boundary_type = 'vacuum')
 
   ## Create cells for the cladding, gap, and water.
   ## The total cross section of the He gap hits the void guard in the random ray solver. We
@@ -174,11 +174,11 @@ def main() -> None:
   rr_model.convert_to_multigroup(
     method="material_wise",
     groups='CASMO-2',
-    nparticles=5000,
     overwrite_mgxs_library=False,
     mgxs_path="mgxs.h5",
     correction="P0",
-    temperatures = [294, 600, 900, 1200, 1500, 1800, 2100, 2400]
+    temperatures = [294, 600, 900, 1200, 1500, 1800, 2100, 2400],
+    particles = 5000
   )
   rr_model.convert_to_random_ray()
 
