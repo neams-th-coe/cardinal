@@ -35,7 +35,8 @@ typedef OpenMCAuxKernelTempl<RealEigenVector> OpenMCArrayAuxKernel;
  * the OpenMC problem.
  */
 template <typename ComputeValueType>
-class OpenMCAuxKernelTempl : public ConstMonomialAuxKernelTempl<ComputeValueType>, public TallyInterface
+class OpenMCAuxKernelTempl : public ConstMonomialAuxKernelTempl<ComputeValueType>,
+                             public TallyInterface
 {
 public:
   OpenMCAuxKernelTempl(const InputParameters & parameters);

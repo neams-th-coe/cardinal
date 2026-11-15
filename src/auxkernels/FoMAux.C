@@ -16,8 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
-
 #include "FoMAux.h"
 
 registerMooseObject("CardinalApp", FoMAux);
@@ -90,5 +88,3 @@ FoMAux::computeValue()
     }
   }
 }
-
-#endif

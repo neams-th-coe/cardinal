@@ -16,8 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
-
 #include "ConstMonomialAuxKernel.h"
 
 template <typename ComputeValueType>
@@ -28,7 +26,8 @@ ConstMonomialAuxKernelTempl<ComputeValueType>::validParams()
 }
 
 template <typename ComputeValueType>
-ConstMonomialAuxKernelTempl<ComputeValueType>::ConstMonomialAuxKernelTempl(const InputParameters & parameters)
+ConstMonomialAuxKernelTempl<ComputeValueType>::ConstMonomialAuxKernelTempl(
+    const InputParameters & parameters)
   : AuxKernelTempl<ComputeValueType>(parameters)
 {
   if (this->isNodal())
@@ -37,7 +36,8 @@ ConstMonomialAuxKernelTempl<ComputeValueType>::ConstMonomialAuxKernelTempl(const
 
 template <typename ComputeValueType>
 void
-ConstMonomialAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(const std::string & param_name)
+ConstMonomialAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(
+    const std::string & param_name)
 {
   if (this->isCoupled(param_name))
   {
@@ -56,5 +56,3 @@ ConstMonomialAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(const s
 template class ConstMonomialAuxKernelTempl<Real>;
 template class ConstMonomialAuxKernelTempl<RealVectorValue>;
 template class ConstMonomialAuxKernelTempl<RealEigenVector>;
-
-#endif
