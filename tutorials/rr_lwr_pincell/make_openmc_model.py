@@ -147,7 +147,6 @@ def main() -> None:
 
   # The model container.
   ce_model = openmc.Model()
-  ce_model.materials = openmc.Materials([uo2, zr, h2o])
   ce_model.geometry = openmc.Geometry(root=root_uni)
   src_ll = (-0.5 * specs.PITCH, -0.5 * specs.PITCH, 0.0)
   src_ur = ( 0.5 * specs.PITCH,  0.5 * specs.PITCH, specs.HEIGHT)

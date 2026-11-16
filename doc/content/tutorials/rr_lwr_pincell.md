@@ -67,14 +67,9 @@ universe which is populated with the discretized pincell. In this problem the az
 fuel pin itself is symmetric, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
 to a lattice to extrude it into 100 layers axially. The lattice is placed in a cell
 which applies vacuum boundary conditions on the top and bottom of the pincell, while reflective boundary
-conditions are applied on the remaining sides of the geometry. Finally, we add the materials and geometry
+conditions are applied on the remaining sides of the geometry. Finally, we add the geometry
 to a model container and set some simulation settings for the continuous energy model. The radial
 discretization of the OpenMC [!ac](CSG) geometry can be found in [rr_openmc_cells].
-
-!alert note
-For most continuous-energy simulations `model.materials` does not need to be set prior to writing the `model.xml`
-file to disk with `model.export_to_model_xml()`. However, when using `model.convert_to_multigroup()`, `model.materials`
-must be set as the conversion function does not attempt to discover materials from the geometry.
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
   start=## Fuel region: UO2 at ~1% enriched.
@@ -165,8 +160,9 @@ python make_openmc_model.py -r --linear
 
 Heat removal by the fluid is applied through the use of a matching value boundary condition, where
 the surface temperature of the cladding is set equal to the pin surface temperature computed
-by the MOOSE subchannel module. This is performed through the use of the
-[Dittus-Boelter correlation](SCMHTCDittusBoelter.md).
+by the MOOSE subchannel module. The subchannel model uses a corrected version of the
+[Dittus-Boelter correlation](SCMHTCDittusBoelter.md) to compute the fluid Nusselt number
+(for the convective heat transer coefficient), and subsequently the cladding surface temperature.
 
 !include radiation_gap.md
 
@@ -174,9 +170,9 @@ by the MOOSE subchannel module. This is performed through the use of the
 
 The fluid flow around the pincell is computed with the MOOSE
 [subchannel module](https://mooseframework.inl.gov/modules/subchannel/index.html), which discretizes
-the fluid domain into a series of pseudo-3D subchannels which exchange mass, momentum, and energy.
-As the purpose of this tutorial is to demonstrate how one can couple OpenMC's random ray solver
-to other physics, we refer readers to the subchannel
+the fluid domain into a series of pseudo-3D subchannels which exchange mass, momentum, and energy
+on the radial plane. As the purpose of this tutorial is to demonstrate how one can couple OpenMC's
+random ray solver to other physics, we refer readers to the subchannel
 [theorey manual](https://mooseframework.inl.gov/modules/subchannel/general/subchannel_theory.html)
 and [examples](https://mooseframework.inl.gov/modules/subchannel/v&v/v&v-list.html) for more details.
 
@@ -237,7 +233,7 @@ OpenMC will write the fission heat source:
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Mesh
 
-Next, we define a series of `AuxVariable`s and `AuxKernels`. `cell_temperature` and `cell_density` are used to visualize
+Next, we define a series of auxvariables and auxkernels. `cell_temperature` and `cell_density` are used to visualize
 the temperatures and densities Cardinal is applying to OpenMC cells. `average_power` and `linear_power` are used as
 storage to compute the linear power required by the subchannel application. `cell_temperature` and `cell_density`
 are written to by a [CellTemperatureAux](CellTemperatureAux.md) and [CellDensityAux](CellDensityAux.md) (which
@@ -255,7 +251,7 @@ variables on the `[Mesh]`), and writing results from OpenMC tallies to the MOOSE
 number of inactive batches, the total number of batches, and the number of particles per batch. It should be noted
 that these settings can be applied in `make_openmc_model.py` when generating the OpenMC model as well. A large number of
 inactive batches (in this case, 400) are required when running [!ac](TRRM) as both the scattering and fission sources
-must be converged. Fewer rays per batch (1000 in this case) are required as rays do not terminate until they reach
+must be converged. Fewer rays per batch (100 in this case) are required as rays do not terminate until they reach
 the end of the active length (unlike particles, which are killed on absorption). We then specify `scaling = 100.0`
 to convert from mesh units (m) to OpenMC units (cm). We also set the pin power used to normalize tally scores.
 Afterwards, we set the depth in the OpenMC geometry we wish to couple to (`cell_level`), and
@@ -365,7 +361,7 @@ monitor the maximum fuel and cladding temperatures, and select Exodus and CSV ou
 
 ### Subchannel Input File id=subchannel_input
 
-The subchannel problem is setup in the `subchannel.i` input file, and is very similar to the
+The subchannel problem is setup in the `subchannel.i` input file, and is reasonably similar to the
 [continuous energy SFR assembly tutorial](subchannel.md). It begins by creating a 1-D mesh for
 each subchannel and fuel pin as mesh storage for fields computed by subchannel and received from
 transfers. It should be noted that the subchannel simulation does compute crossflow between channels,
@@ -422,7 +418,7 @@ cardinal-opt -i openmc_mesh.i --mesh-only
 mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=4
 ```
 
-All of the above will use 4 OpenMP threads. To run the simulation
+All of the above will use 4 OpenMP threads and 2 MPI ranks. To run the simulation
 faster, you can increase the number of OpenMP threads / MPI ranks or decrease the number of particles. Bear
 in mind that decreasing the number of particles may result in a failure to converge when running
 [!ac](TRRM) as fewer source regions will be hit on each power iteration.
@@ -457,7 +453,7 @@ Picard iteration. There is a fairly large discrepancy (up to 5%) which is caused
 Doppler broadening in the fuel, depressing the pin power compared to the continuous energy
 result. We can confirm this trend by plotting the axial centerline power distribution in
 [rr_lwr_axial_comparison_power]. The continuous energy result is peaked towards the
-subchannel inlet (as expected), while the [!ac](TRRM) calculations are cosine shaped. This showcases
+subchannel inlet (as expected), while the [!ac](TRRM) calculations are more cosine shaped. This showcases
 the need for reasonable [!ac](MGXS) temperature interpolation tables in multiphysics calculations; simple
 temperature isotherms will not suffice when there are large thermal gradients with strong temperature feedback.
 [rr_lwr_axial_comparison_power] also demonstrates the advantage of [!ac](TRRM) - uniform statistical relative
