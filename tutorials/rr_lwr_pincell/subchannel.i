@@ -120,12 +120,6 @@ mass_flux_in = ${fparse M_DOT / flow_area}
   []
 []
 
-[Outputs]
-  exodus = true
-  csv = true
-  execute_on = 'TIMESTEP_END'
-[]
-
 [Executioner]
   type = Steady
 []

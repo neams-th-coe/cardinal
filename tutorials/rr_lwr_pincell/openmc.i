@@ -26,33 +26,6 @@
   []
 []
 
-[ICs]
-  [temp_fuel]
-    type = ConstantIC
-    variable = temp
-    value = '${T_INLET}'
-    block = 'uo2_tri uo2'
-  []
-  [temp_water]
-    type = ConstantIC
-    variable = temp
-    value = '${T_INLET}'
-    block = 'water'
-  []
-  [density_water]
-    type = ConstantIC
-    variable = density
-    value = '${RHO_INIT}'
-    block = 'water'
-  []
-  [linear_power]
-    type = ConstantIC
-    variable = linear_power
-    value = '${fparse P_PIN / (0.01 * HEIGHT)}'
-    block = 'uo2_tri uo2'
-  []
-[]
-
 [AuxKernels]
   [cell_temperature]
     type = CellTemperatureAux
@@ -106,6 +79,33 @@
     score = 'kappa_fission'
     output = 'unrelaxed_tally_std_dev unrelaxed_tally_rel_error'
     block = 'uo2 uo2_tri'
+  []
+[]
+
+[ICs]
+  [temp_fuel]
+    type = ConstantIC
+    variable = temp
+    value = '${T_INLET}'
+    block = 'uo2_tri uo2'
+  []
+  [temp_water]
+    type = ConstantIC
+    variable = temp
+    value = '${T_INLET}'
+    block = 'water'
+  []
+  [density_water]
+    type = ConstantIC
+    variable = density
+    value = '${RHO_INIT}'
+    block = 'water'
+  []
+  [linear_power]
+    type = ConstantIC
+    variable = linear_power
+    value = '${fparse P_PIN / (0.01 * HEIGHT)}'
+    block = 'uo2_tri uo2'
   []
 []
 

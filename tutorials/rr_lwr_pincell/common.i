@@ -29,7 +29,7 @@ T_INLET  = 573.0
 RHO_INIT = 723.219601768
 
 ## The mass flowrate into the pincell (kg/s).
-M_DOT = 3.5
+M_DOT = 0.875
 
 ## The outlet pressure (Pa).
 P_OUTLET = 15.51e6
