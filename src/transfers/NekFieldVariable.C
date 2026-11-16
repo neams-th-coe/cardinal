@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekFieldVariable.h"
+#include "NekRSProblem.h"
 
 registerMooseObject("CardinalApp", NekFieldVariable);
 
