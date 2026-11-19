@@ -50,7 +50,7 @@ AddTallyAction::validParams()
 
 AddTallyAction::AddTallyAction(const InputParameters & parameters) : MooseObjectAction(parameters)
 {
-  if (_type == "MeshTally")
+  if (_type == "MeshTally" || _type == "XDGMeshTally")
   {
     if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
       mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
@@ -70,7 +70,7 @@ AddTallyAction::act()
 {
   if (_current_task == "add_tallies")
   {
-    if (_type == "MeshTally")
+    if (_type == "MeshTally" || _type == "XDGMeshTally")
     {
       // Add translated mesh tallies.
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)

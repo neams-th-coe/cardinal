@@ -51,3 +51,19 @@
     capabilities = 'openmc'
   []
 []
+
+[Tests]
+  issues = '#1308'
+  design = 'XDGMeshTally.md'
+
+  [xdg_amr_unsupported]
+    type = RunException
+    input = mesh.i
+    cli_args = "Problem/Tallies/Mesh/type=XDGMeshTally"
+    mesh_mode = 'replicated'
+    expect_err = "XDG mesh tallies do not support adaptive mesh refinement at present!"
+    requirement = "The system shall error if the user attempts to use AMR with XDG mesh tallies. "
+                  "This error message may be removed once XDG supports AMR"
+    capabilities = 'xdg'
+  []
+[]

@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere_in_m.e
+    file = ../meshes/hex_cube_in_m.e
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -27,7 +27,7 @@
   [Tallies]
     [Mesh]
       type = MeshTally
-      mesh_template = '../meshes/sphere_in_m.e'
+      mesh_template = '../meshes/hex_cube_in_m.e'
 
       normalize_by_global_tally = false
     []
@@ -43,10 +43,15 @@
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
   []
+  [pebble_1_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.0'
+  []
 []
 
 [Outputs]
   execute_on = final
-  exodus = true
+  csv = true
   hide = 'temp  cell_instance cell_id'
 []
