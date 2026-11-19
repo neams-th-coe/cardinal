@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "ConstMonomialAuxKernel.h"
 
 /**
  * A class which computes a Figure of Merit (FoM) for a tally quantity.
@@ -29,7 +29,7 @@
  * field variable, $u_j$ is the variable value at adaptivity step j, and $u_0$ is the
  * initial value of the field variable on the initial simulation.
  */
-class FoMAux : public OpenMCAuxKernel
+class FoMAux : public ConstMonomialAuxKernel
 {
 public:
   static InputParameters validParams();

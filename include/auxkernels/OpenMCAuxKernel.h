@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "AuxKernel.h"
+#include "ConstMonomialAuxKernel.h"
 #include "TallyInterface.h"
 #include "OpenMCCellAverageProblem.h"
 
@@ -35,7 +35,8 @@ typedef OpenMCAuxKernelTempl<RealEigenVector> OpenMCArrayAuxKernel;
  * the OpenMC problem.
  */
 template <typename ComputeValueType>
-class OpenMCAuxKernelTempl : public AuxKernelTempl<ComputeValueType>, public TallyInterface
+class OpenMCAuxKernelTempl : public ConstMonomialAuxKernelTempl<ComputeValueType>,
+                             public TallyInterface
 {
 public:
   OpenMCAuxKernelTempl(const InputParameters & parameters);
@@ -51,12 +52,6 @@ protected:
    * @return whether element maps to OpenMC
    */
   bool mappedElement();
-
-  /**
-   * A function which throws an error if a coupled variable is not a constant monomial.
-   * @param[in] param_name the name of the paraemter to check
-   */
-  void errorCoupledConstMonomial(const std::string & param_name);
 };
 
 // Prevent implicit instantiation in other translation units where these classes are used
