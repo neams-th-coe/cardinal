@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material id="1" depletable="true">
+      <density value="5.0" units="g/cm3"/>
+      <nuclide name="U234" ao="0.0002714687807976247"/>
+      <nuclide name="U235" ao="0.030371951808732825"/>
+      <nuclide name="U238" ao="0.9692174612830511"/>
+      <nuclide name="U236" ao="0.00013911812741848606"/>
+      <nuclide name="O16" ao="1.999242"/>
+      <nuclide name="O17" ao="0.000758"/>
+      <nuclide name="H1" ao="3.99937704"/>
+      <nuclide name="H2" ao="0.00062296"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell id="1" material="1" region="-2 1 -4 3 -6 5" universe="1"/>
+    <surface id="1" type="x-plane" boundary="reflective" coeffs="0.0"/>
+    <surface id="2" type="x-plane" boundary="reflective" coeffs="10.0"/>
+    <surface id="3" type="y-plane" boundary="reflective" coeffs="0.0"/>
+    <surface id="4" type="y-plane" boundary="reflective" coeffs="10.0"/>
+    <surface id="5" type="z-plane" boundary="reflective" coeffs="0.0"/>
+    <surface id="6" type="z-plane" boundary="reflective" coeffs="10.0"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>50</particles>
+    <batches>2</batches>
+    <inactive>1</inactive>
+    <source type="independent" strength="1.0" particle="neutron">
+      <space type="box">
+        <parameters>0.0 0.0 0.0 10.0 10.0 10.0</parameters>
+      </space>
+      <constraints>
+        <fissionable>true</fissionable>
+      </constraints>
+    </source>
+    <field type="velocity" id="1">
+      <mesh>1</mesh>
+      <mapping>cell</mapping>
+      <values>1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+        1.0 1.0 1.0 1.0</values>
+    </field>
+    <dnp_drift>
+      <velocity_field>1</velocity_field>
+      <boundary_map>
+        <inlet>1</inlet>
+        <outlet>2</outlet>
+        <wall>3</wall>
+      </boundary_map>
+      <physical_group_map>
+        <face_ids>0 24 12 36 7 31 19 43 15 39 21 45 2 26 8 32 4 16 10 22 29 41 35 47</face_ids>
+        <physical_groups>1 1 1 1 2 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3</physical_groups>
+      </physical_group_map>
+      <integrator>RK4</integrator>
+      <integrator_dt>0.1</integrator_dt>
+      <recycling>true</recycling>
+      <external_travel_time>2.0</external_travel_time>
+    </dnp_drift>
+    <mesh id="1">
+      <dimension>2 2 2</dimension>
+      <lower_left>0.0 0.0 0.0</lower_left>
+      <upper_right>10.0 10.0 10.0</upper_right>
+    </mesh>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_multipole>true</temperature_multipole>
+    <temperature_range>270.0 3000.0</temperature_range>
+    <event_based>false</event_based>
+  </settings>
+  </model>

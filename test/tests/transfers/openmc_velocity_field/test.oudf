@@ -1,0 +1,23 @@
+void udfDirichlet(bcData *bc)
+{
+  bc->uxFluid = 0.0;
+  bc->uyFluid = 0.5;
+  bc->uzFluid = 0.0;
+
+  bc->pFluid = 0.0; // Pressure
+
+  bc->sScalar = 922.0; // temperature
+}
+
+@kernel void mooseHeatSource(const dlong Nelements,
+                             const dlong offset,
+                             @restrict const dfloat * source,
+                             @restrict dfloat * QVOL)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = source[offset + id];
+    }
+  }
+}

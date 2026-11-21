@@ -1,0 +1,10 @@
+[Tests]
+  issues = "#1505"
+  design = "OpenMCCellAverageProblem.md OpenMCVelocityField.md"
+
+  [verify_openmc_velocity_transfer]
+    type = CSVDiff
+    input = "openmc.i"
+    csvdiff = "openmc_out_openmc_vel_field_0001.csv"
+  []
+[]
