@@ -47,6 +47,13 @@ SpatialLegendreAux::validParams()
                                "The name of the SpatialLegendreFilter to evaluate. Only required "
                                "if the tally has more than one SpatialLegendreFilter applied.");
   params.addParam<unsigned int>(
+      "max_order",
+      "Truncate the reconstruction at this Legendre order instead of using every moment "
+      "the filter tallied. Must not exceed the filter's 'order'. Because the moments do "
+      "not depend on where the series is truncated, this re-evaluates a single set of "
+      "tallies at a lower order, which is the cheap way to compare expansion orders on "
+      "identical statistics.");
+  params.addParam<unsigned int>(
       "ext_filter_bin",
       0,
       "The flattened bin index for any other filters applied to this tally with [Filters] (bin "
@@ -152,6 +159,28 @@ SpatialLegendreAux::SpatialLegendreAux(const InputParameters & parameters)
 
   _order = _legendre_filter->getOrder();
   _axis = _legendre_filter->getAxis();
+
+  /**
+   * Optionally truncate the reconstruction below the order the filter tallied. This lets
+   * one set of tallies be re-evaluated at several expansion orders: an order-L filter
+   * stores moments 0..L, and summing only 0..M for M < L gives exactly the reconstruction
+   * an order-M filter would have produced, because the Legendre moments are independent
+   * of the truncation order. That makes an order study free of extra Monte Carlo runs,
+   * and keeps the comparison on identical statistics.
+   */
+  if (isParamValid("max_order"))
+  {
+    const auto requested = getParam<unsigned int>("max_order");
+    if (requested > _order)
+      paramError("max_order",
+                 "'max_order' (" + Moose::stringify(requested) +
+                     ") cannot exceed the order of the filter '" + _legendre_filter->name() +
+                     "' (" + Moose::stringify(_order) +
+                     "), which only tallied moments up to "
+                     "that order.");
+    _order = requested;
+  }
+
   _polynomials.resize(_order + 1);
 
   // Grab the tally variables; these are flattened over all of the external filter bins, with
