@@ -64,7 +64,10 @@ protected:
     VOLUMETRIC = 0,
     RAW = 1,
     NONE = 2
-  } _normalization;
+  };
+
+  /// How each expansion coefficient is weighted when summing the Legendre series.
+  const Normalization _normalization;
 
   /// The tally variables holding the Legendre expansion coefficients, indexed by Legendre order.
   std::vector<const VariableValue *> _coefficients;

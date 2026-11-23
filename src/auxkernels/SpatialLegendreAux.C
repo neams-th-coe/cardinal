@@ -73,9 +73,6 @@ SpatialLegendreAux::validParams()
       "coefficients are raw expansion integrals that have NOT been divided by a volume, "
       "matching OpenMC's openmc.legendre_from_expcoef utility.\n"
       "  'none': sum the polynomials against the coefficients with no extra factors.");
-  params.addParam<bool>("normalize_coefficients",
-                        "Deprecated; use 'normalization' instead. 'true' maps to "
-                        "'normalization = raw' and 'false' to 'normalization = none'.");
 
   return params;
 }
@@ -85,21 +82,6 @@ SpatialLegendreAux::SpatialLegendreAux(const InputParameters & parameters)
     _legendre_filter(nullptr),
     _normalization(getParam<MooseEnum>("normalization").getEnum<Normalization>())
 {
-  if (isParamSetByUser("normalize_coefficients"))
-  {
-    if (isParamSetByUser("normalization"))
-      paramError("normalize_coefficients",
-                 "'normalize_coefficients' is deprecated and cannot be combined with "
-                 "'normalization'. Please set only 'normalization'.");
-
-    _normalization =
-        getParam<bool>("normalize_coefficients") ? Normalization::RAW : Normalization::NONE;
-    mooseDeprecated("'normalize_coefficients' is deprecated; use 'normalization = ",
-                    getParam<bool>("normalize_coefficients") ? "raw" : "none",
-                    "' instead. Note that for reconstructing the volumetric tally variables "
-                    "Cardinal writes, the correct setting is 'normalization = volumetric'.");
-  }
-
   /**
    * Note that unlike most of Cardinal's tally auxkernels, 'variable' is not restricted to
    * CONSTANT MONOMIAL. The expansion is a continuous function of position, so it can be
