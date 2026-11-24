@@ -8,10 +8,10 @@ Accelerating Discovery in Fusion and Fission Energy
 !media assembly_fluid_temp_fine.png
   style=width:100%;margin-left:auto;margin-right:auto
 
-!col! small=12 medium=4 large=4 icon=flash_on
-
 !alert note
 Applications are now open for the Spring 2027 cohort of the Cardinal Fellows research program. For more information, and instructions for how to apply, see: [here](https://docs.google.com/forms/d/e/1FAIpQLSfHhDRUkeQjj04-myd3G3z9noCkdUVapAKyqKJkLXvcUawwEQ/viewform).
+
+!col! small=12 medium=4 large=4 icon=flash_on
 
 ### Flexible Multiphysics class=center style=font-weight:200
 
