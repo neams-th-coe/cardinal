@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekVolumetricSource.h"
+#include "NekRSProblem.h"
 
 registerMooseObject("CardinalApp", NekVolumetricSource);
 

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "CardinalEnums.h"
 #include "ConservativeFieldTransfer.h"
 
 /**
