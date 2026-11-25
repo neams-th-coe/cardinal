@@ -16,24 +16,6 @@
   </material>
   <material id="3" name="Zircaloy 4">
     <density units="g/cm3" value="6.55" />
-    <nuclide name="Sn112" wo="0.0001280150011885156" />
-    <nuclide name="Sn114" wo="8.865813236022722e-05" />
-    <nuclide name="Sn115" wo="4.607357438391996e-05" />
-    <nuclide name="Sn116" wo="0.001987443043627223" />
-    <nuclide name="Sn117" wo="0.0010588319166827192" />
-    <nuclide name="Sn118" wo="0.0033677060749010084" />
-    <nuclide name="Sn119" wo="0.001204557209296121" />
-    <nuclide name="Sn120" wo="0.004607003655772829" />
-    <nuclide name="Sn122" wo="0.0006656367398249325" />
-    <nuclide name="Sn124" wo="0.0008460746519625024" />
-    <nuclide name="Fe54" wo="9.315171073560117e-05" />
-    <nuclide name="Fe56" wo="0.0015163752247343758" />
-    <nuclide name="Fe57" wo="3.564608218682946e-05" />
-    <nuclide name="Fe58" wo="4.826982343193628e-06" />
-    <nuclide name="Cr50" wo="4.173686536432398e-05" />
-    <nuclide name="Cr52" wo="0.0008369936235260468" />
-    <nuclide name="Cr53" wo="9.673586887095358e-05" />
-    <nuclide name="Cr54" wo="2.4533642238675768e-05" />
     <nuclide name="Zr90" wo="0.4986186065354624" />
     <nuclide name="Zr91" wo="0.10994725679002436" />
     <nuclide name="Zr92" wo="0.1699042107139048" />
