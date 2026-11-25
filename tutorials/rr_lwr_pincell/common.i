@@ -18,8 +18,8 @@ HEIGHT = 200.0
 ## The number of axial layers in the multiphysics model.
 AXIAL_LAYERS = 100
 
-## The power of the pincell (W). Equal to 3411e6 / (273 * 264)
-P_PIN = 66945.25
+## The power of the pincell (W). Equal to 1.4 * 3411e6 / (273 * 264)
+P_PIN = 66258
 
 ## The inlet temperature (K).
 T_INLET  = 573.0

@@ -30,12 +30,10 @@
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
-    execute_on = 'TIMESTEP_END'
   []
   [cell_density]
     type = CellDensityAux
     variable = cell_density
-    execute_on = 'TIMESTEP_END'
   []
   [average_power]
     type = SpatialUserObjectAux
@@ -224,7 +222,6 @@
     direction = z
     num_layers = ${AXIAL_LAYERS}
     variable = kappa_fission
-    execute_on = 'TIMESTEP_END'
     block = 'uo2_tri uo2'
   []
   [average_power_rel]
@@ -232,7 +229,6 @@
     direction = z
     num_layers = ${AXIAL_LAYERS}
     variable = kappa_fission_rel_error
-    execute_on = 'TIMESTEP_END'
     block = 'uo2_tri uo2'
   []
   [average_fuel_temp]
@@ -240,7 +236,6 @@
     direction = z
     num_layers = ${AXIAL_LAYERS}
     variable = temp
-    execute_on = 'TIMESTEP_END'
     block = 'uo2_tri uo2'
   []
   [average_water_temp]
@@ -248,7 +243,6 @@
     direction = z
     num_layers = ${AXIAL_LAYERS}
     variable = temp
-    execute_on = 'TIMESTEP_END'
     block = 'water'
   []
   [average_water_density]
@@ -256,7 +250,6 @@
     direction = z
     num_layers = ${AXIAL_LAYERS}
     variable = density
-    execute_on = 'TIMESTEP_END'
     block = 'water'
   []
 []

@@ -33,17 +33,19 @@ of the problem can be found in [table1].
 
 A total core power of 3411 MWth is assumed to be uniformly distributed among 273 rodded fuel assemblies,
 each with 264 pins (which do not have a uniform power distribution due to the control rods and guide
-tubes). The tallies added by Cardinal will therefore be normalized according to the per-pin power:
+tubes). This average power is then multiplied by an average-to-maximum power ratio of 1.4 to model a 
+"hot pin" in an assembly. The tallies added by Cardinal will therefore be normalized according to the 
+following per-pin power:
 
 \begin{equation}
 \label{eq:1}
-q_{pin}=\frac{3411\text{\ MWth}}{n_a n_p}
+q_{pin}=f * \frac{3411\text{\ MWth}}{n_a n_p}
 \end{equation}
 
-where $n_a=273$ is the number of fuel assemblies in the core and $n_p=264$ is the number of pins per
-assembly. The coolant around the pincell is assumed to be flowing with a mass flowrate of 0.875
-kg/s, an inlet temperature of 573 K, and an outlet pressure of 15.51 MPa. The common parameters for
-the model can be found in `common.i`:
+where $n_a=273$ is the number of fuel assemblies in the core, $n_p=264$ is the number of pins per
+assembly, and $f = 1.4$ is the average-to-maximum power ratio. The coolant around the pincell is 
+assumed to be flowing with a mass flowrate of 0.875 kg/s, an inlet temperature of 573 K, and an 
+outlet pressure of 15.51 MPa. The common parameters for the model can be found in `common.i`:
 
 !listing /tutorials/rr_lwr_pincell/common.i
 
@@ -270,8 +272,8 @@ enable outputs for the heating standard deviation and relative error.
 
 The specification of temperature and density blocks in the `[Problem]` will add variables named `temp` and `density`
 to the mesh, which the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will query to set cell temperatures and densities.
-To zero values of temperature and density being sent to OpenMC, we add a [ConstantIC](ConstantIC.md) which sets these
-field variables to the inlet temperature and average fluid density:
+Two [ConstantICs](ConstantIC.md) are also added to set the initial temperature to the inlet temperature, and initial density to 
+the average fluid density.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=ICs
