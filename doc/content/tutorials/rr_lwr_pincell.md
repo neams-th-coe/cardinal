@@ -171,7 +171,7 @@ by the MOOSE subchannel module. The subchannel model uses a corrected version of
 The fluid flow around the pincell is computed with the MOOSE
 [subchannel module](https://mooseframework.inl.gov/modules/subchannel/index.html), which discretizes
 the fluid domain into a series of pseudo-3D subchannels which exchange mass, momentum, and energy
-on the radial plane. As the purpose of this tutorial is to demonstrate how one can couple OpenMC's
+on the radial and axial planes. As the purpose of this tutorial is to demonstrate how one can couple OpenMC's
 random ray solver to other physics, we refer readers to the subchannel
 [theorey manual](https://mooseframework.inl.gov/modules/subchannel/general/subchannel_theory.html)
 and [examples](https://mooseframework.inl.gov/modules/subchannel/v&v/v&v-list.html) for more details.
@@ -205,7 +205,7 @@ predictions.
 
 The OpenMC mesh is used as a transfer target for applying multiphysics feedback to [!ac](CSG) cells, and receiving
 fission heating from cell tallies. It is generated in a nearly identical manner to the solid mesh, with a few
-key differences: sidesets are not created, and the `gap` and `clad` blocks are deleted. The `fuel` blocks are used to
+key differences: sidesets are not created, and the `gap` and `clad` blocks are deleted because no multiphysics feedback is applied on these blocks (for simplicity). The `fuel` blocks are used to
 receive fission heating and apply fuel temperatures, while the `water` block is used to apply coolant densities and
 temperatures. The input file used to generate the OpenMC mesh mirror can be found below, and the resulting mesh can be
 found in [rr_openmc_mesh].
@@ -234,10 +234,10 @@ OpenMC will write the fission heat source:
   block=Mesh
 
 Next, we define a series of auxvariables and auxkernels. `cell_temperature` and `cell_density` are used to visualize
-the temperatures and densities Cardinal is applying to OpenMC cells. `average_power` and `linear_power` are used as
+the temperatures and densities that Cardinal is applying to OpenMC cells. `average_power` and `linear_power` are used as
 storage to compute the linear power required by the subchannel application. `cell_temperature` and `cell_density`
 are written to by a [CellTemperatureAux](CellTemperatureAux.md) and [CellDensityAux](CellDensityAux.md) (which
-query the cell temperature in the OpenMC geometry); `average_power` and `linear_power` are written to with a
+query the cell temperature and density, respectively, in the OpenMC geometry); `average_power` and `linear_power` are written to with a
 [SpatialUserObjectAux](SpatialUserObjectAux.md) and [ParsedAux](ParsedAux.md) to unpack an axially-averaged power
 density and convert it to a linear power.
 
@@ -269,7 +269,7 @@ enable outputs for the heating standard deviation and relative error.
   block=Problem
 
 The specification of temperature and density blocks in the `[Problem]` will add variables named `temp` and `density`
-to the mesh, which the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will query to set cell temperatures.
+to the mesh, which the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will query to set cell temperatures and densities.
 To zero values of temperature and density being sent to OpenMC, we add a [ConstantIC](ConstantIC.md) which sets these
 field variables to the inlet temperature and average fluid density:
 
@@ -419,7 +419,7 @@ mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=4
 ```
 
 All of the above will use 4 OpenMP threads and 2 MPI ranks. To run the simulation
-faster, you can increase the number of OpenMP threads / MPI ranks or decrease the number of particles. Bear
+faster, you can increase the number of OpenMP threads and/or MPI ranks or decrease the number of particles. Bear
 in mind that decreasing the number of particles may result in a failure to converge when running
 [!ac](TRRM) as fewer source regions will be hit on each power iteration.
 
