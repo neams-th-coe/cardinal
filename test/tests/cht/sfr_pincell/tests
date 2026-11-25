@@ -13,7 +13,7 @@
                   "(based on the power imposed in the solid) will not be observed because some heat flux "
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties "
                   "(and the finite element method does not conserve power)."
-    min_slots = 4 # memory heavy
+    min_slots = 5 # 708 MB per slot observed during https://civet.inl.gov/job/4362038/ during step Test --heavy found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
     capabilities = 'nekrs'
   []
   [sfr_pincell_vpp]
@@ -26,7 +26,7 @@
     requirement = "Individually conserving heat flux sideset by sideset shall give equivalent results "
                   "to the all-combined option when there is just one coupling sideset. The gold file "
                   "for this test is identical to that for the sfr_pincell case."
-    min_slots = 4 # memory heavy
+    min_slots = 5 # 711 MB per slot observed during https://civet.inl.gov/job/4362038/ during step Test --heavy found in recipe file ./recipes/moosebuild/cardinal/Test_nekrs.cfg. Usage is over or within 100 MB of the total memory limit based on a 700 MB per slot limit.
     capabilities = 'nekrs'
   []
   [impose_heat_flux]

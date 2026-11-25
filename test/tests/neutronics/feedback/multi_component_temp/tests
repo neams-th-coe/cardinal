@@ -6,6 +6,7 @@
     expect_err = "'temperature_variables' and 'temperature_blocks' must be the same length!"
     requirement = "The system shall error if the blocks and variables are not the same length"
     capabilities = 'openmc'
+    min_slots = 2 # 351 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [empty]
     type = RunException
@@ -14,6 +15,7 @@
     expect_err = "Entries in 'temperature_blocks' cannot be empty!"
     requirement = "The system shall error if a sub-vector is empty"
     capabilities = 'openmc'
+    min_slots = 2 # 351 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [multi_temp]
     type = RunException
@@ -22,6 +24,7 @@
     expect_err = "Each entry in 'temperature_variables' must be of length 1. Entry 0 is of length 2."
     requirement = "The system shall error if an entry in temperature_variables is not of unity length"
     capabilities = 'openmc'
+    min_slots = 2 # 338 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [block_already_used]
     type = RunException
@@ -30,6 +33,7 @@
     expect_err = "Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '2' is duplicated."
     requirement = "The system shall error if trying to collate multiple temperature variables onto the same block due to undefined behavior"
     capabilities = 'openmc'
+    min_slots = 2 # 336 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [collate_temps]
     type = CSVDiff
@@ -37,6 +41,7 @@
     csvdiff = openmc_out.csv
     requirement = "The system shall allow reading temperature from user-defined names, with one temperature variable per cell"
     capabilities = 'openmc'
+    min_slots = 2 # 339 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [multi_vars]
     type = CSVDiff
@@ -44,6 +49,7 @@
     csvdiff = multi_vars_out.csv
     requirement = "The system shall allow reading temperature from user-defined names, with more than one temperature variable per cell"
     capabilities = 'openmc'
+    min_slots = 2 # 340 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
   [multi_vars_alt]
     type = CSVDiff
@@ -52,5 +58,6 @@
     cli_args = "Problem/temperature_variables='solid_temp; solid_temp; fluid_temp; other_temp' Problem/temperature_blocks='1; 3; 2; 10'"
     requirement = "The system shall allow lumping of subdomains together, equivalent to explicitly listing temperature correspondence to blocks"
     capabilities = 'openmc'
+    min_slots = 2 # 337 MB per slot observed during https://civet.inl.gov/job/4362037/ during step Test found in recipe file ./recipes/moosebuild/cardinal/Test_dagmc.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
   []
 []
