@@ -6,7 +6,7 @@
     type = RunApp
     input = mesh.i
     cli_args = '--mesh-only'
-    min_slots = 2 # memory heavy
+    min_slots = 12 # 575 MB per slot observed during https://civet.inl.gov/job/4362041/ during step Test tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     requirement = "The system shall be able to create a mesh for the LWR assembly to use when generating MGXS."
   []
   [assembly_mgxs]
@@ -16,7 +16,7 @@
     requirement = "The system shall be able to generate MGXS for an LWR assembly."
     prereq = 'gen_assembly_mgxs'
     min_parallel = 2
-    min_slots = 8 # memory heavy
+    min_slots = 13 # 406.53 MB MB per slot observed during https://civet.inl.gov/job/4402630/ during step Test tutorials found in recipe file ./recipes/moosebuild/cardinal/Tutorials.cfg. Usage is over or within 100 MB of the total memory limit based on a 400 MB per slot limit.
     capabilities = 'openmc'
   []
 []
