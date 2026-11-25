@@ -49,7 +49,10 @@ ConstMonomialAuxKernelTempl<ComputeValueType>::errorCoupledConstMonomial(
                            param_name + "' is of type MONOMIAL and order CONSTANT.");
   }
   else
-    this->paramError(param_name, param_name + " is uncoupled!");
+    this->paramError(param_name,
+                     "The required coupled variable '" + param_name +
+                         "' has not been provided! Please ensure '" + param_name +
+                         "' is specified in " + this->name() + ".");
 }
 
 // Explicitly instantiates the three versions of the ConstMonomialAuxKernelTempl class
