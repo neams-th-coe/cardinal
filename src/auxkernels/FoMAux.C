@@ -16,8 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
-
 #include "FoMAux.h"
 
 registerMooseObject("CardinalApp", FoMAux);
@@ -25,7 +23,7 @@ registerMooseObject("CardinalApp", FoMAux);
 InputParameters
 FoMAux::validParams()
 {
-  auto params = OpenMCAuxKernel::validParams();
+  auto params = ConstMonomialAuxKernel::validParams();
   params.addClassDescription("An auxkernel which computes a figure of merit for a tally.");
   params.addCoupledVar("tally_value",
                        "The variable containing the value of the tally. FoMAux "
@@ -51,7 +49,7 @@ FoMAux::validParams()
 }
 
 FoMAux::FoMAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters),
+  : ConstMonomialAuxKernel(parameters),
     _tally_val(isCoupled("tally_value") ? &coupledValue("tally_value") : nullptr),
     _tally_val_init(isCoupled("tally_value_init") ? &coupledValue("tally_value_init") : nullptr),
     _tally_val_rel_err(coupledValue("tally_rel_error")),
@@ -90,5 +88,3 @@ FoMAux::computeValue()
     }
   }
 }
-
-#endif
