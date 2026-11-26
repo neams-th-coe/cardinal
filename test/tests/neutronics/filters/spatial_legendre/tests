@@ -76,6 +76,28 @@
                   "not have a SpatialLegendreFilter."
     capabilities = 'openmc'
   []
+  [mesh_units]
+    type = CSVDiff
+    input = reconstruct_order0.i
+    # Scales the [Mesh] to meters and gives the expansion limits in meters, so the order-0
+    # identity only holds if 'minimum' and 'maximum' are converted to OpenMC's centimeters
+    # with 'scaling'. Without the conversion the limits span 0.12 cm instead of 12 cm, so
+    # nearly every element falls outside the expansion and reconstructs as zero.
+    cli_args = "Mesh/to_meters/type=TransformGenerator
+                Mesh/to_meters/input=combine
+                Mesh/to_meters/transform=SCALE
+                Mesh/to_meters/vector_value='0.01 0.01 0.01'
+                Problem/scaling=100.0
+                Problem/Filters/SpatialLegendre/minimum=-0.02
+                Problem/Filters/SpatialLegendre/maximum=0.1
+                Outputs/file_base=mesh_units_out"
+    csvdiff = mesh_units_out.csv
+    abs_zero = 1e-12
+    requirement = "The spatial Legendre expansion limits shall be specified in the units of the "
+                  "[Mesh], consistent with every other Cardinal object, and converted to the "
+                  "centimeters OpenMC expects using 'scaling'."
+    capabilities = 'openmc'
+  []
   [invalid_minmax]
     type = RunException
     input = reconstruct_order0.i

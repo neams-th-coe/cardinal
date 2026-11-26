@@ -38,12 +38,10 @@ SpatialLegendreFilter::validParams()
       "axis", MooseEnum("x y z"), "The Cartesian axis the Legendre expansion is applied along.");
   params.addParam<Real>("minimum",
                         "The minimum coordinate along 'axis' which the expansion covers, "
-                        "in units of centimeters (OpenMC's unit system). Not used if "
-                        "'track_mesh' is set.");
+                        "in units of the [Mesh]. Not used if 'track_mesh' is set.");
   params.addParam<Real>("maximum",
                         "The maximum coordinate along 'axis' which the expansion covers, "
-                        "in units of centimeters (OpenMC's unit system). Not used if "
-                        "'track_mesh' is set.");
+                        "in units of the [Mesh]. Not used if 'track_mesh' is set.");
   params.addParam<bool>(
       "track_mesh",
       false,
@@ -90,8 +88,9 @@ SpatialLegendreFilter::SpatialLegendreFilter(const InputParameters & parameters)
       paramError("minimum",
                  "'minimum' and 'maximum' are both required unless 'track_mesh' is set.");
 
-    _min = getParam<Real>("minimum");
-    _max = getParam<Real>("maximum");
+    // The limits are given in [Mesh] units, but OpenMC's filter works in centimeters.
+    _min = getParam<Real>("minimum") * _openmc_problem.scaling();
+    _max = getParam<Real>("maximum") * _openmc_problem.scaling();
   }
 
   if (_max <= _min)
