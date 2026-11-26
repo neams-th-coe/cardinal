@@ -26,21 +26,21 @@
 
     create_outward_interface_boundaries = false
   []
+  [To_Origin]
+    type = TransformGenerator
+    input = 'Pincell'
+    transform = TRANSLATE_CENTER_ORIGIN
+  []
   [3D_Core]
     type = AdvancedExtruderGenerator
-    input = 'Pincell'
+    input = 'To_Origin'
     heights = '${HEIGHT}'
     num_layers = '${AXIAL_LAYERS}'
     direction = '0.0 0.0 1.0'
   []
-  [To_Origin]
-    type = TransformGenerator
-    input = '3D_Core'
-    transform = TRANSLATE_CENTER_ORIGIN
-  []
   [Label_Fuel_Outer]
     type = SideSetsBetweenSubdomainsGenerator
-    input = 'To_Origin'
+    input = '3D_Core'
     primary_block = 'uo2'
     paired_block = 'gap'
     new_boundary = 'fuel_or'

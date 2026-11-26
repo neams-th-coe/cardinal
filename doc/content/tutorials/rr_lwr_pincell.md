@@ -3,12 +3,8 @@
 In this tutorial, you will learn:
 
 - How to convert a continuous energy Monte Carlo model to a multi-group [!ac](TRRM) model
-- How to couple OpenMC's [!ac](TRRM) solver to MOOSE with a fission heat source and temperature feedback
+- How to couple OpenMC's [!ac](TRRM) solver to MOOSE with a fission heat source, density feedback, and temperature feedback
 - The advantages and disadvantages of [!ac](TRRM) compared to continuous energy Monte Carlo
-
-While this tutorial does not apply density feedback for simplicity, this capability is supported
-when running the [!ac](TRRM) solver and has been verified with the
-[Doppler slab benchmark](vv/doppler_slab.md).
 
 To access this tutorial,
 
@@ -35,28 +31,21 @@ of the problem can be found in [table1].
 | Pin pitch | 1.26 |
 | Fuel height | 200 |
 
-A total core power of 3000 MWth is assumed to be uniformly distributed among 273 rodded fuel assemblies,
+A total core power of 3411 MWth is assumed to be uniformly distributed among 273 rodded fuel assemblies,
 each with 264 pins (which do not have a uniform power distribution due to the control rods and guide
-tubes). The tallies added by Cardinal will therefore be normalized according to the per-pin power:
+tubes). This average power is then multiplied by an average-to-maximum power ratio of 1.4 to model a 
+"hot pin" in an assembly. The tallies added by Cardinal will therefore be normalized according to the 
+following per-pin power:
 
 \begin{equation}
 \label{eq:1}
-q_{pin}=\frac{3000\text{\ MWth}}{n_a n_p}
+q_{pin}=f * \frac{3411\text{\ MWth}}{n_a n_p}
 \end{equation}
 
-where $n_a=273$ is the number of fuel assemblies in the core and $n_p=264$ is the number of pins per
-assembly. This tutorial considers heat conduction within the fuel and the cladding, but does not model
-heat transport in the coolant. Instead, a convective heat flux boundary condition ($h = 1000$ W m$^{-2}$ K$^{-1}$)
-with the following fluid temperature
-
-\begin{equation}
-\label{eq:2}
-T_{fluid}(z) = T_{inlet} + (T_{outlet} - T_{inlet})\left(\frac{z + L/2}{L}\right)
-\end{equation}
-
-is applied to the outer surface of the cladding. Although simplistic, this lets us focus this tutorial on [!ac](TRRM)
-and its unique features, while removing some complexity of including a fluids solver (which you can extend should
-it be desired). The common parameters for the model can be found in `common.i`:
+where $n_a=273$ is the number of fuel assemblies in the core, $n_p=264$ is the number of pins per
+assembly, and $f = 1.4$ is the average-to-maximum power ratio. The coolant around the pincell is 
+assumed to be flowing with a mass flowrate of 0.875 kg/s, an inlet temperature of 573 K, and an 
+outlet pressure of 15.51 MPa. The common parameters for the model can be found in `common.i`:
 
 !listing /tutorials/rr_lwr_pincell/common.i
 
@@ -80,14 +69,9 @@ universe which is populated with the discretized pincell. In this problem the az
 fuel pin itself is symmetric, so we simply subdivide the fuel into 3 radial regions. The radial geometry is then added
 to a lattice to extrude it into 100 layers axially. The lattice is placed in a cell
 which applies vacuum boundary conditions on the top and bottom of the pincell, while reflective boundary
-conditions are applied on the remaining sides of the geometry. Finally, we add the materials and geometry
+conditions are applied on the remaining sides of the geometry. Finally, we add the geometry
 to a model container and set some simulation settings for the continuous energy model. The radial
 discretization of the OpenMC [!ac](CSG) geometry can be found in [rr_openmc_cells].
-
-!alert note
-For most continuous-energy simulations `model.materials` does not need to be set prior to writing the `model.xml`
-file to disk with `model.export_to_model_xml()`. However, when using `model.convert_to_multigroup()`, `model.materials`
-must be set as the conversion function does not attempt to discover materials from the geometry.
 
 !listing /tutorials/rr_lwr_pincell/make_openmc_model.py
   start=## Fuel region: UO2 at ~1% enriched.
@@ -144,7 +128,7 @@ After converting to a [!ac](TRRM) model, we set some discretization parameters s
 includes further source region subdivision of the coolant region using a uniform mesh (known as
 [cell-under-voxel source region decomposition](https://docs.openmc.org/en/stable/usersguide/random_ray.html#subdivision-of-source-regions)).
 This discretization is easy to apply, however it can yield very small source regions near the intersection of the
-boundaries of a mesh voxel and a [!ac](CSG) cell (which is less likely to get hit by a ray). This may result in
+boundaries of a mesh voxel and a [!ac](CSG) cell (which are less likely to get hit by a ray). This may result in
 stability issues in some cases and worse statistics for tallies. An additional disadvantage of this subdivision
 approach is that Cardinal cannot map to these regions as they are created on the fly during the simulation
 process; we recommend manual subdivision for most multiphysics simulations unless the regions do not require mapped
@@ -176,24 +160,30 @@ python make_openmc_model.py -r --linear
 
 !include steady_hc.md
 
-Because heat transfer and fluid flow in the borated water is not modeled in this example, heat removal by the fluid
-is approximated by setting the outer surface of the cladding to a convection boundary condition,
-
-\begin{equation}
-\label{eq:5}
-q^{''}=h\left(T-T_{fluid}\right)
-\end{equation}
-
-where $h$ and $T_{fluid}$ are described in the model parameters.
+Heat removal by the fluid is applied through the use of a matching value boundary condition, where
+the surface temperature of the cladding is set equal to the pin surface temperature computed
+by the MOOSE subchannel module. The subchannel model uses a corrected version of the
+[Dittus-Boelter correlation](SCMHTCDittusBoelter.md) to compute the fluid Nusselt number
+(for the convective heat transer coefficient), and subsequently the cladding surface temperature.
 
 !include radiation_gap.md
+
+### Subchannel Flow Model id=subchannel
+
+The fluid flow around the pincell is computed with the MOOSE
+[subchannel module](https://mooseframework.inl.gov/modules/subchannel/index.html), which discretizes
+the fluid domain into a series of pseudo-3D subchannels which exchange mass, momentum, and energy
+on the radial and axial planes. As the purpose of this tutorial is to demonstrate how one can couple OpenMC's
+random ray solver to other physics, we refer readers to the subchannel
+[theorey manual](https://mooseframework.inl.gov/modules/subchannel/general/subchannel_theory.html)
+and [examples](https://mooseframework.inl.gov/modules/subchannel/v&v/v&v-list.html) for more details.
 
 ## Multiphysics Coupling id=couple
 
 ### Mesh id=mesh
 
-In this multiphysics model, the heat conduction and neutronics solves use the same mesh. This is generated with a standalone
-input file (`solid_mesh.i`):
+In this multiphysics model, the heat conduction and neutronics solves use different meshes. The heat conduction
+mesh is generated with a standalone input file (`solid_mesh.i`):
 
 !listing /tutorials/rr_lwr_pincell/solid_mesh.i
 
@@ -203,35 +193,55 @@ model. This ensures that we maintain a one-to-one mapping between subdomains in 
 and tallies are therefore all normalized by the same volume. The mesh is then extruded axially with an
 [AdvancedExtruderGenerator](AdvancedExtruderGenerator.md). We label the boundary between the fuel and the gap
 (`fuel_or`), the boundary between the clad and the gap (`clad_ir`), and the boundary between the clad and the
-coolant (`clad_or`). These sidesets are used to apply the gap conductance model and the convective boundary condition
-in the heat conduction input file. We then delete the gap and coolant blocks as they are unused in both the heat
-conduction and OpenMC applications. Finally, we scale the mesh such that it is in meters (to match the provided
+coolant (`clad_or`). These sidesets are used to apply the gap conductance model and the pinned temperature boundary condition
+in the heat conduction input file. We then delete the gap and coolant blocks as they are unused in the heat conduction
+application. Finally, we scale the mesh such that it is in meters (to match the provided
 thermal properties). The resulting mesh can be found in [rr_solid_mesh]. Note that this mesh is coarse for the purpose
 of reducing the computational burden in this tutorial, and requires additional refinement to improve temperature
 predictions.
 
 !media rr_solid_mesh.png
   id=rr_solid_mesh
-  caption=Solid mesh for the OpenMC and heat conduction problems. Red and white: UO@2@ fuel. Green: Zr clad.
+  caption=Solid mesh for the heat conduction problem. Red and white: UO@2@ fuel. Green: Zr clad.
   style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
-To generate the mesh, run
+The OpenMC mesh is used as a transfer target for applying multiphysics feedback to [!ac](CSG) cells, and receiving
+fission heating from cell tallies. It is generated in a nearly identical manner to the solid mesh, with a few
+key differences: sidesets are not created, and the `gap` and `clad` blocks are deleted because no multiphysics feedback is applied on these blocks (for simplicity). The `fuel` blocks are used to
+receive fission heating and apply fuel temperatures, while the `water` block is used to apply coolant densities and
+temperatures. The input file used to generate the OpenMC mesh mirror can be found below, and the resulting mesh can be
+found in [rr_openmc_mesh].
 
-```
+!listing /tutorials/rr_lwr_pincell/openmc_mesh.i
+
+!media rr_openmc_mesh.png
+  id=rr_openmc_mesh
+  caption=OpenMC mesh mirror. Red and white: UO@2@ fuel. Teal: water.
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
+
+To generate the meshes, run
+
+```bash
 cardinal-opt -i solid_mesh.i --mesh-only
+cardinal-opt -i openmc_mesh.i --mesh-only
 ```
 
 ### Neutronics Input File id=openmc_input
 
 The neutronics physics is solved over the entire domain using OpenMC; the OpenMC wrapping is described in `openmc.i`.
-We begin by loading the mesh that OpenMC will receive temperature from the coupled MOOSE application, and on which
+We begin by loading the mesh that OpenMC will receive coupling fields from the coupled MOOSE applications, and on which
 OpenMC will write the fission heat source:
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Mesh
 
-Next, we define an `AuxVariable` to visualize the temperature Cardinal is setting in OpenMC cells, and write
-to it with a [CellTemperatureAux](CellTemperatureAux.md) (which queries the cell temperature in the OpenMC geometry):
+Next, we define a series of auxvariables and auxkernels. `cell_temperature` and `cell_density` are used to visualize
+the temperatures and densities that Cardinal is applying to OpenMC cells. `average_power` and `linear_power` are used as
+storage to compute the linear power required by the subchannel application. `cell_temperature` and `cell_density`
+are written to by a [CellTemperatureAux](CellTemperatureAux.md) and [CellDensityAux](CellDensityAux.md) (which
+query the cell temperature and density, respectively, in the OpenMC geometry); `average_power` and `linear_power` are written to with a
+[SpatialUserObjectAux](SpatialUserObjectAux.md) and [ParsedAux](ParsedAux.md) to unpack an axially-averaged power
+density and convert it to a linear power.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   start=AuxVariables
@@ -243,39 +253,53 @@ variables on the `[Mesh]`), and writing results from OpenMC tallies to the MOOSE
 number of inactive batches, the total number of batches, and the number of particles per batch. It should be noted
 that these settings can be applied in `make_openmc_model.py` when generating the OpenMC model as well. A large number of
 inactive batches (in this case, 400) are required when running [!ac](TRRM) as both the scattering and fission sources
-must be converged. Fewer rays per batch (1000 in this case) are required as rays do not terminate until they reach
+must be converged. Fewer rays per batch (100 in this case) are required as rays do not terminate until they reach
 the end of the active length (unlike particles, which are killed on absorption). We then specify `scaling = 100.0`
 to convert from mesh units (m) to OpenMC units (cm). We also set the pin power used to normalize tally scores.
 Afterwards, we set the depth in the OpenMC geometry we wish to couple to (`cell_level`), and
-specify that we wish to couple OpenMC to the fuel (`uo2` and `uo2_tri` blocks) with temperature feedback. To speed
-up the rate of convergence and avoid the nonlinear feedback instabilities commonly observed in [!ac](LWR) multiphysics
-calculations, we use constant relaxation with a relaxation factor of 0.5. The final component of the OpenMC
-problem setup is to add a [CellTally](CellTally.md) which accumulates `kappa_fission` over `uo2` and `uo2_tri`.
-In addition to fission heating tally value, we enable outputs for the heating standard deviation and relative error.
+specify that we wish to couple OpenMC to the fuel (`uo2` and `uo2_tri` blocks) and coolant (`water` blocks) with
+temperature feedback. We also enable density feedback by setting `density_blocks = 'water'`. When applying density
+feedback to either the random ray solver or the multi-group Monte Carlo solver in OpenMC, the density used when
+computing multi-group cross sections must be provided in `mgxs_reference_densities_by_block` (in units of kg/m$^{3}$)
+to rescale multi-group cross sections. To speed up the rate of convergence and avoid the nonlinear feedback
+instabilities commonly observed in [!ac](LWR) multiphysics calculations, we use constant relaxation with a
+relaxation factor of 0.5. The final component of the OpenMC problem setup is to add a [CellTally](CellTally.md)
+which accumulates `kappa_fission` over `uo2` and `uo2_tri`. In addition to fission heating tally value, we
+enable outputs for the heating standard deviation and relative error.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=Problem
 
-The specification of temperature blocks in the `[Problem]` will add a variable named `temp` to the mesh, which
-the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will query to set cell temperatures. To avoid
-an initial temperature of zero being sent to OpenMC, we add a [ConstantIC](ConstantIC.md) which sets this field
-variable to the average fluid temperature:
+The specification of temperature and density blocks in the `[Problem]` will add variables named `temp` and `density`
+to the mesh, which the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will query to set cell temperatures and densities.
+Two [ConstantICs](ConstantIC.md) are also added to set the initial temperature to the inlet temperature, and initial density to 
+the average fluid density.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   block=ICs
 
 The next set of blocks we add sets up the coupling scheme. We add a [TransientMultiApp](TransientMultiApp.md) for
-the heat conduction solve, which receives fission heating from `heat_source_to_solid` (a
-[MultiAppGeneralFieldShapeEvaluationTransfer](MultiAppGeneralFieldShapeEvaluationTransfer.md)) and sends the fuel
-temperature to `temp` via `temp_to_openmc` (another
-[MultiAppGeneralFieldShapeEvaluationTransfer](MultiAppGeneralFieldShapeEvaluationTransfer.md)). The heat conduction
-application is executed after running OpenMC (on `TIMESTEP_END`), resulting in the following coupling scheme:
+the heat conduction solve (`solid`), and a [FullSolveMultiApp](FullSolveMultiApp.md) for the subchannel solve
+(`subchannel`). `solid` receives fission heating from `heat_source_to_solid` (a
+[MultiAppGeneralFieldShapeEvaluationTransfer](MultiAppGeneralFieldShapeEvaluationTransfer.md)), the clad surface
+temperature from `clad_surface_temperature_to_conduction` (a
+[MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)), and sends
+the fuel temperature to the main application through `solid_temp_to_openmc` (a
+[MultiAppGeneralFieldShapeEvaluationTransfer](MultiAppGeneralFieldShapeEvaluationTransfer.md)). `subchannel`
+receives the linear power rate computed by the OpenMC main application through `linear_heat_rate_to_subchannel` (a
+[MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)), and sends fluid temperatures
+and densities to the OpenMC main application via `fluid_temperature_from_subchannel` and `fluid_density_from_subchannel`
+(where both are [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)). The
+subchannel application is executed before OpenMC is run (on `TIMESTEP_BEGIN`), while the  heat conduction
+application is executed after running OpenMC (on `TIMESTEP_END`). This results in the following coupling scheme:
 
-1. Run OpenMC;
-2. Send fission power to heat conduction application (`solid`);
-3. Compute fuel temperatures;
-4. Send fuel temperatures back to OpenMC;
-5. Repeat until fields are converged.
+1. Run subchannel application (`subchannel`);
+2. Send fluid temperatures and densities to OpenMC;
+3. Run OpenMC;
+4. Send fission power and clad surface temperature to heat conduction application (`solid`);
+5. Compute fuel temperatures;
+6. Send fuel temperatures back to OpenMC;
+7. Repeat until fields are converged.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   start=MultiApps
@@ -288,8 +312,9 @@ are sufficient to converge tally statistics and $k_{eff}$ due to the low varianc
 It should be noted that the problem OpenMC is solving is still a quasi-static k-eigenvalue
 calculation, and the heat conduction simulation is a steady-state governing equation with the use of a
 [Transient](Transient.md) executioner. We add a series of post-processors to monitor the relative
-errors of tally variables and report the k-eigenvalue (and its associated standard deviation).
-Finally, we select Exodus and CSV output in the `[Outputs]` block.
+errors of tally variables, report the k-eigenvalue (and its associated standard deviation), and generate
+axial layered averages of various fields for plotting. Finally, we select Exodus and CSV output in the
+`[Outputs]` block.
 
 !listing /tutorials/rr_lwr_pincell/openmc.i
   start=Postprocessors
@@ -303,21 +328,20 @@ generated mesh.
 !listing /tutorials/rr_lwr_pincell/solid.i
   block=Mesh
 
-Afterwards, nonlinear and auxiliary variables are added for the temperature and heat source
-(respectively). This is followed by the addition of kernels to assemble the heat conduction
-equation over the fuel and cladding (where the fission heat source `heat` is block
+Afterwards, nonlinear and auxiliary variables are added for the temperature, heat source, and
+cladding surface temperature. This is followed by the addition of kernels to assemble the heat
+conduction equation over the fuel and cladding (where the fission heat source `heat` is block
 restricted to the fuel).
 
 !listing /tutorials/rr_lwr_pincell/solid.i
   start=Variables
   end=Functions
 
-We then add a [ParsedFunction](MooseParsedFunction.md) to represent [eq:2], and a
-[ConvectiveFluxFunction](ConvectiveFluxFunction.md) to apply the convective boundary condition
-to the outer radius of the clad.
+After variables are added, a [MatchedValueBC](MatchedValueBC.md) is specified to force the outer
+surface of the cladding to take on the pin surface temperature computed by the subchannel solver:
 
 !listing /tutorials/rr_lwr_pincell/solid.i
-  start=Functions
+  start=BCs
   end=Materials
 
 A series of [GenericConstantMaterial](GenericConstantMaterial.md) are then added to set the
@@ -337,6 +361,36 @@ monitor the maximum fuel and cladding temperatures, and select Exodus and CSV ou
 !listing /tutorials/rr_lwr_pincell/solid.i
   start=Executioner
 
+### Subchannel Input File id=subchannel_input
+
+The subchannel problem is setup in the `subchannel.i` input file, and is reasonably similar to the
+[continuous energy SFR assembly tutorial](subchannel.md). It begins by creating a 1-D mesh for
+each subchannel and fuel pin as mesh storage for fields computed by subchannel and received from
+transfers. It should be noted that the subchannel simulation does compute crossflow between channels,
+and so it behaves as a simplified 2D solver which is swept in the axial direction. Note that the
+subchannel module operates in base SI, and so all spatial quantities must be provided in units of
+meters.
+
+!listing /tutorials/rr_lwr_pincell/subchannel.i
+  block=Mesh
+
+Next, we define the fluid properties, problem solver settings, and the closure relationships used.
+For instance, we set the tolerances for the pressure and temperature solves, and choices for
+staggering of the solution of the coupled equations for pressure, flow, and temperature. Two
+auxkernels are also used to apply the inlet conditions on temperature and flowrate. A series
+of initial conditions are also added to initialize fluid properties, which aides in speeding
+up the convergence of the nonlinear problem.
+
+!listing /tutorials/rr_lwr_pincell/subchannel.i
+  start=FluidProperties
+  end=Executioner
+
+Finally, we specify a steady executioner. We choose to disable output from the subchannel solver
+and instead visualize results that have been transferred to the OpenMC main application.
+
+!listing /tutorials/rr_lwr_pincell/subchannel.i
+  start=Executioner
+
 ## Execution and Postprocessing id=results
 
 To run the coupled calculation with [!ac](TRRM) and flat sources,
@@ -344,7 +398,8 @@ To run the coupled calculation with [!ac](TRRM) and flat sources,
 ```bash
 python make_openmc_model.py -r
 cardinal-opt -i solid_mesh.i --mesh-only
-cardinal-opt -i openmc.i --n-threads=4
+cardinal-opt -i openmc_mesh.i --mesh-only
+mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=4
 ```
 
 To run with [!ac](TRRM)  and linear sources,
@@ -352,7 +407,8 @@ To run with [!ac](TRRM)  and linear sources,
 ```bash
 python make_openmc_model.py -r --linear
 cardinal-opt -i solid_mesh.i --mesh-only
-cardinal-opt -i openmc.i --n-threads=4
+cardinal-opt -i openmc_mesh.i --mesh-only
+mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=4
 ```
 
 and to run the continuous energy reference,
@@ -360,49 +416,49 @@ and to run the continuous energy reference,
 ```bash
 python make_openmc_model.py
 cardinal-opt -i solid_mesh.i --mesh-only
-cardinal-opt -i openmc.i --n-threads=4
+cardinal-opt -i openmc_mesh.i --mesh-only
+mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=4
 ```
 
-All of the above will use 4 OpenMP threads. To run the simulation
-faster, you can increase the number of OpenMP threads or decrease the number of particles. Bear
+All of the above will use 4 OpenMP threads and 2 MPI ranks. To run the simulation
+faster, you can increase the number of OpenMP threads and/or MPI ranks or decrease the number of particles. Bear
 in mind that decreasing the number of particles may result in a failure to converge when running
-[!ac](TRRM) as fewer source regions will be hit on each power iteration. The [!ac](TRRM) solver
-[does not support distributed memory calculations yet](https://github.com/openmc-dev/openmc/pull/3333),
-and so adding extra MPI ranks will not speed up the neutronics calculation as all work is done by
-rank zero.
+[!ac](TRRM) as fewer source regions will be hit on each power iteration.
 
 [table2] shows the resulting k-eigenvalues for each [!ac](TRRM) discretization approach compared
 against the continuous energy reference (10000 particles per batch, 1100 batches, 100 inactive batches)
-on the first Picard iteration before multiphysics feedback is applied. In general, the single physics
-[!ac](TRRM) calculations agree quite well with the continuous energy reference (within three standard
-deviations). [table3] shows the k-eigenvalues for each case on the final Picard iteration; the agreement
-is less than stellar and can be attributed to the use of isothermal temperature interpolation tables in
-the multiphysics model.
+on the first Picard iteration when only density feedback is applied. In general, the single physics
+[!ac](TRRM) calculations agree reasonably well with the continuous energy reference. The error in the
+results is likely caused by the coarse energy group structure, the use of isotropic (transport corrected)
+scattering cross sections, and a lack of equivalence methods to better treat U-238 resonance self-shielding.
+[table3] shows the k-eigenvalues for each case on the final Picard iteration; the agreement is less than
+stellar and can be attributed to the use of isothermal temperature interpolation tables in the multiphysics
+model.
 
 !table id=table2 caption=k-eigenvalue predictions on the initial Picard iteration.
 | Method | $k_{eff}$ | $k_{CE} - k_{TRRM}$ (PCM) |
 | :- | :- | :- |
-| CE Monte Carlo | $1.33133$ | N/A |
-| Flat Source | $1.33098$ | $35$ |
-| Linear Source | $1.33229$ | $−96$ |
+| CE Monte Carlo | $1.29812 \pm 34 \text{ PCM}$ | N/A |
+| Flat Source | $1.29972 \pm 41 \text{ PCM}$ | $−160$ |
+| Linear Source | $1.30112 \pm 41 \text{ PCM}$ | $−300$ |
 
 !table id=table3 caption=k-eigenvalue predictions on the final Picard iteration.
 | Method | $k_{eff}$ | $k_{CE} - k_{TRRM}$ (PCM) |
 | :- | :- | :- |
-| CE Monte Carlo | $1.30300$ | N/A |
-| Flat Source | $1.28327$ | $1973$ |
-| Linear Source | $1.28473$ | $1827$ |
+| CE Monte Carlo | $1.28009 \pm 34 \text{ PCM}$ | N/A |
+| Flat Source | $1.26686 \pm 36 \text{ PCM}$ | $1323$ |
+| Linear Source | $1.26838 \pm 36 \text{ PCM}$ | $1171$ |
 
 [rr_lwr_radial_comp] plots the center-plane radial fission heating distribution for the different
 spatial discretization schemes and compares them with the continuous energy reference on the final
-Picard iteration. There is a fairly large discrepancy (up to 10%) which is caused by over-exaggerated
-Doppler broadening in the fuel, depressing the center plane power compared to the continuous energy
+Picard iteration. There is a fairly large discrepancy (up to 5%) which is caused by over-exaggerated
+Doppler broadening in the fuel, depressing the pin power compared to the continuous energy
 result. We can confirm this trend by plotting the axial centerline power distribution in
-[rr_lwr_axial_comparison]. This shows a 10% under-prediction of power in the core center followed by
-an over-prediction as one moves from the core center towards the vacuum boundary condition. This showcases
+[rr_lwr_axial_comparison_power]. The continuous energy result is peaked towards the
+subchannel inlet (as expected), while the [!ac](TRRM) calculations are more cosine shaped. This showcases
 the need for reasonable [!ac](MGXS) temperature interpolation tables in multiphysics calculations; simple
-temperature isotherms will not suffice when there are large thermal gradients.
-[rr_lwr_axial_comparison] also demonstrates the advantage of [!ac](TRRM) - uniform statistical relative
+temperature isotherms will not suffice when there are large thermal gradients with strong temperature feedback.
+[rr_lwr_axial_comparison_power] also demonstrates the advantage of [!ac](TRRM) - uniform statistical relative
 errors across the problem domain. This is advantageous for whole-core calculations where Monte Carlo transport
 struggles to steer particles to the core periphery.
 
@@ -411,7 +467,23 @@ struggles to steer particles to the core periphery.
   caption=Comparison of the different [!ac](TRRM) spatial discretization approaches against continuous energy Monte Carlo radially.
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
-!media rr_lwr_axial_comparison.png
-  id=rr_lwr_axial_comparison
-  caption=Comparison of the different [!ac](TRRM) spatial discretization approaches against continuous energy Monte Carlo axially. Left: fission heating. Right: fission heating statistical relative error.
+!media rr_lwr_axial_comparison_power.png
+  id=rr_lwr_axial_comparison_power
+  caption=Comparison of fission heating (left) and fission heating relative error (right) computed by different [!ac](TRRM) spatial discretization approaches and the continuous energy Monte Carlo reference.
   style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+Similarily to the fission heating, the fuel temperature ([rr_lwr_axial_comparison_temps] - left) is also cosine
+shaped in the [!ac](TRRM) solution while the continuous energy reference is peaked towards the inlet. The coolant
+temperatures ([rr_lwr_axial_comparison_temps] - right) and densities ([rr_lwr_axial_comparison_density]) are almost
+identical between the different solvers, demonstrating how the subchannel solver is insensitive to the neutronics
+discretization for a single pincell.
+
+!media rr_lwr_axial_comparison_temps.png
+  id=rr_lwr_axial_comparison_temps
+  caption=Comparison of temperatures computed by different [!ac](TRRM) spatial discretization approaches against the continuous energy Monte Carlo reference. Left: fuel temperature. Right: coolant temperature.
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
+
+!media rr_lwr_axial_comparison_density.png
+  id=rr_lwr_axial_comparison_density
+  caption=Comparison of the density computed by different [!ac](TRRM) spatial discretization approaches against the continuous energy Monte Carlo reference.
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
