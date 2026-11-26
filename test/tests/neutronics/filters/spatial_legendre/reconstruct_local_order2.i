@@ -38,6 +38,11 @@
   []
 
   allow_renumbering = false
+
+  # Zero displacements (see the AuxVariables below), declared so that a displaced problem
+  # exists: MOOSE resets 'use_displaced_mesh' to false for any object created through
+  # addObject when the [Mesh] declares no 'displacements'.
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Problem]
@@ -92,6 +97,14 @@
     family = MONOMIAL
     order = CONSTANT
     block = '200'
+  []
+  # Zero displacements, present only so that a displaced problem is created. The expansion
+  # limits therefore match the undisplaced extent of block 200.
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
   []
 []
 

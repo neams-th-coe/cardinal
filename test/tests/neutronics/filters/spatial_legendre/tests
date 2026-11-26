@@ -40,7 +40,14 @@
   [displaced_mesh_rejects_limits]
     type = RunException
     input = reconstruct_order0.i
-    cli_args = 'Problem/Filters/SpatialLegendre/use_displaced_mesh=true'
+    # A displaced problem must exist for 'use_displaced_mesh' to survive construction:
+    # MOOSE resets the parameter to false for any object built through addObject when the
+    # [Mesh] declares no 'displacements'.
+    cli_args = "Mesh/displacements='disp_x disp_y disp_z'
+                AuxVariables/disp_x/initial_condition=0
+                AuxVariables/disp_y/initial_condition=0
+                AuxVariables/disp_z/initial_condition=0
+                Problem/Filters/SpatialLegendre/use_displaced_mesh=true"
     expect_err = "'minimum' and 'maximum' cannot be specified when 'use_displaced_mesh' is set"
     requirement = "The system shall error if explicit expansion limits are combined with "
                   "'use_displaced_mesh', which derives them from the mesh extent."

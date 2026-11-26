@@ -4,6 +4,12 @@
 # evaluation: a cached copy goes stale once a filter re-derives its limits, which would
 # make the reconstruction return zero outside the original extent and silently lose part
 # of the score.
+#
+# The displacements are identically zero here, so the expansion limits match the
+# undisplaced extent and the order-0 identity still holds exactly. They are declared
+# because a displaced problem must exist for 'use_displaced_mesh' to survive
+# construction: MOOSE resets that parameter to false for any object created through
+# addObject when the [Mesh] declares no 'displacements'.
 
 [Mesh]
   [sphere]
@@ -37,6 +43,8 @@
   []
 
   allow_renumbering = false
+
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Problem]
@@ -90,6 +98,13 @@
   [difference]
     family = MONOMIAL
     order = CONSTANT
+  []
+  # Zero displacements, present only so that a displaced problem is created.
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
   []
 []
 
