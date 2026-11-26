@@ -212,7 +212,7 @@ SpatialLegendreAux::computeValue()
 
   /**
    * Read the limits from the filter on every evaluation rather than caching them at
-   * construction. A filter using 'track_mesh' re-derives its limits from the [Mesh] each
+   * construction. A filter using 'use_displaced_mesh' re-derives its limits from the [Mesh] each
    * time the tallies are re-initialized, so a cached copy goes stale as soon as the domain
    * deforms. That previously made the reconstruction return zero in the outermost elements
    * (which had expanded past the initial limits), silently losing part of the score.

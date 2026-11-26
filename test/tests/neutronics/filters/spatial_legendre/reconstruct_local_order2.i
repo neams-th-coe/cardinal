@@ -1,5 +1,5 @@
 # Verifies the element-local Legendre expansion. A SpatialLegendreFilter restricted to
-# a single cell (block 200) with 'track_mesh' builds a basis spanning only that cell, so
+# a single cell (block 200) with 'use_displaced_mesh' builds a basis spanning only that cell, so
 # the order-2 expansion is a genuine sub-cell shape. Reconstructing it with
 # 'normalization = volumetric' must conserve the integral of the score: the tally
 # variables Cardinal writes are already divided by the mapped volume (which carries the
@@ -81,7 +81,7 @@
       type = SpatialLegendreFilter
       order = 2
       axis = z
-      track_mesh = true
+      use_displaced_mesh = true
       block = '200'
     []
   []

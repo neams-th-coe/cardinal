@@ -36,7 +36,7 @@ To expand a score *within* each element, give each cell its own tally and its ow
 
 ### Deforming domains
 
-The expansion limits are read from the filter on every evaluation rather than being cached, so a filter using [!param](/Problem/Filters/SpatialLegendreFilter/track_mesh) on a domain which deforms during the solve continues to reconstruct correctly as the domain grows. This matters because the reconstruction evaluates to zero outside $[x_{min}, x_{max}]$: were the limits cached, every element which had expanded past the original extent would silently reconstruct as zero, losing part of the score. That loss is easy to miss, because the reconstruction remains exact everywhere *inside* the stale extent. Verify a coupled reconstruction by checking that its integral matches the expected total (for instance a prescribed power), not by inspecting the shape of the field.
+The expansion limits are read from the filter on every evaluation rather than being cached, so a filter using [!param](/Problem/Filters/SpatialLegendreFilter/use_displaced_mesh) on a domain which deforms during the solve continues to reconstruct correctly as the domain grows. This matters because the reconstruction evaluates to zero outside $[x_{min}, x_{max}]$: were the limits cached, every element which had expanded past the original extent would silently reconstruct as zero, losing part of the score. That loss is easy to miss, because the reconstruction remains exact everywhere *inside* the stale extent. Verify a coupled reconstruction by checking that its integral matches the expected total (for instance a prescribed power), not by inspecting the shape of the field.
 
 ### Higher-order variables
 

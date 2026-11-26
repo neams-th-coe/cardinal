@@ -19,30 +19,31 @@
     input = reconstruct_local_order2.i
     csvdiff = reconstruct_local_order2_out.csv
     requirement = "The system shall support an element-local spatial Legendre expansion, built by "
-                  "restricting the filter to a single cell with 'block' and 'track_mesh'. "
+                  "restricting the filter to a single cell with 'block' and 'use_displaced_mesh'. "
                   "Reconstructing the order-2 expansion with 'normalization = volumetric' shall "
                   "conserve the integral of the score, confirming that the series weight accounts "
                   "for the mapped-volume division Cardinal already applies to tally variables."
     capabilities = 'openmc'
   []
-  [track_mesh_live_limits]
+  [displaced_mesh_live_limits]
     type = CSVDiff
-    input = track_mesh_order0.i
-    csvdiff = track_mesh_order0_out.csv
+    input = displaced_mesh_order0.i
+    csvdiff = displaced_mesh_order0_out.csv
     abs_zero = 1e-12
     requirement = "A SpatialLegendreAux shall read the expansion limits from its filter on every "
-                  "evaluation rather than caching them, so that a filter using 'track_mesh' on a "
-                  "deforming domain does not reconstruct zero in elements which have moved beyond "
-                  "the filter's initial extent (which silently loses part of the score)."
+                  "evaluation rather than caching them, so that a filter using "
+                  "'use_displaced_mesh' on a deforming domain does not reconstruct zero in "
+                  "elements which have moved beyond the filter's initial extent (which silently "
+                  "loses part of the score)."
     capabilities = 'openmc'
   []
-  [track_mesh_rejects_limits]
+  [displaced_mesh_rejects_limits]
     type = RunException
     input = reconstruct_order0.i
-    cli_args = 'Problem/Filters/SpatialLegendre/track_mesh=true'
-    expect_err = "'minimum' and 'maximum' cannot be specified when 'track_mesh' is set"
+    cli_args = 'Problem/Filters/SpatialLegendre/use_displaced_mesh=true'
+    expect_err = "'minimum' and 'maximum' cannot be specified when 'use_displaced_mesh' is set"
     requirement = "The system shall error if explicit expansion limits are combined with "
-                  "'track_mesh', which derives them from the mesh extent."
+                  "'use_displaced_mesh', which derives them from the mesh extent."
     capabilities = 'openmc'
   []
   [higher_order_variable]

@@ -54,7 +54,7 @@ protected:
 
   /**
    * NOTE: the expansion limits are deliberately NOT cached here. A filter using
-   * 'track_mesh' re-derives them whenever the tallies are re-initialized, so they are read
+   * 'use_displaced_mesh' re-derives them whenever the tallies are re-initialized, so they are read
    * from the filter on every evaluation in computeValue().
    */
 

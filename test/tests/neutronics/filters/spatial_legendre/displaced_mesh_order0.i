@@ -1,5 +1,5 @@
 # Same order-0 identity as reconstruct_order0.i, but with the expansion limits derived
-# from the [Mesh] extent via 'track_mesh' instead of being given explicitly. This covers
+# from the [Mesh] extent via 'use_displaced_mesh' instead of being given explicitly. This covers
 # the path where SpatialLegendreAux must read its limits from the filter on every
 # evaluation: a cached copy goes stale once a filter re-derives its limits, which would
 # make the reconstruction return zero outside the original extent and silently lose part
@@ -77,7 +77,7 @@
       type = SpatialLegendreFilter
       order = 0
       axis = z
-      track_mesh = true
+      use_displaced_mesh = true
     []
   []
 []

@@ -51,7 +51,7 @@ public:
   virtual std::string binName(unsigned int bin_index) const override;
 
   /**
-   * Refresh the expansion limits. When 'track_mesh' is set, the limits are recomputed from
+   * Refresh the expansion limits. When 'use_displaced_mesh' is set, the limits are recomputed from
    * the current (possibly displaced) [Mesh] bounding box, so that the expansion follows a
    * domain which deforms during the solve. Otherwise this is a no-op and the user-specified
    * limits are retained.
@@ -96,7 +96,7 @@ private:
    * Whether the expansion limits are recomputed from the [Mesh] bounding box each time the
    * tallies are re-initialized, so that the expansion tracks a deforming domain.
    */
-  const bool _track_mesh;
+  const bool _use_displaced_mesh;
 
   /// The minimum coordinate along '_axis' covered by the expansion, in centimeters.
   Real _min;

@@ -38,12 +38,12 @@ SpatialLegendreFilter::validParams()
       "axis", MooseEnum("x y z"), "The Cartesian axis the Legendre expansion is applied along.");
   params.addParam<Real>("minimum",
                         "The minimum coordinate along 'axis' which the expansion covers, "
-                        "in units of the [Mesh]. Not used if 'track_mesh' is set.");
+                        "in units of the [Mesh]. Not used if 'use_displaced_mesh' is set.");
   params.addParam<Real>("maximum",
                         "The maximum coordinate along 'axis' which the expansion covers, "
-                        "in units of the [Mesh]. Not used if 'track_mesh' is set.");
+                        "in units of the [Mesh]. Not used if 'use_displaced_mesh' is set.");
   params.addParam<bool>(
-      "track_mesh",
+      "use_displaced_mesh",
       false,
       "Whether to take the expansion limits from the extent of the [Mesh] along 'axis', "
       "refreshing them each time the tallies are re-initialized. Set this when the domain "
@@ -52,7 +52,7 @@ SpatialLegendreFilter::validParams()
       "extent. When set, 'minimum' and 'maximum' must not be provided.");
   params.addParam<std::vector<SubdomainName>>(
       "block",
-      "Restrict the extent used by 'track_mesh' to these subdomains. Use this to build an "
+      "Restrict the extent used by 'use_displaced_mesh' to these subdomains. Use this to build an "
       "element-local expansion: give each tally its own filter restricted to the same block, "
       "so that the Legendre basis spans just that element rather than the whole domain. An "
       "expansion whose basis spans the whole domain cannot represent a score that is "
@@ -65,7 +65,7 @@ SpatialLegendreFilter::SpatialLegendreFilter(const InputParameters & parameters)
   : FilterBase(parameters),
     _order(getParam<unsigned int>("order")),
     _axis(getParam<MooseEnum>("axis")),
-    _track_mesh(getParam<bool>("track_mesh")),
+    _use_displaced_mesh(getParam<bool>("use_displaced_mesh")),
     _min(0.0),
     _max(0.0)
 {
@@ -73,12 +73,12 @@ SpatialLegendreFilter::SpatialLegendreFilter(const InputParameters & parameters)
     mooseError(
         "SpatialLegendreFilter is presently not supported when running the random ray solver!");
 
-  if (_track_mesh)
+  if (_use_displaced_mesh)
   {
     if (isParamValid("minimum") || isParamValid("maximum"))
-      paramError("track_mesh",
-                 "'minimum' and 'maximum' cannot be specified when 'track_mesh' is set, because "
-                 "the expansion limits are taken from the [Mesh] extent.");
+      paramError("use_displaced_mesh",
+                 "'minimum' and 'maximum' cannot be specified when 'use_displaced_mesh' is set, "
+                 "because the expansion limits are taken from the [Mesh] extent.");
 
     std::tie(_min, _max) = limitsFromMesh();
   }
@@ -86,7 +86,7 @@ SpatialLegendreFilter::SpatialLegendreFilter(const InputParameters & parameters)
   {
     if (!isParamValid("minimum") || !isParamValid("maximum"))
       paramError("minimum",
-                 "'minimum' and 'maximum' are both required unless 'track_mesh' is set.");
+                 "'minimum' and 'maximum' are both required unless 'use_displaced_mesh' is set.");
 
     // The limits are given in [Mesh] units, but OpenMC's filter works in centimeters.
     _min = getParam<Real>("minimum") * _openmc_problem.scaling();
@@ -160,7 +160,7 @@ SpatialLegendreFilter::limitsFromMesh() const
 void
 SpatialLegendreFilter::updateFilter()
 {
-  if (!_track_mesh)
+  if (!_use_displaced_mesh)
     return;
 
   const auto [min, max] = limitsFromMesh();
