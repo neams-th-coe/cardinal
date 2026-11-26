@@ -22,7 +22,7 @@
     type = RunException
     input = 'errors.i'
     cli_args = 'AuxKernels/AMR_fom/tally_value_init=kappa_fission_init'
-    expect_err = "tally_value is uncoupled!"
+    expect_err = "The required coupled variable 'tally_value' has not been provided!"
     requirement = "The system shall ensure a tally variable is provided when using the AMR FoM."
     capabilities = 'openmc'
   []
@@ -30,7 +30,7 @@
     type = RunException
     input = 'errors.i'
     cli_args = 'AuxKernels/AMR_fom/tally_value=kappa_fission'
-    expect_err = "tally_value_init is uncoupled!"
+    expect_err = "The required coupled variable 'tally_value_init' has not been provided!"
     requirement = "The system shall ensure an initial tally variable is provided when using the AMR FoM."
     capabilities = 'openmc'
   []

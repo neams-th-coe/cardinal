@@ -89,7 +89,7 @@ Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://ww
 8. [Temperature, density, and tally coupling to MOOSE](openmc_solid.md)
 9. [Adaptive mesh refinement on mesh tallies](openmc_amr.md)
 10. [Multi-group cross section generation](openmc_mgxs.md)
-11. [Temperature and tally coupling between OpenMC's random ray solver and MOOSE](rr_lwr_pincell.md)
+11. [Temperature, density, and tally coupling between OpenMC's random ray solver and MOOSE](rr_lwr_pincell.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
