@@ -2266,6 +2266,11 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_local_tallies.size() == 0)
     return;
 
+  // Refresh any filters whose definition depends on the problem state (e.g. a functional
+  // expansion over a deforming domain) before the tallies pick them up.
+  for (auto & filter : _filters)
+    filter.second->updateFilter();
+
   // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();

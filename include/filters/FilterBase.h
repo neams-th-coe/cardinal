@@ -68,6 +68,15 @@ public:
   int numBins() const { return _filter->n_bins(); }
 
   /**
+   * Update the wrapped OpenMC filter in-place. This is called every time the tally system
+   * re-initializes its tallies, which happens whenever the coupling is re-initialized (for
+   * instance when the MoabSkinner regenerates a moving geometry). Filters whose definition
+   * depends on the problem state, such as a functional expansion over a deforming domain,
+   * should override this to refresh themselves; non-spatial filters need not do anything.
+   */
+  virtual void updateFilter() {}
+
+  /**
    * Get the OpenMC filter that this object wraps.
    * @return the OpenMC filter object
    */

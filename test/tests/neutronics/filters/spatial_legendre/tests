@@ -1,0 +1,207 @@
+[Tests]
+  design = 'SpatialLegendreFilter.md SpatialLegendreAux.md'
+
+  [reconstruct_order0]
+    type = CSVDiff
+    input = reconstruct_order0.i
+    csvdiff = reconstruct_order0_out.csv
+    # The differences compared are at the level of floating point roundoff relative to the
+    # tally magnitude, so they are golded as exact zeros with an absolute tolerance.
+    abs_zero = 1e-12
+    requirement = "The system shall evaluate a tally which has been expanded in spatial Legendre "
+                  "polynomials onto the mesh. For an order-0 expansion covering the entire "
+                  "geometry, the reconstructed field shall reproduce an equivalent tally computed "
+                  "without a spatial Legendre filter."
+    capabilities = 'openmc'
+  []
+  [reconstruct_local_order2]
+    type = CSVDiff
+    input = reconstruct_local_order2.i
+    csvdiff = reconstruct_local_order2_out.csv
+    requirement = "The system shall support an element-local spatial Legendre expansion, built by "
+                  "restricting the filter to a single cell with 'block' and 'use_displaced_mesh'. "
+                  "Reconstructing the order-2 expansion with 'normalization = volumetric' shall "
+                  "conserve the integral of the score, confirming that the series weight accounts "
+                  "for the mapped-volume division Cardinal already applies to tally variables."
+    capabilities = 'openmc'
+  []
+  [displaced_mesh_live_limits]
+    type = CSVDiff
+    input = displaced_mesh_order0.i
+    csvdiff = displaced_mesh_order0_out.csv
+    abs_zero = 1e-12
+    requirement = "A SpatialLegendreAux shall read the expansion limits from its filter on every "
+                  "evaluation rather than caching them, so that a filter using "
+                  "'use_displaced_mesh' on a deforming domain does not reconstruct zero in "
+                  "elements which have moved beyond the filter's initial extent (which silently "
+                  "loses part of the score)."
+    capabilities = 'openmc'
+  []
+  [displaced_mesh_rejects_limits]
+    type = RunException
+    input = reconstruct_order0.i
+    # A displaced problem must exist for 'use_displaced_mesh' to survive construction:
+    # MOOSE resets the parameter to false for any object built through addObject when the
+    # [Mesh] declares no 'displacements'.
+    cli_args = "Mesh/displacements='disp_x disp_y disp_z'
+                AuxVariables/disp_x/initial_condition=0
+                AuxVariables/disp_y/initial_condition=0
+                AuxVariables/disp_z/initial_condition=0
+                Problem/Filters/SpatialLegendre/use_displaced_mesh=true"
+    expect_err = "'minimum' and 'maximum' cannot be specified when 'use_displaced_mesh' is set"
+    requirement = "The system shall error if explicit expansion limits are combined with "
+                  "'use_displaced_mesh', which derives them from the mesh extent."
+    capabilities = 'openmc'
+  []
+  [higher_order_variable]
+    type = RunApp
+    input = reconstruct_order0.i
+    cli_args = 'AuxVariables/reconstructed/order=FIRST AuxVariables/difference/order=FIRST
+                Problem/Filters/SpatialLegendre/order=3
+                AuxKernels/reconstruct/normalization=volumetric'
+    requirement = "The system shall support projecting a spatial Legendre expansion onto "
+                  "higher-order elemental auxvariables, evaluating the expansion at each "
+                  "quadrature point."
+    capabilities = 'openmc'
+  []
+  [force_collision_or_analog]
+    type = RunException
+    input = reconstruct_order0.i
+    cli_args = 'Problem/Tallies/Expansion/estimator=tracklength'
+    expect_err = "The filter SpatialLegendre requires a collision or analog estimator!"
+    requirement = "The system shall error if the user attempts to use a tracklength estimator with "
+                  "a SpatialLegendreFilter, because OpenMC scores the filter at the particle "
+                  "position."
+    capabilities = 'openmc'
+  []
+  [missing_filter]
+    type = RunException
+    input = reconstruct_order0.i
+    cli_args = 'AuxKernels/reconstruct/tally=Plain'
+    expect_err = "The tally 'Plain' accumulating the score 'scatter' does not have a "
+                 "SpatialLegendreFilter applied to it!"
+    requirement = "The system shall error if a SpatialLegendreAux is applied to a tally which does "
+                  "not have a SpatialLegendreFilter."
+    capabilities = 'openmc'
+  []
+  [mesh_units]
+    type = CSVDiff
+    input = reconstruct_order0.i
+    # Scales the [Mesh] to meters and gives the expansion limits in meters, so the order-0
+    # identity only holds if 'minimum' and 'maximum' are converted to OpenMC's centimeters
+    # with 'scaling'. Without the conversion the limits span 0.12 cm instead of 12 cm, so
+    # nearly every element falls outside the expansion and reconstructs as zero.
+    cli_args = "Mesh/to_meters/type=TransformGenerator
+                Mesh/to_meters/input=combine
+                Mesh/to_meters/transform=SCALE
+                Mesh/to_meters/vector_value='0.01 0.01 0.01'
+                Problem/scaling=100.0
+                Problem/Filters/SpatialLegendre/minimum=-0.02
+                Problem/Filters/SpatialLegendre/maximum=0.1
+                Outputs/file_base=mesh_units_out"
+    csvdiff = mesh_units_out.csv
+    abs_zero = 1e-12
+    requirement = "The spatial Legendre expansion limits shall be specified in the units of the "
+                  "[Mesh], consistent with every other Cardinal object, and converted to the "
+                  "centimeters OpenMC expects using 'scaling'."
+    capabilities = 'openmc'
+  []
+  [invalid_minmax]
+    type = RunException
+    input = reconstruct_order0.i
+    cli_args = 'Problem/Filters/SpatialLegendre/maximum=-2.0'
+    expect_err = "'maximum' must be greater than 'minimum'!"
+    requirement = "The system shall error if the spatial Legendre expansion limits are inverted."
+    capabilities = 'openmc'
+  []
+  [invalid_ext_bin]
+    type = RunException
+    input = reconstruct_order0.i
+    cli_args = 'AuxKernels/reconstruct/ext_filter_bin=1'
+    expect_err = "The external filter bin provided is invalid for the number of external filter "
+                 "bins \(1\) applied to 'scatter'"
+    requirement = "The system shall error if an invalid external filter bin is requested when "
+                  "evaluating a spatial Legendre expansion."
+    capabilities = 'openmc'
+  []
+
+  [normalization]
+    type = CSVDiff
+    input = normalization.i
+    csvdiff = normalization_out.csv
+    requirement = "The system shall support weighting the coefficients of a spatial Legendre "
+                  "reconstruction with the 'volumetric', 'raw', and 'none' normalizations. The "
+                  "'raw' and 'volumetric' weights shall differ by exactly a factor of one over "
+                  "the length of the expansion domain for every moment, and 'none' shall differ "
+                  "from 'volumetric' whenever moments above l = 0 are retained."
+    capabilities = 'openmc'
+  []
+  [normalization_none_order0]
+    type = CSVDiff
+    input = normalization.i
+    cli_args = "Problem/Filters/SpatialLegendre/order=0
+                Postprocessors/none_differs_from_volumetric/expression='abs(int_none - int_volumetric) / abs(int_volumetric) < 1e-12'
+                Outputs/file_base=normalization_none_order0_out"
+    csvdiff = normalization_none_order0_out.csv
+    requirement = "The 'none' and 'volumetric' normalizations of a spatial Legendre "
+                  "reconstruction shall agree for an order-0 expansion, where the only retained "
+                  "moment has a weight of 2l + 1 = 1."
+    capabilities = 'openmc'
+  []
+
+  [max_order]
+    type = CSVDiff
+    input = max_order.i
+    csvdiff = max_order_out.csv
+    # The truncated expansion reproduces the independent order-0 expansion to within
+    # floating point roundoff, so the differences are golded as exact zeros.
+    abs_zero = 1e-12
+    requirement = "The system shall support truncating a spatial Legendre reconstruction below "
+                  "the order the filter tallied with 'max_order'. Because the Legendre moments do "
+                  "not depend on the truncation order, truncating an order-3 expansion at order 0 "
+                  "shall exactly reproduce an independently tallied order-0 expansion of the same "
+                  "score, while still differing from the untruncated order-3 reconstruction."
+    capabilities = 'openmc'
+  []
+  [max_order_exceeds_filter]
+    type = RunException
+    input = max_order.i
+    cli_args = 'AuxKernels/reconstruct_truncated/max_order=4'
+    expect_err = "'max_order' \(4\) cannot exceed the order of the filter 'SpatialLegendre' \(3\), "
+                 "which only tallied moments up to that order"
+    requirement = "The system shall error if a spatial Legendre reconstruction is truncated at an "
+                  "order above the order the filter tallied, for which no moments exist."
+    capabilities = 'openmc'
+  []
+  [max_order_equal_to_filter]
+    type = RunApp
+    input = max_order.i
+    # A distinct 'file_base' keeps this from overwriting the CSV the 'max_order' CSVDiff
+    # test compares, since both run the same input concurrently.
+    cli_args = 'AuxKernels/reconstruct_truncated/max_order=3
+                Outputs/file_base=max_order_equal_out'
+    requirement = "The system shall permit truncating a spatial Legendre reconstruction at exactly "
+                  "the order the filter tallied, which retains every moment."
+    capabilities = 'openmc'
+  []
+
+  [multiple_filters_require_name]
+    type = RunException
+    input = ambiguous_filter.i
+    expect_err = "has multiple SpatialLegendreFilter\(s\) applied to it. Please specify which one "
+                 "this auxkernel should evaluate with 'filter'"
+    requirement = "The system shall error if a spatial Legendre reconstruction is applied to a "
+                  "tally carrying more than one spatial Legendre filter without specifying which "
+                  "filter to evaluate."
+    capabilities = 'openmc'
+  []
+  [unknown_filter_name]
+    type = RunException
+    input = max_order.i
+    cli_args = 'AuxKernels/reconstruct_truncated/filter=NotAFilter'
+    expect_err = "does not have a SpatialLegendreFilter named 'NotAFilter' applied to it!"
+    requirement = "The system shall error if a spatial Legendre reconstruction names a filter "
+                  "which is not applied to its tally."
+    capabilities = 'openmc'
+  []
+[]
