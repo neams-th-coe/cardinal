@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid1]
     type = SubdomainIDGenerator
@@ -10,7 +10,7 @@
   []
   [sphereb]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid2]
     type = SubdomainIDGenerator
@@ -19,7 +19,7 @@
   []
   [spherec]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/hex_cube.e
   []
   [solid3]
     type = SubdomainIDGenerator
@@ -50,6 +50,8 @@
 
   power = 100.0
 
+  # If block restriction fails, local normalization will decrease the
+  # power density of the tested element
   [Tallies]
     [Mesh]
       type = MeshTally
@@ -64,8 +66,16 @@
   type = Steady
 []
 
+[Postprocessors]
+  [pebble_2_pd]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 4.0'
+  []
+[]
+
 [Outputs]
   execute_on = final
-  exodus = true
+  csv = true
   hide = 'temp cell_instance cell_id'
 []
