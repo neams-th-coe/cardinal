@@ -107,14 +107,7 @@ c-----------------------------------------------------------------------
 
       do iel=1,nelt
       do ifc=1,2*ndim
-         if (boundaryID(ifc,iel).eq. 1) then
-           boundaryID(ifc,iel) = 1
-           cbc(ifc,iel,1)= 'W  '
-         else if (boundaryID(ifc,iel).eq. 2) then
-           boundaryID(ifc,iel) = 0
-         else if (boundaryID(ifc,iel) .eq. 3) then
-           boundaryID(ifc,iel) = 0
-         endif
+         if (boundaryID(ifc,iel).eq. 1) cbc(ifc,iel,1)= 'W  '
       enddo
       enddo
 

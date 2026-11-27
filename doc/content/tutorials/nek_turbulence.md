@@ -245,16 +245,11 @@ boundary IDs are 2 and 3.
 exo2nek
 ```
 
-Now, we have a new `pipe.re2` file. For periodic cases, we need to have a `.usr`
-file to (i) set the boundary IDs of any sidesets which are to be periodic to zero
-and (ii) renormalize any remaining boundary IDs so that they are sequential beginning
-at 1.
-
-!listing /tutorials/turbulence/periodic/pipe.usr language=fortran
-
-Then, in our `.par` file, we will only refer to the non-periodic boundaries which remain
-(so, our `boundaryTypeMap` fields will only list the boundary condition for the solid
-walls since that is the only boundary remaining in our mesh).
+Now, we have a new `pipe.re2` file. In our `.par` file, the `boundaryTypeMap` fields
+list one entry for each of the three boundary IDs in the mesh. The solid wall
+(boundary 1) gets its usual boundary condition, while the two periodic boundaries
+(2 and 3) are set to `none`, which tells NekRS to apply no boundary condition there.
+No `.usr` file is needed to renumber the boundary IDs.
 
 !listing /tutorials/turbulence/periodic/pipe.par
 
