@@ -172,7 +172,7 @@ NekBinnedPlaneIntegral::executeUserObject()
 
   // correct the values to areas
   for (unsigned int i = 0; i < _n_bins; ++i)
-    _bin_values[i] /= _gap_thickness;
+    _bin_values[i] /= (_gap_thickness * nekrs::referenceLength());
 }
 
 #endif
