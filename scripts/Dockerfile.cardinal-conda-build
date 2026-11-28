@@ -1,0 +1,56 @@
+# Build and install Cardinal using the MOOSE conda environment in a Docker image
+#
+# Divided into the following targets:
+#
+# cardinal-conda-base: starting from an Ubuntu 24.04 image:
+#     * installs minimal packages
+#     * downloads and runs the miniforge installer
+#     * runs conda init and adds the INL channel
+#     * creats a moose environment
+#
+# cardinal-conda-deps:
+#     * clone cardinal repo
+#     * run the get-dependency script
+#
+# cardinal:
+#     * make cardinal using specific environment variables
+#
+FROM ubuntu:24.04 AS cardinal-conda-base
+
+RUN apt update --yes
+RUN apt install --yes curl cmake mpich git
+
+WORKDIR /cardinal_build
+
+RUN curl -L -O https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh && \
+    bash Miniforge3-Linux-x86_64.sh -b -p ~/miniforge && \
+    rm Miniforge3-Linux-x86_64.sh
+
+ENV PATH=/cardinal_build/miniforge/bin:$PATH
+
+RUN conda init --all 
+
+RUN conda update --all --yes && \
+    conda config --add channels https://conda.software.inl.gov/public && \
+    conda create -n moose moose
+
+FROM cardinal-conda-base AS cardinal-conda-deps
+
+RUN git clone https://github.com/neams-th-coe/cardinal.git
+
+WORKDIR /cardinal_build/cardinal
+
+# adding these shell arguments ensures that conda is properly instantiated
+# with each invocation of the shell
+SHELL ["/bin/bash", "-i", "-c"]
+
+RUN conda activate moose && \
+     ./scripts/get-dependencies.sh
+
+FROM cardinal-conda-deps AS cardinal
+
+RUN conda activate moose && \
+    export HDF5_ROOT=$CONDA_PREFIX && \
+    export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH && \
+    export ENABLE_NEK=false && \
+    make -j8
