@@ -1,0 +1,11 @@
+[Tests]
+  design = 'CriticalitySearchHistory.md'
+  issues = '#1481'
+  [translation_search]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_CSV_history_0001.csv
+    requirement = 'The system shall output the criticality search history using the CriticalitySearchHistory vector postprocessor.'
+    capabilities = 'openmc'
+  []
+[]
