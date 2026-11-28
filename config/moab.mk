@@ -21,6 +21,8 @@ $(MOAB_BUILDDIR)/Makefile: $(MOAB_DIR)/CMakeLists.txt
 
 build_moab: | $(MOAB_BUILDDIR)/Makefile
 	$(MAKE) VERBOSE=1 -C $(MOAB_BUILDDIR) install
+	sed -i 's/set(MOAB_LIBRARIES "\(.*\)")/string(STRIP "\1" MOAB_LIBRARIES)/' \
+	  $(MOAB_INSTALL_DIR)/lib/cmake/MOAB/MOABConfig.cmake
 
 cleanall_moab: | $(MOAB_BUILDDIR)/Makefile
 	$(MAKE) -C $(MOAB_BUILDDIR) uninstall clean

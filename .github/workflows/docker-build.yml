@@ -1,0 +1,73 @@
+name: Build Docker image
+
+on:
+  push:
+    branches:
+      - devel
+
+# Cancel an in-flight build when a newer commit lands, rather than
+# queuing redundant builds.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    # Guards against a fork running this unintentionally (e.g. by syncing a
+    # branch this triggers on from upstream) if Actions happen to already be
+    # enabled there -- GHA triggers per-repository on whatever copy of this
+    # file the push lands on, not just in the canonical repo.
+    if: github.repository == 'neams-th-coe/cardinal'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Cardinal
+        uses: actions/checkout@v7
+
+      - name: Set build metadata
+        id: meta
+        run: |
+          echo "date=$(date -u +%Y.%m.%d)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Ask contrib/moose itself (via its own scripts/versioner.py) which
+      # moose-dev tag this pinned commit was tested against, rather than
+      # guessing from moose-dev:latest on Docker Hub. A shallow fetch is
+      # enough -- versioner.py reads file contents at HEAD, not history.
+      - name: Resolve required moose-dev tag
+        id: moosedev
+        run: |
+          git submodule update --init --depth 1 --progress contrib/moose
+          pip install --quiet pyyaml jinja2
+          tag=$(python3 contrib/moose/scripts/versioner.py moose-dev HEAD --json | \
+            python3 -c "import json, sys; print(json.load(sys.stdin)['apptainer']['tag'])")
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          # Defaults to false; forces a fresh pull of the resolved moose-dev tag.
+          pull: true
+          build-args: |
+            MOOSEDEV_TAG=${{ steps.moosedev.outputs.tag }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/cardinal:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/cardinal:${{ github.ref_name }}-${{ steps.meta.outputs.date }}-${{ steps.meta.outputs.short_sha }}-moosedev-${{ steps.moosedev.outputs.tag }}
+          # Persists the layer cache across runs (each run is a fresh VM).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

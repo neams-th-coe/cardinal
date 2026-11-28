@@ -1,5 +1,10 @@
 $(DOUBLEDOWN_BUILDDIR)/Makefile: build_moab build_embree | $(DOUBLEDOWN_DIR)/CMakeLists.txt
 	mkdir -p $(DOUBLEDOWN_BUILDDIR)
+	sed -i \
+	  -e 's/-march=native //' \
+	  -e '/set(CMAKE_CXX_FLAGS "$${CMAKE_CXX_FLAGS} -mavx2")/d' \
+	  -e '/set(CMAKE_C_FLAGS "$${CMAKE_C_FLAGS} -mavx2")/d' \
+	  $(DOUBLEDOWN_DIR)/CMakeLists.txt
 	cd $(DOUBLEDOWN_BUILDDIR) && \
 	cmake -L \
 	-DEMBREE_DIR=$(EMBREE_INSTALL_DIR) \
