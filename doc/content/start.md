@@ -42,3 +42,5 @@ Please select your case:
 
 - [I want to use MOOSE's conda environment](with_conda.md)
 - [I do NOT want to use MOOSE's conda environment](without_conda.md)
+
+if you want build Cardinal and dynamically link it with an external (pre-built) MOOSE app use the [external app instructions](external_app.md).
